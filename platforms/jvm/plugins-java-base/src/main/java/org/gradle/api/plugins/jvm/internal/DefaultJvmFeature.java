@@ -395,7 +395,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     @Override
     public NamedDomainObjectProvider<ConsumableConfiguration> maybeRegisterJavadocElements() {
         if (javadocElements == null) {
-            this.javadocElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+            this.javadocElements = JvmPluginsHelper.createInternalDocumentationVariantWithArtifact(
                 sourceSet.getJavadocElementsConfigurationName(),
                 SourceSet.isMain(sourceSet) ? null : name,
                 JAVADOC,
@@ -411,7 +411,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     @Override
     public NamedDomainObjectProvider<ConsumableConfiguration> maybeRegisterSourcesElements() {
         if (sourcesElements == null) {
-            this.sourcesElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+            this.sourcesElements = JvmPluginsHelper.createInternalDocumentationVariantWithArtifact(
                 sourceSet.getSourcesElementsConfigurationName(),
                 SourceSet.isMain(sourceSet) ? null : name,
                 SOURCES,

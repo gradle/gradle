@@ -18,6 +18,7 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -45,6 +46,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.jspecify.annotations.Nullable;
 
@@ -109,7 +111,7 @@ public class JvmPluginsHelper {
         }
     }
 
-    public static NamedDomainObjectProvider<ConsumableConfiguration> createDocumentationVariantWithArtifact(
+    public static NamedDomainObjectProvider<ConsumableConfiguration> createInternalDocumentationVariantWithArtifact(
         String variantName,
         @Nullable String featureName,
         String docsType,
@@ -132,6 +134,25 @@ public class JvmPluginsHelper {
 
             variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));
         });
+    }
+
+    /**
+     * This was kept for backwards compatibility with https://github.com/vanniktech/gradle-maven-publish-plugin
+     */
+    public static Configuration createDocumentationVariantWithArtifact(
+        String variantName,
+        @Nullable String featureName,
+        String docsType,
+        Set<Capability> capabilities,
+        String jarTaskName,
+        Object artifactSource,
+        ProjectInternal project
+    ) {
+        DeprecationLogger.deprecateInternalApi("JvmPluginsHelper.createDocumentationVariantWithArtifact()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "TODO")
+            .nagUser();
+        return createInternalDocumentationVariantWithArtifact(variantName, featureName, docsType, capabilities, jarTaskName, artifactSource, project).get();
     }
 
     private static TaskProvider<Jar> maybeRegisterDocumentationJarTask(
