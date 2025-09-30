@@ -71,7 +71,8 @@ public interface GenericTestExecutionResult {
         JUNIT4,
         KOTLIN_TEST,
         SCALA_TEST,
-        XC_TEST
+        XC_TEST,
+        CUSTOM,
     }
 
     /**
