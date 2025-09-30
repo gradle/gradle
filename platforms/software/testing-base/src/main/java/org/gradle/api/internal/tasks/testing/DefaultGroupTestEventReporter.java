@@ -36,7 +36,12 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
 
     @Override
     public DefaultTestEventReporter reportTest(String name, String displayName) {
-        return reportTestDirectly(new DefaultTestDescriptor(idGenerator.generateId(), testDescriptor.getClassName(), name, testDescriptor.getClassDisplayName(), displayName));
+        return reportTestDirectly(
+            new DecoratingTestDescriptor(
+                new DefaultTestDescriptor(idGenerator.generateId(), testDescriptor.getClassName(), name, testDescriptor.getClassDisplayName(), displayName),
+                this.testDescriptor
+            )
+        );
     }
 
     @Override
@@ -53,7 +58,12 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
 
     @Override
     public DefaultGroupTestEventReporter reportTestGroup(String name) {
-        return reportTestGroupDirectly(new DefaultTestClassDescriptor(idGenerator.generateId(), name));
+        return reportTestGroupDirectly(
+            new DecoratingTestDescriptor(
+                new DefaultTestClassDescriptor(idGenerator.generateId(), name),
+                this.testDescriptor
+            )
+        );
     }
 
     @Override
