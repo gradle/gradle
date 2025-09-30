@@ -17,10 +17,9 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.internal.tasks.testing.report.generic.TestPathRootExecutionResult;
 import org.gradle.integtests.fixtures.SourceFile;
-import org.gradle.integtests.fixtures.TestClassExecutionResult;
 import org.gradle.util.internal.CollectionUtils;
-import org.hamcrest.CoreMatchers;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -134,15 +133,14 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
 
     public abstract List<XCTestCaseElement> getTestCases();
 
-    @SuppressWarnings("unchecked")
-    public void assertTestCasesRan(TestClassExecutionResult testExecutionResult) {
-        testExecutionResult.assertTestCount(getTestCount(), getFailureCount());
+    public void assertTestCasesRan(TestPathRootExecutionResult testExecutionResult) {
+        testExecutionResult.assertChildCount(getTestCount(), getFailureCount());
 
         for (XCTestCaseElement testCase : getTestCases()) {
             if (testCase.isExpectFailure()) {
-                testExecutionResult.assertTestFailed(testCase.getName(), CoreMatchers.anything());
+                testExecutionResult.assertChildrenFailed(testCase.getName());
             } else {
-                testExecutionResult.assertTestPassed(testCase.getName());
+                testExecutionResult.assertChildrenSucceeded(testCase.getName());
             }
         }
     }

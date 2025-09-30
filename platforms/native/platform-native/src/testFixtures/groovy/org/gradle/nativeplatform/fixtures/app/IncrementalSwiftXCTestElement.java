@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.fixtures.app;
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult;
 import org.gradle.integtests.fixtures.SourceFile;
-import org.gradle.integtests.fixtures.TestExecutionResult;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.List;
@@ -49,11 +49,11 @@ public abstract class IncrementalSwiftXCTestElement extends IncrementalSwiftElem
         }.writeToProject(projectDir);
     }
 
-    public void assertTestCasesRan(TestExecutionResult testExecutionResult) {
+    public void assertTestCasesRan(GenericTestExecutionResult testExecutionResult) {
         XCTestSourceElement.assertTestCasesRanInSuite(testExecutionResult, getTestSuites());
     }
 
-    public void assertAlternateTestCasesRan(TestExecutionResult testExecutionResult) {
+    public void assertAlternateTestCasesRan(GenericTestExecutionResult testExecutionResult) {
         XCTestSourceElement.assertTestCasesRanInSuite(testExecutionResult, getAlternateTestSuites());
     }
 

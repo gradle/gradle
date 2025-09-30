@@ -70,6 +70,7 @@ public interface TestPathRootExecutionResult {
 
 
     TestPathRootExecutionResult assertChildrenFailed(String... testNames);
+    TestPathRootExecutionResult assertChildrenSucceeded(String... testNames);
 
     /**
      * Returns the number of child tests that were failed for the current test path.

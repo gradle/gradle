@@ -361,6 +361,12 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         @Override
+        TestPathRootExecutionResult assertChildrenSucceeded(String... testNames) {
+            assertThat("in " + getDisplayName(), testsSucceeded.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            return null
+        }
+
+        @Override
         int getFailedChildCount() {
             return testsFailures.size()
         }

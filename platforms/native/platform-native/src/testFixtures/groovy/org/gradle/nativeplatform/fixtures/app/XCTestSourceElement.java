@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestExecutionResult;
 import org.gradle.util.internal.CollectionUtils;
@@ -93,13 +94,13 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
 
     public abstract List<XCTestSourceFileElement> getTestSuites();
 
-    public void assertTestCasesRan(TestExecutionResult testExecutionResult) {
+    public void assertTestCasesRan(GenericTestExecutionResult testExecutionResult) {
         assertTestCasesRanInSuite(testExecutionResult, getTestSuites());
     }
 
-    static void assertTestCasesRanInSuite(TestExecutionResult testExecutionResult, List<XCTestSourceFileElement> testSuites) {
+    static void assertTestCasesRanInSuite(GenericTestExecutionResult testExecutionResult, List<XCTestSourceFileElement> testSuites) {
         for (XCTestSourceFileElement element : testSuites) {
-            element.assertTestCasesRan(testExecutionResult.testClass(element.getTestSuiteName()));
+            element.assertTestCasesRan(testExecutionResult.testPath(element.getTestSuiteName()).onlyRoot());
         }
     }
 
