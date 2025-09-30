@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -329,6 +330,7 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * The list of available gradle distribution types.
      */
+    @Internal
     @Deprecated
     public List<DistributionType> getAvailableDistributionTypes() {
         DeprecationLogger.deprecateMethod(Wrapper.class, "getAvailableDistributionTypes")
