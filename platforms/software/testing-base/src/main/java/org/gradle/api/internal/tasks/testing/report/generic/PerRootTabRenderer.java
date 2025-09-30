@@ -161,7 +161,14 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     .attribute("id", failureOutputId)
                     .characters("");
                 for (SerializableFailure failure : info.getResult().getFailures()) {
-                    htmlWriter.characters(failure.getStackTrace());
+                    // There is confusion here over if we should show the message if there is a stack trace.
+                    // See https://github.com/gradle/gradle/issues/35176
+                    if (failure.getStackTrace().isEmpty()) {
+                        // We need to show the message
+                        htmlWriter.characters(failure.getMessage() + "\n");
+                    } else {
+                        htmlWriter.characters(failure.getStackTrace());
+                    }
                     for (int i = 0; i < failure.getCauses().size(); i++) {
                         htmlWriter.characters("Cause " + (i+1) + ": " + failure.getCauses().get(i) + "\n");
                     }
