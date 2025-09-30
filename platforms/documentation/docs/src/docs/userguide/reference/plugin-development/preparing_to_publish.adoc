@@ -1,0 +1,147 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[preparing_to_publish_plugins]]
+= Preparing to Publish
+
+Before you can share your Gradle plugin with others, you’ll need to package it into JAR files and generate the accompanying metadata.
+Gradle’s publishing plugins provide tasks to help you prepare artifacts for distribution to repositories such as a local Maven repository, Maven Central, JFrog Artifactory, or the Gradle Plugin Portal.
+
+== Applying the Publishing Plugin
+
+To get started, apply the appropriate publishing plugin:
+
+1. To publish to the Plugin Portal, apply the Plugin Publishing Plugin in your plugin project’s build file.
+2. To publish to a Maven repository, apply the Maven Publishing Plugin in your plugin project’s build file.
+3. To publish to an Ivy repository, apply the Ivy Publishing Plugin in your plugin project’s build file.
+4. For other formats, you can use community-supported publishing plugins.
+
+[source,kotlin]
+----
+plugins {
+    id("maven-publish")                                         // Maven
+    id("ivy-publish")                                           // Ivy
+    id("com.gradle.plugin-publish") version "<latest-version>"  // Plugin Portal
+}
+----
+
+Applying one of these plugins adds tasks that create the metadata and artifacts (JARs, POMs, plugin markers) needed for publication.
+You can list the available tasks:
+
+[source,bash]
+----
+./gradlew tasks --all
+----
+
+== Minimum Configuration
+
+Before you can publish, you must declare:
+
+- A **plugin ID** and **implementation class** in the `gradlePlugin` block.
+- A **group** and **version** for the plugin project.
+
+[source,kotlin]
+----
+group = "org.example"
+version = "1.0.0"
+
+gradlePlugin {
+    plugins {
+        create("greeting") {
+            id = "org.example.greeting"
+            implementationClass = "org.example.GreetingPlugin"
+        }
+    }
+}
+----
+
+This configuration ensures that Gradle can generate the plugin marker artifacts and metadata required for repositories.
+
+== Local Publishing
+
+To verify your plugin before pushing it to a remote repository, you can publish to a local Maven directory:
+
+[source,kotlin]
+----
+publishing {
+    repositories {
+        maven {
+            url = uri(layout.buildDirectory.dir("local-repo"))
+        }
+    }
+}
+----
+
+Run the `publish` task:
+
+[source,bash]
+----
+./gradlew publish
+----
+
+This will create a local Maven repository under `build/local-repo`:
+
+[source,text]
+----
+build/local-repo/
+└── org/
+    └── example/
+        ├── greeting/
+        │   └── 1.0.0/
+        │       ├── greeting-1.0.0.jar
+        │       ├── greeting-1.0.0.jar.sha1
+        │       ├── greeting-1.0.0.jar.sha256
+        │       ├── greeting-1.0.0.module
+        │       ├── greeting-1.0.0.module.sha1
+        │       ├── greeting-1.0.0.module.sha256
+        │       ├── greeting-1.0.0.pom
+        │       ├── greeting-1.0.0.pom.sha1
+        │       ├── greeting-1.0.0.pom.sha256
+        │       └── greeting-1.0.0-sources.jar  // if withSourcesJar is enabled
+        │           ├── greeting-1.0.0-sources.jar.sha1
+        │           └── greeting-1.0.0-sources.jar.sha256
+        │
+        └── org.example.greeting.gradle.plugin/
+            └── 1.0.0/
+                ├── org.example.greeting.gradle.plugin-1.0.0.module
+                ├── org.example.greeting.gradle.plugin-1.0.0.module.sha1
+                ├── org.example.greeting.gradle.plugin-1.0.0.module.sha256
+                ├── org.example.greeting.gradle.plugin-1.0.0.pom
+                ├── org.example.greeting.gradle.plugin-1.0.0.pom.sha1
+                └── org.example.greeting.gradle.plugin-1.0.0.pom.sha256
+----
+
+- `greeting-1.0.0.jar` – Your compiled plugin classes.
+- `greeting-1.0.0.pom` – Maven Project Object Model (metadata for dependencies, group, version).
+- `greeting-1.0.0.module` – Gradle Module Metadata (richer than POM, includes variants).
+- `greeting-1.0.0-sources.jar` (optional) – Sources JAR if you configured java { withSourcesJar() }.
+- `org.example.greeting.gradle.plugin-1.0.0.pom` / `org.example.greeting.gradle.plugin-1.0.0.module` – Plugin marker artifacts.
+- The `.sha*` files contain checksums (one line with the hash) so consumers can verify file integrity.
+- Some repos (like Maven Central) require at least `.sha1` and `.sha256` or `.sha512` before accepting uploads.
+
+To test in a consumer project, configure the `pluginManagement` block in the consumer’s `settings.gradle(.kts)`:
+
+[source,kotlin]
+----
+pluginManagement {
+    repositories {
+        maven {
+            url = uri("../plugin/build/local-repo")
+        }
+        gradlePluginPortal()
+    }
+}
+----
+
+Now your consumer project can resolve your plugin by ID without publishing to a remote repository.

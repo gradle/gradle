@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[publishing_portal]]
-= Publishing Plugins to the Gradle Plugin Portal
+= Publishing Plugins
 :portal: Gradle Plugin Portal
 :plugin: Greeting Plugin
 :publishplugin: Plugin Publishing Plugin
@@ -21,6 +21,9 @@
 :keywords: publish, publishing, plugin
 
 Publishing a plugin is the primary way to make it available for others to use.
+
+== Publishing Plugins to the Gradle Plugin Portal
+
 While you can publish to a private repository to restrict access, publishing to the https://plugins.gradle.org[{portal}] makes your plugin available to anyone in the world.
 
 image::plugin-portal-page.png[]
@@ -28,13 +31,13 @@ image::plugin-portal-page.png[]
 This guide shows you how to use the link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[`com.gradle.plugin-publish`] plugin to publish plugins to the https://plugins.gradle.org[{portal}] using a convenient DSL.
 This approach streamlines configuration steps and provides validation checks to ensure your plugin meets the {portal}'s criteria.
 
-== Prerequisites
+=== Prerequisites
 
 You'll need an existing Gradle plugin project for this tutorial. If you don't have one, use the link:../samples/sample_gradle_plugin.html[Greeting plugin sample].
 
 Attempting to publish this plugin will safely fail with a permission error, so don't worry about cluttering up the {portal} with a trivial example plugin.
 
-== Account setup
+=== Account setup
 
 Before publishing your plugin, you must create an account on the {portal}.
 Follow the instructions on the https://plugins.gradle.org/user/register[registration page] to create an account and obtain an API key from your profile page's "API Keys" tab.
@@ -54,7 +57,7 @@ Alternatively, you can provide the API key via `GRADLE_PUBLISH_KEY` and `GRADLE_
 This approach might be useful for CI/CD pipelines.
 
 [[plugin-publishing-plugin]]
-== Adding the {publishplugin}
+=== Adding the {publishplugin}
 
 To publish your plugin, add the `com.gradle.plugin-publish` plugin to your project's `build.gradle` or `build.gradle.kts` file:
 
@@ -71,7 +74,7 @@ NOTE: Since version 1.0.0 the Plugin Publish Plugin automatically applies the
 If using older versions of the Plugin Publish Plugin, these helper plugins must be applied explicitly.
 
 [[configure_the_plugin_publishing_plugin]]
-== Configuring the {publishplugin}
+=== Configuring the {publishplugin}
 
 Configure the `com.gradle.plugin-publish` plugin in your `build.gradle` or `build.gradle.kts` file.
 
@@ -114,22 +117,22 @@ If you browse the associated page on the {portal} for the https://plugins.gradle
 
 image::plugin-portal-plugin-page.png[]
 
-=== Sources & Javadoc ===
+==== Sources & Javadoc ===
 
 The Plugin Publish Plugin automatically generates and publishes the <<building_java_projects.adoc#sec:java_packaging,Javadoc, and sources JARs>> for your plugin publication.
 
-=== Sign artifacts ===
+==== Sign artifacts ===
 
 Starting from version 1.0.0 of Plugin Publish Plugin, the signing of published plugin artifacts has been made automatic.
 To enable it, all that's needed is to apply the <<signing_plugin.adoc#signing_plugin,`signing`>> plugin in your build.
 
-=== Shadow dependencies ===
+==== Shadow dependencies ===
 
 Starting from version 1.0.0 of Plugin Publish Plugin, shadowing your plugin's dependencies (ie, publishing it as a fat jar) has been made automatic.
 To enable it, all that's needed is to apply the https://github.com/GradleUp/shadow[`com.gradleup.shadow`] plugin in your build.
 
 [[sec:publishing_your_plugin]]
-== Publishing the plugin
+=== Publishing the plugin
 
 If you publish your plugin internally for use within your organization, you can publish it like any other code artifact.
 See the <<publishing_ivy.adoc#publishing_ivy,Ivy>> and <<publishing_maven.adoc#publishing_maven,Maven>> chapters on publishing artifacts.
@@ -181,7 +184,7 @@ That's expected and ensures the portal won't be overrun with multiple experiment
 After approval, your plugin will be available on the Gradle Plugin Portal for others to discover and use.
 
 [[consume]]
-== Consume the published plugin
+=== Consume the published plugin
 
 Once you successfully publish a plugin, it won't immediately appear on the Portal.
 It also needs to pass an approval process, which is manual and relatively slow for the initial version of your plugin, but is fully automatic for subsequent versions.
