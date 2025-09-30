@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
@@ -29,19 +30,27 @@ import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
 import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.resiliency.InternalFetchAwareBuildController;
+import org.gradle.tooling.internal.provider.connection.DefaultInternalFetchModelResult;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
+import org.gradle.tooling.model.Model;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 @NullMarked
 @SuppressWarnings("deprecation")
@@ -49,7 +58,8 @@ class DefaultBuildController
     implements org.gradle.tooling.internal.protocol.InternalBuildController,
     InternalBuildControllerVersion2,
     InternalActionAwareBuildController,
-    InternalStreamedValueRelay {
+    InternalStreamedValueRelay,
+    InternalFetchAwareBuildController {
 
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildTreeModelController controller;
@@ -152,4 +162,20 @@ class DefaultBuildController
         sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(streamedValue));
     }
 
+    @Override
+    public <T extends Model, M> Stream<InternalFetchModelResult<T, M>> fetch(Collection<T> targets, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
+        if (targets.isEmpty()) {
+            return Stream.of(fetchOne(modelIdentifier, parameter));
+        }
+        throw new UnsupportedOperationException("WIP");
+    }
+
+    private <T extends Model, M> InternalFetchModelResult<T, M> fetchOne(ModelIdentifier modelIdentifier, @Nullable Object parameter) {
+        try {
+            Object model = getModel(null, modelIdentifier, parameter).getModel();
+            return DefaultInternalFetchModelResult.ofModel(uncheckedNonnullCast(model));
+        } catch (Exception e) {
+            return DefaultInternalFetchModelResult.ofFailure(DefaultFailure.fromThrowable(e));
+        }
+    }
 }
