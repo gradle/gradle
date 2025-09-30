@@ -33,8 +33,6 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
     private final ComponentSelectionReason reason;
     private final ModuleVersionResolveException failure;
 
-    private final int hashCode;
-
     public DefaultUnresolvedDependencyResult(
         ComponentSelector requested,
         ResolvedComponentResult from,
@@ -47,8 +45,6 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
         this.constraint = constraint;
         this.failure = failure;
         this.reason = reason;
-
-        this.hashCode = computeHashCode(constraint, failure, from, reason, requested);
     }
 
     @Override
@@ -79,40 +75,6 @@ public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyRe
     @Override
     public ModuleVersionResolveException getFailure() {
         return failure;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultUnresolvedDependencyResult that = (DefaultUnresolvedDependencyResult) o;
-        return constraint == that.constraint &&
-            requested.equals(that.requested) &&
-            from.equals(that.from) &&
-            reason.equals(that.reason) &&
-            failure.equals(that.failure);
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    private static int computeHashCode(
-        boolean constraint,
-        ModuleVersionResolveException failure,
-        ResolvedComponentResult from,
-        ComponentSelectionReason reason,
-        ComponentSelector requested
-    ) {
-        int result = requested.hashCode();
-        result = 31 * result + from.hashCode();
-        result = 31 * result + Boolean.hashCode(constraint);
-        result = 31 * result + reason.hashCode();
-        result = 31 * result + failure.hashCode();
-        return result;
     }
 
     @Override

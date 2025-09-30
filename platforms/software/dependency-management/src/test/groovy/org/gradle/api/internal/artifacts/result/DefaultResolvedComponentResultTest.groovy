@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result
 
-import com.google.common.collect.ImmutableSetMultimap
+import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
@@ -33,7 +33,7 @@ class DefaultResolvedComponentResultTest extends Specification {
         def variant = module.getVariant(1)
 
         when:
-        module.addVariantDependencies(ImmutableSetMultimap.of(variant, dependency))
+        module.setVariantDependencies(variant, ImmutableSet.of(dependency))
         module.addDependent(dependent)
 
         then:
@@ -60,8 +60,7 @@ class DefaultResolvedComponentResultTest extends Specification {
         def variant = module.getVariant(1)
 
         when:
-        module.addVariantDependencies(ImmutableSetMultimap.of(variant, dependency))
-        module.addVariantDependencies(ImmutableSetMultimap.of(variant, unresolved))
+        module.setVariantDependencies(variant, ImmutableSet.of(dependency, unresolved))
 
         then:
         module.dependencies == [dependency, unresolved] as Set
@@ -75,8 +74,8 @@ class DefaultResolvedComponentResultTest extends Specification {
         def variant = module.getVariant(1)
 
         when:
-        module.addVariantDependencies(ImmutableSetMultimap.of(variant, dependency))
-        module.addVariantDependencies(ImmutableSetMultimap.of(variant, dependency))
+        module.setVariantDependencies(variant, ImmutableSet.of(dependency))
+        module.setVariantDependencies(variant, ImmutableSet.of(dependency))
 
         then:
         module.dependencies == [dependency] as Set

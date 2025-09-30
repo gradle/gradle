@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.result
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
-import com.google.common.collect.ImmutableSetMultimap
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
@@ -53,16 +53,14 @@ class DefaultResolutionResultTest extends Specification {
 
         def root = newModule('root')
         def rootVariant = root.getVariant(1L)
-        root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, dep1))
-        root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, dep2))
+        root.setVariantDependencies(rootVariant, ImmutableSet.of(dep1, dep2))
 
         def dep3 = newDependency('dep3')
         def dep4 = newUnresolvedDependency('dep4')
 
         def selected = dep2.selected as DefaultResolvedComponentResult
         def selectedVariant = selected.getVariant(1L)
-        selected.addVariantDependencies(ImmutableSetMultimap.of(selectedVariant, dep3))
-        selected.addVariantDependencies(ImmutableSetMultimap.of(selectedVariant, dep4))
+        selected.setVariantDependencies(selectedVariant, ImmutableSet.of(dep3, dep4))
 
         when:
         def deps = newResolutionResult(root).allDependencies
@@ -84,13 +82,11 @@ class DefaultResolutionResultTest extends Specification {
 
         def root = newModule('root')
         def rootVariant = root.getVariant(1L)
-        root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, dep))
-        root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, newDependency('dep2')))
-        root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, dep3))
+        root.setVariantDependencies(rootVariant, ImmutableSet.of(dep, newDependency('dep2'), dep3))
 
         def selected = dep.selected as DefaultResolvedComponentResult
         def selectedVariant = selected.getVariant(1L)
-        selected.addVariantDependencies(ImmutableSetMultimap.of(selectedVariant, dep3))
+        selected.setVariantDependencies(selectedVariant, ImmutableSet.of(dep3))
 
         def result = newResolutionResult(root)
 
@@ -113,7 +109,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('a', 'a', '1')
         def rootVariant = root.getVariant(1L)
         def dep1 = newDependency('b', 'b', '1')
-        root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, dep1))
+        root.setVariantDependencies(rootVariant, ImmutableSet.of(dep1))
         def dep2 = new DefaultResolvedDependencyResult(
             DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'),
             dep1.selected,
@@ -123,7 +119,7 @@ class DefaultResolutionResultTest extends Specification {
         )
         def selected = dep1.selected as DefaultResolvedComponentResult
         def selectedVariant = selected.getVariant(1L)
-        selected.addVariantDependencies(ImmutableSetMultimap.of(selectedVariant, dep2))
+        selected.setVariantDependencies(selectedVariant, ImmutableSet.of(dep2))
 
         when:
         def deps = newResolutionResult(root).allDependencies
@@ -141,8 +137,7 @@ class DefaultResolutionResultTest extends Specification {
 
         def root = newModule('root')
         def rootVariant = root.getVariant(1L)
-        root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, dep1))
-        root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, dep2))
+        root.setVariantDependencies(rootVariant, ImmutableSet.of(dep1, dep2))
 
         when:
         def result = newResolutionResult(root)

@@ -197,7 +197,8 @@ class ResolutionResultGraphBuilderSpec extends Specification {
     }
 
     private void resolvedConf(String module, List<ResolvedGraphDependency> deps) {
-        builder.visitOutgoingEdges(id(module), deps)
+        def resultId = id(module)
+        builder.visitOutgoingEdges(resultId, resultId, deps)
     }
 
     private ResolvedGraphDependency dep(String from, String requested, Exception failure = null, String selected = requested) {

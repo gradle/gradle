@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.result;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -32,6 +31,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final Map<Long, ResolvedVariantResult> selectedVariantsById;
     private final ImmutableList<ResolvedVariantResult> allVariants;
     private final String repositoryName;
-    private ImmutableSetMultimap<ResolvedVariantResult, DependencyResult> variantDependencies = ImmutableSetMultimap.of();
+    private Map<ResolvedVariantResult, ImmutableSet<DependencyResult>> variantDependencies = new LinkedHashMap<>();
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion,
@@ -86,7 +86,9 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public Set<DependencyResult> getDependencies() {
-        return ImmutableSet.copyOf(variantDependencies.values());
+        return variantDependencies.entrySet().stream()
+            .flatMap(it -> it.getValue().stream())
+            .collect(ImmutableSet.toImmutableSet());
     }
 
     @Override
@@ -130,7 +132,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         if (!selectedVariants.contains(variant)) {
             reportInvalidVariant(variant);
         }
-        return variantDependencies.get(variant).asList();
+        return ImmutableList.copyOf(variantDependencies.getOrDefault(variant, ImmutableSet.of()));
     }
 
     private void reportInvalidVariant(ResolvedVariantResult variant) {
@@ -149,15 +151,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return selectedVariantsById.get(id);
     }
 
-    public void addVariantDependencies(ImmutableSetMultimap<ResolvedVariantResult, DependencyResult> variantDependencies) {
-        if (this.variantDependencies.isEmpty()) {
-            this.variantDependencies = variantDependencies;
-        } else {
-            this.variantDependencies =  ImmutableSetMultimap.<ResolvedVariantResult, DependencyResult>builder()
-                .putAll(this.variantDependencies)
-                .putAll(variantDependencies)
-                .build();
-        }
+    public void setVariantDependencies(ResolvedVariantResult variant, ImmutableSet<DependencyResult> dependencies) {
+        this.variantDependencies.put(variant, dependencies);
     }
 
     /**
@@ -191,6 +186,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
      * Finalize this component, making it immutable and ensuring its contents are stored in memory-efficient data structures.
      */
     public void complete() {
-        dependents = ImmutableSet.copyOf(dependents);
+        this.dependents = ImmutableSet.copyOf(dependents);
+        this.variantDependencies = ImmutableMap.copyOf(variantDependencies);
     }
 }
