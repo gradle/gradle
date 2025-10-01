@@ -205,8 +205,6 @@ fun BuildType.paramsForBuildToolBuild(
 ) {
     params {
         param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
-        param("env.GRADLE_CACHE_REMOTE_SERVER", "%gradle.cache.remote.server%")
-
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
