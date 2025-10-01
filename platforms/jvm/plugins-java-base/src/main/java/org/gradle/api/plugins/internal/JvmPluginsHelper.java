@@ -46,7 +46,6 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.jspecify.annotations.Nullable;
 
@@ -148,10 +147,6 @@ public class JvmPluginsHelper {
         Object artifactSource,
         ProjectInternal project
     ) {
-        DeprecationLogger.deprecateInternalApi("JvmPluginsHelper.createDocumentationVariantWithArtifact()")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "TODO")
-            .nagUser();
         return createInternalDocumentationVariantWithArtifact(variantName, featureName, docsType, capabilities, jarTaskName, artifactSource, project).get();
     }
 
