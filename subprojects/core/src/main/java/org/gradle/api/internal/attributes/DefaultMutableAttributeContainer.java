@@ -28,7 +28,6 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
@@ -201,7 +200,6 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         return attributesFactory.fromEntries(realizedState.values());
     }
 
-    @NonNull
     @Override
     public <T extends Named> T named(Class<T> type, String name) {
         return namedObjectInstantiator.named(type, name);
