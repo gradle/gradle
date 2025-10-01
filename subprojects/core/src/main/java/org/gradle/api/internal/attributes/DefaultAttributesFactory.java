@@ -70,7 +70,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     public AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
-        return new HierarchicalMutableAttributeContainer(this, fallback, primary, instantiator);
+        return new HierarchicalMutableAttributeContainer(this, fallback, primary);
     }
 
     @Override
