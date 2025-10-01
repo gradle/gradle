@@ -19,7 +19,6 @@ package org.gradle.api.internal.attributes
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.provider.Providers
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 
 /**
  * Unit tests for the {@link HierarchicalMutableAttributeContainer} class.
