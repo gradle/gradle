@@ -47,7 +47,7 @@ jobs:
                 core.setOutput('sys-prop-args', '')
             }
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew compileAll -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
@@ -79,7 +79,7 @@ jobs:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
@@ -113,7 +113,7 @@ jobs:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew ${{ matrix.bucket.tasks }} -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
@@ -140,7 +140,7 @@ jobs:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew :native:test --% -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
