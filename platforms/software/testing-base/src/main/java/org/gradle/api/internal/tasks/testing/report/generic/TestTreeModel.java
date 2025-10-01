@@ -29,10 +29,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -130,11 +132,38 @@ public class TestTreeModel {
                 model.perRootInfo.put(rootIndex, rootInfo);
             }
 
-            for (Child child : childrenByParentId.get(id)) {
-                Path childPath = path.child(child.info.outputTrackedResult.getInnerResult().getName());
+            List<Child> children = childrenByParentId.get(id);
+            Map<Long, String> childNamesById = createDistinctNamesMap(children);
+
+            for (Child child : children) {
+                String name = childNamesById.get(child.id);
+                Path childPath = path.child(name);
                 finalizePath(childPath, child.id, child.info);
-                model.children.computeIfAbsent(child.info.outputTrackedResult.getInnerResult().getName(), n -> modelsByPath.get(childPath));
+                model.children.computeIfAbsent(name, n -> modelsByPath.get(childPath));
             }
+        }
+
+        private Map<Long, String> createDistinctNamesMap(List<Child> children) {
+            Set<String> names = new HashSet<>();
+            Map<Long, String> idToNames = new HashMap<>(children.size());
+            for (Child child : children) {
+                String childName = child.info.getResult().getName();
+                // We only need to make names distinct for leaf nodes, as non-leaf nodes must be merged for TestNG.
+                boolean isChildLeafNode = !childrenByParentId.containsKey(child.id);
+                if (isChildLeafNode && names.contains(childName)) {
+                    // Handle name clashes by appending a number to the name.
+                    int suffix = 2;
+                    String newName;
+                    do {
+                        newName = childName + " (" + suffix + ")";
+                        suffix++;
+                    } while (names.contains(newName));
+                    childName = newName;
+                }
+                names.add(childName);
+                idToNames.put(child.id, childName);
+            }
+            return idToNames;
         }
     }
 
