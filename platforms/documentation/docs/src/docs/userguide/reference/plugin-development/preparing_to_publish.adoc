@@ -24,8 +24,8 @@ Gradle’s publishing plugins add tasks and conventions to help you prepare arti
 To get started, apply one or more publishing plugins in your plugin project:
 
 - Use the link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[Plugin Publishing Plugin] for the Gradle Plugin Portal.
-- Use the <<publishing_maven.adoc,Maven Publish Plugin>> for Maven repositories (e.g., Maven Central, Artifactory, GitHub Packages).
-- Use the <<publishing_ivy.adoc,Ivy Publish Plugin>> for Ivy repositories.
+- Use the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>> for Maven repositories (e.g., Maven Central, Artifactory, GitHub Packages).
+- Use the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>> for Ivy repositories.
 
 [source,text]
 ----

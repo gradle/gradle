@@ -38,6 +38,7 @@ Provide the credentials as Gradle properties (`gradle.publish.key` and `gradle.p
 
 For secure property management, you can use the link:https://plugins.gradle.org/plugin/de.qaware.seu.as.code.credentials[Seauc Credentials plugin].
 
+[[plugin-publishing-plugin]]
 == Adding the {publishplugin}
 
 Add the `com.gradle.plugin-publish` plugin to your build:
@@ -62,6 +63,7 @@ NOTE: Since version 1.0.0, the Plugin Publish Plugin automatically applies the
 <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>> (for generating metadata).
 Older versions required applying these plugins manually.
 
+[[configure_the_plugin_publishing_plugin]]
 == Configuring the {publishplugin}
 
 Configure the plugin in `build.gradle(.kts)`:
