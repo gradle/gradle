@@ -323,7 +323,7 @@ class ExceptionPlaceholder implements Serializable {
             } catch (InvocationTargetException e) {
                 return null;
             }
-            if (causes == null) {
+            if (causes == null || causes.isEmpty()) {
                 return null;
             }
             for (Object cause : causes) {
