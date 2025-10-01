@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -42,6 +43,8 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
@@ -184,7 +187,18 @@ public class JUnitTestEventAdapter extends RunListener {
             activeParents.addLast(parent.description);
         }
         String className = grandparentId == null ? rootClassName : className(parent.description);
-        TestDescriptorInternal parentDescriptor = new DefaultTestClassDescriptor(parent.resolveId(), className);
+        if (className == null) {
+            throw new AssertionError("No class name found for " + parent.description);
+        }
+        TestDescriptorInternal parentDescriptor;
+        if (grandparentId != null && supportsTestClassMethod() && getTestClassIfPossible(parent.description) == null) {
+            // When Description.getTestClass() returns null and we have a grandparent,
+            // it indicates "suites" of parameterized tests, or some other kind of synthetic grouping.
+            // Avoid treating these as classes.
+            parentDescriptor = new DefaultTestSuiteDescriptor(parent.resolveId(), className);
+        } else {
+            parentDescriptor = new DefaultTestClassDescriptor(parent.resolveId(), className, classDisplayName(className));
+        }
         resultProcessor.started(parentDescriptor, new TestStartEvent(now, grandparentId));
     }
 
@@ -413,6 +427,41 @@ public class JUnitTestEventAdapter extends RunListener {
         }
     }
 
+    @Nullable
+    private static final Method DESCRIPTION_GET_TEST_CLASS;
+
+    static {
+        Method getTestClass;
+        try {
+            getTestClass = Description.class.getDeclaredMethod("getTestClass");
+        } catch (NoSuchMethodException e) {
+            // Assume JUnit <= 4.5
+            getTestClass = null;
+        }
+        DESCRIPTION_GET_TEST_CLASS = getTestClass;
+    }
+
+    private static boolean supportsTestClassMethod() {
+        return DESCRIPTION_GET_TEST_CLASS != null;
+    }
+
+    @Nullable
+    private static Class<?> getTestClassIfPossible(Description description) {
+        if (DESCRIPTION_GET_TEST_CLASS == null) {
+            return null;
+        }
+        try {
+            return (Class<?>) DESCRIPTION_GET_TEST_CLASS.invoke(description);
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof RuntimeException) {
+                throw (RuntimeException) e.getCause();
+            }
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError("Should always have access to getTestClass when present", e);
+        }
+    }
+
     // Use this instead of Description.getMethodName(), it is not available in JUnit <= 4.5
     @Nullable
     public static String methodName(Description description) {
@@ -436,6 +485,16 @@ public class JUnitTestEventAdapter extends RunListener {
     public static String className(String description) {
         Matcher matcher = methodStringMatcher(description);
         return matcher.matches() ? matcher.group(2) : description;
+    }
+
+    private static String classDisplayName(String className) {
+        // Use last part of class name only, for legacy compatibility
+        int lastDot = className.lastIndexOf('.');
+        if (lastDot > 0) {
+            return className.substring(lastDot + 1);
+        } else {
+            return className;
+        }
     }
 
     private static Matcher methodStringMatcher(String description) {
