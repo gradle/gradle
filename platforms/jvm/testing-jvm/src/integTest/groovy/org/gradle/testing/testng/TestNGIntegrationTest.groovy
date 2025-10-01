@@ -252,9 +252,9 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
         succeeds 'test'
 
         then:
-        testResults.testPath(':').onlyRoot().assertChildCount(2, 0)
+        testResults.assertTestPathsExecuted(':printMethod', ':printMethod (2)')
         testResults.testPath('printMethod').onlyRoot().assertStdout(containsString('TestingFirst'))
-        testResults.testPath('printMethod').onlyRoot().assertStdout(containsString('TestingSecond'))
+        testResults.testPath('printMethod (2)').onlyRoot().assertStdout(containsString('TestingSecond'))
         testResults.testPath('printMethod').onlyRoot().assertStdout(not(containsString('Default test name')))
     }
 
