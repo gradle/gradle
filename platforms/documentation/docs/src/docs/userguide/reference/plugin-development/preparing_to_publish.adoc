@@ -27,7 +27,7 @@ To get started, apply one or more publishing plugins in your plugin project:
 - Use the <<publishing_maven.adoc,Maven Publish Plugin>> for Maven repositories (e.g., Maven Central, Artifactory, GitHub Packages).
 - Use the <<publishing_ivy.adoc,Ivy Publish Plugin>> for Ivy repositories.
 
-[source,kotlin]
+[source,text]
 ----
 plugins {
     id("maven-publish")                                         // Maven
@@ -45,20 +45,10 @@ A plugin project must at least declare:
 - A **plugin ID** and **implementation class** (so Gradle knows what to apply).
 - A **group** and **version** (so the plugin can be published and resolved like any other dependency).
 
-[source,kotlin]
-----
-group = "org.example"
-version = "1.0.0"
-
-gradlePlugin {
-    plugins {
-        create("greeting") {
-            id = "org.example.greeting"
-            implementationClass = "org.example.GreetingPlugin"
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=publish-1]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=publish-1]"]
+====
 
 This setup lets Gradle generate plugin marker artifacts (`org.example.greeting.gradle.plugin`) and other metadata required by repositories and consumers.
 
@@ -66,16 +56,10 @@ This setup lets Gradle generate plugin marker artifacts (`org.example.greeting.g
 
 To test your plugin before publishing to a remote repository, publish it to a local Maven directory:
 
-[source,kotlin]
-----
-publishing {
-    repositories {
-        maven {
-            url = uri(layout.buildDirectory.dir("local-repo"))
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=publish-2]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=publish-2]"]
+====
 
 Run:
 
@@ -127,16 +111,10 @@ You’ll see:
 
 To consume locally, point the consumer project’s `pluginManagement` to the local repo:
 
-[source,kotlin]
-----
-pluginManagement {
-    repositories {
-        maven {
-            url = uri("../plugin/build/local-repo")
-        }
-        gradlePluginPortal()
-    }
-}
-----
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="settings.gradle.kts[tags=publish-3]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="settings.gradle[tags=publish-3]"]
+====
+
 
 Now the consumer can apply your plugin by its `id` without pushing to a public repository.

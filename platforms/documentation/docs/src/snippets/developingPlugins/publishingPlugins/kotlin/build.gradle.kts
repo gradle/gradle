@@ -1,6 +1,6 @@
 // tag::plugins_block[]
 plugins {
-    id("com.gradle.plugin-publish") version "1.2.1"
+    id("com.gradle.plugin-publish") version "2.0.0"
 }
 // end::plugins_block[]
 
