@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import groovy.test.NotYetImplemented
+import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
@@ -441,6 +442,90 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation(platform("org.junit:junit-bom:5.10.2"))
                 implementation("org.junit.jupiter:junit-jupiter-params:5.11.3")
+            }
+        """
+
+        expect:
+        succeeds(":dependencies", "--configuration", "compileClasspath")
+    }
+
+    // TODO: This belongs in EndorseStrictVersionsIntegrationTest
+    @Issue("https://github.com/gradle/gradle/issues/33508")
+    def "removing the target of an endorsed edge from the root does not cause the root to be reselected and does not cause a broken graph"() {
+        mavenRepo.module("com.google.cloud", "libraries-bom", "26.60.0")
+            .hasPackaging("pom")
+            .dependencyConstraint(mavenRepo.module("io.grpc", "grpc-protobuf-lite", "1.70.0"))
+            .dependencyConstraint(mavenRepo.module("com.google.cloud", "google-cloud-kms", "2.65.0").publish())
+            .publish()
+
+        mavenRepo.module("com.google.cloud", "google-cloud-kms", "2.5.2")
+            .dependsOn(mavenRepo.module("io.grpc", "grpc-protobuf-lite", "1.46.0").publish())
+            .publish()
+
+        def grpcBom = mavenRepo.module("io.grpc", "grpc-bom", "1.72.0")
+            .hasPackaging("pom")
+            .dependencyConstraint(mavenRepo.module("io.grpc", "grpc-protobuf-lite", "1.72.0").publish())
+            .publish()
+
+        def wispResourceLoader = mavenRepo.module("org", "wisp-resource-loader").withModuleMetadata().withVariant('api') {
+            dependsOn(grpcBom) {
+                endorseStrictVersions = true
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+        }.publish()
+
+        def wispConfig = mavenRepo.module("org", "wisp-config").withModuleMetadata().withVariant('api') {
+            dependsOn(grpcBom) {
+                endorseStrictVersions = true
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+            dependsOn(wispResourceLoader)
+        }.publish()
+
+        def miskConfig = mavenRepo.module("org", "misk-config").dependsOn(wispConfig).publish()
+
+        def misk = mavenRepo.module("org", "misk")
+            .dependsOn(wispConfig)
+            .dependsOn(miskConfig)
+            .publish()
+
+        mavenRepo.module("org", "misk-testing").dependsOn(misk).publish()
+
+        mavenRepo.module("org.junit", "junit-bom", "5.12.0")
+            .hasPackaging("pom")
+            .dependencyConstraint(mavenRepo.module("org.junit.jupiter", "junit-jupiter-api", "5.12.0"))
+            .publish()
+
+        def junitBom5122 = mavenRepo.module("org.junit", "junit-bom", "5.12.2")
+            .hasPackaging("pom")
+            .dependencyConstraint(mavenRepo.module("org.junit.jupiter", "junit-jupiter-api", "5.12.2"))
+            .publish()
+
+        mavenRepo.module("org.junit.jupiter", "junit-jupiter-api", "5.12.2")
+            .withModuleMetadata()
+            .withVariant("api") {
+                dependsOn(junitBom5122) {
+                    attribute("org.gradle.category", "platform")
+                    endorseStrictVersions = true
+                }
+            }.publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation(platform("com.google.cloud:libraries-bom:26.60.0")) {
+                    (it as ModuleDependency).doNotEndorseStrictVersions()
+                }
+                implementation("com.google.cloud:google-cloud-kms:2.5.2")
+                implementation("org:misk:1.0")
+                implementation("org:misk-testing:1.0")
+                implementation(platform("org.junit:junit-bom:5.12.0"))
+                implementation("org.junit.jupiter:junit-jupiter-api:5.12.2")
             }
         """
 
