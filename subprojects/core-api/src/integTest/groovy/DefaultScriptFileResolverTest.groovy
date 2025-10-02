@@ -33,7 +33,6 @@ class DefaultScriptFileResolverTest extends AbstractIntegrationSpec {
     }
 
     def "when multiple build scripts are present, the resolved will report a warning"() {
-
         given:
         buildFiles.each {
             file(it).touch()
@@ -44,9 +43,9 @@ class DefaultScriptFileResolverTest extends AbstractIntegrationSpec {
 
         then:
         if (messageDetails != null) {
-            outputContains("Multiple build files were found in directory '${testDirectory.absolutePath}': ${messageDetails}.")
+            outputContains("Multiple script files were found in directory '${testDirectory.absolutePath}': ${messageDetails}.")
         } else {
-            outputDoesNotContain("Multiple build files were found in directory")
+            outputDoesNotContain("Multiple script files were found in directory")
         }
 
         where:
@@ -56,6 +55,60 @@ class DefaultScriptFileResolverTest extends AbstractIntegrationSpec {
             [["build.gradle", "build.gradle.dcl"], "using 'build.gradle', and ignoring 'build.gradle.dcl'"],
             [["build.gradle.kts", "build.gradle.dcl"], "using 'build.gradle.kts', and ignoring 'build.gradle.dcl'"],
             [["build.gradle", "build.gradle.kts", "build.gradle.dcl"], "using 'build.gradle', and ignoring 'build.gradle.kts', 'build.gradle.dcl'"]
+        ]
+    }
+
+    def "when multiple settings scripts are present, the resolver will report a warning"() {
+        given:
+        settingsFiles.each {
+            file(it).touch()
+        }
+
+        when:
+        succeeds("help")
+
+        then:
+        if (messageDetails != null) {
+            outputContains("Multiple script files were found in directory '${testDirectory.absolutePath}': ${messageDetails}.")
+        } else {
+            outputDoesNotContain("Multiple script files were found in directory")
+        }
+
+        where:
+        [settingsFiles, messageDetails] << [
+            [["settings.gradle"], null],
+            [["settings.gradle", "settings.gradle.kts"], "using 'settings.gradle', and ignoring 'settings.gradle.kts'"],
+            [["settings.gradle", "settings.gradle.dcl"], "using 'settings.gradle', and ignoring 'settings.gradle.dcl'"],
+            [["settings.gradle.kts", "settings.gradle.dcl"], "using 'settings.gradle.kts', and ignoring 'settings.gradle.dcl'"],
+            [["settings.gradle", "settings.gradle.kts", "settings.gradle.dcl"], "using 'settings.gradle', and ignoring 'settings.gradle.kts', 'settings.gradle.dcl'"]
+        ]
+    }
+
+    def "when multiple init scripts are present, the resolver will report a warning"() {
+        requireOwnGradleUserHomeDir("We need to test what happens if multiple init scripts are defined in a Gradle home")
+
+        given:
+        buildFiles.each {
+            executer.gradleUserHomeDir.file(it).touch()
+        }
+
+        when:
+        succeeds("help")
+
+        then:
+        if (messageDetails != null) {
+            outputContains("Multiple script files were found in directory '${executer.gradleUserHomeDir.absolutePath}': ${messageDetails}.")
+        } else {
+            outputDoesNotContain("Multiple script files were found in directory")
+        }
+
+        where:
+        [buildFiles, messageDetails] << [
+            [["init.gradle"], null],
+            [["init.gradle", "init.gradle.kts"], "using 'init.gradle', and ignoring 'init.gradle.kts'"],
+            [["init.gradle", "init.gradle.dcl"], "using 'init.gradle', and ignoring 'init.gradle.dcl'"],
+            [["init.gradle.kts", "init.gradle.dcl"], "using 'init.gradle.kts', and ignoring 'init.gradle.dcl'"],
+            [["init.gradle", "init.gradle.kts", "init.gradle.dcl"], "using 'init.gradle', and ignoring 'init.gradle.kts', 'init.gradle.dcl'"]
         ]
     }
 
