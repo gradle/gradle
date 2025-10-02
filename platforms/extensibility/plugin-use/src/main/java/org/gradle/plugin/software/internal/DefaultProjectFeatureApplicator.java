@@ -23,16 +23,16 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.Definition;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -213,7 +213,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
-                            .id("extension-not-registered-for-software-type", "was not registered as an extension", GradleCoreProblemGroup.validation().property())
+                            .id("extension-not-registered-for-software-type", "was not registered as an extension", PredefinedProblemGroups.validation().property())
                             .contextualLabel("has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name '" + softwareType.name() + "' was registered")
                             .severity(Severity.ERROR)
                             .details("When 'disableModelManagement' is set, the plugin must register the '" + propertyName + "' property as an extension with the same name as the software type.")
@@ -224,7 +224,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
-                            .id("mismatched-extension-registered-for-software-type", "does not match the extension registered as '" + softwareType.name(), GradleCoreProblemGroup.validation().property())
+                            .id("mismatched-extension-registered-for-software-type", "does not match the extension registered as '" + softwareType.name(), PredefinedProblemGroups.validation().property())
                             .contextualLabel("has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name '" + softwareType.name() + "' does not match the value of the property")
                             .severity(Severity.ERROR)
                             .details("When 'disableModelManagement' is set, the plugin must register the '" + propertyName + "' property as an extension with the same name as the software type.")

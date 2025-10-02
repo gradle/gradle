@@ -28,7 +28,7 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -350,7 +350,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 previouslySeenBuilder.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .id(TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS), "Property has redundant getters", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                        .id(TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS), "Property has redundant getters", PredefinedProblemGroups.validation().property()) // TODO (donat) missing test coverage
                         .contextualLabel(
                             String.format(
                                 "has redundant getters: '%s()' and '%s()'",
@@ -398,7 +398,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 // valid in this context, we'll need to handle it in some way to avoid the problem being generated.
                 validationContext.visitTypeProblem(problem ->
                     problem.withAnnotationType(declaredField.getDeclaringClass())
-                        .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                        .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", PredefinedProblemGroups.validation().type())
                         .contextualLabel(
                             String.format(
                                 "field '%s()' should not be annotated with: %s",
@@ -452,7 +452,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     validationContext.visitTypeProblem(problem ->
                         problem
                             .withAnnotationType(type)
-                            .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD), "Incorrect annotations on field", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                            .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD), "Incorrect annotations on field", PredefinedProblemGroups.validation().property()) // TODO (donat) missing test coverage
                             .contextualLabel(
                                 String.format(
                                     "field '%s' without corresponding getter has been annotated with %s",
@@ -545,7 +545,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED), "Private property with wrong annotation", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED), "Private property with wrong annotation", PredefinedProblemGroups.validation().property())
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
@@ -599,7 +599,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitFunctionProblem(problem ->
                 problem
                     .forFunction(method.getName())
-                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED), "Private method with wrong annotation", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED), "Private method with wrong annotation", PredefinedProblemGroups.validation().property())
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
@@ -622,7 +622,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER), "Mutable type with setter", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER), "Mutable type with setter", PredefinedProblemGroups.validation().property())
                     .contextualLabel(String.format("of mutable type '%s' is writable", setterType.getName()))
                     .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)
@@ -657,7 +657,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "Ignored annotations on method", GradleCoreProblemGroup.validation().type())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "Ignored annotations on method", PredefinedProblemGroups.validation().type())
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
@@ -680,7 +680,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", PredefinedProblemGroups.validation().type())
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
@@ -701,7 +701,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", PredefinedProblemGroups.validation().type())
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
@@ -890,7 +890,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED), "Has wrong combination of annotations", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED), "Has wrong combination of annotations", PredefinedProblemGroups.validation().property())
                     .contextualLabel(
                         String.format(
                             "annotated with @%s should not be also annotated with %s",
@@ -913,7 +913,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", PredefinedProblemGroups.validation().property())
                     .contextualLabel(
                         String.format(
                             "has conflicting %s annotations %s: %s",
@@ -958,7 +958,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             visitFunctionProblem(problem ->
                 problem
                     .forFunction(getMethod().getName())
-                    .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().type())
+                    .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", PredefinedProblemGroups.validation().type())
                     .contextualLabel(
                         String.format(
                             "has conflicting %s annotations %s: %s",

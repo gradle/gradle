@@ -19,9 +19,9 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.commandline.CommandLineTaskParser;
@@ -90,7 +90,7 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
                     GradleException ex = new InitExecutionException(
                             "Executing other tasks along with the '" + builtInCommand.getDisplayName() + "' task is not allowed. " +
                             "The '" + builtInCommand.getDisplayName() + "' task must be run by itself.");
-                    ProblemId id = ProblemId.create("init invocation problem", "Init invocation problem", GradleCoreProblemGroup.taskSelection());
+                    ProblemId id = ProblemId.create("init invocation problem", "Init invocation problem", PredefinedProblemGroups.taskSelection());
                     throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
                         spec.contextualLabel(ex.getMessage());
                         spec.severity(Severity.ERROR);

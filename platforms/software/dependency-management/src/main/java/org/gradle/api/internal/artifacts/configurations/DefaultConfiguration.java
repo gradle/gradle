@@ -78,9 +78,9 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -1276,7 +1276,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
 
             GradleException ex = new GradleException(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc));
-            ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+            ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", PredefinedProblemGroups.configurationUsage());
             throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
                 spec.contextualLabel(ex.getMessage());
                 spec.severity(Severity.ERROR);
@@ -1455,7 +1455,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void failDueToChangingUsage(String methodName, boolean newValue) {
         GradleException ex = new GradleException(String.format("Calling %s(%b) on %s is not allowed.  This configuration's role was set upon creation and its usage should not be changed.", methodName, newValue, this));
-        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", PredefinedProblemGroups.configurationUsage());
         throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
             spec.severity(Severity.ERROR);
@@ -1604,7 +1604,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 .map(ConfigurationInternal::getDisplayName)
                 .collect(Collectors.joining(", "));
             GradleException ex = new GradleException(getDisplayName() + " cannot extend " + summarizedExtensionTargets);
-            ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
+            ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", PredefinedProblemGroups.configurationUsage());
             throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
                 spec.contextualLabel(ex.getMessage());
                 spec.severity(Severity.ERROR);

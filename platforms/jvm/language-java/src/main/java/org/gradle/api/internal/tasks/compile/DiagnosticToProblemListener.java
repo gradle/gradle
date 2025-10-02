@@ -25,12 +25,12 @@ import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.Log;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 
 import javax.tools.Diagnostic;
@@ -92,7 +92,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         return ProblemId.create(
             code == null ? "unknown" : code,
             message == null ? "unknown" : message,
-            GradleCoreProblemGroup.compilation().java()
+            PredefinedProblemGroups.compilation().java()
         );
     }
 
