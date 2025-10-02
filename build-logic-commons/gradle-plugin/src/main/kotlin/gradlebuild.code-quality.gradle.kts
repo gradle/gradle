@@ -61,6 +61,50 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
         "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
         "MissingSummary", // We have another mechanism to check Javadocs on public API
         "StringSplitter", // We are fine with using String.split() as is
+
+        // picnic https://error-prone.picnic.tech
+        "AmbiguousJsonCreator",
+        "AssertJNullnessAssertion",
+        "AutowiredConstructor",
+        "CanonicalAnnotationSyntax",
+        "ClassCastLambdaUsage",
+        "CollectorMutability",
+        "ConstantNaming",
+        "DirectReturn",
+        "EagerStringFormatting",
+        "EmptyMethod",
+        "EmptyMonoZip",
+        "ExplicitArgumentEnumeration",
+        "ExplicitEnumOrdering",
+        "FluxFlatMapUsage",
+        "FluxImplicitBlock",
+        "FormatStringConcatenation",
+        "IdentityConversion",
+        "ImmutablesSortedSetComparator",
+        "IsInstanceLambdaUsage",
+        "JUnitClassModifiers",
+        "JUnitMethodDeclaration",
+        "JUnitNullaryParameterizedTestDeclaration",
+        "JUnitValueSource",
+        "LexicographicalAnnotationListing",
+        "MockitoMockClassReference",
+        "MockitoStubbing",
+        "MongoDBTextFilterUsage",
+        "NestedOptionals",
+        "NestedPublishers",
+        "NonEmptyMono",
+        "NonStaticImport",
+        "OptionalOrElseGet",
+        "PrimitiveComparison",
+        "RedundantStringConversion",
+        "RedundantStringEscape",
+        "RequestMappingAnnotation",
+        "RequestParamType",
+        "Slf4jLogStatement",
+        "Slf4jLoggerDeclaration",
+        "StaticImport",
+        "StringJoin",
+        "TimeZoneUsage",
     )
 
     nullawayEnabled.convention(false)
@@ -125,6 +169,8 @@ project.plugins.withType<JavaBasePlugin> {
         // don't forget to update the version in distributions-dependencies/build.gradle.kts
         addErrorProneDependency("com.google.errorprone:error_prone_core:2.42.0")
         addErrorProneDependency("com.uber.nullaway:nullaway:0.12.10")
+        addErrorProneDependency("tech.picnic.error-prone-support:error-prone-contrib:0.25.0")
+        addErrorProneDependency("tech.picnic.error-prone-support:refaster-runner:0.25.0")
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
@@ -147,6 +193,10 @@ tasks.withType<JavaCompile>().configureEach {
     options.errorprone {
         disableWarningsInGeneratedCode = true
         allErrorsAsWarnings = true
+        // fix potential issues with:
+        // errorproneArgs.add("-XepPatchLocation:IN_PLACE,-XepPatchChecks:DirectReturn")
+        // errorproneArgs.add("-XepPatchLocation:IN_PLACE,-XepPatchChecks:PreconditionsRules")
+        errorproneArgs.add("-XepOpt:Refaster:NamePattern=^(?!.*Rules\\\$).*")
     }
 }
 
