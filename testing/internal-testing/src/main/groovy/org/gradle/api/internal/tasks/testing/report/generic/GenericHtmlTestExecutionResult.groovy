@@ -165,13 +165,13 @@ Unexpected paths: ${unexpectedPaths}""")
         return new HtmlTestPathExecutionResult(diskPathForTestPath(rootTestPath).toFile())
     }
 
-    @SuppressWarnings('GroovyFallthrough')
     @Override
-    TestPathExecutionResult testPath(String testClassName, String testMethodName) {
-        return testPath(testClassName + ":" + testMethodName)
+    TestPathExecutionResult testPath(String... testPathElements) {
+        String joined = Arrays.asList(testPathElements).stream()
+            .collect(Collectors.joining(":"))
+        return testPath(joined)
     }
 
-    @SuppressWarnings('GroovyFallthrough')
     @Override
     boolean testPathExists(String testPath) {
         String frameworkPathToTest = frameworkTestPath(testPath)
@@ -213,7 +213,7 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         return switch (testFramework) {
-            case TestFramework.SPOCK, TestFramework.JUNIT4, TestFramework.SCALA_TEST, TestFramework.XC_TEST -> {
+            case TestFramework.SPOCK, TestFramework.JUNIT4, TestFramework.SCALA_TEST, TestFramework.XC_TEST, TestFramework.CUCUMBER -> {
                 def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
                 yield prefix + suffix

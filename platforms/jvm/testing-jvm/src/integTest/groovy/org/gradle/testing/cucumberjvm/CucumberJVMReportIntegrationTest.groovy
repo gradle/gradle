@@ -16,13 +16,15 @@
 
 package org.gradle.testing.cucumberjvm
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
 
-class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest {
+class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
@@ -31,11 +33,12 @@ class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest {
     def testReportingSupportsCucumberStepsWithSlashes() {
         when:
         run "test"
+
         then:
         executedAndNotSkipped(":test")
+
         and:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("RunCukesTest", "Hello World /one")
-        result.testClass("Hello World /one").assertTestPassed("Say hello /two/three")
+        def result = resultsFor(testDirectory, 'tests/test', TestFramework.CUCUMBER)
+        result.testPath("RunCukesTest", "Hello World /one", "Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }
