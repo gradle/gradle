@@ -17,9 +17,13 @@
 package org.gradle.api.internal.tasks.testing.junit
 
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec
 import org.gradle.api.tasks.testing.TestFailure
+import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.internal.actor.TestActorFactory
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.time.Time
@@ -38,6 +42,31 @@ class JUnitTestClassProcessorTest extends Specification {
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     def processor = Mock(TestResultProcessor)
+    def delegatingProcessor = new TestResultProcessor() {
+        @Override
+        void started(TestDescriptorInternal test, TestStartEvent event) {
+            println "Started: $test.id, name=$test.name, className=$test.className" + (event.parentId ? " (parent: $event.parentId)" : "")
+            processor.started(test, event)
+        }
+
+        @Override
+        void completed(Object testId, TestCompleteEvent event) {
+            println "Completed: $testId"
+            processor.completed(testId, event)
+        }
+
+        @Override
+        void output(Object testId, TestOutputEvent event) {
+            println "Output: $testId, ${event.message ? event.message : '<no message>'}"
+            processor.output(testId, event)
+        }
+
+        @Override
+        void failure(Object testId, TestFailure result) {
+            println "Failure: $testId, ${result.details.message ? result.details.message : '<no message>'}"
+            processor.failure(testId, result)
+        }
+    }
 
     @Subject
     def classProcessor = createProcessor([] as Set, [] as Set, [] as Set, [] as Set, [] as Set)
@@ -52,7 +81,7 @@ class JUnitTestClassProcessorTest extends Specification {
     }
 
     void process(Iterable<String> classNames) {
-        classProcessor.startProcessing(processor)
+        classProcessor.startProcessing(delegatingProcessor)
         for (String c : classNames) {
             classProcessor.processTestClass(new DefaultTestClassRunInfo(c, []))
         }
@@ -462,13 +491,13 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.className == '[0]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == null && it.name == '[0]' }, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[0]" }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.started({ it.id == 4 && it.className == AParameterizedTest.name  && it.name == "unhelpfulTest[0]" }, { it.parentId == 2 })
         1 * processor.completed(4, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 5 && it.className == '[1]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 5 && it.className == null && it.name == '[1]' }, { it.parentId == 1 })
         1 * processor.started({ it.id == 6 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[1]" }, { it.parentId == 5 })
         1 * processor.completed(6, { it.resultType == null })
         1 * processor.started({ it.id == 7 && it.className == AParameterizedTest.name  && it.name == "unhelpfulTest[1]" }, { it.parentId == 5 })
@@ -488,11 +517,11 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.className == '[0]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == null && it.name == '[0]' }, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[0]" }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 4 && it.className == '[1]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 4 && it.className == null && it.name == '[1]' }, { it.parentId == 1 })
         1 * processor.started({ it.id == 5 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[1]" }, { it.parentId == 4 })
         1 * processor.completed(5, { it.resultType == null })
         1 * processor.completed(4, { it.resultType == null })
@@ -510,7 +539,7 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.className == '[1]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == null && it.name == '[1]'}, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[1]" }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.started({ it.id == 4 && it.className == AParameterizedTest.name  && it.name == "unhelpfulTest[1]" }, { it.parentId == 2 })
@@ -530,8 +559,8 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.className == '[1]' }, { it.parentId == 1 })
-        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[1]" }, { it.parentId == 2 })
+        1 * processor.started({ it.id == 2 && it.className == null && it.name == '[1]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
