@@ -77,25 +77,25 @@ build/local-repo/
     └── example/
         ├── greeting/
         │   └── 1.0.0/
-        │       ├── greeting-1.0.0.jar
-        │       ├── greeting-1.0.0.jar.sha1
-        │       ├── greeting-1.0.0.jar.sha256
-        │       ├── greeting-1.0.0.module
+        │       ├── greeting-1.0.0.jar                 // compiled plugin classes
+        │       ├── greeting-1.0.0.jar.sha1            // checksum (SHA-1) for integrity verification
+        │       ├── greeting-1.0.0.jar.sha256          // checksum (SHA-256) for stronger integrity verification
+        │       ├── greeting-1.0.0.module              // Gradle Module Metadata (variants, capabilities, dependencies)
         │       ├── greeting-1.0.0.module.sha1
         │       ├── greeting-1.0.0.module.sha256
-        │       ├── greeting-1.0.0.pom
+        │       ├── greeting-1.0.0.pom                 // Maven POM: group, artifact, version, dependencies
         │       ├── greeting-1.0.0.pom.sha1
         │       ├── greeting-1.0.0.pom.sha256
-        │       └── greeting-1.0.0-sources.jar  // if withSourcesJar is enabled
+        │       └── greeting-1.0.0-sources.jar         // optional sources JAR (if withSourcesJar() is enabled)
         │           ├── greeting-1.0.0-sources.jar.sha1
         │           └── greeting-1.0.0-sources.jar.sha256
         │
         └── org.example.greeting.gradle.plugin/
             └── 1.0.0/
-                ├── org.example.greeting.gradle.plugin-1.0.0.module
+                ├── org.example.greeting.gradle.plugin-1.0.0.module  // plugin marker metadata
                 ├── org.example.greeting.gradle.plugin-1.0.0.module.sha1
                 ├── org.example.greeting.gradle.plugin-1.0.0.module.sha256
-                ├── org.example.greeting.gradle.plugin-1.0.0.pom
+                ├── org.example.greeting.gradle.plugin-1.0.0.pom     // plugin marker POM
                 ├── org.example.greeting.gradle.plugin-1.0.0.pom.sha1
                 └── org.example.greeting.gradle.plugin-1.0.0.pom.sha256
 ----
@@ -115,6 +115,5 @@ To consume locally, point the consumer project’s `pluginManagement` to the loc
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="settings.gradle.kts[tags=publish-3]"]
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="settings.gradle[tags=publish-3]"]
 ====
-
 
 Now the consumer can apply your plugin by its `id` without pushing to a public repository.

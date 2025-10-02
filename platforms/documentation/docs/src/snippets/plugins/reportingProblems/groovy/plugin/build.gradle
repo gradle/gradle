@@ -1,0 +1,27 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'groovy'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation gradleTestKit()
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+}
+
+gradlePlugin {
+    plugins {
+        publishingGuard {
+            id = 'org.example.pubcheck'
+            implementationClass = 'org.example.PublishingGuardPlugin'
+        }
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
