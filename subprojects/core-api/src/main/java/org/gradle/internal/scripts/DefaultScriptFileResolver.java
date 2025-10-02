@@ -77,7 +77,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
             .map(path -> "'" + path + "'")
             .collect(Collectors.joining(", "));
         LOGGER.warn(
-            "Multiple build files were found in directory '{}'. Using '{}', and ignoring {}",
+            "Multiple build files were found in directory '{}': using '{}', and ignoring {}.",
             dir, selectedCandidate.getName(), ignoredCandidateFileNames
         );
     }

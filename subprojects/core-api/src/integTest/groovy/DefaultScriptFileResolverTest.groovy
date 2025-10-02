@@ -15,51 +15,48 @@
  */
 
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scripts.ScriptFileUtil
-import org.gradle.test.fixtures.file.TestFile
-
-import java.util.stream.Collectors
+import org.gradle.internal.scripts.ScriptingLanguages
 
 class DefaultScriptFileResolverTest extends AbstractIntegrationSpec {
 
-    def "when multiple build scripts are present, the resolved will report a warning"(String acceptedScript, List<String> ignoredScripts) {
+    /**
+     * Tests in this class expect a well known, invariable set of script languages.
+     * If this tests breaks, it means that the set of available script languages has changed and the tests need to be updated.
+     */
+    def "script languages are the expected ones"() {
+        def extensions = ScriptingLanguages.all().collect {
+            it.extension
+        }.toSet()
+
+        assert extensions == ['gradle', 'gradle.kts', 'gradle.dcl'] as Set
+    }
+
+    def "when multiple build scripts are present, the resolved will report a warning"() {
+
         given:
-        def acceptedFile = file(acceptedScript)
-        acceptedFile.touch()
-        def ignoredFiles = ignoredScripts.collect { file(it) }
-        ignoredFiles.each { it.touch() }
+        buildFiles.each {
+            file(it).touch()
+        }
 
         when:
         succeeds("help")
 
         then:
-        outputContains(expectedMessage(testDirectory, acceptedFile, ignoredFiles))
+        if (messageDetails != null) {
+            outputContains("Multiple build files were found in directory '${testDirectory.absolutePath}': ${messageDetails}.")
+        } else {
+            outputDoesNotContain("Multiple build files were found in directory")
+        }
+
         where:
-        [acceptedScript, ignoredScripts] << createCombinations(ScriptFileUtil.getValidExtensions())
-    }
-
-    private static List<List<Object>> createCombinations(String... extensions) {
-        (0..<extensions.length - 1).collectMany { i ->
-            def accepted = "build${extensions[i]}"
-            def ignored = extensions[i + 1..<extensions.length].collect { "build${it}" }
-            ignored.permutations().collect { ignoredList -> [accepted, ignoredList] }
-        }
-    }
-
-    private def expectedMessage(TestFile rootDir, TestFile acceptedPath, List<TestFile> ignoredPaths) {
-        // This method needs to keep a certain order, as DefaultScriptFileResolver will receive the extensions from `ScriptFileUtil.getValidExtensions()` in a particular order.
-        def reorderedIgnoredPaths = []
-        ignoredPaths.findAll { it.name.endsWith(".kts") }.each {
-            reorderedIgnoredPaths.add("'${it.name}'")
-        }
-        ignoredPaths.findAll { it.name.endsWith(".dcl") }.each {
-            reorderedIgnoredPaths.add("'${it.name}'")
-        }
-
-        def ignoredPathsList = reorderedIgnoredPaths.stream().collect(Collectors.joining(", "))
-        return "Multiple build files were found in directory '${rootDir.absolutePath}'. Using '${acceptedPath.name}', and ignoring ${ignoredPathsList}"
+        [buildFiles, messageDetails] << [
+            [["build.gradle"], null],
+            [["build.gradle", "build.gradle.kts"], "using 'build.gradle', and ignoring 'build.gradle.kts'"],
+            [["build.gradle", "build.gradle.dcl"], "using 'build.gradle', and ignoring 'build.gradle.dcl'"],
+            [["build.gradle.kts", "build.gradle.dcl"], "using 'build.gradle.kts', and ignoring 'build.gradle.dcl'"],
+            [["build.gradle", "build.gradle.kts", "build.gradle.dcl"], "using 'build.gradle', and ignoring 'build.gradle.kts', 'build.gradle.dcl'"]
+        ]
     }
 
 }
