@@ -26,9 +26,9 @@ import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOpti
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -120,7 +120,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {
                 String contextualMessage = String.format("The 'tools.jar' cannot be found in the JDK '%s'.", jvm.getJavaHome());
-                ProblemId problemId = ProblemId.create("missing-tools-jar", "Missing tools.jar", GradleCoreProblemGroup.compilation().groovy());
+                ProblemId problemId = ProblemId.create("missing-tools-jar", "Missing tools.jar", PredefinedProblemGroups.compilation().groovy());
                 throw problemReporter.throwing(new IllegalStateException(contextualMessage), problemId, problemSpec -> problemSpec
                     .contextualLabel(contextualMessage)
                     .solution("Check if the installation is not a JRE but a JDK.")

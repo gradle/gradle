@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.ExecutionProblemHandler;
@@ -98,7 +98,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
             workValidationContext.visitPropertyProblem(problem -> problem
                 .forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION_NESTED), "Unknown property implementation", GradleCoreProblemGroup.validation().property())
+                .id(TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION_NESTED), "Unknown property implementation", PredefinedProblemGroups.validation().property())
                 .contextualLabel(unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .details(unknownImplSnapshot.getReasonDescription())
@@ -112,7 +112,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
             workValidationContext.visitPropertyProblem(problem -> problem
-                .id(TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION), "Unknown property implementation", GradleCoreProblemGroup.validation().property())
+                .id(TextUtil.screamingSnakeToKebabCase(UNKNOWN_IMPLEMENTATION), "Unknown property implementation", PredefinedProblemGroups.validation().property())
                 .contextualLabel(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
                 .documentedAt(userManual("validation_problems", "implementation_unknown"))
                 .details(unknownImplSnapshot.getReasonDescription())

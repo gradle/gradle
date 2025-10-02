@@ -18,8 +18,8 @@ package org.gradle.buildconfiguration.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -60,7 +60,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      *
      * @since 8.13
      */
-    public static final ProblemId TASK_CONFIGURATION_PROBLEM_ID = ProblemId.create("task-configuration", "Invalid task configuration", GradleCoreProblemGroup.daemonToolchain().configurationGeneration());
+    public static final ProblemId TASK_CONFIGURATION_PROBLEM_ID = ProblemId.create("task-configuration", "Invalid task configuration", PredefinedProblemGroups.daemonToolchain().configurationGeneration());
 
     private final DaemonJvmPropertiesModifier daemonJvmPropertiesModifier;
 

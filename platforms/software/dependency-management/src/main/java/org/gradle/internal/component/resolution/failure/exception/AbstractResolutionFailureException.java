@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ResolutionFailureDataSpec;
 import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
@@ -79,7 +79,7 @@ public abstract class AbstractResolutionFailureException extends StyledException
     public AbstractResolutionFailureException reportAsProblem(InternalProblems problemsService) {
         Problem problem = problemsService.getInternalReporter().internalCreate(builder -> {
             ResolutionFailureProblemId problemId = getFailure().getProblemId();
-            builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
+            builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), PredefinedProblemGroups.variantResolution())
                 .contextualLabel(getMessage())
                 .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
                 .severity(ERROR)

@@ -25,7 +25,7 @@ import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
@@ -122,7 +122,7 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
         if (!isBinding) {
             typeValidationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(projectTypePluginImplClass)
-                    .id("missing-software-type", "Missing project feature annotation", GradleCoreProblemGroup.validation().type())
+                    .id("missing-software-type", "Missing project feature annotation", PredefinedProblemGroups.validation().type())
                     .contextualLabel("is registered as a project feature plugin but does not expose a project feature")
                     .severity(Severity.ERROR)
                     .details("This class was registered as a project feature plugin, but it does not expose a project feature. Project feature plugins must expose at least one project feature via either a @BindsProjectType or @BindsProjectFeature annotation on the plugin class.")

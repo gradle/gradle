@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile
 
-
+import org.gradle.api.problems.PredefinedProblemGroups
 import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblem
 import spock.lang.Issue
 import spock.lang.Specification
@@ -46,7 +45,7 @@ Unknown symbol: foo
                 getId() >> Mock(ProblemId) {
                     getName() >> ''
                     getDisplayName() >> ''
-                    getGroup() >> GradleCoreProblemGroup.compilation().java()
+                    getGroup() >> PredefinedProblemGroups.compilation().java()
                 }
             }
             getDetails() >> 'Unknown symbol: foo'

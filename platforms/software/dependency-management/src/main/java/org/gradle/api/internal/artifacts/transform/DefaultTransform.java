@@ -37,7 +37,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Provider;
@@ -212,7 +212,7 @@ public class DefaultTransform implements Transform {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyName)
-                        .id(TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY), "Property declared to be sensitive to absolute paths", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                        .id(TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY), "Property declared to be sensitive to absolute paths", PredefinedProblemGroups.validation().property()) // TODO (donat) missing test coverage
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .contextualLabel("is declared to be sensitive to absolute paths")
                         .severity(ERROR)
@@ -372,7 +372,7 @@ public class DefaultTransform implements Transform {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyName)
-                            .id(TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT), "Artifact transform should not declare output", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                            .id(TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT), "Artifact transform should not declare output", PredefinedProblemGroups.validation().property()) // TODO (donat) missing test coverage
                             .contextualLabel("declares an output")
                             .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)

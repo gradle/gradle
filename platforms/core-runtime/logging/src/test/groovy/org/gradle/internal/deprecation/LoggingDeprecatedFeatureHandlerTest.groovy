@@ -18,7 +18,7 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.PredefinedProblemGroups
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -521,6 +521,6 @@ feature1 removal""")
     }
 
     private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", GradleCoreProblemGroup.deprecation().toString(), calledFrom)
+        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", PredefinedProblemGroups.deprecation().toString(), calledFrom)
     }
 }

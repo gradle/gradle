@@ -23,11 +23,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -120,7 +120,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                         ProblemId problemId = ProblemId.create(
                             "invalid-java-toolchain",
                             "Running task ValidatePlugins with Java Toolchain lower than " + SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-                            GradleCoreProblemGroup.validation().thisGroup()
+                            PredefinedProblemGroups.validation().thisGroup()
                         );
                         ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
                         GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");
@@ -138,7 +138,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                     ProblemId problemId = ProblemId.create(
                         "missing-java-toolchain-plugin",
                         "Using task ValidatePlugins without applying the Java Toolchain plugin",
-                        GradleCoreProblemGroup.validation().thisGroup()
+                        PredefinedProblemGroups.validation().thisGroup()
                     );
                     ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
                     GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");

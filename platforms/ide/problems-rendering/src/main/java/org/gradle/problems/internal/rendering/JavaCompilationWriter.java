@@ -17,7 +17,7 @@
 package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.internal.InternalProblem;
 
 import java.io.PrintWriter;
@@ -31,6 +31,6 @@ class JavaCompilationWriter implements SelectiveProblemWriter {
 
     @Override
     public boolean accepts(ProblemId problemId) {
-        return problemId.getGroup().equals(GradleCoreProblemGroup.compilation().java()) && !problemId.getName().equals("initialization-failed");
+        return problemId.getGroup().equals(PredefinedProblemGroups.compilation().java()) && !problemId.getName().equals("initialization-failed");
     }
 }

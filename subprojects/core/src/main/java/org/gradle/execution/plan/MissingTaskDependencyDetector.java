@@ -18,8 +18,8 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
@@ -164,7 +164,7 @@ public class MissingTaskDependencyDetector {
 
     private static void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
-            problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+            problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", PredefinedProblemGroups.validation().property()) // TODO (donat) missing test coverage
                 .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .documentedAt(userManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase(Locale.ROOT)))
                 .severity(Severity.ERROR)

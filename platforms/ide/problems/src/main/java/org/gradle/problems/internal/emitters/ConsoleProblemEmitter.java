@@ -17,7 +17,7 @@
 package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -53,8 +53,8 @@ public class ConsoleProblemEmitter implements ProblemEmitter {
         }
 
         // For now, don't write deprecation and java compilation warnings
-        if (ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.deprecation()) ||
-            ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.compilation().java())) {
+        if (ProblemUtils.isInGroup(problem, PredefinedProblemGroups.deprecation()) ||
+            ProblemUtils.isInGroup(problem, PredefinedProblemGroups.compilation().java())) {
             return false;
         }
         return true;
