@@ -24,13 +24,13 @@ import org.junit.jupiter.api.function.Executable;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -38,7 +38,11 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 /**
  * Keep package-info files for packages split up into multiple directories/projects
  * from being different. If allowed to be different behaviour can become nondeterministic
- * based on classpath ordering.
+ * based on classpath ordering:
+ * <ul>
+ *     <li>Runtime annotations may kick in or not.</li>
+ *     <li>Javadoc may pick up different files to generate package pages</li>
+ * </ul>
  */
 public class PackageInfoTest {
 
@@ -78,9 +82,9 @@ public class PackageInfoTest {
     }
 
     private static void assertPackageInfoFilesAreIdentical(String packageName, List<Path> infoFiles) {
-        List<String> referenceContent = readPackageInfo(infoFiles.get(0));
+        String referenceContent = readAsString(infoFiles.get(0));
         boolean hasInconsistencies = infoFiles.subList(1, infoFiles.size()).stream()
-            .anyMatch(file -> !referenceContent.equals(readPackageInfo(file)));
+            .anyMatch(file -> !referenceContent.equals(readAsString(file)));
         if (hasInconsistencies) {
             fail("Inconsistent package-info files for package " + packageName + ": " +
                 infoFiles.stream()
@@ -90,14 +94,10 @@ public class PackageInfoTest {
         }
     }
 
-    private static List<String> readPackageInfo(Path path) {
-        try (Stream<String> fileStream = Files.lines(path)) {
-            return fileStream
-                // Should use Class-File API (part of Java 24) to parse package-info.java and
-                // to drop irrelevant comments/handle (non) qualified imports
-                .filter(line -> !(line.startsWith("/*") || line.startsWith(" *") || line.startsWith(" */")))
-                .filter(s -> !s.isEmpty())
-                .toList();
+    private static String readAsString(Path path) {
+        try {
+            byte[] bytes = Files.readAllBytes(path);
+            return new String(bytes, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Failed reading contents of " + path, e);
         }
