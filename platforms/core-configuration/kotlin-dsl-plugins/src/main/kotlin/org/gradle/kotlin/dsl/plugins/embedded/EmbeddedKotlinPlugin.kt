@@ -65,7 +65,12 @@ fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
             """|WARNING: Unsupported Kotlin plugin version.
                |The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `$embeddedKotlinVersion` that might work differently than in the requested version `$kotlinVersion`.
                |Using the `kotlin-dsl` plugin together with a different Kotlin version (for example, by using the Kotlin Gradle plugin (`kotlin(jvm)`)) in the same project is not recommended.
-               |See https://docs.gradle.org/${GradleVersion.current().version}/userguide/kotlin_dsl.html for more details.""".trimMargin()
+               |
+               |See https://docs.gradle.org/${GradleVersion.current().version}/userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin for more details on how the `kotlin-dsl` plugin works (same applies to `embedded-kotlin`).
+               |It applies a certain version of the `org.jetbrains.kotlin.jvm` plugin and also add a dependency on the Kotlin Standard Library.
+               |
+               |Applying other version of the `org.jetbrains.kotlin.jvm` plugin in the build and/or adding dependencies to different versions of the Kotlin Standard Library can cause incompatibilities.
+               |See https://docs.gradle.org/${GradleVersion.current().version}/userguide/kotlin_dsl.html#sec:kotlin""".trimMargin()
         warn(warning)
     }
 }
