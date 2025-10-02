@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.List;
@@ -36,4 +37,14 @@ public interface TestEventReporterInternal extends TestEventReporter {
      * @param failures the list of failures
      */
     void failed(Instant endTime, List<TestFailure> failures);
+
+    /**
+     * Emit a skipped event for the test when a test was skipped due to an assumption failure.
+     * <p>
+     * May not be called before {@link #started(Instant)}.
+     *
+     * @param endTime the time the test completed
+     * @param assumptionFailure the assumption failure that caused the test to be skipped
+     */
+    void skipped(Instant endTime, @Nullable TestFailure assumptionFailure);
 }
