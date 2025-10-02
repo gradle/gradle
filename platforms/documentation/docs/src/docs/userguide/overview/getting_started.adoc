@@ -141,7 +141,7 @@ The tutorial covers:
 <<part2_add_extension.adoc#part2_begin,Part 2.>> Adding an Extension +
 <<part3_create_custom_task.adoc#part3_begin,Part 3.>> Creating a Custom Task +
 <<part4_unit_test.adoc#part4_begin,Part 6.>> Writing a Unit Test +
-<<part5_add_dataflow_Action.adoc#part5_begin,Part 5.>> Adding a DataFlow Action +
+<<part5_add_dataflow_action.adoc#part5_begin,Part 5.>> Adding a DataFlow Action +
 <<part6_functional_test.adoc#part6_begin,Part 6.>> Writing a Functional Test +
 <<part7_use_consumer_project.adoc#part7_begin,Part 7.>> Using a Consumer Project +
 <<part8_publish_locally.adoc#part8_begin,Part 8.>> Publishing the Plugin
