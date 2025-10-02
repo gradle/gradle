@@ -66,7 +66,7 @@ public class TestEventReporterAsListener implements TestListenerInternal, AutoCl
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        TestEventReporter reporter = reportersById.remove(testDescriptor.getId());
+        TestEventReporterInternal reporter = (TestEventReporterInternal) reportersById.remove(testDescriptor.getId());
         if (reporter == null) {
             throw new IllegalStateException("No reporter found for test descriptor: " + testDescriptor);
         }
@@ -79,10 +79,10 @@ public class TestEventReporterAsListener implements TestListenerInternal, AutoCl
                     reporter.succeeded(Instant.ofEpochMilli(completeEvent.getEndTime()));
                     break;
                 case FAILURE:
-                    ((TestEventReporterInternal) reporter).failed(Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getFailures());
+                    reporter.failed(Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getFailures());
                     break;
                 case SKIPPED:
-                    reporter.skipped(Instant.ofEpochMilli(completeEvent.getEndTime()));
+                    reporter.skipped(Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getAssumptionFailure());
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown result type: " + testResult.getResultType());
