@@ -89,19 +89,21 @@ class DefaultMetadataProvider implements MetadataProvider {
     }
 
     private ComponentMetadata transformThroughComponentMetadataRules(InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier, ComponentMetadata metadata) {
-        DefaultMetadataResolutionContext resolutionContext = new DefaultMetadataResolutionContext(resolveState.getCacheExpirationControl(), componentMetadataSupplier.getInstantiator());
-        return resolveState.getComponentMetadataProcessorFactory().createComponentMetadataProcessor(resolutionContext).processMetadata(metadata);
-        
+        return resolveState
+            .getComponentMetadataProcessorFactory()
+            .createComponentMetadataProcessor(new DefaultMetadataResolutionContext(resolveState.getCacheExpirationControl(), componentMetadataSupplier.getInstantiator()))
+            .processMetadata(metadata);
     }
 
     private ComponentMetadata getComponentMetadataFromSupplier(InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier) {
-        ComponentMetadata metadata;
-        ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(resolveState.getId());
-        return resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, id1 -> {
-            final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id1, resolveState.getAttributesFactory());
-            return new BuildableComponentMetadataSupplierDetails(builder);
-        }, resolveState.getCacheExpirationControl());
-        
+        return resolveState
+            .getComponentMetadataSupplierExecutor()
+            .execute(
+                DefaultModuleVersionIdentifier.newId(resolveState.getId()),
+                componentMetadataSupplier,
+                TO_COMPONENT_METADATA,
+                id -> new BuildableComponentMetadataSupplierDetails(new SimpleComponentMetadataBuilder(id, resolveState.getAttributesFactory())),
+                resolveState.getCacheExpirationControl());
     }
 
     @Override
