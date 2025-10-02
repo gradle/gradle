@@ -23,16 +23,18 @@ These scopes are represented by configurations, each identified by a unique name
 image::dependency-management-configurations.png[]
 
 Gradle plugins often add pre-defined link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[configurations] to your project.
-
-For example, when applied, the Java plugin adds configurations to your project for source code compilation (`implementation`), test execution (`testImplementation`), and more (`api`, `compileOnly`, `runtimeOnly`, etc.):
+For example, when applied, the Java plugin adds configurations to your project for source code compilation (`implementation`), test execution (`testImplementation`), and more (`api`, `compileOnly`, `runtimeOnly`):
 
 ====
 include::sample[dir="snippets/artifacts/dependencyBasics/kotlin",files="build.gradle.kts[tags=configurations]"]
 include::sample[dir="snippets/artifacts/dependencyBasics/groovy",files="build.gradle[tags=configurations]"]
 ====
 
-This example highlights dependencies declared on the `implementation`, `testImplementation`, and `api` configuration for a Java project.
-See the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java plugin documentation>> for details.
+In this example, applying the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java Library>> plugin sets up the most common dependency configurations automatically:
+
+- `implementation` — These libraries are available when compiling your code and at runtime, but they’re internal. If another project depends on your library, it won’t automatically see `hibernate-core`.
+- `testImplementation` — These are used only to compile and run your tests. They’re not packaged or exposed to consumers.
+- `api` — These libraries are part of your public surface. Consumers of your library will compile against `guava` automatically and get it on their classpath when they depend on your library.
 
 [[sec:resolvable-consumable-configs]]
 == Resolvable and consumable configurations
@@ -43,9 +45,10 @@ Configurations aren't used just for declaring dependencies, they serve various r
 2. *Consumer Role*: Configurations that are used to resolve dependencies into artifacts.
 3. *Producer Role*: Configurations that expose artifacts for consumption by other projects.
 
-=== 1. Configurations for declaring dependencies (i.e, declarable configuration)
+=== 1. Configurations for declaring dependencies - Declarable configurations
 
 To declare dependencies in your project, you can use or create *declarable configurations*.
+
 These configurations help organize and categorize dependencies for different parts of the project.
 
 For example, to express a dependency on another project, you would use a *declarable configurations* like `implementation`:
@@ -57,13 +60,16 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 
 *Configurations used for declaring dependencies* define and manage the specific libraries or projects your code requires for tasks such as compilation or testing.
 
-=== 2. Configurations for consumers (i.e, resolvable configuration)
+=== 2. Configurations for consumers - Resolvable configurations
 
 To control how dependencies are resolved and used within your project, you can use or create **resolvable configurations**.
+
 These configurations define classpaths and other sets of artifacts that your project needs during different stages, like compilation or runtime.
 
 For example, the `implementation` configuration declares the dependencies, while `compileClasspath` and `runtimeClasspath` are **resolvable configurations** designed for specific purposes.
-When resolved, they represent the classpaths needed for compilation and runtime, respectively:
+When resolved, they represent the classpaths needed for compilation and runtime, respectively.
+
+The following shows three different APIs available to create a resolvable configuration called `compileClasspath`:
 
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
@@ -73,12 +79,15 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 *Resolvable configurations* are those that can be resolved to produce a set of files or artifacts.
 These configurations are used to define the classpath for different stages of a build process, such as compilation or runtime.
 
-=== 3. Configurations for producers (i.e., consumable configuration)
+=== 3. Configurations for producers - Consumable configurations
 
 **Consumable configurations** are used to expose artifacts to other projects.
+
 These configurations define what parts of your project can be consumed by others, like APIs or runtime dependencies, but are not meant to be resolved directly within your project.
 
-For example, the `exposedApi` configuration is a **consumable configuration** that exposes the API of a component to consumers:
+For example, the `exposedApi` configuration is a **consumable configuration** that exposes the API of a component to consumers.
+
+The following shows three different APIs available to create a consumable configuration called `exposedApi`:
 
 ====
 include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
@@ -87,7 +96,8 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 
 A library typically provides consumable configurations like `apiElements` (for compilation) and `runtimeElements` (for runtime dependencies).
 These configurations expose the necessary artifacts for other projects to consume, without being resolvable within the current project.
-The `canBeDeclared`, `isCanBeConsumed` and `isCanBeResolved` flags help distinguish the roles of these configurations.
+
+The `canBeDeclared`, `isCanBeConsumed` and `isCanBeResolved` flags help distinguish the roles of these configurations and are required when using older APIs.
 
 [[sec:configuration-flags-roles]]
 == Configuration flags and roles
@@ -128,6 +138,39 @@ The following configurations are created:
 - `exposedApi` + `exposedRuntime`: Consumable configurations that expose artifacts (API and runtime) to other projects, but aren’t meant for internal resolution.
 
 This setup mimics the behavior of the `implementation`, `compileClasspath`, `runtimeClasspath`, `apiElements`, and `runtimeElements` configurations in the <<java_plugin.adoc#java_plugin,Java plugin>>.
+
+== Avoiding eager configuration
+
+With lazy configuration, Gradle only initializes configurations when they’re actually needed, for example, when they’re published or consumed.
+To benefit from this, make sure your build logic doesn’t force configurations to realize early.
+
+For example:
+
+.build.gradle.kts
+[source,kotlin]
+----
+// Instead of
+configurations.all {}                           // Eagerly realizes all configurations
+
+// Use
+configurations.configureEach {}                 // Only called for realized configurations
+
+// Instead of
+configurations.getByName("name").doSomething()  // Eagerly realizes the "name" configuration
+
+// Use
+configurations.named("name").configure {
+    doSomething()                               // Only called if "name" configuration is realized
+}
+----
+
+`all {}` iterates every configuration eagerly at configuration time.
+While `configureEach {}` registers the action but delays running it until the configuration is actually realized.
+
+`getByName()` returns and realizes the configuration immediately.
+While `named()` returns a lazy handle so you can configure it without triggering realization.
+
+By using these lazy APIs, Gradle can skip unnecessary work for configurations that aren’t needed, reducing configuration time and memory use.
 
 [[sec:deprecated-configurations]]
 == Deprecated configurations

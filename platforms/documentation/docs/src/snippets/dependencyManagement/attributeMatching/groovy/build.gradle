@@ -18,9 +18,22 @@ dependencies {
 // tag::concrete-classpath[]
 configurations {
     // declare a resolvable configuration that is going to resolve the compile classpath of the application
+    // Using lazy & newer API: realized only when needed
     resolvable("compileClasspath") {
-        //canBeConsumed = false
-        //canBeDeclared = false
+        extendsFrom(implementation)
+    }
+
+    // Using lazy & older API: realized only when needed
+    register("compileClasspath") {
+        isCanBeConsumed = false
+        isCanBeDeclared = false
+        extendsFrom(implementation)
+    }
+
+    // Using eager & older API: realized immediately - avoid
+    create("compileClasspath") {
+        isCanBeConsumed = false
+        isCanBeDeclared = false
         extendsFrom(implementation)
     }
 // end::concrete-classpath[]
@@ -37,9 +50,23 @@ configurations {
 // tag::setup-configurations[]
 configurations {
     // a consumable configuration meant for consumers that need the API of this component
+
+    // Using lazy & newer API: realized only when needed
     consumable("exposedApi") {
-        //canBeResolved = false
-        //canBeDeclared = false
+        extendsFrom(implementation)
+    }
+
+    // Using lazy & older API: realized only when needed
+    register("exposedApi") {
+        isCanBeResolved = false
+        isCanBeDeclared = false
+        extendsFrom(implementation)
+    }
+
+    // Using eager & older API: realized immediately - avoid
+    create("exposedApi") {
+        isCanBeResolved = false
+        isCanBeDeclared = false
         extendsFrom(implementation)
     }
 // end::setup-configurations[]
