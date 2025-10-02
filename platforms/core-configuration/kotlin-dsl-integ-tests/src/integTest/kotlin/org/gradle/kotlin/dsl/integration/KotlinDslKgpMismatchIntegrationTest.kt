@@ -21,15 +21,19 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import org.junit.Test
 
 class KotlinDslKgpMismatchIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `kgp and kotlin-dsl plugins applied together with clashing versions`() {
-        val higherKotlinVersion = KotlinGradlePluginVersions().latests.last {
+        val higherKotlinVersions = KotlinGradlePluginVersions().latests.filter {
             VersionNumber.parse(it) > VersionNumber.parse(embeddedKotlinVersion)
         } // has to be a higher version than what's embedded by gradle, otherwise the `kotlin-dsl` plugin will win out
+
+        Assume.assumeTrue(higherKotlinVersions.isNotEmpty())
+        val higherKotlinVersion = higherKotlinVersions.last()
 
         withBuildScript(
             """
