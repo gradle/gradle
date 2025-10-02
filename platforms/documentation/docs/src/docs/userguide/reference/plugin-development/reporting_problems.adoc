@@ -22,6 +22,14 @@ This data powers Gradle’s console output, Build Scans, and IDE integrations so
 
 The following example shows how a plugin can report a problem:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/problemReporting">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java[tags=snippet]"]
 ====
@@ -34,6 +42,14 @@ include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc
 See the full link:../samples/sample_problems_api_usage.html[end-to-end sample] for more details.
 
 == API Usage
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/reportingProblems">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[]"]
