@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -394,13 +394,13 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             return """
                 package org.gradle.test;
 
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends HasBuildModel<${implementationTypeClassName}.FeatureModel> {
+                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.FeatureModel> {
                     @Restricted
                     Property<String> getText();
 
@@ -446,11 +446,11 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                 import org.gradle.api.provider.Property;
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${publicTypeClassName} extends HasBuildModel<${publicTypeClassName}.FeatureModel> {
+                public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.FeatureModel> {
                     @Restricted
                     Property<String> getText();
 
@@ -498,11 +498,11 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                 import org.gradle.api.provider.Property;
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends HasBuildModel<${implementationTypeClassName}.${buildModelPublicTypeClassName}> {
+                public interface ${implementationTypeClassName} extends Definition<${implementationTypeClassName}.${buildModelPublicTypeClassName}> {
                     @Restricted
                     Property<String> getText();
 

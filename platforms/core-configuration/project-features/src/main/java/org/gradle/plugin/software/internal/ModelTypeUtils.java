@@ -17,15 +17,15 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.internal.inspection.DefaultTypeParameterInspection;
 import org.gradle.internal.inspection.TypeParameterInspection;
 import org.jspecify.annotations.NonNull;
 
 public class ModelTypeUtils {
-    public static <Definition extends HasBuildModel<OwnBuildModel>, OwnBuildModel extends BuildModel> @NonNull Class<OwnBuildModel> getBuildModelClass(Class<Definition> definition) {
+    public static <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> @NonNull Class<OwnBuildModel> getBuildModelClass(Class<OwnDefinition> definition) {
         @SuppressWarnings("rawtypes")
-        TypeParameterInspection<HasBuildModel, BuildModel> inspection = new DefaultTypeParameterInspection<>(HasBuildModel.class, BuildModel.class, BuildModel.NONE.class);
+        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
         Class<OwnBuildModel> ownBuildModel = inspection.parameterTypeFor(definition);
         if (ownBuildModel == null) {
             throw new IllegalArgumentException("Cannot determine build model type for " + definition);

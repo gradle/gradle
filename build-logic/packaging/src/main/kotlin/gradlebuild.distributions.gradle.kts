@@ -16,7 +16,7 @@
 
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
-import gradlebuild.basics.buildVersionQualifier
+import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.tasks.PackageListGenerator
@@ -268,16 +268,30 @@ fun pluginsManifestTask(runtimeClasspath: Configuration, coreRuntimeClasspath: C
         manifestFile = generatedPropertiesFileFor("gradle${if (api == GradleModuleApiAttribute.API) "" else "-implementation"}-plugins")
     }
 
+// Determine the root folder name in the zip. It will be the prefix of each zip entry:
+// ----------------------------------------------------------------
+// $ unzip -l packaging/distributions-full/build/distributions/gradle-9.3.0-bin.zip
+// Archive:  packaging/distributions-full/build/distributions/gradle-9.3.0-bin.zip
+//  Length      Date    Time    Name
+// ---------  ---------- -----   ----
+//        0  02-01-1980 00:00   gradle-9.3.0-git1234567/
+//    23645  02-01-1980 00:00   gradle-9.3.0-git1234567/LICENSE
+//    ...
+// ----------------------------------------------------------------
+// if it's normalized, the root folder name includes base version only, like "gradle-9.3.0".
+// if it's snapshot version (timestamped), it will be "gradle-{baseVersion}-git{shortCommitSha}", like "gradle-9.3.0-git1234567"
+// Otherwise, it will be "gradle-{fullVersion}", like "gradle-9.3.0-rc-1" or "gradle-9.3.0-milestone-9"
+fun determineZipRootFolderName(normalized: Boolean = false) = gradleModule.identity.version.map {
+    when {
+        normalized -> "gradle-${it.baseVersion.version}"
+        it.isSnapshot -> "gradle-${it.baseVersion.version}-git${buildCommitId.get().substring(0, 7)}"
+        else -> "gradle-${it.version}"
+    }
+}
+
 fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLifecycleTask: TaskProvider<Task>, normalized: Boolean = false) {
     val disDir = if (normalized) "normalized-distributions" else "distributions"
-    val zipRootFolder = if (normalized) {
-        gradleModule.identity.version.map { "gradle-${it.baseVersion.version}" }
-    } else {
-        gradleModule.identity.version.map { "gradle-${it.version}" }.map {
-            if (buildVersionQualifier.isPresent) it.replace("-${buildVersionQualifier.get()}", "")
-            else it
-        }
-    }
+    val zipRootFolder = determineZipRootFolderName(normalized)
 
     val installation = tasks.register<Sync>("${name}Installation") {
         group = "distribution"

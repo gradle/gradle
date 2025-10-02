@@ -108,16 +108,20 @@ val credentialsKeywords = listOf(
 )
 
 
-fun Test.filterEnvironmentVariables() {
+fun Test.filterEnvironmentVariables(inheritDevelocityAccessToken: Boolean) {
     environment = makePropagatedEnvironment()
     environment.forEach { (key, _) ->
         require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
+    }
+
+    if (inheritDevelocityAccessToken) {
+        environment["DEVELOCITY_ACCESS_KEY"] = System.getenv("DEVELOCITY_ACCESS_KEY")
     }
 }
 
 
 private
-fun makePropagatedEnvironment(): Map<String, String> {
+fun makePropagatedEnvironment(): MutableMap<String, String> {
     val result = HashMap<String, String>()
     for (key in propagatedEnvironmentVariables) {
         val value = System.getenv(key)

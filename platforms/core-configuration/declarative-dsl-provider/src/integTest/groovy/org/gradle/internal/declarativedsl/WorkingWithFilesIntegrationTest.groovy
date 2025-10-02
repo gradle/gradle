@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl
 
 import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
@@ -208,11 +208,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                 import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.file.RegularFileProperty;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
                     @Restricted
                     public abstract DirectoryProperty getDir();
 
@@ -244,11 +244,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.file.Directory;
                 import org.gradle.api.file.RegularFile;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
                     @Restricted
                     public abstract ListProperty<Directory> getDirs();
 
@@ -280,11 +280,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.file.Directory;
                 import org.gradle.api.file.RegularFileProperty;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
                     @Restricted
                     Directory getDir();
 
@@ -311,11 +311,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.file.RegularFile;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
                     @Restricted
                     DirectoryProperty getDir();
 
@@ -345,13 +345,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.file.RegularFileProperty;
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
 
                     private final Property<Directory> dir;
                     private final Property<RegularFile> file;
@@ -398,13 +398,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.file.RegularFile;
                 import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.file.RegularFileProperty;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
 
                     private Directory dir;
                     private RegularFile file;

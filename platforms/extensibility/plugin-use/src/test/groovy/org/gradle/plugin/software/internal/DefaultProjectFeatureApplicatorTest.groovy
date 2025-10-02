@@ -21,7 +21,7 @@ import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.tasks.properties.InspectionScheme
@@ -228,6 +228,6 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
 
     private interface DefinitionWithExtensions extends DynamicObjectAware, ExtensionAware {}
 
-    private interface Foo extends HasBuildModel<Bar>, DynamicObjectAware {}
+    private interface Foo extends Definition<Bar>, DynamicObjectAware {}
     private static class Bar implements BuildModel {}
 }

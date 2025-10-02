@@ -18,7 +18,7 @@ package org.gradle.internal.declarativedsl.software
 
 import org.gradle.api.Project
 import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
 import org.gradle.api.internal.project.ProjectInternal
@@ -216,7 +216,7 @@ fun projectFeatureConfiguringFunctions(projectFeatureImplementations: ProjectFea
         val featureImplementations = buildSet {
             classWithSupertypes.forEach { supertype ->
                 projectFeatureImplementations.bindingToDefinition[supertype.classifier]?.let(::addAll)
-                if (supertype.classifier == HasBuildModel::class) {
+                if (supertype.classifier == Definition::class) {
                     val buildModelWithSupertypes = supertype.arguments.single().type.let { listOf(it) + (it?.classifier as? KClass<*>)?.allSupertypes.orEmpty() }
                     buildModelWithSupertypes.forEach { buildModelSupertype ->
                         projectFeatureImplementations.bindingByModelType[buildModelSupertype?.classifier]?.let(::addAll)

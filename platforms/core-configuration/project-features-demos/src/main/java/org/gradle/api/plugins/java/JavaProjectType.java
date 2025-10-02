@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins.java;
 
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.jspecify.annotations.NonNull;
 
-public interface JavaProjectType extends HasToolChain, HasJavaSources, HasJavaTarget, HasLibraryDependencies, HasBuildModel<@NonNull JavaLibraryModel> {
+public interface JavaProjectType extends HasToolChain, HasJavaSources, HasJavaTarget, HasLibraryDependencies, Definition<@NonNull JavaLibraryModel> {
 }

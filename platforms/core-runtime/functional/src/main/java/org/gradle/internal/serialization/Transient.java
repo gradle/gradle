@@ -77,7 +77,7 @@ public abstract class Transient<T> implements java.io.Serializable {
         }
 
         @Override
-        public T get() {
+        public @Nullable T get() {
             return value;
         }
 

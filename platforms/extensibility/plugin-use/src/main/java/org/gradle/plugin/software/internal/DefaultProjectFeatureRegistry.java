@@ -25,7 +25,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.BindsProjectFeature;
 import org.gradle.api.internal.plugins.BindsProjectType;
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureBinding;
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration;
@@ -93,7 +93,7 @@ public class DefaultProjectFeatureRegistry extends CompatibleProjectFeatureRegis
         return projectFeatureImplementationsBuilder.build();
     }
 
-    private <T extends HasBuildModel<V>, V extends BuildModel> void registerFeature(
+    private <T extends Definition<V>, V extends BuildModel> void registerFeature(
         RegisteringPluginKey registeringPlugin,
         Class<? extends Plugin<Project>> pluginClass,
         ProjectFeatureBinding<T, V> binding,

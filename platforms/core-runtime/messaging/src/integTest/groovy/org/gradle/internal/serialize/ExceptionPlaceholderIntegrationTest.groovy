@@ -17,7 +17,9 @@
 package org.gradle.internal.serialize
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -250,5 +252,60 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains('Boom!')
         failure.assertHasErrorOutput('Suppressed:')
         failure.assertHasErrorOutput('CIRCULAR REFERENCE:')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34738")
+    def 'shows test-classpath-only cause of GradleConnectionException from test worker'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                testImplementation gradleTestKit()
+                testImplementation 'org.junit.jupiter:junit-jupiter:5.12.2'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+            }
+
+            test {
+                useJUnitPlatform()
+            }
+        """
+
+        file('src/test/java/example/Issue34738Test.java') << """
+            package example;
+
+            import org.junit.jupiter.api.Test;
+
+            public class Issue34738Test {
+                static class ExceptionNotPresentOnTestRunnerClasspath extends Exception {
+                    ExceptionNotPresentOnTestRunnerClasspath(String message) {
+                        super(message);
+                    }
+                }
+
+                @Test
+                public void throwGCE() {
+                    // We use GradleConnectionException because it has a getFailures which doesn't return List<Throwable>
+                    // and therefore doesn't have causes listed in it.
+                    throw new ${GradleConnectionException.name}(
+                        "An irrelevant message",
+                        new ExceptionNotPresentOnTestRunnerClasspath("The real cause")
+                    );
+                }
+            }
+        """
+
+        when:
+        fails 'test'
+
+        then:
+        def testResults = new DefaultTestExecutionResult(testDirectory)
+        testResults.assertTestClassesExecuted("example.Issue34738Test")
+        testResults.testClass("example.Issue34738Test")
+            .testFailed("throwGCE", containsString("The real cause"))
     }
 }

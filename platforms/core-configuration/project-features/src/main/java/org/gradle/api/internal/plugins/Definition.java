@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree;
+package org.gradle.api.internal.plugins;
 
-import org.gradle.internal.invocation.BuildAction;
-
-public interface BuildTreeContext {
-    /**
-     * Runs the given action and returns the result. Failures should be packaged in the result.
-     * When this method returns, all user code will have completed, including 'build finished' hooks.
-     */
-    BuildActionRunner.Result execute(BuildAction action);
+/**
+ * A marker interface for definition objects that have a build model.
+ */
+public interface Definition<T extends BuildModel> {
 }

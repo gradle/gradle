@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.software.internal
 
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
@@ -31,8 +31,8 @@ object TargetTypeInformationChecks {
                 expectedTargetDefinitionType.definitionType.isAssignableFrom(actualTargetDefinitionType)
 
             is BuildModelTargetTypeInformation<*> ->
-                HasBuildModel::class.java.isAssignableFrom(actualTargetDefinitionType) &&
-                    actualTargetDefinitionType.kotlin.allSupertypes.find { it.classifier == HasBuildModel::class }
+                Definition::class.java.isAssignableFrom(actualTargetDefinitionType) &&
+                    actualTargetDefinitionType.kotlin.allSupertypes.find { it.classifier == Definition::class }
                         ?.let { (it.arguments.singleOrNull()?.type?.classifier as? KClass<*>)?.java?.let(expectedTargetDefinitionType.buildModelType::isAssignableFrom) }
                     ?: false
 

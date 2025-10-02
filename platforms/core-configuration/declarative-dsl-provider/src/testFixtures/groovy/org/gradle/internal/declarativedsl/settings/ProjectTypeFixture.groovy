@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.settings
 import groovy.transform.SelfType
 import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.ProjectTypeBindingRegistration
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
@@ -463,13 +463,13 @@ trait ProjectTypeFixture {
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
                     private final Foo foo;
                     private boolean isFooConfigured = false;
 
@@ -491,7 +491,7 @@ trait ProjectTypeFixture {
                         action.execute(foo);
                     }
 
-                    public abstract static class Foo implements HasBuildModel<FooBuildModel> {
+                    public abstract static class Foo implements ${Definition.class.simpleName}<FooBuildModel> {
                         public Foo() { }
 
                         @Restricted
@@ -530,12 +530,12 @@ trait ProjectTypeFixture {
                 import org.gradle.api.Named;
                 import org.gradle.api.NamedDomainObjectContainer;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import java.util.stream.Collectors;
 
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
                     public abstract NamedDomainObjectContainer<Foo> getFoos();
 
                     public abstract static class Foo implements Named {
@@ -629,11 +629,11 @@ trait ProjectTypeFixture {
 
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.Action;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${publicTypeClassName} extends HasBuildModel<${publicTypeClassName}.ModelType> {
+                public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
                     @Restricted
                     Property<String> getId();
 
@@ -684,13 +684,13 @@ trait ProjectTypeFixture {
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.tasks.Nested;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
                     @Inject
                     public ${implementationTypeClassName}() { }
 

@@ -19,10 +19,10 @@ package org.gradle.api.internal.plugins;
 /**
  * An action that applies configuration from a project feature definition to its build model.
  *
- * @param <Definition> the type of the project feature definition
+ * @param <OwnDefinition> the type of the project feature definition
  * @param <OwnBuildModel> the type of the project feature's own build model
  * @param <ParentDefinition> the type of the parent project feature definition
  */
-public interface ProjectFeatureApplyAction<Definition, OwnBuildModel, ParentDefinition> {
-    void transform(ProjectFeatureApplicationContext context, Definition definition, OwnBuildModel buildModel, ParentDefinition parentDefinition);
+public interface ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ParentDefinition> {
+    void transform(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel, ParentDefinition parentDefinition);
 }

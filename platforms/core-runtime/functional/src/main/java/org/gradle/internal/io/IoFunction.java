@@ -27,16 +27,15 @@ import java.util.function.Function;
  * A variant of {@link Function} that is allowed to throw {@link IOException}.
  */
 @FunctionalInterface
-public interface IoFunction<T, R> {
-    @Nullable
-    R apply(@Nullable T t) throws IOException;
+public interface IoFunction<T extends @Nullable Object, R extends @Nullable Object> {
+    R apply(T t) throws IOException;
 
     /**
      * Wraps an {@link IOException}-throwing {@link IoFunction} into a regular {@link Function}.
      *
      * Any {@code IOException}s are rethrown as {@link UncheckedIOException}.
      */
-    static <T, R> Function<T, R> wrap(IoFunction<T, R> function) {
+    static <T extends @Nullable Object, R extends @Nullable Object> Function<T, R> wrap(IoFunction<T, R> function) {
         return t -> {
             try {
                 return function.apply(t);

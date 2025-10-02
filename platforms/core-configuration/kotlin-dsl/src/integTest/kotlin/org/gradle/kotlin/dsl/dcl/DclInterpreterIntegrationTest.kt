@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.dcl
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
@@ -99,7 +99,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
             assertOutputContains(
                 """
                 |    @Incubating
-                |    fun org.gradle.api.internal.plugins.HasBuildModel<out com.example.MyFeatureBuildModel>.`myNestedFeature`(configure: Action<in com.example.MyNestedFeatureDefinition>) {
+                |    fun org.gradle.api.internal.plugins.Definition<out com.example.MyFeatureBuildModel>.`myNestedFeature`(configure: Action<in com.example.MyNestedFeatureDefinition>) {
                 |        applyProjectType(this, "myNestedFeature", configure)
                 |    }
                 """.trimMargin()
@@ -125,7 +125,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 import javax.inject.Inject
                 import ${BindsProjectType::class.qualifiedName}
                 import ${BindsProjectFeature::class.qualifiedName}
-                import ${HasBuildModel::class.qualifiedName}
+                import ${Definition::class.qualifiedName}
                 import ${BuildModel::class.qualifiedName}
                 import ${ProjectTypeBindingRegistration::class.qualifiedName}
                 import ${ProjectTypeBindingBuilder::class.qualifiedName}
@@ -175,13 +175,13 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
 
                 interface MyExtensionBuildModel : BuildModel
-                abstract class MyExtension : HasBuildModel<MyExtensionBuildModel> {
+                abstract class MyExtension : ${Definition::class.simpleName}<MyExtensionBuildModel> {
                     abstract val myElements: NamedDomainObjectContainer<MyElement>
                 }
 
                 interface MyFeatureBuildModel : BuildModel
 
-                abstract class MyFeatureDefinition : HasBuildModel<MyFeatureBuildModel>
+                abstract class MyFeatureDefinition : ${Definition::class.simpleName}<MyFeatureBuildModel>
 
                 abstract class MyNestedFeatureDefinition : MyFeatureDefinition()
 

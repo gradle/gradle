@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslBindingBuilder;
 import org.gradle.api.internal.plugins.DslBindingBuilderInternal;
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureBinding;
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder;
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
@@ -37,16 +37,16 @@ public class DefaultProjectFeatureBindingBuilder implements ProjectFeatureBindin
 
     @Override
     public <
-        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnDefinition extends Definition<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
-        TargetDefinition extends HasBuildModel<?>
+        TargetDefinition extends Definition<?>
         >
-    DslBindingBuilder<Definition, OwnBuildModel> bindProjectFeature(
+    DslBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
         String name,
-        ModelBindingTypeInformation<Definition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
-        ProjectFeatureApplyAction<Definition, OwnBuildModel, TargetDefinition> transform
+        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
     ) {
-        DslBindingBuilderInternal<Definition, OwnBuildModel> builder = new DefaultDslBindingBuilder<>(
+        DslBindingBuilderInternal<OwnDefinition, OwnBuildModel> builder = new DefaultDslBindingBuilder<>(
             bindingTypeInformation.getDefinitionType(),
             getBuildModelClass(bindingTypeInformation.getDefinitionType()),
             bindingTypeInformation.getTargetType(),

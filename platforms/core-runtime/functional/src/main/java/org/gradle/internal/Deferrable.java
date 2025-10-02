@@ -16,6 +16,8 @@
 
 package org.gradle.internal;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -102,7 +104,7 @@ public interface Deferrable<T> {
      */
     static <T> Deferrable<T> deferred(Supplier<T> result) {
         return new Deferrable<T>() {
-            private volatile T value;
+            private volatile @Nullable T value;
 
             @Override
             public Optional<T> getCompleted() {
@@ -110,6 +112,7 @@ public interface Deferrable<T> {
             }
 
             @Override
+            @SuppressWarnings("DataFlowIssue") // the value is MonotonicNonNull, but IDEA doesn't understand it.
             public T completeAndGet() {
                 if (value == null) {
                     synchronized (this) {

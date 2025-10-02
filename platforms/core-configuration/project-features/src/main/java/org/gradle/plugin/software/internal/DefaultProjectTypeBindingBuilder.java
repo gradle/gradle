@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslBindingBuilder;
 import org.gradle.api.internal.plugins.DslBindingBuilderInternal;
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
 import org.gradle.api.internal.plugins.ProjectFeatureBinding;
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
@@ -38,7 +38,7 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
     private final List<DslBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
 
     @Override
-    public <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindProjectType(String name, Class<T> dslType, Class<V> buildModelType, ProjectTypeApplyAction<T, V> transform) {
+    public <T extends Definition<V>, V extends BuildModel> DslBindingBuilder<T, V> bindProjectType(String name, Class<T> dslType, Class<V> buildModelType, ProjectTypeApplyAction<T, V> transform) {
         ProjectFeatureApplyAction<T, V, ?> featureTransform = (ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) ->
             transform.transform(context, definition, buildModel);
 
@@ -54,7 +54,7 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
     }
 
     @Override
-    public <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindProjectType(String name, Class<T> dslType, ProjectTypeApplyAction<T, V> transform) {
+    public <T extends Definition<V>, V extends BuildModel> DslBindingBuilder<T, V> bindProjectType(String name, Class<T> dslType, ProjectTypeApplyAction<T, V> transform) {
         return bindProjectType(name, dslType, ModelTypeUtils.getBuildModelClass(dslType), transform);
     }
 

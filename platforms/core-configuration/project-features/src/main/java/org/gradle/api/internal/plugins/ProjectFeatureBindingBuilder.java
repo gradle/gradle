@@ -33,19 +33,19 @@ public interface ProjectFeatureBindingBuilder {
      * @param bindingTypeInformation type information about the parent object the feature can be bound to
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
      * @return a {@link DslBindingBuilder} that can be used to further configure the binding
-     * @param <Definition> the type of the definition object for this feature
+     * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
      */
     <
-        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnDefinition extends Definition<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
-        TargetDefinition extends HasBuildModel<?>
+        TargetDefinition extends Definition<?>
         >
-    DslBindingBuilder<Definition, OwnBuildModel> bindProjectFeature(
+    DslBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
         String name,
-        ModelBindingTypeInformation<Definition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
-        ProjectFeatureApplyAction<Definition, OwnBuildModel, TargetDefinition> transform
+        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
     );
 
     /**
@@ -57,20 +57,20 @@ public interface ProjectFeatureBindingBuilder {
      * @param targetDefinitionClass the class of the parent definition object this feature can be bound to
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
      * @return a {@link DslBindingBuilder} that can be used to further configure the binding
-     * @param <Definition> the type of the definition object for this feature
+     * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
      */
     default <
-        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnDefinition extends Definition<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
-        TargetDefinition extends HasBuildModel<?>
+        TargetDefinition extends Definition<?>
         >
-    DslBindingBuilder<Definition, OwnBuildModel> bindProjectFeatureToDefinition(
+    DslBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToDefinition(
         String name,
-        Class<Definition> definitionClass,
+        Class<OwnDefinition> definitionClass,
         Class<TargetDefinition> targetDefinitionClass,
-        ProjectFeatureApplyAction<Definition, OwnBuildModel, TargetDefinition> transform
+        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
     ) {
         return bindProjectFeature(name, bindingToTargetDefinition(definitionClass, targetDefinitionClass), transform);
     }
@@ -84,20 +84,20 @@ public interface ProjectFeatureBindingBuilder {
      * @param targetBuildModelClass the class of the build model type of the parent definition object this feature can be bound to
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
      * @return a {@link DslBindingBuilder} that can be used to further configure the binding
-     * @param <Definition> the type of the definition object for this feature
+     * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetBuildModel> the type of the build model type of the parent definition object this feature can be bound to
      */
     default <
-        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnDefinition extends Definition<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
         TargetBuildModel extends BuildModel
         >
-    DslBindingBuilder<Definition, OwnBuildModel> bindProjectFeatureToBuildModel(
+    DslBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToBuildModel(
         String name,
-        Class<Definition> definitionClass,
+        Class<OwnDefinition> definitionClass,
         Class<TargetBuildModel> targetBuildModelClass,
-        ProjectFeatureApplyAction<Definition, OwnBuildModel, HasBuildModel<TargetBuildModel>> transform
+        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>> transform
     ) {
         return bindProjectFeature(name, bindingToTargetBuildModel(definitionClass, targetBuildModelClass), transform);
     }
@@ -109,17 +109,17 @@ public interface ProjectFeatureBindingBuilder {
      * @param definition the class of the project feature definition object
      * @param targetDefinition the class of the parent definition object this feature can be bound to
      * @return type information about the binding
-     * @param <Definition> the type of the definition object for this feature
+     * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
      */
     static <
-        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnDefinition extends Definition<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
-        TargetDefinition extends HasBuildModel<?>
+        TargetDefinition extends Definition<?>
         >
-    ModelBindingTypeInformation<Definition, OwnBuildModel, TargetDefinition> bindingToTargetDefinition(
-        Class<Definition> definition,
+    ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingToTargetDefinition(
+        Class<OwnDefinition> definition,
         Class<TargetDefinition> targetDefinition
     ) {
         return new ModelBindingTypeInformation<>(definition, new DefinitionTargetTypeInformation<>(targetDefinition));
@@ -133,17 +133,17 @@ public interface ProjectFeatureBindingBuilder {
      * @param definition the class of the project feature definition object
      * @param targetBuildModel the class of the build model type of the parent definition object this feature can be bound to
      * @return type information about the binding
-     * @param <Definition> the type of the definition object for this feature
+     * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetBuildModel> the type of the build model type of the parent definition object this feature can be bound to
      */
     static <
-        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnDefinition extends Definition<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
         TargetBuildModel extends BuildModel
         >
-    ModelBindingTypeInformation<Definition, OwnBuildModel, HasBuildModel<TargetBuildModel>> bindingToTargetBuildModel(
-        Class<Definition> definition,
+    ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>> bindingToTargetBuildModel(
+        Class<OwnDefinition> definition,
         Class<TargetBuildModel> targetBuildModel
     ) {
         return new ModelBindingTypeInformation<>(definition, new BuildModelTargetTypeInformation<>(targetBuildModel));
@@ -153,28 +153,28 @@ public interface ProjectFeatureBindingBuilder {
      * Type information about a binding between a project feature definition object
      * and a parent definition object in the build.
      *
-     * @param <Definition> the type of the definition object for this feature
+     * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
      */
     class ModelBindingTypeInformation<
-        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnDefinition extends Definition<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
-        TargetDefinition extends HasBuildModel<?>
+        TargetDefinition extends Definition<?>
         > {
 
-        private final Class<Definition> definitionType;
+        private final Class<OwnDefinition> definitionType;
         private final TargetTypeInformation<TargetDefinition> targetType;
 
         public ModelBindingTypeInformation(
-            Class<Definition> definitionType,
+            Class<OwnDefinition> definitionType,
             TargetTypeInformation<TargetDefinition> targetType
         ) {
             this.definitionType = definitionType;
             this.targetType = targetType;
         }
 
-        public Class<Definition> getDefinitionType() {
+        public Class<OwnDefinition> getDefinitionType() {
             return definitionType;
         }
 

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Provider
@@ -145,7 +145,7 @@ fun applyProjectFeature(
             target.objects.newInstance<ProjectFeatureSupportInternal.DefaultProjectFeatureDefinitionContext.Factory>()
                 .create(target)
 
-        is HasBuildModel<*> -> ProjectFeatureSupportInternal.getContext(target)
+        is Definition<*> -> ProjectFeatureSupportInternal.getContext(target)
         else -> throw IllegalArgumentException("Unexpected definition object $target, cannot get context to apply the feature")
     }
     val projectFeatures = context.projectFeatureRegistry.projectFeatureImplementations.getValue(name)

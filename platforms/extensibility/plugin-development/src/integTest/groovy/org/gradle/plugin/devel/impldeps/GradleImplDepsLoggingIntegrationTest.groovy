@@ -19,9 +19,9 @@ package org.gradle.plugin.devel.impldeps
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.GradleVersion
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+// Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "Generating Gradle API jar is logged with rich console"() {
@@ -47,7 +47,6 @@ class GradleImplDepsLoggingIntegrationTest extends BaseGradleImplDepsIntegration
         succeeds('resolveDependencies')
 
         then:
-        def gradleVersion = GradleVersion.current().version
-        output.contains("Generating gradle-api-${gradleVersion}.jar")
+        output.contains("Generating Gradle API jar")
     }
 }

@@ -54,7 +54,7 @@ public interface ProjectFeatureApplicationContext {
      * Allows a {@link ProjectFeatureApplyAction} or {@link ProjectTypeApplyAction} to access the build model object of a given
      * definition object.
      */
-    <T extends HasBuildModel<V>, V extends BuildModel> V getBuildModel(T definition);
+    <T extends Definition<V>, V extends BuildModel> V getBuildModel(T definition);
 
     /**
      * Creates, registers, and returns a new build model instance for the given {@code definition} instance.
@@ -65,13 +65,13 @@ public interface ProjectFeatureApplicationContext {
      * <p>
      * A build model must be registered for a definition before {@link ProjectFeatureDefinitionContext#getBuildModel()} is used on it.
      *
-     * @see ProjectFeatureApplicationContext#registerBuildModel(HasBuildModel, Class) the other overload to create a build model of a specific implementation type.
+     * @see ProjectFeatureApplicationContext#registerBuildModel(Definition, Class) the other overload to create a build model of a specific implementation type.
      *
      * @throws IllegalStateException if there is already a build model instance registered for the definition.
      */
-    default <T extends HasBuildModel<V>, V extends BuildModel> V registerBuildModel(T definition) {
+    default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition) {
         @SuppressWarnings("rawtypes")
-        TypeParameterInspection<HasBuildModel, BuildModel> inspection = new DefaultTypeParameterInspection<>(HasBuildModel.class, BuildModel.class, BuildModel.NONE.class);
+        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
         Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
         if (modelType == null) {
             throw new IllegalArgumentException("Cannot determine build model type for " + definition.getClass());
@@ -88,9 +88,9 @@ public interface ProjectFeatureApplicationContext {
      * <p>
      * A build model must be registered for a definition before {@link ProjectFeatureDefinitionContext#getBuildModel()} is used on it.
      *
-     * @see ProjectFeatureApplicationContext#registerBuildModel(HasBuildModel, Class) the other overload to create a build model of a specific implementation type.
+     * @see ProjectFeatureApplicationContext#registerBuildModel(Definition, Class) the other overload to create a build model of a specific implementation type.
      *
      * @throws IllegalStateException if there is already a build model instance registered for the definition.
      */
-    <T extends HasBuildModel<V>, V extends BuildModel> V registerBuildModel(T definition, Class<? extends V> implementationType);
+    <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition, Class<? extends V> implementationType);
 }

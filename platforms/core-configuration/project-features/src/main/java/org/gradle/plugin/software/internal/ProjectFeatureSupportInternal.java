@@ -19,7 +19,7 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Named;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
@@ -179,7 +179,7 @@ public class ProjectFeatureSupportInternal {
     }
 
 
-    public static <T extends HasBuildModel<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, T definition, ProjectFeatureImplementation<T, V> projectFeature) {
+    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, T definition, ProjectFeatureImplementation<T, V> projectFeature) {
         return createBuildModelInstance(objectFactory, definition, projectFeature.getBuildModelImplementationType());
     }
 

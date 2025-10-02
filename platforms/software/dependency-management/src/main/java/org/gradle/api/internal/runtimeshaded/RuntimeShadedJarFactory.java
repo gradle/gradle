@@ -61,14 +61,14 @@ public class RuntimeShadedJarFactory {
                     classpathWalker,
                     classpathBuilder
                 );
-                creator.create(file, classpath);
+                creator.create(type, file, classpath);
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
-                    .displayName("Generate " + file)
-                    .progressDisplayName("Generating " + file.getName());
+                    .displayName("Generate " + type.getDisplayName())
+                    .progressDisplayName("Generating " + type.getDisplayName());
             }
         }));
         LOGGER.debug("Using Gradle runtime shaded JAR file: {}", jarFile);

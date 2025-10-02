@@ -218,13 +218,19 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     @Override
     public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
         assert port != UNKNOWN_PORT;
-        if (port == unlocksConfirmedFrom.getOrDefault(lockId, UNKNOWN_PORT)) {
-            //the unlock was confirmed we are waiting
-            return false;
-        }
-        if (timeElapsed < PING_DELAY && port == unlocksRequestedFrom.getOrDefault(lockId, UNKNOWN_PORT)) {
-            //the unlock was just requested but not yet confirmed, give it some more time
-            return false;
+
+        lock.lock();
+        try {
+            if (port == unlocksConfirmedFrom.getOrDefault(lockId, UNKNOWN_PORT)) {
+                //the unlock was confirmed we are waiting
+                return false;
+            }
+            if (timeElapsed < PING_DELAY && port == unlocksRequestedFrom.getOrDefault(lockId, UNKNOWN_PORT)) {
+                //the unlock was just requested but not yet confirmed, give it some more time
+                return false;
+            }
+        } finally {
+            lock.unlock();
         }
 
         boolean pingSentSuccessfully = getCommunicator().pingOwner(inetAddressProvider.getCommunicationAddress(), port, lockId, displayName);
