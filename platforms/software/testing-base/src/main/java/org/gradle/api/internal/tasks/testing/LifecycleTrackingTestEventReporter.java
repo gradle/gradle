@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.List;
@@ -75,6 +76,12 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> im
     public void skipped(Instant endTime) {
         markCompleted();
         delegate.skipped(endTime);
+    }
+
+    @Override
+    public void skipped(Instant endTime, @Nullable TestFailure assumptionFailure) {
+        markCompleted();
+        delegate.skipped(endTime, assumptionFailure);
     }
 
     @Override

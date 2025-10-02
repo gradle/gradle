@@ -16,10 +16,14 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
+
+class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def "captures assumption failures"() {
         buildFile << """
             plugins {
@@ -63,19 +67,19 @@ class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """
+
         when:
         succeeds("test")
+
         then:
         outputContains("Assumption failure: Assumption failed: skipped reason")
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
-            assert it.message == "Assumption failed: skipped reason"
-            assert it.type == "org.opentest4j.TestAbortedException"
-            assert it.text.contains("skipped reason")
-        }
+
+        def testResult = resultsFor(testDirectory)
+        testResult.testPath("com.example.MyTest", "theTest").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
+            .assertFailureMessages(containsString("Assumption failed: skipped reason"))
     }
 
-    def "test aborted failures are avaliable as assumptionFailures"() {
+    def "test aborted failures are available as assumptionFailures"() {
         buildFile << """
             plugins {
                 id 'java-library'
@@ -119,16 +123,16 @@ class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """
+
         when:
         succeeds("test")
+
         then:
         outputContains("Assumption failure: ")
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
-            assert it.message == "(no message)"
-            assert it.type == "org.opentest4j.TestAbortedException"
-            assert !it.text.empty
-        }
+
+        def testResult = resultsFor(testDirectory)
+        testResult.testPath("com.example.MyTest", "theTest").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
+            .assertFailureMessages(containsString("org.opentest4j.TestAbortedException"))
     }
 
     def "does not capture ignored tests as assumption failures"() {
@@ -176,15 +180,15 @@ class JUnitJupiterAssumptionFailureIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """
+
         when:
         succeeds("test")
+
         then:
         outputContains("No assumption failure")
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
-            assert it.message.isEmpty()
-            assert it.type.isEmpty()
-            assert it.text.isEmpty()
-        }
+
+        def testResult = resultsFor(testDirectory)
+        testResult.testPath("com.example.MyTest", "theTest").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
+            .assertFailureMessages(equalTo(""))
     }
 }

@@ -148,7 +148,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private void renderLeafDetails(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            if (info.getResult().getResultType() != TestResult.ResultType.SUCCESS && !info.getResult().getFailures().isEmpty()) {
+            boolean isSuccess = info.getResult().getResultType() == TestResult.ResultType.SUCCESS;
+            boolean hasFailures = !info.getResult().getFailures().isEmpty();
+            boolean hasAssumptionFailure =  info.getResult().getAssumptionFailure() != null;
+
+            if (!isSuccess && (hasFailures || hasAssumptionFailure)) {
                 htmlWriter.startElement("div").attribute("class", "result-details");
 
                 htmlWriter.startElement("h3").characters(
@@ -160,22 +164,31 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     .startElement("pre")
                     .attribute("id", failureOutputId)
                     .characters("");
-                for (SerializableFailure failure : info.getResult().getFailures()) {
-                    // There is confusion here over if we should show the message if there is a stack trace.
-                    // See https://github.com/gradle/gradle/issues/35176
-                    if (failure.getStackTrace().isEmpty()) {
-                        // We need to show the message
-                        htmlWriter.characters(failure.getMessage() + "\n");
-                    } else {
-                        htmlWriter.characters(failure.getStackTrace());
+                if (hasFailures) {
+                    for (SerializableFailure failure : info.getResult().getFailures()) {
+                        renderFailure(failure, htmlWriter);
                     }
-                    for (int i = 0; i < failure.getCauses().size(); i++) {
-                        htmlWriter.characters("Cause " + (i+1) + ": " + failure.getCauses().get(i) + "\n");
-                    }
+                }
+                if (hasAssumptionFailure) {
+                    renderFailure(info.getResult().getAssumptionFailure(), htmlWriter);
                 }
                 htmlWriter.endElement();
                 addClipboardCopyButton(htmlWriter, failureOutputId);
                 htmlWriter.endElement();
+            }
+        }
+
+        private void renderFailure(SerializableFailure failure, SimpleHtmlWriter htmlWriter) throws IOException {
+            // There is confusion here over if we should show the message if there is a stack trace.
+            // See https://github.com/gradle/gradle/issues/35176
+            if (failure.getStackTrace().isEmpty()) {
+                // We need to show the message
+                htmlWriter.characters(failure.getMessage() + "\n");
+            } else {
+                htmlWriter.characters(failure.getStackTrace());
+            }
+            for (int i = 0; i < failure.getCauses().size(); i++) {
+                htmlWriter.characters("Cause " + (i+1) + ": " + failure.getCauses().get(i) + "\n");
             }
         }
 
