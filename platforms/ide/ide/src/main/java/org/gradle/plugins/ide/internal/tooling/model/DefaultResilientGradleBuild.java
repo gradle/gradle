@@ -16,27 +16,42 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
 
 @NullMarked
-public class DefaultResilientGradleBuild extends DefaultGradleBuild {
-    private boolean failed = false;
-    private String failure;
+public class DefaultResilientGradleBuild implements Serializable, GradleBuildIdentity {
+    private final boolean failed;
+    @Nullable
+    private final Collection<String> failures;
+    private final DefaultGradleBuild gradleBuild;
 
-    public DefaultGradleBuild setFailure(String failure) {
-        this.failed = failure != null;
-        this.failure = failure;
-
-        return this;
+    public DefaultResilientGradleBuild(DefaultGradleBuild gradleBuild, @Nullable Collection<String> failures) {
+        this.gradleBuild = gradleBuild;
+        this.failed = failures != null && !failures.isEmpty();
+        this.failures = failures;
     }
 
-    public boolean didItFail(){
-        return failed ||
-            allBuilds.stream().map(DefaultResilientGradleBuild.class::cast).anyMatch(DefaultResilientGradleBuild::didItFail) ||
-            includedBuilds.stream().map(DefaultResilientGradleBuild.class::cast).anyMatch(DefaultResilientGradleBuild::didItFail);
+    public DefaultGradleBuild getGradleBuild() {
+        return gradleBuild;
     }
 
-    public String getFailure() {
-        return failure;
+    public boolean didItFail() {
+        return failed;
+    }
+
+    @Nullable
+    public Collection<String> getFailures() {
+        return failures;
+    }
+
+    @Override
+    public File getRootDir() {
+        return gradleBuild.getRootDir();
     }
 }

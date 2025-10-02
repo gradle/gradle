@@ -17,12 +17,12 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * Provides information about the structure of a Gradle build.
@@ -32,56 +32,16 @@ import org.jspecify.annotations.Nullable;
  */
 @Incubating
 @NullMarked
-public interface ResilientGradleBuild  extends Model, BuildModel {
+public interface ResilientGradleBuild extends Model, BuildModel {
 
     /**
-     * Returns the identifier for this Gradle build.
+     * Returns the GradleBuild instance
+     * @return the GradleBuild instance
      *
      * @since 9.3.0
      */
-    @Override
-    BuildIdentifier getBuildIdentifier();
+    GradleBuild getGradleBuild();
 
-    /**
-     * Returns the root project for this build.
-     *
-     * @return The root project
-     * @since 9.3.0
-     */
-    BasicGradleProject getRootProject();
-
-    /**
-     * Returns the set of all projects for this build.
-     *
-     * @return The set of all projects.
-     * @since 9.3.0
-     */
-    DomainObjectSet<? extends BasicGradleProject> getProjects();
-
-    /**
-     * Returns the included builds that were referenced by this build. This is the set of builds that were directly included by this build via its {@link org.gradle.api.initialization.Settings} instance.
-     *
-     * <p>Note that this set does not include builds that are added in other ways, such as a `buildSrc` build.
-     * Also note that a build may be included by multiple builds, so that the inclusions form a graph of builds rather than a tree of builds. There may be cycles in this graph.</p>
-     *
-     * <p>In general, it is better to use {@link #getEditableBuilds()} instead of this method.</p>
-     *
-     * @since 9.3.0
-     */
-    DomainObjectSet<? extends ResilientGradleBuild> getIncludedBuilds();
-
-    /**
-     * Returns all builds contained in this build that should be imported into an IDE.
-     *
-     * <p>This is not always the same the builds returned by {@link #getIncludedBuilds()}. For the root build, the set of importable builds contains all builds that participate in the composite build,
-     * including those directly included by the root build plus all builds included transitively. For Gradle 7.2 and later, this set also includes any `buildSrc` builds that may be present.
-     * For all other builds, this set is empty.</p>
-     *
-     * <p>Note that this set does not include the root build itself.</p>
-     *
-     * @since 9.3.0
-     */
-    DomainObjectSet<? extends ResilientGradleBuild> getEditableBuilds();
     /**
      * Returns whether the project has failed to load the full build.
      *
@@ -97,5 +57,5 @@ public interface ResilientGradleBuild  extends Model, BuildModel {
      * @since 9.3.0
      */
     @Nullable
-    String getFailure();
+    Collection<String> getFailures();
 }

@@ -54,8 +54,8 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.paths == [":"]
         model.build != null
         model.build.didItFail()
-        model.build.failure != null
-        model.build.failure.toString().contains("Script compilation error")
+        model.build.failures != null
+        model.build.failures.toString().contains("Script compilation error")
     }
 
     def "receive root project with broken root build file"() {
@@ -94,11 +94,10 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         model.paths == [":", ":included"]
-        model.build != null
+        model.build.gradleBuild != null
 
-        def includedBuild = model.build.includedBuilds.getAt(0)
+        def includedBuild = model.build.gradleBuild.includedBuilds.getAt(0)
         includedBuild != null
-        includedBuild.failure == null
     }
 
 
@@ -148,11 +147,11 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         then:
         model.paths == [":", ":"]
         model.build != null
+        model.build.failures != null
+        model.build.failures.toString().contains("Script compilation error")
 
-        def includedBuild = model.build.includedBuilds.getAt(0)
+        def includedBuild = model.build.gradleBuild.includedBuilds.getAt(0)
         includedBuild != null
-        includedBuild.failure != null
-        includedBuild.failure.toString().contains("Script compilation error")
     }
 
     static class MyCustomModel implements Serializable {
@@ -179,19 +178,13 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
             ResilientGradleBuild build = controller.getModel(ResilientGradleBuild.class);
 
             if (build.didItFail()) {
-                System.err.println("Build failed: " + build.failure);
+                System.err.println("Build failed: " + build.failures);
             }
 
 
-            def includedBuilds = build.includedBuilds
-            if (includedBuilds.size() > 0) {
-                ResilientGradleBuild b = includedBuilds.getAt(0) as ResilientGradleBuild
-                if (b.didItFail()) {
-                    System.err.println("Build failed: " + b.failure);
-                }
-            }
+            def includedBuilds = build.gradleBuild.includedBuilds
 
-            def paths = build.projects.collect { project ->
+            def paths = build.gradleBuild.projects.collect { project ->
                 project.buildTreePath
             }
             includedBuilds.each { gb ->
@@ -200,7 +193,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
 
-            def identifier = build.projects.collect { project ->
+            def identifier = build.gradleBuild.projects.collect { project ->
                 project.projectIdentifier
             }
 

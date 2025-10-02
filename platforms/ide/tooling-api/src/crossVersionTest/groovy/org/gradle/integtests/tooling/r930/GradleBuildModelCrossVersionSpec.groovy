@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r920
+package org.gradle.integtests.tooling.r930
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -22,8 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.gradle.ResilientGradleBuild
 
-@TargetGradleVersion(">=9.2.0")
-@ToolingApiVersion(">=9.2.0")
+@TargetGradleVersion(">=9.3.0")
+@ToolingApiVersion(">=9.3.0")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     def "nested included builds are visible only in the model of the containing build"() {
         given:
@@ -41,7 +41,8 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         def buildCDir = singleProjectBuildInSubfolder("buildC")
 
         when:
-        def rootBuild = loadToolingModel(buildClassType)
+
+        def rootBuild = loadGradleBuildModel(buildClassType)
 
         then:
         rootBuild.buildIdentifier.rootDir == rootDir
@@ -64,6 +65,14 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildClassType << [GradleBuild, ResilientGradleBuild]
     }
 
+    def loadGradleBuildModel(Class buildClassType) {
+        def model = loadToolingModel(buildClassType)
+        if(model instanceof GradleBuild) {
+            return model
+        }
+        return model.gradleBuild
+    }
+
     def "root build model exposes all builds that participate in the composite when nested included builds are present"() {
         given:
         singleProjectBuildInRootFolder("root") {
@@ -80,7 +89,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         def buildCDir = singleProjectBuildInSubfolder("buildC")
 
         when:
-        def rootBuild = loadToolingModel(buildClassType)
+        def rootBuild = loadGradleBuildModel(buildClassType)
 
         then:
         rootBuild.editableBuilds.size() == 2
@@ -115,7 +124,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         def buildCDir = singleProjectBuildInSubfolder("buildC")
 
         when:
-        def rootBuild = loadToolingModel(buildClassType)
+        def rootBuild = loadGradleBuildModel(buildClassType)
 
         then:
         rootBuild.editableBuilds.size() == 2

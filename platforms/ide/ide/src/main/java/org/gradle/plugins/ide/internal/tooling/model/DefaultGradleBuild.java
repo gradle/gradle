@@ -29,8 +29,8 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
     private PartialBasicGradleProject rootProject;
     private DefaultBuildIdentifier buildIdentifier;
     private final Set<PartialBasicGradleProject> projects = new LinkedHashSet<>();
-    protected final Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<>();
-    protected final Set<DefaultGradleBuild> allBuilds = new LinkedHashSet<>();
+    private final Set<DefaultGradleBuild> includedBuilds = new LinkedHashSet<>();
+    private final Set<DefaultGradleBuild> allBuilds = new LinkedHashSet<>();
 
     @Override
     public String toString() {
@@ -77,10 +77,6 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
 
     @Override
     public File getRootDir() {
-        return  buildIdentifier.getRootDir();
-    }
-
-    public void setBuildIdentifier(DefaultBuildIdentifier buildIdentifier) {
-        this.buildIdentifier = buildIdentifier;
+        return buildIdentifier.getRootDir();
     }
 }

@@ -70,7 +70,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         SettingsInternal settings = state.getSettings();
         gradle.getBuildListenerBroadcaster().beforeSettings(settings);
         settings.getCaches().finalizeConfiguration(gradle);
-        try{
+        try {
             applySettingsScript(settingsScript, settings);
         } catch (LocationAwareException e) {
             buildIncludeListener.settingsScriptFailed(state.getSettings(), e);

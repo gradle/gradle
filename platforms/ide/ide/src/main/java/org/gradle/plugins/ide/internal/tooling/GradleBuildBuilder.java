@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 public class GradleBuildBuilder implements BuildScopeModelBuilder {
-    protected final BuildStateRegistry buildStateRegistry;
+    private final BuildStateRegistry buildStateRegistry;
 
     public GradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
         this.buildStateRegistry = buildStateRegistry;
@@ -53,8 +53,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
 
     @NullMarked
     protected class GradleBuildCreator {
-        protected final BuildState target;
-        protected final Map<BuildState, DefaultGradleBuild> all = new LinkedHashMap<>();
+        private final BuildState target;
+        private final Map<BuildState, DefaultGradleBuild> all = new LinkedHashMap<>();
 
         GradleBuildCreator(BuildState target) {
             this.target = target;
@@ -88,18 +88,6 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             return model;
         }
 
-        protected void addProjects(BuildState target, DefaultGradleBuild model) {
-            Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
-
-            ProjectState rootProject = target.getProjects().getRootProject();
-            BasicGradleProject convertedRootProject = convert(target, rootProject, convertedProjects);
-            model.setRootProject(convertedRootProject);
-
-            for (ProjectState project : target.getProjects().getAllProjects()) {
-                model.addProject(convertedProjects.get(project));
-            }
-        }
-
         protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model) {
             for (IncludedBuildInternal reference : gradle.includedBuilds()) {
                 BuildState target = reference.getTarget();
@@ -125,21 +113,35 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             }
         }
 
-        protected BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
-            DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().asString());
-            BasicGradleProject converted = new BasicGradleProject()
-                .setName(project.getName())
-                .setProjectIdentifier(id)
-                .setBuildTreePath(project.getIdentityPath().asString())
-                .setProjectDirectory(project.getProjectDir());
-            if (project.getBuildParent() != null) {
-                converted.setParent(convertedProjects.get(project.getBuildParent()));
-            }
-            convertedProjects.put(project, converted);
-            for (ProjectState child : project.getChildProjects()) {
-                converted.addChild(convert(owner, child, convertedProjects));
-            }
-            return converted;
+    }
+
+    static protected BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
+        DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().asString());
+        BasicGradleProject converted = new BasicGradleProject()
+            .setName(project.getName())
+            .setProjectIdentifier(id)
+            .setBuildTreePath(project.getIdentityPath().asString())
+            .setProjectDirectory(project.getProjectDir());
+        if (project.getBuildParent() != null) {
+            converted.setParent(convertedProjects.get(project.getBuildParent()));
+        }
+        convertedProjects.put(project, converted);
+        for (ProjectState child : project.getChildProjects()) {
+            converted.addChild(convert(owner, child, convertedProjects));
+        }
+        return converted;
+    }
+
+    static protected void addProjects(BuildState target, DefaultGradleBuild model) {
+        Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
+
+        ProjectState rootProject = target.getProjects().getRootProject();
+        BasicGradleProject convertedRootProject = GradleBuildBuilder.convert(target, rootProject, convertedProjects);
+        model.setRootProject(convertedRootProject);
+
+        for (ProjectState project : target.getProjects().getAllProjects()) {
+            model.addProject(convertedProjects.get(project));
         }
     }
+
 }
