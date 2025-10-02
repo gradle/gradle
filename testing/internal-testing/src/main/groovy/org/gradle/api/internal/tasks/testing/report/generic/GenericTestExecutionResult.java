@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import java.util.List;
 
 public interface GenericTestExecutionResult {
-    String EXECUTION_FAILURE = "failed to execute tests";
-
     /**
      * Asserts that the given test paths (and only the given test paths) were executed.
      *
@@ -60,11 +58,15 @@ public interface GenericTestExecutionResult {
     /**
      * Returns the result for the given test class and method.
      * <p>
-     * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * These are paths in the style of {@link org.gradle.util.Path}, e.g. `e1:e2:e3...`.
+     *
+     * @param testPathElements the elements of the path to be concatenated with `:` as separator
+     * @return the complete path for the given test path elements
      */
-    TestPathExecutionResult testPath(String testClassName, String testMethodName);
+    TestPathExecutionResult testPath(String... testPathElements);
 
     enum TestFramework {
+        CUCUMBER,
         TEST_NG,
         JUNIT_JUPITER,
         SPOCK,
