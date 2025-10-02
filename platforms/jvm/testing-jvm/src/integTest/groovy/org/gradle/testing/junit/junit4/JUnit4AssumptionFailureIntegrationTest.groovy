@@ -16,11 +16,15 @@
 
 package org.gradle.testing.junit.junit4
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
+
+class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def "captures assumption failures"() {
         buildFile << """
             plugins {
@@ -64,16 +68,16 @@ class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         when:
         succeeds("test")
+
         then:
         outputContains("Assumption failure: skipped reason")
-        def testResult = new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
-        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
-            assert it.message == "skipped reason"
-            assert it.type == "org.junit.AssumptionViolatedException"
-            assert it.text.contains("skipped reason")
-        }
+
+        def testResult = resultsFor('tests/test', TestFramework.JUNIT4)
+        testResult.testPath("com.example.MyTest", "theTest").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
+            .assertFailureMessages(containsString("skipped reason"))
     }
 
     def "does not capture ignored tests as assumption failures"() {
@@ -121,15 +125,15 @@ class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+
         when:
         succeeds("test")
+
         then:
         outputContains("No assumption failure")
-        def testResult = new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
-        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
-            assert it.message.isEmpty()
-            assert it.type.isEmpty()
-            assert it.text.isEmpty()
-        }
+
+        def testResult = resultsFor('tests/test', TestFramework.JUNIT4)
+        testResult.testPath("com.example.MyTest", "theTest").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
+            .assertFailureMessages(equalTo(""))
     }
 }
