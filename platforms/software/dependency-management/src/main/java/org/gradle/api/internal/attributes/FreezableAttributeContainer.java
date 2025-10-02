@@ -129,7 +129,7 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
     @Override
     public int hashCode() {
         int result = owner.hashCode();
-        result = 31 * result + delegate.hashCode();
-        return result;
+        return 31 * result + delegate.hashCode();
+        
     }
 }

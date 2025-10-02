@@ -147,8 +147,8 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
         int result = absolutePath.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + accessType.hashCode();
-        result = 31 * result + getHash().hashCode();
-        return result;
+        return 31 * result + getHash().hashCode();
+        
     }
 
     @Override

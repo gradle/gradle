@@ -88,8 +88,8 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         int result = name.hashCode();
         result = 31 * result + type.hashCode();
         result = 31 * result + (extension != null ? extension.hashCode() : 0);
-        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
-        return result;
+        return 31 * result + (classifier != null ? classifier.hashCode() : 0);
+        
     }
 
     @Override

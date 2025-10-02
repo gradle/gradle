@@ -66,8 +66,8 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
             "artifact", componentIdentifier.getModule(),
             "revision", componentIdentifier.getVersion()
         );
-        ExternalResourceName resolve = getBase().getRoot().resolve(substituteTokens(getPathWithoutArtifactPart(), attributes));
-        return resolve;
+        return getBase().getRoot().resolve(substituteTokens(getPathWithoutArtifactPart(), attributes));
+        
     }
 
     protected String getPathWithoutArtifactPart() {

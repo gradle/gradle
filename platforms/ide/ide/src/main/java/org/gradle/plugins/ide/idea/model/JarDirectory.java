@@ -75,7 +75,7 @@ public class JarDirectory {
     public int hashCode() {
         int result;
         result = path.hashCode();
-        result = 31 * result + (recursive ? 1 : 0);
-        return result;
+        return 31 * result + (recursive ? 1 : 0);
+        
     }
 }

@@ -120,8 +120,8 @@ public class WbDependentModule implements WbModuleEntry {
         int result;
         result = archiveName.hashCode();
         result = 31 * result + deployPath.hashCode();
-        result = 31 * result + handle.hashCode();
-        return result;
+        return 31 * result + handle.hashCode();
+        
     }
 
     @Override

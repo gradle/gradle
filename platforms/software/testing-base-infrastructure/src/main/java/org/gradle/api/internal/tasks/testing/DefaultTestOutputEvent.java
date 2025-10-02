@@ -88,7 +88,7 @@ public class DefaultTestOutputEvent implements TestOutputEvent {
     public int hashCode() {
         int result = ((Long) logTime).hashCode();
         result = 31 * result + destination.hashCode();
-        result = 31 * result + message.hashCode();
-        return result;
+        return 31 * result + message.hashCode();
+        
     }
 }

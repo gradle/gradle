@@ -206,8 +206,8 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Bui
             int result = implementationHash.hashCode();
             result = 31 * result + classPath.hashCode();
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
-            result = 31 * result + (parent != null ? parent.hashCode() : 0);
-            return result;
+            return 31 * result + (parent != null ? parent.hashCode() : 0);
+            
         }
     }
 

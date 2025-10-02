@@ -105,7 +105,7 @@ public class DefaultExclude implements Exclude {
         int result = moduleId.hashCode();
         result = 31 * result + (artifact != null ? artifact.hashCode() : 0);
         result = 31 * result + configurations.hashCode();
-        result = 31 * result + (patternMatcher != null ? patternMatcher.hashCode() : 0);
-        return result;
+        return 31 * result + (patternMatcher != null ? patternMatcher.hashCode() : 0);
+        
     }
 }

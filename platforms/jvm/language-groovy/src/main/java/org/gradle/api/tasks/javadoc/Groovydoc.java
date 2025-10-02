@@ -486,8 +486,8 @@ public abstract class Groovydoc extends SourceTask {
         @Override
         public int hashCode() {
             int result = packages != null ? packages.hashCode() : 0;
-            result = 31 * result + (url != null ? url.hashCode() : 0);
-            return result;
+            return 31 * result + (url != null ? url.hashCode() : 0);
+            
         }
     }
 

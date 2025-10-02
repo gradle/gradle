@@ -61,8 +61,8 @@ class GroovyCompileTransformingClassLoader extends TransformingClassLoader {
 
         ClassWriter classWriter = new ClassWriter(0);
         classReader.accept(new TransformingAdapter(classWriter), 0);
-        bytes = classWriter.toByteArray();
-        return bytes;
+        return classWriter.toByteArray();
+        
     }
 
     private static class AnnotationDetector extends ClassVisitor {

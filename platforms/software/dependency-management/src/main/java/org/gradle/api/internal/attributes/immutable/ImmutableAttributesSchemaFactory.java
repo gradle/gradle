@@ -133,8 +133,8 @@ public class ImmutableAttributesSchemaFactory {
 
         private static int computeHashCode(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
             int result = consumer.hashCode();
-            result = 31 * result + producer.hashCode();
-            return result;
+            return 31 * result + producer.hashCode();
+            
         }
 
 

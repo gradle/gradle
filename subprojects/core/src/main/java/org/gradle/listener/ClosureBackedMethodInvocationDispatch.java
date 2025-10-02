@@ -66,7 +66,7 @@ public class ClosureBackedMethodInvocationDispatch implements Dispatch<MethodInv
     @Override
     public int hashCode() {
         int result = methodName.hashCode();
-        result = 31 * result + closure.hashCode();
-        return result;
+        return 31 * result + closure.hashCode();
+        
     }
 }

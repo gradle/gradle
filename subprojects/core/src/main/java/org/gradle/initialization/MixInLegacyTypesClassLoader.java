@@ -114,8 +114,8 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(0);
         classReader.accept(new TransformingAdapter(classWriter), 0);
-        bytes = classWriter.toByteArray();
-        return bytes;
+        return classWriter.toByteArray();
+        
     }
 
     private static class TransformingAdapter extends ClassVisitor {

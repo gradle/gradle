@@ -351,7 +351,7 @@ public class Project extends XmlPersistableConfigurationObject {
         result = 31 * result + (wildcards != null ? wildcards.hashCode() : 0);
         result = 31 * result + (projectLibraries != null ? projectLibraries.hashCode() : 0);
         result = 31 * result + (jdk != null ? jdk.hashCode() : 0);
-        result = 31 * result + (vcs != null ? vcs.hashCode() : 0);
-        return result;
+        return 31 * result + (vcs != null ? vcs.hashCode() : 0);
+        
     }
 }

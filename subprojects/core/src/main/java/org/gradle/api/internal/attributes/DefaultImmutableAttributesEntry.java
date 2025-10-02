@@ -126,8 +126,8 @@ public final class DefaultImmutableAttributesEntry<T> implements ImmutableAttrib
 
     private static <T> int computeHashCode(Attribute<T> attribute, Isolatable<T> value) {
         int result = attribute.hashCode();
-        result = 31 * result + value.hashCode();
-        return result;
+        return 31 * result + value.hashCode();
+        
     }
 
     @Override

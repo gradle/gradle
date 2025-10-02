@@ -282,7 +282,7 @@ public class VfsRelativePath {
     @Override
     public int hashCode() {
         int result = absolutePath.hashCode();
-        result = 31 * result + offset;
-        return result;
+        return 31 * result + offset;
+        
     }
 }

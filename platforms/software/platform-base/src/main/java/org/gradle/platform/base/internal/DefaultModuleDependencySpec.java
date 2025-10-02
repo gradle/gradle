@@ -147,7 +147,7 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
     public int hashCode() {
         int result = Objects.hashCode(group);
         result = 31 * result + Objects.hashCode(name);
-        result = 31 * result + Objects.hashCode(version);
-        return result;
+        return 31 * result + Objects.hashCode(version);
+        
     }
 }

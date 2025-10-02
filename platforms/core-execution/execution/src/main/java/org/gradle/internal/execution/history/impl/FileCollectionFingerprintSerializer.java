@@ -99,7 +99,7 @@ public class FileCollectionFingerprintSerializer implements Serializer<FileColle
     @Override
     public int hashCode() {
         int result = fingerprintMapSerializer.hashCode();
-        result = 31 * result + hashCodeSerializer.hashCode();
-        return result;
+        return 31 * result + hashCodeSerializer.hashCode();
+        
     }
 }

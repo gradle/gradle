@@ -79,8 +79,8 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
 
     private static <T> int computeHashCode(ImmutableAttributes parent, ImmutableAttributesEntry<T> first) {
         int hashCode = parent.hashCode();
-        hashCode = 31 * hashCode + first.hashCode();
-        return hashCode;
+        return 31 * hashCode + first.hashCode();
+        
     }
 
     @Override

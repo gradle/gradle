@@ -403,8 +403,8 @@ public abstract class FileHierarchySet {
         @Override
         public int hashCode() {
             int result = prefix.hashCode();
-            result = 31 * result + children.hashCode();
-            return result;
+            return 31 * result + children.hashCode();
+            
         }
 
         @Override

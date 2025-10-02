@@ -1026,8 +1026,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         @Override
         public int hashCode() {
             int result = name.hashCode();
-            result = 31 * result + Arrays.hashCode(parameterTypes);
-            return result;
+            return 31 * result + Arrays.hashCode(parameterTypes);
+            
         }
     }
 }

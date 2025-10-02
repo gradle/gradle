@@ -68,8 +68,8 @@ public class ClassLoaderIds {
         @Override
         public int hashCode() {
             int result = type.hashCode();
-            result = 31 * result + Arrays.hashCode(attributes);
-            return result;
+            return 31 * result + Arrays.hashCode(attributes);
+            
         }
 
         @Override

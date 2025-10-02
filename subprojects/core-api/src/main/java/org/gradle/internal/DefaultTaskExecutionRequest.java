@@ -92,8 +92,8 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
     @Override
     public int hashCode() {
         int result = getArgs().hashCode();
-        result = 31 * result + (projectPath != null ? projectPath.hashCode() : 0);
-        return result;
+        return 31 * result + (projectPath != null ? projectPath.hashCode() : 0);
+        
     }
 
     @Override

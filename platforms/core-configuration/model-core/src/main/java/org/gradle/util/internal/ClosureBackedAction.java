@@ -105,7 +105,7 @@ public class ClosureBackedAction<T> implements Action<T> {
     public int hashCode() {
         int result = closure.hashCode();
         result = 31 * result + (configurableAware ? 1 : 0);
-        result = 31 * result + resolveStrategy;
-        return result;
+        return 31 * result + resolveStrategy;
+        
     }
 }

@@ -53,8 +53,8 @@ public class DefaultMavenVariantAttributesFactory implements MavenVariantAttribu
             ImmutableAttributes result = original;
             result = attributesFactory.concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_API, objectInstantiator));
             result = attributesFactory.concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
-            result = attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
-            return result;
+            return attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
+            
         });
     }
 
@@ -65,8 +65,8 @@ public class DefaultMavenVariantAttributesFactory implements MavenVariantAttribu
             ImmutableAttributes result = original;
             result = attributesFactory.concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
             result = attributesFactory.concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
-            result = attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
-            return result;
+            return attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
+            
         });
     }
 
@@ -77,8 +77,8 @@ public class DefaultMavenVariantAttributesFactory implements MavenVariantAttribu
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
             result = attributesFactory.concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
-            result = attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(componentType, objectInstantiator));
-            return result;
+            return attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(componentType, objectInstantiator));
+            
         });
     }
 
@@ -90,8 +90,8 @@ public class DefaultMavenVariantAttributesFactory implements MavenVariantAttribu
             result = attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
             result = attributesFactory.concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
             result = attributesFactory.concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.SOURCES));
-            result = attributesFactory.concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
-            return result;
+            return attributesFactory.concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
+            
         });
     }
 
@@ -103,8 +103,8 @@ public class DefaultMavenVariantAttributesFactory implements MavenVariantAttribu
             result = attributesFactory.concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
             result = attributesFactory.concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
             result = attributesFactory.concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.JAVADOC));
-            result = attributesFactory.concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
-            return result;
+            return attributesFactory.concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
+            
         });
     }
 

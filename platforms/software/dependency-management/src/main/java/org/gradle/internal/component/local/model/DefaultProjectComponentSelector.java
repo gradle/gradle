@@ -58,8 +58,8 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     ) {
         int result = projectIdentity.hashCode();
         result = 31 * result + attributes.hashCode();
-        result = 31 * result + capabilitySelectors.hashCode();
-        return result;
+        return 31 * result + capabilitySelectors.hashCode();
+        
     }
 
     @Override

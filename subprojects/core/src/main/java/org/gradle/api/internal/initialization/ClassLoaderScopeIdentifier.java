@@ -76,8 +76,8 @@ public class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
     @Override
     public int hashCode() {
         int result = Objects.hashCode(parent);
-        result = 31 * result + name.hashCode();
-        return result;
+        return 31 * result + name.hashCode();
+        
     }
 
     String getPath() {
@@ -121,8 +121,8 @@ public class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
         @Override
         public int hashCode() {
             int result = identifier.hashCode();
-            result = 31 * result + Boolean.hashCode(export);
-            return result;
+            return 31 * result + Boolean.hashCode(export);
+            
         }
 
         @Override

@@ -57,7 +57,7 @@ public class ImmutableWorkspaceMetadata {
     @Override
     public int hashCode() {
         int result = originMetadata.hashCode();
-        result = 31 * result + outputPropertyHashes.hashCode();
-        return result;
+        return 31 * result + outputPropertyHashes.hashCode();
+        
     }
 }

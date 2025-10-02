@@ -89,8 +89,8 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
 
             ClassWriter classWriter = new ClassWriter(0);
             classReader.accept(new TransformingAdapter(classWriter, detector.interfaceName), 0);
-            bytes = classWriter.toByteArray();
-            return bytes;
+            return classWriter.toByteArray();
+            
         }
 
         private static class AnnotationDetector extends ClassVisitor {

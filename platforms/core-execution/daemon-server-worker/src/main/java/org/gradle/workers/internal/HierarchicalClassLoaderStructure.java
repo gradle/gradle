@@ -34,8 +34,8 @@ public class HierarchicalClassLoaderStructure implements ClassLoaderStructure {
     }
 
     public HierarchicalClassLoaderStructure withChild(ClassLoaderSpec spec) {
-        HierarchicalClassLoaderStructure childNode = new HierarchicalClassLoaderStructure(spec, this);
-        return childNode;
+        return new HierarchicalClassLoaderStructure(spec, this);
+        
     }
 
     @Override

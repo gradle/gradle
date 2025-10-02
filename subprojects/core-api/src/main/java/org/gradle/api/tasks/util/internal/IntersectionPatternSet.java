@@ -76,7 +76,7 @@ public class IntersectionPatternSet extends PatternSet {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (other != null ? other.hashCode() : 0);
-        return result;
+        return 31 * result + (other != null ? other.hashCode() : 0);
+        
     }
 }

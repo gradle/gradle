@@ -430,8 +430,8 @@ public class Project extends XmlPersistableConfigurationObject {
         result = 31 * result + (natures != null ? natures.hashCode() : 0);
         result = 31 * result + (buildCommands != null ? buildCommands.hashCode() : 0);
         result = 31 * result + (linkedResources != null ? linkedResources.hashCode() : 0);
-        result = 31 * result + (resourceFilters != null ? resourceFilters.hashCode() : 0);
-        return result;
+        return 31 * result + (resourceFilters != null ? resourceFilters.hashCode() : 0);
+        
     }
 
     @Override

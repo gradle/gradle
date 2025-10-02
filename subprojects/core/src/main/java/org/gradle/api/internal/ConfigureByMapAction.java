@@ -66,7 +66,7 @@ public class ConfigureByMapAction<T> implements Action<T> {
     @Override
     public int hashCode() {
         int result = properties.hashCode();
-        result = 31 * result + mandatoryProperties.hashCode();
-        return result;
+        return 31 * result + mandatoryProperties.hashCode();
+        
     }
 }

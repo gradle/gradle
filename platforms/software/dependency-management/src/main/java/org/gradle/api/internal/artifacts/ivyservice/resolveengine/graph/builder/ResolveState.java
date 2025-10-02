@@ -362,8 +362,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         ) {
             int result = componentSelector.hashCode();
             result = 31 * result + Boolean.hashCode(ignoreVersion);
-            result = 31 * result + Boolean.hashCode(virtualPlatformEdge);
-            return result;
+            return 31 * result + Boolean.hashCode(virtualPlatformEdge);
+            
         }
 
         @Override

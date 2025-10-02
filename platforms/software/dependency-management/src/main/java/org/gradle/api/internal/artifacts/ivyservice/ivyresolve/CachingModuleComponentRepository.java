@@ -479,8 +479,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(delegate);
         ModuleSources originSources = processedMetadata.getSources();
         ImmutableModuleSources mergedSources = ImmutableModuleSources.of(originSources, moduleSource);
-        processedMetadata = processedMetadata.withSources(mergedSources);
-        return processedMetadata;
+        return processedMetadata.withSources(mergedSources);
+        
     }
 
     private String cacheKey(ArtifactType artifactType) {

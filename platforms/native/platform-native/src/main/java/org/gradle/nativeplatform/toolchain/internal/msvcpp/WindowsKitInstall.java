@@ -75,7 +75,7 @@ public abstract class WindowsKitInstall implements Named {
     public int hashCode() {
         int result = baseDir.hashCode();
         result = 31 * result + name.hashCode();
-        result = 31 * result + version.hashCode();
-        return result;
+        return 31 * result + version.hashCode();
+        
     }
 }

@@ -195,8 +195,8 @@ public class DependencyVerificationConfiguration {
             result = 31 * result + (version != null ? version.hashCode() : 0);
             result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
             result = 31 * result + (regex ? 1 : 0);
-            result = 31 * result + (reason != null ? reason.hashCode() : 0);
-            return result;
+            return 31 * result + (reason != null ? reason.hashCode() : 0);
+            
         }
 
         public int internalCompareTo(TrustCoordinates other) {
@@ -279,8 +279,8 @@ public class DependencyVerificationConfiguration {
         @Override
         public int hashCode() {
             int result = super.hashCode();
-            result = 31 * result + keyId.hashCode();
-            return result;
+            return 31 * result + keyId.hashCode();
+            
         }
 
         @Override

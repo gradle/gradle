@@ -68,7 +68,7 @@ public class NamedVariantIdentifier implements VariantIdentifier {
 
     private static int computeHashCode(ComponentIdentifier componentIdentifier, String name) {
         int result = componentIdentifier.hashCode();
-        result = 31 * result + name.hashCode();
-        return result;
+        return 31 * result + name.hashCode();
+        
     }
 }

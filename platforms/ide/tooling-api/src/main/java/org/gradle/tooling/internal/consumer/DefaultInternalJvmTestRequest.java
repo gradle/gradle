@@ -66,7 +66,7 @@ public class DefaultInternalJvmTestRequest implements InternalJvmTestRequest {
     public int hashCode() {
         int result = className != null ? className.hashCode() : 0;
         result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
-        result = 31 * result + (testPattern != null ? testPattern.hashCode() : 0);
-        return result;
+        return 31 * result + (testPattern != null ? testPattern.hashCode() : 0);
+        
     }
 }

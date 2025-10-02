@@ -87,8 +87,8 @@ public class DependencyModel extends AbstractContextAwareModel {
         int result = group.hashCode();
         result = 31 * result + name.hashCode();
         result = 31 * result + (version != null ? version.hashCode() : 0);
-        result = 31 * result + (versionRef != null ? versionRef.hashCode() : 0);
-        return result;
+        return 31 * result + (versionRef != null ? versionRef.hashCode() : 0);
+        
     }
 
     @Override

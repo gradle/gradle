@@ -128,8 +128,8 @@ public class ModelProperty<T> {
     public int hashCode() {
         int result = name.hashCode();
         result = 31 * result + type.hashCode();
-        result = 31 * result + Boolean.valueOf(isWritable()).hashCode();
-        return result;
+        return 31 * result + Boolean.valueOf(isWritable()).hashCode();
+        
     }
 
     @Override

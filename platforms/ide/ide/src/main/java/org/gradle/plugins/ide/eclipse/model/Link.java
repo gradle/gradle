@@ -96,8 +96,8 @@ public class Link {
         result = name.hashCode();
         result = 31 * result + type.hashCode();
         result = 31 * result + (location != null ? location.hashCode() : 0);
-        result = 31 * result + (locationUri != null ? locationUri.hashCode() : 0);
-        return result;
+        return 31 * result + (locationUri != null ? locationUri.hashCode() : 0);
+        
     }
 
     @Override

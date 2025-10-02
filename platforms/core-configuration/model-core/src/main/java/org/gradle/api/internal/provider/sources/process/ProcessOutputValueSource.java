@@ -182,8 +182,8 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
         public int hashCode() {
             int hash = Objects.hash(result);
             hash = 31 * hash + Arrays.hashCode(output);
-            hash = 31 * hash + Arrays.hashCode(error);
-            return hash;
+            return 31 * hash + Arrays.hashCode(error);
+            
         }
     }
 }

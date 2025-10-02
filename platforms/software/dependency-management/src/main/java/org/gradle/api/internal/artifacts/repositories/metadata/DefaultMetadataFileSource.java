@@ -70,8 +70,8 @@ public class DefaultMetadataFileSource implements MetadataFileSource {
     @Override
     public int hashCode() {
         int result = artifactId.hashCode();
-        result = 31 * result + sha1.hashCode();
-        return result;
+        return 31 * result + sha1.hashCode();
+        
     }
 
     @Override

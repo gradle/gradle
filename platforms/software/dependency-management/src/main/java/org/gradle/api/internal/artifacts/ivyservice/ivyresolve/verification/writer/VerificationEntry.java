@@ -89,8 +89,8 @@ abstract class VerificationEntry implements Comparable<VerificationEntry> {
     public int hashCode() {
         int result = id.hashCode();
         result = 31 * result + artifactKind.hashCode();
-        result = 31 * result + file.hashCode();
-        return result;
+        return 31 * result + file.hashCode();
+        
     }
 
     @Override

@@ -1280,8 +1280,8 @@ public class GradleResolveVisitor extends ResolveVisitor {
             addError("You cannot create an instance from the abstract " + getDescription(type) + ".", cce);
         }
 
-        Expression ret = cce.transformExpression(this);
-        return ret;
+        return cce.transformExpression(this);
+        
     }
 
     private String getDescription(ClassNode node) {

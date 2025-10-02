@@ -62,8 +62,8 @@ public class Checksum {
         result = 31 * result + value.hashCode();
         result = 31 * result + (alternatives != null ? alternatives.hashCode() : 0);
         result = 31 * result + (origin != null ? origin.hashCode() : 0);
-        result = 31 * result + (reason != null ? reason.hashCode() : 0);
-        return result;
+        return 31 * result + (reason != null ? reason.hashCode() : 0);
+        
     }
 
     public ChecksumKind getKind() {

@@ -110,8 +110,8 @@ public class ModuleDependency implements Dependency {
     public int hashCode() {
         int result;
         result = name.hashCode();
-        result = 31 * result + getScopeHash();
-        return result;
+        return 31 * result + getScopeHash();
+        
     }
 
     private int getScopeHash() {

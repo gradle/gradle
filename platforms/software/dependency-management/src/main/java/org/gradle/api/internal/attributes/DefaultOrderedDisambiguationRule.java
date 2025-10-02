@@ -69,7 +69,7 @@ public class DefaultOrderedDisambiguationRule<T> implements Action<MultipleCandi
     @Override
     public int hashCode() {
         int result = comparator.hashCode();
-        result = 31 * result + Boolean.hashCode(pickFirst);
-        return result;
+        return 31 * result + Boolean.hashCode(pickFirst);
+        
     }
 }

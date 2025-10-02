@@ -88,7 +88,7 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
         int result = artifactName.hashCode();
         result = 31 * result + checksums.hashCode();
         result = 31 * result + trustedPgpKeys.hashCode();
-        result = 31 * result + ignoredPgpKeys.hashCode();
-        return result;
+        return 31 * result + ignoredPgpKeys.hashCode();
+        
     }
 }

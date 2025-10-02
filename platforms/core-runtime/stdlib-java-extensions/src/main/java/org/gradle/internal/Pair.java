@@ -88,8 +88,8 @@ public final class Pair<L, R> {
     @Override
     public int hashCode() {
         int result = left != null ? left.hashCode() : 0;
-        result = 31 * result + (right != null ? right.hashCode() : 0);
-        return result;
+        return 31 * result + (right != null ? right.hashCode() : 0);
+        
     }
 
     @Override

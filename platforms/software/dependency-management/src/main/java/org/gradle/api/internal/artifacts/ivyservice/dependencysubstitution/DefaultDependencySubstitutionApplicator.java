@@ -150,8 +150,8 @@ public class DefaultDependencySubstitutionApplicator implements DependencySubsti
 
         private static int computeHashCode(List<IvyArtifactName> artifacts, ComponentSelector selector) {
             int result = selector.hashCode();
-            result = 31 * result + artifacts.hashCode();
-            return result;
+            return 31 * result + artifacts.hashCode();
+            
         }
 
     }

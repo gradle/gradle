@@ -84,7 +84,7 @@ public class DefaultLockOptions implements LockOptions {
     @Override
     public int hashCode() {
         int result = mode.hashCode();
-        result = 31 * result + (crossVersion ? 1 : 0);
-        return result;
+        return 31 * result + (crossVersion ? 1 : 0);
+        
     }
 }

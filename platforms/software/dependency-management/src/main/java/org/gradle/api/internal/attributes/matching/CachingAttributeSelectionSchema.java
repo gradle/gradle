@@ -105,8 +105,8 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
         private int computeHashCode() {
             int result = attribute.hashCode();
             result = 31 * result + requested.hashCode();
-            result = 31 * result + candidate.hashCode();
-            return result;
+            return 31 * result + candidate.hashCode();
+            
         }
     }
 

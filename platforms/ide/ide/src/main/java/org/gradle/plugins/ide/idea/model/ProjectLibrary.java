@@ -167,7 +167,7 @@ public class ProjectLibrary {
         result = 31 * result + compilerClasspath.hashCode();
         result = 31 * result + classes.hashCode();
         result = 31 * result + javadoc.hashCode();
-        result = 31 * result + sources.hashCode();
-        return result;
+        return 31 * result + sources.hashCode();
+        
     }
 }

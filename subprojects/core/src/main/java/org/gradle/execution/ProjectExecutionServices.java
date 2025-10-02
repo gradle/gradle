@@ -132,9 +132,9 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(
+        return new EventFiringTaskExecuter(
             buildOperationRunner, taskExecutionGraph.getLegacyTaskListenerBroadcast(), listenerManager.getBroadcaster(TaskListenerInternal.class), executer);
-        return executer;
+        
     }
 
     @Provides

@@ -55,7 +55,7 @@ public class DefaultStackTraceLocation implements StackTraceLocation {
     @Override
     public int hashCode() {
         int result = location != null ? location.hashCode() : 0;
-        result = 31 * result + stackTrace.hashCode();
-        return result;
+        return 31 * result + stackTrace.hashCode();
+        
     }
 }

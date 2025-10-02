@@ -70,8 +70,8 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         // See DefaultImmutableCapability#computeHashcode
         int hash = getVersion().hashCode();
         hash = 31 * hash + getName().hashCode();
-        hash = 31 * hash + getGroup().hashCode();
-        return  hash;
+        return 31 * hash + getGroup().hashCode();
+        
     }
 
     @Override

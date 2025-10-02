@@ -76,8 +76,8 @@ public class PluginModel extends AbstractContextAwareModel {
     private int doComputeHashCode() {
         int result = id.hashCode();
         result = 31 * result + (version != null ? version.hashCode() : 0);
-        result = 31 * result + (versionRef != null ? versionRef.hashCode() : 0);
-        return result;
+        return 31 * result + (versionRef != null ? versionRef.hashCode() : 0);
+        
     }
 
     @Override

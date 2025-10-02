@@ -71,7 +71,7 @@ public final class SourceVariantData {
     @Override
     public int hashCode() {
         int result = Objects.hashCode(variantName);
-        result = 31 * result + Objects.hashCode(attributes);
-        return result;
+        return 31 * result + Objects.hashCode(attributes);
+        
     }
 }

@@ -60,8 +60,8 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector, 
         int hashCode = version.hashCode();
         hashCode = 31 * hashCode + module.hashCode();
         hashCode = 31 * hashCode + attributes.hashCode();
-        hashCode = 31 * hashCode + capabilitySelectors.hashCode();
-        return hashCode;
+        return 31 * hashCode + capabilitySelectors.hashCode();
+        
     }
 
     @Override

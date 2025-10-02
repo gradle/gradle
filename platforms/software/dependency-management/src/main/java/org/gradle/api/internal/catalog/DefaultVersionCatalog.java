@@ -148,8 +148,8 @@ public class DefaultVersionCatalog implements Serializable {
         int result = libraries.hashCode();
         result = 31 * result + bundles.hashCode();
         result = 31 * result + versions.hashCode();
-        result = 31 * result + plugins.hashCode();
-        return result;
+        return 31 * result + plugins.hashCode();
+        
     }
 
     public boolean isNotEmpty() {

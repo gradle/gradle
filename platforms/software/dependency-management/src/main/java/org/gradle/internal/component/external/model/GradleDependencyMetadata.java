@@ -73,8 +73,8 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         result = 31 * result + Boolean.hashCode(endorsing);
         result = 31 * result + (reason != null ? reason.hashCode() : 0);
         result = 31 * result + Boolean.hashCode(force);
-        result = 31 * result + artifacts.hashCode();
-        return result;
+        return 31 * result + artifacts.hashCode();
+        
     }
 
     @Override

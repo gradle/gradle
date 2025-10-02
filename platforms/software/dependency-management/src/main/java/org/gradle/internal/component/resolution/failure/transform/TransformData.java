@@ -84,7 +84,7 @@ public final class TransformData {
     public int hashCode() {
         int result = transformActionClass.hashCode();
         result = 31 * result + fromAttributes.hashCode();
-        result = 31 * result + toAttributes.hashCode();
-        return result;
+        return 31 * result + toAttributes.hashCode();
+        
     }
 }

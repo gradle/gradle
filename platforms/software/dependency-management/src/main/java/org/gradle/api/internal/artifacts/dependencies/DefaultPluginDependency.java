@@ -58,8 +58,8 @@ public class DefaultPluginDependency implements PluginDependency {
     @Override
     public int hashCode() {
         int result = pluginId.hashCode();
-        result = 31 * result + versionConstraint.hashCode();
-        return result;
+        return 31 * result + versionConstraint.hashCode();
+        
     }
 
     @Override

@@ -122,8 +122,8 @@ public class DependencyClassPathProvider implements ClassPathProvider {
         for (String groovyModule : GROOVY_MODULES) {
             groovy = groovy.plus(moduleRegistry.getExternalModule(groovyModule).getClasspath());
         }
-        groovy = groovy.plus(moduleRegistry.getExternalModule("javaparser-core").getClasspath());
-        return groovy;
+        return groovy.plus(moduleRegistry.getExternalModule("javaparser-core").getClasspath());
+        
     }
 
     private ClassPath gradleKotlinDsl() {

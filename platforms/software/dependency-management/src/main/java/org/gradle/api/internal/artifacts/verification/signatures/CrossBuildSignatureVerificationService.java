@@ -170,8 +170,8 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             result = 31 * result + trustedKeys.hashCode();
             result = 31 * result + ignoredKeys.hashCode();
             result = 31 * result + Boolean.hashCode(useKeyServers);
-            result = 31 * result + keyringFileHash.hashCode();
-            return result;
+            return 31 * result + keyringFileHash.hashCode();
+            
         }
     }
 

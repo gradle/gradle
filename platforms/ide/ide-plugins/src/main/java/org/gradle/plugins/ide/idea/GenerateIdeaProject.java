@@ -47,8 +47,8 @@ public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
     @Override
     public Project create() {
-        Project project = new Project(getXmlTransformer(), ideaProject.getPathFactory());
-        return project;
+        return new Project(getXmlTransformer(), ideaProject.getPathFactory());
+        
     }
 
     @Override

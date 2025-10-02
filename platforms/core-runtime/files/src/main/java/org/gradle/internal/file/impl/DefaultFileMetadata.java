@@ -102,7 +102,7 @@ public class DefaultFileMetadata implements FileMetadata {
         int result = type.hashCode();
         result = 31 * result + (int) (lastModified ^ (lastModified >>> 32));
         result = 31 * result + (int) (length ^ (length >>> 32));
-        result = 31 * result + accessType.hashCode();
-        return result;
+        return 31 * result + accessType.hashCode();
+        
     }
 }

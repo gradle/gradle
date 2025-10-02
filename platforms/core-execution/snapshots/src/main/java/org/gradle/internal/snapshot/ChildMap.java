@@ -138,8 +138,8 @@ public interface ChildMap<T> {
         @Override
         public int hashCode() {
             int result = path.hashCode();
-            result = 31 * result + value.hashCode();
-            return result;
+            return 31 * result + value.hashCode();
+            
         }
 
         @Override

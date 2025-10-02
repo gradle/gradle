@@ -62,8 +62,8 @@ public class DefaultEarSecurityRole implements EarSecurityRole {
     public int hashCode() {
         int result;
         result = description != null ? description.hashCode() : 0;
-        result = 31 * result + (roleName != null ? roleName.hashCode() : 0);
-        return result;
+        return 31 * result + (roleName != null ? roleName.hashCode() : 0);
+        
     }
 
     @Override

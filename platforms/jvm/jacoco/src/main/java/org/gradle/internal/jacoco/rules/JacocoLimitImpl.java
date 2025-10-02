@@ -95,7 +95,7 @@ public class JacocoLimitImpl implements JacocoLimit {
         int result = counter != null ? counter.hashCode() : 0;
         result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
-        result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
-        return result;
+        return 31 * result + (maximum != null ? maximum.hashCode() : 0);
+        
     }
 }

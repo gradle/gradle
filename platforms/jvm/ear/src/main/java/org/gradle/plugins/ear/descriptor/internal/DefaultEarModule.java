@@ -73,8 +73,8 @@ public class DefaultEarModule implements EarModule {
     public int hashCode() {
         int result;
         result = path != null ? path.hashCode() : 0;
-        result = 31 * result + (altDeployDescriptor != null ? altDeployDescriptor.hashCode() : 0);
-        return result;
+        return 31 * result + (altDeployDescriptor != null ? altDeployDescriptor.hashCode() : 0);
+        
     }
 
     @Override

@@ -84,7 +84,7 @@ public final class DefaultSpecificCapabilitySelector implements CapabilitySelect
     @Override
     public int hashCode() {
         int result = getGroup().hashCode();
-        result = 31 * result + getName().hashCode();
-        return result;
+        return 31 * result + getName().hashCode();
+        
     }
 }

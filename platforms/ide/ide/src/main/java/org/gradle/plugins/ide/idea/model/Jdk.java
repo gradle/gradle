@@ -116,7 +116,7 @@ public class Jdk {
         result = 31 * result + (assertKeyword ? 1 : 0);
         result = 31 * result + (jdk15 ? 1 : 0);
         result = 31 * result + (languageLevel != null ? languageLevel.hashCode() : 0);
-        result = 31 * result + (projectJdkName != null ? projectJdkName.hashCode() : 0);
-        return result;
+        return 31 * result + (projectJdkName != null ? projectJdkName.hashCode() : 0);
+        
     }
 }

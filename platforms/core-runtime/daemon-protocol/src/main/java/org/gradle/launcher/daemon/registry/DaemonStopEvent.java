@@ -86,8 +86,8 @@ public class DaemonStopEvent implements Serializable {
     @Override
     public int hashCode() {
         int result = timestamp.hashCode();
-        result = 31 * result + (reason != null ? reason.hashCode() : 0);
-        return result;
+        return 31 * result + (reason != null ? reason.hashCode() : 0);
+        
     }
 
     @Override

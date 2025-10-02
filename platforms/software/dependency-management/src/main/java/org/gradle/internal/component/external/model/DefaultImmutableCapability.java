@@ -57,8 +57,8 @@ public class DefaultImmutableCapability implements ImmutableCapability {
         // tested to reduce the number of collisions on a large dependency graph (performance test)
         int hash = safeHash(version);
         hash = 31 * hash + name.hashCode();
-        hash = 31 * hash + group.hashCode();
-        return  hash;
+        return 31 * hash + group.hashCode();
+        
     }
 
     private static int safeHash(@Nullable String o) {

@@ -98,7 +98,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
     @Override
     public final int hashCode() {
         int result = getClass().hashCode();
-        result = 31 * result + Arrays.hashCode(specs);
-        return result;
+        return 31 * result + Arrays.hashCode(specs);
+        
     }
 }

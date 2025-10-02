@@ -116,7 +116,7 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
     @Override
     public int hashCode() {
         int result = Objects.hashCode(projectPath);
-        result = 31 * result + Objects.hashCode(libraryName);
-        return result;
+        return 31 * result + Objects.hashCode(libraryName);
+        
     }
 }

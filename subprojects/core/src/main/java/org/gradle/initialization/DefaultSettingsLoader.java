@@ -147,8 +147,8 @@ public class DefaultSettingsLoader implements SettingsLoader {
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(noSearchParameter.toBuildLayoutConfiguration());
-        SettingsState state = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
-        return state;
+        return findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
+        
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {

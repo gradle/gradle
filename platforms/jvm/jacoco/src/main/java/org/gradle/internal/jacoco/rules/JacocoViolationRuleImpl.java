@@ -118,7 +118,7 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
         result = 31 * result + (scope != null ? scope.hashCode() : 0);
         result = 31 * result + (includes != null ? includes.hashCode() : 0);
         result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-        result = 31 * result + (limits != null ? limits.hashCode() : 0);
-        return result;
+        return 31 * result + (limits != null ? limits.hashCode() : 0);
+        
     }
 }

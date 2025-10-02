@@ -189,8 +189,8 @@ public class ImmutableArtifactTypeRegistry {
         ImmutableAttributes defaultArtifactAttributes
     ) {
         int result = mappings.hashCode();
-        result = 31 * result + defaultArtifactAttributes.hashCode();
-        return result;
+        return 31 * result + defaultArtifactAttributes.hashCode();
+        
     }
 
     @Override

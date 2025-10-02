@@ -99,8 +99,8 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         result = 31 * result + nullToEmpty(excludes).hashCode();
         result = 31 * result + nullToEmpty(includeSpecs).hashCode();
         result = 31 * result + nullToEmpty(excludeSpecs).hashCode();
-        result = 31 * result + (caseSensitive ? 1 : 0);
-        return result;
+        return 31 * result + (caseSensitive ? 1 : 0);
+        
     }
 
     private static <T> Set<T> nullToEmptyAndUnmodifiableSet(@Nullable Set<T> set) {

@@ -192,8 +192,8 @@ public class ModuleLibrary implements Dependency {
         result = 31 * result + jarDirectories.hashCode();
         result = 31 * result + javadoc.hashCode();
         result = 31 * result + sources.hashCode();
-        result = 31 * result + getScopeHash();
-        return result;
+        return 31 * result + getScopeHash();
+        
     }
 
     private int getScopeHash() {

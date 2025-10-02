@@ -64,8 +64,8 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
         String version = decoder.readString();
         String name = decoder.readString();
         byte[] sha1 = decoder.readBinary();
-        DefaultMetadataFileSource source = createSource(sha1, group, module, version, name);
-        return source;
+        return createSource(sha1, group, module, version, name);
+        
     }
 
     private DefaultMetadataFileSource createSource(byte[] sha1, String group, String module, String version, String name) {

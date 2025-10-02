@@ -50,7 +50,7 @@ public class ScriptCacheKey {
         ClassLoader loader = this.classLoader.get();
         int result = className.hashCode();
         result = 31 * result + (loader != null ? loader.hashCode() : 1);
-        result = 31 * result + dslId.hashCode();
-        return result;
+        return 31 * result + dslId.hashCode();
+        
     }
 }

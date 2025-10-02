@@ -53,8 +53,8 @@ public class MapEntrySnapshot<T> {
     @Override
     public int hashCode() {
         int result = key.hashCode();
-        result = 31 * result + value.hashCode();
-        return result;
+        return 31 * result + value.hashCode();
+        
     }
 
     @Override

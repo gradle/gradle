@@ -67,7 +67,7 @@ public class AnnotationProcessorDeclaration implements Serializable {
     @Override
     public int hashCode() {
         int result = className.hashCode();
-        result = 31 * result + type.hashCode();
-        return result;
+        return 31 * result + type.hashCode();
+        
     }
 }

@@ -70,7 +70,7 @@ public class DefaultExcludeRule implements ExcludeRule {
     @Override
     public int hashCode() {
         int result = group != null ? group.hashCode() : 0;
-        result = 31 * result + (module != null ? module.hashCode() : 0);
-        return result;
+        return 31 * result + (module != null ? module.hashCode() : 0);
+        
     }
 }

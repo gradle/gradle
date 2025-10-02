@@ -60,7 +60,7 @@ public class ProviderInternalJvmTestRequest implements InternalJvmTestRequest, S
     @Override
     public int hashCode() {
         int result = className != null ? className.hashCode() : 0;
-        result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
-        return result;
+        return 31 * result + (methodName != null ? methodName.hashCode() : 0);
+        
     }
 }

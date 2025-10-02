@@ -82,8 +82,8 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
     public int hashCode() {
         int result = Objects.hashCode(projectPath);
         result = 31 * result + Objects.hashCode(libraryName);
-        result = 31 * result + Objects.hashCode(variant);
-        return result;
+        return 31 * result + Objects.hashCode(variant);
+        
     }
 
     public static DependencySpec of(LibraryBinaryIdentifier id) {

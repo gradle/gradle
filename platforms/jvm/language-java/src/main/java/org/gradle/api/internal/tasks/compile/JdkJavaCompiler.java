@@ -122,8 +122,8 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
-        task = new ResourceCleaningCompilationTask(task, fileManager);
-        return task;
+        return new ResourceCleaningCompilationTask(task, fileManager);
+        
     }
 
     private static boolean emptySourcepathIn(List<String> options) {

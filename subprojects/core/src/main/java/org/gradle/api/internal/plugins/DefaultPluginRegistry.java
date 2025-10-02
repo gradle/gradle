@@ -226,8 +226,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
         @Override
         public int hashCode() {
             int result = classLoader.hashCode();
-            result = 31 * result + id.hashCode();
-            return result;
+            return 31 * result + id.hashCode();
+            
         }
     }
 

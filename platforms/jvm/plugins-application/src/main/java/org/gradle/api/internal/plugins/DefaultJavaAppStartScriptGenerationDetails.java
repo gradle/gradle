@@ -153,7 +153,7 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
         result = 31 * result + (classpath != null ? classpath.hashCode() : 0);
         result = 31 * result + (modulePath != null ? modulePath.hashCode() : 0);
         result = 31 * result + (scriptRelPath != null ? scriptRelPath.hashCode() : 0);
-        result = 31 * result + (appNameSystemProperty != null ? appNameSystemProperty.hashCode() : 0);
-        return result;
+        return 31 * result + (appNameSystemProperty != null ? appNameSystemProperty.hashCode() : 0);
+        
     }
 }

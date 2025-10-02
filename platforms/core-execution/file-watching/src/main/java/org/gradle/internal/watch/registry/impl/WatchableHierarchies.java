@@ -142,8 +142,8 @@ public class WatchableHierarchies {
         SnapshotHierarchy newRoot = root;
         // We are not being notified about changes to content accessed via symlinks
         newRoot = removeIndirectlySymlinkedRoots(newRoot, invalidator);
-        newRoot = removeDirectSymlinks(newRoot, invalidator);
-        return newRoot;
+        return removeDirectSymlinks(newRoot, invalidator);
+        
     }
 
     @CheckReturnValue
@@ -223,8 +223,8 @@ public class WatchableHierarchies {
     public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode, List<File> unsupportedFileSystems) {
         SnapshotHierarchy newRoot = root;
         newRoot = removeUnprovenHierarchies(newRoot, invalidator, watchMode);
-        newRoot = updateUnwatchableFilesOnBuildStart(newRoot, invalidator, unsupportedFileSystems);
-        return newRoot;
+        return updateUnwatchableFilesOnBuildStart(newRoot, invalidator, unsupportedFileSystems);
+        
     }
 
     @CheckReturnValue

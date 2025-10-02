@@ -41,8 +41,8 @@ class ChecksumEntry extends VerificationEntry {
         int result = id.hashCode();
         result = 31 * result + getFile().getName().hashCode();
         result = 31 * result + getArtifactKind().hashCode();
-        result = 31 * result + checksumKind.hashCode();
-        return result;
+        return 31 * result + checksumKind.hashCode();
+        
     }
 
     ChecksumKind getChecksumKind() {

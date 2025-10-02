@@ -113,8 +113,8 @@ public final class TransformationChainData {
         @Override
         public int hashCode() {
             int result = Objects.hashCode(startingVariant);
-            result = 31 * result + steps.hashCode();
-            return result;
+            return 31 * result + steps.hashCode();
+            
         }
     }
 }

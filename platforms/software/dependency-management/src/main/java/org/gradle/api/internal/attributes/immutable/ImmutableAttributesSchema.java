@@ -80,8 +80,8 @@ public class ImmutableAttributesSchema {
         ImmutableList<Attribute<?>> precedence
     ) {
         int result = strategies.hashCode();
-        result = 31 * result + precedence.hashCode();
-        return result;
+        return 31 * result + precedence.hashCode();
+        
     }
 
     /**

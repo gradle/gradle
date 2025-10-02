@@ -60,7 +60,7 @@ public class DefaultOrderedCompatibilityRule<T> implements Action<CompatibilityC
     @Override
     public int hashCode() {
         int result = comparator.hashCode();
-        result = 31 * result + Boolean.hashCode(reverse);
-        return result;
+        return 31 * result + Boolean.hashCode(reverse);
+        
     }
 }

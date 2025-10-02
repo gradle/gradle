@@ -55,8 +55,8 @@ public class VersionSpecificCacheDirectory implements Comparable<VersionSpecific
     @Override
     public int hashCode() {
         int result = dir.hashCode();
-        result = 31 * result + version.hashCode();
-        return result;
+        return 31 * result + version.hashCode();
+        
     }
 
     @Override

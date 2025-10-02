@@ -104,8 +104,8 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
         public int hashCode() {
             int result = Objects.hashCode(identifier);
             result = 31 * result + moduleId.hashCode();
-            result = 31 * result + exclusions.hashCode();
-            return result;
+            return 31 * result + exclusions.hashCode();
+            
         }
 
         @Override

@@ -116,8 +116,8 @@ public class VersionNumber implements Comparable<VersionNumber> {
         result = 31 * result + minor;
         result = 31 * result + micro;
         result = 31 * result + patch;
-        result = 31 * result + Objects.hashCode(qualifier);
-        return result;
+        return 31 * result + Objects.hashCode(qualifier);
+        
     }
 
     @Override

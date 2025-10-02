@@ -187,8 +187,8 @@ public class Path implements Comparable<Path> {
         for (Object element : segments) {
             result = 31 * result + element.hashCode();
         }
-        result = 31 * result + (absolute ? 1 : 0);
-        return result;
+        return 31 * result + (absolute ? 1 : 0);
+        
     }
 
     @Override

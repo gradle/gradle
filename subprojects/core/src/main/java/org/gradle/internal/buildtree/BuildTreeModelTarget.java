@@ -122,8 +122,8 @@ public abstract class BuildTreeModelTarget {
         @Override
         public int hashCode() {
             int result = buildRootDir.hashCode();
-            result = 31 * result + Objects.hashCode(projectPath);
-            return result;
+            return 31 * result + Objects.hashCode(projectPath);
+            
         }
 
         @Override

@@ -89,7 +89,7 @@ public class ClosureBackedRuleAction<T> implements RuleAction<T> {
     @Override
     public int hashCode() {
         int result = closure.hashCode();
-        result = 31 * result + subjectType.hashCode();
-        return result;
+        return 31 * result + subjectType.hashCode();
+        
     }
 }

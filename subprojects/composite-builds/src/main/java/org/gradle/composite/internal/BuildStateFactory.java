@@ -84,7 +84,7 @@ public class BuildStateFactory {
     public BuildDefinition buildDefinitionFor(File buildSrcDir, BuildState owner) {
         PublicBuildPath publicBuildPath = owner.getMutableModel().getServices().get(PublicBuildPath.class);
         StartParameterInternal buildSrcStartParameter = buildSrcStartParameterFor(buildSrcDir, owner.getMutableModel().getStartParameter());
-        BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
+        return BuildDefinition.fromStartParameterForBuild(
             buildSrcStartParameter,
             BUILD_SRC,
             buildSrcDir,
@@ -93,7 +93,7 @@ public class BuildStateFactory {
             publicBuildPath,
             true
         );
-        return buildDefinition;
+        
     }
 
     private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameterInternal containingBuildParameters) {

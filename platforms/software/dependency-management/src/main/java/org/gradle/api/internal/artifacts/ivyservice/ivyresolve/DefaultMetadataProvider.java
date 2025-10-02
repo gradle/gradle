@@ -90,18 +90,18 @@ class DefaultMetadataProvider implements MetadataProvider {
 
     private ComponentMetadata transformThroughComponentMetadataRules(InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier, ComponentMetadata metadata) {
         DefaultMetadataResolutionContext resolutionContext = new DefaultMetadataResolutionContext(resolveState.getCacheExpirationControl(), componentMetadataSupplier.getInstantiator());
-        metadata = resolveState.getComponentMetadataProcessorFactory().createComponentMetadataProcessor(resolutionContext).processMetadata(metadata);
-        return metadata;
+        return resolveState.getComponentMetadataProcessorFactory().createComponentMetadataProcessor(resolutionContext).processMetadata(metadata);
+        
     }
 
     private ComponentMetadata getComponentMetadataFromSupplier(InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier) {
         ComponentMetadata metadata;
         ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(resolveState.getId());
-        metadata = resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, id1 -> {
+        return resolveState.getComponentMetadataSupplierExecutor().execute(id, componentMetadataSupplier, TO_COMPONENT_METADATA, id1 -> {
             final SimpleComponentMetadataBuilder builder = new SimpleComponentMetadataBuilder(id1, resolveState.getAttributesFactory());
             return new BuildableComponentMetadataSupplierDetails(builder);
         }, resolveState.getCacheExpirationControl());
-        return metadata;
+        
     }
 
     @Override

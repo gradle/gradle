@@ -83,8 +83,8 @@ public class CachingComponentSelectionDescriptorFactory implements ComponentSele
         @Override
         public int hashCode() {
             int result = cause.hashCode();
-            result = 31 * result + description.hashCode();
-            return result;
+            return 31 * result + description.hashCode();
+            
         }
     }
 }

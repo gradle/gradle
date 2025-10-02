@@ -188,8 +188,8 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
     @Override
     public int hashCode() {
         int result = endsWithFile ? 1 : 0;
-        result = 31 * result + Arrays.hashCode(segments);
-        return result;
+        return 31 * result + Arrays.hashCode(segments);
+        
     }
 
     @Override

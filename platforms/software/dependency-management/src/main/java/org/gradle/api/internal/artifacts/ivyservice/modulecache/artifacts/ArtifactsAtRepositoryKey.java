@@ -45,7 +45,7 @@ class ArtifactsAtRepositoryKey {
     public int hashCode() {
         int result = repositoryId.hashCode();
         result = 31 * result + componentId.hashCode();
-        result = 31 * result + context.hashCode();
-        return result;
+        return 31 * result + context.hashCode();
+        
     }
 }

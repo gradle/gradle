@@ -341,8 +341,8 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
             ) {
                 int result = declaringClass.hashCode();
                 result = 31 * result + methodName.hashCode();
-                result = 31 * result + Arrays.hashCode(parameterTypes);
-                return result;
+                return 31 * result + Arrays.hashCode(parameterTypes);
+                
             }
 
         }

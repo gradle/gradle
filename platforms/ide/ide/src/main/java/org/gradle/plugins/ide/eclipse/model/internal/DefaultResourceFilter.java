@@ -125,8 +125,8 @@ public final class DefaultResourceFilter implements ResourceFilter {
         result = appliesTo != null ? appliesTo.hashCode() : 0;
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + Boolean.hashCode(recursive);
-        result = 31 * result + (matcher != null ? matcher.hashCode() : 0);
-        return result;
+        return 31 * result + (matcher != null ? matcher.hashCode() : 0);
+        
     }
 
     @Override

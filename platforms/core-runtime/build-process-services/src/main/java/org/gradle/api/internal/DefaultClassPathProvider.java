@@ -37,14 +37,14 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getExternalModule("groovy-json").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("groovy-xml").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("asm").getClasspath());
-            classpath = addJavaCompilerModules(classpath);
-            return classpath;
+            return addJavaCompilerModules(classpath);
+            
         }
         if (name.equals("SCALA-COMPILER")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getModule("gradle-scala").getImplementationClasspath());
-            classpath = addJavaCompilerModules(classpath);
-            return classpath;
+            return addJavaCompilerModules(classpath);
+            
         }
         if (name.equals("JAVA-COMPILER")) {
             return addJavaCompilerModules(ClassPath.EMPTY);
@@ -59,8 +59,8 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("javax.inject").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("jspecify").getClasspath());
-            return classpath;
+            return classpath.plus(moduleRegistry.getExternalModule("jspecify").getClasspath());
+            
         }
         if (name.equals("JAVA-COMPILER-PLUGIN")) {
             return addJavaCompilerModules(moduleRegistry.getModule("gradle-java-compiler-plugin").getImplementationClasspath());
@@ -68,8 +68,8 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         if (name.equals("ANT")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getExternalModule("ant").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
-            return classpath;
+            return classpath.plus(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
+            
         }
 
         return null;
@@ -80,7 +80,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         classpath = classpath.plus(moduleRegistry.getModule("gradle-language-jvm").getImplementationClasspath());
         classpath = classpath.plus(moduleRegistry.getModule("gradle-platform-base").getImplementationClasspath());
         classpath = classpath.plus(moduleRegistry.getModule("gradle-problems-api").getImplementationClasspath());
-        classpath = classpath.plus(moduleRegistry.getModule("gradle-problems-rendering").getImplementationClasspath());
-        return classpath;
+        return classpath.plus(moduleRegistry.getModule("gradle-problems-rendering").getImplementationClasspath());
+        
     }
 }

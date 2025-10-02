@@ -170,7 +170,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     public int hashCode() {
         int result = getGroup() != null ? getGroup().hashCode() : 0;
         result = 31 * result + getName().hashCode();
-        result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
-        return result;
+        return 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
+        
     }
 }

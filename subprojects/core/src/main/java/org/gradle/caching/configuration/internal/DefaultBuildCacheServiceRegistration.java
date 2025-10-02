@@ -58,7 +58,7 @@ public class DefaultBuildCacheServiceRegistration implements BuildCacheServiceRe
     @Override
     public int hashCode() {
         int result = factoryType.hashCode();
-        result = 31 * result + configurationType.hashCode();
-        return result;
+        return 31 * result + configurationType.hashCode();
+        
     }
 }

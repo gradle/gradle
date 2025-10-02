@@ -167,7 +167,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
         result = 31 * result + (preferredVersion != null ? preferredVersion.hashCode() : 0);
         result = 31 * result + (strictVersion != null ? strictVersion.hashCode() : 0);
         result = 31 * result + (branch != null ? branch.hashCode() : 0);
-        result = 31 * result + rejectedVersions.hashCode();
-        return result;
+        return 31 * result + rejectedVersions.hashCode();
+        
     }
 }

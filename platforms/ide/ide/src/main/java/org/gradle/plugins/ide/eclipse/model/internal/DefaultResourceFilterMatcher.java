@@ -109,8 +109,8 @@ public final class DefaultResourceFilterMatcher implements ResourceFilterMatcher
         int result;
         result = id != null ? id.hashCode() : 0;
         result = 31 * result + (arguments != null ? arguments.hashCode() : 0);
-        result = 31 * result + (children != null ? children.hashCode() : 0);
-        return result;
+        return 31 * result + (children != null ? children.hashCode() : 0);
+        
     }
 
     @Override

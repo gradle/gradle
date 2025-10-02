@@ -68,8 +68,8 @@ public class OriginMetadata {
     public int hashCode() {
         int result = buildInvocationId.hashCode();
         result = 31 * result + buildCacheKey.hashCode();
-        result = 31 * result + executionTime.hashCode();
-        return result;
+        return 31 * result + executionTime.hashCode();
+        
     }
 
     @Override

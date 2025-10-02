@@ -99,8 +99,8 @@ public class DefaultFileSystemLocationFingerprint implements FileSystemLocationF
     @Override
     public int hashCode() {
         int result = normalizedContentHash.hashCode();
-        result = 31 * result + normalizedPath.hashCode();
-        return result;
+        return 31 * result + normalizedPath.hashCode();
+        
     }
 
     @Override

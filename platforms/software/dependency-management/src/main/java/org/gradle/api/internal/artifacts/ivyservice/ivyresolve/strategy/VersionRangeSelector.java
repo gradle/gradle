@@ -267,8 +267,8 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         result = 31 * result + (lowerBound != null ? lowerBound.hashCode() : 0);
         result = 31 * result + (lowerInclusive ? 1 : 0);
         result = 31 * result + (lowerBoundVersion != null ? lowerBoundVersion.hashCode() : 0);
-        result = 31 * result + comparator.hashCode();
-        return result;
+        return 31 * result + comparator.hashCode();
+        
     }
 
 }

@@ -81,8 +81,8 @@ public class SftpHost {
         int result = hostname.hashCode();
         result = 31 * result + port;
         result = 31 * result + (username != null ? username.hashCode() : 0);
-        result = 31 * result + (password != null ? password.hashCode() : 0);
-        return result;
+        return 31 * result + (password != null ? password.hashCode() : 0);
+        
     }
 
     @Override
