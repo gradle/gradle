@@ -73,7 +73,7 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
 
         @Override
         public Isolatable<?> booleanValue(Boolean value) {
-            return value.equals(Boolean.TRUE) ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
+            return value ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
         }
 
         @Override

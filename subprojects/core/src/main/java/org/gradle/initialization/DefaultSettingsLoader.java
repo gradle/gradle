@@ -185,9 +185,14 @@ public class DefaultSettingsLoader implements SettingsLoader {
     }
 
     private void failOnMissingProjectDirectory(String projectPath, String projectDir) {
-        String template = "Configuring project '%s' without an existing directory is not allowed. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.";
         throw problems.getInternalReporter().throwing(
-            new GradleException(String.format(template, projectPath, projectDir)),
+            new GradleException(
+                String.format(
+                    "Configuring project '%s' without an existing directory is not allowed. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.",
+                    projectPath,
+                    projectDir
+                )
+            ),
             ProblemId.create("confituring-project-with-invalid-directory", "Configuring project with invalid directory", GradleCoreProblemGroup.configurationUsage()),
             spec ->
                 spec.solution("Make sure the project directory exists and is writable.")

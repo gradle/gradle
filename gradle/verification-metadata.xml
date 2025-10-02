@@ -340,7 +340,10 @@
             <trusting group="org.scala-sbt.jline"/>
          </trusted-key>
          <trusted-key id="EC9430D24E1FC30468C773FDCA1952B1E682D8A6" group="org.jodd"/>
-         <trusted-key id="EE0CA873074092F806F59B65D364ABAA39A47320" group="com.google.errorprone"/>
+         <trusted-key id="EE0CA873074092F806F59B65D364ABAA39A47320">
+            <trusting group="com.google.errorprone"/>
+            <trusting group="com.google.googlejavaformat" name="google-java-format"/>
+         </trusted-key>
          <trusted-key id="EF97D052DF6F6975A4E8C495AB9BC6BE0524BAD3">
             <trusting group="com.github.jnr"/>
             <trusting group="com.headius"/>
@@ -621,11 +624,6 @@
       </component>
       <component group="com.google.errorprone" name="error_prone_annotations" version="2.13.1">
          <artifact name="error_prone_annotations-2.13.1.jar">
-            <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
-         </artifact>
-      </component>
-      <component group="com.google.googlejavaformat" name="google-java-format" version="1.19.1">
-         <artifact name="google-java-format-1.19.1.jar">
             <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
          </artifact>
       </component>
