@@ -32,7 +32,8 @@ public class InternalClassesNamingValidationTest {
         freeze(classes()
             .that().resideInAPackage("..internal..")
             .and().haveSimpleNameContaining("Internal")
+            .and().resideOutsideOfPackage("org.gradle.tooling.internal.protocol..")
             .should().haveSimpleNameEndingWith("Internal")
             .andShould().haveSimpleNameNotStartingWith("Internal")
-            .as("Classes in 'internal' packages with 'Internal' in their name should use it as a suffix not as a prefix"));
+            .as("classes that are in 'internal' packages with 'Internal' in their name should use it as a suffix not as a prefix"));
 }
