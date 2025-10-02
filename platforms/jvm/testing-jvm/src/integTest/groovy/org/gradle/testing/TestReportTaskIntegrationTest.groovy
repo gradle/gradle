@@ -224,7 +224,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
         run "test"
 
         then:
-        resultsFor("tests", GenericTestExecutionResult.TestFramework.JUNIT4).testPath("test:LoggingTest:test").onlyRoot()
+        resultsFor("tests/test", GenericTestExecutionResult.TestFramework.JUNIT4).testPath("LoggingTest", "test").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(equalTo("This is stdout.\n"))
             .assertStderr(equalTo("This is stderr.\n"))
@@ -234,7 +234,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
         run "test"
 
         then:
-        resultsFor("tests", GenericTestExecutionResult.TestFramework.JUNIT4).testPath("test:LoggingTest:test").onlyRoot()
+        resultsFor("tests/test", GenericTestExecutionResult.TestFramework.JUNIT4).testPath("LoggingTest", "test").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(equalTo("stdout.\n"))
             .assertStderr(equalTo("stderr.\n"))
@@ -249,7 +249,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
             $junitSetup
 
             tasks.register('testReport', TestReport) {
-                testResults.from(tasks.named('test', Test))
+                testResults.from(tasks.named('test', Test).map { it.binaryResultsDirectory } )
                 destinationDirectory = reporting.baseDirectory.dir("tr")
             }
         """
