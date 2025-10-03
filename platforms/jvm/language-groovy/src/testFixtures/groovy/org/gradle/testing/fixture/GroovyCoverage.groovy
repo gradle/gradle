@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.VersionCoverage
 import org.gradle.util.internal.VersionNumber
 
 class GroovyCoverage {
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.24']
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.25']
     private static final String[] FUTURE = ['4.0.26']
 
     static final Set<String> SUPPORTED_BY_JDK
@@ -90,7 +90,7 @@ class GroovyCoverage {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
             return []
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            return VersionCoverage.versionsAtLeast(allVersions, '3.0.24')
+            return VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             // Latest 3.0.x patches support Java 15+
             return VersionCoverage.versionsAtLeast(allVersions, '3.0.0')
