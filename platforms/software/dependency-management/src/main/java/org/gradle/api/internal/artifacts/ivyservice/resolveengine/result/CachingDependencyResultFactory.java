@@ -42,7 +42,7 @@ public class CachingDependencyResultFactory {
                                                                  ComponentSelectionReason reason, ModuleVersionResolveException failure) {
         List<Object> key = asList(requested, from, constraint);
         if (!unresolvedDependencies.containsKey(key)) {
-            unresolvedDependencies.put(key, new DefaultUnresolvedDependencyResult(requested, constraint, reason, from, failure));
+            unresolvedDependencies.put(key, new DefaultUnresolvedDependencyResult(requested, from, constraint, failure, reason));
         }
         return unresolvedDependencies.get(key);
     }
@@ -55,7 +55,7 @@ public class CachingDependencyResultFactory {
                                                              boolean constraint) {
         List<Object> key = asList(requested, from, selected, resolvedVariant, constraint);
         if (!resolvedDependencies.containsKey(key)) {
-            resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, constraint, selected, resolvedVariant, from));
+            resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, from, constraint, selected, resolvedVariant));
         }
         return resolvedDependencies.get(key);
     }

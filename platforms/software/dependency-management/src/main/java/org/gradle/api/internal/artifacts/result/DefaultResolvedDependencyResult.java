@@ -20,19 +20,49 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.jspecify.annotations.Nullable;
 
-public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
+/**
+ * Default implementation of {@link ResolvedDependencyResult}.
+ */
+public class DefaultResolvedDependencyResult implements ResolvedDependencyResult {
+
+    private final ComponentSelector requested;
+    private final ResolvedComponentResult from;
+    private final boolean constraint;
     private final ResolvedComponentResult selectedComponent;
-    private final ResolvedVariantResult selectedVariant;
 
-    public DefaultResolvedDependencyResult(ComponentSelector requested,
-                                           boolean constraint,
-                                           ResolvedComponentResult selectedComponent,
-                                           ResolvedVariantResult selectedVariant,
-                                           ResolvedComponentResult from) {
-        super(requested, from, constraint);
+    // TODO #19788: This should never be null. A resolved dependency result by definition has a target variant.
+    // Some bugs in dependency resolution may cause this to be null. We should fix them and make this non-nullable.
+    private final @Nullable ResolvedVariantResult selectedVariant;
+
+    public DefaultResolvedDependencyResult(
+        ComponentSelector requested,
+        ResolvedComponentResult from,
+        boolean constraint,
+        ResolvedComponentResult selectedComponent,
+        @Nullable ResolvedVariantResult selectedVariant
+    ) {
+        this.requested = requested;
+        this.from = from;
+        this.constraint = constraint;
         this.selectedComponent = selectedComponent;
         this.selectedVariant = selectedVariant;
+    }
+
+    @Override
+    public ComponentSelector getRequested() {
+        return requested;
+    }
+
+    @Override
+    public ResolvedComponentResult getFrom() {
+        return from;
+    }
+
+    @Override
+    public boolean isConstraint() {
+        return constraint;
     }
 
     @Override
@@ -53,4 +83,5 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
             return getRequested() + " -> " + getSelected().getId();
         }
     }
+
 }

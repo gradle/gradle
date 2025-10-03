@@ -15,106 +15,56 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
-import org.gradle.api.internal.capabilities.ImmutableCapability;
-import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.api.internal.artifacts.result.ResolvedVariantResultInternal;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A serializer for {@link ResolvedVariantResult} that is not thread safe and not reusable.
  */
 @NotThreadSafe
 public class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResult> {
-    private final Map<ResolvedVariantResult, Integer> written = new HashMap<>();
-    private final List<ResolvedVariantResult> read = new ArrayList<>();
 
-    private final ComponentIdentifierSerializer componentIdentifierSerializer;
+    private final Set<ResolvedVariantResult> seen = new HashSet<>();
+
+    private final VariantIdentifierSerializer variantIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final CapabilitySerializer capabilitySerializer;
 
-    public ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
-        this.componentIdentifierSerializer = componentIdentifierSerializer;
+    public ResolvedVariantResultSerializer(VariantIdentifierSerializer variantIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
+        this.variantIdentifierSerializer = variantIdentifierSerializer;
         this.attributeContainerSerializer = attributeContainerSerializer;
         this.capabilitySerializer = new CapabilitySerializer();
     }
 
     @Override
     public ResolvedVariantResult read(Decoder decoder) throws IOException {
-        int index = decoder.readSmallInt();
-        if (index == -1) {
-            return null;
-        }
-        if (index == read.size()) {
-            ComponentIdentifier owner = componentIdentifierSerializer.read(decoder);
-            String variantName = decoder.readString();
-            AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-            ImmutableCapabilities capabilities = readCapabilities(decoder);
-            read.add(null);
-            ResolvedVariantResult externalVariant = read(decoder);
-            DefaultResolvedVariantResult result = new DefaultResolvedVariantResult(owner, Describables.of(variantName), attributes, capabilities, externalVariant);
-            this.read.set(index, result);
-            return result;
-        }
-        return read.get(index);
-    }
-
-    private ImmutableCapabilities readCapabilities(Decoder decoder) throws IOException {
-        int size = decoder.readSmallInt();
-        if (size == 0) {
-            return ImmutableCapabilities.EMPTY;
-        }
-        ImmutableSet.Builder<ImmutableCapability> capabilities = ImmutableSet.builderWithExpectedSize(size);
-        for (int i = 0; i < size; i++) {
-            capabilities.add(capabilitySerializer.read(decoder));
-        }
-        return new ImmutableCapabilities(capabilities.build());
+        // This serializer is used only for input snapshotting. No need to implement reading.
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public void write(Encoder encoder, ResolvedVariantResult variant) throws IOException {
-        if (variant == null) {
-            encoder.writeSmallInt(-1);
-            return;
-        }
-        Integer index = written.get(variant);
-        if (index == null) {
-            index = written.size();
-            written.put(variant, index);
-            encoder.writeSmallInt(index);
-            componentIdentifierSerializer.write(encoder, variant.getOwner());
+    public void write(Encoder encoder, ResolvedVariantResult variant) throws Exception {
+        if (seen.add(variant)) {
+            ResolvedVariantResultInternal internalVariant = (ResolvedVariantResultInternal) variant;
+            variantIdentifierSerializer.write(encoder, internalVariant.getId());
             encoder.writeString(variant.getDisplayName());
             attributeContainerSerializer.write(encoder, variant.getAttributes());
-            writeCapabilities(encoder, variant.getCapabilities());
-            write(encoder, variant.getExternalVariant().orElse(null));
-        } else {
-            encoder.writeSmallInt(index);
+            for (Capability capability : variant.getCapabilities()) {
+                capabilitySerializer.write(encoder, capability);
+            }
+            if (variant.getExternalVariant().isPresent()) {
+                write(encoder, variant.getExternalVariant().get());
+            }
         }
     }
 
-    private void writeCapabilities(Encoder encoder, List<Capability> capabilities) throws IOException {
-        encoder.writeSmallInt(capabilities.size());
-        for (Capability capability : capabilities) {
-            capabilitySerializer.write(encoder, capability);
-        }
-    }
-
-    void reset() {
-        written.clear();
-        read.clear();
-    }
 }

@@ -22,20 +22,44 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult implements UnresolvedDependencyResult {
+/**
+ * Default implementation of {@link UnresolvedDependencyResult}.
+ */
+public class DefaultUnresolvedDependencyResult implements UnresolvedDependencyResult {
+
+    private final ComponentSelector requested;
+    private final ResolvedComponentResult from;
+    private final boolean constraint;
     private final ComponentSelectionReason reason;
     private final ModuleVersionResolveException failure;
 
-    public DefaultUnresolvedDependencyResult(ComponentSelector requested, boolean constraint, ComponentSelectionReason reason,
-                                             ResolvedComponentResult from, ModuleVersionResolveException failure) {
-        super(requested, from, constraint);
-        this.reason = reason;
+    public DefaultUnresolvedDependencyResult(
+        ComponentSelector requested,
+        ResolvedComponentResult from,
+        boolean constraint,
+        ModuleVersionResolveException failure,
+        ComponentSelectionReason reason
+    ) {
+        this.requested = requested;
+        this.from = from;
+        this.constraint = constraint;
         this.failure = failure;
+        this.reason = reason;
     }
 
     @Override
-    public ModuleVersionResolveException getFailure() {
-        return failure;
+    public ComponentSelector getRequested() {
+        return requested;
+    }
+
+    @Override
+    public ResolvedComponentResult getFrom() {
+        return from;
+    }
+
+    @Override
+    public boolean isConstraint() {
+        return constraint;
     }
 
     @Override
@@ -49,7 +73,13 @@ public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult 
     }
 
     @Override
+    public ModuleVersionResolveException getFailure() {
+        return failure;
+    }
+
+    @Override
     public String toString() {
         return getRequested() + " -> " + getAttempted() + " - " + failure.getMessage();
     }
+
 }
