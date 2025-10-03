@@ -1,6 +1,6 @@
 plugins {
     `java-gradle-plugin`
-    alias(libs.plugins.kotlin.jvm)
+    id("org.jetbrains.kotlin.jvm") version("2.1.20")
 }
 
 group = "org.example"
@@ -10,21 +10,13 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation(gradleTestKit())
-    testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
-}
-
 gradlePlugin {
-    // Define the plugin
-    val publishingGuard by plugins.creating {
-        id = "org.example.pubcheck"
-        implementationClass = "org.example.PublishingGuardPlugin"
+    plugins {
+        create("helloProblems") {
+            id = "org.example.hello-problems"
+            implementationClass = "org.example.HelloProblemsPlugin"
+            displayName = "Hello Problems Plugin"
+            description = "Adds a greet task and demonstrates Gradle's Problems API."
+        }
     }
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
 }

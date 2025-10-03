@@ -16,7 +16,7 @@
 = Publishing Plugins to the Gradle Plugin Portal
 :portal: Gradle Plugin Portal
 :plugin: Greeting Plugin
-:publishplugin: Plugin Publishing Plugin
+:publishplugin: Plugin Publish Plugin
 :plugin-reference-documentation: https://plugins.gradle.org/docs/publish-plugin[reference documentation of the {publishplugin}]
 :keywords: publish, publishing, plugin
 

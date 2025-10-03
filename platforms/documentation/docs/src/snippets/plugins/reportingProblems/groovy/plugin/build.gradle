@@ -7,21 +7,13 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation gradleTestKit()
-    testImplementation 'org.spockframework:spock-core:2.3-groovy-3.0'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
-}
-
 gradlePlugin {
     plugins {
-        publishingGuard {
-            id = 'org.example.pubcheck'
-            implementationClass = 'org.example.PublishingGuardPlugin'
+        create("helloProblems") {
+            id = "org.example.hello-problems"
+            implementationClass = "org.example.HelloProblemsPlugin"
+            displayName = "Hello Problems Plugin"
+            description = "Adds a greet task and demonstrates Gradle's Problems API."
         }
     }
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
 }

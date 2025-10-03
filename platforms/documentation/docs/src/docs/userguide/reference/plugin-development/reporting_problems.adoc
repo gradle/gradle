@@ -18,8 +18,6 @@
 
 Gradle’s Problems API lets plugins report rich, structured information about issues that occur during a failing build.
 
-This data powers Gradle’s console output, Build Scans, and IDE integrations so users see clear, actionable problem reports.
-
 The following example shows how a plugin can report a problem:
 
 ++++
@@ -41,7 +39,10 @@ include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc
 
 See the full link:../samples/sample_problems_api_usage.html[end-to-end sample] for more details.
 
-== API Usage
+== Problems API Usage
+
+The following simple plugin adds a `greet` task.
+It warns if no recipient is set and fails if the recipient is `fail`.
 
 ++++
 <div style="text-align: right;">
@@ -52,60 +53,47 @@ See the full link:../samples/sample_problems_api_usage.html[end-to-end sample] f
 ++++
 
 ====
-include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[]"]
-include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/PublishingGuardPlugin.groovy[]"]
+include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[]"]
+include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[]"]
 ====
 
-To use the Problems API, you must:
+How it works:
 
-1. Inject Problems — Gradle gives you a link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] from link:{javaDocPath}/org/gradle/api/problems/Problems.html#getReporter()[`Problems.getReporter()`].
-2. Create a link:{javaDocPath}/org/gradle/api/problems/ProblemId.html[`ProblemId`] — unique name + display name.
-3. Call link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html#report(org.gradle.api.problems.Problem)[`report(...)`] for warnings; use link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html#throwing(java.lang.Throwable,org.gradle.api.problems.Problem)[`throwing(...)`] for fatal.
+1. **Injects the `Problems` service** into the task.
+2. **Creates a `ProblemGroup`** to group related problems.
+3. **Creates a `ProblemId`** for each distinct issue.
+4. **Reports warnings** with the `ProblemReporter.report()` when the build can continue.
+5. **Throws structured failures** with `ProblemReporter.throwing()` when the build must stop.
+6. **Optionally attaches `AdditionalData`** to `ProblemSpec` so advanced tools can show extra info.
 
-=== Adding the Problems service with `ProblemReporter`
+=== Injecting the `Problems` service
 
-Inject the `ProblemReporter` service into your plugin:
-
-====
-include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[tags=problem_reporter]"]
-include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/PublishingGuardPlugin.groovy[tags=problem_reporter]"]
-====
-
-The link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] is a Gradle service; add an abstract accessor and Gradle will inject it.
-
-=== Creating a group
-
-TO DO
-
-=== Creating a `ProblemId`
-
-A `ProblemId` is the identity of the problem you’re reporting.
-Note that this may change in the future.
+Gradle will automatically provide the link:{javaDocPath}/org/gradle/api/problems/Problems.html[`Problems`] service when injected into the custom task type:
 
 ====
-include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[tags=problem_id]"]
-include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/PublishingGuardPlugin.groovy[tags=problem_id]"]
+include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-service]"]
+include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-service]"]
 ====
 
-The `Id` helps:
+=== Creating a `ProblemId` and `ProblemGroup`
 
-- *Group* related problem instances together
-- *Deduplicate messages* (avoid spamming the same warning 100 times)
-- *Link* back to docs or solutions
-- Surface in Build Scans, IDEs, and the HTML report in a structured way
-
-=== Reporting a problem with `ProblemSpec`
-
-When reporting a problem, you can provide a wide variety of metadata such as descriptions, severity, solutions, and additional data.
+Problem IDs and Groups help Gradle deduplicate, summarize, and link to solutions:
 
 ====
-include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[tags=problem_spec]"]
-include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/PublishingGuardPlugin.groovy[tags=problem_spec]"]
+include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-id]"]
+include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-id]"]
 ====
 
-See link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[`ProblemSpec`] for all available fields.
+=== Getting a `ProblemReporter`
 
-=== Choosing a reporting mode
+Get the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] using `problem.getReporter()`:
+
+====
+include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-reporter]"]
+include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-reporter]"]
+====
+
+=== Choosing a reporting mode for the `ProblemReporter`
 
 Plugins can report problems in two ways:
 
@@ -114,25 +102,36 @@ Plugins can report problems in two ways:
 
 For details, see the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] documentation.
 
-=== Reporting a recoverable problem
+==== Reporting a recoverable problem
 
 Use `problems.getReporter().reporting {}` to signal something went wrong but allow the build to continue:
 
 ====
-include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[tags=problem_report]"]
-include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/PublishingGuardPlugin.groovy[tags=problem_report]"]
+include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-report]"]
+include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-report]"]
 ====
 
-=== Reporting a fatal problem
+==== Reporting a fatal problem
 
 Use `problems.getReporter().throwing {}` to fail the build with a structured error:
 
 ====
-include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[tags=problem_throw]"]
-include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/PublishingGuardPlugin.groovy[tags=problem_throw]"]
+include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-throw]"]
+include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-throw]"]
 ====
 
 This throws an exception tied to a rich problem report so Gradle clients can display meaningful failure info.
+
+=== Reporting a problem with `ProblemSpec`
+
+When reporting a problem, you can provide a wide variety of metadata such as descriptions, severity, solutions, and additional data using link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[`ProblemSpec`]:
+
+====
+include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-spec]"]
+include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-spec]"]
+====
+
+See link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[`ProblemSpec`] for all available fields.
 
 == Problem Summarization
 

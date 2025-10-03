@@ -1,0 +1,84 @@
+package org.example
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.provider.Property
+import org.gradle.api.problems.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
+import javax.inject.Inject
+
+/**
+ * Simple demo plugin for the Gradle Problems API.
+ */
+abstract class HelloProblemsPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.tasks.register("greet", GreetTask::class.java) { task ->
+            task.group = "demo"
+            task.description = "Greets a recipient. Demonstrates Problems API."
+        }
+    }
+}
+
+/**
+ * Extra structured data to attach to problem reports.
+ * Tools like Build Scans or IDEs could show this.
+ */
+interface GreetProblemData : AdditionalData {
+    var configuredRecipient: String?
+}
+
+/**
+ * Custom task that uses the Gradle Problems API.
+ */
+abstract class GreetTask : DefaultTask() {
+
+    @get:Input
+    abstract val recipient: Property<String>
+
+    @get:Inject
+    abstract val problems: Problems
+
+    private val GROUP: ProblemGroup =
+        ProblemGroup.create("org.example.hello-problems", "Hello Problems")
+    private val WARN_ID: ProblemId =
+        ProblemId.create("missing-recipient", "Recipient not set", GROUP)
+    private val FAIL_ID: ProblemId =
+        ProblemId.create("forbidden-recipient", "Forbidden recipient 'fail'", GROUP)
+
+    @TaskAction
+    fun run() {
+        val reporter = problems.reporter
+        val name = recipient.orNull?.trim().orEmpty()
+
+        // Warning: missing recipient -> provide a helpful suggestion
+        if (name.isEmpty()) {
+            reporter.report(WARN_ID) { spec ->
+                spec.details("No recipient configured")
+                    .severity(Severity.WARNING)
+                    .solution("""Set the recipient: tasks.greet { recipient = "World" }""")
+                    .documentedAt("https://gradle.org/hello-problems#recipient")
+                    .additionalData(GreetProblemData::class.java) { it ->
+                        it.configuredRecipient = null
+                    }
+            }
+        }
+
+        // Fatal: a specific value is disallowed to show throwing()
+        else if (name.equals("fail", ignoreCase = true)) {
+            throw reporter.throwing(GradleException("forbidden value"), FAIL_ID) { spec ->
+                spec.details("Recipient 'fail' is not allowed")
+                    .severity(Severity.ERROR)
+                    .solution("""Choose another value, e.g. recipient = "World".""")
+                    .documentedAt("https://gradle.org/hello-problems#forbidden")
+                    .additionalData(GreetProblemData::class.java) { it ->
+                        it.configuredRecipient = name
+                    }
+            }
+        }
+
+        logger.lifecycle("Hello, $name!")
+    }
+}

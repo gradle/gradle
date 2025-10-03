@@ -1,2 +1,2 @@
 rootProject.name = 'reporting-problems'
-include('plugin')
+includeBuild('consumer')
