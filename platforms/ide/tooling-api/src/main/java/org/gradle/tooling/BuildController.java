@@ -17,6 +17,7 @@
 package org.gradle.tooling;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.jspecify.annotations.Nullable;
@@ -227,8 +228,9 @@ public interface BuildController {
     /**
      * Resilient model fetching.
      *
-     * @since 9.3
+     * @since 9.3.0
      */
+    @Incubating
     <T extends Model, M, P> FetchModelResult<T, M> fetch(
         @Nullable T target,
         Class<M> modelType,

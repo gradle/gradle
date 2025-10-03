@@ -16,7 +16,9 @@
 
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -26,14 +28,38 @@ import java.util.Collection;
  *
  * @param <T> The type of target from which the model was fetched.
  * @param <M> The fetched model type.
- * @since 9.3
+ * @since 9.3.0
  */
+@Incubating
+@NullMarked
 public interface FetchModelResult<T extends Model, M> {
+
+    /**
+     * Returns the target from which the model was fetched.
+     *
+     * @return the target, or {@code null} if the fetch operation failed
+     * @since 9.3.0
+     */
     @Nullable
+    @Incubating
     T getTarget();
 
+    /**
+     * Returns the fetched model.
+     *
+     * @return the model, or {@code null} if the fetch operation failed
+     * @since 9.3.0
+     */
     @Nullable
+    @Incubating
     M getModel();
 
+    /**
+     * Returns the failures that occurred during the fetch operation.
+     *
+     * @return a collection of failures, empty if the fetch operation was successful
+     * @since 9.3.0
+     */
+    @Incubating
     Collection<? extends Failure> getFailures();
 }
