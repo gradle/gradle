@@ -87,10 +87,9 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files=
 <3> Use the `gradlePlugin` block to define plugin metadata.
 <4> Add your project website.
 <5> Add a source repository link.
-<6> Provide per-plugin details.
+<6> Provide per-plugin details; see the next section.
 
-Make sure your project has a `group` set which is used to identify the artifacts (jar and metadata) you publish for your plugins
-in the repository of the {portal} and which is descriptive of the plugin author or the organization the plugins belong too.
+WARNING: The group and artifact must reasonably represent the organization, person, and the plugin.
 
 Define plugin-specific properties inside the `gradlePlugin {}` block:
 
@@ -98,13 +97,16 @@ Define plugin-specific properties inside the `gradlePlugin {}` block:
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=per_plugin_config]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=per_plugin_config]"]
 ====
-<1> Each plugin gets its own block inside `plugins`.
-<2> The block name is local to your build.
-<3> Set a unique `id`.
-<4> Give the plugin a human-readable name and description.
-<5> Optionally set categories to improve discoverability.
+<1> Plugin specific configuration also goes into the `gradlePlugin` block.
+<2> This is where we previously added global properties.
+<3> Each plugin you publish will have its own block inside `plugins`.
+<4> The name of a plugin block must be unique for each plugin you publish; this is a property used only locally by your build and will not be part of the publication.
+<5> Set the unique `id` of the plugin, as it will be identified in the publication.
+<6> Set the plugin name in human-readable form.
+<7> Set a description to be displayed on the portal. It provides useful information to people who want to use your plugin.
+<8> Specifies the categories your plugin covers. It makes the plugin more likely to be discovered by people needing its functionality.
 
-For example, the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin]:
+For example, take a look at the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin]:
 
 ====
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_example]"]
@@ -135,13 +137,6 @@ To publish to the {portal}:
 $ ./gradlew publishPlugins
 ----
 
-Validate before publishing:
-
-[listing]
-----
-$ ./gradlew publishPlugins --validate-only
-----
-
 You can also pass credentials on the command line:
 
 [listing]
@@ -149,13 +144,10 @@ You can also pass credentials on the command line:
 $ ./gradlew publishPlugins -Pgradle.publish.key=<key> -Pgradle.publish.secret=<secret>
 ----
 
+Your plugin will then go through the link:https://plugins.gradle.org/docs/publish-plugin#approval[approval process].
+This process can take a few days.
+
 After approval, your plugin appears on the Portal and is available for anyone to use.
-
-[[consume]]
-== Consuming your plugin
-
-Initial approval of a new plugin is manual and may take time; updates after the first release are automatic.
-Once approved, usage instructions are available at *+https://plugins.gradle.org/plugin/<your-plugin-id>+*.
 
 == Plugins published without {portal}
 

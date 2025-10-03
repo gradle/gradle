@@ -117,3 +117,12 @@ include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files
 ====
 
 Now the consumer can apply your plugin by its `id` without pushing to a public repository.
+
+== Validating
+
+To validate your plugin before publishing:
+
+[listing]
+----
+$ ./gradlew publishPlugins --validate-only
+----
