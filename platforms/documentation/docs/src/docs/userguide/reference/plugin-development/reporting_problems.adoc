@@ -47,7 +47,7 @@ The following simple plugin adds a `greet` task:
 - It warns if no recipient is set: `./gradlew greet`
 - It fails if the recipient is `fail`: `./gradlew greet -Precipient=fail`
 
-The details of the failure will be provided in the HTML Problems Report:
+The details of the failure will be provided in the <<sec:generated_html_report,HTML Problems Report>>:
 
 ++++
 <div style="text-align: right;">
