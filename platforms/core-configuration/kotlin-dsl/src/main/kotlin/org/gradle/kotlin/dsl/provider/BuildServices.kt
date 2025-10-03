@@ -34,6 +34,7 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationRunner
@@ -59,17 +60,17 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createKotlinScriptClassPathProvider(
+        currentGradleInstallation: CurrentGradleInstallation,
         moduleRegistry: ModuleRegistry,
         classPathRegistry: ClassPathRegistry,
         classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-        dependencyFactory: DependencyFactoryInternal,
     ) =
 
         KotlinScriptClassPathProvider(
             moduleRegistry,
             classPathRegistry,
             classLoaderScopeRegistry.coreAndPluginsScope,
-            gradleApiJarsProviderFor(dependencyFactory),
+            /*gradleApiJarsProviderFor(dependencyFactory)*/ { currentGradleInstallation.installation!!.libDirs.single { it.name == "api" }.listFiles()!!.filter { it.extension == "jar" } },
         )
 
     @Provides
