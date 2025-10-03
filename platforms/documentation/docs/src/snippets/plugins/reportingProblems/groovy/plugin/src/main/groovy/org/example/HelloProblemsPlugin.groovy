@@ -63,10 +63,9 @@ abstract class GreetTask extends DefaultTask {
 
         // Warning: missing recipient -> provide a helpful suggestion
         if (name.isEmpty()) {
-// tag::problems-report]
-// tag::problems-spec]
+// tag::problems-report[]
             reporter.report(WARN_ID) { spec ->
-// end::problems-report[]
+// tag::problems-spec[]
                 spec.details("No recipient configured")
                     .severity(Severity.WARNING)
                     .solution('Set the recipient: tasks.greet { recipient = "World" }')
@@ -74,13 +73,14 @@ abstract class GreetTask extends DefaultTask {
                     .additionalData(GreetProblemData) {
                         it.configuredRecipient = null
                     }
+// end::problems-spec[]
             }
+// end::problems-report[]
         }
         // Fatal: a specific value is disallowed to show throwing()
         else if (name.equalsIgnoreCase("fail")) {
-// end::problems-throw[]
+// tag::problems-throw[]
             throw reporter.throwing(new GradleException("forbidden value"), FAIL_ID) { spec ->
-// end::problems-throw[]
                 spec.details("Recipient 'fail' is not allowed")
                     .severity(Severity.ERROR)
                     .solution('Choose another value, e.g. recipient = "World".')
@@ -89,6 +89,7 @@ abstract class GreetTask extends DefaultTask {
                         it.configuredRecipient = name
                     }
             }
+// end::problems-throw[]
         }
 
         logger.lifecycle("Hello, $name!")

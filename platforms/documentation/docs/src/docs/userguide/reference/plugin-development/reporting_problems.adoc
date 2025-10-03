@@ -41,8 +41,13 @@ See the full link:../samples/sample_problems_api_usage.html[end-to-end sample] f
 
 == Problems API Usage
 
-The following simple plugin adds a `greet` task.
-It warns if no recipient is set and fails if the recipient is `fail`.
+The following simple plugin adds a `greet` task:
+
+- It prints a `Hello World` greeting when used correctly: `./gradlew greet -Precipient=World`
+- It warns if no recipient is set: `./gradlew greet`
+- It fails if the recipient is `fail`: `./gradlew greet -Precipient=fail`
+
+The details of the failure will be provided in the HTML Problems Report:
 
 ++++
 <div style="text-align: right;">
@@ -84,27 +89,23 @@ include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/sr
 include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-id]"]
 ====
 
-=== Getting a `ProblemReporter`
+=== Choosing a reporting mode for the `ProblemReporter`
 
-Get the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] using `problem.getReporter()`:
+Plugins can report problems in two ways:
+
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-[`report()`] — use for recoverable problems when the build should continue.
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[`throwing()`] — use for non-recoverable problems that should fail the build.
+
+Once you have decided what type of problem you want to report, get the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] using `problem.getReporter()`:
 
 ====
 include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-reporter]"]
 include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-reporter]"]
 ====
 
-=== Choosing a reporting mode for the `ProblemReporter`
-
-Plugins can report problems in two ways:
-
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-[`reporting()`] — use for recoverable problems when the build should continue.
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[`throwing()`] — use for non-recoverable problems that should fail the build.
-
-For details, see the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] documentation.
-
 ==== Reporting a recoverable problem
 
-Use `problems.getReporter().reporting {}` to signal something went wrong but allow the build to continue:
+Use `problems.getReporter().report {}` to signal something went wrong but allow the build to continue:
 
 ====
 include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-report]"]
@@ -122,9 +123,9 @@ include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/sr
 
 This throws an exception tied to a rich problem report so Gradle clients can display meaningful failure info.
 
-=== Reporting a problem with `ProblemSpec`
+=== Add data using `ProblemSpec`
 
-When reporting a problem, you can provide a wide variety of metadata such as descriptions, severity, solutions, and additional data using link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[`ProblemSpec`]:
+When reporting a problem, you can provide a wide variety of metadata such as descriptions, severity, solutions, and additional data:
 
 ====
 include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-spec]"]

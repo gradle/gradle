@@ -38,24 +38,32 @@ abstract class GreetTask : DefaultTask() {
     @get:Input
     abstract val recipient: Property<String>
 
+// tag::problems-service[]
     @get:Inject
     abstract val problems: Problems
+// end::problems-service[]
 
+// tag::problems-id[]
     private val GROUP: ProblemGroup =
         ProblemGroup.create("org.example.hello-problems", "Hello Problems")
     private val WARN_ID: ProblemId =
         ProblemId.create("missing-recipient", "Recipient not set", GROUP)
     private val FAIL_ID: ProblemId =
         ProblemId.create("forbidden-recipient", "Forbidden recipient 'fail'", GROUP)
+// end::problems-id[]
 
     @TaskAction
     fun run() {
+// tag::problems-reporter[]
         val reporter = problems.reporter
+// end::problems-reporter[]
         val name = recipient.orNull?.trim().orEmpty()
 
         // Warning: missing recipient -> provide a helpful suggestion
         if (name.isEmpty()) {
+// tag::problems-report[]
             reporter.report(WARN_ID) { spec ->
+// tag::problems-spec[]
                 spec.details("No recipient configured")
                     .severity(Severity.WARNING)
                     .solution("""Set the recipient: tasks.greet { recipient = "World" }""")
@@ -63,11 +71,14 @@ abstract class GreetTask : DefaultTask() {
                     .additionalData(GreetProblemData::class.java) { it ->
                         it.configuredRecipient = null
                     }
+// end::problems-spec[]
             }
+// end::problems-report[]
         }
 
         // Fatal: a specific value is disallowed to show throwing()
         else if (name.equals("fail", ignoreCase = true)) {
+// tag::problems-throw[]
             throw reporter.throwing(GradleException("forbidden value"), FAIL_ID) { spec ->
                 spec.details("Recipient 'fail' is not allowed")
                     .severity(Severity.ERROR)
@@ -77,6 +88,7 @@ abstract class GreetTask : DefaultTask() {
                         it.configuredRecipient = name
                     }
             }
+// end::problems-throw[]
         }
 
         logger.lifecycle("Hello, $name!")
