@@ -143,8 +143,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
             // TODO: This breaks the provider
             task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
-
         });
+
         // TODO: destinationDirectory should be part of Javadoc
         javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
 
@@ -163,15 +163,24 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         private final Pattern pattern = Pattern.compile("package\\s*([^;\\s]+)\\s*;");
 
         private final Set<String> packagesSeenBefore = new HashSet<>();
+        private final Set<File> canonicalPackageInfos = new HashSet<>();
 
-        @SuppressWarnings("UnnecessaryLocalVariable")
         @Override
         public boolean isSatisfiedBy(File file) {
             try {
                 if (file.getName().equals("package-info.java")) {
+                    if (canonicalPackageInfos.contains(file.getAbsoluteFile())) {
+                        // The file collection may be resolved several times, e.g. for fingerprinting and for actual javadoc invocation.
+                        // The method should be idempotent, so we record all package-info.java files we ever allowed and allow them afterward.
+                        return true;
+                    }
                     String packageName = getPackageName(file);
+                    // we pass through package-info.java files for packages we have not seen before, block the rest
                     boolean notSeeBefore = packagesSeenBefore.add(packageName);
-                    return notSeeBefore; // we pass through package-info.java files for packages we have not seen before, block the rest
+                    if (notSeeBefore) {
+                        canonicalPackageInfos.add(file.getAbsoluteFile());
+                    }
+                    return notSeeBefore;
                 } else {
                     return true; // not a package-info.java file, we ignore it
                 }
