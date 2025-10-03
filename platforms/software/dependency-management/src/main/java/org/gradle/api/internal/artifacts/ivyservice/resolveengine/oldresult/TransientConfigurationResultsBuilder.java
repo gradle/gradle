@@ -35,7 +35,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
-import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.time.Time;
@@ -116,17 +115,16 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
+    public void visitEdge(DependencyGraphNode from, DependencyGraphNode to) {
         binaryStore.write(encoder -> {
             encoder.writeByte(EDGE);
             encoder.writeSmallLong(from.getNodeId());
             encoder.writeSmallLong(to.getNodeId());
-            encoder.writeSmallInt(artifactSetId);
         });
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+    public void visitArtifacts(DependencyGraphNode from, int artifactSetId, ArtifactSet artifactSet) {
         binaryStore.write(encoder -> {
             encoder.writeByte(NODE_ARTIFACTS);
             encoder.writeSmallLong(from.getNodeId());
@@ -203,8 +201,6 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        artifacts = artifactResults.getArtifactsWithId(decoder.readSmallInt());
-                        child.addParentSpecificArtifacts(parent, artifacts);
                         break;
                     case NODE_ARTIFACTS:
                         id = decoder.readSmallLong();

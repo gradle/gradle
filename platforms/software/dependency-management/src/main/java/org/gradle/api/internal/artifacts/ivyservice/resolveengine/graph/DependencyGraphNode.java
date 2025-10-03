@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
@@ -45,4 +46,10 @@ public interface DependencyGraphNode extends ResolvedGraphVariant {
     boolean isSelected();
 
     ComponentResolutionState getComponent();
+
+    /**
+     * Get all excludes that apply to this node, including all excludes from
+     * the incoming edges and the node itself.
+     */
+    ExcludeSpec getAllExcludes();
 }

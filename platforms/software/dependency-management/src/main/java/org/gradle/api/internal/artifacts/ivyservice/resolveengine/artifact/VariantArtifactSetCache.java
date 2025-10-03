@@ -85,7 +85,6 @@ public class VariantArtifactSetCache {
             component,
             variant,
             ImmutableAttributes.EMPTY,
-            Collections.emptyList(),
             EXCLUDE_NOTHING,
             Collections.emptySet()
         );

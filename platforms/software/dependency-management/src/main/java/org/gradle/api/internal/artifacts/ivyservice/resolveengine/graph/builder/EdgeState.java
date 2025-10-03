@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -31,6 +32,8 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.SpecificArtifactsVariantGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
@@ -241,6 +244,10 @@ class EdgeState implements DependencyGraphEdge {
         GraphVariantSelectionResult targetVariants;
         try {
             targetVariants = selectTargetVariants(targetComponentState);
+            List<IvyArtifactName> requestedArtifacts = dependencyMetadata.getArtifacts();
+            if (!requestedArtifacts.isEmpty()) {
+                targetVariants = getVariantsWithArtifacts(targetComponent, targetVariants, requestedArtifacts);
+            }
         } catch (AttributeMergingException mergeError) {
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
@@ -259,6 +266,35 @@ class EdgeState implements DependencyGraphEdge {
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
             this.targetNodes.add(targetNodeState);
         }
+    }
+
+    /**
+     * Map the target variants of the given component to a new set of variants that expose the requested artifacts.
+     */
+    private GraphVariantSelectionResult getVariantsWithArtifacts(
+        ComponentState targetComponent,
+        GraphVariantSelectionResult targetVariants,
+        List<IvyArtifactName> requestedArtifacts
+    ) {
+        ImmutableAttributes componentAttributes = targetComponent.getResolveState().prepareForArtifactResolution().getArtifactMetadata().getAttributes();
+
+        ImmutableList.Builder<VariantGraphResolveState> mappedVariants = ImmutableList.builderWithExpectedSize(targetVariants.getVariants().size());
+        for (VariantGraphResolveState variant : targetVariants.getVariants()) {
+            mappedVariants.add(new SpecificArtifactsVariantGraphResolveState(
+                resolveState.getIdGenerator().nextComponentId(),
+                targetComponent.getComponentId(),
+                variant,
+                requestedArtifacts,
+                componentAttributes
+            ));
+        }
+
+        return new GraphVariantSelectionResult(
+            mappedVariants.build(),
+            // We do not know the true attributes or capabilities of these artifacts.
+            // Therefore, this variant should not participate in capability conflicts.
+            false
+        );
     }
 
     /**
