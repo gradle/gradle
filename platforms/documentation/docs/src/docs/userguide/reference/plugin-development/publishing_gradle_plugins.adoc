@@ -130,6 +130,13 @@ From version 1.0.0, applying https://github.com/GradleUp/shadow[`com.gradleup.sh
 [[sec:publishing_your_plugin]]
 == Publishing the plugin
 
+To validate a Plugin Portal publication (no upload):
+
+[listing]
+----
+$ ./gradlew publishPlugins --validate-only
+----
+
 To publish to the {portal}:
 
 [listing]
