@@ -47,6 +47,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.problems.internal.NoOpProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
+import org.gradle.problems.internal.emitters.ConsoleProblemEmitter;
 import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
@@ -89,7 +90,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     ) {
         return new DefaultProblemSummarizer(eventEmitter,
             currentBuildOperationRef,
-            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter)),
+            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter) ,new ConsoleProblemEmitter()),
             internalOptions,
             problemReportCreator,
             id -> {
