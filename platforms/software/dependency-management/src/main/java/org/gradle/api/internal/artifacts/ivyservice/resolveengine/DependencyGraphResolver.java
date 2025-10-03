@@ -31,9 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.Capabilit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.LastCandidateCapabilityResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UserConfiguredCapabilityResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
@@ -101,7 +98,7 @@ public class DependencyGraphResolver {
         ImmutableModuleReplacements moduleReplacements,
         ImmutableActionSet<DependencySubstitutionInternal> dependencySubstitutionRule,
         ConflictResolution conflictResolution,
-        CapabilitiesResolutionInternal capabilitiesResolutionRules,
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
         ResolutionParameters.FailureResolutions failureResolutions,
@@ -109,7 +106,6 @@ public class DependencyGraphResolver {
     ) {
         DependencySubstitutionApplicator substitutionApplicator = createDependencySubstitutionApplicator(dependencySubstitutionRule);
         ModuleConflictResolver<ComponentState> moduleConflictResolver = createModuleConflictResolver(conflictResolution);
-        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers = createCapabilityConflictResolvers(capabilitiesResolutionRules);
 
         dependencyGraphBuilder.resolve(
             rootComponent,
@@ -122,7 +118,7 @@ public class DependencyGraphResolver {
             moduleReplacements,
             substitutionApplicator,
             moduleConflictResolver,
-            capabilityConflictResolvers,
+            capabilityResolutionRules,
             conflictResolution,
             failingOnDynamicVersions,
             failingOnChangingVersions,
@@ -152,19 +148,4 @@ public class DependencyGraphResolver {
         return new ProjectDependencyForcingResolver<>(moduleConflictResolver);
     }
 
-    private static List<CapabilitiesConflictHandler.Resolver> createCapabilityConflictResolvers(CapabilitiesResolutionInternal capabilitiesResolutionRules) {
-
-        // The order of these resolvers is significant. They run in the declared order.
-        return ImmutableList.of(
-            // Candidates that are no longer selected are filtered out before these resolvers are executed.
-            // If there is only one candidate at the beginning of conflict resolution, select that candidate.
-            new LastCandidateCapabilityResolver(),
-
-            // Otherwise, let the user resolvers reject candidates.
-            new UserConfiguredCapabilityResolver(capabilitiesResolutionRules),
-
-            // If there is one candidate left after the user resolvers are executed, select that candidate.
-            new LastCandidateCapabilityResolver()
-        );
-    }
 }
