@@ -1,5 +1,3 @@
-rootProject.name = 'plugin-with-variants'
-
 // tag::publish-3[]
 pluginManagement {
     repositories {
@@ -10,3 +8,5 @@ pluginManagement {
     }
 }
 // end::publish-3[]
+
+rootProject.name = 'plugin-with-variants'
