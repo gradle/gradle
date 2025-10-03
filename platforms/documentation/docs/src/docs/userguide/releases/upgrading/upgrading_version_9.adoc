@@ -36,6 +36,18 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.3]]
+== Upgrading from 9.2.0 and earlier
+
+=== Deprecations
+
+[[deprecated_wrapper_get_available_distribution_types]]
+==== Deprecated `Wrapper.getAvailableDistributionTypes()` method
+
+The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[Wrapper] task has been deprecated and will be removed in Gradle 10.
+
+Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
+
 [[changes_9.2]]
 == Upgrading from 9.1.0 and earlier
 
