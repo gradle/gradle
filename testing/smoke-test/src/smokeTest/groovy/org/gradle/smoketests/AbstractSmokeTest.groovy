@@ -97,6 +97,7 @@ abstract class AbstractSmokeTest extends Specification {
         static jenkinsJpi = SMOKE_TESTED_PLUGINS.get("org.jenkins-ci.jpi")
         static paparazzi = SMOKE_TESTED_PLUGINS.get("app.cash.paparazzi")
         static palantirConsistentVersions = SMOKE_TESTED_PLUGINS.get("com.palantir.consistent-versions")
+        static vanniktechMavenPublish = SMOKE_TESTED_PLUGINS.get("com.vanniktech.maven.publish")
     }
 
     static class Versions implements Iterable<String> {
