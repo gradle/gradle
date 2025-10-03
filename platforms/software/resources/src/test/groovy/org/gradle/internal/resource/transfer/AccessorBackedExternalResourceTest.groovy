@@ -36,7 +36,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def file = tmpDir.file("out")
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         expectResourceRead(name, "12345")
@@ -61,7 +61,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(Action)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         expectResourceRead(name, "1234")
@@ -88,7 +88,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAction)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         expectResourceRead(name, "1234")
@@ -115,7 +115,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAndMetadataAction)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
         def metaData = Stub(ExternalResourceMetaData)
 
         when:
@@ -143,7 +143,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(Action)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
         def failure = new RuntimeException()
 
         when:
@@ -162,7 +162,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAction)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
         def failure = new RuntimeException()
 
         when:
@@ -192,7 +192,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAndMetadataAction)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
         def metaData = Stub(ExternalResourceMetaData)
         def failure = new RuntimeException()
 
@@ -223,7 +223,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def file = tmpDir.file("out")
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         def result = resource.writeToIfPresent(file)
@@ -240,7 +240,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def file = tmpDir.file("out")
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         resource.writeTo(file)
@@ -258,7 +258,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(Action)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         resource.withContent(action)
@@ -275,7 +275,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAndMetadataAction)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         def result = resource.withContentIfPresent(action)
@@ -291,7 +291,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAndMetadataAction)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         resource.withContent(action)
@@ -308,7 +308,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAction)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         def result = resource.withContentIfPresent(action)
@@ -324,7 +324,7 @@ class AccessorBackedExternalResourceTest extends Specification {
         def name = new ExternalResourceName("resource")
         def action = Mock(ExternalResource.ContentAction)
 
-        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true)
+        def resource = new AccessorBackedExternalResource(name, resourceAccessor, resourceUploader, resourceLister, true, null)
 
         when:
         resource.withContent(action)
