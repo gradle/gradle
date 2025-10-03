@@ -134,7 +134,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         """
         buildKotlinFile << """
             plugins { `kotlin-dsl` }
-            
+
             blow up !!!
         """
 
@@ -174,7 +174,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     @Ignore // TODO
-    def "basic build w/ included build - broken build file in included build - intact plugins block"() {
+    def "basic build with included build - broken build file in included build - intact plugins block"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -209,7 +209,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     @Ignore // TODO
-    def "basic build w/ included build - broken build file in included build - broken plugins block"() {
+    def "basic build with included build - broken build file in included build - broken plugins block"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -237,7 +237,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
     }
 
-    def "basic build w/ included build - broken settings and build file in included build"() {
+    def "basic build with included build - broken settings and build file in included build"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -353,7 +353,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             plugins {
                 id("java")
             }
-        """ // TODO: why is this not failing just like "basic build w/ included build - broken build file in included build - intact plugins block" above? it's the same failure...
+        """ // TODO: why is this not failing just like "basic build with included build - broken build file in included build - intact plugins block" above? it's the same failure...
         def d = file("d/build.gradle.kts") << """
             plugins {
                 id("java")
@@ -404,7 +404,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST
     }
 
-    def "build w/ convention plugins - broken project convention plugin - exception - #queryStrategy"() {
+    def "build with convention plugins - broken project convention plugin - exception - #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -497,7 +497,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
-    def "build w/ convention plugins - broken project convention - compile error - #queryStrategy"() {
+    def "build with convention plugins - broken project convention - compile error - #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -595,7 +595,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     @ToBeImplemented("Needs resilient GradleBuild model")
-    def "build w/ convention plugins - broken settings convention"() {
+    def "build with convention plugins - broken settings convention"() {
         given:
         settingsKotlinFile << """
             pluginManagement {
