@@ -976,7 +976,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 resolvable("resolveMe") {
                     extendsFrom(configurations.getByName("myLibs"))
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category::class.java, Category.DOCUMENTATION))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category::class.java, Category.DOCUMENTATION))
                     }
                 }
             }
@@ -1028,7 +1028,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 resolvable("resolveMe") {
                     extendsFrom(configurations.getByName("myLibs"))
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category::class.java, "non-existent-format"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category::class.java, "non-existent-format"))
                     }
                 }
             }

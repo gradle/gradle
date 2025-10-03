@@ -73,7 +73,24 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="build-authoring"></a>
+### Build authoring improvements
 
+#### Introduce `AttributeContainer#named`
+
+This release introduces a new API on `AttributeContainer` allowing to create attribute values using the new `named` to not require depending on an ObjectFactory.
+
+Consider the following example demonstrating the new API's behavior:
+
+```kotlin
+val color = Attribute.of("color", String::class.java)
+
+configurations.resolvable("foo") {
+    attributes {
+        attribute(color, named("red"))
+    }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

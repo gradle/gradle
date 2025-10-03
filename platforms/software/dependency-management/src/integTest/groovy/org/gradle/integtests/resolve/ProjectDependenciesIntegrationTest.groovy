@@ -130,12 +130,12 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
                 resolvable("res")  {
                     extendsFrom(deps)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
                 }
                 consumable("cons") {
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
                 }
             }

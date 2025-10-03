@@ -18,11 +18,13 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.jspecify.annotations.Nullable;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
 
+    @SuppressWarnings("ClassInitializationDeadlock")
     ImmutableAttributes EMPTY = EmptyImmutableAttributes.INSTANCE;
 
     /**
@@ -68,5 +70,10 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
 
     @Override
     ImmutableSet<Attribute<?>> keySet();
+
+    @Override
+    public default <T extends Named> T named(Class<T> type, String name) {
+        throw new UnsupportedOperationException("This container is immutable and cannot be mutated, so creating a value for an Attribute is not supported.");
+    }
 
 }
