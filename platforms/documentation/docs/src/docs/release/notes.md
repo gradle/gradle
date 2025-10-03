@@ -12,11 +12,13 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release introduces support for [running Gradle on Windows ARM (ARM64) devices](#windows-arm-support), making it easier to build on Apple Silicon and other ARM-based systems. 
+This release introduces support for [running Gradle on Windows ARM (ARM64) devices](#windows-arm-support), making it easier to build on ARM-based systems.
 
 It also [improves the publishing API](#publishing-improvements) with new ways to define and publish custom software components.
 
-In addition, the [Daemon toolchain has been promoted](#daemon-promo) to stable.
+Additionally, there are [error and warning reporting improvements](#error), including better suggestions when dependency verification fails, and [new task grouping for Antlr](#antlr-task-group).
+
+The [Daemon toolchain feature has been promoted](#daemon-promo) to stable.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Adam](https://github.com/aSemy),
@@ -58,9 +60,9 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 <a name="windows-arm-support"></a>
 ### Windows on ARM support
 
-Gradle now supports running builds on Windows ARM (ARM64) devices.
+Gradle now supports [running builds on Windows ARM (ARM64) devices](userguide/compatibility.html#target_platforms).
 
-This makes it possible to run Gradle on Windows virtual machines hosted on Apple Silicon and other ARM-based systems.
+This makes it possible to run Gradle on Windows virtual machines hosted on ARM-based systems.
 
 <a name="publishing-improvements"></a>
 ### Publishing improvements
@@ -69,11 +71,11 @@ Gradle provides APIs for plugin authors and build engineers to define and custom
 
 #### New `PublishingExtension.getSoftwareComponentFactory()` method
 
-Gradle now exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service directly through the `publishing` extension. 
+Gradle now exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service directly through the `publishing` extension.
 This makes it easier to create and publish [custom components](userguide/publishing_customization.html#sec:publishing-custom-components).
 
 In most builds, a publishable component is already available.
-For example, the Java plugins automatically provide a `java` component. 
+For example, the Java plugins automatically provide a `java` component.
 But if you’re authoring a plugin and want to publish something custom without depending on the Java plugins, this new method provides a straightforward way to do so:
 
 ```kotlin
@@ -147,6 +149,36 @@ publishing {
 
 With this approach, `myNewVariant` is only realized if the `myPublication` publication is actually published.
 
+<a name="error"></a>
+### Error and warning reporting improvements
+
+Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
+
+#### Improved suggestion when dependency verification fails
+
+Gradle’s [dependency verification](userguide/dependency_verification.html) helps you mitigate security risks by ensuring downloaded artifacts match expected checksums or are signed with trusted keys.
+
+When you disable key servers in `gradle/verification-metadata.xml` using `<key-servers enabled="false"/>` and a verification failure occurs due to missing keys, Gradle now adds the `--export-keys` parameter to suggested commands:
+
+![Dependency Verification Fails Suggestion](release-notes-assets/dependency-verification-suggestion.png)
+
+<a name="antlr-task-group"></a>
+### Antlr task grouping improvements
+
+[Antlr-related tasks](userguide/antlr_plugin.html) such as `generateGrammarSource` and `generateTestGrammarSource` are now grouped under `Antlr` in Gradle’s task listings.
+
+Previously, these tasks appeared in the default `Other tasks` group, which only shows when running `./gradlew tasks --all`.  
+By assigning them to the `Antlr` group, they are easier to discover:
+
+```bash
+$ ./gradlew tasks
+
+Antlr tasks
+-----------
+plugin:generateGrammarSource - Processes the main Antlr grammars.
+plugin:generateTestGrammarSource - Processes the test Antlr grammars.
+```
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
@@ -157,7 +189,7 @@ The following are the features that have been promoted in this Gradle release.
 <a name="daemon-promo"></a>
 ### Daemon toolchain is now stable
 
-The [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria), introduced as an incubating feature in Gradle 8.8, has been improved and is now stable. 
+The [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria), introduced as an incubating feature in Gradle 8.8, has been improved and is now stable.
 It no longer prints an incubation warning when used.
 
 ## Fixed issues
