@@ -16,7 +16,7 @@
 = Reporting Plugin Problems with the Problems API
 :keywords: problems, api, problem
 
-Gradle’s Problems API lets plugins report rich, structured information about issues that occur during a build.
+Gradle’s Problems API lets plugins report rich, structured information about issues that occur during a failing build.
 
 This data powers Gradle’s console output, Build Scans, and IDE integrations so users see clear, actionable problem reports.
 
@@ -73,16 +73,21 @@ include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/sr
 
 The link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] is a Gradle service; add an abstract accessor and Gradle will inject it.
 
+=== Creating a group
+
+TO DO
+
 === Creating a `ProblemId`
 
 A `ProblemId` is the identity of the problem you’re reporting.
+Note that this may change in the future.
 
 ====
 include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[tags=problem_id]"]
 include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/PublishingGuardPlugin.groovy[tags=problem_id]"]
 ====
 
-The `Id` is not required but helps:
+The `Id` helps:
 
 - *Group* related problem instances together
 - *Deduplicate messages* (avoid spamming the same warning 100 times)
@@ -111,7 +116,7 @@ For details, see the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.
 
 === Reporting a recoverable problem
 
-Use `problems.reporting {}` to signal something went wrong but allow the build to continue:
+Use `problems.getReporter().reporting {}` to signal something went wrong but allow the build to continue:
 
 ====
 include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[tags=problem_report]"]
@@ -120,7 +125,7 @@ include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/sr
 
 === Reporting a fatal problem
 
-Use `problems.throwing {}` to fail the build with a structured error:
+Use `problems.getReporter().throwing {}` to fail the build with a structured error:
 
 ====
 include::sample[dir="snippets/plugins/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/PublishingGuardPlugin.kt[tags=problem_throw]"]

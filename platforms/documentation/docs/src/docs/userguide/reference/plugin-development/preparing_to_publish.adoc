@@ -15,7 +15,7 @@
 [[preparing_to_publish_plugins]]
 = Preparing to Publish Plugins
 
-Before you can share a Gradle plugin with others, you must package it into JAR files and generate the accompanying metadata so that other builds can resolve and apply it.
+In order to share a Gradle plugin with others, you must package it into JAR files and generate the accompanying metadata so that other builds can resolve and apply it.
 
 Gradle’s publishing plugins add tasks and conventions to help you prepare artifacts and metadata for distribution to repositories such as a local Maven repository, Maven Central, JFrog Artifactory, or the Gradle Plugin Portal.
 
