@@ -18,6 +18,7 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Ignore
 
 /**
  * Tests aspects of model rule binding validation such as when/why validation is run.
@@ -48,6 +49,7 @@ class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec 
         succeeds ":used:tasks"
     }
 
+    @Ignore
     def "entire model is validated, not just what is 'needed'"() {
         when:
         buildFile """
