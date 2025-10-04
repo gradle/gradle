@@ -17,8 +17,8 @@
 package org.gradle.problems.internal.rendering;
 
 import com.google.common.base.Strings;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
@@ -61,7 +61,7 @@ public class ProblemRenderer {
 
     private static void renderProblemsById(PrintWriter output, ProblemId problemId, List<InternalProblem> problems, String separator) {
         String sep = separator;
-        boolean isJavaCompilationProblem = problemId.getGroup().equals(GradleCoreProblemGroup.compilation().java()) && !problemId.getName().equals("initialization-failed");
+        boolean isJavaCompilationProblem = problemId.getGroup().equals(PredefinedProblemGroups.compilation().java()) && !problemId.getName().equals("initialization-failed");
         if (isJavaCompilationProblem) {
             for (InternalProblem problem : problems) {
                 output.printf(sep);
