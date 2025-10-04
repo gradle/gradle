@@ -25,6 +25,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.net.DatagramPacket;
 import java.net.SocketAddress;
 import java.util.LinkedHashSet;
@@ -80,18 +81,25 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private final Lock lock = new ReentrantLock();
 
+    @GuardedBy("lock")
     private final Long2ObjectOpenHashMap<ContendedAction> contendedActions = new Long2ObjectOpenHashMap<>();
+    @GuardedBy("lock")
     private final Long2ObjectOpenHashMap<FileLockReleasedSignal> lockReleasedSignals = new Long2ObjectOpenHashMap<>();
+    @GuardedBy("lock")
     private final Long2IntOpenHashMap unlocksRequestedFrom = new Long2IntOpenHashMap();
+    @GuardedBy("lock")
     private final Long2IntOpenHashMap unlocksConfirmedFrom = new Long2IntOpenHashMap();
 
     private final FileLockCommunicator communicator;
     private final InetAddressProvider inetAddressProvider;
     private final ExecutorFactory executorFactory;
 
+    @GuardedBy("lock")
     private ManagedExecutor fileLockRequestListener;
+    @GuardedBy("lock")
     private ManagedExecutor unlockActionExecutor;
 
+    @GuardedBy("lock")
     private boolean stopped;
     private volatile boolean listenerFailed;
 
@@ -169,11 +177,13 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         };
     }
 
+    @GuardedBy("lock")
     private void startLockReleaseAsLockHolder(ContendedAction contendedAction) {
         contendedAction.running = true;
         unlockActionExecutor.execute(contendedAction);
     }
 
+    @GuardedBy("lock")
     private void acceptConfirmationAsLockRequester(FileLockPacketPayload payload, int port) {
         long lockId = payload.getLockId();
         if (payload.getType() == LOCK_RELEASE_CONFIRMATION) {
@@ -251,6 +261,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         return !listenerFailed;
     }
 
+    @GuardedBy("lock")
     private void assertNotStopped() {
         if (stopped) {
             throw new IllegalStateException(
@@ -270,11 +281,18 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     @Override
     public void stop() {
+        ManagedExecutor unlockActionExecutor;
+        ManagedExecutor fileLockRequestListener;
+
         lock.lock();
         try {
             stopped = true;
             contendedActions.clear();
             communicator.stop();
+            unlockActionExecutor = this.unlockActionExecutor;
+            this.unlockActionExecutor = null;
+            fileLockRequestListener = this.fileLockRequestListener;
+            this.fileLockRequestListener = null;
         } finally {
             lock.unlock();
         }
