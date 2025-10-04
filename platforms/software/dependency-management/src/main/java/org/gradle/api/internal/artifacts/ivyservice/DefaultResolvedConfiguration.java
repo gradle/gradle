@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -76,10 +77,11 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     @Override
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
-        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
+        ImmutableSet.Builder<ResolvedArtifact> builder = ImmutableSet.builder();
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(builder);
         visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
         resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
-        return visitor.getArtifacts();
+        return builder.build();
     }
 
 }
