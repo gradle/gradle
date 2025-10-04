@@ -28,6 +28,7 @@ import org.gradle.internal.build.event.types.DefaultTaskSkippedResult
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult
 import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.event.ListenerNotificationException
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager
@@ -42,6 +43,8 @@ import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
+
+import java.lang.reflect.UndeclaredThrowableException
 
 class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def factory = new MockBuildEventListenerFactory()
@@ -179,6 +182,64 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         and:
         def e = thrown(RuntimeException)
         e.is(failure)
+    }
+
+    def "broken listener is quarantined and error propagated at completion of build"() {
+        def failure = new Error()
+        def brokenListener = Mock(OperationCompletionListener)
+        def okListener = Mock(OperationCompletionListener)
+
+        when:
+        registry.onTaskCompletion(Providers.of(brokenListener))
+        registry.onTaskCompletion(Providers.of(okListener))
+        async {
+            factory.fire(taskFinishEvent())
+            thread.blockUntil.handled
+            factory.fire(taskFinishEvent())
+            signalBuildFinished()
+        }
+
+        then:
+        1 * brokenListener.onFinish(_) >> {
+            instant.handled
+            throw failure
+        }
+        2 * okListener.onFinish(_)
+        0 * brokenListener._
+        0 * okListener._
+
+        and:
+        def e = thrown(ListenerNotificationException)
+        e.getCauses().get(0).is(failure)
+    }
+
+    def "broken listener is quarantined and throwable propagated at completion of build"() {
+        def failure = new Throwable()
+        def brokenListener = Mock(OperationCompletionListener)
+        def okListener = Mock(OperationCompletionListener)
+
+        when:
+        registry.onTaskCompletion(Providers.of(brokenListener))
+        registry.onTaskCompletion(Providers.of(okListener))
+        async {
+            factory.fire(taskFinishEvent())
+            thread.blockUntil.handled
+            factory.fire(taskFinishEvent())
+            signalBuildFinished()
+        }
+
+        then:
+        1 * brokenListener.onFinish(_) >> {
+            instant.handled
+            throw failure
+        }
+        2 * okListener.onFinish(_)
+        0 * brokenListener._
+        0 * okListener._
+
+        and:
+        def e = thrown(UndeclaredThrowableException)
+        e.getCause().is(failure)
     }
 
     private signalBuildFinished() {
