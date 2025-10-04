@@ -46,12 +46,7 @@ public class NestedActionAwareBuildControllerAdapter extends ParameterAwareBuild
     public <T> List<T> run(Collection<? extends BuildAction<? extends T>> buildActions) {
         List<Supplier<T>> wrappers = new ArrayList<Supplier<T>>(buildActions.size());
         for (final BuildAction<? extends T> action : buildActions) {
-            wrappers.add(new Supplier<T>() {
-                @Override
-                public T get() {
-                    return action.execute(NestedActionAwareBuildControllerAdapter.this);
-                }
-            });
+            wrappers.add(() -> action.execute(NestedActionAwareBuildControllerAdapter.this));
         }
         return controller.run(wrappers);
     }

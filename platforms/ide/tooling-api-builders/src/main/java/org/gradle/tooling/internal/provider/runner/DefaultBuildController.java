@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
@@ -29,9 +30,12 @@ import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
 import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.resiliency.InternalFetchAwareBuildController;
+import org.gradle.tooling.internal.provider.connection.DefaultInternalFetchModelResult;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
@@ -43,9 +47,17 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 @NullMarked
 @SuppressWarnings("deprecation")
-class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController, InternalStreamedValueRelay {
+class DefaultBuildController
+    implements org.gradle.tooling.internal.protocol.InternalBuildController,
+    InternalBuildControllerVersion2,
+    InternalActionAwareBuildController,
+    InternalStreamedValueRelay,
+    InternalFetchAwareBuildController {
+
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
@@ -92,7 +104,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
      * This is used by consumers 4.4 and later
      */
     @Override
-    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, Object parameter)
+    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
@@ -147,4 +159,13 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(streamedValue));
     }
 
+    @Override
+    public <T, M> InternalFetchModelResult<T, M> fetch(@Nullable T target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
+        try {
+            Object model = getModel(target, modelIdentifier, parameter).getModel();
+            return DefaultInternalFetchModelResult.ofModel(uncheckedNonnullCast(model));
+        } catch (Exception e) {
+            return DefaultInternalFetchModelResult.ofFailure(DefaultFailure.fromThrowable(e));
+        }
+    }
 }
