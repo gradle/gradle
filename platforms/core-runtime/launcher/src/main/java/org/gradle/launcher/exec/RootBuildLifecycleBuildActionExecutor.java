@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
@@ -48,7 +48,7 @@ public class RootBuildLifecycleBuildActionExecutor {
     private final BuildModelParameters buildModelParameters;
     private final ProjectParallelExecutionController projectParallelExecutionController;
     private final BuildTreeLifecycleListener lifecycleListener;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final StartParameter startParameter;
     private final ProblemStream problemsStream;
@@ -61,7 +61,7 @@ public class RootBuildLifecycleBuildActionExecutor {
         BuildModelParameters buildModelParameters,
         ProjectParallelExecutionController projectParallelExecutionController,
         BuildTreeLifecycleListener lifecycleListener,
-        InternalProblems problemsService,
+        ProblemsInternal problemsService,
         BuildOperationProgressEventEmitter eventEmitter,
         StartParameter startParameter,
         ProblemStream problemsStream,

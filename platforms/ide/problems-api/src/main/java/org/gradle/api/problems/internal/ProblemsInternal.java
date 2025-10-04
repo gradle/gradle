@@ -16,22 +16,21 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemReporter;
-import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.api.problems.Problems;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface InternalProblemReporter extends ProblemReporter {
+@ServiceScope(Scope.BuildTree.class)
+public interface ProblemsInternal extends Problems {
 
     /**
-     * Reports the target problem with an explicit operation identifier.
-     * <p>
-     * This method is used to report problems from workers, where the operation identifier is not available.
+     * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
      *
-     * @param problem The problem to report.
-     * @param id The operation identifier.
+     * @return The reporter.
      */
-    void report(Problem problem, OperationIdentifier id);
+    ProblemReporterInternal getInternalReporter();
 
-    InternalProblem internalCreate(Action<? super InternalProblemSpec> action);
+    ProblemsInfrastructure getInfrastructure();
+
+    ProblemBuilderInternal getProblemBuilder();
 }
