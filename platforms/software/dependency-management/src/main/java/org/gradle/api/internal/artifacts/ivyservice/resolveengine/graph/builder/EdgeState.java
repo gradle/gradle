@@ -23,6 +23,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
@@ -34,6 +35,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -53,7 +55,7 @@ class EdgeState implements DependencyGraphEdge {
     private final boolean isTransitive;
     private final boolean isConstraint;
 
-    private SelectorState selector;
+    private @Nullable SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
 
@@ -77,8 +79,24 @@ class EdgeState implements DependencyGraphEdge {
         this.isConstraint = dependencyMetadata.isConstraint();
     }
 
-    void computeSelector() {
-        this.selector = resolveState.computeSelectorFor(dependencyState, from.versionProvidedByAncestors(dependencyState));
+    void computeSelector(StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges, boolean deferSelection) {
+        boolean ignoreVersion = !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
+        SelectorState newSelector = resolveState.computeSelectorFor(dependencyState, ignoreVersion);
+        if (this.selector != newSelector) {
+            clearSelector();
+            newSelector.use(deferSelection);
+            this.selector = newSelector;
+
+            // The selector changed. We need to perform selection.
+            discoveredEdges.add(this);
+        }
+    }
+
+    public void clearSelector() {
+        if (this.selector != null) {
+            this.selector.release();
+            this.selector = null;
+        }
     }
 
     @Override
@@ -102,7 +120,7 @@ class EdgeState implements DependencyGraphEdge {
      */
     @Nullable
     ComponentState getTargetComponent() {
-        if (!selector.isResolved() || selector.getFailure() != null) {
+        if (selector == null || !selector.isResolved() || selector.getFailure() != null) {
             return null;
         }
         return getSelectedComponent();
@@ -110,6 +128,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public SelectorState getSelector() {
+        assert selector != null : "No selector for " + this;
         return selector;
     }
 
@@ -137,8 +156,8 @@ class EdgeState implements DependencyGraphEdge {
         }
 
         calculateTargetNodes(targetComponent);
-        for (NodeState targetConfiguration : targetNodes) {
-            targetConfiguration.addIncomingEdge(this);
+        for (NodeState targetNode : targetNodes) {
+            targetNode.addIncomingEdge(this);
         }
         if (!targetNodes.isEmpty()) {
             selector.getTargetModule().removeUnattachedEdge(this);
@@ -202,7 +221,7 @@ class EdgeState implements DependencyGraphEdge {
 
     private void calculateTargetNodes(ComponentState targetComponent) {
         ComponentGraphResolveState targetComponentState = targetComponent.getResolveStateOrNull();
-        targetNodes.clear();
+        targetNodes.clear(); // TODO: Why not `detachFromTargetNodes()`?
         targetNodeSelectionFailure = null;
         if (targetComponentState == null) {
             targetComponent.getModule().getPlatformState().addOrphanEdge(this);
@@ -360,6 +379,10 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
+    public Collection<NodeState> getTargetNodes() {
+        return targetNodes;
+    }
+
     @Nullable
     public NodeState getSelectedNode() {
         if (resolvedVariant != null) {
@@ -436,6 +459,15 @@ class EdgeState implements DependencyGraphEdge {
         updateTransitiveExcludes(newResolutionFilter);
         for (NodeState targetNode : targetNodes) {
             targetNode.clearTransitiveExclusionsAndEnqueue();
+        }
+    }
+
+    void recomputeSelectorAndRequeueTargetNodes(StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
+        computeSelector(ancestorsStrictVersions, discoveredEdges, false);
+        // TODO: If we compute the selector for this edge and it changes, we shouldn't add the (potentially) invalid target nodes to the queue.
+        // If we added this edge to `discoveredEdges`, then we will recompute target nodes and there is no point in adding the current target nodes to the queue.
+        for (NodeState targetNode : targetNodes) {
+            resolveState.onMoreSelected(targetNode);
         }
     }
 

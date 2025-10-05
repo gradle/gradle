@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
@@ -176,13 +177,13 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             return Collections.emptyList();
         }
 
-        @Nullable
+        @javax.annotation.Nullable
         @Override
         public VariantGraphResolveState getLegacyVariant() {
             return doGetVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION);
         }
 
-        @Nullable
+        @javax.annotation.Nullable
         @Override
         public VariantGraphResolveState getVariantByConfigurationName(String name) {
             DeprecationLogger.deprecateBehaviour("Selecting a variant by configuration name from a non-Ivy external component.")
@@ -193,7 +194,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             return doGetVariantByConfigurationName(name);
         }
 
-        @Nullable
+        @javax.annotation.Nullable
         private VariantGraphResolveState doGetVariantByConfigurationName(String name) {
             if (!name.equals(Dependency.DEFAULT_CONFIGURATION)) {
                 return null;
@@ -478,56 +479,74 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             for (ModuleResolveState module : modules) {
                 ComponentState selected = module.getSelected();
                 if (selected != null) {
-                    String componentVersion = selected.getId().getVersion();
-                    for (String target : candidateVersions) {
-                        ModuleComponentIdentifier leafId = DefaultModuleComponentIdentifier.newId(module.getId(), target);
-                        ModuleComponentSelector leafSelector = DefaultModuleComponentSelector.newSelector(module.getId(), target);
-                        ComponentIdentifier platformId = virtualPlatformState.getSelectedPlatformId();
-                        if (platformId == null) {
-                            // Not sure this can happen, unless in error state
-                            platformId = this.platformId;
+                    ModuleDependencyMetadata resultForSelected = getDependencyForParticipatingComponent(module, selected, candidateVersions);
+                    if (resultForSelected != null) {
+                        if (result == null) {
+                            result = new ArrayList<>(modules.size());
                         }
-                        if (!componentVersion.equals(target)) {
-                            // We will only add dependencies to the leaves if there is such a published module
-                            PotentialEdge potentialEdge = PotentialEdge.of(resolveState, from, leafId, leafSelector, platformId, virtualPlatformState.isForced(), false);
-                            if (potentialEdge.state != null) {
-                                result = registerPlatformEdge(result, modules, leafId, leafSelector, platformId, virtualPlatformState.isForced());
-                                break;
-                            }
-                        } else {
-                            // at this point we know the component exists
-                            result = registerPlatformEdge(result, modules, leafId, leafSelector, platformId, virtualPlatformState.isForced());
-                            break;
-                        }
+                        result.add(resultForSelected);
                     }
+
                     virtualPlatformState.attachOrphanEdges();
                 }
             }
             return result == null ? Collections.emptyList() : result;
         }
 
-        private List<ModuleDependencyMetadata> registerPlatformEdge(
-            @Nullable List<ModuleDependencyMetadata> result,
-            Set<ModuleResolveState> modules,
-            ModuleComponentIdentifier leafId,
-            ModuleComponentSelector leafSelector,
-            ComponentIdentifier platformId,
-            boolean force
+        private @Nullable ModuleDependencyMetadata getDependencyForParticipatingComponent(
+            ModuleResolveState module,
+            ComponentState selectedComponent,
+            List<String> candidateVersions
         ) {
-            if (result == null) {
-                result = new ArrayList<>(modules.size());
+            for (String target : candidateVersions) {
+                ModuleComponentIdentifier targetComponentId = DefaultModuleComponentIdentifier.newId(module.getId(), target);
+                ComponentIdentifier platformId = virtualPlatformState.getSelectedPlatformId();
+                if (platformId == null) {
+                    // Not sure this can happen, unless in error state
+                    platformId = this.platformId;
+                }
+
+                // We will only add dependencies to the leaves if there is such a published module.
+                // To do this, we either check module has already selected the target version
+                // or we need to resolve the potential target version to see if it exists.
+                if (selectedComponent.getComponentId().equals(targetComponentId) ||
+                    componentVersionExists(targetComponentId)
+                ) {
+                    return createDependencyMetadata(targetComponentId, platformId);
+                }
             }
-            result.add(new LenientPlatformDependencyMetadata(
+
+            return null;
+        }
+
+        /**
+         * Determine if the given component version exists, by resolving it.
+         */
+        private boolean componentVersionExists(ModuleComponentIdentifier componentId) {
+            ModuleVersionIdentifier moduleVersionId =
+                DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
+            return resolveState.getModule(componentId.getModuleIdentifier())
+                .getVersion(moduleVersionId, componentId)
+                .getResolveStateOrNull() != null;
+        }
+
+        private LenientPlatformDependencyMetadata createDependencyMetadata(
+            ModuleComponentIdentifier targetComponentId,
+            ComponentIdentifier platformId
+        ) {
+            ModuleComponentSelector selector =
+                DefaultModuleComponentSelector.newSelector(targetComponentId.getModuleIdentifier(), targetComponentId.getVersion());
+            return new LenientPlatformDependencyMetadata(
                 resolveState,
                 from,
-                leafSelector,
-                leafId,
+                selector,
+                targetComponentId,
                 platformId,
-                force,
+                virtualPlatformState.isForced(),
                 false
-            ));
-            return result;
+            );
         }
+
     }
 
 }
