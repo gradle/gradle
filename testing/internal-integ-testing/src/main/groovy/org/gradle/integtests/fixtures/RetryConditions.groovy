@@ -99,59 +99,6 @@ class RetryConditions {
             return false
         }
 
-        // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
-        if (targetDistVersion < GradleVersion.version("1.3") &&
-            (failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon.*/
-                || failure.cause?.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"
-                || failure.message == "Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) {
-            println "Retrying cross version test because of <1.3 daemon connection issue"
-            return cleanProjectDir(specification)
-        }
-
-        // this is cause by a bug in Gradle <1.8, where a NPE is thrown when DaemonInfo is removed from the daemon registry by another process
-        if (targetDistVersion < GradleVersion.version("1.8") &&
-            failure.getClass().getSimpleName() == 'GradleConnectionException' && failure.cause.getClass().getSimpleName() == 'NullPointerException') {
-            return cleanProjectDir(specification)
-        }
-
-        if (targetDistVersion < GradleVersion.version('2.10')) {
-            if (getRootCauseMessage(failure) ==~ /Unable to calculate percentage: .* of .*\. All inputs must be >= 0/) {
-                println "Retrying cross version test because of timing issue in Gradle versions <2.10"
-                return cleanProjectDir(specification)
-            }
-        }
-
-        if (targetDistVersion == GradleVersion.version('1.9') || targetDistVersion == GradleVersion.version('1.10')) {
-            if (failure.class.simpleName == 'ServiceCreationException'
-                && failure.cause?.class?.simpleName == 'UncheckedIOException'
-                && failure.cause?.message == "Unable to create directory 'metadata-2.1'") {
-
-                println "Retrying cross version test for " + targetDistVersion.version + " because failure was caused by directory creation race condition"
-                return cleanProjectDir(specification)
-            }
-        }
-
-        // daemon connection issue that does not appear anymore with 3.x versions of Gradle
-        if (targetDistVersion < GradleVersion.version("3.0") &&
-            failure.cause?.message ==~ /(?s)Timeout waiting to connect to (the )?Gradle daemon\..*/) {
-
-            println "Retrying cross version test because daemon connection is broken."
-            return cleanProjectDir(specification)
-        }
-
-        // known problem with Gradle versions < 3.5
-        // See https://github.com/gradle/gradle-private/issues/744
-        if (targetDistVersion < GradleVersion.version('3.5') && daemonsFixture != null && getRootCauseMessage(failure) == 'Build cancelled.') {
-            for (daemon in daemonsFixture.daemons) {
-                if (daemon.logContains('Could not receive message from client.')
-                    && daemon.logContains('java.lang.NullPointerException')
-                    && daemon.logContains('org.gradle.launcher.daemon.server.exec.LogToClient')) {
-                    println "Retrying test because the dispatcher was not ready for receiving a log event. Check log of daemon with PID ${daemon.context.pid}."
-                    return cleanProjectDir(specification)
-                }
-            }
-        }
-
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
         didSocketDisappearOnWindows(failure, specification, daemonsFixture, targetDistVersion >= GradleVersion.version('3.0'))
     }
