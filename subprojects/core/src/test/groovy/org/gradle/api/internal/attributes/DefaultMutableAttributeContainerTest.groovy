@@ -37,8 +37,8 @@ import org.gradle.util.TestUtil
 final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerTest {
 
     @Override
-    protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator(), TestUtil.propertyFactory(), TestUtil.objectInstantiator())
+    protected AttributeContainerInternal createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
+        AttributeContainerInternal container = AttributeTestUtil.attributesFactory().mutable()
         attributes.forEach {key, value ->
             container.attribute(key, value)
         }

@@ -78,17 +78,18 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 #### New `AttributeContainer.named()` method
 
-This release introduces a new convenience method on `AttributeContainer`, [`named()`](javadoc/org/gradle/api/attributes/AttributeContainer.html#named(java.lang.Class,java.lang.String)), which lets you create attribute values directly from the container—there is no need to obtain an `ObjectFactory` first.
+This release introduces a new convenience method on `AttributeContainer`, [`named()`](javadoc/org/gradle/api/attributes/AttributeContainer.html#named(java.lang.Class,java.lang.String)), which can create attribute values directly from the container without requiring a separate `ObjectFactory` instance.
 
-This makes attribute assignment more concise while preserving the same semantics as creating a named value via `ObjectFactory`:
+This method makes attribute assignment more concise while preserving the same semantics as creating a named value via `ObjectFactory`:
 
 ```kotlin
-val color = Attribute.of("color", String::class.java)
-
 configurations.resolvable("foo") {
     attributes {
-        // before: attribute(color, objects.named(String::class.java, "red"))
-        attribute(color, named(String::class.java, "red"))
+        // Before: 
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "red"))
+        
+        // After:
+        attribute(Usage.USAGE_ATTRIBUTE, named(Usage::class.java, "red"))
     }
 }
 ```
