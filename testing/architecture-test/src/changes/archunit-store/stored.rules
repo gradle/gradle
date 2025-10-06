@@ -1,7 +1,8 @@
 #
-#Tue Jun 17 16:43:12 EDT 2025
+#Thu Sep 18 16:17:44 CEST 2025
 classes\ that\ are\ Gradle\ public\ API\ should\ have\ accessors\ with\ symmetrical\ @Nullable\ annotations=public-api-symmetrical-accessors-nullability.txt
 classes\ that\ are\ Gradle\ public\ API\ should\ not\ have\ direct\ super-class\ or\ interface\ that\ are\ Gradle\ Internal\ API=public-api-not-extends-internal-types.txt
+classes\ that\ are\ in\ 'internal'\ packages\ with\ 'Internal'\ in\ their\ name\ should\ use\ it\ as\ a\ suffix\ not\ as\ a\ prefix=internal-classes-internal-suffix.txt
 classes\ that\ are\ in\ Gradle\ internal\ API\ packages\ and\ classes\ written\ in\ Java\ or\ Groovy\ and\ not\ synthetic\ classes\ should\ be\ annotated\ (directly\ or\ via\ its\ package)\ with\ @org.jspecify.annotations.NullMarked=internal-api-nullability.txt
 classes\ that\ are\ in\ Gradle\ public\ API\ packages\ and\ classes\ written\ in\ Java\ or\ Groovy\ and\ not\ synthetic\ classes\ should\ be\ annotated\ (directly\ or\ via\ its\ package)\ with\ @org.jspecify.annotations.NullMarked=public-api-nullability.txt
 classes\ that\ are\ in\ platform\ directories\ should\ import\ classes\ only\ from\ allowed\ platforms=platform-coupling.txt

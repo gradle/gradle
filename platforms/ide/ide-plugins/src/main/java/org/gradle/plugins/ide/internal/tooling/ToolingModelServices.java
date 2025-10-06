@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -54,7 +55,8 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
             final BuildStateRegistry buildStateRegistry,
             final ProjectStateRegistry projectStateRegistry,
             BuildModelParameters buildModelParameters,
-            IntermediateToolingModelProvider intermediateToolingModelProvider
+            IntermediateToolingModelProvider intermediateToolingModelProvider,
+            BuildIncludeListener failedIncludedBuildsRegistry
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
@@ -68,6 +70,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
+                    registry.register(new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry));
                     registry.register(new GradleBuildBuilder(buildStateRegistry));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));

@@ -139,6 +139,16 @@ In addition to the ecosystem independent attributes defined above, the JVM ecosy
 | Indicates the name of the link:{javadocPath}/org/gradle/testing/base/TestSuite.html[TestSuite] that produced this output.
 | Value is the name of the Suite.
 | No default, no compatibility
+
+| link:{javadocPath}/org/gradle/nativeplatform/MachineArchitecture.html#ARCHITECTURE_ATTRIBUTE[`org.gradle.native.architecture`]
+| Indicates that native binaries are included requiring the defined target architecture
+| `MachineArchitecture` values built from constants defined in link:{javadocPath}/org/gradle/nativeplatform/MachineArchitecture.html[MachineArchitecture]
+| None
+
+| link:{javadocPath}/org/gradle/nativeplatform/OperatingSystemFamily.html#OPERATING_SYSTEM_ATTRIBUTE[`org.gradle.native.operatingSystem`]
+| Indicates that native binaries are included requiring the defined operating system
+| `OperatingSystemFamily` values built from constants defined in link:{javadocPath}/org/gradle/nativeplatform/OperatingSystemFamily.html[OperatingSystemFamily]
+| None
 |===
 
 The JVM ecosystem also contains a number of compatibility and disambiguation rules over the different attributes.
