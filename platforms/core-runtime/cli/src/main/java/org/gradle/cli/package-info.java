@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * Tooling models for the build environment, which includes information such as Gradle or Java versions.
- */
 @NullMarked
-package org.gradle.tooling.model.build;
+package org.gradle.cli;
 
 import org.jspecify.annotations.NullMarked;
