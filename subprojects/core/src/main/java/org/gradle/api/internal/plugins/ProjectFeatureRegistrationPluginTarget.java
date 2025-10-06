@@ -21,13 +21,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures;
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.ProblemsInternal;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -53,9 +53,9 @@ public class ProjectFeatureRegistrationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
     private final ProjectFeatureRegistry projectFeatureRegistry;
     private final InspectionScheme inspectionScheme;
-    private final ProblemsInternal problems;
+    private final InternalProblems problems;
 
-    public ProjectFeatureRegistrationPluginTarget(PluginTarget delegate, ProjectFeatureRegistry projectFeatureRegistry, InspectionScheme inspectionScheme, ProblemsInternal problems) {
+    public ProjectFeatureRegistrationPluginTarget(PluginTarget delegate, ProjectFeatureRegistry projectFeatureRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.delegate = delegate;
         this.projectFeatureRegistry = projectFeatureRegistry;
         this.inspectionScheme = inspectionScheme;

@@ -22,9 +22,9 @@ import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReporterInternal
-import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
@@ -99,7 +99,7 @@ class FlowParametersInstantiator(
     }
 
     private
-    val problemsService = services.get(ProblemsInternal::class.java)
+    val problemsService = services.get(InternalProblems::class.java)
 
     private
     val inspection by lazy {
