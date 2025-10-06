@@ -419,6 +419,29 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         })
     }
 
+    def "is available on FreeBSD for supported architectures"() {
+        given:
+        def freeBsd = Mock(DefaultOperatingSystem) {
+            isFreeBSD() >> true
+            isCurrent() >> true
+        }
+        platform.operatingSystem >> freeBsd
+        platform.architecture >> Architectures.forInput(arch)
+
+        and:
+        toolSearchPath.locate(_, _) >> tool
+        metaDataProvider.getCompilerMetaData(_, _) >> correctCompiler
+
+        when:
+        def result = toolChain.select(platform)
+
+        then:
+        result.available
+
+        where:
+        arch << ["x86_64", "arm64"]
+    }
+
     def getMessage(ToolSearchResult result) {
         def formatter = new TreeFormatter()
         result.explain(formatter)
