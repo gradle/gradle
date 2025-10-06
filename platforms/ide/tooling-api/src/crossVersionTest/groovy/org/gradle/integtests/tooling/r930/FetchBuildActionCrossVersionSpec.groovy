@@ -19,22 +19,183 @@ package org.gradle.integtests.tooling.r930
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
-
-interface UnknownModel {}
 
 @TargetGradleVersion(">=9.3.0")
 @ToolingApiVersion(">=9.3.0")
 class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
-    static class FetchGradleBuildAction implements BuildAction<Integer> {
+    def "can request GradleBuild model"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+
+        when:
+        def result = succeeds {
+            action(new FetchGradleBuildAction())
+                .run()
+        }
+
+        then:
+        result.modelValue == ['root']
+    }
+
+    def "returns a failure for GradleBuild model if settings script fails due to #description"() {
+        given:
+        settingsFile.delete()
+        settingsKotlinFile << """
+            ${error}
+        """
+
+        when:
+        def result = succeeds {
+            action(new FetchGradleBuildAction())
+                .run()
+        }
+
+        then:
+        result.modelValue == null
+        result.causes.size() == 1
+        result.causes[0].contains(cause)
+
+        where:
+        description          | error                                                        | cause
+        "script compilation" | "broken !!!"                                                 | "broken !!!"
+        "runtime exception"  | """throw RuntimeException("broken settings script")"""       | "broken settings script"
+    }
+
+    def "can request unknown model"() {
+        when:
+        def causes = succeeds {
+            action(new FetchUnknownModelAction())
+                .run()
+        }
+
+        then:
+        causes == ["No builders are available to build a model of type 'org.gradle.integtests.tooling.r930.FetchBuildActionCrossVersionSpec\$UnknownModel'."]
+    }
+
+    def "can request a custom model"() {
+        given:
+        setupInitScriptWithCustomModelBuilder()
+
+        when:
+        def result = succeeds {
+            action(new FetchCustomModelAction())
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        result.modelValue == "greetings"
+        result.failureMessages.isEmpty()
+        result.causes.isEmpty()
+    }
+
+    def "returns a failure if a model builder throws an exception"() {
+        given:
+        setupInitScriptWithCustomModelBuilder("throw new RuntimeException('broken builder')")
+
+        when:
+        def result = succeeds {
+            action(new FetchCustomModelAction())
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        result.modelValue == null
+        result.failureMessages == ["broken builder"]
+    }
+
+    def "returns a failure if project configuration fails due to #description"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        setupInitScriptWithCustomModelBuilder()
+        buildFileKts << """
+            ${error}
+        """
+
+        when:
+        def result = succeeds {
+            action(new FetchCustomModelAction())
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        result.modelValue == null
+        result.failureMessages == ["A problem occurred configuring root project 'root'."]
+        result.causes.size() == 1
+        result.causes[0].contains(cause)
+
+        where:
+        description          | error                                                        | cause
+        "script compilation" | "broken !!!"                                                 | "broken !!!"
+        "runtime exception"  | """throw RuntimeException("broken project configuration")""" | "broken project configuration"
+    }
+
+    def setupInitScriptWithCustomModelBuilder(String builderLogic = "return new CustomModel()") {
+        file("init.gradle").text = """
+            import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+            import org.gradle.tooling.provider.model.ToolingModelBuilder
+            import javax.inject.Inject
+
+            allprojects {
+                project.plugins.apply(CustomPlugin)
+            }
+
+            class CustomModel implements Serializable {
+                static final INSTANCE = new CustomThing()
+                String getValue() { 'greetings' }
+                CustomThing getThing() { return INSTANCE }
+                Set<CustomThing> getThings() { return [INSTANCE] }
+                Map<String, CustomThing> getThingsByName() { return [child: INSTANCE] }
+                CustomThing findThing(String name) { return INSTANCE }
+            }
+
+            class CustomThing implements Serializable {
+            }
+
+            class CustomBuilder implements ToolingModelBuilder {
+                boolean canBuild(String modelName) {
+                    return modelName == '${CustomModel.name}'
+                }
+                Object buildAll(String modelName, Project project) {
+                    ${builderLogic}
+                }
+            }
+            class CustomPlugin implements Plugin<Project> {
+                @Inject
+                CustomPlugin(ToolingModelBuilderRegistry registry) {
+                    registry.register(new CustomBuilder())
+                }
+                public void apply(Project project) {
+                    println "Registered CustomBuilder for project: " + (project != null ? project.name : "<no project>")
+                }
+            }
+            """
+    }
+
+    static class FetchGradleBuildAction implements BuildAction<Result<List<String>>> {
         @Override
-        Integer execute(BuildController controller) {
+        Result<List<String>> execute(BuildController controller) {
             def result = controller.fetch(null, GradleBuild.class, null, null)
-            assert result.model instanceof GradleBuild
-            return result.model.projects.size()
+            def projectNames = null
+            if (result.model != null) {
+                assert result.model instanceof GradleBuild
+                projectNames = result.model.projects.collect { it.name }
+            }
+            def failures = result.failures.stream()
+                .map { it.message }
+                .toList()
+            def causes = result.failures.stream()
+                .flatMap { it.causes.stream() }
+                .map { it.message }
+                .toList()
+            return new Result(projectNames, failures, causes)
         }
     }
 
@@ -50,27 +211,32 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    def "can request GradleBuild model"() {
-        when:
-        def result = run(new FetchGradleBuildAction())
-
-        then:
-        result == 1
+    static class FetchCustomModelAction implements BuildAction<Result<String>> {
+        @Override
+        Result execute(BuildController controller) {
+            def result = controller.fetch(null, CustomModel.class, null, null)
+            def failures = result.failures.stream()
+                .map { it.message }
+                .toList()
+            def causes = result.failures.stream()
+                .flatMap { it.causes.stream() }
+                .map { it.message }
+                .toList()
+            return new Result(result.model?.value, failures, causes)
+        }
     }
 
-    def "can request unknown model"() {
-        when:
-        def causes = run(new FetchUnknownModelAction())
+    interface UnknownModel {}
 
-        then:
-        causes == ["No builders are available to build a model of type 'org.gradle.integtests.tooling.r930.UnknownModel'."]
-    }
+    static class Result<T> implements Serializable {
+        T modelValue
+        List<String> failureMessages = []
+        List<String> causes = []
 
-    <T> T run(BuildAction<T> action) {
-        withConnection { connection ->
-            connection
-                .action(action)
-                .run()
+        Result(T modelValue, List<String> failureMessages, List<String> causes) {
+            this.modelValue = modelValue
+            this.failureMessages = failureMessages
+            this.causes = causes
         }
     }
 }
