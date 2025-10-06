@@ -55,13 +55,13 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     public DefaultMutableAttributeContainer(
         AttributesFactory attributesFactory,
         AttributeValueIsolator attributeValueIsolator,
-        PropertyFactory propertyFactory,
-        NamedObjectInstantiator namedObjectInstantiator
+        NamedObjectInstantiator namedObjectInstantiator,
+        PropertyFactory propertyFactory
     ) {
         this.attributesFactory = attributesFactory;
         this.attributeValueIsolator = attributeValueIsolator;
-        this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, AttributeEntry.class));
         this.namedObjectInstantiator = namedObjectInstantiator;
+        this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, AttributeEntry.class));
     }
 
     @Override

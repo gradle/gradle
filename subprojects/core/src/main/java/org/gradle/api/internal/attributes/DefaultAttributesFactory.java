@@ -60,12 +60,12 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     public AttributeContainerInternal mutable() {
-        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory, instantiator);
+        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, instantiator, propertyFactory);
     }
 
     @Override
     public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
-        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory, instantiator));
+        return join(fallback, mutable());
     }
 
     @Override

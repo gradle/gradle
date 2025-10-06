@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
@@ -72,8 +74,23 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
     ImmutableSet<Attribute<?>> keySet();
 
     @Override
-    public default <T extends Named> T named(Class<T> type, String name) {
-        throw new UnsupportedOperationException("This container is immutable and cannot be mutated, so creating a value for an Attribute is not supported.");
+    default <E> AttributeContainer attribute(Attribute<E> key, E value) {
+        throw new UnsupportedOperationException("This container is immutable and cannot be mutated.");
+    }
+
+    @Override
+    default <E> AttributeContainer attributeProvider(Attribute<E> key, Provider<? extends E> provider) {
+        throw new UnsupportedOperationException("This container is immutable and cannot be mutated.");
+    }
+
+    @Override
+    default AttributeContainer addAllLater(AttributeContainer other) {
+        throw new UnsupportedOperationException("This container is immutable and cannot be mutated.");
+    }
+
+    @Override
+    default <T extends Named> T named(Class<T> type, String name) {
+        throw new UnsupportedOperationException("This container is immutable and cannot be mutated. Creating a Named value is not supported.");
     }
 
 }
