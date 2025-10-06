@@ -33,7 +33,7 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
     String problemSpecInternalClassName
 
     static String prePostFixInternal(GradleVersion targetVersion, String className) {
-        if (targetVersion >= GradleVersion.version("9.2.0")) {
+        if (targetVersion >= GradleVersion.version("9.3.0")) {
             return "${className}Internal"
         }
         return "Internal${className}"

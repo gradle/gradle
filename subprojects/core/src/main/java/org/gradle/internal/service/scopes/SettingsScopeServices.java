@@ -109,7 +109,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
     ) {
         PluginTarget target = new ProjectFeatureDeclarationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
-            projectFeatureDeclarations,
+            projectFeatureRegistry,
             pluginScheme.getInspectionScheme(),
             problems
         );

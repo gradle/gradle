@@ -23,9 +23,8 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.jspecify.annotations.NonNull;
 
-public class DefaultProblems implements ProblemsInternal, InternalProblems {
+public class DefaultProblems implements ProblemsInternal {
 
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemSummarizer problemSummarizer;
@@ -57,7 +56,7 @@ public class DefaultProblems implements ProblemsInternal, InternalProblems {
     public ProblemReporter getReporter() {
         return createReporter();
     }
-    @NonNull
+
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
             problemSummarizer,

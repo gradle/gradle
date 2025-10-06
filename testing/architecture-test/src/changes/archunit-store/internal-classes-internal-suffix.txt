@@ -4,8 +4,6 @@ Class <org.gradle.api.internal.artifacts.configurations.ConfigurationInternal$In
 Class <org.gradle.api.internal.artifacts.configurations.ConfigurationInternal$InternalState> has simple name starting with 'Internal' in (ConfigurationInternal.java:0)
 Class <org.gradle.api.internal.file.copy.FileCopyAction$FileCopyDetailsInternalAction> does not have simple name ending with 'Internal' in (FileCopyAction.java:0)
 Class <org.gradle.api.java.archives.internal.CustomManifestInternalWrapper> does not have simple name ending with 'Internal' in (CustomManifestInternalWrapper.java:0)
-Class <org.gradle.api.problems.internal.InternalProblems> does not have simple name ending with 'Internal' in (InternalProblems.java:0)
-Class <org.gradle.api.problems.internal.InternalProblems> has simple name starting with 'Internal' in (InternalProblems.java:0)
 Class <org.gradle.api.tasks.util.internal.DefaultPatternSetFactory$InternalPatternSet> does not have simple name ending with 'Internal' in (DefaultPatternSetFactory.java:0)
 Class <org.gradle.api.tasks.util.internal.DefaultPatternSetFactory$InternalPatternSet> has simple name starting with 'Internal' in (DefaultPatternSetFactory.java:0)
 Class <org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter> does not have simple name ending with 'Internal' in (JavadocOptionFileOptionInternalAdapter.java:0)
