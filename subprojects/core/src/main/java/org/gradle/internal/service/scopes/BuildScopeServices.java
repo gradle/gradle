@@ -725,7 +725,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal, problems);
         return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(buildScopeServices), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
