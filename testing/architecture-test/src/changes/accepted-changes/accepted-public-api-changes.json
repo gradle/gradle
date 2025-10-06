@@ -31,6 +31,50 @@
             "changes": [
                 "Method added to public class"
             ]
+        },
+        {
+            "type": "org.gradle.plugin.management.PluginRequest",
+            "member": "Method org.gradle.plugin.management.PluginRequest.getSelector()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.model.build.GradleEnvironment",
+            "member": "Method org.gradle.tooling.model.build.GradleEnvironment.getVersionOutput()",
+            "acceptation": "Tooling API extension to expose --version banner text",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.model.build.Help",
+            "member": "Class org.gradle.tooling.model.build.Help",
+            "acceptation": "Tooling API: new Help model for --help output (no incubation)",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.model.build.Help",
+            "member": "Method org.gradle.tooling.model.build.Help.getHelpOutput()",
+            "acceptation": "Tooling API: new Help model for --help output (no incubation)",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.tooling.model.build.VersionBanner",
+            "member": "Class org.gradle.tooling.model.build.VersionBanner",
+            "acceptation": "Tooling API: new VersionBanner model for --version output (no incubation)",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.tooling.model.build.VersionBanner",
+            "member": "Method org.gradle.tooling.model.build.VersionBanner.getVersionOutput()",
+            "acceptation": "Tooling API: new VersionBanner model for --version output (no incubation)",
+            "changes": []
         }
     ]
 }
