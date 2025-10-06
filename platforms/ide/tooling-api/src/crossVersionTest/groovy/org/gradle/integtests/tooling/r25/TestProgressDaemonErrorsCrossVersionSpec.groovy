@@ -29,7 +29,7 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification i
     @Rule BlockingHttpServer server = new BlockingHttpServer()
     boolean killed = false
 
-    void setup() {
+    def setup() {
         toolingApi.requireIsolatedDaemons()
     }
 
