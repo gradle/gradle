@@ -1,6 +1,6 @@
 plugins {
     `java-gradle-plugin`
-    id("org.jetbrains.kotlin.jvm") version("2.1.20")
+    `kotlin-dsl`
 }
 
 group = "org.example"

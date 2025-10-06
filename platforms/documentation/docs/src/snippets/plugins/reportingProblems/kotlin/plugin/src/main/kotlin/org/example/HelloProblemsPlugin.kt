@@ -15,9 +15,9 @@ import javax.inject.Inject
  */
 abstract class HelloProblemsPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.tasks.register("greet", GreetTask::class.java) { task ->
-            task.group = "demo"
-            task.description = "Greets a recipient. Demonstrates Problems API."
+        project.tasks.register("greet", GreetTask::class.java) {
+            group = "demo"
+            description = "Greets a recipient. Demonstrates Problems API."
         }
     }
 }
@@ -62,15 +62,15 @@ abstract class GreetTask : DefaultTask() {
         // Warning: missing recipient -> provide a helpful suggestion
         if (name.isEmpty()) {
 // tag::problems-report[]
-            reporter.report(WARN_ID) { spec ->
+            reporter.report(WARN_ID) {
 // tag::problems-spec[]
-                spec.details("No recipient configured")
-                    .severity(Severity.WARNING)
-                    .solution("""Set the recipient: tasks.greet { recipient = "World" }""")
-                    .documentedAt("https://gradle.org/hello-problems#recipient")
-                    .additionalData(GreetProblemData::class.java) { it ->
-                        it.configuredRecipient = null
-                    }
+                details("No recipient configured")
+                severity(Severity.WARNING)
+                solution("""Set the recipient: tasks.greet { recipient = "World" }""")
+                documentedAt("https://gradle.org/hello-problems#recipient")
+                additionalData(GreetProblemData::class.java) {
+                    configuredRecipient = null
+                }
 // end::problems-spec[]
             }
 // end::problems-report[]
@@ -79,14 +79,14 @@ abstract class GreetTask : DefaultTask() {
         // Fatal: a specific value is disallowed to show throwing()
         else if (name.equals("fail", ignoreCase = true)) {
 // tag::problems-throw[]
-            throw reporter.throwing(GradleException("forbidden value"), FAIL_ID) { spec ->
-                spec.details("Recipient 'fail' is not allowed")
-                    .severity(Severity.ERROR)
-                    .solution("""Choose another value, e.g. recipient = "World".""")
-                    .documentedAt("https://gradle.org/hello-problems#forbidden")
-                    .additionalData(GreetProblemData::class.java) { it ->
-                        it.configuredRecipient = name
-                    }
+            throw reporter.throwing(GradleException("forbidden value"), FAIL_ID) {
+                details("Recipient 'fail' is not allowed")
+                severity(Severity.ERROR)
+                solution("""Choose another value, e.g. recipient = "World".""")
+                documentedAt("https://gradle.org/hello-problems#forbidden")
+                additionalData(GreetProblemData::class.java) {
+                    configuredRecipient = name
+                }
             }
 // end::problems-throw[]
         }
