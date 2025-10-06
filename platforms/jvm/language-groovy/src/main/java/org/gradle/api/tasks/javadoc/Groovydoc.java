@@ -80,6 +80,8 @@ public abstract class Groovydoc extends SourceTask {
 
     private String footer;
 
+    private String javaVersion;
+
     private TextResource overview;
 
     private Set<Link> links = new LinkedHashSet<Link>();
@@ -115,6 +117,7 @@ public abstract class Groovydoc extends SourceTask {
             parameters.getDocTitle().convention(getDocTitle());
             parameters.getHeader().convention(getHeader());
             parameters.getFooter().convention(getFooter());
+            parameters.getJavaVersion().convention(getJavaVersion());
             parameters.getOverview().convention(getPathToOverview());
             parameters.getAccess().convention(getAccess());
             parameters.getLinks().convention(getLinks());
@@ -330,6 +333,30 @@ public abstract class Groovydoc extends SourceTask {
      */
     public void setFooter(@Nullable String footer) {
         this.footer = footer;
+    }
+
+    /**
+     * Returns the Java version used when creating Groovydoc for Java source files. Set to {@code null} when there is no specific Java version.
+     *
+     * @since 9.3.0
+     */
+    @Nullable
+    @Optional
+    @Input
+    @ToBeReplacedByLazyProperty
+    public String getJavaVersion() {
+        return javaVersion;
+    }
+
+    /**
+     * Sets Java version (optional).
+     *
+     * @since 9.3.0
+     *
+     * @param javaVersion the Java version to use when processing Java source files
+     */
+    public void setJavaVersion(@Nullable String javaVersion) {
+        this.javaVersion = javaVersion;
     }
 
     /**
