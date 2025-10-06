@@ -56,6 +56,9 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)
+    // Required directly by CliTextPrinter (uses Ant Main and Groovy ReleaseInfo)
+    implementation(libs.ant)
+    implementation(libs.groovy)
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)
