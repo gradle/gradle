@@ -76,18 +76,19 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 <a name="build-authoring"></a>
 ### Build authoring improvements
 
-#### Introduce `AttributeContainer#named`
+#### New `AttributeContainer.named()` method
 
-This release introduces a new API on `AttributeContainer` allowing to create attribute values using the new `named` to not require depending on an ObjectFactory.
+This release introduces a new convenience method on `AttributeContainer`, [`named()`](javadoc/org/gradle/api/attributes/AttributeContainer.html#named(java.lang.Class,java.lang.String)), which lets you create attribute values directly from the container—there is no need to obtain an `ObjectFactory` first.
 
-Consider the following example demonstrating the new API's behavior:
+This makes attribute assignment more concise while preserving the same semantics as creating a named value via `ObjectFactory`:
 
 ```kotlin
 val color = Attribute.of("color", String::class.java)
 
 configurations.resolvable("foo") {
     attributes {
-        attribute(color, named("red"))
+        // before: attribute(color, objects.named(String::class.java, "red"))
+        attribute(color, named(String::class.java, "red"))
     }
 }
 ```
