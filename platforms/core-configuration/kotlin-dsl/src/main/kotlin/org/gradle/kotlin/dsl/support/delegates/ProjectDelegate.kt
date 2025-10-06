@@ -64,6 +64,11 @@ import java.util.concurrent.Callable
 
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
+ * 
+ * This class provides access to all Project API methods and properties for Kotlin DSL build scripts.
+ * All methods delegate to the underlying [org.gradle.api.Project] instance.
+ * 
+ * @see org.gradle.api.Project
  */
 @Deprecated("Will be removed in Gradle 10")
 abstract class ProjectDelegate : Project {
@@ -79,6 +84,12 @@ abstract class ProjectDelegate : Project {
     internal
     abstract val delegate: Project
 
+    /**
+     * Returns the group of this project. Gradle always uses the toString() value of the group. The group
+     * defaults to the path with dots as separators.
+     *
+     * @return The group of this project. Never returns null.
+     */
     override fun getGroup(): Any =
         delegate.group
 
@@ -102,6 +113,12 @@ abstract class ProjectDelegate : Project {
     override fun getAnt(): AntBuilder =
         delegate.ant
 
+    /**
+     * Returns the version of this project. Gradle always uses the toString() value of the version. The
+     * version defaults to "unspecified".
+     *
+     * @return The version of this project. Never returns null.
+     */
     override fun getVersion(): Any =
         delegate.version
 
@@ -153,6 +170,14 @@ abstract class ProjectDelegate : Project {
     override fun getIsolated(): IsolatedProject =
         delegate.isolated
 
+    /**
+     * Configures the dependencies for this project.
+     *
+     * This method executes the given closure against the [DependencyHandler] for this project.
+     * The [DependencyHandler] is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure The closure to use to configure the dependencies.
+     */
     override fun dependencies(configureClosure: Closure<*>) =
         delegate.dependencies(configureClosure)
 
@@ -186,6 +211,14 @@ abstract class ProjectDelegate : Project {
         @Suppress("deprecation")
         delegate.container(type, factoryClosure)
 
+    /**
+     * Configures the repositories for this project.
+     *
+     * This method executes the given closure against the [RepositoryHandler] for this project.
+     * The [RepositoryHandler] is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure The closure to use to configure the repositories.
+     */
     override fun repositories(configureClosure: Closure<*>) =
         delegate.repositories(configureClosure)
 
@@ -204,6 +237,14 @@ abstract class ProjectDelegate : Project {
     override fun sync(action: Action<in SyncSpec>): WorkResult =
         delegate.sync(action)
 
+    /**
+     * Configures the dependency configurations for this project.
+     *
+     * This method executes the given closure against the [ConfigurationContainer] for this project.
+     * The [ConfigurationContainer] is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure The closure to use to configure the configurations.
+     */
     override fun configurations(configureClosure: Closure<*>) =
         delegate.configurations(configureClosure)
 
@@ -216,9 +257,21 @@ abstract class ProjectDelegate : Project {
     override fun absoluteProjectPath(path: String): String =
         delegate.absoluteProjectPath(path)
 
+    /**
+     * Returns the project directory of this project. This is the directory containing the project's build file.
+     *
+     * @return The project directory. Never returns null.
+     */
     override fun getProjectDir(): File =
         delegate.projectDir
 
+    /**
+     * Creates a new [ConfigurableFileCollection] using the given paths. The file collection is configured using the given paths.
+     * Relative paths are resolved relative to the project directory.
+     *
+     * @param paths The paths to the files. May be empty.
+     * @return The file collection. Never returns null.
+     */
     override fun files(vararg paths: Any?): ConfigurableFileCollection =
         delegate.files(*paths)
 
@@ -275,6 +328,11 @@ abstract class ProjectDelegate : Project {
     override fun findProperty(propertyName: String): Any? =
         delegate.findProperty(propertyName)
 
+    /**
+     * Returns the [DependencyHandler] for this project. The returned handler can be used to add new dependencies to this project.
+     *
+     * @return The dependency handler. Never returns null.
+     */
     override fun getDependencies(): DependencyHandler =
         delegate.dependencies
 
@@ -331,6 +389,11 @@ abstract class ProjectDelegate : Project {
     override fun copy(action: Action<in CopySpec>): WorkResult =
         delegate.copy(action)
 
+    /**
+     * Returns the description of this project, if any.
+     *
+     * @return the description. May return null.
+     */
     override fun getDescription(): String? =
         delegate.description
 
@@ -353,12 +416,22 @@ abstract class ProjectDelegate : Project {
         delegate.status = status
     }
 
+    /**
+     * Returns the [ConfigurationContainer] for this project. The returned container can be used to add new configurations to this project.
+     *
+     * @return The configuration container. Never returns null.
+     */
     override fun getConfigurations(): ConfigurationContainer =
         delegate.configurations
 
     override fun getArtifacts(): ArtifactHandler =
         delegate.artifacts
 
+    /**
+     * Sets a description for this project.
+     *
+     * @param description The description of the project. Might be null.
+     */
     override fun setDescription(description: String?) {
         delegate.description = description
     }
@@ -366,12 +439,25 @@ abstract class ProjectDelegate : Project {
     override fun getLayout(): ProjectLayout =
         delegate.layout
 
+    /**
+     * Applies zero or more plugins or scripts.
+     *
+     * The given closure is used to configure an [ObjectConfigurationAction], which is then used to
+     * configure the plugins or scripts to apply.
+     *
+     * @param closure The closure to configure an [ObjectConfigurationAction] with.
+     */
     override fun apply(closure: Closure<*>) =
         delegate.apply(closure)
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)
 
+    /**
+     * Applies zero or more plugins or scripts.
+     *
+     * @param options The options to use to configure the plugins or scripts to apply.
+     */
     override fun apply(options: Map<String, *>) =
         delegate.apply(options)
 
@@ -385,12 +471,37 @@ abstract class ProjectDelegate : Project {
     override fun getLogging(): LoggingManager =
         delegate.logging
 
+    /**
+     * Returns the [TaskContainer] for this project. The returned container can be used to add new tasks to this project.
+     *
+     * @return The task container. Never returns null.
+     */
     override fun getTasks(): TaskContainer =
         delegate.tasks
 
+    /**
+     * Returns the name of this project. The project name is generally the name of the directory containing the build script.
+     *
+     * @return The name of this project. Never returns null.
+     */
     override fun getName(): String =
         delegate.name
 
+    /**
+     * Resolves a file path relative to the project directory of this project. This method converts the supplied path
+     * based on its type:
+     *
+     * <ul>
+     * <li>A [CharSequence], including [String] or [groovy.lang.GString]. Interpreted relative to the project directory.
+     * <li>A [File]. If the file is an absolute file, it is returned as is. Otherwise, the file path is interpreted
+     * relative to the project directory.
+     * <li>A [java.nio.file.Path]. The path must be associated with the default file system.
+     * <li>A [Provider] of any supported type. The provider's value is resolved recursively.
+     * </ul>
+     *
+     * @param path The object to resolve as a File.
+     * @return The resolved file. Never returns null.
+     */
     override fun file(path: Any): File =
         delegate.file(path)
 
@@ -430,6 +541,11 @@ abstract class ProjectDelegate : Project {
     override fun delete(action: Action<in DeleteSpec>): WorkResult =
         delegate.delete(action)
 
+    /**
+     * Returns the [RepositoryHandler] for this project. The returned handler can be used to add new repositories to this project.
+     *
+     * @return The repository handler. Never returns null.
+     */
     override fun getRepositories(): RepositoryHandler =
         delegate.repositories
 
@@ -448,6 +564,11 @@ abstract class ProjectDelegate : Project {
     override fun getPluginManager(): PluginManager =
         delegate.pluginManager
 
+    /**
+     * Sets the group of this project.
+     *
+     * @param group The group of this project. Must not be null.
+     */
     override fun setGroup(group: Any) {
         delegate.group = group
     }
@@ -467,6 +588,11 @@ abstract class ProjectDelegate : Project {
     override fun getNormalization(): InputNormalizationHandler =
         delegate.normalization
 
+    /**
+     * Sets the version of this project.
+     *
+     * @param version The version of this project. Must not be null.
+     */
     override fun setVersion(version: Any) {
         delegate.version = version
     }
