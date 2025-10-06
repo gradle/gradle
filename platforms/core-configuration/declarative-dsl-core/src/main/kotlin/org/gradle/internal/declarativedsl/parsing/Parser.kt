@@ -32,7 +32,7 @@ fun parse(@Language("dcl") code: String): ParsedLightTree {
     val (wrappedCode, codeOffset, suffixLength) = wrapScriptIntoClassInitializerBlock(code)
     val lexer = KotlinLexer()
     return ParsedLightTree(
-        KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode)),
+        KotlinLightParser.parse(psiBuilderFactory.createBuilder(parserDefinition, lexer, wrappedCode), isScript = false),
         wrappedCode,
         codeOffset,
         suffixLength

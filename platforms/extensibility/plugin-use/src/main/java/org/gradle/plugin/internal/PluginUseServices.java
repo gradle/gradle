@@ -54,14 +54,13 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
-import org.gradle.plugin.software.internal.DefaultSoftwareFeatureApplicator;
-import org.gradle.plugin.software.internal.DefaultSoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.DefaultProjectFeatureApplicator;
+import org.gradle.plugin.software.internal.DefaultProjectFeatureRegistry;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
-import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
+import org.gradle.plugin.software.internal.ProjectFeatureRegistry;
+import org.gradle.plugin.software.internal.ProjectTypeAnnotationHandler;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
@@ -103,8 +102,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NullMarked
     private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
-        PropertyAnnotationHandler createSoftwareTypeAnnotationHandler() {
-            return new SoftwareTypeAnnotationHandler();
+        PropertyAnnotationHandler createProjectTypeAnnotationHandler() {
+            return new ProjectTypeAnnotationHandler();
         }
     }
 
@@ -130,6 +129,14 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
+        @SuppressWarnings("deprecation")
+        void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
+            DefaultProjectFeatureRegistry projectFeatureRegistry = new DefaultProjectFeatureRegistry(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
+            registration.add(org.gradle.plugin.software.internal.SoftwareTypeRegistry.class, projectFeatureRegistry);
+            registration.add(ProjectFeatureRegistry.class, projectFeatureRegistry);
+        }
+
+        @Provides
         AutoAppliedPluginRegistry createInjectedAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
             return new InjectedAutoAppliedPluginRegistry(buildDefinition);
         }
@@ -137,11 +144,6 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         PluginHandler createPluginHandler(List<AutoAppliedPluginRegistry> registries) {
             return new DefaultPluginHandler(new CompositeAutoAppliedPluginRegistry(registries));
-        }
-
-        @Provides
-        SoftwareTypeRegistry createSoftwareTypeRegistry(PluginScheme pluginScheme) {
-            return new DefaultSoftwareTypeRegistry(pluginScheme.getInspectionScheme());
         }
 
         @Provides
@@ -208,14 +210,23 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NullMarked
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareFeatureApplicator createSoftwareFeatureApplicator(
+        ProjectFeatureApplicator createProjectFeatureApplicator(
+            ProjectFeatureRegistry projectFeatureRegistry,
             ModelDefaultsApplicator modelDefaultsApplicator,
             PluginScheme pluginScheme,
             InternalProblems problems,
             PluginManagerInternal pluginManager,
             ProjectInternal project
         ) {
-            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager, project.getClassLoaderScope());
+            return new DefaultProjectFeatureApplicator(
+                projectFeatureRegistry,
+                modelDefaultsApplicator,
+                pluginScheme.getInspectionScheme(),
+                problems,
+                pluginManager,
+                project.getClassLoaderScope(),
+                project.getObjects()
+            );
         }
 
         @Provides

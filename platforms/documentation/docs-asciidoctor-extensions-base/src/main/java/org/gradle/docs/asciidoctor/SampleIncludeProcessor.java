@@ -23,7 +23,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +33,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
 
 public class SampleIncludeProcessor extends IncludeProcessor {
 
@@ -105,7 +107,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
 
     private static String getContent(String filePath) {
         try {
-            return new String(Files.readAllBytes(Paths.get(filePath)));
+            return new String(readAllBytes(Paths.get(filePath)), UTF_8);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read source file " + Paths.get(filePath).toAbsolutePath().toFile().getAbsolutePath());
         }

@@ -54,4 +54,7 @@ class NoOpInputsListener implements InstrumentedInputsListener {
 
     @Override
     public void directoryContentObserved(File file, String consumer) {}
+
+    @Override
+    public void startParameterProjectPropertiesObserved() {}
 }

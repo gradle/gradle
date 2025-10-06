@@ -26,12 +26,17 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.functional)
 
-    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.jspecify)
 
     integTestImplementation(projects.launcher)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+errorprone {
+    nullawayEnabled = true
 }

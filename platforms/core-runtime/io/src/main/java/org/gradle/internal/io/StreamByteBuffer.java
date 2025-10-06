@@ -16,6 +16,7 @@
 package org.gradle.internal.io;
 
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -41,16 +42,17 @@ import java.util.List;
  * Reading the buffer will clear the buffer.
  * This is not thread-safe, it is intended to be used by a single Thread.
  */
+@SuppressWarnings("NullAway") // TODO(mlopatkin): there are many violations, but they're confined in this class. We suppress to unblock downstream project's work.
 public class StreamByteBuffer {
     private static final int DEFAULT_CHUNK_SIZE = 4096;
     private static final int MAX_CHUNK_SIZE = 1024 * 1024;
-    private LinkedList<StreamByteBufferChunk> chunks = new LinkedList<StreamByteBufferChunk>();
+    private final LinkedList<StreamByteBufferChunk> chunks = new LinkedList<StreamByteBufferChunk>();
     private StreamByteBufferChunk currentWriteChunk;
-    private StreamByteBufferChunk currentReadChunk;
+    private @Nullable StreamByteBufferChunk currentReadChunk;
     private int nextChunkSize;
-    private int maxChunkSize;
-    private StreamByteBufferOutputStream output;
-    private StreamByteBufferInputStream input;
+    private final int maxChunkSize;
+    private final StreamByteBufferOutputStream output;
+    private final StreamByteBufferInputStream input;
     private int totalBytesUnreadInList;
 
     public StreamByteBuffer() {

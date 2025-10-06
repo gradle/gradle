@@ -53,4 +53,12 @@ public interface KotlinDslBaseScriptModel {
     @Incubating
     List<String> getImplicitImports();
 
+    /**
+     * Template classes used for interpreting Kotlin DSL scripts.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    List<String> getTemplateClassNames();
+
 }

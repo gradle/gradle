@@ -30,7 +30,7 @@ gradleModule {
 dependencies {
     api(projects.stdlibJavaExtensions)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 }
 
 errorprone {

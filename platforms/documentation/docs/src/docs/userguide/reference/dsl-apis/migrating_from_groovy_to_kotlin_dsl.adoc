@@ -485,7 +485,7 @@ Depending on your build structure you might be interested in the following user 
 
 * The <<writing_build_scripts_intermediate.adoc#writing_build_scripts,Writing Build Scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
 * The <<multi_project_builds#multi_project_builds,Multi-project Builds>> chapter demonstrates various multi-project build structures.
-* The <<custom_plugins#custom_plugins,Developing Custom Gradle Plugins>> and <<kotlin_dsl#kotdsl:kotlin_dsl,Gradle Kotlin DSL Primer>> chapters demonstrate how to develop custom Gradle plugins.
+* The <<plugins#custom_plugins,Developing Custom Gradle Plugins>> and <<kotlin_dsl#kotdsl:kotlin_dsl,Gradle Kotlin DSL Primer>> chapters demonstrate how to develop custom Gradle plugins.
 * The <<composite_builds#composite_builds,Composing builds>> chapter demonstrates how to use Composite Builds.
 
 

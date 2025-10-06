@@ -39,89 +39,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Publishing improvements
-
-#### New `PublishingExtension.getSoftwareComponentFactory()` method
-
-This release introduces a new method that exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service via the `publishing` extension, simplifying the creation of publishable components.
-In many cases, a component is already present. 
-For example, the bundled Java plugins already provide the `java` component by default.
-This new method is especially useful for plugin authors who want to create and publish custom components without needing to depend on the Java plugins.
-
-The following example shows how to use this new method to publish a custom component:
-
-```kotlin
-plugins {
-    id("maven-publish")
-}
-
-val consumableConfiguration: Configuration = getAConfiguration()
-
-publishing {
-    val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
-    myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
-    
-    publications {
-        create<MavenPublication>("maven") {
-            from(myCustomComponent)
-        }
-    }
-}
-```
-
-#### New provider-based methods for publishing configurations
-
-Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) which accept providers of consumable configurations:
-
-- [`void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#addVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
-- [`void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#withVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
-
-These complement the existing methods that accept realized configuration instances.
-
-With this new API, configurations can remain lazy and are only realized when actually needed for publishing.
-Consider the following example:
-
-```kotlin
-plugins {
-    id("base")
-    id("maven-publish")
-}
-
-group = "org.example"
-version = "1.0"
-
-val myTask = tasks.register<Jar>("myTask")
-val variantDependencies = configurations.dependencyScope("variantDependencies")
-val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configurations.consumable("myNewVariant") {
-    extendsFrom(variantDependencies.get())
-    outgoing {
-        artifact(myTask)
-    }
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
-    }
-}
-
-publishing {
-    val component = softwareComponentFactory.adhoc("component")
-    // This new overload now accepts a lazy provider of consumable configuration
-    component.addVariantsFromConfiguration(myNewVariant) {}
-
-    repositories {
-        maven {
-            url = uri("<your repo url>")
-        }
-    }
-    publications {
-        create<MavenPublication>("myPublication") {
-            from(component)
-        }
-    }
-}
-```
-
-With this approach, the `myNewVariant` configuration will only be realized if the `myPublication` publication is actually published.
-
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
@@ -171,11 +88,9 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-### Daemon toolchain is now stable
-
-Gradle introduced the [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) in Gradle 8.8 as an incubating feature.
-Since then the feature has been improved and stabilized.
-It is now considered stable and will no longer print an incubation warning when used.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 

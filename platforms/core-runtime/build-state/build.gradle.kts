@@ -41,7 +41,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serialization)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     testImplementation(projects.serviceRegistryImpl)
 }

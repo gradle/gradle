@@ -19,6 +19,7 @@ tasks.isolatedProjectsIntegTest {
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.buildOption)
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)
@@ -44,9 +45,9 @@ dependencies {
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(projects.buildEvents)
-    implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
+    implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.dependencyManagementSerializationCodecs)
     implementation(projects.encryptionServices)
@@ -72,10 +73,11 @@ dependencies {
     implementation(projects.toolingApi)
 
     implementation(libs.guava)
-    implementation(libs.jspecify)
     implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.jspecify)
 
     runtimeOnly(projects.beanSerializationServices)
     runtimeOnly(projects.compositeBuilds)

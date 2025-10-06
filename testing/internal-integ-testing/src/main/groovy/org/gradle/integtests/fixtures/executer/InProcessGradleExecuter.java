@@ -498,7 +498,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         private String path(Task task) {
-            return ((TaskInternal) task).getIdentityPath().getPath();
+            return ((TaskInternal) task).getIdentityPath().asString();
         }
     }
 

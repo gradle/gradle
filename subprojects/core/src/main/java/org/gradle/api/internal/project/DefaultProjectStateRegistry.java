@@ -159,7 +159,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         synchronized (lock) {
             ProjectStateImpl projectState = projectsByPath.get(identityPath);
             if (projectState == null) {
-                throw new IllegalArgumentException(identityPath.getPath() + " not found.");
+                throw new IllegalArgumentException(identityPath.asString() + " not found.");
             }
             return projectState;
         }
@@ -292,7 +292,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             if (identityPath.equals(Path.ROOT)) {
                 return Describables.withTypeAndName("root project", identity.getProjectName());
             } else {
-                return Describables.withTypeAndName("project", identityPath.getPath());
+                return Describables.withTypeAndName("project", identityPath.asString());
             }
         }
 

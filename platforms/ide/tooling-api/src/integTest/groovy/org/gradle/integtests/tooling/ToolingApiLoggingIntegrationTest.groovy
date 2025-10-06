@@ -169,6 +169,7 @@ project.logger.debug("debug logging");
         TextUtil.normaliseLineSeparators(output)
         // Must replace both build result formats for cross compat
             .replaceAll(/Unable to list file systems to check whether they can be watched.*\n/, '')
+            .replaceFirst(/Parallel Configuration Cache is an incubating feature.\n/, '')
             .replaceFirst(/Support for .* was deprecated.*\n/, '')
             .replaceFirst(/ in [ \dms]+/, " in 0ms")
             .replaceFirst("Total time: .+ secs", "Total time: 0 secs")

@@ -1,0 +1,19 @@
+
+> Task :projects
+
+Projects:
+
+------------------------------------------------------------
+Root project 'my-example-project'
+------------------------------------------------------------
+
+Project hierarchy:
+
+Root project 'my-example-project'
+No sub-projects
+
+To see a list of the tasks of a project, run gradle <project-path>:tasks
+For example, try running gradle :tasks
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

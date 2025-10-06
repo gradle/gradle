@@ -36,7 +36,7 @@ public abstract class ConfigurationDoesNotExistFailureDescriber extends Abstract
         if (isLocalComponent) {
             ProjectComponentIdentifierInternal id = (ProjectComponentIdentifierInternal) failure.getTargetComponent();
             Path outgoingVariantsPath = id.getIdentityPath().append(Path.path("outgoingVariants"));
-            resolutions.add("To determine which configurations are available in the target " + failure.getTargetComponent().getDisplayName() + ", run " + outgoingVariantsPath.getPath() + ".");
+            resolutions.add("To determine which configurations are available in the target " + failure.getTargetComponent().getDisplayName() + ", run " + outgoingVariantsPath.asString() + ".");
         }
 
         resolutions.addAll(buildResolutions(suggestReviewAlgorithm()));

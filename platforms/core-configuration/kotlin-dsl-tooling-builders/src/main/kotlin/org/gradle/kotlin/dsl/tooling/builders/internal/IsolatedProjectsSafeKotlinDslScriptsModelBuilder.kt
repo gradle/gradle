@@ -18,8 +18,8 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectHierarchyUtils
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
@@ -165,22 +165,22 @@ fun buildScriptModelsInHierarchy(
         }
     }
 
-    fun visit(project: Project) {
-        val children = ProjectHierarchyUtils.getChildProjectsForInternalUse(project).toList()
-        val childrenModels = intermediateModelProvider.getIsolatedModels(project, children)
+    fun visit(projectState: ProjectState) {
+        val children = projectState.childProjects.toList()
+        val childrenModels = intermediateModelProvider.getIsolatedModels(projectState, children)
         childrenModels.forEach { collect(it) }
         children.forEach { visit(it) }
     }
 
     collect(isolatedScriptsModelFor(rootProject))
-    visit(rootProject)
+    visit(rootProject.owner)
 
     return outputModels
 }
 
 
 private
-fun IntermediateToolingModelProvider.getIsolatedModels(requester: Project, targets: List<Project>): List<IsolatedScriptsModel> =
+fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, targets: List<ProjectState>): List<IsolatedScriptsModel> =
     getModels(requester, targets, IsolatedScriptsModel::class.java, null)
 
 
