@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
@@ -30,12 +31,12 @@ import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
 import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.protocol.resiliency.InternalFetchAwareBuildController;
-import org.gradle.tooling.internal.provider.connection.DefaultInternalFetchModelResult;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
@@ -44,6 +45,7 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -163,9 +165,28 @@ class DefaultBuildController
     public <T, M> InternalFetchModelResult<T, M> fetch(@Nullable T target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
             Object model = getModel(target, modelIdentifier, parameter).getModel();
-            return DefaultInternalFetchModelResult.ofModel(uncheckedNonnullCast(model));
+            return createDefaultFetchModelResult(target, uncheckedNonnullCast(model), ImmutableList.of());
         } catch (Exception e) {
-            return DefaultInternalFetchModelResult.ofFailure(DefaultFailure.fromThrowable(e));
+            return createDefaultFetchModelResult(target, null, ImmutableList.of(DefaultFailure.fromThrowable(e)));
         }
+    }
+
+    private static <T, M> InternalFetchModelResult<T, M> createDefaultFetchModelResult(@Nullable T target, @Nullable M model, Collection<InternalFailure> failures) {
+        return new InternalFetchModelResult<T, M>() {
+            @Override
+            public @Nullable T getTarget() {
+                return target;
+            }
+
+            @Override
+            public @Nullable M getModel() {
+                return model;
+            }
+
+            @Override
+            public Collection<InternalFailure> getFailures() {
+                return failures;
+            }
+        };
     }
 }
