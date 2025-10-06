@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.r940
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.r930.FetchBuildActionCrossVersionSpec.FetchGradleBuildAction
+import org.gradle.integtests.tooling.r930.FetchGradleBuildAction
 
 @ToolingApiVersion(">=9.3.0")
 @TargetGradleVersion(">=9.4.0")
