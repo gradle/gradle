@@ -18,7 +18,11 @@ package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 import java.util.Set;
 
@@ -41,10 +45,39 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         try {
             super.configureProjectsForModel(modelName);
         } catch (GradleException e) {
-            // For resilient models, ignore configuration failures
-            if (!RESILIENT_MODELS.contains(modelName)) {
-                throw e;
+            rethrowExceptionIfNotResilientModel(modelName, e);
+        }
+    }
+
+    private static void rethrowExceptionIfNotResilientModel(String modelName, GradleException e) {
+        // For resilient models, ignore configuration failures
+        if (!RESILIENT_MODELS.contains(modelName)) {
+            throw e;
+        }
+    }
+
+    @Override
+    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
+        return new ResilientProjectToolingScope(target, modelName, param);
+    }
+
+    private static class ResilientProjectToolingScope extends ProjectToolingScope {
+        public ResilientProjectToolingScope(ProjectState target, String modelName, boolean parameter) {
+            super(target, modelName, parameter);
+        }
+
+        @Override
+        ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
+            // Force configuration of the target project to ensure all builders have been registered, but ignore failures
+            try {
+                target.ensureConfigured();
+            } catch (GradleException e) {
+                rethrowExceptionIfNotResilientModel(modelName, e);
             }
+
+            ProjectInternal project = target.getMutableModelEvenAfterFailure();
+            ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
+            return lookup.locateForClientOperation(modelName, parameter, target, project);
         }
     }
 }

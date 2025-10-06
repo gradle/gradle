@@ -143,6 +143,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     ProjectInternal getMutableModel();
 
     /**
+     * Returns the mutable model for this project, just as {@link #getMutableModel()}, but works even in the presence of failures, for example when the project failed to configure.
+     */
+    ProjectInternal getMutableModelEvenAfterFailure();
+
+    /**
      * Returns the lock that will be acquired when accessing the mutable state of this project via {@link #applyToMutableState(Consumer)} and {@link #fromMutableState(Function)}.
      * A caller can optionally acquire this lock before calling one of these accessor methods, in order to avoid those methods blocking.
      *

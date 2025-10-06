@@ -100,7 +100,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectState.fromMutableState(_) >> { Function f -> f.apply(project) }
+        1 * projectState.runSync(_) >> { Supplier supplier -> supplier.get() }
         1 * application.reapply(_) >> { Supplier supplier -> supplier.get() }
         1 * builder2.buildAll("model", project) >> "result"
         0 * _
@@ -196,7 +196,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectState.fromMutableState(_) >> { Function factory -> factory.apply(project) }
+        1 * projectState.runSync (_) >> { Supplier supplier -> supplier.get() }
         1 * builder.buildAll("model", "param", project) >> "result"
         0 * _
     }

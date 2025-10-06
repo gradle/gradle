@@ -74,7 +74,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         buildController.configureProjects();
     }
 
-    private ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
+    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
         return new ProjectToolingScope(target, modelName, param);
     }
 
@@ -113,10 +113,10 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         }
     }
 
-    private static class ProjectToolingScope extends AbstractToolingScope {
-        private final ProjectState target;
-        private final String modelName;
-        private final boolean parameter;
+    protected static class ProjectToolingScope extends AbstractToolingScope {
+        protected final ProjectState target;
+        protected final String modelName;
+        protected final boolean parameter;
 
         public ProjectToolingScope(
             ProjectState target,
