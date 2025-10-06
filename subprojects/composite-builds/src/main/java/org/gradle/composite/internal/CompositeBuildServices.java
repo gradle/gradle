@@ -45,6 +45,8 @@ import org.gradle.internal.service.scopes.BrokenBuildsCapturingListener;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
+import java.util.Map;
+
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
     @Override
