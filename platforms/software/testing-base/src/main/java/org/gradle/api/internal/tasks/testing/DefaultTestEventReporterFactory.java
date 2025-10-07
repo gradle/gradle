@@ -37,7 +37,6 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.LongFunction;
-import java.util.function.Supplier;
 
 @NullMarked
 public final class DefaultTestEventReporterFactory implements TestEventReporterFactoryInternal {
@@ -61,7 +60,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     }
 
     @Override
-    public GroupTestEventReporter createTestEventReporter(String rootName, Directory binaryResultsDirectory, Directory htmlReportDirectory) {
+    public GroupTestEventReporter createTestEventReporter(String rootName, Directory binaryResultsDirectory, Directory htmlReportDirectory, boolean closeThrowsOnTestFailures) {
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
         // Renders console output for the task
@@ -77,7 +76,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             reportGenerator,
             testListenerInternalBroadcaster,
             false,
-            TestReportResult::noAction
+            closeThrowsOnTestFailures
         );
     }
 
@@ -88,7 +87,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         TestReportGenerator reportGenerator,
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
         boolean skipFirstLevelOnDisk,
-        Supplier<TestReportResult> detectOtherFailures
+        boolean closeThrowsOnTestFailures
     ) {
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
@@ -111,7 +110,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             resultsSerializingListener,
             reportGenerator,
             executionResultsListenerBroadcaster,
-            detectOtherFailures
+            closeThrowsOnTestFailures
         ));
     }
 }
