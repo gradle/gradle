@@ -76,7 +76,7 @@ abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVe
         executer.withTasks('test').run()
 
         then:
-        GenericHtmlTestExecutionResult result = resultsFor('tests/test', testFramework)
+        GenericHtmlTestExecutionResult result = resultsFor()
         result.assertTestPathsExecuted(
             ':org.gradle.SomeTestSuite:org.gradle.SomeTest:ok',
             ':org.gradle.SomeOtherTestSuite:org.gradle.SomeTest:ok'

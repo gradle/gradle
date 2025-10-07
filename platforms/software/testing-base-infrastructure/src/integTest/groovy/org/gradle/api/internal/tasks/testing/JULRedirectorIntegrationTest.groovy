@@ -33,6 +33,11 @@ final class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest i
         "He sleeps all night and he works all day."
     ]
 
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT4
+    }
+
     @Rule
     TestResources testResources = new TestResources(temporaryFolder)
 
@@ -48,7 +53,7 @@ final class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest i
         run("test")
 
         then:
-        def testResult = resultsFor(testDirectory, 'tests/test', TestFramework.JUNIT4)
+        def testResult = resultsFor()
         LYRICS.each {
             testResult.testPath("com.example.LumberJackTest", "singsTheSong").onlyRoot().assertStderr(not(containsString(it)))
         }
@@ -71,7 +76,7 @@ final class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest i
         run("test")
 
         then:
-        def testResult = resultsFor(testDirectory, 'tests/test', TestFramework.JUNIT4)
+        def testResult = resultsFor()
         LYRICS.each {
             testResult.testPath("com.example.LumberJackTest", "singsTheSong").onlyRoot().assertStderr(containsString(it))
         }

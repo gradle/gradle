@@ -38,6 +38,11 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
     @Rule
     Sample sample = new Sample(temporaryFolder)
 
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
+
     @UsesSample("testing/testReport/groovy")
     def "can generate report for subprojects"() {
         given:
@@ -47,7 +52,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
         run "testReport"
 
         then:
-        GenericTestExecutionResult testResults = resultsFor(testDirectory.file("testReport"), "allTests", GenericTestExecutionResult.TestFramework.JUNIT4)
+        GenericTestExecutionResult testResults = resultsFor(testDirectory.file("testReport"), "allTests")
 
         TestPathExecutionResult coreTest = testResults.testPath("org.gradle.sample.CoreTest:ok")
         coreTest.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
@@ -162,7 +167,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
         run "testReport"
 
         then:
-        def htmlReport = resultsFor(testDirectory, 'allTests', GenericTestExecutionResult.TestFramework.JUNIT4)
+        def htmlReport = resultsFor(testDirectory, 'allTests')
         htmlReport.testPath("org.gradle.testing.UnitTest").onlyRoot().assertChildCount(1, 0)
         htmlReport.testPath("org.gradle.testing.UnitTest", "foo").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
@@ -224,7 +229,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
         run "test"
 
         then:
-        resultsFor("tests/test", GenericTestExecutionResult.TestFramework.JUNIT4).testPath("LoggingTest", "test").onlyRoot()
+        resultsFor("tests/test").testPath("LoggingTest", "test").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(equalTo("This is stdout.\n"))
             .assertStderr(equalTo("This is stderr.\n"))

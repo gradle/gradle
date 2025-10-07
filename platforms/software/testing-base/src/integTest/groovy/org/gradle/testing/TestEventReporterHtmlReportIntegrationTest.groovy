@@ -27,6 +27,11 @@ import static org.hamcrest.CoreMatchers.equalTo
 
 class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.CUSTOM
+    }
+
     def "successful tests do not emit HTML reports to console"() {
         given:
         buildFile << passingTask("passing")
@@ -39,7 +44,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         outputDoesNotContain("Aggregate test results")
 
         // Aggregate results are still emitted even if we don't print the URL to console
-        aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        aggregateResults()
             .testPath(":passing suite")
             .onlyRoot()
             .assertChildCount(1, 0)
@@ -53,7 +58,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         succeeds("passing")
 
         then:
-        def results = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        def results = aggregateResults()
         results
             .testPath(":passing suite")
             .onlyRoot()
@@ -74,7 +79,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("failing")
 
         then:
-        def results = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        def results = aggregateResults()
         results
             .testPath(":failing suite:failing test")
             .onlyRoot()
@@ -92,14 +97,14 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasCause("Test(s) failed.")
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
-        resultsFor("tests/failing", GenericTestExecutionResult.TestFramework.CUSTOM)
+        resultsFor("tests/failing")
             .testPath(":failing suite")
             .onlyRoot()
             .assertChildCount(1, 1)
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
-        aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        aggregateResults()
             .testPath(":failing suite")
             .onlyRoot()
             .assertChildCount(1, 1)
@@ -118,7 +123,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
-        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        def aggregateResults = aggregateResults()
         aggregateResults.testPath(":passing suite")
             .onlyRoot()
             .assertChildCount(1, 0)
@@ -153,7 +158,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         def aggregateReportFile = file("build/reports/aggregate-test-results/index.html")
         def renderedUrl = new ConsoleRenderer().asClickableFileUrl(aggregateReportFile);
         outputContains("Aggregate test results: " + renderedUrl)
-        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        def aggregateResults = aggregateResults()
         aggregateResults.testPath(":failing1 suite")
             .onlyRoot()
             .assertChildCount(1, 1)

@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.junit.AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec
@@ -284,10 +285,12 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
         run('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('SomeLocaleTests')
-        result.testClass("SomeLocaleTests").assertTestCount(3, 0)
-        result.testClass("SomeLocaleTests").assertTestsExecuted('ok1 [de]', 'ok1 [en]', 'ok1 [fr]')
+        GenericHtmlTestExecutionResult result = resultsFor()
+        result.assertTestPathsExecuted(
+            ':SomeLocaleTests:SomeLocaleTests [de]:ok1 [de]',
+            ':SomeLocaleTests:SomeLocaleTests [en]:ok1 [en]',
+            ':SomeLocaleTests:SomeLocaleTests [fr]:ok1 [fr]'
+        )
     }
 
     def "can run parameterized tests with categories"() {
