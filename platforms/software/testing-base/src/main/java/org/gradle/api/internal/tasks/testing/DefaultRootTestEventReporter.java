@@ -16,20 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
@@ -41,11 +36,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private final SerializableTestResultStore.Writer testResultWriter;
     private final TestReportGenerator testReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
-    private final Supplier<TestEventReporterFactoryInternal.TestReportResult> tryReportFailures;
-
-    // Mutable state
-    @Nullable
-    private String failureMessage;
+    private final Supplier<Boolean> hasFailures;
 
     DefaultRootTestEventReporter(
         LongFunction<TestDescriptorInternal> rootDescriptorFactory,
@@ -55,7 +46,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         SerializableTestResultStore.Writer testResultWriter,
         TestReportGenerator testReportGenerator,
         TestExecutionResultsListener executionResultsListener,
-        Supplier<TestEventReporterFactoryInternal.TestReportResult> tryReportFailures
+        Supplier<Boolean> hasFailures
     ) {
         super(
             listener,
@@ -68,7 +59,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         this.testResultWriter = testResultWriter;
         this.testReportGenerator = testReportGenerator;
         this.executionResultsListener = executionResultsListener;
-        this.tryReportFailures = tryReportFailures;
+        this.hasFailures = hasFailures;
     }
 
     @Override
@@ -92,51 +83,9 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         }
 
         // Generate HTML report
-        Path reportIndexFile = testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
-
-        TestEventReporterFactoryInternal.TestReportResult reportResult = tryReportFailures.get();
-        String failureMessage = getFailureMessage(reportResult);
-        boolean hasTestFailures = failureMessage != null;
+        testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
         // Notify aggregate listener of final results
-        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasTestFailures);
-
-        if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.FailureReported) {
-            // Failures were reported by the tryReportFailures handler, so we don't need to throw an exception here.
-            return;
-        }
-
-        // Throw an exception with rendered test results, if necessary
-        if (hasTestFailures) {
-            if (reportIndexFile == null) {
-                // This can happen if we're given the NO_OP generator internally, in which case no report was requested so we will simply fail.
-                throw new MarkedVerificationException(failureMessage);
-            }
-            String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
-            throw new MarkedVerificationException(failureMessage + " See the report at: " + testResultsUrl);
-        }
-    }
-
-    @Nullable
-    private String getFailureMessage(TestEventReporterFactoryInternal.TestReportResult reportResult) {
-        String failureMessage;
-        if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) {
-            failureMessage = ((TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) reportResult).getFailureMessage();
-        } else if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.NoTestsRun) {
-            failureMessage = ((TestEventReporterFactoryInternal.TestReportResult.NoTestsRun) reportResult).getFailureMessage();
-        } else {
-            failureMessage = this.failureMessage;
-        }
-        return failureMessage;
-    }
-
-    @Override
-    public void failed(Instant endTime, String message, String additionalContent) {
-        if (TextUtil.isBlank(message)) {
-            this.failureMessage = "Test(s) failed.";
-        } else {
-            this.failureMessage = message;
-        }
-        super.failed(endTime, message, additionalContent);
+        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasFailures.get());
     }
 }

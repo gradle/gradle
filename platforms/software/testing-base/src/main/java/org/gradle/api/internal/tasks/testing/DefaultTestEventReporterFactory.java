@@ -89,7 +89,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             reportGenerator,
             testListenerInternalBroadcaster,
             false,
-            TestReportResult::noAction
+            () -> false
         );
     }
 
@@ -100,7 +100,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         TestReportGenerator reportGenerator,
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
         boolean skipFirstLevelOnDisk,
-        Supplier<TestReportResult> detectOtherFailures
+        Supplier<Boolean> hasFailures
     ) {
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
@@ -123,7 +123,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             resultsSerializingListener,
             reportGenerator,
             executionResultsListenerBroadcaster,
-            detectOtherFailures
+            hasFailures
         ));
     }
 }

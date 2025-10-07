@@ -34,10 +34,6 @@ public interface TestEventReporterFactory {
     /**
      * Returns an object that can be used to report test events.
      *
-     * <p>
-     * When closed, it will throw if the root node has been failed.
-     * </p>
-     *
      * @param rootName the name for the root node of the test tree
      * @param binaryResultsDirectory the directory to write binary test results to
      * @param htmlReportDirectory the directory to write HTML test reports to
