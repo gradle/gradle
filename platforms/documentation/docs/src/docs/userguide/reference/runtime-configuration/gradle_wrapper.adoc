@@ -260,7 +260,6 @@ $ ./gradlew wrapper --gradle-version latest   // MacOs, Linux
 ----
 $ gradlew.bat wrapper --gradle-version latest // Windows
 ----
-[subs="attributes"]
 ----
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
