@@ -20,8 +20,6 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Collection;
-
 // TODO: We should consider renaming every concat method here to "merge" or something,
 //       as these are not concatenation operations, and it is confusing to expect them
 //       to behave as such.  They REPLACE duplicate keys, and sometimes result in adding
@@ -57,15 +55,6 @@ public interface AttributesFactory {
     <T> ImmutableAttributes of(Attribute<T> key, T value);
 
     /**
-     * Returns an attribute container that contains the given list of attribute entries.
-     *
-     * @param entries the attribute entries the result should contain.
-     *
-     * @return immutable instance containing only the specified attribute entries.
-     */
-    ImmutableAttributes fromEntries(Collection<AttributeEntry<?>> entries);
-
-    /**
      * Merges the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
     <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value);
@@ -74,6 +63,15 @@ public interface AttributesFactory {
      * Merges the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
     <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
+
+    /**
+     * Same as {@link #concat(ImmutableAttributes, Attribute, Isolatable)} but with special handling for legacy Usage values.
+     *
+     * @deprecated In Gradle 10, we should no longer handle legacy Usage values specially,
+     * and calls to this method should be replaced with the standard concat method.
+     */
+    @Deprecated
+    <T> ImmutableAttributes concatPotentiallyLegacyUsage(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
 
     /**
      * Merges the primary container into the fallback container and returns the result. Values in the primary container win.

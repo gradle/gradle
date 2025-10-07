@@ -27,6 +27,8 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
@@ -38,6 +40,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttri
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
+import org.gradle.api.internal.attributes.UsageCompatibilityHandler;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
@@ -607,6 +610,7 @@ public class GradleModuleMetadataParser {
     }
 
     private ImmutableAttributes consumeAttributes(JsonReader reader) throws IOException {
+        String libraryElementsValue = null;
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
 
         reader.beginObject();
@@ -620,10 +624,24 @@ public class GradleModuleMetadataParser {
                 attributes = attributesFactory.concat(attributes, Attribute.of(attrName, Integer.class), attrValue);
             } else {
                 String attrValue = reader.nextString();
+                if (Usage.USAGE_ATTRIBUTE.getName().equals(attrName)) {
+                    // Handle potentially legacy Usage values. Unfortunately, "published metadata is forever",
+                    // so we need to handle this legacy value for the rest of time.
+                    String legacyUsage = UsageCompatibilityHandler.getReplacementUsage(attrValue);
+                    if (legacyUsage != null) {
+                        libraryElementsValue = UsageCompatibilityHandler.getLibraryElements(attrValue);
+                        attrValue = legacyUsage;
+                    }
+                }
                 attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), new CoercingStringValueSnapshot(attrValue, instantiator));
             }
         }
         reader.endObject();
+
+        // If a legacy Usage value was encountered, only add the corresponding LibraryElements value if there is not already one provided.
+        if (libraryElementsValue != null && attributes.findEntry(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName()) == null) {
+            attributes = attributesFactory.concat(attributes, Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(libraryElementsValue, instantiator));
+        }
 
         return attributes;
     }

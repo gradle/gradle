@@ -402,7 +402,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         // Kotlin doesn't support the latest JDK, see KotlinCompiler.toKotlinJvmTarget()
         // This must be synced with the older version listed in this test, so we can't reuse KotlinSupportedJdk's value here.
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion({
-            it.javaMajorVersion <= 21
+            it.javaMajorVersion <= 24
         }))
 
         given:
@@ -460,7 +460,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         where:
         kotlinPlugin | _
-        "2.0"        | _
+        "2.2"        | _
         "latest"     | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
