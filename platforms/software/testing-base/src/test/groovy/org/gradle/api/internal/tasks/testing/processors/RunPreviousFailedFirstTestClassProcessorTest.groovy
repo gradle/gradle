@@ -32,17 +32,17 @@ class RunPreviousFailedFirstTestClassProcessorTest extends Specification {
 
         when:
         processor.startProcessing(testResultProcessor)
-        ['Class1', 'Class2', 'Class3'].each { processor.processTestClass(new DefaultTestClassRunInfo(it)) }
+        ['Class1', 'Class2', 'Class3'].each { processor.processTestClass(new DefaultTestClassRunInfo(it, Collections.emptyList())) }
         processor.stop()
 
         then:
         1 * delegate.startProcessing(testResultProcessor)
         then:
-        1 * delegate.processTestClass(new DefaultTestClassRunInfo('Class3'))
+        1 * delegate.processTestClass(new DefaultTestClassRunInfo('Class3', Collections.emptyList()))
         then:
-        1 * delegate.processTestClass(new DefaultTestClassRunInfo('Class1'))
+        1 * delegate.processTestClass(new DefaultTestClassRunInfo('Class1', Collections.emptyList()))
         then:
-        1 * delegate.processTestClass(new DefaultTestClassRunInfo('Class2'))
+        1 * delegate.processTestClass(new DefaultTestClassRunInfo('Class2', Collections.emptyList()))
         then:
         1 * delegate.stop()
     }

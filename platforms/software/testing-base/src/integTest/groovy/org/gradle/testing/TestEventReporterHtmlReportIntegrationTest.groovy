@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
@@ -25,6 +26,11 @@ import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.equalTo
 
 class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.CUSTOM
+    }
 
     def "successful tests do not emit HTML reports to console"() {
         given:
@@ -41,7 +47,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         aggregateResults()
             .testPath(":passing suite")
             .onlyRoot()
-            .assertChildCount(1, 0, 0)
+            .assertChildCount(1, 0)
     }
 
     def "HTML report contains output at task level only"() {
@@ -90,18 +96,18 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasCause("Test(s) failed.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
-        resultsFor("failing")
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
+        resultsFor("tests/failing")
             .testPath(":failing suite")
             .onlyRoot()
-            .assertChildCount(1, 1, 0)
+            .assertChildCount(1, 1)
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
         aggregateResults()
             .testPath(":failing suite")
             .onlyRoot()
-            .assertChildCount(1, 1, 0)
+            .assertChildCount(1, 1)
     }
 
     def "does not print aggregate test results URL if only one test task fails"() {
@@ -113,17 +119,17 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("passing", "failing", "--continue")
 
         then:
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
         def aggregateResults = aggregateResults()
         aggregateResults.testPath(":passing suite")
             .onlyRoot()
-            .assertChildCount(1, 0, 0)
+            .assertChildCount(1, 0)
         aggregateResults.testPath(":failing suite")
             .onlyRoot()
-            .assertChildCount(1, 1, 0)
+            .assertChildCount(1, 1)
     }
 
     def "prints aggregate test results URL if multiple test tasks fail"() {
@@ -136,29 +142,29 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("Execution failed for task ':failing1'.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing1"))
-        resultsFor("failing1")
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing1"))
+        resultsFor("tests/failing1")
             .testPath("failing1 suite")
             .onlyRoot()
-            .assertChildCount(1, 1, 0)
+            .assertChildCount(1, 1)
 
         failure.assertHasDescription("Execution failed for task ':failing2'.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing2"))
-        resultsFor("failing2")
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing2"))
+        resultsFor("tests/failing2")
             .testPath("failing2 suite")
             .onlyRoot()
-            .assertChildCount(1, 1, 0)
+            .assertChildCount(1, 1)
 
         def aggregateReportFile = file("build/reports/aggregate-test-results/index.html")
         def renderedUrl = new ConsoleRenderer().asClickableFileUrl(aggregateReportFile);
         outputContains("Aggregate test results: " + renderedUrl)
         def aggregateResults = aggregateResults()
-        aggregateResults.testPath("failing1 suite")
+        aggregateResults.testPath(":failing1 suite")
             .onlyRoot()
-            .assertChildCount(1, 1, 0)
-        aggregateResults.testPath("failing2 suite")
+            .assertChildCount(1, 1)
+        aggregateResults.testPath(":failing2 suite")
             .onlyRoot()
-            .assertChildCount(1, 1, 0)
+            .assertChildCount(1, 1)
     }
 
     def "stale aggregate reports are deleted if no tests were executed"() {
@@ -193,7 +199,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasFailures(2)
 
-        def aggregateResults = aggregateResults()
+        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
         assert aggregateResults.testPath(":").rootNames == ["aFirst", "bSecond", "cThird", "dFourth"]
     }
 
@@ -218,16 +224,16 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                         getLayout().getBuildDirectory().dir("test-results/\${getChangingString().get()}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/\${getChangingString().get()}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("TheSameName suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             try (def myTest = mySuite.reportTest("\${getChangingString().get()} test", "\${getChangingString().get()} test")) {
-                                 myTest.started(java.time.Instant.now())
-                                 myTest.succeeded(java.time.Instant.now())
+                                 myTest.started(Instant.now())
+                                 myTest.succeeded(Instant.now())
                             }
-                            mySuite.succeeded(java.time.Instant.now())
+                            mySuite.succeeded(Instant.now())
                        }
-                       reporter.succeeded(java.time.Instant.now())
+                       reporter.succeeded(Instant.now())
                    }
                 }
             }
@@ -249,13 +255,13 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         results
             .testPath("TheSameName suite")
             .root("TheSameName (1)")
-            .assertChildCount(1, 0, 0)
-            .assertChildrenExecuted("theSameName1 test")
+            .assertChildCount(1, 0)
+            .assertOnlyChildrenExecuted("theSameName1 test")
         results
             .testPath("TheSameName suite")
             .root("TheSameName (2)")
-            .assertChildCount(1, 0, 0)
-            .assertChildrenExecuted("theSameName2 test")
+            .assertChildCount(1, 0)
+            .assertOnlyChildrenExecuted("theSameName2 test")
     }
 
     def passingTask(String name, boolean print = false) {
@@ -276,18 +282,18 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                         getLayout().getBuildDirectory().dir("test-results/${name}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             try (def myTest = mySuite.reportTest("${name} test", "passing test")) {
-                                 myTest.started(java.time.Instant.now())
-                                 ${print ? 'myTest.output(java.time.Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut, "standard out text")' : ""}
-                                 ${print ? 'myTest.output(java.time.Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr, "standard error text")' : ""}
-                                 myTest.succeeded(java.time.Instant.now())
+                                 myTest.started(Instant.now())
+                                 ${print ? 'myTest.output(Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut, "standard out text")' : ""}
+                                 ${print ? 'myTest.output(Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr, "standard error text")' : ""}
+                                 myTest.succeeded(Instant.now())
                             }
-                            mySuite.succeeded(java.time.Instant.now())
+                            mySuite.succeeded(Instant.now())
                        }
-                       reporter.succeeded(java.time.Instant.now())
+                       reporter.succeeded(Instant.now())
                    }
                 }
             }
@@ -314,16 +320,16 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                         getLayout().getBuildDirectory().dir("test-results/${name}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
-                                 myTest.started(java.time.Instant.now())
-                                 myTest.failed(java.time.Instant.now(), "failure message")
+                                 myTest.started(Instant.now())
+                                 myTest.failed(Instant.now(), "failure message")
                             }
-                            mySuite.failed(java.time.Instant.now())
+                            mySuite.failed(Instant.now())
                        }
-                       reporter.failed(java.time.Instant.now())
+                       reporter.failed(Instant.now())
                    }
                 }
             }

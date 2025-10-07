@@ -16,19 +16,20 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
-
 /**
  * Ensures test behavior and actual application behavior are equivalent when
  * production code attempts to perform reflection on JDK internals.
  */
-class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationSpec {
+class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
     def setup() {
         buildFile << """
@@ -83,9 +84,9 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
 
         expect:
         fails "test"
-        def results = new DefaultTestExecutionResult(file("."))
-        results.assertTestClassesExecuted("example.MainTest")
-        results.testClass("example.MainTest").assertTestFailed("runTest", containsString('module java.base does not open java.lang to unnamed module'))
+        def results = resultsFor('tests/test', TestFramework.JUNIT4)
+        results.testPath("example.MainTest", "runTest").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString('module java.base does not open java.lang to unnamed module'))
     }
 
     @Requires(UnitTestPreconditions.Jdk16OrLater)

@@ -16,8 +16,9 @@
 
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Issue
 
@@ -25,7 +26,7 @@ import spock.lang.Issue
  * These tests demonstrate what is and isn't allowed in terms of modifying the {@link org.gradle.api.tasks.testing.TestFrameworkOptions TestFrameworkOptions}
  * provided to a {@link org.gradle.api.tasks.testing.Test Test} task.
  */
-class TestOptionsIntegrationSpec extends AbstractIntegrationSpec {
+class TestOptionsIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def setup() {
         buildFile << """
         plugins {
@@ -153,7 +154,7 @@ public class SomeIntegTestClass {
         given:
         buildFile << """
         dependencies {
-            testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+            testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
             testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         }
 
@@ -438,13 +439,13 @@ public class SomeIntegTestClass {
         succeeds("check")
     }
 
-    private void assertTestsExecuted() {
-        def result = new HtmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("org.example.SomeTestClass")
+    private void assertTestsExecuted(TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        def result = resultsFor('tests/test', testFramework)
+        result.assertAtLeastTestPathsExecuted("org.example.SomeTestClass")
     }
 
-    private void assertIntegTestsExecuted() {
-        def result = new HtmlTestExecutionResult(testDirectory, "build/reports/tests/integTest")
-        result.assertTestClassesExecuted("org.example.SomeIntegTestClass")
+    private void assertIntegTestsExecuted(TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        def result = resultsFor("/tests/integTest", testFramework)
+        result.assertAtLeastTestPathsExecuted("org.example.SomeIntegTestClass")
     }
 }

@@ -28,7 +28,7 @@ public interface TestClassConsumer {
     /**
      * Consumes a class-based test given the class's name.
      *
-     * @param testClassName The FQN of the test class to consume
+     * @param testClassInfo Specifies the test class to consume
      */
-    void consumeClass(String testClassName);
+    void consumeClass(TestClassRunInfo testClassInfo);
 }

@@ -26,7 +26,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultTestLoggingContainerTest extends Specification {
-    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(TestUtil.instantiatorFactory().decorateLenient())
+    DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(TestUtil.objectFactory())
 
     def "sets defaults for level ERROR"() {
         def logging = container.get(LogLevel.ERROR)

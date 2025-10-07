@@ -41,7 +41,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         succeeds('test', 'jacocoTestReport')
 
         then:
-        file(REPORTING_BASE).listFiles().collect { it.name } as Set == ["jacoco", "tests"] as Set
+        file(REPORTING_BASE).listFiles().collect { it.name } as Set == ["jacoco", "tests", "aggregate-test-results"] as Set
         file(REPORT_HTML_DEFAULT_PATH).exists()
         file("${REPORTING_BASE}/jacoco/test").listFiles().collect { it.name } == ["html"]
         file("${REPORTING_BASE}/jacoco/test/html/org.gradle/Class1.java.html").exists()

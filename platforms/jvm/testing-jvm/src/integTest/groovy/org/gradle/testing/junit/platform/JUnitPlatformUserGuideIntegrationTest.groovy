@@ -62,11 +62,11 @@ class DisplayNameDemo2 {
             .assertTestClassesExecutedJudgementByXml('A special test case', 'A special test case2')
         result.testClassByHtml('org.gradle.DisplayNameDemo')
             .assertDisplayName('A special test case')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('testWithDisplayNameContainingSpaces', 'Custom test name containing spaces')
         result.testClassByHtml('org.gradle.DisplayNameDemo2')
             .assertDisplayName('A special test case2')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('testWithDisplayNameContainingSpecialCharacters', '╯°□°）╯')
     }
 
@@ -190,12 +190,15 @@ class TestingAStackDemo {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClassByHtml('org.gradle.TestingAStackDemo').assertTestCount(1, 0, 0)
+        result.testClassByHtml('org.gradle.TestingAStackDemo')
+            .assertTestCount(1, 0)
             .assertTestPassed('isInstantiatedWithNew', 'is instantiated with new Stack')
-        result.testClassByHtml('org.gradle.TestingAStackDemo$WhenNew').assertTestCount(2, 0, 0)
+        result.testClassByHtml('org.gradle.TestingAStackDemo$WhenNew')
+            .assertTestCount(2, 0)
             .assertTestPassed('isEmpty', 'is empty')
             .assertTestPassed('throwsExceptionWhenPopped', 'throws EmptyStackException when popped')
-        result.testClassByHtml('org.gradle.TestingAStackDemo$WhenNew$AfterPushing').assertTestCount(1, 0, 0)
+        result.testClassByHtml('org.gradle.TestingAStackDemo$WhenNew$AfterPushing')
+            .assertTestCount(1, 0)
             .assertTestPassed('isNotEmpty', 'it is no longer empty')
 
         where:
@@ -243,7 +246,8 @@ class TestInfoDemo {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClassByHtml('org.gradle.TestInfoDemo').assertTestCount(2, 0, 0)
+            .testClassByHtml('org.gradle.TestInfoDemo')
+            .assertTestCount(2, 0)
             .assertTestPassed('test2', 'test2')
             .assertTestPassed('test1(TestInfo)', 'TEST 1')
 
@@ -278,7 +282,8 @@ public class ExtensionTest {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('org.gradle.ExtensionTest').assertTestCount(2, 0, 0)
+        result.testClass('org.gradle.ExtensionTest')
+            .assertTestCount(2, 0)
             .assertStdout(containsString('Created!'))
     }
 
@@ -316,7 +321,8 @@ public class Test implements TestInterfaceDynamicTestsDemo {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClassByHtml('org.gradle.Test').assertTestCount(2, 0, 0)
+            .testClassByHtml('org.gradle.Test')
+            .assertTestCount(2, 0)
             .assertTestPassed('dynamicTestsFromCollection()[1]', '1st dynamic test in test interface')
             .assertTestPassed('dynamicTestsFromCollection()[2]', '2nd dynamic test in test interface')
             .assertStdout(containsString('Invoked!'))
@@ -350,7 +356,8 @@ public class Test {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClassByHtml('org.gradle.Test').assertTestCount(3, 0, 0)
+            .testClassByHtml('org.gradle.Test')
+            .assertTestCount(3, 0)
             .assertTestPassed('ok(String)[1]', '[1] a')
             .assertTestPassed('ok(String)[2]', '[2] b')
             .assertTestPassed('ok(String)[3]', '[3] c')
@@ -418,7 +425,8 @@ public class TestTemplateTest {
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClassByHtml('org.gradle.TestTemplateTest').assertTestCount(2, 0, 0)
+            .testClassByHtml('org.gradle.TestTemplateTest')
+            .assertTestCount(2, 0)
             .assertTestPassed('testTemplate(String)[1]', 'foo')
             .assertTestPassed('testTemplate(String)[2]', 'bar')
     }
