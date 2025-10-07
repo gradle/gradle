@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 
 public class ResolutionResultPrinter {
@@ -25,6 +26,8 @@ public class ResolutionResultPrinter {
             sb.append(indent + dep + "\n");
             return
         }
+        dep = dep as ResolvedDependencyResult
+
         if (!visited.add(dep.getSelected())) {
             return
         }
@@ -35,13 +38,14 @@ public class ResolutionResultPrinter {
         }
     }
 
-    static String printGraph(ResolvedComponentResult root) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(root).append("\n");
+    static String printGraph(ResolvedDependencyGraph graph) {
+        ResolvedComponentResult root = graph.rootComponent
+        StringBuilder sb = new StringBuilder()
+        sb.append(root).append("\n")
         for (DependencyResult d : root.getDependencies()) {
-            printNode(d, sb, new HashSet(), "  ");
+            printNode(d, sb, new HashSet(), "  ")
         }
 
-        sb.toString();
+        sb.toString()
     }
 }
