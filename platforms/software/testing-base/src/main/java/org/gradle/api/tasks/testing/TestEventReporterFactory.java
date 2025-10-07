@@ -42,9 +42,30 @@ public interface TestEventReporterFactory {
      *
      * @since 8.13
      */
-    GroupTestEventReporter createTestEventReporter(
+    default GroupTestEventReporter createTestEventReporter(
         String rootName,
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory
+    ) {
+        return createTestEventReporter(rootName, binaryResultsDirectory, htmlReportDirectory, true);
+    }
+
+    /**
+     * Returns an object that can be used to report test events.
+     *
+     * @param rootName the name for the root node of the test tree
+     * @param binaryResultsDirectory the directory to write binary test results to
+     * @param htmlReportDirectory the directory to write HTML test reports to
+     * @param failOnTestFailures whether the test task should fail if there are test failures
+     *
+     * @return the test event reporter
+     *
+     * @since 9.3.0
+     */
+    GroupTestEventReporter createTestEventReporter(
+        String rootName,
+        Directory binaryResultsDirectory,
+        Directory htmlReportDirectory,
+        boolean failOnTestFailures
     );
 }

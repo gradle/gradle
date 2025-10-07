@@ -21,13 +21,13 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.function.LongFunction;
-import java.util.function.Supplier;
 
 @NullMarked
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
@@ -36,7 +36,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private final SerializableTestResultStore.Writer testResultWriter;
     private final TestReportGenerator testReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
-    private final Supplier<Boolean> hasFailures;
+    private final Lazy<Boolean> failureChecker;
 
     DefaultRootTestEventReporter(
         LongFunction<TestDescriptorInternal> rootDescriptorFactory,
@@ -46,7 +46,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         SerializableTestResultStore.Writer testResultWriter,
         TestReportGenerator testReportGenerator,
         TestExecutionResultsListener executionResultsListener,
-        Supplier<Boolean> hasFailures
+        Lazy<Boolean> failureChecker
     ) {
         super(
             listener,
@@ -59,7 +59,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         this.testResultWriter = testResultWriter;
         this.testReportGenerator = testReportGenerator;
         this.executionResultsListener = executionResultsListener;
-        this.hasFailures = hasFailures;
+        this.failureChecker = failureChecker;
     }
 
     @Override
@@ -86,6 +86,10 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
         // Notify aggregate listener of final results
-        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasFailures.get());
+        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasFailures());
+    }
+
+    public boolean hasFailures() {
+        return failureChecker.get();
     }
 }
