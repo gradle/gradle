@@ -77,6 +77,11 @@ public class SomeIntegTestClass {
     }
     // region default test suite
 
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT_JUPITER
+    }
+
     def "can set test framework in default test suite prior to setting options within test task"() {
         given:
         buildFile << """
