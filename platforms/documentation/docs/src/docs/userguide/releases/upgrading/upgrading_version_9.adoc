@@ -48,6 +48,25 @@ The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[W
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
+[[deprecate_legacy_usage_values]]
+==== Deprecation of legacy Usage attribute values
+
+Since Gradle 5.6, the link:{javadocPath}/org/gradle/api/attributes/Usage.html[`Usage`] attribute was split into a separate link:{javadocPath}/org/gradle/api/attributes/LibraryElements.html[`LibraryElements`] attribute.
+In the JVM ecosystem, `Usage` controls whether a variant is intended for compilation or runtime, while `LibraryElements` controls the format of the artifact (for example, JAR or classes directory).
+
+In order to ease the migration, Gradle automatically maps legacy `Usage` values to the corresponding `Usage` and `LibraryElements` values:
+|===
+| Legacy `Usage`           | Replaced `Usage` | Replaced `LibraryElements`
+| `java-api-jars`          | `java-api`       | `jar`
+| `java-api-classes`       | `java-api`       | `classes`
+| `java-runtime-jars`      | `java-runtime`   | `jar`
+| `java-runtime-classes`   | `java-runtime`   | `classes`
+| `java-runtime-resources` | `java-runtime`   | `resources`
+|===
+
+Starting in Gradle 10, Gradle will no longer perform this automatic mapping when a legacy `Usage` value is added to an `AttributeContainer` in build logic.
+In order to maintain backward compatibility with published metadata, Gradle will continue to translate legacy `Usage` values found in published Gradle Module Metadata.
+
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 
