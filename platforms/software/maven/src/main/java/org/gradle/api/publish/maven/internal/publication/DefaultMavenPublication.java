@@ -54,6 +54,7 @@ import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.artifact.AbstractMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.artifact.DerivedMavenArtifact;
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactInternal;
 import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtifact;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
@@ -364,7 +365,12 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
     @Override
     public MavenArtifact addDerivedArtifact(MavenArtifact originalArtifact, DerivedArtifact file) {
-        MavenArtifact artifact = new DerivedMavenArtifact((AbstractMavenArtifact) originalArtifact, file, taskDependencyFactory);
+        MavenArtifact artifact = new DerivedMavenArtifact(
+            (AbstractMavenArtifact) originalArtifact,
+            file,
+            taskDependencyFactory,
+            false
+        );
         derivedArtifacts.add(artifact);
         return artifact;
     }
@@ -563,19 +569,21 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         return artifactPath.toString();
     }
 
-    private static class SerializableMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
+    static class SerializableMavenArtifact implements MavenArtifactInternal, PublicationArtifactInternal {
 
         private final File file;
         private final String extension;
         private final String classifier;
         private final boolean shouldBePublished;
+        private final boolean enableChecksumFileGeneration;
 
         public SerializableMavenArtifact(MavenArtifact artifact) {
-            PublicationArtifactInternal artifactInternal = (PublicationArtifactInternal) artifact;
+            AbstractMavenArtifact artifactInternal = (AbstractMavenArtifact) artifact;
             this.file = artifact.getFile();
             this.extension = artifact.getExtension();
             this.classifier = artifact.getClassifier();
             this.shouldBePublished = artifactInternal.shouldBePublished();
+            this.enableChecksumFileGeneration = artifactInternal.enableChecksumFileGeneration();
         }
 
         @Override
@@ -618,6 +626,10 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         public boolean shouldBePublished() {
             return shouldBePublished;
         }
-    }
 
+        @Override
+        public boolean enableChecksumFileGeneration() {
+            return enableChecksumFileGeneration;
+        }
+    }
 }

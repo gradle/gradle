@@ -18,14 +18,13 @@ package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.base.Strings;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
-public abstract class AbstractMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
+public abstract class AbstractMavenArtifact implements MavenArtifactInternal, PublicationArtifactInternal {
     private final TaskDependency allBuildDependencies;
     private final DefaultTaskDependency additionalBuildDependencies;
     private String extension;
