@@ -35,6 +35,14 @@ class KotlinDslKgpMismatchIntegrationTest : AbstractKotlinIntegrationTest() {
         Assume.assumeTrue(higherKotlinVersions.isNotEmpty())
         val higherKotlinVersion = higherKotlinVersions.last()
 
+        withSettings("""
+            dependencyResolutionManagement {
+                repositories {
+                    mavenCentral()
+                }
+            }
+        """.trimIndent())
+
         withBuildScript(
             """
                 plugins {
@@ -69,7 +77,13 @@ class KotlinDslKgpMismatchIntegrationTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        withDefaultSettings()
+        withSettings("""
+            dependencyResolutionManagement {
+                repositories {
+                    mavenCentral()
+                }
+            }
+        """.trimIndent())
 
         withBuildScript(
             """
