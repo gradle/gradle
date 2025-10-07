@@ -33,6 +33,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHea
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import spock.lang.Specification
 import spock.lang.Subject
@@ -193,13 +194,16 @@ class DependencyInsightReporterSpec extends Specification {
         spec()
     }
 
+    private static DefaultResolvedComponentResult component(String group, String name, String version, ComponentSelectionReason selectionReason) {
+        def moduleId = DefaultModuleIdentifier.newId(group, name)
+        def variant = defaultVariant()
+        new DefaultResolvedComponentResult(DefaultModuleVersionIdentifier.newId(moduleId, version), selectionReason, DefaultModuleComponentIdentifier.newId(moduleId, version), ImmutableMap.of(1L, variant), ImmutableList.of(variant), "repoId")
+    }
+
     private static DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested()) {
-        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId")
-        new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId(group, name), requested),
-                false,
-                selectedModule,
-                null,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), selected), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId"))
+        def fromComponent = component("a", "root", "1", ComponentSelectionReasons.requested())
+        def toComponent = component(group, name, selected, selectionReason)
+        new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), requested), false, toComponent, toComponent.getVariant(1L), fromComponent)
     }
 
     private static DefaultResolvedVariantResult defaultVariant(String ownerGroup = 'com', String ownerModule = 'foo', String ownerVersion = '1.0') {

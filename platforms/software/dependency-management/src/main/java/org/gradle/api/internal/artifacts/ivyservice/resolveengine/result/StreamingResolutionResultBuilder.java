@@ -52,7 +52,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 public class StreamingResolutionResultBuilder implements DependencyGraphVisitor {
     private final static byte ROOT = 1;
     private final static byte COMPONENT = 2;
-    private final static byte DEPENDENCY = 5;
+    private final static byte NODE_DEPENDENCIES = 5;
 
     private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<>();
     private final BinaryStore store;
@@ -133,7 +133,6 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
     @Override
     public void visitEdges(DependencyGraphNode node) {
-        final long fromComponent = node.getOwner().getResultId();
         final Collection<? extends DependencyGraphEdge> dependencies = mayHaveVirtualPlatforms
             ? node.getOutgoingEdges().stream()
             .filter(dep -> !dep.isTargetVirtualPlatform())
@@ -141,8 +140,9 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             : node.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(encoder -> {
-                encoder.writeByte(DEPENDENCY);
-                encoder.writeSmallLong(fromComponent);
+                encoder.writeByte(NODE_DEPENDENCIES);
+                encoder.writeSmallLong(node.getNodeId());
+                encoder.writeSmallLong(node.getOwner().getResultId());
                 encoder.writeSmallInt(dependencies.size());
                 for (DependencyGraphEdge dependency : dependencies) {
                     dependencyResultSerializer.write(encoder, dependency);
@@ -216,22 +216,23 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                             // Last entry, complete the result
                             long rootVariantId = decoder.readSmallLong();
                             long rootComponentId = decoder.readSmallLong();
-                            builder.addDependencyLockingFailures(rootComponentId, dependencyLockingFailures);
+                            builder.addDependencyLockingFailures(rootComponentId, rootVariantId, dependencyLockingFailures);
                             ResolvedDependencyGraph graph = builder.getResolvedGraph(rootComponentId, rootVariantId);
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
                             return graph;
                         case COMPONENT:
                             componentResultSerializer.readComponentResult(decoder, builder);
                             break;
-                        case DEPENDENCY:
-                            long fromId = decoder.readSmallLong();
+                        case NODE_DEPENDENCIES:
+                            long fromVariantId = decoder.readSmallLong();
+                            long fromComponentId = decoder.readSmallLong();
                             int size = decoder.readSmallInt();
                             if (size > 0) {
                                 List<ResolvedGraphDependency> deps = new ArrayList<>(size);
                                 for (int i = 0; i < size; i++) {
                                     deps.add(dependencyResultSerializer.read(decoder, failures));
                                 }
-                                builder.visitOutgoingEdges(fromId, deps);
+                                builder.visitOutgoingEdges(fromComponentId, fromVariantId, deps);
                             }
                             break;
                         default:
