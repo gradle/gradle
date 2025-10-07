@@ -363,7 +363,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
                 attributes {
                     attribute(
                         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                        named(LibraryElements::class, LibraryElements.JAR)
+                        named(LibraryElements.JAR)
                     )
                 }
             }
