@@ -82,4 +82,8 @@ public abstract class AbstractMavenArtifact implements MavenArtifactInternal, Pu
         return getClass().getSimpleName() + " " + getExtension() + ":" + getClassifier();
     }
 
+    @Override
+    public boolean enableChecksumFileGeneration() {
+        return true;
+    }
 }
