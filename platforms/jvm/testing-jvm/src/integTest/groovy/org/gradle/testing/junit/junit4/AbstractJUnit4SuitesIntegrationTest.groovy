@@ -244,7 +244,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         executer.withTasks('test').run()
 
         then:
-        GenericTestExecutionResult result = resultsFor('tests/test', testFramework)
+        GenericTestExecutionResult result = resultsFor()
         result.assertTestPathsExecuted(
             ':org.gradle.SomeSuite:org.gradle.SomeTest1:testOk1',
             ':org.gradle.SomeSuite:org.gradle.SomeTest2:testOk2'

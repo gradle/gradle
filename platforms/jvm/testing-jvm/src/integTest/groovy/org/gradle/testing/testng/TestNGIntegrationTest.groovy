@@ -31,7 +31,12 @@ import static org.hamcrest.CoreMatchers.not
 
 @TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
 class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
-    private testResults = resultsFor(testDirectory, 'tests/test', GenericTestExecutionResult.TestFramework.TEST_NG)
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
+
+    private testResults = resultsFor()
 
     def setup() {
         executer.noExtraLogging()

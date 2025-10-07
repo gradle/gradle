@@ -34,19 +34,21 @@ trait VerifiesGenericTestReportResults {
         renderedUrl
     }
 
-    GenericHtmlTestExecutionResult resultsFor(String testTaskReportsDirPath = 'tests/test', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        return resultsFor(testDirectory, testTaskReportsDirPath, testFramework)
+    abstract TestFramework getTestFramework()
+
+    GenericHtmlTestExecutionResult resultsFor(String testTaskReportsDirPath = 'tests/test', TestFramework testFramework = null) {
+        return resultsFor(testDirectory, testTaskReportsDirPath, testFramework ?: getTestFramework())
     }
 
-    GenericHtmlTestExecutionResult resultsFor(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/${testTaskReportsDirPath}", testFramework)
+    GenericHtmlTestExecutionResult resultsFor(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', TestFramework testFramework = null) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/${testTaskReportsDirPath}", testFramework ?: getTestFramework())
     }
 
-    GenericHtmlTestExecutionResult aggregateResults(String testTaskReportsDirPath = '', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        return aggregateResults(testDirectory, testTaskReportsDirPath, 'aggregate-test-results', testFramework)
+    GenericHtmlTestExecutionResult aggregateResults(String testTaskReportsDirPath = '', TestFramework testFramework = null) {
+        return aggregateResults(testDirectory, testTaskReportsDirPath, 'aggregate-test-results', testFramework ?: getTestFramework())
     }
 
-    GenericHtmlTestExecutionResult aggregateResults(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', String reportName = 'aggregate-test-results', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/$testTaskReportsDirPath/$reportName", testFramework)
+    GenericHtmlTestExecutionResult aggregateResults(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', String reportName = 'aggregate-test-results', TestFramework testFramework = null) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/$testTaskReportsDirPath/$reportName", testFramework ?: getTestFramework())
     }
 }
