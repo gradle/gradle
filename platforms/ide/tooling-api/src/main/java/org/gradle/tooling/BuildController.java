@@ -226,8 +226,8 @@ public interface BuildController {
     void send(Object value);
 
     /**
-     * Fetches a snapshot of the model of the given type for the default project.
-     * This is a convenience method for {@code fetch(null, modelType, null, null)}.
+     * Fetches a snapshot of the model of the given type for the default project using resilient model fetching.
+     * <p>See {@link #fetch(Model, Class, Class, Action)} for more details about resilient fetching.</p>
      *
      * @param modelType The model type.
      * @param <M> The model type.
@@ -238,8 +238,8 @@ public interface BuildController {
     <M> FetchModelResult<Model, M> fetch(Class<M> modelType);
 
     /**
-     * Fetches a snapshot of the model of the given type for the given element.
-     * This is a convenience method for {@code fetch(target, modelType, null, null)}.
+     * Fetches a snapshot of the model of the given type for the given element using resilient model fetching.
+     * <p>See {@link #fetch(Model, Class, Class, Action)} for more details about resilient fetching.</p>
      *
      * @param target The target element, usually a project.
      * @param modelType The model type.
@@ -252,8 +252,8 @@ public interface BuildController {
     <T extends Model, M> FetchModelResult<T, M> fetch(T target, Class<M> modelType);
 
     /**
-     * Fetches a snapshot of the model of the given type using the given parameter.
-     * This is a convenience method for {@code fetch(null, modelType, parameterType, parameterInitializer)}.
+     * Fetches a snapshot of the model of the given type using the given parameter using resilient model fetching.
+     * <p>See {@link #fetch(Model, Class, Class, Action)} for more details about resilient fetching.</p>
      *
      * @param modelType The model type.
      * @param <M> The model type.
@@ -266,13 +266,30 @@ public interface BuildController {
     @Incubating
     <M, P> FetchModelResult<Model, M> fetch(
         Class<M> modelType,
-        Class<P> parameterType,
-        Action<? super P> parameterInitializer
+        @Nullable Class<P> parameterType,
+        @Nullable Action<? super P> parameterInitializer
     );
 
+
     /**
-     * Resilient model fetching.
+     * Fetches a snapshot of the model of the given type for the given element using the given parameter with resilient model fetching.
      *
+     * <p>Unlike {@link #getModel(Model, Class, Class, Action)}, this method uses resilient model fetching which means that if the model
+     * cannot be fetched due to an error, the method will not throw an exception. Instead, it returns a {@link FetchModelResult} that contains
+     * either the successfully fetched model or the failure information.</p>
+     *
+     * <p>This is particularly useful when you want to fetch multiple models and continue processing even if some models fail to load,
+     * or when you need detailed information about why a model fetch failed.</p>
+     *
+     * @param target The target element, usually a project. Pass {@code null} to target the default project.
+     * @param modelType The model type to fetch.
+     * @param parameterType The parameter type used to configure the model fetch. Pass {@code null} if no parameter is needed.
+     * @param parameterInitializer Action to configure the parameter. Pass {@code null} if no parameter initialization is needed.
+     * @param <T> The target type.
+     * @param <M> The model type.
+     * @param <P> The parameter type.
+     * @return A {@link FetchModelResult} containing the target, the fetched model (if successful), and any failures that occurred.
+     *         Check {@link FetchModelResult#getFailures()} to determine if the fetch was successful.
      * @since 9.3.0
      */
     @Incubating

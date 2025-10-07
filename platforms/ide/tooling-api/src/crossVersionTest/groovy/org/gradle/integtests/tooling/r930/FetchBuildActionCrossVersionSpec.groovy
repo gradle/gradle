@@ -22,6 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.FetchModelResult
+import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @TargetGradleVersion(">=9.3.0")
@@ -137,6 +139,43 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "runtime exception"  | """throw RuntimeException("broken project configuration")""" | "broken project configuration"
     }
 
+    def "'#method' metgod returns the same expected result as other fetch methods"() {
+        given:
+        setupInitScriptWithCustomModelBuilder()
+
+        when:
+        def result = succeeds {
+            action(buildAction)
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        result.modelValue == "greetings"
+        result.failureMessages.isEmpty()
+        result.causes.isEmpty()
+
+        when:
+        settingsFile << """garbage !!!"""
+        result = succeeds {
+            action(buildAction)
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        result.modelValue == null
+        result.failureMessages.size() == 1
+        result.failureMessages[0].contains("Could not compile settings file")
+
+        where:
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
+    }
+
     def setupInitScriptWithCustomModelBuilder(String builderLogic = "return new CustomModel()") {
         file("init.gradle").text = """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -212,9 +251,10 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     static class FetchCustomModelAction implements BuildAction<Result<String>> {
+
         @Override
         Result execute(BuildController controller) {
-            def result = controller.fetch(null, CustomModel.class, null, null)
+            def result = fetch(controller)
             def failures = result.failures.stream()
                 .map { it.message }
                 .toList()
@@ -223,6 +263,37 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 .map { it.message }
                 .toList()
             return new Result(result.model?.value, failures, causes)
+        }
+
+        protected FetchModelResult<Model, CustomModel> fetch(BuildController controller) {
+            return controller.fetch(null, CustomModel.class, null, null)
+        }
+
+        static FetchCustomModelAction withFetchModelCall() {
+            return new FetchCustomModelAction() {
+                @Override
+                FetchModelResult<Model, CustomModel> fetch(BuildController controller) {
+                    return controller.fetch(CustomModel.class)
+                }
+            }
+        }
+
+        static FetchCustomModelAction withFetchTargetModelCall() {
+            return new FetchCustomModelAction() {
+                @Override
+                FetchModelResult<Model, CustomModel> fetch(BuildController controller) {
+                    return controller.fetch(null, CustomModel.class)
+                }
+            }
+        }
+
+        static FetchCustomModelAction withFetchModelParametersCall() {
+            return new FetchCustomModelAction() {
+                @Override
+                FetchModelResult<Model, CustomModel> fetch(BuildController controller) {
+                    return controller.fetch(CustomModel.class, null, null)
+                }
+            }
         }
     }
 

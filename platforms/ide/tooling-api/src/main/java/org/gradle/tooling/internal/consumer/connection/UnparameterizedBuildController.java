@@ -207,7 +207,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <M, P> FetchModelResult<Model, M> fetch(Class<M> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
+    public <M, P> FetchModelResult<Model, M> fetch(Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
         return fetch(null, modelType, parameterType, parameterInitializer);
     }
 
