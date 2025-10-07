@@ -24,9 +24,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 
@@ -41,7 +42,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     private long rootVariantId;
     private long rootComponentId;
-    private ImmutableAttributes requestAttributes;
+    private @Nullable ImmutableAttributes requestAttributes;
 
     public InMemoryResolutionResultBuilder(boolean includeAllSelectableVariantResults) {
         this.includeAllSelectableVariantResults = includeAllSelectableVariantResults;
@@ -81,7 +82,8 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         if (requestAttributes == null) {
             throw new IllegalStateException("Resolution result not computed yet");
         }
-        ResolvedComponentResultInternal root = resolutionResultBuilder.getRoot(rootComponentId);
-        return new MinimalResolutionResult(rootVariantId, () -> root, requestAttributes);
+        ResolvedDependencyGraph graph = resolutionResultBuilder.getResolvedGraph(rootComponentId, rootVariantId);
+        return new MinimalResolutionResult(() -> graph, requestAttributes);
     }
+
 }

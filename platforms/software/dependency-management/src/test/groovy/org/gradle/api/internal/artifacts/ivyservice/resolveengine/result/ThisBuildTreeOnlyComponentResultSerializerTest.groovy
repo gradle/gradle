@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -95,7 +94,7 @@ class ThisBuildTreeOnlyComponentResultSerializerTest extends Specification {
 
         when:
         def serialized = serialize(component)
-        def result = deserialize(serialized)
+        def result = deserialize(serialized).rootComponent
 
         then:
         result.id == componentIdentifier
@@ -117,9 +116,9 @@ class ThisBuildTreeOnlyComponentResultSerializerTest extends Specification {
         return outstr.toByteArray()
     }
 
-    private ResolvedComponentResult deserialize(byte[] serialized) {
+    private ResolvedDependencyGraph deserialize(byte[] serialized) {
         def builder = new ResolutionResultGraphBuilder()
         serializer.readComponentResult(new KryoBackedDecoder(new ByteArrayInputStream(serialized)), builder)
-        return builder.getRoot(0)
+        return builder.getResolvedGraph(0, 1)
     }
 }

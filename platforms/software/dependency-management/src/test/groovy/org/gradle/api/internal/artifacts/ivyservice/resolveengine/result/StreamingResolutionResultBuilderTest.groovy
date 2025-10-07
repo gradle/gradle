@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -63,8 +62,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
         )
     )
 
-    class DummyStore implements Store<ResolvedComponentResult> {
-        ResolvedComponentResult load(Supplier<ResolvedComponentResult> createIfNotPresent) {
+    class DummyStore implements Store<ResolvedDependencyGraph> {
+        ResolvedDependencyGraph load(Supplier<ResolvedDependencyGraph> createIfNotPresent) {
             return createIfNotPresent.get()
         }
     }
@@ -89,11 +88,11 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def result = builder.getResolutionResult([] as Set)
 
         then:
-        with(result.rootSource.get()) {
+        with(result.graphSource.get().rootComponent) {
             id == DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "root"), "1.0")
             selectionReason == root()
         }
-        printGraph(result.rootSource.get()) == """org:root:1.0
+        printGraph(result.graphSource.get()) == """org:root:1.0
 """
     }
 
@@ -119,7 +118,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def result = builder.getResolutionResult([] as Set)
 
         then:
-        printGraph(result.rootSource.get()) == """org:root:1.0
+        printGraph(result.graphSource.get()) == """org:root:1.0
   org:dep1:2.0(C) [root]
   org:dep2:3.0 -> org:dep2:3.0 - Could not resolve org:dep2:3.0.
 """
@@ -146,7 +145,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def result = builder.getResolutionResult([] as Set)
 
         then:
-        printGraph(result.rootSource.get()) == """org:root:1.0
+        printGraph(result.graphSource.get()) == """org:root:1.0
   org:dep1:2.0(C) [root]
 """
     }
@@ -182,7 +181,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def result = builder.getResolutionResult([] as Set)
 
         then:
-        printGraph(result.rootSource.get()) == """org:root:1.0
+        printGraph(result.graphSource.get()) == """org:root:1.0
   org:dep1:1.0 [root]
     org:dep2:1.0 [dep1]
     org:dep3:1.0 [dep1]
@@ -217,7 +216,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def result = builder.getResolutionResult([] as Set)
 
         then:
-        printGraph(result.rootSource.get()) == """org:root:1.0
+        printGraph(result.graphSource.get()) == """org:root:1.0
   org:dep1:1.0 -> org:dep1:1.0 - Could not resolve org:dep1:1.0.
   org:dep2:2.0 [root]
     org:dep1:5.0 -> org:dep1:5.0 - Could not resolve org:dep1:5.0.
