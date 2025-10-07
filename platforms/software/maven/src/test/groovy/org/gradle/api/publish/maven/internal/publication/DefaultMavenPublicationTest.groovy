@@ -51,6 +51,7 @@ import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolv
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.MavenArtifact
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactInternal
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
@@ -674,6 +675,6 @@ class DefaultMavenPublicationTest extends Specification {
         return AttributeTestUtil.attributesFactory().of(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.REGULAR_PLATFORM))
     }
 
-    interface MavenTestArtifact extends MavenArtifact, PublicationArtifactInternal {
+    interface MavenTestArtifact extends MavenArtifactInternal, PublicationArtifactInternal {
     }
 }
