@@ -315,7 +315,7 @@ include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",fi
 For more on publishing plugins, see <<publishing_gradle_plugins.adoc#plugin-publishing-plugin,Publishing Plugins>>.
 
 [[project_vs_settings_vs_init_plugins]]
-== Scope of plugins
+== Scope of Plugins
 
 In earlier examples, `GreetingScriptPlugin` was defined against a
 link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] parameter:
