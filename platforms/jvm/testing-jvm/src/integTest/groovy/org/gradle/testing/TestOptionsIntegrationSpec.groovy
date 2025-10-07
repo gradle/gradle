@@ -17,7 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Issue
@@ -27,6 +27,11 @@ import spock.lang.Issue
  * provided to a {@link org.gradle.api.tasks.testing.Test Test} task.
  */
 class TestOptionsIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
+    }
+
     def setup() {
         buildFile << """
         plugins {
@@ -439,13 +444,13 @@ public class SomeIntegTestClass {
         succeeds("check")
     }
 
-    private void assertTestsExecuted(TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        def result = resultsFor('tests/test', testFramework)
+    private void assertTestsExecuted() {
+        def result = resultsFor()
         result.assertAtLeastTestPathsExecuted("org.example.SomeTestClass")
     }
 
-    private void assertIntegTestsExecuted(TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        def result = resultsFor("/tests/integTest", testFramework)
+    private void assertIntegTestsExecuted() {
+        def result = resultsFor()
         result.assertAtLeastTestPathsExecuted("org.example.SomeIntegTestClass")
     }
 }

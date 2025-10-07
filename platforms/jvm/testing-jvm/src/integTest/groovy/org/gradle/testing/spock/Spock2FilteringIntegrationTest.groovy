@@ -18,9 +18,13 @@ package org.gradle.testing.spock
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 
 class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.SPOCK
+    }
 
     def setup() {
         def testBody = """
@@ -67,7 +71,7 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec implements Ve
         succeeds("test", "--tests", "SubClass.$testMethod")
 
         then:
-        def result = resultsFor('tests/test', TestFramework.SPOCK)
+        def result = resultsFor()
         result.testPath(':SubClass').onlyRoot().assertChildCount(1, 0)
         result.testPath(":SubClass:$testMethod").onlyRoot().assertChildCount(0, 0)
 
@@ -80,7 +84,7 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec implements Ve
         succeeds("test", "--tests", "SubClass.$testMethod")
 
         then:
-        GenericTestExecutionResult result = resultsFor("tests/test", TestFramework.SPOCK)
+        GenericTestExecutionResult result = resultsFor()
         result.testPath(":SubClass").onlyRoot().assertChildCount(1, 0)
         result.testPath(":SubClass:$testMethod").onlyRoot().assertChildCount(2, 0)
         result.testPath(":SubClass:$testMethod").onlyRoot().assertOnlyChildrenExecuted("$testMethod [param: value1, #0]", "$testMethod [param: value2, #1]")
@@ -94,7 +98,7 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec implements Ve
         succeeds("test", "--tests", "SubClass.$testMethod param=#param")
 
         then:
-        GenericTestExecutionResult result = resultsFor("tests/test", TestFramework.SPOCK)
+        GenericTestExecutionResult result = resultsFor()
         result.testPath(":SubClass").onlyRoot().assertChildCount(1, 0)
         result.testPath(":SubClass:$testMethod param=#param").onlyRoot().assertChildCount(2, 0)
         result.testPath(":SubClass:$testMethod param=#param").onlyRoot().assertOnlyChildrenExecuted("$testMethod param=value1", "$testMethod param=value2")
