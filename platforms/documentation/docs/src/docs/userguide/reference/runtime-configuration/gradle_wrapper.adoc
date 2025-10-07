@@ -406,7 +406,7 @@ You can manually verify the checksum of the Wrapper JAR to ensure that it has no
 
 Manually verifying the checksum of the Wrapper JAR on Linux:
 
-[source,bash,subs="attributes"]
+[source,bash]
 ----
 $ cd gradle/wrapper
 ----
