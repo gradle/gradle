@@ -27,11 +27,18 @@ import static com.google.common.io.Files.getFileExtension;
 public class DerivedMavenArtifact extends AbstractMavenArtifact {
     private final AbstractMavenArtifact original;
     private final PublicationInternal.DerivedArtifact derivedFile;
+    private final boolean enableChecksumFileGeneration;
 
-    public DerivedMavenArtifact(AbstractMavenArtifact original, PublicationInternal.DerivedArtifact derivedFile, TaskDependencyFactory taskDependencyFactory) {
+    public DerivedMavenArtifact(
+        AbstractMavenArtifact original,
+        PublicationInternal.DerivedArtifact derivedFile,
+        TaskDependencyFactory taskDependencyFactory,
+        boolean enableChecksumFileGeneration
+    ) {
         super(taskDependencyFactory);
         this.original = original;
         this.derivedFile = derivedFile;
+        this.enableChecksumFileGeneration = enableChecksumFileGeneration;
     }
 
     @Override
@@ -57,5 +64,10 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
     @Override
     public boolean shouldBePublished() {
         return original.shouldBePublished() && derivedFile.shouldBePublished();
+    }
+
+    @Override
+    public boolean enableChecksumFileGeneration() {
+        return enableChecksumFileGeneration && original.enableChecksumFileGeneration();
     }
 }
