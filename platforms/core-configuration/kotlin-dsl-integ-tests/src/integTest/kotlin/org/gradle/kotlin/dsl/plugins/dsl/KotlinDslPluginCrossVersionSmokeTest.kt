@@ -83,7 +83,9 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings()
         withBuildScript("""plugins { id("some") }""")
 
-        expectConfigurationCacheRequestedDeprecation()
+        // Since we are testing an older KGP version
+        executer.noDeprecationChecks()
+
         // See https://github.com/gradle/gradle-private/issues/4767
         executer.requireIsolatedDaemons()
 
@@ -136,10 +138,11 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings().appendText("""includeBuild("producer")""")
         withBuildScript("""plugins { id("some") }""")
 
-        expectConfigurationCacheRequestedDeprecation()
+        // Since we are testing an older KGP version
+        executer.noDeprecationChecks()
+
         // See https://github.com/gradle/gradle-private/issues/4767
         executer.requireIsolatedDaemons()
-        executer.expectExternalDeprecatedMessage("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
 
         // Suppress CC problem caused by the outdated KGP version. Can be removed when KGP 2.0+ is used.
         build("help", "-Dorg.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true").apply {
@@ -165,13 +168,4 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-    private
-    fun expectConfigurationCacheRequestedDeprecation() {
-        executer.expectDocumentedDeprecationWarning(
-            "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10. " +
-                "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. Consult the upgrading guide for further information:" +
-                " https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested"
-        )
-    }
 }

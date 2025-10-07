@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.provider.DelegatingProviderWithValue;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -25,6 +26,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.isolation.Isolatable;
 import org.jspecify.annotations.Nullable;
 
@@ -76,6 +78,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         checkInsertionAllowed(key);
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
+        maybeWarnOnLegacyUsageValue(key, value);
         state.put(key, new AttributeEntry<>(key, attributeValueIsolator.isolate(value)));
         return this;
     }
@@ -98,6 +101,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
             // We can only sometimes check the type of the provider ahead of time.
             assertAttributeTypeIsValid(valueType, key);
             isolated = new MappingProvider<>(typedAttributeEntry, presentProvider, value -> {
+                maybeWarnOnLegacyUsageValue(key, value);
                 Isolatable<T> isolate = attributeValueIsolator.isolate(value);
                 return new AttributeEntry<>(key, isolate);
             });
@@ -105,6 +109,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
             // Otherwise, check the type when the value is realized.
             isolated = new MappingProvider<>(typedAttributeEntry, presentProvider, value -> {
                 assertAttributeTypeIsValid(value.getClass(), key);
+                maybeWarnOnLegacyUsageValue(key, value);
                 Isolatable<T> isolate = attributeValueIsolator.isolate(value);
                 return new AttributeEntry<>(key, isolate);
             });
@@ -174,6 +179,20 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         }
     }
 
+    @SuppressWarnings("deprecation")
+    private static <T> void maybeWarnOnLegacyUsageValue(Attribute<T> key, T value) {
+        String legacyUsageValue = UsageCompatibilityHandler.maybeGetLegacyUsageValue(key, value);
+        if (legacyUsageValue != null) {
+            // In Gradle 10, we can remove deprecation entirely instead of making it an error.
+            DeprecationLogger.deprecateAction("Declaring a Usage attribute with a legacy value")
+                .withContext("A Usage attribute was declared with value '" + legacyUsageValue + "'.")
+                .withAdvice("Declare a Usage attribute with value '" + UsageCompatibilityHandler.getReplacementUsage(legacyUsageValue) + "' and a LibraryElements attribute with value '" + UsageCompatibilityHandler.getLibraryElements(legacyUsageValue) + "' instead.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecate_legacy_usage_values")
+                .nagUser();
+        }
+    }
+
     @Override
     @Nullable
     public <T> T getAttribute(Attribute<T> key) {
@@ -192,7 +211,27 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     public ImmutableAttributes asImmutable() {
         Map<Attribute<?>, AttributeEntry<?>> realizedState = doRealize(Provider::get);
         assertNoDuplicateNames(realizedState.keySet());
-        return attributesFactory.fromEntries(realizedState.values());
+
+        ImmutableAttributes result = ImmutableAttributes.EMPTY;
+        for (AttributeEntry<?> entry : realizedState.values()) {
+            result = concatEntry(result, entry);
+        }
+        return result;
+    }
+
+    /**
+     * Concatenates the given entry to the given attributes, taking care of legacy {@link Usage} values.
+     * <p>
+     * Starting in Gradle 10, we can replace this with a simple call to {@link AttributesFactory#concat(ImmutableAttributes, Attribute, Isolatable)}.
+     */
+    @SuppressWarnings("deprecation")
+    private <T> ImmutableAttributes concatEntry(ImmutableAttributes attributes, AttributeEntry<T> entry) {
+        Attribute<T> key = entry.getKey();
+        if (key.equals(Usage.USAGE_ATTRIBUTE) || key.getName().equals(Usage.USAGE_ATTRIBUTE.getName())) {
+            return attributesFactory.concatPotentiallyLegacyUsage(attributes, key, entry.getValue());
+        } else {
+            return attributesFactory.concat(attributes, key, entry.getValue());
+        }
     }
 
     @Override
