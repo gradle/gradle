@@ -24,7 +24,6 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.function.LongFunction;
-import java.util.function.Supplier;
 
 @NullMarked
 public interface TestEventReporterFactoryInternal extends TestEventReporterFactory {
@@ -151,13 +150,8 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
 
     /**
      * Returns an object that can be used to report test events.
-     *
      * <p>
-     * When closed, it will throw if the root node has been failed.
-     * </p>
-     *
-     * <p>
-     * This method differs from {@link #createTestEventReporter(String, Directory, Directory)} in the following ways:
+     * This method differs from {@link #createTestEventReporter(String, Directory, Directory, boolean)} in the following ways:
      * <ul>
      *     <li>The root descriptor can be provided.</li>
      *     <li>Only the result writer listener is used, added to {@code testListenerInternalBroadcaster}.</li>
@@ -177,11 +171,11 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
      * @param reportGenerator the report generator to use
      * @param testListenerInternalBroadcaster the test listeners to notify of test events, may have additional listeners added
      * @param skipFirstLevelOnDisk whether to flatten the top level of the test tree on disk
-     * @param detectOtherFailures a handler to call to present some other failure to the user, rather than the default test failure
+     * @param closeThrowsOnTestFailures determines if this reporter should throw upon close if the root node has been failed, or do nothing
      * @return the test event reporter
      * @apiNote This API is used by {@link org.gradle.api.tasks.testing.AbstractTestTask} to support various extra features.
      * It may be worth considering these for public API in the future.
-     * @since 8.13
+     * @since 9.3.0
      */
     GroupTestEventReporterInternal createInternalTestEventReporter(
         LongFunction<TestDescriptorInternal> rootDescriptor,
@@ -189,6 +183,6 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
         TestReportGenerator reportGenerator,
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
         boolean skipFirstLevelOnDisk,
-        Supplier<TestReportResult> detectOtherFailures
+        boolean closeThrowsOnTestFailures
     );
 }

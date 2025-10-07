@@ -32,7 +32,6 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.function.LongFunction;
-import java.util.function.Supplier;
 
 @NullMarked
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
@@ -41,7 +40,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private final SerializableTestResultStore.Writer testResultWriter;
     private final TestReportGenerator testReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
-    private final Supplier<TestEventReporterFactoryInternal.TestReportResult> tryReportFailures;
+    private final boolean closeThrowsOnTestFailures;
 
     // Mutable state
     @Nullable
@@ -55,7 +54,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         SerializableTestResultStore.Writer testResultWriter,
         TestReportGenerator testReportGenerator,
         TestExecutionResultsListener executionResultsListener,
-        Supplier<TestEventReporterFactoryInternal.TestReportResult> tryReportFailures
+        boolean closeThrowsOnTestFailures
     ) {
         super(
             listener,
@@ -68,7 +67,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         this.testResultWriter = testResultWriter;
         this.testReportGenerator = testReportGenerator;
         this.executionResultsListener = executionResultsListener;
-        this.tryReportFailures = tryReportFailures;
+        this.closeThrowsOnTestFailures = closeThrowsOnTestFailures;
     }
 
     @Override
@@ -94,20 +93,12 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         // Generate HTML report
         Path reportIndexFile = testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
-        TestEventReporterFactoryInternal.TestReportResult reportResult = tryReportFailures.get();
-        String failureMessage = getFailureMessage(reportResult);
-        boolean hasTestFailures = failureMessage != null;
-
         // Notify aggregate listener of final results
+        boolean hasTestFailures = failureMessage != null;
         executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasTestFailures);
 
-        if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.FailureReported) {
-            // Failures were reported by the tryReportFailures handler, so we don't need to throw an exception here.
-            return;
-        }
-
         // Throw an exception with rendered test results, if necessary
-        if (hasTestFailures) {
+        if (hasTestFailures && closeThrowsOnTestFailures) {
             if (reportIndexFile == null) {
                 // This can happen if we're given the NO_OP generator internally, in which case no report was requested so we will simply fail.
                 throw new MarkedVerificationException(failureMessage);
@@ -115,19 +106,6 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
             throw new MarkedVerificationException(failureMessage + " See the report at: " + testResultsUrl);
         }
-    }
-
-    @Nullable
-    private String getFailureMessage(TestEventReporterFactoryInternal.TestReportResult reportResult) {
-        String failureMessage;
-        if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) {
-            failureMessage = ((TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) reportResult).getFailureMessage();
-        } else if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.NoTestsRun) {
-            failureMessage = ((TestEventReporterFactoryInternal.TestReportResult.NoTestsRun) reportResult).getFailureMessage();
-        } else {
-            failureMessage = this.failureMessage;
-        }
-        return failureMessage;
     }
 
     @Override

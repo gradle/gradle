@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.MultiTestReportGenerator;
@@ -84,6 +85,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
@@ -490,7 +492,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         addTestListener(testCountLogger);
 
         // Adapt all listeners registered with addTestListener() and addTestOutputListener() to TestListenerInternal
-        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
+        ListenerBroadcast<@NonNull TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
         testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerSubscriptions.get().getSource(), testOutputListenerSubscriptions.get().getSource()));
 
         // Log to the console which tests are currently executing, and update live as current tests change
@@ -507,7 +509,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             reportGenerator,
             testListenerInternalBroadcaster,
             true,
-            () -> handleCollectedResults(testCountLogger)
+            false
         ))) {
             TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
             TestListenerInternal resultProcessorDelegate = reporterAsListener;
@@ -525,6 +527,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 testListenerSubscriptions.removeAllListeners();
                 testOutputListenerSubscriptions.removeAllListeners();
                 testListenerInternalBroadcaster.removeAll();
+            }
+
+            // Throw an exception with rendered test results, if necessary
+            TestEventReporterFactoryInternal.TestReportResult testReportResults = handleCollectedResults(testCountLogger);
+            if (testReportResults instanceof TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) {
+                throw new MarkedVerificationException(((TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) testReportResults).getFailureMessage());
             }
         }
     }
@@ -706,26 +714,30 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @return the result of handling test failures
      */
     private TestEventReporterFactoryInternal.TestReportResult handleTestFailures() {
-        String message = "There were failing tests.";
+        String message = buildFailureResultsMessage("There were failing tests.");
 
         if (getIgnoreFailures()) {
-            DirectoryReport htmlReport = getReports().getHtml();
-            if (htmlReport.getRequired().get()) {
-                String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
-                message = message.concat(" See the report at: " + reportUrl);
-            } else {
-                DirectoryReport junitXmlReport = getReports().getJunitXml();
-                if (junitXmlReport.getRequired().get()) {
-                    String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
-                    message = message.concat(" See the results at: " + resultsUrl);
-                }
-            }
-
             getLogger().warn(message);
             return TestEventReporterFactoryInternal.TestReportResult.failuresIgnored();
         } else {
             return TestEventReporterFactoryInternal.TestReportResult.testFailureDetected(message);
         }
+    }
+
+    private String buildFailureResultsMessage(String message) {
+        DirectoryReport htmlReport = getReports().getHtml();
+        if (htmlReport.getRequired().get()) {
+            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
+            message = message.concat(" See the report at: " + reportUrl);
+        } else {
+            DirectoryReport junitXmlReport = getReports().getJunitXml();
+            if (junitXmlReport.getRequired().get()) {
+                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
+                message = message.concat(" See the results at: " + resultsUrl);
+            }
+        }
+
+        return message;
     }
 
     /**
