@@ -75,7 +75,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     @Override
     public void visitEdges(DependencyGraphNode node) {
-        resolutionResultBuilder.visitOutgoingEdges(node.getOwner().getResultId(), node.getOutgoingEdges());
+        resolutionResultBuilder.visitOutgoingEdges(node.getOwner().getResultId(), node.getNodeId(), node.getOutgoingEdges());
     }
 
     public MinimalResolutionResult getResolutionResult() {
