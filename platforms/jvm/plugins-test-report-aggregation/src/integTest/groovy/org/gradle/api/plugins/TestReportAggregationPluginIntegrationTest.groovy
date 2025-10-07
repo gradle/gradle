@@ -17,6 +17,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import spock.lang.Issue
@@ -24,6 +25,11 @@ import spock.lang.Issue
 import static org.hamcrest.CoreMatchers.startsWith
 
 class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
 
     def setup() {
         multiProjectBuild("root", ["application", "direct", "transitive"]) {

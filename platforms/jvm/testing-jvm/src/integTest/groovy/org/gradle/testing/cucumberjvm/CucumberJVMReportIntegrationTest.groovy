@@ -17,7 +17,7 @@
 package org.gradle.testing.cucumberjvm
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
@@ -26,6 +26,10 @@ import spock.lang.Issue
 
 class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
 
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.CUCUMBER
+    }
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 
@@ -38,7 +42,7 @@ class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest imp
         executedAndNotSkipped(":test")
 
         and:
-        def result = resultsFor(testDirectory, 'tests/test', TestFramework.CUCUMBER)
+        def result = resultsFor()
         result.testPath("RunCukesTest", "Hello World /one", "Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

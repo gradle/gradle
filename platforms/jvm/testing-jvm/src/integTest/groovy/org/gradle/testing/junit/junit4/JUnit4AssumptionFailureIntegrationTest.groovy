@@ -17,7 +17,7 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -25,6 +25,11 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 
 class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
+
     def "captures assumption failures"() {
         buildFile << """
             plugins {
@@ -75,7 +80,7 @@ class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec imp
         then:
         outputContains("Assumption failure: skipped reason")
 
-        def testResult = resultsFor('tests/test', TestFramework.JUNIT4)
+        def testResult = resultsFor()
         testResult.testPath("com.example.MyTest", "theTest").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
             .assertFailureMessages(containsString("skipped reason"))
     }
@@ -132,7 +137,7 @@ class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec imp
         then:
         outputContains("No assumption failure")
 
-        def testResult = resultsFor('tests/test', TestFramework.JUNIT4)
+        def testResult = resultsFor()
         testResult.testPath("com.example.MyTest", "theTest").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
             .assertFailureMessages(equalTo(""))
     }
