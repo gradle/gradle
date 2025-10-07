@@ -226,6 +226,51 @@ public interface BuildController {
     void send(Object value);
 
     /**
+     * Fetches a snapshot of the model of the given type for the default project.
+     * This is a convenience method for {@code fetch(null, modelType, null, null)}.
+     *
+     * @param modelType The model type.
+     * @param <M> The model type.
+     * @return The fetch result.
+     * @since 9.3.0
+     */
+    @Incubating
+    <M> FetchModelResult<Model, M> fetch(Class<M> modelType);
+
+    /**
+     * Fetches a snapshot of the model of the given type for the given element.
+     * This is a convenience method for {@code fetch(target, modelType, null, null)}.
+     *
+     * @param target The target element, usually a project.
+     * @param modelType The model type.
+     * @param <T> The target type.
+     * @param <M> The model type.
+     * @return The fetch result.
+     * @since 9.3.0
+     */
+    @Incubating
+    <T extends Model, M> FetchModelResult<T, M> fetch(T target, Class<M> modelType);
+
+    /**
+     * Fetches a snapshot of the model of the given type using the given parameter.
+     * This is a convenience method for {@code fetch(null, modelType, parameterType, parameterInitializer)}.
+     *
+     * @param modelType The model type.
+     * @param <M> The model type.
+     * @param parameterType The parameter type.
+     * @param <P> The parameter type.
+     * @param parameterInitializer Action to configure the parameter
+     * @return The fetch result.
+     * @since 9.3.0
+     */
+    @Incubating
+    <M, P> FetchModelResult<Model, M> fetch(
+        Class<M> modelType,
+        Class<P> parameterType,
+        Action<? super P> parameterInitializer
+    );
+
+    /**
      * Resilient model fetching.
      *
      * @since 9.3.0
