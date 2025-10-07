@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.testing.TestEventReporterFactory",
+            "member": "Method org.gradle.api.tasks.testing.TestEventReporterFactory.createTestEventReporter(java.lang.String,org.gradle.api.file.Directory,org.gradle.api.file.Directory,boolean)",
+            "acceptation": "Enhancing Test Reporting",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
             "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.fetch(org.gradle.tooling.BuildController,org.gradle.tooling.model.Model,kotlin.reflect.KClass)",
             "acceptation": "We don\u0027t generate @since on the generated accessor method",
