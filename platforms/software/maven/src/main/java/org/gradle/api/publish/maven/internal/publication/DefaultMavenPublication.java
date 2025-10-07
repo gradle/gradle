@@ -578,12 +578,12 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         private final boolean enableChecksumFileGeneration;
 
         public SerializableMavenArtifact(MavenArtifact artifact) {
-            AbstractMavenArtifact artifactInternal = (AbstractMavenArtifact) artifact;
+            PublicationArtifactInternal artifactInternal = (PublicationArtifactInternal) artifact;
             this.file = artifact.getFile();
             this.extension = artifact.getExtension();
             this.classifier = artifact.getClassifier();
             this.shouldBePublished = artifactInternal.shouldBePublished();
-            this.enableChecksumFileGeneration = artifactInternal.enableChecksumFileGeneration();
+            this.enableChecksumFileGeneration = ((MavenArtifactInternal) artifact).enableChecksumFileGeneration();
         }
 
         @Override
