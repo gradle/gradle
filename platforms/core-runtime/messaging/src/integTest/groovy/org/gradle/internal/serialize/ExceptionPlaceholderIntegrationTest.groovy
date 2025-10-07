@@ -28,6 +28,11 @@ import static org.gradle.util.Matchers.containsText
 
 class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/1618")
     def "internal exception should not be thrown"() {
         given:
@@ -112,7 +117,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
         fails "test"
 
         then:
-        def testResult = resultsFor('tests/test', GenericTestExecutionResult.TestFramework.JUNIT4)
+        def testResult = resultsFor()
         testResult.assertAtLeastTestPathsExecuted("example.Issue9487Test")
         testResult.testPath("example.Issue9487Test", "allCausesShouldBeCaptured").onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
@@ -177,7 +182,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
         fails "test"
 
         then:
-        def testResult = resultsFor('tests/test', GenericTestExecutionResult.TestFramework.JUNIT4)
+        def testResult = resultsFor()
         testResult.assertAtLeastTestPathsExecuted("example.Issue9487Test")
         testResult.testPath("example.Issue9487Test", "allCausesShouldBeCaptured").onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
