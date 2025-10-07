@@ -30,7 +30,6 @@ import static org.hamcrest.CoreMatchers.containsString
  * production code attempts to perform reflection on JDK internals.
  */
 class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-
     def setup() {
         buildFile << """
             plugins {
@@ -70,6 +69,11 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
                 }
             }
         """
+    }
+
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT4
     }
 
     @Requires(UnitTestPreconditions.Jdk16OrLater)
