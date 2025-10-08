@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
@@ -44,8 +45,12 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
         this.outputReader = outputReader;
     }
 
-    private long getModelId(TestTreeModel model) {
+    private long getClassId(TestTreeModel model) {
         return modelIdMap.computeIfAbsent(model, m -> nextId++);
+    }
+
+    private static long getMethodId(TestTreeModel.PerRootInfo model) {
+        return model.getOutputId();
     }
 
     @Override
@@ -53,23 +58,24 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
         writeNonTestOutput(classId, destination, writer);
         TestTreeModel model = modelIdMap.inverse().get(classId);
         for (TestTreeModel testModel : model.getChildren().values()) {
-            long outputId = testModel.getPerRootInfo().get(0).getOutputId();
-            copyOutput(outputId, destination, writer);
+            for (TestTreeModel.PerRootInfo perRootInfo : testModel.getPerRootInfo().get(0)) {
+                copyOutput(perRootInfo.getOutputId(), destination, writer);
+            }
         }
     }
 
     @Override
     public void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
         TestTreeModel model = modelIdMap.inverse().get(classId);
-        long outputId = model.getPerRootInfo().get(0).getOutputId();
-        copyOutput(outputId, destination, writer);
+        // There should only be one node for a class, all other nodes get merged into one
+        TestTreeModel.PerRootInfo perRootInfo = Iterables.getOnlyElement(model.getPerRootInfo().get(0));
+        copyOutput(perRootInfo.getOutputId(), destination, writer);
     }
 
     @Override
     public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
-        TestTreeModel model = modelIdMap.inverse().get(testId);
-        long outputId = model.getPerRootInfo().get(0).getOutputId();
-        copyOutput(outputId, destination, writer);
+        // We know the testId is the outputId
+        copyOutput(testId, destination, writer);
     }
 
     private void copyOutput(long outputId, TestOutputEvent.Destination destination, Writer writer) {
@@ -89,19 +95,22 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private TestClassResult buildClassResult(TestTreeModel model) {
-        long id = getModelId(model);
-        SerializableTestResult result = model.getPerRootInfo().get(0).getResult();
+        long id = getClassId(model);
+        // There should only be one node for a class, all other nodes get merged into one
+        SerializableTestResult result = Iterables.getOnlyElement(model.getPerRootInfo().get(0)).getResult();
         TestClassResult classResult = new TestClassResult(id, result.getName(), result.getDisplayName(), result.getStartTime());
         for (TestTreeModel testModel : model.getChildren().values()) {
-            TestMethodResult methodResult = buildMethodResult(testModel);
-            classResult.add(methodResult);
+            for (TestTreeModel.PerRootInfo perRootInfo : testModel.getPerRootInfo().get(0)) {
+                TestMethodResult methodResult = buildMethodResult(perRootInfo);
+                classResult.add(methodResult);
+            }
         }
         return classResult;
     }
 
-    private TestMethodResult buildMethodResult(TestTreeModel testModel) {
-        long id = getModelId(testModel);
-        SerializableTestResult result = testModel.getPerRootInfo().get(0).getResult();
+    private static TestMethodResult buildMethodResult(TestTreeModel.PerRootInfo perRootInfo) {
+        long id = getMethodId(perRootInfo);
+        SerializableTestResult result = perRootInfo.getResult();
         TestMethodResult methodResult = new TestMethodResult(id, result.getName(), result.getDisplayName(), result.getResultType(), result.getDuration(), result.getEndTime());
         methodResult.getFailures().addAll(result.getFailures());
         if (result.getAssumptionFailure() != null) {
@@ -114,12 +123,14 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
     @Override
     public boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
         TestTreeModel model = modelIdMap.inverse().get(classId);
-        if (outputReader.hasOutput(model.getPerRootInfo().get(0).getOutputId(), destination)) {
+        if (outputReader.hasOutput(Iterables.getOnlyElement(model.getPerRootInfo().get(0)).getOutputId(), destination)) {
             return true;
         }
         for (TestTreeModel testModel : model.getChildren().values()) {
-            if (outputReader.hasOutput(testModel.getPerRootInfo().get(0).getOutputId(), destination)) {
-                return true;
+            for (TestTreeModel.PerRootInfo perRootInfo : testModel.getPerRootInfo().get(0)) {
+                if (outputReader.hasOutput(perRootInfo.getOutputId(), destination)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -127,8 +138,8 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
 
     @Override
     public boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
-        TestTreeModel model = modelIdMap.inverse().get(testId);
-        return outputReader.hasOutput(model.getPerRootInfo().get(0).getOutputId(), destination);
+        // We know the testId is the outputId
+        return outputReader.hasOutput(testId, destination);
     }
 
     @Override
