@@ -532,8 +532,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
             // Throw an exception with rendered test results, if necessary
             TestEventReporterFactoryInternal.TestReportResult testReportResults = handleCollectedResults(testCountLogger);
-            if (testReportResults instanceof TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) {
-                throw new MarkedVerificationException(((TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) testReportResults).getFailureMessage());
+            if (testReportResults.shouldFailTask()) {
+                throw new MarkedVerificationException(testReportResults.getFailureMessage().orElseThrow(() -> new IllegalStateException("Failure must supply a failure message")));
             }
         }
     }
