@@ -28,6 +28,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.reporting.ReportRenderer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -43,16 +44,20 @@ import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
 
 public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
     protected final int rootIndex;
+    // Should be private unlike rootIndex, as subclass access should use the passed-in `info` parameter
+    private final int perRootInfoIndex;
+    @Nullable
     private TestTreeModel currentModel;
 
-    public PerRootTabRenderer(int rootIndex) {
+    public PerRootTabRenderer(int rootIndex, int perRootInfoIndex) {
         this.rootIndex = rootIndex;
+        this.perRootInfoIndex = perRootInfoIndex;
     }
 
     @Override
     public void render(TestTreeModel model, SimpleHtmlWriter htmlWriter) throws IOException {
         this.currentModel = model;
-        TestTreeModel.PerRootInfo info = model.getPerRootInfo().get(rootIndex);
+        TestTreeModel.PerRootInfo info = model.getPerRootInfo().get(rootIndex).get(perRootInfoIndex);
         render(info, htmlWriter);
     }
 
@@ -66,8 +71,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     protected abstract void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException;
 
     public static final class ForSummary extends PerRootTabRenderer {
-        public ForSummary(int rootIndex) {
-            super(rootIndex);
+        public ForSummary(int rootIndex, int perRootInfoIndex) {
+            super(rootIndex, perRootInfoIndex);
         }
 
         @Override
@@ -160,10 +165,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 ).endElement();
 
                 String failureOutputId = "root-" + rootIndex + "-test-failure-" + info.getResult().getName();
-                htmlWriter.startElement("span").attribute("class", "code")
-                    .startElement("pre")
-                    .attribute("id", failureOutputId)
-                    .characters("");
+                htmlWriter.startElement("span").attribute("class", "code");
+
+                htmlWriter.startElement("pre").attribute("id", failureOutputId);
                 if (hasFailures) {
                     for (SerializableFailure failure : info.getResult().getFailures()) {
                         renderFailure(failure, htmlWriter);
@@ -172,9 +176,12 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 if (hasAssumptionFailure) {
                     renderFailure(info.getResult().getAssumptionFailure(), htmlWriter);
                 }
-                htmlWriter.endElement();
+                htmlWriter.endElement(); // pre
+
                 addClipboardCopyButton(htmlWriter, failureOutputId);
-                htmlWriter.endElement();
+                htmlWriter.endElement(); // span
+
+                htmlWriter.endElement(); // div
             }
         }
 
@@ -199,10 +206,13 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
             boolean anyNameAndDisplayNameDiffer = Iterables.any(
                 getCurrentModel().getChildrenOf(rootIndex),
-                child -> {
-                    SerializableTestResult childResult = child.getPerRootInfo().get(rootIndex).getResult();
-                    return !childResult.getName().equals(childResult.getDisplayName());
-                }
+                childModel -> Iterables.any(
+                    childModel.getPerRootInfo().get(rootIndex),
+                    child -> {
+                        SerializableTestResult childResult = child.getResult();
+                        return !childResult.getName().equals(childResult.getDisplayName());
+                    }
+                )
             );
 
             htmlWriter.startElement("th").characters("Child").endElement();
@@ -219,24 +229,29 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.endElement();
 
             for (TestTreeModel child : getCurrentModel().getChildrenOf(rootIndex)) {
-                TestTreeModel.PerRootInfo perRootInfo = child.getPerRootInfo().get(rootIndex);
-                SerializableTestResult result = perRootInfo.getResult();
-                String statusClass = getStatusClass(result.getResultType());
-                htmlWriter.startElement("tr");
-                htmlWriter.startElement("td").attribute("class", statusClass);
-                htmlWriter.startElement("a")
-                    .attribute("href", GenericPageRenderer.getUrlTo(getCurrentModel().getPath(), child.getPath()))
-                    .characters(result.getDisplayName()).endElement();
-                if (anyNameAndDisplayNameDiffer) {
-                    htmlWriter.startElement("td").characters(result.getName()).endElement();
+                for (TestTreeModel.PerRootInfo perRootInfo : child.getPerRootInfo().get(rootIndex)) {
+                    SerializableTestResult result = perRootInfo.getResult();
+                    String statusClass = getStatusClass(result.getResultType());
+                    htmlWriter.startElement("tr");
+
+                    htmlWriter.startElement("td").attribute("class", statusClass);
+                    htmlWriter.startElement("a")
+                        .attribute("href", GenericPageRenderer.getUrlTo(getCurrentModel().getPath(), child.getPath()))
+                        .characters(result.getDisplayName()).endElement();
+                    htmlWriter.endElement();
+
+                    if (anyNameAndDisplayNameDiffer) {
+                        htmlWriter.startElement("td").characters(result.getName()).endElement();
+                    }
+
+                    htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
+                    htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();
+                    htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getSkippedLeafCount())).endElement();
+                    htmlWriter.startElement("td").characters(getFormattedDuration(result)).endElement();
+                    htmlWriter.startElement("td").attribute("class", statusClass).characters(getFormattedSuccessRate(perRootInfo)).endElement();
+
+                    htmlWriter.endElement();
                 }
-                htmlWriter.endElement();
-                htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
-                htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();
-                htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getSkippedLeafCount())).endElement();
-                htmlWriter.startElement("td").characters(getFormattedDuration(result)).endElement();
-                htmlWriter.startElement("td").attribute("class", statusClass).characters(getFormattedSuccessRate(perRootInfo)).endElement();
-                htmlWriter.endElement();
             }
             htmlWriter.endElement();
         }
@@ -270,8 +285,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         private final SerializableTestResultStore.OutputReader outputReader;
         private final TestOutputEvent.Destination destination;
 
-        public ForOutput(int rootIndex, SerializableTestResultStore.OutputReader outputReader, TestOutputEvent.Destination destination) {
-            super(rootIndex);
+        public ForOutput(int rootIndex, int perRootInfoIndex, SerializableTestResultStore.OutputReader outputReader, TestOutputEvent.Destination destination) {
+            super(rootIndex, perRootInfoIndex);
             this.outputReader = outputReader;
             this.destination = destination;
         }
@@ -296,8 +311,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     public static final class ForMetadata extends PerRootTabRenderer {
         private final MetadataRendererRegistry metadataRendererRegistry;
 
-        public ForMetadata(int rootIndex, MetadataRendererRegistry metadataRendererRegistry) {
-            super(rootIndex);
+        public ForMetadata(int rootIndex, int perRootInfoIndex, MetadataRendererRegistry metadataRendererRegistry) {
+            super(rootIndex, perRootInfoIndex);
             this.metadataRendererRegistry = metadataRendererRegistry;
         }
 
