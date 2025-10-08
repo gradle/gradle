@@ -20,11 +20,11 @@ import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportRes
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
+import static org.hamcrest.CoreMatchers.containsString
 
 class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
@@ -305,9 +305,8 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
         fails 'test'
 
         then:
-        def testResults = new DefaultTestExecutionResult(testDirectory)
-        testResults.assertTestClassesExecuted("example.Issue34738Test")
-        testResults.testClass("example.Issue34738Test")
-            .testFailed("throwGCE", containsString("The real cause"))
+        def testResults = resultsFor(testDirectory, 'tests/test', GenericTestExecutionResult.TestFramework.JUNIT_JUPITER)
+        testResults.testPath("example.Issue34738Test", "throwGCE").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("The real cause"))
     }
 }
