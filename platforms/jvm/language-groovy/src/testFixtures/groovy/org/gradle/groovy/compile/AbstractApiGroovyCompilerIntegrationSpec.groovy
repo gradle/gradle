@@ -16,10 +16,17 @@
 
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.jvm.Jvm
 
-abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCompilerIntegrationSpec {
+abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCompilerIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
+
     def canEnableAndDisableIntegerOptimization() {
         if (versionLowerThan('1.8')) {
             return
@@ -58,9 +65,9 @@ abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCo
 
         then:
         noExceptionThrown()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("Person")
-        result.testClass("Person").assertTestPassed("testMe")
+
+        def result = resultsFor()
+        result.testPath("Person", "testMe").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     String configureToolchainsForOptimizationTasks(Jvm supportedJvm) {
