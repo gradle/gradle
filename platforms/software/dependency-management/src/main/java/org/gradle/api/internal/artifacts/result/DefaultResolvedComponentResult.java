@@ -50,6 +50,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final String repositoryName;
     private Map<ResolvedVariantResult, ImmutableSet<DependencyResult>> variantDependencies = new LinkedHashMap<>();
 
+    private @Nullable Set<DependencyResult> cachedComponentDependencies;
+
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion,
         ComponentSelectionReason selectionReason,
@@ -86,9 +88,20 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public Set<DependencyResult> getDependencies() {
-        return variantDependencies.entrySet().stream()
-            .flatMap(it -> it.getValue().stream())
-            .collect(ImmutableSet.toImmutableSet());
+        // The component's dependencies are strictly a function of the dependencies of its variants.
+        // Only calculate this value if necessary.
+        if (this.cachedComponentDependencies == null) {
+            int size = 0;
+            for (ImmutableSet<DependencyResult> dependencies : variantDependencies.values()) {
+                size += dependencies.size();
+            }
+            ImmutableSet.Builder<DependencyResult> builder = ImmutableSet.builderWithExpectedSize(size);
+            for (ImmutableSet<DependencyResult> dependencies : variantDependencies.values()) {
+                builder.addAll(dependencies);
+            }
+            this.cachedComponentDependencies = builder.build();
+        }
+        return this.cachedComponentDependencies;
     }
 
     @Override
