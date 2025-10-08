@@ -243,6 +243,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     protected abstract TestExecutionSpec createTestExecutionSpec();
 
+    /**
+     * Returns the number of top level entries to skip in reports. For internal use only.
+     *
+     * @since 9.3.0
+     */
+    @Internal
+    protected int getReportEntrySkipLevels() {
+        // Defaults to one, to skip the workers level
+        return 1;
+    }
+
     void setTestReporter(TestReporter testReporter) {
         this.testReporter = testReporter;
     }
@@ -506,7 +517,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             getBinaryResultsDirectory().get(),
             reportGenerator,
             testListenerInternalBroadcaster,
-            true,
+            getReportEntrySkipLevels(),
             () -> handleCollectedResults(testCountLogger)
         ))) {
             TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());

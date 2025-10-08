@@ -163,7 +163,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
      *     <li>Only the result writer listener is used, added to {@code testListenerInternalBroadcaster}.</li>
      *     <li>The report generator can be configured.</li>
      *     <li>
-     *       {@code skipFirstLevelOnDisk} can be set to {@code true}, for merging the "Gradle Test Run" and "Gradle Executor" nodes
+     *       {@code diskSkipLevels} can be set, for merging the "Gradle Test Run" and "Gradle Executor" nodes, among others,
      *       in the on-disk results.
      *     </li>
      *     <li>
@@ -176,7 +176,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
      * @param binaryResultsDirectory the directory to write binary test results to
      * @param reportGenerator the report generator to use
      * @param testListenerInternalBroadcaster the test listeners to notify of test events, may have additional listeners added
-     * @param skipFirstLevelOnDisk whether to flatten the top level of the test tree on disk
+     * @param diskSkipLevels number of levels of the test tree to skip when writing to disk
      * @param detectOtherFailures a handler to call to present some other failure to the user, rather than the default test failure
      * @return the test event reporter
      * @apiNote This API is used by {@link org.gradle.api.tasks.testing.AbstractTestTask} to support various extra features.
@@ -188,7 +188,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
         Directory binaryResultsDirectory,
         TestReportGenerator reportGenerator,
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
-        boolean skipFirstLevelOnDisk,
+        int diskSkipLevels,
         Supplier<TestReportResult> detectOtherFailures
     );
 }

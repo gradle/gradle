@@ -1,6 +1,12 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getReportEntrySkipLevels()",
+            "acceptation": "internal API",
+            "changes": []
+        },
+        {
             "type": "org.gradle.plugin.management.PluginRequest",
             "member": "Method org.gradle.plugin.management.PluginRequest.getSelector()",
             "acceptation": "No need to incubate",
