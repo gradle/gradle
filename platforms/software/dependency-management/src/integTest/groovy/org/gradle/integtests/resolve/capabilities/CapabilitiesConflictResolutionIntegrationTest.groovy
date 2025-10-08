@@ -75,7 +75,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         where:
         rule                               | error
         "throw new NullPointerException()" | "Capability resolution rule failed with an error" // error in user code
-        "select('org:testD:1.0')"          | "org:testD:1.0 is not a valid candidate for conflict resolution on capability capability group='org.test', name='cap', version='null': candidates are [org:testA:1.0(runtime), org:testB:1.0(runtime)]"// invalid candidate
+        "select('org:testD:1.0')"          | "org:testD:1.0 is not a valid candidate for conflict resolution on capability 'org.test:cap': candidates are ['org:testA:1.0' (runtime), 'org:testB:1.0' (runtime)]"// invalid candidate
 
     }
 

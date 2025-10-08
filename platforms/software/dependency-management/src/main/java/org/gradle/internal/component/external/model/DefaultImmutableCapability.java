@@ -23,6 +23,13 @@ import org.jspecify.annotations.Nullable;
 
 public class DefaultImmutableCapability implements ImmutableCapability {
 
+    public static ImmutableCapability of(Capability capability) {
+        if (capability instanceof ImmutableCapability) {
+            return (ImmutableCapability) capability;
+        }
+        return new DefaultImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion());
+    }
+
     public static DefaultImmutableCapability defaultCapabilityForComponent(ModuleVersionIdentifier identifier) {
         return new DefaultImmutableCapability(identifier.getGroup(), identifier.getName(), identifier.getVersion());
     }

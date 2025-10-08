@@ -257,7 +257,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         then:
         if (conflict) {
             failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (runtime), 'org:test:1.0' (api)]""")
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (api), 'org:test:1.0' (runtime)]""")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {
@@ -514,7 +514,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (runtime), 'org:foo:1.1' (api)]""")
+   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (api), 'org:foo:1.1' (runtime)]""")
 
     }
 

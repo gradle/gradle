@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.internal.ImmutableActionSet;
 
@@ -40,7 +41,7 @@ public interface LegacyResolutionParameters {
     /**
      * Rules that may resolve capability conflicts.
      */
-    CapabilitiesResolutionInternal getCapabilityConflictResolutionRules();
+    ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> getCapabilityConflictResolutionRules();
 
     /**
      * Rules that specify which components dynamic version selection may select.
