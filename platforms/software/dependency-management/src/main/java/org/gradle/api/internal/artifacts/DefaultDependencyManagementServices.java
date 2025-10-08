@@ -107,8 +107,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.model.ModelContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.internal.DefaultModelContainer;
+import org.gradle.api.model.internal.ModelContainerInternal;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.Cache;
@@ -257,6 +260,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
             registration.add(PublishArtifactNotationParserFactory.class);
+        }
+
+        @Provides({ModelContainer.class, ModelContainerInternal.class})
+        DefaultModelContainer createModelContainer(ObjectFactory objectFactory) {
+            // We use object factory to generate Closure-accepting methods
+            return objectFactory.newInstance(DefaultModelContainer.class);
         }
 
         @Provides

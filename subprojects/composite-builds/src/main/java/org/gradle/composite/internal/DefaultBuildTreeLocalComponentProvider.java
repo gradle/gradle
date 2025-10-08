@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.model.internal.ModelContainerInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -125,7 +126,8 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         );
 
         ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
-        return resolveStateFactory.stateFor(projectState, metadata, configurations);
+        ModelContainerInternal dataModels = project.getModels();
+        return resolveStateFactory.stateFor(projectState, metadata, configurations, dataModels);
     }
 
     @Override

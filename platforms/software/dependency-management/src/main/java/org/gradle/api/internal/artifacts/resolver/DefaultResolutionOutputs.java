@@ -17,7 +17,10 @@
 package org.gradle.api.internal.artifacts.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
+import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -35,16 +38,26 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.model.ComponentModel;
+import org.gradle.api.model.ComponentSet;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.internal.DataModel;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import javax.inject.Inject;
+import java.util.Collection;
 
 /**
  * Default implementation of {@link ResolutionOutputsInternal}. This class is in charge of
@@ -132,6 +145,100 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             attributesFactory,
             attributeDesugaring
         );
+    }
+
+    @Override
+    public ComponentSet asComponentSet() {
+        return new ComponentSet() {
+            @Override
+            public <T> Provider<Collection<ComponentModel<T>>> selectModel(Class<T> modelType) {
+                ModelSetSource<T> models = new ModelSetSource<>(
+                    resolutionAccess,
+                    taskDependencyFactory,
+                    modelType
+                );
+
+                return new BuildableBackedProvider<>(models, Cast.uncheckedCast(Collection.class), models::getModelSet);
+            }
+        };
+    }
+
+    private static class ModelSetSource<T> implements TaskDependencyContainer, Buildable {
+
+        private final ResolutionAccess resolutionAccess;
+        private final TaskDependencyFactory taskDependencyFactory;
+        private final Class<T> modelType;
+
+        public ModelSetSource(
+            ResolutionAccess resolutionAccess,
+            TaskDependencyFactory taskDependencyFactory,
+            Class<T> modelType
+        ) {
+            this.resolutionAccess = resolutionAccess;
+            this.taskDependencyFactory = taskDependencyFactory;
+            this.modelType = modelType;
+        }
+
+        private ImmutableList<ComponentModel<T>> resolve(Class<T> modelType, ImmutableMap<ComponentIdentifier, ComponentGraphResolveState> components) {
+            ImmutableList.Builder<ComponentModel<T>> selectedModels = ImmutableList.builderWithExpectedSize(components.size());
+
+            for (ComponentGraphResolveState component : components.values()) {
+                DataModel model = component.prepareForArtifactResolution().findDataModel(modelType.getName());
+                if (model != null) {
+                    ComponentIdentifier id = component.getId();
+                    selectedModels.add(new DefaultComponentModel(id, model, modelType));
+                }
+
+                // TODO: Throw an exception if the model is not found.
+                // TODO: Implement lenient model selection.
+                //       There are two types of leniency:
+                //       1. Components are allowed to not have the model.
+                //       2. Unrelated failures when resolving the graph are ignored.
+            }
+
+            return selectedModels.build();
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return taskDependencyFactory.visitingDependencies(context ->
+                context.add(ModelSetSource.this)
+            );
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            resolutionAccess.getResults().getTaskDependencyValue().getVisitedGraph().visitFailures(context::visitFailure);
+        }
+
+        public Collection<ComponentModel<T>> getModelSet() {
+            return resolutionAccess.getResults()
+                .map(results -> resolve(modelType, results.getVisitedGraph().getResolvedComponents()))
+                .getValue();
+        }
+
+        private class DefaultComponentModel implements ComponentModel<T> {
+            private final ComponentIdentifier id;
+            private final DataModel model;
+            private final Class<T> modelType;
+
+            public DefaultComponentModel(ComponentIdentifier id, DataModel model, Class<T> modelType) {
+                this.id = id;
+                this.model = model;
+                this.modelType = modelType;
+            }
+
+            @Override
+            public ComponentIdentifier getComponentId() {
+                return id;
+            }
+
+            @Override
+            public T getModel() {
+                // TODO: Should we cache this?
+                return model.hydrate(modelType);
+            }
+        }
     }
 
     @VisibleForTesting

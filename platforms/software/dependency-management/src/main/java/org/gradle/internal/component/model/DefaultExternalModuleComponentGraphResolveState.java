@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.model.internal.DataModel;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata;
@@ -98,6 +99,14 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
     public ComponentArtifactResolveMetadata getArtifactMetadata() {
         A legacyMetadata = getLegacyMetadata();
         return new ExternalArtifactResolveMetadata(legacyMetadata);
+    }
+
+    @Override
+    public @Nullable DataModel findDataModel(String name) {
+        // Currently, we do  not support loading data models from external components.
+        // Eventually, we plan to publish data models as part of GMM.
+        // It may also be useful to be able to fetch the POM, Ivy descriptor, or GMM as a data model.
+        return null;
     }
 
     @Override
