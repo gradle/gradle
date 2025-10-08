@@ -19,7 +19,9 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.LinkedListMultimap
+import com.google.common.collect.ListMultimap
 import com.google.common.collect.Multimap
+import com.google.common.collect.Multimaps
 import com.google.common.collect.Multisets
 import com.google.common.collect.Sets
 import com.google.common.collect.Streams
@@ -31,7 +33,6 @@ import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import org.jsoup.select.Elements
 
 import java.nio.file.Files
 import java.util.stream.Collectors
@@ -42,10 +43,10 @@ import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.greaterThanOrEqualTo
 import static org.junit.jupiter.api.Assertions.fail
 
 class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
-    public static final String TEST_NG_PREFIX = ":Gradle suite:Gradle test"
     private final Lazy<Set<Path>> executedTestPathsLazy = Lazy.locking().of({
         def reportPath = htmlReportDirectory.toPath()
         try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
@@ -213,7 +214,8 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         return switch (testFramework) {
-            case TestFramework.SPOCK, TestFramework.JUNIT4, TestFramework.SCALA_TEST, TestFramework.XC_TEST, TestFramework.CUCUMBER -> {
+            case TestFramework.SPOCK, TestFramework.JUNIT4, TestFramework.SCALA_TEST,
+                 TestFramework.XC_TEST, TestFramework.CUCUMBER, TestFramework.TEST_NG -> {
                 def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
                 yield prefix + suffix
@@ -222,11 +224,6 @@ Unexpected paths: ${unexpectedPaths}""")
                 def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix + "()"
                 yield prefix + suffix
-            }
-            case TestFramework.TEST_NG -> {
-                def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
-                def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
-                yield TEST_NG_PREFIX + prefix + suffix
             }
             case TestFramework.CUSTOM -> testPath
             default -> throw new IllegalArgumentException("Unknown test framework: " + testFramework)
@@ -239,31 +236,92 @@ Unexpected paths: ${unexpectedPaths}""")
     }
 
     private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
+        private static Map<String, Element> getTabs(Element base) {
+            def container = base.selectFirst('.tab-container')
+            def tabs = container.select('> .tab')
+            def tabNames = container.select('> .tabLinks > li')
+            assert tabs.size() == tabNames.size()
+            Map<String, Element> result = new LinkedHashMap<>();
+            for (int i = 0; i < tabs.size(); i++) {
+                def tabName = tabNames.get(i).text()
+                assert !result.containsKey(tabName) : "Duplicate tab name: " + tabName
+                result[tabName] = tabs.get(i)
+            }
+            return result
+        }
+
         private final List<String> rootNames = []
-        private final Map<String, Element> rootElements = [:]
+        private final List<String> rootDisplayNames = []
+        private final ListMultimap<String, Element> rootAndRunElements = LinkedListMultimap.create()
 
         HtmlTestPathExecutionResult(File htmlFile) {
             Document html = Jsoup.parse(htmlFile, null)
-            Element rootTabContainer = html.selectFirst('.tab-container')
-            Elements tabs = rootTabContainer.select('> .tab')
-            Elements tabNames = rootTabContainer.select('> .tabLinks > li')
-            for (int i = 0; i < tabs.size(); i++) {
-                def rootName = tabNames.get(i).text()
-                rootNames.add(rootName)
-                rootElements[rootName] = tabs.get(i)
+            Map<String, Element> rootElements = getTabs(html)
+            rootElements.forEach { name, content ->
+                rootNames.add(name)
+                rootDisplayNames.add(content.selectFirst('h1').text())
+                Map<String, Element> subTabs = getTabs(content)
+                if (subTabs.containsKey("summary")) {
+                    // Only a single run, these tabs are the run details tabs
+                    rootAndRunElements.put(name, content)
+                } else {
+                    // Multiple runs
+                    rootAndRunElements.putAll(name, subTabs.values())
+                }
             }
+        }
+
+        private getSingleRoot() {
+            assertThat(
+                "has multiple roots: " + rootAndRunElements.keySet(),
+                rootAndRunElements.keySet().size(),
+                equalTo(1)
+            )
+            Multimaps.asMap(rootAndRunElements).values().first()
         }
 
         @Override
         TestPathRootExecutionResult onlyRoot() {
-            assertThat("has multiple roots: " + rootElements.keySet(), rootElements.size(), equalTo(1))
-            return new HtmlTestPathRootExecutionResult(rootElements.values().first())
+            List<Element> singleRoot = getSingleRoot()
+            assertThat(
+                "has multiple runs",
+                singleRoot.size(),
+                equalTo(1)
+            )
+            return new HtmlTestPathRootExecutionResult(singleRoot.first(), rootDisplayNames.first())
+        }
+
+        @Override
+        TestPathRootExecutionResult onlyOneRootAndRun(int runNumber) {
+            List<Element> singleRoot = getSingleRoot()
+            return new HtmlTestPathRootExecutionResult(singleRoot.get(runNumber - 1), rootDisplayNames.first())
         }
 
         @Override
         TestPathRootExecutionResult root(String rootName) {
-            assertThat(rootElements.keySet(), hasItems(rootName))
-            return new HtmlTestPathRootExecutionResult(rootElements[rootName])
+            assertThat(rootAndRunElements.keySet(), hasItems(rootName))
+            List<Element> runs = rootAndRunElements.get(rootName)
+            assertThat(
+                "root '" + rootName + "' has multiple runs",
+                runs.size(),
+                equalTo(1)
+            )
+            def index = rootNames.indexOf(rootName)
+            return new HtmlTestPathRootExecutionResult(runs.first(), rootDisplayNames[index])
+        }
+
+        @Override
+        TestPathRootExecutionResult rootAndRun(String rootName, int runNumber) {
+            assertThat(rootAndRunElements.keySet(), hasItems(rootName))
+            List<Element> runs = rootAndRunElements.get(rootName)
+            assertThat(
+                "root '" + rootName + "' has not enough runs (requested run number: "
+                    + runNumber + ", but only has " + runs.size() + " runs)",
+                runs.size(),
+                greaterThanOrEqualTo(runNumber)
+            )
+            def index = rootNames.indexOf(rootName)
+            return new HtmlTestPathRootExecutionResult(runs.get(runNumber - 1), rootDisplayNames[index])
         }
 
         @Override
@@ -273,14 +331,16 @@ Unexpected paths: ${unexpectedPaths}""")
     }
 
     private static class HtmlTestPathRootExecutionResult implements TestPathRootExecutionResult {
-        private Element html
+        private final Element html
+        private final String displayName
         private Multimap<String, TestInfo> testsExecuted = LinkedListMultimap.create()
         private Multimap<String, TestInfo> testsSucceeded = LinkedListMultimap.create()
         private Multimap<String, TestInfo> testsFailures = LinkedListMultimap.create()
         private Multimap<String, TestInfo> testsSkipped = LinkedListMultimap.create()
 
-        HtmlTestPathRootExecutionResult(Element html) {
+        HtmlTestPathRootExecutionResult(Element html, String displayName) {
             this.html = html
+            this.displayName = displayName
             extractCases()
         }
 
@@ -304,14 +364,10 @@ Unexpected paths: ${unexpectedPaths}""")
             return html.select('tr > th').size() == 7
         }
 
-        private getDisplayName() {
-            html.selectFirst("h1").text()
-        }
-
         @Override
         TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
             def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
-            assertThat("in " + getDisplayName(), executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
+            assertThat("in " + displayName, executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
             return this
         }
 
@@ -319,15 +375,15 @@ Unexpected paths: ${unexpectedPaths}""")
         TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
             def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
             testNames.each {
-                assertThat("in " + getDisplayName(), executedAndNotSkipped, hasItem(it))
+                assertThat("in " + displayName, executedAndNotSkipped, hasItem(it))
             }
             return this
         }
 
         @Override
         TestPathRootExecutionResult assertChildCount(int tests, int failures) {
-            assertThat("in " + getDisplayName(), testsExecuted.size(), equalTo(tests))
-            assertThat("in " + getDisplayName(), testsFailures.size(), equalTo(failures))
+            assertThat("in " + displayName, testsExecuted.size(), equalTo(tests))
+            assertThat("in " + displayName, testsFailures.size(), equalTo(failures))
             return this
         }
 
@@ -338,7 +394,7 @@ Unexpected paths: ${unexpectedPaths}""")
 
         @Override
         TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
-            assertThat("in " + getDisplayName(), testsSkipped.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            assertThat("in " + displayName, testsSkipped.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
             return null
         }
 
@@ -349,7 +405,7 @@ Unexpected paths: ${unexpectedPaths}""")
 
         @Override
         TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
-            assertThat("in " + getDisplayName(), testsFailures.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            assertThat("in " + displayName, testsFailures.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
             return null
         }
 
@@ -372,7 +428,7 @@ Unexpected paths: ${unexpectedPaths}""")
             def tabs = html.select("div.tab")
             def tab = tabs.find { it.select("h2").text() == heading }
             assertThat(
-                "in " + getDisplayName(),
+                "in " + displayName,
                 tab ? TextUtil.normaliseLineSeparators(tab.select("span > pre").first().textNodes().first().wholeText)
                     : "",
                 matcher,
@@ -401,13 +457,13 @@ Unexpected paths: ${unexpectedPaths}""")
 
         @Override
         TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher) {
-            assertThat(getDisplayName(), matcher)
+            assertThat(displayName, matcher)
             return this
         }
 
         @Override
         TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
-            assertThat("in " + getDisplayName(), getFailureMessages(), matcher)
+            assertThat("in " + displayName, getFailureMessages(), matcher)
             return this
         }
 
@@ -419,7 +475,7 @@ Unexpected paths: ${unexpectedPaths}""")
         @Override
         TestPathRootExecutionResult assertMetadata(List<String> expectedKeys) {
             def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
-            assertThat("in " + getDisplayName(), metadataKeys, equalTo(expectedKeys))
+            assertThat("in " + displayName, metadataKeys, equalTo(expectedKeys))
             return this
         }
 
@@ -428,7 +484,7 @@ Unexpected paths: ${unexpectedPaths}""")
             def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
             def metadataRenderedValues = html.select('.metadata td.value').collect { it.html()}
             def metadata = [metadataKeys, metadataRenderedValues].transpose().collectEntries { key, value -> [key, value] }
-            assertThat("in " + getDisplayName(), metadata, equalTo(expectedMetadata))
+            assertThat("in " + displayName, metadata, equalTo(expectedMetadata))
             return this
         }
     }
