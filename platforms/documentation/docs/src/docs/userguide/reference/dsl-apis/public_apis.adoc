@@ -21,65 +21,45 @@ Gradle provides many public APIs that allow developers to interact with various 
 Any class or package name containing `Internal`, or located in a package segment `.internal.`, is not part of the public Gradle API and should not be relied upon for stable usage.
 Use of Gradle internal APIs in plugins and build scripts can break builds when either Gradle or plugins change.
 
-The list of public API packages is maintained in the link:https://github.com/gradle/gradle/blob/master/buildSrc/subprojects/configuration/src/main/kotlin/org/gradle/gradlebuild/public-api.kt[Gradle public API definition] (excluding any subpackages containing internal).
-It is also available below:
+The list of public API packages:
 
 [source,text]
 ----
-org/gradle/*
-org/gradle/api/**
-org/gradle/authentication/**
-org/gradle/build/**
-org/gradle/buildconfiguration/**
-org/gradle/buildinit/**
-org/gradle/caching/**
-org/gradle/concurrent/**
-org/gradle/deployment/**
-org/gradle/external/javadoc/**
-org/gradle/ide/**
-org/gradle/ivy/**
-org/gradle/jvm/**
-org/gradle/language/**
-org/gradle/maven/**
-org/gradle/nativeplatform/**
-org/gradle/normalization/**
-org/gradle/platform/**
-org/gradle/plugin/devel/**
-org/gradle/plugin/use/*
-org/gradle/plugin/management/*
-org/gradle/plugins/**
-org/gradle/process/**
-org/gradle/testfixtures/**
-org/gradle/testing/jacoco/**
-org/gradle/tooling/**
-org/gradle/swiftpm/**
-org/gradle/model/**
-org/gradle/testkit/**
-org/gradle/testing/**
-org/gradle/vcs/**
-org/gradle/work/**
-org/gradle/workers/**
-org/gradle/util/**
+org.gradle.*  (top-level classes only — excludes subpackages)
+org.gradle.api.**  (includes subpackages)
+org.gradle.authentication.**
+org.gradle.build.**
+org.gradle.buildconfiguration.**
+org.gradle.buildinit.**
+org.gradle.caching.**
+org.gradle.concurrent.**
+org.gradle.deployment.**
+org.gradle.external.javadoc.**
+org.gradle.ide.**
+org.gradle.ivy.**
+org.gradle.jvm.**
+org.gradle.language.**
+org.gradle.maven.**
+org.gradle.nativeplatform.**
+org.gradle.normalization.**
+org.gradle.platform.**
+org.gradle.plugin.devel.**
+org.gradle.plugin.use.*
+org.gradle.plugin.management.*
+org.gradle.plugins.**
+org.gradle.process.**
+org.gradle.testfixtures.**
+org.gradle.testing.jacoco.**
+org.gradle.tooling.**
+org.gradle.swiftpm.**
+org.gradle.model.**
+org.gradle.testkit.**
+org.gradle.testing.**
+org.gradle.vcs.**
+org.gradle.work.**
+org.gradle.workers.**
+org.gradle.util.**
 ----
 
-== Avoiding internal APIs
-
-Some older Gradle internals are still used in the wild but are **not supported** and may break between Gradle releases.
-Use the following public alternatives instead:
-
-[cols="1,3",options="header"]
-|===
-| Internal API (do not use) | Supported alternative
-
-| `org.gradle.internal.reflect.Instantiator`
-| Use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] to create and wire new objects in tasks or plugins.
-
-| `org.gradle.api.internal.ConventionMapping`
-| Use link:{javadocPath}/org/gradle/api/provider/Property.html[Property] and link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] to model user inputs and lazy configuration.
-
-| `org.gradle.internal.os.OperatingSystem`
-| Detect the OS using standard Java `System.getProperty("os.name")` or use link:https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SystemUtils.html[Apache Commons `SystemUtils`].
-
-| `org.gradle.util.*` classes (e.g., `CollectionUtils`, `GFileUtils`)
-| Prefer standard Java collections and I/O APIs or other well-maintained libraries.
-|===
+NOTE: The `\*` wildcard matches only classes directly in the package (e.g., `org.gradle.Foo`), but **does not include subpackages** like `org.gradle.something.Foo`.
+For subpackages, `**` must be used.
