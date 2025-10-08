@@ -326,6 +326,6 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
     }
 
     private void assertTestFailuresReported(GradleException e) {
-        assert e.message.startsWith("There were failing tests. See the test results for more details")
+        assert e.message.startsWith("There were failing tests. See the report at:")
     }
 }

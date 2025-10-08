@@ -144,14 +144,14 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasDescription("Execution failed for task ':failing1'.")
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing1"))
         resultsFor("tests/failing1")
-            .testPath("failing1 suite")
+            .testPath(":failing1 suite")
             .onlyRoot()
             .assertChildCount(1, 1)
 
         failure.assertHasDescription("Execution failed for task ':failing2'.")
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing2"))
         resultsFor("tests/failing2")
-            .testPath("failing2 suite")
+            .testPath(":failing2 suite")
             .onlyRoot()
             .assertChildCount(1, 1)
 
@@ -253,12 +253,12 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         def results = aggregateResults()
         results
-            .testPath("TheSameName suite")
+            .testPath(":TheSameName suite")
             .root("TheSameName (1)")
             .assertChildCount(1, 0)
             .assertOnlyChildrenExecuted("theSameName1 test")
         results
-            .testPath("TheSameName suite")
+            .testPath(":TheSameName suite")
             .root("TheSameName (2)")
             .assertChildCount(1, 0)
             .assertOnlyChildrenExecuted("theSameName2 test")
