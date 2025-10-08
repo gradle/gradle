@@ -25,15 +25,11 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public interface ResolvedComponentVisitor {
+
     /**
      * Starts visiting a component.
      */
-    void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName);
-
-    /**
-     * Visit graph independent details of the component.
-     */
-    void visitComponentDetails(ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion);
+    void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion);
 
     /**
      * Visit a selected variant of the component.
@@ -49,4 +45,5 @@ public interface ResolvedComponentVisitor {
      * Finishes visiting a component.
      */
     void endVisitComponent();
+
 }
