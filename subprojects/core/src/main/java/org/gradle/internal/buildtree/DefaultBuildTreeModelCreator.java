@@ -101,6 +101,7 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
+        @Nullable
         public <T> List<T> runQueryModelActions(List<Supplier<T>> actions) {
             return buildOperationRunner.call(new CallableBuildOperation<List<T>>() {
                 @Override
