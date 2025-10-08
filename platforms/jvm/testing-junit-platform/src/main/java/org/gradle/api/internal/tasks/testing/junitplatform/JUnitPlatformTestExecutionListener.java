@@ -118,8 +118,28 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         // to be seen as a "real" test suite in many tests, so this
         // test is to make sure we're at least under this event
         // Also give the same treatment to the "engine" segments
-        if (testIdentifier.getParentId().isPresent() && !"engine".equals(testIdentifier.getUniqueIdObject().getLastSegment().getType())) {
+
+        if (testIdentifier.getParentId().isPresent() && !isEngineNode(testIdentifier)) {
             reportStartedUnlessAlreadyStarted(testIdentifier);
+        }
+    }
+
+    /**
+     * Determines if the given TestIdentifier represents the test engine.
+     *
+     * @param testIdentifier the identifier to check
+     * @return {@code true} if the TestIdentifier represents the test engine; {@code false} otherwise
+     */
+    private boolean isEngineNode(TestIdentifier testIdentifier) {
+        // The method getUniqueIdObject() was added in JUnit Platform 1.8, so won't exist in earlier versions that
+        // might be the ones we're using at runtime here.
+        boolean hasUniqueIdObjectMethod = Arrays.stream(testIdentifier.getClass().getMethods()).anyMatch(method -> method.getName().equals("getUniqueIdObject"));
+        if (hasUniqueIdObjectMethod) {
+            return "engine".equals(testIdentifier.getUniqueIdObject().getLastSegment().getType());
+        } else {
+            String[] idSegments = testIdentifier.getUniqueId().split("/");
+            String lastSegment = idSegments[idSegments.length - 1];
+            return lastSegment.startsWith("[engine");
         }
     }
 
