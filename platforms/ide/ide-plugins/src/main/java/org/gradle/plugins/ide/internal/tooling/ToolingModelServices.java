@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.composite.BuildIncludeListener;
@@ -56,7 +57,8 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
             final ProjectStateRegistry projectStateRegistry,
             BuildModelParameters buildModelParameters,
             IntermediateToolingModelProvider intermediateToolingModelProvider,
-            BuildIncludeListener failedIncludedBuildsRegistry
+            BuildIncludeListener failedIncludedBuildsRegistry,
+            ResilientIssuesRecorder resilientIssuesRecorder
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
@@ -70,7 +72,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
-                    registry.register(new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry));
+                    registry.register(new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, resilientIssuesRecorder));
                     registry.register(new GradleBuildBuilder(buildStateRegistry));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));

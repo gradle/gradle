@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.BuildCancelledException;
+import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.types.DefaultFailure;
@@ -30,6 +31,7 @@ import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
@@ -49,12 +51,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 @NullMarked
-@SuppressWarnings("deprecation")
-class DefaultBuildController
-    implements org.gradle.tooling.internal.protocol.InternalBuildController,
+class DefaultBuildController implements
+    InternalBuildController,
     InternalBuildControllerVersion2,
     InternalActionAwareBuildController,
     InternalStreamedValueRelay,
@@ -66,6 +68,7 @@ class DefaultBuildController
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
+    private final ResilientIssuesRecorder resilientIssuesRecorder;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
@@ -73,7 +76,8 @@ class DefaultBuildController
         BuildCancellationToken cancellationToken,
         BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        ResilientIssuesRecorder resilientIssuesRecorder
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
@@ -81,6 +85,7 @@ class DefaultBuildController
         this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
+        this.resilientIssuesRecorder = resilientIssuesRecorder;
     }
 
     /**
@@ -165,28 +170,23 @@ class DefaultBuildController
     public <T, M> InternalFetchModelResult<T, M> fetch(@Nullable T target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
             Object model = getModel(target, modelIdentifier, parameter).getModel();
-            return createDefaultFetchModelResult(target, uncheckedNonnullCast(model), ImmutableList.of());
+            return createDefaultFetchModelResult(target, uncheckedNonnullCast(model), getRecordedFailures());
         } catch (Exception e) {
-            return createDefaultFetchModelResult(target, null, ImmutableList.of(DefaultFailure.fromThrowable(e)));
+            ImmutableList.Builder<InternalFailure> builder = ImmutableList.builder();
+            builder.addAll(getRecordedFailures());
+            builder.add(DefaultFailure.fromThrowable(e));
+            return createDefaultFetchModelResult(target, null, builder.build());
         }
     }
 
+    private List<InternalFailure> getRecordedFailures() {
+        return resilientIssuesRecorder.getFailures()
+            .stream()
+            .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null))
+            .collect(toImmutableList());
+    }
+
     private static <T, M> InternalFetchModelResult<T, M> createDefaultFetchModelResult(@Nullable T target, @Nullable M model, Collection<InternalFailure> failures) {
-        return new InternalFetchModelResult<T, M>() {
-            @Override
-            public @Nullable T getTarget() {
-                return target;
-            }
-
-            @Override
-            public @Nullable M getModel() {
-                return model;
-            }
-
-            @Override
-            public Collection<InternalFailure> getFailures() {
-                return failures;
-            }
-        };
+        return new DefaultInternalFetchModelResult<>(target, model, failures);
     }
 }

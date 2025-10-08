@@ -21,10 +21,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.problems.failure.Failure;
@@ -48,13 +50,16 @@ import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.addProj
 public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
     private final BuildStateRegistry buildStateRegistry;
     private final BuildIncludeListener failedIncludedBuildsRegistry;
+    private final ResilientIssuesRecorder resilientIssuesRecorder;
 
     public ResilientGradleBuildBuilder(
         BuildStateRegistry buildStateRegistry,
-        BuildIncludeListener failedIncludedBuildsRegistry
+        BuildIncludeListener failedIncludedBuildsRegistry,
+        ResilientIssuesRecorder resilientIssuesRecorder
     ) {
         this.buildStateRegistry = buildStateRegistry;
         this.failedIncludedBuildsRegistry = failedIncludedBuildsRegistry;
+        this.resilientIssuesRecorder = resilientIssuesRecorder;
     }
 
     @Override
@@ -81,10 +86,15 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
 
         DefaultResilientGradleBuild create() {
             ensureProjectsLoaded(target);
-            return new DefaultResilientGradleBuild(convert(target),
-                Streams.concat(brokenBuilds.values().stream(), brokenSettings.values().stream())
-                    .map(Object::toString)
-                    .collect(toImmutableList()));
+            DefaultGradleBuild gradleBuild = convert(target);
+            List<String> failureMessages = Streams.concat(brokenBuilds.values().stream(), brokenSettings.values().stream())
+                .map((Failure buildFailure) -> {
+                    resilientIssuesRecorder.recordResilientIssue(buildFailure);
+                    return DefaultFailure.fromFailure(buildFailure, dummy -> null);
+                })
+                .map(Object::toString)
+                .collect(toImmutableList());
+            return new DefaultResilientGradleBuild(gradleBuild, failureMessages);
         }
 
         protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model) {
@@ -116,8 +126,8 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
                 target.ensureProjectsLoaded();
             } catch (GradleException e) {
                 if (e.getCause() instanceof org.gradle.kotlin.dsl.support.ScriptCompilationException) {
-                    brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
-                    brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
+                    this.brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
+                    this.brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
                     return;
                 }
                 throw e;

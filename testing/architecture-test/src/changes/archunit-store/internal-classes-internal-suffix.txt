@@ -59,5 +59,6 @@ Class <org.gradle.tooling.internal.provider.InternalCancellationTokenAdapter> do
 Class <org.gradle.tooling.internal.provider.InternalCancellationTokenAdapter> has simple name starting with 'Internal' in (InternalCancellationTokenAdapter.java:0)
 Class <org.gradle.tooling.internal.provider.action.BuildActionSerializer$InternalTaskSpecSerializer> does not have simple name ending with 'Internal' in (BuildActionSerializer.java:0)
 Class <org.gradle.tooling.internal.provider.action.BuildActionSerializer$InternalTaskSpecSerializer> has simple name starting with 'Internal' in (BuildActionSerializer.java:0)
+Class <org.gradle.tooling.internal.provider.runner.DefaultInternalFetchModelResult> does not have simple name ending with 'Internal' in (DefaultInternalFetchModelResult.java:0)
 Class <org.gradle.tooling.internal.provider.test.ProviderInternalJvmTestRequest> does not have simple name ending with 'Internal' in (ProviderInternalJvmTestRequest.java:0)
 Class <org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest> does not have simple name ending with 'Internal' in (ProviderInternalTestExecutionRequest.java:0)

@@ -19,15 +19,20 @@ package org.gradle.integtests.tooling.r920
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.FetchModelResult
+import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.gradle.ResilientGradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import spock.lang.Unroll
 
 @ToolingApiVersion('>=9.3')
 @TargetGradleVersion('>=9.3')
 class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
+    static final String RESILIENT_MODEL_TRUE = "-Dorg.gradle.internal.resilient-model-building=true"
 
     def setup() {
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
@@ -36,45 +41,74 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
     def runCustomModelAction() {
         succeeds {
             action(new CustomModelAction())
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .withArguments(RESILIENT_MODEL_TRUE)
                 .run()
         }
     }
 
-    def "receive root project with broken settings file"() {
+    def runFetchModelAction() {
+        succeeds {
+            action(new FetchModelAction())
+                .withArguments(RESILIENT_MODEL_TRUE)
+                .run()
+        }
+    }
+
+    def runModelAction(String actionType) {
+        actionType == 'custom' ? runCustomModelAction() : runFetchModelAction()
+    }
+
+    @Unroll
+    def "receive root project with broken settings file [#actionType]"() {
         given:
         settingsKotlinFile << """
             blow up !!!
         """
+        withStackTraceChecksDisabled()
 
         when:
-        def model = runCustomModelAction()
+        def model = runModelAction(actionType)
 
         then:
-        model.paths == [":"]
-        model.build != null
-        model.build.didItFail()
-        model.build.failures != null
-        model.build.failures.toString().contains("Script compilation error")
+        if (actionType == 'custom') {
+            model.build.didItFail()
+            model.build.failures != null
+            model.build.failures.toString().contains("Script compilation error")
+        } else {
+            model.model.didItFail()
+            model.failures != null
+            model.failures.toString().contains("Script compilation error")
+        }
+
+        where:
+        actionType << ['custom', 'fetch']
     }
 
-    def "receive root project with broken root build file"() {
+    @Unroll
+    def "receive root project with broken root build file [#actionType]"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
         """
-        buildKotlinFile << """
-            blow up !!!
-        """
+        blowUpBuildGradleKts()
 
         when:
-        MyCustomModel model = runCustomModelAction()
+        def model = runModelAction(actionType)
 
         then:
-        model.paths == [":"]
+        if (actionType == 'custom') {
+            model.paths == [":"]
+            !model.build.didItFail()
+        } else {
+            !model.model.didItFail()
+        }
+
+        where:
+        actionType << ['custom', 'fetch']
     }
 
-    def "receive root project and included build root project with broken included build file"() {
+    @Unroll
+    def "receive root project and included build root project with broken included build file [#actionType]"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -85,23 +119,28 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         included.file("settings.gradle.kts") << """
             rootProject.name = "included"
         """
-        included.file("build.gradle.kts") << """
-            blow up !!!
-        """
+        blowUpBuildGradleKts(included)
 
         when:
-        MyCustomModel model = runCustomModelAction()
+        def model = runModelAction(actionType)
 
         then:
-        model.paths == [":", ":included"]
-        model.build.gradleBuild != null
+        if (actionType == 'custom') {
+            model.paths == [":", ":included"]
+            model.build.gradleBuild != null
+            def includedBuild = model.build.gradleBuild.includedBuilds.getAt(0)
+            includedBuild != null
+        } else {
+            model.model.gradleBuild != null
+            model.model.gradleBuild.includedBuilds.getAt(0) != null
+        }
 
-        def includedBuild = model.build.gradleBuild.includedBuilds.getAt(0)
-        includedBuild != null
+        where:
+        actionType << ['custom', 'fetch']
     }
 
-
-    def "receive root project and included plugin project root with broken included build file"() {
+    @Unroll
+    def "receive root project and included plugin project root with broken included build file [#actionType]"() {
         given:
         settingsKotlinFile << """
         pluginManagement {
@@ -114,18 +153,26 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         includedPlugin.file("settings.gradle.kts") << """
         rootProject.name = "included-plugin"
     """
-        includedPlugin.file("build.gradle.kts") << """
-        blow up !!!
-    """
+        blowUpBuildGradleKts(includedPlugin)
 
         when:
-        MyCustomModel model = runCustomModelAction()
+        def model = runModelAction(actionType)
 
         then:
-        model.paths == [":", ":included-plugin"]
+        if (actionType == 'custom') {
+            model.paths == [":", ":included-plugin"]
+            !model.build.didItFail()
+        } else {
+            !model.model.didItFail()
+            model.model.gradleBuild.includedBuilds.getAt(0) != null
+        }
+
+        where:
+        actionType << ['custom', 'fetch']
     }
 
-    def "receive root project and included build root project (non-relative) with broken included settings file"() {
+    @Unroll
+    def "receive root project and included build root project (non-relative) with broken included settings file [#actionType]"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -134,24 +181,44 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
 
         def included = file("included")
         included.file("settings.gradle.kts") << """
-            boom !!!
+            settings boom !!!
         """
-        included.file("build.gradle.kts") << """
-            blow up !!!
-        """
+        blowUpBuildGradleKts(included)
+        withStackTraceChecksDisabled()
 
         when:
-        withStackTraceChecksDisabled()
-        def model = runCustomModelAction()
+        def model = runModelAction(actionType)
 
         then:
-        model.paths == [":", ":"]
-        model.build != null
-        model.build.failures != null
-        model.build.failures.toString().contains("Script compilation error")
+        if (actionType == 'custom') {
+            model.paths == [":", ":"]
+            model.build.didItFail()
+            model.build != null
+            model.build.failures != null
+            model.build.failures.toString().contains("Script compilation error")
+            def includedBuild = model.build.gradleBuild.includedBuilds.getAt(0)
+            includedBuild != null
+        } else {
+            model.model.didItFail()
+            model.model.gradleBuild != null
+            model.failures != null
+            model.failures.toString().contains("Script compilation error")
+            model.model.gradleBuild.includedBuilds.getAt(0) != null
+        }
 
-        def includedBuild = model.build.gradleBuild.includedBuilds.getAt(0)
-        includedBuild != null
+        where:
+        actionType << ['custom', 'fetch']
+    }
+
+    TestFile blowUpBuildGradleKts(TestFile included = null) {
+        def blowUpString = """
+                blow up !!!
+            """
+        if(included == null) {
+            buildFileKts << blowUpString
+        }else{
+            included.file("build.gradle.kts") << blowUpString
+        }
     }
 
     static class MyCustomModel implements Serializable {
@@ -171,16 +238,21 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    static class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
-
+    static class FetchModelAction implements BuildAction<FetchModelResult<Model, ResilientGradleBuild>>, Serializable {
         @Override
-        public MyCustomModel execute(BuildController controller) {
+        FetchModelResult<Model, ResilientGradleBuild> execute(BuildController controller) {
+            return controller.fetch(null, ResilientGradleBuild, null, null)
+        }
+    }
+
+    static class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
+        @Override
+        MyCustomModel execute(BuildController controller) {
             ResilientGradleBuild build = controller.getModel(ResilientGradleBuild.class);
 
             if (build.didItFail()) {
                 System.err.println("Build failed: " + build.failures);
             }
-
 
             def includedBuilds = build.gradleBuild.includedBuilds
 
