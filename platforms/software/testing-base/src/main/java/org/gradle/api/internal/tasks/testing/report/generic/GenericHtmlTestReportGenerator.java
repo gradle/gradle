@@ -152,11 +152,15 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
             for (int i = 0; i < model.getPerRootInfo().size(); i++) {
-                TestTreeModel.PerRootInfo perRootInfo = model.getPerRootInfo().get(i);
-                if (perRootInfo == null) {
+                // Roots should always have exactly one PerRootInfo entry
+                List<TestTreeModel.PerRootInfo> perRootInfos = model.getPerRootInfo().get(i);
+                if (perRootInfos.isEmpty()) {
                     throw new IllegalStateException("Root model is missing display name info for root index " + i);
                 }
-                String displayName = perRootInfo.getResult().getDisplayName();
+                if (perRootInfos.size() > 1) {
+                    throw new IllegalStateException("Root model has multiple display name infos for root index " + i + ": " + Iterables.toString(perRootInfos));
+                }
+                String displayName = perRootInfos.get(0).getResult().getDisplayName();
                 rootDisplayNames.add(displayName);
                 namesToIndexes.put(displayName, i);
             }

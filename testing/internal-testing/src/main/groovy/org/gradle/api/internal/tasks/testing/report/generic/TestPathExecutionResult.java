@@ -23,14 +23,24 @@ import java.util.List;
  */
 public interface TestPathExecutionResult {
     /**
-     * Assert that a single root is present, and provides access to the results of the test path execution.
+     * Assert that a single root and run is present, and provides access to the results of the test path execution.
      */
     TestPathRootExecutionResult onlyRoot();
 
     /**
-     * Assert that there is a root with the given root name, and provides access to the results of the test path execution.
+     * Assert that there is a single root and the given run number, and provides access to the results of the test path execution.
+     */
+    TestPathRootExecutionResult onlyOneRootAndRun(int runNumber);
+
+    /**
+     * Assert that there is a root with the given root name, and a single run, and provides access to the results of the test path execution.
      */
     TestPathRootExecutionResult root(String rootName);
+
+    /**
+     * Assert that there is a root with the given root name and run number, and provides access to the results of the test path execution.
+     */
+    TestPathRootExecutionResult rootAndRun(String rootName, int runNumber);
 
     /**
      * Returns the names of the roots that were executed.
