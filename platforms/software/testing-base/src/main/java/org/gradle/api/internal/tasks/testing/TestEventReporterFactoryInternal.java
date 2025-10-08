@@ -24,6 +24,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.function.LongFunction;
 
 @NullMarked
@@ -63,13 +64,19 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
                 this.failureMessage = failureMessage;
             }
 
-            public String getFailureMessage() {
-                return failureMessage;
+            @Override
+            public Optional<String> getFailureMessage() {
+                return Optional.of(failureMessage);
             }
 
             @Override
             public String toString() {
                 return "TEST_FAILURE_DETECTED[failureMessage=" + failureMessage + "]";
+            }
+
+            @Override
+            public boolean shouldFailTask() {
+                return true;
             }
         }
 
@@ -84,13 +91,19 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
                 this.failureMessage = failureMessage;
             }
 
-            public String getFailureMessage() {
-                return failureMessage;
+            @Override
+            public Optional<String> getFailureMessage() {
+                return Optional.of(failureMessage);
             }
 
             @Override
             public String toString() {
                 return "NO_TESTS_RUN";
+            }
+
+            @Override
+            public boolean shouldFailTask() {
+                return true;
             }
         }
 
@@ -146,6 +159,24 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
          */
         static TestReportResult noTestsRun(String failureMessage) {
             return new NoTestsRun(failureMessage);
+        }
+
+        /**
+         * If this result represents a failure, returns the message to use for reporting the failure.
+         *
+         * @return the failure message, or an {@link Optional#empty()} if this result does not represent a failure
+         */
+        default Optional<String> getFailureMessage() {
+            return Optional.empty();
+        }
+
+        /**
+         * Whether the test task should be marked as failed when this is the result of the test reporting.
+         *
+         * @return {@code true} if the test task should be marked as failed; {@code false} otherwise
+         */
+        default boolean shouldFailTask() {
+            return false;
         }
     }
 
