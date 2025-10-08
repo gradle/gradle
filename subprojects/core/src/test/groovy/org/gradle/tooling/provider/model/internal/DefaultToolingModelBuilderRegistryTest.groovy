@@ -30,7 +30,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
 import spock.lang.Specification
 
-import java.util.function.Function
 import java.util.function.Supplier
 
 class DefaultToolingModelBuilderRegistryTest extends Specification {
