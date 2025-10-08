@@ -172,7 +172,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
     }
 
-    @Ignore // TODO
     def "basic build with included build - broken build file in included build - intact plugins block"() {
         given:
         settingsKotlinFile << """
@@ -203,11 +202,13 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
-        assertHasErrorsInScriptModels(model, Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+                Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")
+        )
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
-    @Ignore // TODO
     def "basic build with included build - broken build file in included build - broken plugins block"() {
         given:
         settingsKotlinFile << """
@@ -232,7 +233,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
-        assertHasErrorsInScriptModels(model, Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+                Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")
+        )
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
     }
 
@@ -352,7 +356,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             plugins {
                 id("java")
             }
-        """ // TODO: why is this not failing just like "basic build with included build - broken build file in included build - intact plugins block" above? it's the same failure...
+        """
         def d = file("d/build.gradle.kts") << """
             plugins {
                 id("java")
@@ -731,7 +735,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             if (queryStrategy == ROOT_PROJECT_FIRST) {
                 queryKotlinDslScriptsModel(controller, gradleBuild, scriptModels, failures)
                 for (GradleBuild build : gradleBuild.includedBuilds) {
-                    queryKotlinDslScriptsModel(controller, gradleBuild, scriptModels, failures)
+                    queryKotlinDslScriptsModel(controller, build, scriptModels, failures)
                 }
             } else if (queryStrategy == INCLUDED_BUILDS_FIRST) {
                 for (GradleBuild build : gradleBuild.includedBuilds) {
