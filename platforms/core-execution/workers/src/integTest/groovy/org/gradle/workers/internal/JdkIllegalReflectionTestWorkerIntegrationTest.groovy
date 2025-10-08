@@ -25,6 +25,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
+
 /**
  * Ensures test behavior and actual application behavior are equivalent when
  * production code attempts to perform reflection on JDK internals.
@@ -74,11 +75,6 @@ class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationS
                 }
             }
         """
-    }
-
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT4
     }
 
     @Requires(UnitTestPreconditions.Jdk16OrLater)
