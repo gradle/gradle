@@ -91,14 +91,23 @@ public final class SerializableTestResultStore {
         return Files.exists(resultDir.toPath().resolve("results-generic.bin"));
     }
 
-    public Writer openWriter(boolean skipFirstLevelOnDisk) throws IOException {
-        return new Writer(serializedResultsFile, outputZipFile, skipFirstLevelOnDisk);
+    public Writer openWriter(int diskSkipLevels) throws IOException {
+        return new Writer(serializedResultsFile, outputZipFile, diskSkipLevels);
     }
 
     @NullMarked
     public static final class Writer implements Closeable, TestListenerInternal {
         private static boolean isRoot(TestDescriptorInternal descriptor) {
             return descriptor.getParent() == null;
+        }
+
+        private static int depth(TestDescriptorInternal descriptor) {
+            int depth = 0;
+            while (descriptor.getParent() != null) {
+                depth++;
+                descriptor = descriptor.getParent();
+            }
+            return depth;
         }
 
         private static final long ROOT_ID = 1;
@@ -108,7 +117,7 @@ public final class SerializableTestResultStore {
         private final List<TestDescriptorInternal> extraFlattenedDescriptors;
         private final List<TestResult> extraFlattenedResults;
         private final Path serializedResultsFile;
-        private final boolean skipFirstLevelOnDisk;
+        private final int diskSkipLevels;
         private final Path temporaryResultsFile;
         private final KryoBackedEncoder resultsEncoder;
         private final FileSystem outputZipFileSystem;
@@ -117,13 +126,13 @@ public final class SerializableTestResultStore {
         // Map from testDescriptor -> Serialized metadata associated with that descriptor
         private final Multimap<TestDescriptorInternal, SerializedMetadata> metadatas = LinkedHashMultimap.create();
 
-        private Writer(Path serializedResultsFile, Path outputZipFile, boolean skipFirstLevelOnDisk) throws IOException {
+        private Writer(Path serializedResultsFile, Path outputZipFile, int diskSkipLevels) throws IOException {
             this.serializedResultsFile = serializedResultsFile;
-            this.skipFirstLevelOnDisk = skipFirstLevelOnDisk;
+            this.diskSkipLevels = diskSkipLevels;
             // Use constants to avoid allocating empty collections if flattening is not enabled
-            flatteningIds = skipFirstLevelOnDisk ? new HashSet<>() : Collections.emptySet();
-            extraFlattenedDescriptors = skipFirstLevelOnDisk ? new ArrayList<>() : Collections.emptyList();
-            extraFlattenedResults = skipFirstLevelOnDisk ? new ArrayList<>() : Collections.emptyList();
+            flatteningIds = isDiskSkipEnabled() ? new HashSet<>() : Collections.emptySet();
+            extraFlattenedDescriptors = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
+            extraFlattenedResults = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
             Files.createDirectories(serializedResultsFile.getParent());
             temporaryResultsFile = Files.createTempFile(serializedResultsFile.getParent(), "in-progress-results-generic", ".bin");
             resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
@@ -147,14 +156,14 @@ public final class SerializableTestResultStore {
             }
         }
 
+        private boolean isDiskSkipEnabled() {
+            return diskSkipLevels > 0;
+        }
+
         @Override
         public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-            if (skipFirstLevelOnDisk) {
-                TestDescriptorInternal parent = testDescriptor.getParent();
-                if (!isRoot(testDescriptor) && isRoot(parent)) {
-                    // parent is the root, flatten here
-                    flatteningIds.add(testDescriptor.getId());
-                }
+            if (isDiskSkipEnabled() && !isRoot(testDescriptor) && depth(testDescriptor) <= diskSkipLevels) {
+                flatteningIds.add(testDescriptor.getId());
             }
             long id = nextId++;
             // Sanity check, shouldn't happen in practice
@@ -168,7 +177,7 @@ public final class SerializableTestResultStore {
 
         @Override
         public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-            if (skipFirstLevelOnDisk) {
+            if (isDiskSkipEnabled()) {
                 // Attach flattened results to the root if this is a flattened node
                 if (flatteningIds.contains(testDescriptor.getId())) {
                     extraFlattenedDescriptors.add(testDescriptor);
@@ -196,7 +205,7 @@ public final class SerializableTestResultStore {
                 testNodeBuilder.addMetadata(metadata);
             }
 
-            if (skipFirstLevelOnDisk && isRoot(testDescriptor)) {
+            if (isDiskSkipEnabled() && isRoot(testDescriptor)) {
                 // Attach extra flattened results to the root node
                 boolean hasAssumptionFailure = testResult.getAssumptionFailure() != null;
                 for (TestResult flattenedResult : extraFlattenedResults) {
@@ -245,7 +254,7 @@ public final class SerializableTestResultStore {
 
         @Nullable
         private TestDescriptorInternal getFlattenedParent(TestDescriptorInternal testDescriptor) {
-            if (!skipFirstLevelOnDisk || isRoot(testDescriptor)) {
+            if (!isDiskSkipEnabled() || isRoot(testDescriptor)) {
                 return testDescriptor.getParent();
             }
             TestDescriptorInternal parent = testDescriptor.getParent();
@@ -284,7 +293,7 @@ public final class SerializableTestResultStore {
         public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
             long outputId;
             // Log to the root of the output zip file if this is a flattened test
-            if (skipFirstLevelOnDisk && flatteningIds.contains(testDescriptor.getId())) {
+            if (isDiskSkipEnabled() && flatteningIds.contains(testDescriptor.getId())) {
                 outputId = ROOT_ID;
             } else {
                 outputId = assignedIds.get(testDescriptor.getId());

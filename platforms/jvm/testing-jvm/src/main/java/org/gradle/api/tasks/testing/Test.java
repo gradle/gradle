@@ -743,6 +743,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return reasons;
     }
 
+    @Override
+    protected int getReportEntrySkipLevels() {
+        return super.getReportEntrySkipLevels() + getTestFramework().getAdditionalReportEntrySkipLevels();
+    }
+
     /**
      * Adds include patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
      *

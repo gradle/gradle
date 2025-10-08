@@ -102,6 +102,12 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     @Override
+    public int getAdditionalReportEntrySkipLevels() {
+        // Skip `suiteName` and `testName`
+        return 2;
+    }
+
+    @Override
     public void close() throws IOException {
         // Clear expensive state from the test framework to avoid holding on to memory
         // This should probably be a part of the test task and managed there.

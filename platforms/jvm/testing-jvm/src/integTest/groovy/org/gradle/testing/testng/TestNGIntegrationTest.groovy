@@ -29,7 +29,7 @@ import spock.lang.Issue
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
+@TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
 class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
     @Override
     GenericTestExecutionResult.TestFramework getTestFramework() {
@@ -91,7 +91,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
         succeeds 'test'
 
         then:
-        testResults.testPath('ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(':org.gradle.OkTest:ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "can listen for test results"() {
@@ -192,8 +192,8 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
         succeeds 'test'
 
         then:
-        testResults.assertAtLeastTestPathsExecuted('databaseTest')
-        testResults.testPath("databaseTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.assertAtLeastTestPathsExecuted(':org.gradle.groups.SomeTest:databaseTest')
+        testResults.testPath(":org.gradle.groups.SomeTest:databaseTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "does not emit deprecation warning about no tests executed when groups are specified"() {
@@ -257,10 +257,14 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
         succeeds 'test'
 
         then:
-        testResults.assertTestPathsExecuted(':printMethod', ':printMethod (2)')
-        testResults.testPath('printMethod').onlyRoot().assertStdout(containsString('TestingFirst'))
-        testResults.testPath('printMethod (2)').onlyRoot().assertStdout(containsString('TestingSecond'))
-        testResults.testPath('printMethod').onlyRoot().assertStdout(not(containsString('Default test name')))
+        testResults.assertTestPathsExecuted(
+            ':org.gradle.factory.FactoryTest:printMethod',
+        )
+        testResults.testPath(':org.gradle.factory.FactoryTest:printMethod').onlyOneRootAndRun(1)
+            .assertStdout(containsString('TestingFirst'))
+            .assertStdout(not(containsString('Default test name')))
+        testResults.testPath(':org.gradle.factory.FactoryTest:printMethod').onlyOneRootAndRun(2)
+            .assertStdout(containsString('TestingSecond'))
     }
 
     @Issue("GRADLE-3315")
@@ -345,7 +349,18 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
         succeeds('test')
 
         then:
-        testResults.testPath('').onlyRoot().assertChildCount(4, 0)
+        testResults.assertTestPathsExecuted(
+            ':TestNG7878:runFirst',
+            ':TestNG7878:testGet2',
+        )
+        testResults.testPath(':TestNG7878:runFirst').onlyOneRootAndRun(1)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(':TestNG7878:runFirst').onlyOneRootAndRun(2)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(':TestNG7878:testGet2').onlyOneRootAndRun(1)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(':TestNG7878:testGet2').onlyOneRootAndRun(2)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23602")
@@ -385,10 +400,10 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
         fails("test")
 
         then:
-        testResults.testPath("passingTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
-        testResults.testPath("testWithUnserializableException").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+        testResults.testPath(":PoisonTest:passingTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(":PoisonTest:testWithUnserializableException").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
-        testResults.testPath("normalFailingTest").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+        testResults.testPath(":PoisonTest:normalFailingTest").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(containsString("AssertionError"))
     }
 

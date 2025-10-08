@@ -23,7 +23,7 @@ import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-@TargetCoverage({ TestNGCoverage.SUPPORTS_GENERIC_TEST_REPORTING })
+@TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
 class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
     @Override
     GenericTestExecutionResult.TestFramework getTestFramework() {
