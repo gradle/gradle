@@ -33,13 +33,11 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Ignore
 
 import java.util.function.Function
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
-import static java.util.Collections.singletonList
 import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.INCLUDED_BUILDS_FIRST
 import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST
 
@@ -90,7 +88,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             modelAssert.assertClassPathsAreEqual()
             modelAssert.assertImplicitImportsAreEqual()
         }
-        resilientModels.failureMessages.isEmpty()
+        resilientModels.failures.isEmpty()
     }
 
     def "basic build - broken settings file"() {
@@ -147,7 +145,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
-        // assertHasErrorsInScriptModels(model, Pair.of("build.gradle.kts", singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))) // TODO
+        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
@@ -169,11 +167,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
-        // assertHasErrorsInScriptModels(model, Pair.of("build.gradle.kts", singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))) // TODO
+        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
     }
 
-    @Ignore // TODO
     def "basic build with included build - broken build file in included build - intact plugins block"() {
         given:
         settingsKotlinFile << """
@@ -204,11 +201,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
-        assertHasErrorsInScriptModels(model, Pair.of("included/build.gradle.kts", singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")))
+        assertHasErrorsInScriptModels(model, Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
-    @Ignore // TODO
     def "basic build with included build - broken build file in included build - broken plugins block"() {
         given:
         settingsKotlinFile << """
@@ -233,7 +229,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
-        assertHasErrorsInScriptModels(model, Pair.of("included/build.gradle.kts", singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")))
+        assertHasErrorsInScriptModels(model, Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
     }
 
@@ -328,7 +324,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             modelAssert.assertClassPathsAreEqual()
             modelAssert.assertImplicitImportsAreEqual()
         }
-        resilientModels.failureMessages.isEmpty()
+        resilientModels.failures.isEmpty()
     }
 
     def "bigger build - broken build file in included build - #description with #queryStrategy"() {
@@ -392,9 +388,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 modelAssert.assertImplicitImportsAreEqual()
             }
         }
-        resilientModels.failureMessages.size() == 1
-        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("c/build.gradle.kts' line: 5")
-        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains(expectedFailure)
+        resilientModels.failures.size() == 1
+        resilientModels.failures[settingsKotlinFile.parentFile].contains("c/build.gradle.kts' line: 5")
+        resilientModels.failures[settingsKotlinFile.parentFile].contains(expectedFailure)
 
         where:
         description                | breakage                                     | expectedFailure  | queryStrategy
@@ -489,9 +485,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 modelAssert.assertImplicitImportsAreEqual()
             }
         }
-        resilientModels.failureMessages.size() == 1
-        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("b/build.gradle.kts' line: 2")
-        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("Failing script")
+        resilientModels.failures.size() == 1
+        resilientModels.failures[settingsKotlinFile.parentFile].contains("b/build.gradle.kts' line: 2")
+        resilientModels.failures[settingsKotlinFile.parentFile].contains("Failing script")
 
         where:
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
@@ -580,12 +576,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
         // At the moment the failure reporting is not consistent and depends on the order of query
-        resilientModels.failureMessages.size() == numberOfFailures
+        resilientModels.failures.size() == numberOfFailures
         rootBuildFailure?.with {
-            assert resilientModels.failureMessages[settingsKotlinFile.parentFile].contains(it)
+            assert resilientModels.failures[settingsKotlinFile.parentFile].contains(it)
         }
         includedBuildFailure?.with {
-            assert resilientModels.failureMessages[included].contains(it)
+            assert resilientModels.failures[included].contains(it)
         }
 
         where:
@@ -659,30 +655,23 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
     }
 
-    void assertHasErrorsInScriptModels(KotlinModel model, Pair<String, List<String>>... expected) {
-        def scriptModels = new HashMap<>(model.scriptModels)
+    void assertHasErrorsInScriptModels(KotlinModel model, Pair<String, String>... expected) {
+        def failures = new HashMap<>(model.failures)
 
-        for (Pair<String, List<String>> expectedElement : expected) {
-            def expectedFile = new File(projectDir, expectedElement.left)
-            def scriptModel = scriptModels.remove(expectedFile)
-            assert scriptModel != null: "Script model for file ${expectedElement.left} not available"
-            matchScriptModelExceptions(scriptModel, expectedElement.right)
+        for (Pair<String, String> expectedElement : expected) {
+            def buildRootDir = new File(new File(projectDir, expectedElement.left).canonicalPath)
+            def failure = failures.remove(buildRootDir)
+            assert failure: "Failures for build root ${expectedElement.left} not available"
+            matchProjectFailure(failure, expectedElement.right)
         }
 
-        for (Map.Entry<File, KotlinDslScriptModel> entry : scriptModels.entrySet()) {
-            assert entry.getValue().exceptions.isEmpty(): "Unexpected errors in script model for file ${entry.key}"
-        }
+        assert failures.isEmpty() : "Unexpected failures for build roots: ${failures.keySet()}"
     }
 
-    private static void matchScriptModelExceptions(KotlinDslScriptModel scriptModel, List<String> expected) {
-        def exceptions = scriptModel.exceptions
-        assert exceptions.size() == expected.size(): "Expected ${expected.size()} exceptions, but got ${exceptions.size()}"
-
-        for (int i = 0; i < expected.size(); i++) {
-            def exception = exceptions.get(i)
-            def expectedPattern = expected.get(i)
-            assert Pattern.compile(expectedPattern, Pattern.DOTALL).matcher(exception).matches(): "Exception \"${exception}\" doesn't match expected pattern \"${expectedPattern}\""
-        }
+    private static void matchProjectFailure(String failureMessage, String expectedPattern) {
+        def pattern = Pattern.compile(expectedPattern, Pattern.DOTALL)
+        def matcher = pattern.matcher(failureMessage)
+        assert matcher.matches(): "Exception \"${failureMessage}\" doesn't match expected pattern \"${expectedPattern}\""
     }
 
     void assertHasJarsInScriptModelClasspath(KotlinModel model, String expectedFile, String... expectedJars) {
@@ -696,7 +685,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 .collect(Collectors.toList())
 
         for (String expectedJar : expectedJars) {
-            assert jarFilesInClasspath.stream().filter {it.startsWith(expectedJar)}.findFirst().isPresent() :
+            assert jarFilesInClasspath.stream().filter { it.startsWith(expectedJar) }.findFirst().isPresent():
                     "Expected jar named $expectedJar in the script model classpath for file $expectedFile, " +
                             "but it wasn't there: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
         }
@@ -705,11 +694,11 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     static class KotlinModel implements Serializable {
 
         final Map<File, KotlinDslScriptModel> scriptModels
-        final Map<File, String> failureMessages
+        final Map<File, String> failures
 
-        KotlinModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failure) {
+        KotlinModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
             this.scriptModels = scriptModels
-            this.failureMessages = failure.collectEntries { k, v -> [(k): TextUtil.normaliseFileSeparators(v.description)] }
+            this.failures = failures.collectEntries { key, value -> [ key, value.description ]}
         }
     }
 
@@ -788,63 +777,49 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         ComparingModelAssert assertBothModelsExist() {
-            if (!originalModel) {
-                throw new AssertionError("Original model for script ${scriptFile} is missing, scripts that have original model are:\n" +
-                        " ${originalCustomModel.scriptModels.keySet()}")
-            }
-            if (!resilientModel) {
-                throw new AssertionError("Resilient model for script ${scriptFile} is missing, scripts that have resilient model are:\n" +
-                        " ${resilientCustomModel.scriptModels.keySet()}")
-            }
+            assert originalModel : "Original model for script ${scriptFile} is missing, scripts that have original model are:\n" +
+                        " ${originalCustomModel.scriptModels.keySet()}"
+            assert resilientModel : "Resilient model for script ${scriptFile} is missing, scripts that have resilient model are:\n" +
+                        " ${resilientCustomModel.scriptModels.keySet()}"
             return this
         }
 
 
         ComparingModelAssert assertClassPathsAreEqual() {
-            if (resilientModel.classPath != originalModel.classPath) {
-                throw new AssertionError("Class paths are not equal for script ${scriptFile}:\n" +
+            assert resilientModel.classPath == originalModel.classPath : "Class paths are not equal for script ${scriptFile}:\n" +
                         " - Resilient classPath: ${resilientModel.classPath}\n" +
-                        " - Original classPath:  ${originalModel.classPath}")
-            }
+                        " - Original classPath:  ${originalModel.classPath}"
             return this
         }
 
         ComparingModelAssert assertClassPathsAreEqualIfIgnoringSomeOriginalEntries(Function<String, Boolean> filter) {
             def filteredOriginalClassPath = originalModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
-            if (resilientModel.classPath != filteredOriginalClassPath) {
-                throw new AssertionError("Class paths are not equal after filtering original entries for script ${scriptFile}:\n" +
+            assert resilientModel.classPath == filteredOriginalClassPath : "Class paths are not equal after filtering original entries for script ${scriptFile}:\n" +
                         " - Resilient classPath:         ${resilientModel.classPath}\n" +
-                        " - Filtered original classPath: ${filteredOriginalClassPath}")
-            }
+                        " - Filtered original classPath: ${filteredOriginalClassPath}"
             return this
         }
 
         ComparingModelAssert assertClassPathsAreEqualIfIgnoringSomeEntries(Function<String, Boolean> filter) {
             def filteredResilient = resilientModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
             def filteredOriginalClassPath = originalModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
-            if (filteredResilient != filteredOriginalClassPath) {
-                throw new AssertionError("Class paths are not equal after filtering some entries for script ${scriptFile}:\n" +
+            assert filteredResilient == filteredOriginalClassPath : "Class paths are not equal after filtering some entries for script ${scriptFile}:\n" +
                         " - Riltered resilient: ${filteredResilient}\n" +
-                        " - Riltered original:  ${filteredOriginalClassPath}")
-            }
+                        " - Riltered original:  ${filteredOriginalClassPath}"
             return this
         }
 
         ComparingModelAssert assertResilientModelContainsClassPathEntriesWithPath(String path) {
             def filteredResilient = resilientModel.classPath.findAll { TextUtil.normaliseFileSeparators(it.absolutePath).contains(path) }
-            if (filteredResilient.isEmpty()) {
-                throw new AssertionError("Resilient Class paths for script ${scriptFile} did not contain entries with path '${path}':\n" +
-                        " - Resilient classPath: ${resilientModel.classPath}")
-            }
+            assert !filteredResilient.isEmpty() : "Resilient Class paths for script ${scriptFile} did not contain entries with path '${path}':\n" +
+                    " - Resilient classPath: ${resilientModel.classPath}"
             return this
         }
 
         ComparingModelAssert assertImplicitImportsAreEqual() {
-            if (resilientModel.implicitImports != originalModel.implicitImports) {
-                throw new AssertionError("Implicit imports are not equal for script ${scriptFile}:\n" +
+            assert resilientModel.implicitImports == originalModel.implicitImports : "Implicit imports are not equal for script ${scriptFile}:\n" +
                         " - Resilient imports: ${resilientModel.implicitImports}\n" +
-                        " - Original imports:  ${originalModel.implicitImports}")
-            }
+                        " - Original imports:  ${originalModel.implicitImports}"
             return this
         }
     }
