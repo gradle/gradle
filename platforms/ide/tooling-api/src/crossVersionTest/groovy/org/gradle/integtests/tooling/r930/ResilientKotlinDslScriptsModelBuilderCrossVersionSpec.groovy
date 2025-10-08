@@ -33,7 +33,6 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Ignore
 
 import java.util.function.Function
 import java.util.regex.Pattern
@@ -407,7 +406,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST
     }
 
-    @Ignore // TODO
     def "build with convention plugins - broken project convention plugin - exception - #queryStrategy"() {
         given:
         settingsKotlinFile << """
@@ -501,7 +499,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
-    @Ignore // TODO
     def "build with convention plugins - broken project convention - compile error - #queryStrategy"() {
         given:
         settingsKotlinFile << """
@@ -585,7 +582,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
         // At the moment the failure reporting is not consistent and depends on the order of query
-        resilientModels.failures.size() == numberOfFailures
+        def actualNoOfFailures = resilientModels.failures.size()
+        assert actualNoOfFailures == expectedNoOfFailures : "Expected $expectedNoOfFailures failures, but had ${actualNoOfFailures}"
         rootBuildFailure?.with {
             assert resilientModels.failures[settingsKotlinFile.parentFile].contains(it)
         }
@@ -594,9 +592,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         where:
-        queryStrategy         | numberOfFailures | rootBuildFailure                               | includedBuildFailure
-        ROOT_PROJECT_FIRST    | 1                | "A problem occurred configuring project ':b'." | null
-        INCLUDED_BUILDS_FIRST | 2                | "A problem occurred configuring project ':b'." | "Execution failed for task ':build-logic:compileKotlin'."
+        queryStrategy         | expectedNoOfFailures    | rootBuildFailure                               | includedBuildFailure
+        ROOT_PROJECT_FIRST    | 2                       | "A problem occurred configuring project ':b'." | "Execution failed for task ':build-logic:compileKotlin'."
+        INCLUDED_BUILDS_FIRST | 1                       | "A problem occurred configuring project ':b'." | null
     }
 
     @ToBeImplemented("Needs resilient GradleBuild model")
@@ -826,10 +824,16 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         ComparingModelAssert assertImplicitImportsAreEqual() {
-            assert resilientModel.implicitImports == originalModel.implicitImports : "Implicit imports are not equal for script ${scriptFile}:\n" +
-                        " - Resilient imports: ${resilientModel.implicitImports}\n" +
-                        " - Original imports:  ${originalModel.implicitImports}"
+            def relevantResilientImports = minusAccessors(resilientModel.implicitImports)
+            def relevantOriginalImports = minusAccessors(originalModel.implicitImports)
+            assert relevantResilientImports == relevantOriginalImports: "Implicit imports are not equal for script ${scriptFile}:\n" +
+                        " - Resilient imports: $relevantResilientImports\n" +
+                        " - Original imports:  $relevantOriginalImports"
             return this
+        }
+
+        private static List<String> minusAccessors(List<String> implicitImports) {
+            implicitImports.findAll { !it.startsWith("gradle.kotlin.dsl.plugins._") }
         }
     }
 }
