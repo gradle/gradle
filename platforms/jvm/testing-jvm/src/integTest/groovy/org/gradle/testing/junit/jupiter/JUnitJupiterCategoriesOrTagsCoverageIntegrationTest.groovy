@@ -28,6 +28,11 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
     String singularCategoryOrTagName = "tag"
     String pluralCategoryOrTagName = "tags"
 
+    @Override
+    String[] normalizeTestMethodNames(String... methodNames) {
+        return methodNames.collect { it +'()' }.toArray(new String[0])
+    }
+
     def "can specify include and exclude tags"() {
         given:
         testSources.with {
