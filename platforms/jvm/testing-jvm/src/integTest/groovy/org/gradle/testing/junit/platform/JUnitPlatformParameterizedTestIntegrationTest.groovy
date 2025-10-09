@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.testing.fixture.JUnitPlatformTestFixture
