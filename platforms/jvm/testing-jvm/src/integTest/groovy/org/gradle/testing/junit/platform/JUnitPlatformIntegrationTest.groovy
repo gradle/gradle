@@ -17,6 +17,7 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -61,9 +62,8 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         run('check')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.IgnoredTest')
-            .testClass('org.gradle.IgnoredTest').assertTestCount(1, 0).assertTestsSkipped("testIgnored1()")
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.IgnoredTest').onlyRoot().assertChildrenSkipped("testIgnored1()")
     }
 
     def 'can handle class-level error in #location method'() {
@@ -95,11 +95,11 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         fails('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.ClassErrorTest')
-            .testClass('org.gradle.ClassErrorTest')
-            .assertTestCount(successCount + 1, 1)
-            .assertTestFailed(failedTestName, containsString(location))
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.ClassErrorTest').onlyRoot()
+            .assertChildCount(successCount + 1, 1)
+        results.testPathPreNormalized(":org.gradle.ClassErrorTest:$failedTestName").onlyRoot()
+            .assertFailureMessages(containsString(location))
 
         where:
         location     | beforeStatement      | afterStatement      | successCount | failedTestName
@@ -167,19 +167,21 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         fails('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecutedJudgementByHtml('org.gradle.RepeatTest')
-            .testClassByHtml('org.gradle.RepeatTest')
-            .assertTestCount(9, 1)
-            .assertTestPassed('ok()[1]', 'ok 1/3')
-            .assertTestPassed('ok()[2]', 'ok 2/3')
-            .assertTestPassed('ok()[3]', 'ok 3/3')
-            .assertTestPassed('partialFail(RepetitionInfo)[1]', 'partialFail 1/3')
-            .assertTestFailed('partialFail(RepetitionInfo)[2]', 'partialFail 2/3', containsString('java.lang.RuntimeException'))
-            .assertTestPassed('partialFail(RepetitionInfo)[3]', 'partialFail 3/3')
-            .assertTestPassed('partialSkip(RepetitionInfo)[1]', 'partialSkip 1/3')
-            .assertTestSkipped('partialSkip(RepetitionInfo)[2]', 'partialSkip 2/3')
-            .assertTestPassed('partialSkip(RepetitionInfo)[3]', 'partialSkip 3/3')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.RepeatTest').onlyRoot()
+            .assertChildCount(3, 1)
+        results.testPathPreNormalized(':org.gradle.RepeatTest:ok()').onlyRoot()
+            .assertChildrenExecuted('ok()[1]', 'ok()[2]', 'ok()[3]')
+        results.testPathPreNormalized(':org.gradle.RepeatTest:partialFail(RepetitionInfo)').onlyRoot()
+            .assertChildrenExecuted('partialFail(RepetitionInfo)[1]')
+            .assertChildrenFailed('partialFail(RepetitionInfo)[2]')
+            .assertChildrenExecuted('partialFail(RepetitionInfo)[3]')
+        results.testPathPreNormalized(':org.gradle.RepeatTest:partialFail(RepetitionInfo):partialFail(RepetitionInfo)[2]').onlyRoot()
+            .assertFailureMessages(containsString('java.lang.RuntimeException'))
+        results.testPathPreNormalized(':org.gradle.RepeatTest:partialSkip(RepetitionInfo)').onlyRoot()
+            .assertChildrenExecuted('partialSkip(RepetitionInfo)[1]')
+            .assertChildrenSkipped('partialSkip(RepetitionInfo)[2]')
+            .assertChildrenExecuted('partialSkip(RepetitionInfo)[3]')
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4476')
@@ -207,9 +209,9 @@ public class UninstantiableExtension implements BeforeEachCallback {
         fails('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass(JUnitSupport.UNKNOWN_CLASS)
-            .assertTestFailed('initializationError', containsString('UninstantiableExtension'))
+        def results = resultsFor(testDirectory)
+        results.testPathPreNormalized(":${JUnitSupport.UNKNOWN_CLASS}:initializationError").onlyRoot()
+            .assertFailureMessages(containsString('UninstantiableExtension'))
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4427')
@@ -418,11 +420,15 @@ public class StaticInnerTest {
         fails("test")
 
         then:
-        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
-            assertTestPassed("passingTest")
-            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
-            assertTestFailed("normalFailingTest", containsString("AssertionError"))
-        }
+        def results = resultsFor(testDirectory)
+        results.testPath("PoisonTest", "passingTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath("PoisonTest", "testWithUnserializableException").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+        results.testPath("PoisonTest", "normalFailingTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("AssertionError"))
     }
 
     // When running embedded with test distribution, the remote distribution has a newer version of
