@@ -142,6 +142,7 @@ public class AntBuilderDelegate extends BuilderSupport {
 
     public void invokeMethod(String methodName, Map<String, Object> parameters, Runnable closure) {
         invokeMethod(methodName, new Object[]{parameters, new Closure<Object>(this, this) {
+            @SuppressWarnings("unused") // Magic Groovy method
             public Object doCall(Object ignored) {
                 closure.run();
                 return null;

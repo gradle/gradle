@@ -387,18 +387,17 @@ class BuildCacheClientModule extends AbstractModule {
             @Override
             public void ensureDirectoryForTree(TreeType type, File root) throws IOException {
                 switch (type) {
-                    case DIRECTORY:
+                    case DIRECTORY -> {
                         FileUtils.forceMkdir(root.getParentFile());
                         FileUtils.cleanDirectory(root);
-                        break;
-                    case FILE:
+                    }
+                    case FILE -> {
                         FileUtils.forceMkdir(root.getParentFile());
                         if (root.exists()) {
                             FileUtils.forceDelete(root);
                         }
-                        break;
-                    default:
-                        throw new AssertionError();
+                    }
+                    default -> throw new AssertionError();
                 }
             }
         };

@@ -398,8 +398,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     public void removeOutgoingEdges() {
-        for (NodeState configuration : getNodes()) {
-            configuration.deselect();
+        for (NodeState node : getNodes()) {
+            node.deselect();
         }
     }
 

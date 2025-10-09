@@ -17,6 +17,8 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -46,7 +48,8 @@ public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
         this(Factories.constant(STRING_INTERNER.intern(descriptor)));
     }
 
-    public SimpleModelRuleDescriptor(final String descriptor, final Object... args) {
+    @FormatMethod
+    public SimpleModelRuleDescriptor(@FormatString final String descriptor, final Object... args) {
         this(new Factory<String>() {
             @Override
             public String create() {
