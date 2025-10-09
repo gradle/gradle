@@ -168,8 +168,7 @@ Unexpected paths: ${unexpectedPaths}""")
 
     @Override
     TestPathExecutionResult testPath(String... testPathElements) {
-        String joined = Arrays.asList(testPathElements).stream()
-            .collect(Collectors.joining(":"))
+        String joined = Stream.of(testPathElements).collect(Collectors.joining(":", ":", ""))
         return testPath(joined)
     }
 
@@ -216,12 +215,12 @@ Unexpected paths: ${unexpectedPaths}""")
         return switch (testFramework) {
             case TestFramework.SPOCK, TestFramework.JUNIT4, TestFramework.SCALA_TEST,
                  TestFramework.XC_TEST, TestFramework.CUCUMBER, TestFramework.TEST_NG -> {
-                def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
+                def prefix = Strings.isNullOrEmpty(basePrefix) ? ":" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
                 yield prefix + suffix
             }
             case TestFramework.JUNIT_JUPITER, TestFramework.KOTLIN_TEST -> {
-                def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
+                def prefix = Strings.isNullOrEmpty(basePrefix) ? ":" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix + "()"
                 yield prefix + suffix
             }
