@@ -26,7 +26,6 @@ import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.util.internal.ToBeImplemented
 
 @TargetGradleVersion(">=9.3.0")
 @ToolingApiVersion(">=9.3.0")
@@ -190,7 +189,6 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
-    @ToBeImplemented
     def "can query models per project"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -204,12 +202,8 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        // TODO: Should be
-        // result.modelValue == ["root": "greetings"]
-        // result.failureMessages.isEmpty()
-        // result.causes.isEmpty()
-        result.modelValue == ["root": null]
-        result.failureMessages == ["Don't know how to build models for GradleProject{path=':'}"]
+        result.modelValue == ["root": "greetings"]
+        result.failureMessages.isEmpty()
         result.causes.isEmpty()
     }
 

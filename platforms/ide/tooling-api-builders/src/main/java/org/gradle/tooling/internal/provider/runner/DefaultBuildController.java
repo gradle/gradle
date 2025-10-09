@@ -162,7 +162,7 @@ class DefaultBuildController
     }
 
     @Override
-    public <T, M> InternalFetchModelResult<T, M> fetch(@Nullable T target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
+    public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
             Object model = getModel(target, modelIdentifier, parameter).getModel();
             return createDefaultFetchModelResult(target, uncheckedNonnullCast(model), ImmutableList.of());
@@ -171,10 +171,10 @@ class DefaultBuildController
         }
     }
 
-    private static <T, M> InternalFetchModelResult<T, M> createDefaultFetchModelResult(@Nullable T target, @Nullable M model, Collection<InternalFailure> failures) {
-        return new InternalFetchModelResult<T, M>() {
+    private static <M> InternalFetchModelResult<M> createDefaultFetchModelResult(@Nullable Object target, @Nullable M model, Collection<InternalFailure> failures) {
+        return new InternalFetchModelResult<M>() {
             @Override
-            public @Nullable T getTarget() {
+            public @Nullable Object getTarget() {
                 return target;
             }
 
