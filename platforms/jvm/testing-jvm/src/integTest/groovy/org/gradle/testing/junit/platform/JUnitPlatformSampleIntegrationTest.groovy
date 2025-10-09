@@ -16,15 +16,23 @@
 
 package org.gradle.testing.junit.platform
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
-class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
+class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider)
+
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT_JUPITER
+    }
 
     @UsesSample('testing/junitplatform-jupiter/groovy')
     def 'jupiter sample test'() {
@@ -35,13 +43,19 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
         succeeds 'test'
 
         then:
-        new DefaultTestExecutionResult(sample.dir).testClassByHtml('org.gradle.junitplatform.JupiterTest')
-            .assertTestCount(5, 0)
-            .assertTestPassed('ok')
-            .assertTestPassed('repeated()[1]', 'repetition 1 of 2')
-            .assertTestPassed('repeated()[2]', 'repetition 2 of 2')
-            .assertTestPassed('test1(TestInfo)', 'TEST 1')
-            .assertTestSkipped('disabled')
+        def results = resultsFor(sample.dir)
+        results.testPath('org.gradle.junitplatform.JupiterTest').onlyRoot()
+            .assertChildCount(4, 0)
+        results.testPath('org.gradle.junitplatform.JupiterTest', 'ok').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.junitplatform.JupiterTest:repeated():repeated()[1]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.junitplatform.JupiterTest:repeated():repeated()[2]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.junitplatform.JupiterTest:test1(TestInfo)').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.junitplatform.JupiterTest:disabled()').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SKIPPED)
     }
 
     @UsesSample('testing/junitplatform-mix/groovy')
