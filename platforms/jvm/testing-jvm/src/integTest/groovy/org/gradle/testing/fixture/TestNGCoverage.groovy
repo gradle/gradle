@@ -35,7 +35,6 @@ class TestNGCoverage {
      */
     private static final String FIXED_ICLASS_LISTENER = '6.9.13.3' // Introduces fixed IClassListener
 
-    private static final String FIRST_PRESERVE_ORDER_SUPPORT = '5.14.5' // First version to support preserve-order
     private static final String BEFORE_BROKEN_PRESERVE_ORDER = '6.1.1' // Latest version before introduction of cbeust/testng#639 bug
     private static final String FIXED_BROKEN_PRESERVE_ORDER = '6.9.4'  // Fixes cbeust/testng#639 for preserve-order
 
@@ -50,18 +49,8 @@ class TestNGCoverage {
       ]
 
     static final Set<String> SUPPORTED_BY_JDK = testNgVersionsSupportedByJdk(ALL_VERSIONS, JavaVersion.current())
-    static final Set<String> SUPPORTS_PRESERVE_ORDER = SUPPORTED_BY_JDK.findAll {
-        VersionNumber version = VersionNumber.parse(it)
-        version >= VersionNumber.parse(FIRST_PRESERVE_ORDER_SUPPORT)
-            && !(version > VersionNumber.parse(BEFORE_BROKEN_PRESERVE_ORDER) && version < VersionNumber.parse(FIXED_BROKEN_PRESERVE_ORDER))
-    }
-    static final Set<String> SUPPORTS_GROUP_BY_INSTANCES = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse('6.1') }
     static final Set<String> SUPPORTS_ICLASS_LISTENER = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse(FIXED_ICLASS_LISTENER) }
     static final Set<String> SUPPORTS_DRY_RUN = SUPPORTED_BY_JDK.findAll { VersionNumber.parse(it) >= VersionNumber.parse('6.14') }
-
-    static boolean providesClassListener(Object version) {
-        VersionNumber.parse(version.toString()) >= VersionNumber.parse(FIXED_ICLASS_LISTENER)
-    }
 
     static boolean supportsJavaVersion(String testNgVersion, int javaVersion) {
         return testNgVersionsSupportedByJdk([testNgVersion] as Set,  JavaVersion.toVersion(javaVersion)).contains(testNgVersion)
