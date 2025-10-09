@@ -17,101 +17,10 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
-import spock.lang.Issue
 
 @TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
-class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
-    }
-
-    void theUsualFiles() {
-        buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies {
-                ${testFrameworkDependencies}
-            }
-            test {
-              ${configureTestFramework} {
-                suiteXmlBuilder().suite(name: 'AwesomeSuite') {
-                    test (name: 'AwesomeTest') {
-                        classes([:]) {
-                            'class' (name: 'FooTest')
-                            'class' (name: 'BarTest')
-                        }
-                    }
-                }
-              }
-            }
-        """
-
-        file("src/test/java/FooTest.java") << """
-            ${testFrameworkImports}
-            public class FooTest {
-                @Test public void pass() {}
-            }
-        """
-        file("src/test/java/BarTest.java") << """
-            ${testFrameworkImports}
-            public class BarTest {
-                @Test public void pass() {}
-            }
-        """
-        file("src/test/java/BazTest.java") << """
-            ${testFrameworkImports}
-            public class BazTest {
-                @Test public void pass() {}
-            }
-        """
-    }
-
-    @Issue("GRADLE-3112")
-    def "suites can be filtered from the command-line"() {
-        given:
-        theUsualFiles()
-
-        when:
-        run("test", "--tests", "*AwesomeSuite*")
-
-        then:
-        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        def fooTest = testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot()
-        fooTest.assertChildCount(1, 0)
-        fooTest.assertChildrenExecuted("pass")
-        def barTest = testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot()
-        barTest.assertChildCount(1, 0)
-        barTest.assertChildrenExecuted("pass")
-    }
-
-    @Issue("GRADLE-3112")
-    def "suites can be filtered from the build file"() {
-        given:
-        theUsualFiles()
-        // and this addition to the build file ...
-        buildFile << """
-            test {
-              filter {
-                includeTestsMatching "*AwesomeSuite*"
-              }
-            }
-        """
-
-        when:
-        run("test")
-
-        then:
-        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        def fooTest = testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot()
-        fooTest.assertChildCount(1, 0)
-        fooTest.assertChildrenExecuted("pass")
-        def barTest = testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot()
-        barTest.assertChildCount(1, 0)
-        barTest.assertChildrenExecuted("pass")
-    }
+class TestNGFilteringIntegrationTest extends AbstractTestNGFilteringIntegrationTest implements TestNGMultiVersionTest {
 }

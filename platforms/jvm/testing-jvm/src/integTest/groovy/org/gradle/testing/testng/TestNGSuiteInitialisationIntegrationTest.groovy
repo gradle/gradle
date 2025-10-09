@@ -16,15 +16,21 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
-import static org.hamcrest.CoreMatchers.startsWith
+import static org.hamcrest.Matchers.allOf
+import static org.hamcrest.Matchers.containsString
 
-class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
+class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     @Issue("GRADLE-1710")
     def "reports suite fatal failure"() {
@@ -41,8 +47,13 @@ class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("test")
 
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClassStartsWith("Gradle Test Executor").assertTestFailed(EXECUTION_FAILURE,
-                startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"))
+        def result = resultsFor()
+        result.assertTestPathsExecuted(":")
+        result.testPath(':').onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(allOf(
+                containsString("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"),
+                containsString("Caused by: java.lang.NullPointerException")
+            ))
     }
 }

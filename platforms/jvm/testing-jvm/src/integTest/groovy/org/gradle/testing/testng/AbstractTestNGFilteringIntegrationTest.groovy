@@ -18,6 +18,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
@@ -77,10 +78,10 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         run("test", "--tests", "*AwesomeSuite*")
 
         then:
-        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        testResult.assertAtLeastTestPathsExecutedPreNormalized(":AwesomeSuite:AwesomeTest:FooTest", ":AwesomeSuite:AwesomeTest:BarTest")
-        testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot().assertChildCount(1, 0)
-        testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot().assertChildCount(1, 0)
+        def testResult = resultsFor()
+        testResult.assertTestPathsExecuted(":FooTest:pass", ":BarTest:pass",)
+        testResult.testPath(":FooTest:pass").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResult.testPath(":BarTest:pass").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     @Issue("GRADLE-3112")
@@ -100,9 +101,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         run("test")
 
         then:
-        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        testResult.assertAtLeastTestPathsExecutedPreNormalized(":AwesomeSuite:AwesomeTest:FooTest", ":AwesomeSuite:AwesomeTest:BarTest")
-        testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot().assertChildCount(1, 0)
-        testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot().assertChildCount(1, 0)
+        def testResult = resultsFor()
+        testResult.assertTestPathsExecuted(":FooTest:pass", ":BarTest:pass")
+        testResult.testPath(":FooTest:pass").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResult.testPath(":BarTest:pass").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

@@ -17,12 +17,14 @@
 
 package org.gradle.testing.testng
 
-
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
+import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Shared
 
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_SUITE
@@ -34,8 +36,12 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
 
-class TestNGXmlResultAndHtmlReportIntegrationTest extends
-        AbstractIntegrationSpec {
+class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     static class Mode {
         String name
@@ -98,7 +104,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
         buildFile.text = """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation 'org.testng:testng:6.3.1' }
+            dependencies { testImplementation 'org.testng:testng:${TestNGCoverage.SUPPORTS_ICLASS_LISTENER.first()}' }
 
             test {
                 $testConfiguration
