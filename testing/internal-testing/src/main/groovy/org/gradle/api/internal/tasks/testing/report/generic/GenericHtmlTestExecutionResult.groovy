@@ -394,7 +394,7 @@ Unexpected paths: ${unexpectedPaths}""")
         @Override
         TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
             assertThat("in " + displayName, testsSkipped.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
-            return null
+            return this
         }
 
         @Override
@@ -405,7 +405,7 @@ Unexpected paths: ${unexpectedPaths}""")
         @Override
         TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
             assertThat("in " + displayName, testsFailures.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
-            return null
+            return this
         }
 
         @Override
