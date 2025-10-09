@@ -32,8 +32,8 @@ final class GenericHtmlTestExecutionResultTest extends Specification {
 
         where:
         testPath                | frameworkTestPath
-        ""                      | ""
-        ":"                     | ""
+        ""                      | ":"
+        ":"                     | ":"
         ":class"                | ":class"
         "class"                 | ":class"
         ":class:method"         | ":class:method"
@@ -51,8 +51,8 @@ final class GenericHtmlTestExecutionResultTest extends Specification {
 
         where:
         testPath                | frameworkTestPath
-        ""                      | ""
-        ":"                     | ""
+        ""                      | ":"
+        ":"                     | ":"
         ":class"                | ":class"
         "class"                 | ":class"
         ":class:method"         | ":class:method()"
@@ -70,13 +70,13 @@ final class GenericHtmlTestExecutionResultTest extends Specification {
 
         where:
         testPath                | frameworkTestPath
-        ""                      | ":Gradle suite:Gradle test"
-        ":"                     | ":Gradle suite:Gradle test"
-        ":class"                | ":Gradle suite:Gradle test:class"
-        "class"                 | ":Gradle suite:Gradle test:class"
-        ":class:method"         | ":Gradle suite:Gradle test:class:method"
-        "class:method"          | ":Gradle suite:Gradle test:class:method"
-        ":suite:class:method"   | ":Gradle suite:Gradle test:suite:class:method"
-        "suite:class:method"    | ":Gradle suite:Gradle test:suite:class:method"
+        ""                      | ":"
+        ":"                     | ":"
+        ":class"                | ":class"
+        "class"                 | ":class"
+        ":class:method"         | ":class:method"
+        "class:method"          | ":class:method"
+        ":suite:class:method"   | ":suite:class:method"
+        "suite:class:method"    | ":suite:class:method"
     }
 }
