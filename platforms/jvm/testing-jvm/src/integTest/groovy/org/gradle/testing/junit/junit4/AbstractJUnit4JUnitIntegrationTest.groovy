@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitIntegrationTest
 import org.junit.Assume
 import spock.lang.Issue
