@@ -1,6 +1,7 @@
 package configurations
 
 import common.BuildToolBuildJvm
+import common.FlakyTestStrategy
 import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyDefaultSettings
@@ -50,19 +51,19 @@ class FlakyTestQuarantineProject(
         name = "Flaky Test Quarantine - ${os.asName()}"
 
         model.stages
-            .filter {
-                it.stageName in
-                    listOf(
-                        StageName.QUICK_FEEDBACK_LINUX_ONLY,
-                        StageName.QUICK_FEEDBACK,
-                        StageName.PULL_REQUEST_FEEDBACK,
-                        StageName.READY_FOR_NIGHTLY,
-                    )
-            }.flatMap { it.functionalTests }
+            .filter { it.stageName <= StageName.READY_FOR_RELEASE }
+            .flatMap { it.functionalTests }
             .filter { it.os == os }
             .forEach {
                 buildType(FlakyTestQuarantine(model, stage, it))
             }
+
+        model.stages
+            .filter { it.stageName <= StageName.READY_FOR_RELEASE }
+            .flatMap { stage -> stage.specificBuilds.map { it.create(model, stage, FlakyTestStrategy.ONLY) } }
+            .filter { it.os == os }
+            .filter { it is SmokeTests || it is SmokeIdeTests }
+            .forEach(this::buildType)
     })
 
 class FlakyTestQuarantine(
@@ -103,7 +104,7 @@ class FlakyTestQuarantine(
             (
                 buildToolGradleParameters() +
                     listOf(
-                        "-PflakyTests=only",
+                        "-PflakyTests=${FlakyTestStrategy.ONLY}",
                         "-x",
                         ":docs:platformTest",
                         "-x",
