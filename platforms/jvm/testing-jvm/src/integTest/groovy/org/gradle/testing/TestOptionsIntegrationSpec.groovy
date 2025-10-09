@@ -445,12 +445,12 @@ public class SomeIntegTestClass {
     }
 
     private void assertTestsExecuted() {
-        def result = resultsFor()
+        def result = resultsFor(testDirectory, 'tests/test', testFramework)
         result.assertAtLeastTestPathsExecuted("org.example.SomeTestClass")
     }
 
     private void assertIntegTestsExecuted() {
-        def result = resultsFor()
+        def result = resultsFor(testDirectory, 'tests/integTest', testFramework)
         result.assertAtLeastTestPathsExecuted("org.example.SomeIntegTestClass")
     }
 }
