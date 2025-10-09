@@ -186,11 +186,11 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         result.assertTaskScheduled(":test")
 
         and: "the unit tests are run"
-        def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.testng.SimpleUnitTest")
-        assertTestsRunCount(xmlResults, 1)
+        def xmlResults = getTestResultsFileAsXml(dslDir, "simpleUnitTest")
+        xmlResults.@name == "simpleUnitTest"
 
         and: "the integration tests aren't run"
-        getTestResultsFile(dslDir, "org.gradle.testng.SimpleIntegrationTest").assertDoesNotExist()
+        getTestResultsFile(dslDir, "simpleIntegrationTest").assertDoesNotExist()
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -210,8 +210,8 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
 
         and: "the tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.junitplatform.JupiterTest")
-        // This expected count includes the skipped test
-        assertTestsRunCount(xmlResults, 5)
+        // This expected count includes the skipped test but only counts the repeated test once
+        assertTestsRunCount(xmlResults, 4)
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -283,10 +283,10 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         // is having an effect.
         and: "both tests are run"
         assertTestsRunCount(
-            getTestResultsFileAsXml(dslDir, "org.gradle.testng.Test1"),
+            getTestResultsFileAsXml(dslDir, "Test1"),
             2)
         assertTestsRunCount(
-            getTestResultsFileAsXml(dslDir, "org.gradle.testng.Test2"),
+            getTestResultsFileAsXml(dslDir, "Test2"),
             2)
 
         where:
@@ -306,7 +306,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         result.assertTaskScheduled(":test")
 
         and: "both tests are run"
-        def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.testng.TestFactory")
+        def xmlResults = getTestResultsFileAsXml(dslDir, "TestFactory")
         assertTestsRunCount(xmlResults, 4)
         xmlResults.testcase.@name*.text() == ["test1", "test2", "test1", "test2"]
 
@@ -375,16 +375,16 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
      * assumes the file path to that file and loads it using Groovy's XmlSlurper
      * which can then be used to extract information from the XML.
      */
-    private static getTestResultsFileAsXml(TestFile sampleDir, String testClassName, String taskName = "test") {
-        return new XmlSlurper().parse(getTestResultsFile(sampleDir, testClassName, taskName))
+    private static getTestResultsFileAsXml(TestFile sampleDir, String testFileName, String taskName = "test") {
+        return new XmlSlurper().parse(getTestResultsFile(sampleDir, testFileName, taskName))
     }
 
     /**
      * Returns the {@code TestFile} instance representing the required JUnit test
      * results file. Assumes the standard test results directory.
      */
-    private static TestFile getTestResultsFile(TestFile sampleDir, String testClassName, String taskName = "test") {
-        return sampleDir.file("build/test-results/$taskName/TEST-${testClassName}.xml")
+    private static TestFile getTestResultsFile(TestFile sampleDir, String testFileName, String taskName = "test") {
+        return sampleDir.file("build/test-results/$taskName/TEST-${testFileName}.xml")
     }
 
     /**
