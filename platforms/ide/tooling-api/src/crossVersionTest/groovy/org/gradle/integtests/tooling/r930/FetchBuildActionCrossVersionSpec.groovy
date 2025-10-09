@@ -139,7 +139,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "runtime exception"  | """throw RuntimeException("broken project configuration")""" | "broken project configuration"
     }
 
-    def "'#method' metgod returns the same expected result as other fetch methods"() {
+    def "'#method' method returns the same successful result as other fetch methods"() {
         given:
         setupInitScriptWithCustomModelBuilder()
 
@@ -155,9 +155,21 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages.isEmpty()
         result.causes.isEmpty()
 
+        where:
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
+    }
+
+    def "'#method' method returns the same failed result as other fetch methods"() {
+        given:
+        setupInitScriptWithCustomModelBuilder()
+
         when:
         settingsFile << """garbage !!!"""
-        result = succeeds {
+        def result = succeeds {
             action(buildAction)
                 .withArguments("--init-script=${file('init.gradle').absolutePath}")
                 .run()
