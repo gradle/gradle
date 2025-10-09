@@ -27,8 +27,8 @@ import static org.hamcrest.CoreMatchers.containsString
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageJUnitTestFailureIntegrationTest extends AbstractJUnit4TestFailureIntegrationTest implements JUnitVintageMultiVersionTest {
     @Override
-    String getInitializationErrorTestName() {
-        return 'failed to execute tests'
+    String getInitializationErrorTestPath() {
+        return ':org.gradle.ClassWithBrokenRunnerOrExtension'
     }
 
     @Override
