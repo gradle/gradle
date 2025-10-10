@@ -34,7 +34,7 @@ class DefaultPluginContainerTest extends Specification {
 
     PluginInspector pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
     def classLoader = new GroovyClassLoader(getClass().classLoader)
-    def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
+    def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader), "test")
     def target = Mock(PluginTarget)
     def instantiator = TestUtil.instantiatorFactory().inject()
     def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationRunner(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory())

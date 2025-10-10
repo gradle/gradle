@@ -40,7 +40,7 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry, GradleInternal gradleInternal) {
-        return parentRegistry.createChild(gradleInternal.getClassLoaderScope());
+        return parentRegistry.createChild(gradleInternal.getClassLoaderScope(), "Gradle of " + gradleInternal.getOwner().getDisplayName().getDisplayName());
     }
 
     @Provides
