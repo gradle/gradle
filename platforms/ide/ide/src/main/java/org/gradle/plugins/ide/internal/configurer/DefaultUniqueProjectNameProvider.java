@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.toList;
 
 public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvider {
     private final ProjectStateRegistry projectRegistry;
+    @Nullable
     private Map<ProjectIdentity, String> deduplicated;
 
     public DefaultUniqueProjectNameProvider(ProjectStateRegistry projectRegistry) {

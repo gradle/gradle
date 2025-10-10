@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toMap;
 
 public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProjectNameProvider {
     private final ProjectStateRegistry projectRegistry;
+    @Nullable
     private Map<ProjectIdentity, String> deduplicated;
     private List<ProjectStateWrapper> reservedNames = Collections.emptyList();
     private Map<ProjectIdentity, ProjectStateWrapper> projectToInformationMap = Collections.emptyMap();
@@ -81,7 +82,6 @@ public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProject
         return deduplicated;
     }
 
-    @Nullable
     private static String getName(ProjectState state) {
         // try to get the name from EclipseProject.name
         state.getOwner().ensureProjectsConfigured();
@@ -97,9 +97,10 @@ public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProject
 
     private static class ProjectStateWrapper {
         private final String name;
+        @Nullable
         private final ProjectState project;
 
-        public ProjectStateWrapper(String name, ProjectState project) {
+        public ProjectStateWrapper(String name, @Nullable ProjectState project) {
             this.name = name;
             this.project = project;
         }
