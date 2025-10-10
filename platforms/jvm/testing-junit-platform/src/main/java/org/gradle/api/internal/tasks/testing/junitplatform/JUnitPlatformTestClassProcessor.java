@@ -63,6 +63,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     private final JUnitPlatformSpec spec;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
+    private final TestSelectionMatcher matcher;
 
     private CollectThenExecuteTestClassConsumer testClassExecutor;
     private BackwardsCompatibleLauncherSession launcherSession;
@@ -73,6 +74,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         this.spec = spec;
         this.idGenerator = idGenerator;
         this.clock = clock;
+        this.matcher = new TestSelectionMatcher(spec.getFilter());
     }
 
     @Override
@@ -118,7 +120,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         @Override
         public void consumeClass(@NonNull String testClassName) {
             Class<?> klass = loadClass(testClassName);
-            if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
+            if (anyParentIsIncluded(klass, matcher) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }
             testClasses.add(klass);
@@ -175,7 +177,24 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private boolean isInnerClass(Class<?> klass) {
+    /**
+     * Returns true if any parent class of the given class is included by the given matcher.
+     * This is used to exclude inner classes of included classes, as they will be executed
+     * as part of the parent class's execution.
+     */
+    private static boolean anyParentIsIncluded(Class<?> klass, TestSelectionMatcher matcher) {
+        if (isInnerClass(klass)) {
+            Class<?> parent = klass.getEnclosingClass();
+            if (matcher.mayIncludeClass(parent.getName())) {
+                return true;
+            } else {
+                return anyParentIsIncluded(parent, matcher);
+            }
+        }
+        return false;
+    }
+
+    private static boolean isInnerClass(Class<?> klass) {
         return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
     }
 
@@ -226,7 +245,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
         TestFilterSpec filter = spec.getFilter();
         if (isNotEmpty(filter)) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(filter);
             requestBuilder.filters(new ClassMethodNameFilter(matcher));
         }
     }
@@ -317,8 +335,15 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
                 // If the current descriptor is a class, check if it matches the test selection criteria
                 Optional<String> className = className(current);
-                if (className.isPresent() && matcher.matchesTest(className.get(), methodName)) {
-                    return true;
+                if (className.isPresent()) {
+                    if (matcher.matchesTest(className.get(), methodName)) {
+                        return true;
+                    }
+
+                    // If the current descriptor is a class, and it matches an exclude pattern, we can skip checking its parents
+                    if (matcher.mayExcludeClass(className.get())) {
+                        return  false;
+                    }
                 }
 
                 // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names
