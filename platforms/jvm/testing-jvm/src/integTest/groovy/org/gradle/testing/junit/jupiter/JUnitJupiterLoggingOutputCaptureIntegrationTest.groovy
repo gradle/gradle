@@ -16,18 +16,13 @@
 
 package org.gradle.testing.junit.jupiter
 
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.junit.AbstractJUnitLoggingOutputCaptureIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.is
-import static org.hamcrest.CoreMatchers.is
-import static org.hamcrest.CoreMatchers.is
-import static org.hamcrest.CoreMatchers.is
-import static org.hamcrest.CoreMatchers.is
 import static org.hamcrest.CoreMatchers.is
 
 // https://github.com/junit-team/junit5/issues/1285
