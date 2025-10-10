@@ -28,7 +28,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         pluginBuilder.packageName = null
 
         pluginBuilder.java("InMemoryBuildCache.java") << """
-            public class InMemoryBuildCache extends $AbstractBuildCache.name {}
+            public abstract class InMemoryBuildCache extends $AbstractBuildCache.name {}
         """
 
         pluginBuilder.java("InMemoryBuildCacheService.java") << """
