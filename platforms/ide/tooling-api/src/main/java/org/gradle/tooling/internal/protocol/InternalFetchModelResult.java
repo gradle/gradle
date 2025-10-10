@@ -27,9 +27,9 @@ import java.util.Collection;
  * A single item result of a {@link org.gradle.tooling.BuildController#fetch(Collection, Class, Class, Action) fetch}  operation.
  */
 @NullMarked
-public interface InternalFetchModelResult<T, M> extends InternalProtocolInterface {
+public interface InternalFetchModelResult<M> extends InternalProtocolInterface {
     @Nullable
-    T getTarget();
+    Object getTarget();
 
     @Nullable
     M getModel();

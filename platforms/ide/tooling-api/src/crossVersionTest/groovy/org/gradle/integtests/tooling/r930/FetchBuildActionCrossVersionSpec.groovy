@@ -24,6 +24,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.Model
+import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @TargetGradleVersion(">=9.3.0")
@@ -188,6 +189,24 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
+    def "can query models per project"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        setupInitScriptWithCustomModelBuilder()
+
+        when:
+        def result = succeeds {
+            action(new FetchCustomModelPerProjectAction())
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        result.modelValue == ["root": "greetings"]
+        result.failureMessages.isEmpty()
+        result.causes.isEmpty()
+    }
+
     def setupInitScriptWithCustomModelBuilder(String builderLogic = "return new CustomModel()") {
         file("init.gradle").text = """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -306,6 +325,31 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
                     return controller.fetch(CustomModel.class, null, null)
                 }
             }
+        }
+    }
+
+    static class FetchCustomModelPerProjectAction implements BuildAction<Result<Map<String, String>>> {
+        @Override
+        Result execute(BuildController controller) {
+            def gradleBuildResult = controller.fetch(null, GradleBuild.class, null, null)
+            assert gradleBuildResult.model instanceof GradleBuild
+            assert gradleBuildResult.failures.isEmpty()
+            def gradleBuild = gradleBuildResult.model as GradleBuild
+            def failures = []
+            def causes = []
+            def values = [:]
+            for (BasicGradleProject project : gradleBuild.projects) {
+                def result = controller.fetch(project, CustomModel.class, null, null)
+                values[project.name] = result.model?.value
+                failures += result.failures.stream()
+                    .map { it.message }
+                    .toList()
+                causes += result.failures.stream()
+                    .flatMap { it.causes.stream() }
+                    .map { it.message }
+                    .toList()
+            }
+            return new Result(values, failures, causes)
         }
     }
 
