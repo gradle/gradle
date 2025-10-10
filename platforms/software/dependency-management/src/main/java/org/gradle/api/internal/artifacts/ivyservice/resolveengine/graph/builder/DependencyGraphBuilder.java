@@ -65,19 +65,23 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scope.Project.class)
@@ -638,62 +642,95 @@ public class DependencyGraphBuilder {
             }
         }
 
-        // Collect the components to sort in consumer-first order
-        LinkedList<ComponentState> queue = new LinkedList<>();
-        for (ModuleResolveState module : resolveState.getModules()) {
-            if (module.getSelected() != null && !module.isVirtualPlatform()) {
-                queue.add(module.getSelected());
+        visitDfs(resolveState.getRoot(), node -> {
+            if (!node.getComponent().getModule().isVirtualPlatform()) {
+                visitor.visitEdges(node);
             }
-        }
-
-        // Visit the edges after sorting the components in consumer-first order
-        while (!queue.isEmpty()) {
-            ComponentState component = queue.peekFirst();
-            if (component.getVisitState() == VisitState.NotSeen) {
-                component.setVisitState(VisitState.Visiting);
-                int pos = 0;
-                for (NodeState node : component.getNodes()) {
-                    if (!node.isSelected()) {
-                        continue;
-                    }
-                    for (EdgeState edge : node.getIncomingEdges()) {
-                        ComponentState owner = edge.getFrom().getOwner();
-                        if (owner.getVisitState() == VisitState.NotSeen && !owner.getModule().isVirtualPlatform()) {
-                            queue.add(pos, owner);
-                            pos++;
-                        } // else, already visited or currently visiting (which means a cycle), skip
-                    }
-                }
-                if (pos == 0) {
-                    // have visited all consumers, so visit this node
-                    component.setVisitState(VisitState.Visited);
-                    queue.removeFirst();
-                    for (NodeState node : component.getNodes()) {
-                        if (node.isSelected()) {
-                            visitor.visitEdges(node);
-                        }
-                    }
-                }
-            } else if (component.getVisitState() == VisitState.Visiting) {
-                // have visited all consumers, so visit this node
-                component.setVisitState(VisitState.Visited);
-                queue.removeFirst();
-                for (NodeState node : component.getNodes()) {
-                    if (node.isSelected()) {
-                        visitor.visitEdges(node);
-                    }
-                }
-            } else {
-                // else, already visited previously, skip
-                queue.removeFirst();
-            }
-        }
+        });
 
         visitor.finish(resolveState.getRoot());
     }
 
-    enum VisitState {
-        NotSeen, Visiting, Visited
+    private static class NodeInfo implements Iterator<NodeState> {
+
+        final NodeState node;
+
+        private int edgeIndex;
+        private int nodeIndex;
+        private @Nullable NodeState next;
+
+        public NodeInfo(NodeState node) {
+            this.node = node;
+
+            this.edgeIndex = node.getOutgoingEdges().size() - 1;
+            calculateNodeIndex();
+            this.next = findNext();
+        }
+
+        @Nullable
+        private NodeState findNext() {
+            while (edgeIndex >= 0) {
+                EdgeState edge = node.getOutgoingEdges().get(edgeIndex);
+                if (!edge.isConstraint() && edge.getFailure() == null) {
+                    if (nodeIndex >= 0) {
+                        return edge.getTargetNodes().get(nodeIndex--);
+                    }
+                }
+                edgeIndex--;
+                calculateNodeIndex();
+            }
+            return null;
+        }
+
+        void calculateNodeIndex() {
+            if (edgeIndex >= 0) {
+                nodeIndex = node.getOutgoingEdges().get(edgeIndex).getTargetNodes().size() - 1;
+            } else {
+                nodeIndex = -1; // No more edges to process
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public NodeState next() {
+            if (next == null) {
+                throw new NoSuchElementException();
+            }
+            NodeState result = next;
+            next = findNext();
+            return result;
+        }
+
+    }
+
+    /**
+     * Performs a depth-first search (DFS) traversal of the dependency graph starting from the given root node.
+     * Nodes are traversed post-order, meaning that a node is visited after all its children have been visited.
+     */
+    public static void visitDfs(NodeState root, Consumer<NodeState> visitor) {
+        Deque<NodeInfo> stack = new ArrayDeque<>();
+        Set<NodeState> seen = new HashSet<>();
+
+        seen.add(root);
+        stack.push(new NodeInfo(root));
+
+        while (!stack.isEmpty()) {
+            NodeInfo current = stack.peek();
+
+            if (current.hasNext()) {
+                NodeState nextNode = current.next();
+                if (seen.add(nextNode)) {
+                    stack.push(new NodeInfo(nextNode));
+                }
+            } else {
+                NodeInfo processed = stack.pop();
+                visitor.accept(processed.node);
+            }
+        }
     }
 
 }
