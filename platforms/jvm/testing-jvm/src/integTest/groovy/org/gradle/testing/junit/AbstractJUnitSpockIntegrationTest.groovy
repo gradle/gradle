@@ -139,7 +139,11 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
         succeeds('test')
 
         then:
-        resultsFor(testDirectory).testPath("Sub").onlyRoot().assertChildCount(2, 0)
+        def result = resultsFor()
+        // These assertions are not redundant
+        // :Sub:ok asserts on the Sub/ok/index.html, while :Sub asserts on the Sub/index.html
+        result.testPath(":Sub:ok").getOnlyRootRunCount() == 2
+        result.testPath(":Sub").onlyRoot().assertChildCount(2, 0)
     }
 
     private void writeSpockDependencies() {

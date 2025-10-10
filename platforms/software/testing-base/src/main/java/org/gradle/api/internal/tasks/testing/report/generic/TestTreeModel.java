@@ -286,7 +286,12 @@ public class TestTreeModel {
         if (perRootInfoWithChildren == null) {
             return Collections.emptyList();
         }
-        return Iterables.transform(perRootInfoWithChildren.getChildren(), children::get);
+        return Iterables.transform(
+            // Take a unique ordered set of the child names, to only return one result per unique child name.
+            // Consumers of this should iterate over the getPerRootInfo() to get all results for a given child name.
+            ImmutableSet.copyOf(perRootInfoWithChildren.getChildren()),
+            children::get
+        );
     }
 
     /**
