@@ -77,7 +77,7 @@ See <<declaring_configurations.adoc#declaring-dependency-configurations,Declarin
 [[validate_plugins_java_version]]
 ==== The `ValidatePlugins` task now has stricter Java version requirements
 
-The `ValidatePlugins` task now requires to run with a Java version that is supported to run the Gradle daemon.
+The `ValidatePlugins` task now requires running with a Java version that is supported by the Gradle daemon.
 
 This is because that tasks requires a number of core Gradle services to run,
 and they can now be compiled to the bytecode version suported bu the Gradle daemon.
