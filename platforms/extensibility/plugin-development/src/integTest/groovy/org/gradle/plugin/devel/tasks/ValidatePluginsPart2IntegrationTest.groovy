@@ -911,7 +911,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem) {
             fqid == 'validation:invalid-java-toolchain'
             contextualLabel == "Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION} is not supported."
-            definition.documentationLink.url.endsWith("/userguide/upgrading_version_9.html#TODO")
+            definition.documentationLink.url.endsWith("/userguide/upgrading_version_9.html#validate_plugins_java_version")
         }
     }
 }

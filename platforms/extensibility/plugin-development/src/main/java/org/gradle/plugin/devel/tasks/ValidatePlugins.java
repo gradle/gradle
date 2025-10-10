@@ -126,7 +126,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                         throw problemReporter.throwing(
                             exception,
                             problemReporter.create(problemId, problemSpec -> {
-                                problemSpec.documentedAt(Documentation.upgradeMinorGuide(9, "TODO").getUrl());
+                                problemSpec.documentedAt(Documentation.upgradeMinorGuide(9, "validate_plugins_java_version").getUrl());
                                 problemSpec.contextualLabel(exception.getMessage());
                             })
                         );
