@@ -193,8 +193,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private AntBuilder ant;
 
-    private final int depth;
-
     private final TaskContainerInternal taskContainer;
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
@@ -235,12 +233,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
-
-        if (parent == null) {
-            depth = 0;
-        } else {
-            depth = parent.getDepth() + 1;
-        }
 
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.get(TaskContainerInternal.class);
@@ -592,7 +584,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public int getDepth() {
-        return depth;
+        return owner.getDepth();
     }
 
     @Inject
