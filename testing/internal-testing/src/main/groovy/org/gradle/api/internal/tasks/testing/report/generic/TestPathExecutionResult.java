@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+
 /**
  * Represents the result of executing a test path.
  */
@@ -46,4 +48,18 @@ public interface TestPathExecutionResult {
      * Returns the names of the roots that were executed.
      */
     List<String> getRootNames();
+
+    /**
+     * Assert there is a single root and get the number of runs for it.
+     */
+    default int getOnlyRootRunCount() {
+        List<String> rootNames = getRootNames();
+        assertThat("Expected a single root, but found: " + rootNames, rootNames.size() == 1);
+        return getRunCount(rootNames.get(0));
+    }
+
+    /**
+     * Returns the number of runs for the given root name.
+     */
+    int getRunCount(String rootName);
 }
