@@ -16,9 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheDeleter;
@@ -57,17 +54,16 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
 
     @Override
     protected boolean doDelete(File file) {
-        if (!deleter.isStaleUncached(file)) {
+        if (!deleter.isStale(file)) {
             // If the entry is not stale, we add a stale marker to it
             // to indicate that it should be cleaned next time if still stale.
             deleter.addStaleMarker(file);
             return false;
         } else if (deleter.shouldBeDeleted(file)) {
-            // If the entry is stale for more than 1 hour, we delete it immediately.
             return cache.useCache(asKey(file), () -> {
                 // We need to recheck if the entry is still stale
                 // or some other process deleted it/recreated it before we acquired the lock.
-                if (deleter.isStaleUncached(file)) {
+                if (deleter.isStale(file)) {
                     deleter.delete(file);
                     return true;
                 }
@@ -92,16 +88,6 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
     public static class FineGrainedLeastRecentlyUsedCacheDeleter implements FineGrainedCacheDeleter {
 
         private final static Duration STALE_DURATION = Duration.ofHours(1);
-        private final LoadingCache<File, Boolean> staleMarkerCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(4)
-            // This has to be shorter than the STALE_DURATION
-            .expireAfterWrite(Duration.ofMinutes(20))
-            .build(new CacheLoader<File, Boolean>() {
-                @Override
-                public Boolean load(File key) {
-                    return isStaleUncached(key);
-                }
-            });
         private final Deleter deleter;
 
         public FineGrainedLeastRecentlyUsedCacheDeleter(Deleter deleter) {
@@ -112,7 +98,6 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
         public void unstale(File entry) {
             try {
                 deleter.deleteRecursively(getStaleMarkerFile(entry));
-                staleMarkerCache.invalidate(entry);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -120,10 +105,6 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
 
         @Override
         public boolean isStale(File entry) {
-            return staleMarkerCache.getUnchecked(entry);
-        }
-
-        private boolean isStaleUncached(File entry) {
             return getStaleMarkerFile(entry).exists();
         }
 
@@ -161,8 +142,8 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
             return staleMarker.exists() && (System.currentTimeMillis() - staleMarker.lastModified()) >= STALE_DURATION.toMillis();
         }
 
-        @SuppressWarnings("MethodMayBeStatic")
-        private File getStaleMarkerFile(File entry) {
+        @Override
+        public File getStaleMarkerFile(File entry) {
             return new File(entry, ".stale");
         }
     }

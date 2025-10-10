@@ -25,6 +25,8 @@ import java.util.Optional;
 @ServiceScope(Scope.Global.class)
 public interface ImmutableWorkspaceMetadataStore {
 
+    boolean workspaceMetadataExists(File workspace);
+
     Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace);
 
     void storeWorkspaceMetadata(File workspace, ImmutableWorkspaceMetadata metadata);
