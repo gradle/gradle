@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide.internal.configurer;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Adapts any type of element to the generic {@link HierarchicalElementDeduplicator}.
  *
@@ -47,5 +49,6 @@ public interface HierarchicalElementAdapter<T> {
      * @param element the child element, cannot be null
      * @return the parent element, may be null
      */
+    @Nullable
     T getParent(T element);
 }
