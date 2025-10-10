@@ -26,13 +26,11 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
-import org.gradle.plugins.ide.internal.tooling.model.DefaultResilientGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.jspecify.annotations.NullMarked;
@@ -43,7 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.GRADLE_BUILD_MODEL_NAME;
 import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.addProjects;
 
 @NullMarked
@@ -64,12 +62,12 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.gradle.ResilientGradleBuild");
+        return GRADLE_BUILD_MODEL_NAME.equals(modelName);
     }
 
 
     @Override
-    public DefaultResilientGradleBuild create(BuildState target) {
+    public DefaultGradleBuild create(BuildState target) {
         return new ResilientGradleBuildCreator(target).create();
     }
 
@@ -84,17 +82,12 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             this.target = target;
         }
 
-        DefaultResilientGradleBuild create() {
+        DefaultGradleBuild create() {
             ensureProjectsLoaded(target);
             DefaultGradleBuild gradleBuild = convert(target);
-            List<String> failureMessages = Streams.concat(brokenBuilds.values().stream(), brokenSettings.values().stream())
-                .map((Failure buildFailure) -> {
-                    resilientIssuesRecorder.recordResilientIssue(buildFailure);
-                    return DefaultFailure.fromFailure(buildFailure, dummy -> null);
-                })
-                .map(Object::toString)
-                .collect(toImmutableList());
-            return new DefaultResilientGradleBuild(gradleBuild, failureMessages);
+            Streams.concat(brokenBuilds.values().stream(), brokenSettings.values().stream())
+                .forEach(resilientIssuesRecorder::recordResilientIssue);
+            return gradleBuild;
         }
 
         protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model) {
