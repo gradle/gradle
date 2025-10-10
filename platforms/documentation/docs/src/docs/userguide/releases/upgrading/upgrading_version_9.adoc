@@ -74,6 +74,54 @@ With this change, the `Configuring apiElements` line is no longer printed during
 
 See <<declaring_configurations.adoc#declaring-dependency-configurations,Declaring Configurations>> for more guidance.
 
+[[validate_plugins_java_version]]
+==== The `ValidatePlugins` task now has stricter Java version requirements
+
+The `ValidatePlugins` task now requires running with a Java version that is supported by the Gradle daemon.
+
+This change was made because the task depends on several core Gradle services,
+which may now be compiled to the same bytecode version supported by the daemon.
+
+The convention on the `ValidatePlugins` task has been updated to account for this change.
+If the project toolchain is compatible, it will use it.
+Otherwise, it will use the Java version used to run Gradle.
+
+If you were configuring the `ValidatePlugins` task to run with a specific toolchain as follows:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.withType<ValidatePlugins>().configureEach {
+    javaLauncher.set(
+        project.javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    )
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.withType(ValidatePlugins).configureEach {
+    javaLauncher.set(
+        project.javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    )
+}
+----
+=====
+====
+
+
+If the Java version defined in this configuration is not compatible with the Gradle daemon, you will have to update the launcher configuration to a <<compatibility.adoc#java_runtime,compatible version>>.
+
 === Deprecations
 
 [[project_container_methods]]
