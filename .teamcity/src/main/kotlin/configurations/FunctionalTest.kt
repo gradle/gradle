@@ -3,13 +3,13 @@ package configurations
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import common.FlakyTestStrategy
 import common.functionalTestExtraParameters
 import common.getBuildScanCustomValueParam
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import model.CIBuildModel
 import model.Stage
-import model.StageName
 import model.TestCoverage
 import model.TestType
 
@@ -96,7 +96,7 @@ class FunctionalTest(
                     testCoverage.testJvmVersion.major.toString(),
                     testCoverage.vendor.name.lowercase(),
                 ),
-                "-PflakyTests=${determineFlakyTestStrategy(stage)}",
+                "-PflakyTests=${FlakyTestStrategy.EXCLUDE}",
                 extraParameters,
                 parallelizationMethod.extraBuildParameters,
             ).filter { it.isNotBlank() }.joinToString(separator = " ")
@@ -132,12 +132,6 @@ class FunctionalTest(
             javaCrash = false
         }
     })
-
-private fun determineFlakyTestStrategy(stage: Stage): String {
-    val stageName = StageName.values().first { it.stageName == stage.stageName.stageName }
-    // See gradlebuild.basics.FlakyTestStrategy
-    return if (stageName < StageName.READY_FOR_RELEASE) "exclude" else "include"
-}
 
 fun getTestTaskName(
     testCoverage: TestCoverage,

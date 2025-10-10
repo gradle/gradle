@@ -66,7 +66,11 @@ public class InternalBuildActionAdapter<T> implements org.gradle.tooling.interna
         return action.execute(buildControllerAdapter);
     }
 
-    // TODO: add Javadoc explaining what's going on here
+    /**
+     * Creates an appropriate BuildController adapter based on the capabilities of the build controller implementation.
+     * <p>
+     * Newer Gradle versions add new features to BuildController. Therefore, to support different Gradle versions, we create the appropriate adapter that is aware of the build controller's capabilities.
+     */
     private BuildController wrapBuildController(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
         if (buildController instanceof InternalFetchAwareBuildController) {

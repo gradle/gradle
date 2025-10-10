@@ -51,22 +51,23 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
         @Nullable Class<P> parameterType,
         @Nullable Action<? super P> parameterInitializer
     ) {
+        Object originalTarget = unpackModelTarget(target);
         ModelIdentifier modelIdentifier = getModelIdentifierFromModelType(modelType);
         P parameter = parameterInitializer != null ? initializeParameter(parameterType, parameterInitializer) : null;
-        InternalFetchModelResult<T, Object> result = fetch.fetch(target, modelIdentifier, parameter);
-        return adaptResult(modelType, result);
+        InternalFetchModelResult<Object> result = fetch.fetch(originalTarget, modelIdentifier, parameter);
+        return adaptResult(target, modelType, result);
     }
 
-    private <T extends Model, M> FetchModelResult<T, M> adaptResult(Class<M> modelType, InternalFetchModelResult<T, Object> result) {
+    private <T extends Model, M> FetchModelResult<T, M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
         Object model = result.getModel();
-        M adaptedModel = model != null ? adaptModel(result.getTarget(), modelType, model) : null;
+        M adaptedModel = model != null ? adaptModel(target, modelType, model) : null;
         return new FetchModelResult<T, M>() {
             @Nullable
             List<Failure> failures = null;
 
             @Override
             public T getTarget() {
-                return result.getTarget();
+                return target;
             }
 
             @Override
