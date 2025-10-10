@@ -45,7 +45,7 @@ import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import javax.inject.Inject
 
 
@@ -53,7 +53,7 @@ import javax.inject.Inject
  * A {@link ConventionHandler} for applying declarative conventions.
  */
 abstract class DeclarativeModelDefaultsHandler @Inject constructor(
-    projectFeatureRegistry: ProjectFeatureRegistry,
+    projectFeatureDeclarations: ProjectFeatureDeclarations,
     interpretationSchemaBuilder: InterpretationSchemaBuilder
 ) : ModelDefaultsHandler {
     private
@@ -63,7 +63,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
         schema.sequence.steps.single { it.stepIdentifier.key == PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY }
     }
     private
-    val modelDefaultsRepository = projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureRegistry)
+    val modelDefaultsRepository = projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureDeclarations)
 
     override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()

@@ -46,7 +46,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator
 import org.gradle.plugin.software.internal.ProjectFeatureImplementation
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.gradle.plugin.software.internal.TargetTypeInformationChecks
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -65,11 +65,11 @@ import kotlin.reflect.full.starProjectedType
 internal
 fun EvaluationSchemaBuilder.projectFeaturesComponent(
     rootSchemaType: KClass<*>,
-    projectFeatureRegistry: ProjectFeatureRegistry,
+    projectFeatureDeclarations: ProjectFeatureDeclarations,
     withDefaultsApplication: Boolean
 ) {
     // Maps from the parent binding type to the project feature implementations that can bind to it
-    val featureIndex = buildProjectFeatureInfo(projectFeatureRegistry) { replaceProjectWithSchemaTopLevelType(it, rootSchemaType) }
+    val featureIndex = buildProjectFeatureInfo(projectFeatureDeclarations) { replaceProjectWithSchemaTopLevelType(it, rootSchemaType) }
 
     // Register analysis schema components for each project feature that can bind to a given type
     registerAnalysisSchemaComponent(ProjectFeatureComponent(featureIndex))
@@ -87,9 +87,9 @@ fun EvaluationSchemaBuilder.projectFeaturesComponent(
 internal
 fun EvaluationSchemaBuilder.projectFeaturesDefaultsComponent(
     schemaTypeToExtend: KClass<*>,
-    projectFeatureRegistry: ProjectFeatureRegistry
+    projectFeatureDeclarations: ProjectFeatureDeclarations
 ) {
-    val projectFeatureInfo = buildProjectTypeInfo(projectFeatureRegistry) { replaceProjectWithSchemaTopLevelType(it, schemaTypeToExtend) }
+    val projectFeatureInfo = buildProjectTypeInfo(projectFeatureDeclarations) { replaceProjectWithSchemaTopLevelType(it, schemaTypeToExtend) }
     registerAnalysisSchemaComponent(ProjectFeatureComponent(projectFeatureInfo))
 }
 
@@ -129,10 +129,10 @@ private class ProjectFeatureSchemaBindingIndex(
 
 private
 fun buildProjectFeatureInfo(
-    projectFeatureRegistry: ProjectFeatureRegistry,
+    projectFeatureDeclarations: ProjectFeatureDeclarations,
     mapPluginTypeToSchemaType: (KClass<*>) -> KClass<*>
 ): ProjectFeatureSchemaBindingIndex {
-    val featureImplementations = projectFeatureRegistry.getProjectFeatureImplementations().values.groupBy { it.targetDefinitionType }
+    val featureImplementations = projectFeatureDeclarations.getProjectFeatureImplementations().values.groupBy { it.targetDefinitionType }
 
     val featuresBoundToDefinition = featureImplementations.entries.mapNotNull { (key, value) -> if (key is DefinitionTargetTypeInformation) key to value else null }.toMap()
     val featuresBoundToModel = featureImplementations.entries.mapNotNull { (key, value) -> if (key is BuildModelTargetTypeInformation<*>) key to value else null }.toMap()
@@ -148,10 +148,10 @@ fun buildProjectFeatureInfo(
 
 private
 fun buildProjectTypeInfo(
-    projectFeatureRegistry: ProjectFeatureRegistry,
+    projectFeatureDeclarations: ProjectFeatureDeclarations,
     pluginTypeToSchemaClassMapping: (KClass<*>) -> KClass<*>
 ): ProjectFeatureSchemaBindingIndex {
-    val projectTypeInfo = projectFeatureRegistry.getProjectFeatureImplementations().values.mapNotNull {
+    val projectTypeInfo = projectFeatureDeclarations.getProjectFeatureImplementations().values.mapNotNull {
         it.targetDefinitionType.run {
             if (this is DefinitionTargetTypeInformation && definitionType == Project::class.java)
                 ProjectFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX)

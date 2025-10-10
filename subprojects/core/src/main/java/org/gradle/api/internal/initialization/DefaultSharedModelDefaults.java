@@ -26,21 +26,21 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.plugin.software.internal.ProjectFeatureImplementation;
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 
 public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, MethodMixIn {
-    private final ProjectFeatureRegistry projectFeatureRegistry;
+    private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final DynamicMethods dynamicMethods = new DynamicMethods();
 
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ProjectLayout> projectLayout = new ThreadLocal<>();
 
     @Inject
-    public DefaultSharedModelDefaults(ProjectFeatureRegistry projectFeatureRegistry) {
-        this.projectFeatureRegistry = projectFeatureRegistry;
+    public DefaultSharedModelDefaults(ProjectFeatureDeclarations projectFeatureDeclarations) {
+        this.projectFeatureDeclarations = projectFeatureDeclarations;
     }
 
     @Override
@@ -64,8 +64,8 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
 
     @Override
     public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
-        if (projectFeatureRegistry.getProjectFeatureImplementations().containsKey(name)) {
-            ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureRegistry.getProjectFeatureImplementations().get(name);
+        if (projectFeatureDeclarations.getProjectFeatureImplementations().containsKey(name)) {
+            ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
             if (projectFeature.getDefinitionPublicType().isAssignableFrom(publicType)) {
                 projectFeature.addModelDefault(new ActionBasedDefault<>(configureAction));
             } else {
@@ -86,13 +86,13 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
         public boolean hasMethod(String name, Object... arguments) {
             return arguments.length == 1 &&
                 (arguments[0] instanceof Action || arguments[0] instanceof Closure) &&
-                projectFeatureRegistry.getProjectFeatureImplementations().containsKey(name);
+                projectFeatureDeclarations.getProjectFeatureImplementations().containsKey(name);
         }
 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (hasMethod(name, arguments)) {
-                ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureRegistry.getProjectFeatureImplementations().get(name);
+                ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
                 add(name, projectFeature.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
             } else {

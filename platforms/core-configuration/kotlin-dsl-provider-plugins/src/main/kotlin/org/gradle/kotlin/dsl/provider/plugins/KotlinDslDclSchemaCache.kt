@@ -23,7 +23,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 typealias ContainerElementFactories = List<ContainerElementFactoryEntry<TypeOf<*>>>
 typealias ProjectTypeEntries = List<ProjectFeatureEntry<TypeOf<*>>>
@@ -36,7 +36,7 @@ interface KotlinDslDclSchemaCache {
     ): ContainerElementFactories
 
     fun getOrPutContainerElementProjectTypes(
-        forRegistry: ProjectFeatureRegistry,
+        forRegistry: ProjectFeatureDeclarations,
         produceIfAbsent: () -> ProjectTypeEntries
     ): ProjectTypeEntries
 }
@@ -48,7 +48,7 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
     private val containerElementFactoriesCache: CrossBuildInMemoryCache<ContainerElementFactoriesKey, ContainerElementFactories> =
         crossBuildInMemoryCacheFactory.newCache()
 
-    private val projectTypeEntriesCache: CrossBuildInMemoryCache<ProjectFeatureRegistry, ProjectTypeEntries> =
+    private val projectTypeEntriesCache: CrossBuildInMemoryCache<ProjectFeatureDeclarations, ProjectTypeEntries> =
         crossBuildInMemoryCacheFactory.newCache()
 
     private data class ContainerElementFactoriesKey(
@@ -66,7 +66,7 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
         }
 
     override fun getOrPutContainerElementProjectTypes(
-        forRegistry: ProjectFeatureRegistry,
+        forRegistry: ProjectFeatureDeclarations,
         produceIfAbsent: () -> ProjectTypeEntries
     ): ProjectTypeEntries = projectTypeEntriesCache.get(forRegistry) { _ ->
         produceIfAbsent()
