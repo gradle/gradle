@@ -327,6 +327,11 @@ Unexpected paths: ${unexpectedPaths}""")
         List<String> getRootNames() {
             return rootNames
         }
+
+        @Override
+        int getRunCount(String rootName) {
+            return rootAndRunElements.get(rootName).size()
+        }
     }
 
     private static class HtmlTestPathRootExecutionResult implements TestPathRootExecutionResult {
