@@ -155,7 +155,8 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         then:
         succeeds('test').assertTasksExecuted(':test')
 
-        result.assertTestClassesExecuted('TestNGTest') //previous result still present in the dir
+        // When we switch test frameworks and rerun a test task, the old results should NOT still be present in the dir
+        result.assertTestClassesNotExecuted('TestNGTest')
 
         succeeds('test').assertAllTasksSkipped()
     }
