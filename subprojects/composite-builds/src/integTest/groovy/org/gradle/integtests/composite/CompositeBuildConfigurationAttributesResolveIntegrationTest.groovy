@@ -537,8 +537,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                _compileFree.attributes { attribute(flavor, objects.named(Thing, 'free')) }
-                _compilePaid.attributes { attribute(flavor, objects.named(Thing, 'paid')) }
+                _compileFree.attributes { attribute(flavor, named(Thing, 'free')) }
+                _compilePaid.attributes { attribute(flavor, named(Thing, 'paid')) }
             }
             dependencies {
                 _compileFree 'com.acme.external:external:1.0'
@@ -565,8 +565,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
-                bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
+                foo.attributes { attribute(flavor, named(Thing, 'red')) }
+                bar.attributes { attribute(flavor, named(Thing, 'blue')) }
             }
 
             ${fooAndBarJars()}
@@ -620,8 +620,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                _compileFree.attributes { attribute(flavor, objects.named(Thing, 'free')) }
-                _compilePaid.attributes { attribute(flavor, objects.named(Thing, 'paid')) }
+                _compileFree.attributes { attribute(flavor, named(Thing, 'free')) }
+                _compilePaid.attributes { attribute(flavor, named(Thing, 'paid')) }
             }
             dependencies {
                 _compileFree 'com.acme.external:external:1.0'
@@ -668,8 +668,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
-                bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
+                foo.attributes { attribute(flavor, named(Thing, 'red')) }
+                bar.attributes { attribute(flavor, named(Thing, 'blue')) }
             }
 
             ${fooAndBarJars()}
@@ -739,8 +739,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
             project(':a') {
                 configurations {
-                    _compileFree.attributes { attribute(flavor, objects.named(Thing, 'free')) }
-                    _compilePaid.attributes { attribute(flavor, objects.named(Thing, 'paid')) }
+                    _compileFree.attributes { attribute(flavor, named(Thing, 'free')) }
+                    _compilePaid.attributes { attribute(flavor, named(Thing, 'paid')) }
                 }
                 dependencies {
                     _compileFree project(':b')
@@ -782,8 +782,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
-                bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
+                foo.attributes { attribute(flavor, named(Thing, 'red')) }
+                bar.attributes { attribute(flavor, named(Thing, 'blue')) }
             }
 
             ${fooAndBarJars()}

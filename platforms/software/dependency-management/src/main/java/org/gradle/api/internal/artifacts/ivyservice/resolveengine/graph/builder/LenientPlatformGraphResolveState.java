@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -149,12 +148,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             return metadata.getAttributesSchema();
         }
 
-    }
-
-    @Override
-    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
-        // Variants are not selected from a lenient platform in the conventional manner.
-        return Collections.emptyList();
     }
 
     @Override

@@ -46,19 +46,18 @@ public class DependencyResultSerializer {
     public ResolvedGraphDependency read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures) throws Exception {
         ComponentSelector requested = componentSelectorSerializer.read(decoder);
         boolean constraint = decoder.readBoolean();
-        long fromVariant = decoder.readSmallLong();
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             long selectedId = decoder.readSmallLong();
             long selectedVariantId = decoder.readSmallLong();
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, fromVariant, selectedVariantId);
+            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, selectedVariantId);
         } else if (resultByte == SUCCESSFUL_NOTHING_SELECTED) {
             long selectedId = decoder.readSmallLong();
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, fromVariant, null);
+            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, null);
         } else if (resultByte == FAILED) {
             ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
-            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint, fromVariant, null);
+            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint, null);
         } else {
             throw new IllegalArgumentException("Unknown result type: " + resultByte);
         }
@@ -67,7 +66,6 @@ public class DependencyResultSerializer {
     public void write(Encoder encoder, DependencyGraphEdge value) throws Exception {
         componentSelectorSerializer.write(encoder, value.getRequested());
         encoder.writeBoolean(value.isConstraint());
-        encoder.writeSmallLong(value.getFromVariant());
         if (value.getFailure() == null) {
             if (value.getSelectedVariant() != null) {
                 encoder.writeByte(SUCCESSFUL);

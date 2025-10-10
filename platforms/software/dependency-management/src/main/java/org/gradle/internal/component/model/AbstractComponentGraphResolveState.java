@@ -26,7 +26,9 @@ import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final long instanceId;
@@ -69,10 +71,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return false;
     }
 
-    protected AttributeDesugaring getAttributeDesugaring() {
-        return attributeDesugaring;
-    }
-
     @Override
     public ComponentArtifactResolveState prepareForArtifactResolution() {
         return this;
@@ -83,7 +81,23 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return implicitCapability;
     }
 
-    protected ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
+    @Override
+    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
+        return getCandidatesForGraphVariantSelection()
+            .getVariantsForAttributeMatching()
+            .stream()
+            .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
+            .map(artifactSet -> new DefaultResolvedVariantResult(
+                getId(),
+                Describables.of(artifactSet.getName()),
+                attributeDesugaring.desugar(artifactSet.getAttributes().asImmutable()),
+                capabilitiesFor(artifactSet.getCapabilities()),
+                null
+            ))
+            .collect(Collectors.toList());
+    }
+
+    private ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
         if (capabilities.asSet().isEmpty()) {
             return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
         } else {

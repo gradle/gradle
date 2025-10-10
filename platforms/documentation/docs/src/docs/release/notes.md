@@ -73,7 +73,26 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="build-authoring"></a>
+### Build authoring improvements
 
+#### New `AttributeContainer.named()` method
+
+This release introduces a new convenience method on `AttributeContainer`, [`named()`](javadoc/org/gradle/api/attributes/AttributeContainer.html#named(java.lang.Class,java.lang.String)), which can create attribute values directly from the container without requiring a separate `ObjectFactory` instance.
+
+This method makes attribute assignment more concise while preserving the same semantics as creating a named value via `ObjectFactory`:
+
+```kotlin
+configurations.resolvable("foo") {
+    attributes {
+        // Before: 
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "red"))
+        
+        // After:
+        attribute(Usage.USAGE_ATTRIBUTE, named(Usage::class.java, "red"))
+    }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

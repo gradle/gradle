@@ -89,10 +89,17 @@ public interface ArchUnitFixture {
             .and(resideOutsideOfPackages("org.gradle.kotlin..")) // a few relocated kotlinx-metadata classes violate the nullability annotation rules
             .as("classes written in Java or Groovy");
 
-    DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {
+    DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<>("not synthetic classes") {
         @Override
         public boolean test(JavaClass javaClass) {
             return !javaClass.getModifiers().contains(JavaModifier.SYNTHETIC);
+        }
+    };
+
+    DescribedPredicate<JavaClass> not_anonymous_classes = new DescribedPredicate<>("not anonymous classes") {
+        @Override
+        public boolean test(JavaClass javaClass) {
+            return !javaClass.isAnonymousClass();
         }
     };
 

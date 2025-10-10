@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -125,21 +124,6 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     @Override
     public ImmutableSet<Attribute<?>> keySet() {
         return hierarchy.keySet();
-    }
-
-    @Override
-    public <E> AttributeContainer attribute(Attribute<E> key, E value) {
-        throw new UnsupportedOperationException("This container is immutable and cannot be mutated.");
-    }
-
-    @Override
-    public <E> AttributeContainer attributeProvider(Attribute<E> key, Provider<? extends E> provider) {
-        throw new UnsupportedOperationException("This container is immutable and cannot be mutated.");
-    }
-
-    @Override
-    public AttributeContainer addAllLater(AttributeContainer other) {
-        throw new UnsupportedOperationException("This container is immutable and cannot be mutated.");
     }
 
     @Override

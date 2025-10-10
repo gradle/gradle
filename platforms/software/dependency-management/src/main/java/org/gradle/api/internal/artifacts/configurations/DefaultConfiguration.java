@@ -655,7 +655,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // 2. such an error may still lead to a valid dependency graph
                 MinimalResolutionResult resolutionResult = results.getVisitedGraph().getResolutionResult();
                 context.setResult(new ResolveConfigurationResolutionBuildOperationResult(
-                    resolutionResult.getRootSource(),
+                    resolutionResult.getGraphSource(),
                     resolutionResult.getRequestedAttributes(),
                     configurationServices.getAttributesFactory()
                 ));

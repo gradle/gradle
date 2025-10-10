@@ -65,12 +65,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
@@ -289,7 +289,7 @@ public class ResolutionExecutor {
         TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache, moduleIdentifierFactory, buildOperationExecutor, params.getResolutionHost());
 
         BinaryStore newModelStore = stores.nextBinaryStore();
-        Store<ResolvedComponentResultInternal> newModelCache = stores.newModelCache();
+        Store<ResolvedDependencyGraph> newModelCache = stores.newModelCache();
         StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, capabilitySelectorSerializer, componentResultSerializer, componentSelectionDescriptorFactory, params.getIncludeAllSelectableVariantResults());
 
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);

@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.result;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -32,6 +31,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,6 @@ import java.util.Set;
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
     private final ModuleVersionIdentifier moduleVersion;
-    private ImmutableSet<DependencyResult> dependencies = ImmutableSet.of();
     private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
@@ -49,7 +48,9 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final Map<Long, ResolvedVariantResult> selectedVariantsById;
     private final ImmutableList<ResolvedVariantResult> allVariants;
     private final String repositoryName;
-    private ImmutableSetMultimap<ResolvedVariantResult, DependencyResult> variantDependencies = ImmutableSetMultimap.of();
+    private Map<ResolvedVariantResult, ImmutableSet<DependencyResult>> variantDependencies = new LinkedHashMap<>();
+
+    private @Nullable Set<DependencyResult> cachedComponentDependencies;
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion,
@@ -87,23 +88,25 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public Set<DependencyResult> getDependencies() {
-        return dependencies;
+        // The component's dependencies are strictly a function of the dependencies of its variants.
+        // Only calculate this value if necessary.
+        if (this.cachedComponentDependencies == null) {
+            int size = 0;
+            for (ImmutableSet<DependencyResult> dependencies : variantDependencies.values()) {
+                size += dependencies.size();
+            }
+            ImmutableSet.Builder<DependencyResult> builder = ImmutableSet.builderWithExpectedSize(size);
+            for (ImmutableSet<DependencyResult> dependencies : variantDependencies.values()) {
+                builder.addAll(dependencies);
+            }
+            this.cachedComponentDependencies = builder.build();
+        }
+        return this.cachedComponentDependencies;
     }
 
     @Override
     public Set<ResolvedDependencyResult> getDependents() {
         return Collections.unmodifiableSet(dependents);
-    }
-
-    public void addDependencies(ImmutableSet<DependencyResult> dependencies) {
-        if (this.dependencies.isEmpty()) {
-            this.dependencies = dependencies;
-        } else {
-            this.dependencies = ImmutableSet.<DependencyResult>builder()
-                .addAll(this.dependencies)
-                .addAll(dependencies)
-                .build();
-        }
     }
 
     public DefaultResolvedComponentResult addDependent(ResolvedDependencyResult dependent) {
@@ -142,7 +145,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         if (!selectedVariants.contains(variant)) {
             reportInvalidVariant(variant);
         }
-        return ImmutableList.copyOf(variantDependencies.get(variant));
+        return ImmutableList.copyOf(variantDependencies.getOrDefault(variant, ImmutableSet.of()));
     }
 
     private void reportInvalidVariant(ResolvedVariantResult variant) {
@@ -161,15 +164,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         return selectedVariantsById.get(id);
     }
 
-    public void addVariantDependencies(ImmutableSetMultimap<ResolvedVariantResult, DependencyResult> variantDependencies) {
-        if (this.variantDependencies.isEmpty()) {
-            this.variantDependencies = variantDependencies;
-        } else {
-            this.variantDependencies =  ImmutableSetMultimap.<ResolvedVariantResult, DependencyResult>builder()
-                .putAll(this.variantDependencies)
-                .putAll(variantDependencies)
-                .build();
-        }
+    public void setVariantDependencies(ResolvedVariantResult variant, ImmutableSet<DependencyResult> dependencies) {
+        this.variantDependencies.put(variant, dependencies);
     }
 
     /**
@@ -203,6 +199,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
      * Finalize this component, making it immutable and ensuring its contents are stored in memory-efficient data structures.
      */
     public void complete() {
-        dependents = ImmutableSet.copyOf(dependents);
+        this.dependents = ImmutableSet.copyOf(dependents);
+        this.variantDependencies = ImmutableMap.copyOf(variantDependencies);
     }
 }
