@@ -20,8 +20,8 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.PropertyValue;
@@ -77,7 +77,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .id(TextUtil.screamingSnakeToKebabCase(CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES), "Property should be annotated with @Optional", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES), "Property should be annotated with @Optional", PredefinedProblemGroups.validation().property())
                     .contextualLabel(String.format("of type %s shouldn't be annotated with @Optional", valueType.getName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPES.toLowerCase(Locale.ROOT)))
                     .details("Properties of primitive type cannot be optional")
@@ -99,7 +99,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .id(TextUtil.screamingSnakeToKebabCase(INCORRECT_USE_OF_INPUT_ANNOTATION), "Incorrect use of @Input annotation", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(INCORRECT_USE_OF_INPUT_ANNOTATION), "Incorrect use of @Input annotation", PredefinedProblemGroups.validation().property())
                     .contextualLabel(String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, INCORRECT_USE_OF_INPUT_ANNOTATION.toLowerCase(Locale.ROOT)))
                     .severity(Severity.ERROR)
@@ -117,7 +117,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .id(TextUtil.screamingSnakeToKebabCase(INCORRECT_USE_OF_INPUT_ANNOTATION), "Incorrect use of @Input annotation", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(INCORRECT_USE_OF_INPUT_ANNOTATION), "Incorrect use of @Input annotation", PredefinedProblemGroups.validation().property())
                     .contextualLabel(String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, INCORRECT_USE_OF_INPUT_ANNOTATION.toLowerCase(Locale.ROOT)))
                     .severity(Severity.ERROR)
@@ -136,7 +136,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
             validationContext.visitPropertyProblem(problem ->
                 problem
                     .forProperty(propertyMetadata.getPropertyName())
-                    .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE) + "-for-input", "Unsupported value type for @Input annotation", GradleCoreProblemGroup.validation().property())
+                    .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE) + "-for-input", "Unsupported value type for @Input annotation", PredefinedProblemGroups.validation().property())
                     .contextualLabel(String.format("has @Input annotation used on type '%s' or a property of this type", URL.class.getName()))
                     .documentedAt(userManual(VALIDATION_PROBLEMS, UNSUPPORTED_VALUE_TYPE.toLowerCase(Locale.ROOT)))
                     .severity(ERROR)

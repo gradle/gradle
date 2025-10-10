@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
+import org.gradle.api.problems.PredefinedProblemGroups
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
@@ -26,7 +27,6 @@ import org.gradle.api.problems.internal.DeprecationDataSpec
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GeneralData
 import org.gradle.api.problems.internal.GeneralDataSpec
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer
@@ -43,7 +43,7 @@ import spock.lang.Specification
 
 class ValidationProblemSerializationTest extends Specification {
 
-    def problemId = ProblemId.create("id", "label", GradleCoreProblemGroup.validation().type())
+    def problemId = ProblemId.create("id", "label", PredefinedProblemGroups.validation().type())
 
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
     InternalProblemReporter problemReporter = new DefaultProblemReporter(

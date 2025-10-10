@@ -27,9 +27,9 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -191,7 +191,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 validationContext.visitTypeProblem(problem -> {
                         ProblemSpec builder = problem
                             .withAnnotationType(topLevelBean)
-                            .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "Not cacheable without reason", GradleCoreProblemGroup.validation().type())
+                            .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "Not cacheable without reason", PredefinedProblemGroups.validation().type())
                             .contextualLabel("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                             .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                             .severity(ERROR)

@@ -21,12 +21,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures;
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.Cast;
@@ -134,7 +134,7 @@ public class ProjectFeatureRegistrationPluginTarget implements PluginTarget {
             if (exposedProjectTypes.isEmpty()) {
                 typeValidationContext.visitTypeProblem(problem ->
                     problem.withAnnotationType(projectTypePluginImplClass)
-                        .id("missing-software-type", "Missing project feature annotation", GradleCoreProblemGroup.validation().type())
+                        .id("missing-software-type", "Missing project feature annotation", PredefinedProblemGroups.validation().type())
                         .contextualLabel("is registered as a project feature plugin but does not expose a project feature")
                         .severity(Severity.ERROR)
                         .details("This class was registered as a project feature plugin, but it does not expose a project feature. Project feature plugins must expose exactly one project feature via either a @BindsProjectType or @BindsProjectFeature annotation on the plugin class.")
@@ -144,7 +144,7 @@ public class ProjectFeatureRegistrationPluginTarget implements PluginTarget {
             } else if (exposedProjectTypes.size() > 1) {
                 typeValidationContext.visitTypeProblem(problem ->
                     problem.withAnnotationType(projectTypePluginImplClass)
-                        .id("multiple-project-types", "Multiple project type annotations", GradleCoreProblemGroup.validation().type())
+                        .id("multiple-project-types", "Multiple project type annotations", PredefinedProblemGroups.validation().type())
                         .contextualLabel("is registered as a project type plugin, but it exposes multiple project types")
                         .severity(Severity.ERROR)
                         .details("This class was registered as a project type plugin, but it exposes multiple project types: [" + String.join(", ", exposedProjectTypes) + "]. Project type plugins must expose exactly one project type via a property with the @SoftwareType annotation.")
