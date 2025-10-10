@@ -17,8 +17,8 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
@@ -70,5 +70,5 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         return problemBuilder;
     }
 
-    abstract protected void recordProblem(InternalProblem problem);
+    abstract protected void recordProblem(ProblemInternal problem);
 }
