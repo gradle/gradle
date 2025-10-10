@@ -17,15 +17,10 @@
 package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.testing.junit.AbstractJUnitSmokeMultiVersionIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageSmokeMultiVersionIntegrationTest extends AbstractJUnitSmokeMultiVersionIntegrationTest implements JUnitVintageMultiVersionTest {
-    @Override
-    void assertTestSkippedOrPassed(TestClassExecutionResult testClassResult, String testName) {
-        testClassResult.assertTestSkipped(testName)
-    }
 }
