@@ -17,14 +17,14 @@
 package org.gradle.api.internal.tasks.testing.report
 
 import groovy.transform.SelfType
-import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
 
 /**
- * A trait to be applied to tests that verify the results of the {@link GenericTestReportGenerator}.
+ * A trait to be applied to tests that verify the results of the {@link GenericHtmlTestReportGenerator}.
  */
 @SelfType(AbstractIntegrationSpec)
 trait VerifiesGenericTestReportResults {
