@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.internal.configurer;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -36,13 +35,9 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
     }
 
     @Override
-    public String getUniqueName(Project project) {
-        ProjectState projectState = projectRegistry.stateFor(project);
-        String uniqueName = getDeduplicatedNames().get(projectState.getIdentity());
-        if (uniqueName != null) {
-            return uniqueName;
-        }
-        return project.getName();
+    public String getUniqueName(ProjectIdentity projectIdentity) {
+        String uniqueName = getDeduplicatedNames().get(projectIdentity);
+        return uniqueName != null ? uniqueName : projectIdentity.getProjectName();
     }
 
     private synchronized Map<ProjectIdentity, String> getDeduplicatedNames() {

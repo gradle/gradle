@@ -283,7 +283,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         task.configure(IdePluginHelper.withGracefulDegradation());
         ideaModel.setModule(module);
 
-        final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project);
+        final String defaultModuleName = uniqueProjectNameProvider.getUniqueName(project.getProjectIdentity());
         module.setName(defaultModuleName);
 
         ConventionMapping conventionMapping = ((IConventionAware) module).getConventionMapping();

@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -202,7 +203,7 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = new GradleProjectBuilder()
         def uniqueProjectNameProvider = Stub(EclipseModelAwareUniqueProjectNameProvider) {
-            getUniqueName(_ as Project) >> { Project p -> p.name }
+            getUniqueName(_ as ProjectIdentity) >> { ProjectIdentity p -> p.projectName }
         }
         new EclipseModelBuilder(gradleProjectBuilder, uniqueProjectNameProvider)
     }

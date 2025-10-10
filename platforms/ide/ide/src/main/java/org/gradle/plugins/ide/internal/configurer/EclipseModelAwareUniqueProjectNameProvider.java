@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.internal.configurer;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -48,19 +47,18 @@ public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProject
     }
 
     @Override
-    public String getUniqueName(Project project) {
-        ProjectIdentity identity = projectRegistry.stateFor(project).getIdentity();
-        String uniqueName = getDeduplicatedNames().get(identity);
+    public String getUniqueName(ProjectIdentity projectIdentity) {
+        String uniqueName = getDeduplicatedNames().get(projectIdentity);
         if (uniqueName != null) {
             return uniqueName;
         }
 
         // ProjectStateWrapper might contain the configured eclipse project name
-        ProjectStateWrapper information = projectToInformationMap.get(identity);
+        ProjectStateWrapper information = projectToInformationMap.get(projectIdentity);
         if (information != null) {
             return information.name;
         }
-        return identity.getProjectName();
+        return projectIdentity.getProjectName();
     }
 
     private synchronized Map<ProjectIdentity, String> getDeduplicatedNames() {
