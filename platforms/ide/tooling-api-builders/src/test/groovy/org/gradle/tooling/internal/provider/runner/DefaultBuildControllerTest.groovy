@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner
 
 import org.gradle.api.BuildCancelledException
+import org.gradle.composite.ResilientIssuesRecorder
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.buildtree.BuildTreeModelController
@@ -44,6 +45,7 @@ class DefaultBuildControllerTest extends Specification {
     def buildEventConsumer = Mock(BuildEventConsumer)
     def sideEffectExecutor = Mock(BuildTreeModelSideEffectExecutor)
     def payloadSerializer = Mock(PayloadSerializer)
+    def resilientIssueRecorder = Mock(ResilientIssuesRecorder)
 
     def controller = new DefaultBuildController(
         modelController,
@@ -51,7 +53,8 @@ class DefaultBuildControllerTest extends Specification {
         cancellationToken,
         buildEventConsumer,
         sideEffectExecutor,
-        payloadSerializer
+        payloadSerializer,
+        resilientIssueRecorder
     )
 
     def "cannot get build model from unmanaged thread"() {

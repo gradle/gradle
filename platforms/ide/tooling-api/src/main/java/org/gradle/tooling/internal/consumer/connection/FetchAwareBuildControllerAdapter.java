@@ -32,6 +32,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -60,27 +61,37 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
     private <T extends Model, M> FetchModelResult<T, M> adaptResult(Class<M> modelType, InternalFetchModelResult<T, Object> result) {
         Object model = result.getModel();
         M adaptedModel = model != null ? adaptModel(result.getTarget(), modelType, model) : null;
-        return new FetchModelResult<T, M>() {
-            @Nullable
-            List<Failure> failures = null;
+        return new ModelFetchModelResult<>(result, adaptedModel);
+    }
 
-            @Override
-            public T getTarget() {
-                return result.getTarget();
-            }
+    private static class ModelFetchModelResult<T extends Model, M> implements FetchModelResult<T, M>, Serializable {
+        private final InternalFetchModelResult<T, Object> result;
+        private final M adaptedModel;
+        @Nullable
+        List<Failure> failures;
 
-            @Override
-            public M getModel() {
-                return adaptedModel;
-            }
+        public ModelFetchModelResult(InternalFetchModelResult<T, Object> result, M adaptedModel) {
+            this.result = result;
+            this.adaptedModel = adaptedModel;
+            failures = null;
+        }
 
-            @Override
-            public Collection<? extends Failure> getFailures() {
-                if (failures == null) {
-                    failures = BuildProgressListenerAdapter.toFailures(result.getFailures());
-                }
-                return failures;
+        @Override
+        public T getTarget() {
+            return result.getTarget();
+        }
+
+        @Override
+        public M getModel() {
+            return adaptedModel;
+        }
+
+        @Override
+        public Collection<? extends Failure> getFailures() {
+            if (failures == null) {
+                failures = BuildProgressListenerAdapter.toFailures(result.getFailures());
             }
-        };
+            return failures;
+        }
     }
 }

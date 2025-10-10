@@ -28,6 +28,8 @@ import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.TaskIdentity;
+import org.gradle.composite.ResilientIssuesRecorder;
+import org.gradle.composite.internal.DefaultResilientIssuesRecorder;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -76,6 +78,11 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             payloadSerializer,
             isolatableFactory,
             isolatableToBytesSerializer);
+    }
+
+    @Provides
+    protected ResilientIssuesRecorder createResilientIssuesRecorder(FailureFactory failureFactory){
+        return new DefaultResilientIssuesRecorder(failureFactory);
     }
 
     @Provides
