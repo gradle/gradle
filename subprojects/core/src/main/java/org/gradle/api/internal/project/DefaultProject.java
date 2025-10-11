@@ -84,6 +84,7 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
@@ -103,6 +104,8 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.internal.resource.UriTextResource;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -164,7 +167,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ProjectState owner;
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
-    private final ServiceRegistry services;
+    private final CloseableServiceRegistry services;
 
     private final ScriptSource buildScriptSource;
 
@@ -201,9 +204,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     private Object beforeProjectActionState;
 
+    @Inject
     public DefaultProject(
         File buildFile,
-        ScriptSource buildScriptSource,
         ProjectState owner,
         ServiceRegistryFactory serviceRegistryFactory,
         ClassLoaderScope selfClassLoaderScope,
@@ -213,10 +216,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
         this.buildFile = buildFile;
-        this.state = new ProjectStateInternal();
-        this.buildScriptSource = buildScriptSource;
 
-        services = serviceRegistryFactory.createFor(this);
+        this.services = serviceRegistryFactory.createFor(this);
+
+        this.state = new ProjectStateInternal();
+        this.buildScriptSource = new TextResourceScriptSource(UriTextResource.from("build file", buildFile, getFileResolver()));
+
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
@@ -1195,7 +1200,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract ProcessOperations getProcessOperations();
 
     @Override
+    // This override is needed for the @Inject methods to inject services form the project-scoped
+    // services instead of the service registry that this instance is instantiated with.
     public ServiceRegistry getServices() {
+        return services;
+    }
+
+    public CloseableServiceRegistry getCloseableServices() {
         return services;
     }
 

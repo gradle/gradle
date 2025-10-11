@@ -154,7 +154,7 @@ class DefaultConfigurationCacheHost internal constructor(
             val settingsSource = TextResourceScriptSource(service<TextFileResourceLoader>().loadFile("settings file", settingsFile))
             lateinit var services: CloseableServiceRegistry
             val serviceRegistryFactory = object : ServiceRegistryFactory {
-                override fun createFor(domainObject: Any): ServiceRegistry {
+                override fun createFor(domainObject: Any): CloseableServiceRegistry {
                     services = SettingsScopeServices.create(service<ServiceRegistry>(), domainObject as SettingsInternal)
                     return services
                 }

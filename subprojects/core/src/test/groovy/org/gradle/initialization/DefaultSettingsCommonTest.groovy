@@ -28,7 +28,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.CloseableServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -57,7 +57,7 @@ class DefaultSettingsCommonTest extends Specification {
 
         fileResolver.resolve(_) >> { args -> args[0].canonicalFile }
 
-        def settingsServices = Mock(ServiceRegistry)
+        def settingsServices = Mock(CloseableServiceRegistry)
         settingsServices.get(FileResolver) >> fileResolver
         settingsServices.get(ScriptPluginFactory) >> scriptPluginFactory
         settingsServices.get(ScriptHandlerFactory) >> scriptHandlerFactory

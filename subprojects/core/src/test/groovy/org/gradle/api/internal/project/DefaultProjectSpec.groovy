@@ -23,7 +23,6 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
@@ -45,8 +44,6 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
-import org.gradle.internal.resource.DefaultTextFileResourceLoader
-import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -54,8 +51,8 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator
-import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -315,12 +312,6 @@ class DefaultProjectSpec extends Specification {
             identity = ProjectIdentity.forSubproject(buildPath, projectPath)
         }
 
-        def descriptor = Mock(ProjectDescriptor) {
-            getName() >> name
-            getProjectDir() >> fileResolver.resolve(".")
-            getBuildFile() >> fileResolver.resolve("build file")
-        }
-
         def container = Mock(ProjectState)
         _ * container.projectPath >> identity.projectPath
         _ * container.identityPath >> identity.buildTreePath
@@ -328,14 +319,14 @@ class DefaultProjectSpec extends Specification {
         _ * container.displayName >> Describables.of(name)
         _ * container.identity >> identity
         _ * container.getName() >> name
-        _ * container.projectDir >> descriptor.projectDir
+        _ * container.projectDir >> fileResolver.resolve(".")
 
-        def scriptResolution = Stub(ProjectScopedScriptResolution) {
-            resolveScriptsForProject(_, _) >> { project, action -> action.get() }
-        }
-
-        def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
-        def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
-        return factory.createProject(build, descriptor, container, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        return TestUtil.instantiatorFactory().decorateLenient(serviceRegistry).newInstance(DefaultProject.class,
+            fileResolver.resolve("build file"),
+            container,
+            serviceRegistryFactory,
+            Stub(ClassLoaderScope),
+            Stub(ClassLoaderScope)
+        )
     }
 }

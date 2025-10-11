@@ -78,7 +78,6 @@ import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.groovy.scripts.EmptyScript
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.Describables
@@ -94,8 +93,8 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
+import org.gradle.internal.service.CloseableServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
@@ -138,8 +137,6 @@ class DefaultProjectTest extends Specification {
     File buildFile
 
     groovy.lang.Script testScript
-
-    ScriptSource script = Stub(ScriptSource)
 
     ServiceRegistry serviceRegistryMock
     ServiceRegistryFactory projectServiceRegistryFactoryMock
@@ -198,9 +195,6 @@ class DefaultProjectTest extends Specification {
         testAntBuilder = new DefaultAntBuilder(null, antLoggingAdapter)
 
         antBuilderFactoryMock.createAntBuilder() >> testAntBuilder
-        script.getDisplayName() >> '[build file]'
-        script.getClassName() >> 'scriptClass'
-        script.getResource() >> new StringTextResource("", "")
         scriptHandlerMock.getSourceFile() >> buildFile
 
         testScript = new EmptyScript()
@@ -210,7 +204,7 @@ class DefaultProjectTest extends Specification {
         projectRegistry = new DefaultProjectRegistry()
 
         projectServiceRegistryFactoryMock = Stub(ServiceRegistryFactory)
-        serviceRegistryMock = Stub(ServiceRegistry)
+        serviceRegistryMock = Stub(CloseableServiceRegistry)
 
         def fileResolver = TestFiles.resolver(rootDir)
         projectServiceRegistryFactoryMock.createFor({ it != null }) >> serviceRegistryMock
@@ -328,7 +322,6 @@ class DefaultProjectTest extends Specification {
         def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(
             DefaultProject,
             new File(rootDir, 'build.gradle'),
-            script,
             owner,
             projectServiceRegistryFactoryMock,
             scope,

@@ -34,7 +34,7 @@ public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory,
     }
 
     @Override
-    public ServiceRegistry createFor(Object domainObject) {
+    public CloseableServiceRegistry createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
             CloseableServiceRegistry gradleServices = ServiceRegistryBuilder.builder()
                 .displayName("Gradle-scope services")
