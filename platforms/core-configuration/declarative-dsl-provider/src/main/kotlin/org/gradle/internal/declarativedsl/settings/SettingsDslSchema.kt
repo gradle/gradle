@@ -38,13 +38,13 @@ import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndCon
 import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 
 internal
 fun settingsInterpretationSequence(
     settings: SettingsInternal,
-    projectFeatureRegistry: ProjectFeatureRegistry
+    projectFeatureDeclarations: ProjectFeatureDeclarations
 ): InterpretationSequence =
     DefaultInterpretationSequence(
         listOf(
@@ -58,7 +58,7 @@ fun settingsInterpretationSequence(
             ) { pluginManagementEvaluationSchema() },
 
             settingsPluginsInterpretationSequenceStep("settingsPlugins"),
-            defineModelDefaultsInterpretationSequenceStep(projectFeatureRegistry),
+            defineModelDefaultsInterpretationSequenceStep(projectFeatureDeclarations),
             SimpleInterpretationSequenceStepWithConversion(
                 "settings",
                 features = setOf(UnsupportedSyntaxFeatureCheck.feature, AccessOnCurrentReceiverCheck.feature)

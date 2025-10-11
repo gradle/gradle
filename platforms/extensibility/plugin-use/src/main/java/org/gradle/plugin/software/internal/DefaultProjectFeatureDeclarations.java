@@ -48,9 +48,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Default implementation of {@link ProjectFeatureRegistry} that registers project types.
+ * Default implementation of {@link ProjectFeatureDeclarations} that registers project types.
  */
-public class DefaultProjectFeatureRegistry extends CompatibleProjectFeatureRegistry {
+public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureDeclarations {
     private final Map<RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses = new LinkedHashMap<>();
     private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
 
@@ -62,14 +62,14 @@ public class DefaultProjectFeatureRegistry extends CompatibleProjectFeatureRegis
     private final Instantiator instantiator;
     private final LegacyProjectTypeDiscovery legacyProjectTypeDiscovery;
 
-    public DefaultProjectFeatureRegistry(InspectionScheme inspectionScheme, Instantiator instantiator) {
+    public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator) {
         this.inspectionScheme = inspectionScheme;
         this.instantiator = instantiator;
         legacyProjectTypeDiscovery = new LegacyProjectTypeDiscovery(inspectionScheme);
     }
 
     @Override
-    public void register(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass) {
+    public void addDeclaration(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass) {
         if (projectFeatureImplementations != null) {
             throw new IllegalStateException("Cannot register a plugin after project types have been discovered");
         }
@@ -218,5 +218,9 @@ public class DefaultProjectFeatureRegistry extends CompatibleProjectFeatureRegis
 }
 
 @SuppressWarnings("deprecation")
-abstract class CompatibleProjectFeatureRegistry implements ProjectFeatureRegistry, org.gradle.plugin.software.internal.SoftwareTypeRegistry {
+abstract class CompatibleProjectFeatureDeclarations implements ProjectFeatureDeclarations, org.gradle.plugin.software.internal.SoftwareTypeRegistry {
+    @Override
+    public void register(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass) {
+        addDeclaration(pluginId, pluginClass, registeringPluginClass);
+    }
 }

@@ -36,7 +36,7 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import java.io.File
 
 
@@ -60,30 +60,30 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createDeclarativeKotlinScriptEvaluator(
-        projectFeatureRegistry: ProjectFeatureRegistry,
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
         schemaBuilder: InterpretationSchemaBuilder
     ): DeclarativeKotlinScriptEvaluator {
-        return defaultDeclarativeScriptEvaluator(schemaBuilder, projectFeatureRegistry)
+        return defaultDeclarativeScriptEvaluator(schemaBuilder, projectFeatureDeclarations)
     }
 
     @Provides
     fun createInterpretationSchemaBuilder(
-        projectFeatureRegistry: ProjectFeatureRegistry,
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
         buildLayoutFactory: BuildLayoutFactory,
         settingsUnderInitialization: SettingsUnderInitialization,
         gradleInternal: GradleInternal
     ): InterpretationSchemaBuilder =
         MemoizedInterpretationSchemaBuilder(
-            StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, projectFeatureRegistry), buildLayoutFactory.settingsDir(gradleInternal))
+            StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, projectFeatureDeclarations), buildLayoutFactory.settingsDir(gradleInternal))
         )
 
     @Provides
     fun createDeclarativeModelDefaultsHandler(
-        projectFeatureRegistry: ProjectFeatureRegistry,
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
         interpretationSchemaBuilder: InterpretationSchemaBuilder,
         objectFactory: ObjectFactory
     ): ModelDefaultsHandler {
-        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, projectFeatureRegistry, interpretationSchemaBuilder)
+        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, projectFeatureDeclarations, interpretationSchemaBuilder)
     }
 
     private
@@ -97,12 +97,12 @@ internal object ProjectServices : ServiceRegistrationProvider {
     fun createActionBasedModelDefaultsHandler(
         sharedModelDefaults: SharedModelDefaults,
         projectLayout: ProjectLayout,
-        projectFeatureRegistry: ProjectFeatureRegistry
+        projectFeatureDeclarations: ProjectFeatureDeclarations
     ): ModelDefaultsHandler {
         return ActionBasedModelDefaultsHandler(
             sharedModelDefaults as SharedModelDefaultsInternal,
             projectLayout,
-            projectFeatureRegistry,
+            projectFeatureDeclarations,
         )
     }
 }

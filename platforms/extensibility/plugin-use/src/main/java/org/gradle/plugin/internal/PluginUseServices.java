@@ -55,11 +55,11 @@ import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPlugi
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.DefaultProjectFeatureApplicator;
-import org.gradle.plugin.software.internal.DefaultProjectFeatureRegistry;
+import org.gradle.plugin.software.internal.DefaultProjectFeatureDeclarations;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.gradle.plugin.software.internal.ProjectTypeAnnotationHandler;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -131,9 +131,9 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         @SuppressWarnings("deprecation")
         void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
-            DefaultProjectFeatureRegistry projectFeatureRegistry = new DefaultProjectFeatureRegistry(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
+            DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
             registration.add(org.gradle.plugin.software.internal.SoftwareTypeRegistry.class, projectFeatureRegistry);
-            registration.add(ProjectFeatureRegistry.class, projectFeatureRegistry);
+            registration.add(ProjectFeatureDeclarations.class, projectFeatureRegistry);
         }
 
         @Provides
@@ -211,7 +211,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         ProjectFeatureApplicator createProjectFeatureApplicator(
-            ProjectFeatureRegistry projectFeatureRegistry,
+            ProjectFeatureDeclarations projectFeatureDeclarations,
             ModelDefaultsApplicator modelDefaultsApplicator,
             PluginScheme pluginScheme,
             InternalProblems problems,
@@ -219,7 +219,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             ProjectInternal project
         ) {
             return new DefaultProjectFeatureApplicator(
-                projectFeatureRegistry,
+                projectFeatureDeclarations,
                 modelDefaultsApplicator,
                 pluginScheme.getInspectionScheme(),
                 problems,

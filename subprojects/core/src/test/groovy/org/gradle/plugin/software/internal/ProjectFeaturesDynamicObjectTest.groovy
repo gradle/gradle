@@ -23,7 +23,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ProjectFeaturesDynamicObjectTest extends Specification {
-    def projectFeatureRegistry = Mock(ProjectFeatureRegistry)
+    def projectFeatureRegistry = Mock(ProjectFeatureDeclarations)
     def projectFeatureApplicator = Mock(ProjectFeatureApplicator)
     def dynamicObjectAware = Mock(DynamicObjectAware)
     def projectTypeImplementation = Mock(ProjectFeatureImplementation) {
@@ -34,7 +34,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
 
     def setup() {
         def services = TestUtil.createTestServices {
-            it.add(ProjectFeatureRegistry, projectFeatureRegistry)
+            it.add(ProjectFeatureDeclarations, projectFeatureRegistry)
             it.add(ProjectFeatureApplicator, projectFeatureApplicator)
         }
         projectFeaturesDynamicObject = services.get(ObjectFactory.class).newInstance(ProjectFeaturesDynamicObject, dynamicObjectAware, context)

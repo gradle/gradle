@@ -42,7 +42,7 @@ import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
 
@@ -107,8 +107,8 @@ internal class DefaultProjectSchemaProvider(
                 }
             }
             if (target is Settings) {
-                val projectFeatureRegistry = target.serviceOf<ProjectFeatureRegistry>()
-                accessibleContainerSchema(projectFeatureRegistry.schema).forEach { schema ->
+                val projectFeatureDeclarations = target.serviceOf<ProjectFeatureDeclarations>()
+                accessibleContainerSchema(projectFeatureDeclarations.schema).forEach { schema ->
                     buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
                 }
             }

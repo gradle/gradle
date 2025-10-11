@@ -28,16 +28,16 @@ import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class ProjectFeatureRegistrationPluginTargetTest extends Specification {
+class ProjectFeatureDeclarationPluginTargetTest extends Specification {
     def delegate = Mock(PluginTarget)
-    def projectFeatureRegistry = Mock(ProjectFeatureRegistry)
+    def projectFeatureDeclarations = Mock(ProjectFeatureDeclarations)
     def inspectionScheme = Mock(InspectionScheme)
     def problems = TestUtil.problemsService()
-    def pluginTarget = new ProjectFeatureRegistrationPluginTarget(delegate, projectFeatureRegistry, inspectionScheme, problems)
+    def pluginTarget = new ProjectFeatureDeclarationPluginTarget(delegate, projectFeatureDeclarations, inspectionScheme, problems)
     def registrationPlugin = Mock(Plugin)
     def metadataStore = Mock(TypeMetadataStore)
     def registrationPluginTypeMetadata = Mock(TypeMetadata)
@@ -50,7 +50,7 @@ class ProjectFeatureRegistrationPluginTargetTest extends Specification {
     def projectFeaturePluginAnnotationMetadata = Mock(TypeAnnotationMetadata)
     def propertyMetadata = Mock(PropertyMetadata)
 
-    def "adds project feature plugins for ecosystem plugin that registers #type"() {
+    def "adds project feature plugins for ecosystem plugin that declare #type"() {
         when:
         pluginTarget.applyImperative("com.example.test", registrationPlugin)
 
@@ -66,7 +66,7 @@ class ProjectFeatureRegistrationPluginTargetTest extends Specification {
             1 * metadataStore.getTypeMetadata(ProjectTypePlugin.class) >> projectTypePluginMetadata
             1 * projectTypePluginMetadata.getTypeAnnotationMetadata() >> projectTypePluginAnnotationMetadata
             1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.of(Stub(BindsProjectType))
-            1 * projectFeatureRegistry.register("com.example.test", ProjectTypePlugin.class, null)
+            1 * projectFeatureDeclarations.addDeclaration("com.example.test", ProjectTypePlugin.class, null)
         } else {
             1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.empty()
         }
@@ -80,7 +80,7 @@ class ProjectFeatureRegistrationPluginTargetTest extends Specification {
             2 * projectFeaturePluginMetadata.getTypeAnnotationMetadata() >> projectFeaturePluginAnnotationMetadata
             1 * projectFeaturePluginAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
             1 * projectFeaturePluginAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(Stub(BindsProjectFeature))
-            1 * projectFeatureRegistry.register("com.example.test", ProjectFeaturePlugin.class, null)
+            1 * projectFeatureDeclarations.addDeclaration("com.example.test", ProjectFeaturePlugin.class, null)
         } else {
             1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersProjectFeatures.class) >> Optional.empty()
         }
@@ -96,7 +96,7 @@ class ProjectFeatureRegistrationPluginTargetTest extends Specification {
         "only project features"            | false           | true
     }
 
-    def "adds project type plugins for plugin that registers project types using SoftwareType annotation"() {
+    def "adds project type plugins for plugin that declares project types using SoftwareType annotation"() {
         when:
         pluginTarget.applyImperative("com.example.test", registrationPlugin)
 
@@ -115,13 +115,13 @@ class ProjectFeatureRegistrationPluginTargetTest extends Specification {
 
         and: // returns property metadata with an annotation
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
-        1 * projectFeatureRegistry.register("com.example.test", ProjectTypePlugin.class, null)
+        1 * projectFeatureDeclarations.addDeclaration("com.example.test", ProjectTypePlugin.class, null)
 
         and:
         1 * delegate.applyImperative("com.example.test", registrationPlugin)
     }
 
-    def "throws exception when plugins are registered that do not expose project types"() {
+    def "throws exception when plugins are declared that do not expose project types"() {
         when:
         pluginTarget.applyImperative(null, registrationPlugin)
 
@@ -146,7 +146,7 @@ class ProjectFeatureRegistrationPluginTargetTest extends Specification {
         e.hasCause(InvalidUserDataException)
     }
 
-    def "throws exception when plugins are registered that expose multiple project types"() {
+    def "throws exception when plugins are declared that expose multiple project types"() {
         given:
         def anotherPropertyMetadata = Mock(PropertyMetadata)
 
@@ -175,7 +175,7 @@ class ProjectFeatureRegistrationPluginTargetTest extends Specification {
         e.hasCause(InvalidUserDataException)
     }
 
-    def "calls delegate for plugins that do not register project types"() {
+    def "calls delegate for plugins that do not declare project types"() {
         when:
         pluginTarget.applyImperative(null, registrationPlugin)
 

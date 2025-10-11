@@ -31,14 +31,14 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
 import spock.lang.Specification
 
-class DefaultProjectFeatureRegistryTest extends Specification {
+class DefaultProjectFeatureDeclarationsTest extends Specification {
     def metadataStore = Mock(TypeMetadataStore)
     def inspectionScheme = Mock(InspectionScheme)
     def instantiator = Mock(Instantiator)
-    def registry = new DefaultProjectFeatureRegistry(inspectionScheme, instantiator)
+    def declarations = new DefaultProjectFeatureDeclarations(inspectionScheme, instantiator)
     def pluginId = "com.example.test"
 
-    def "can register and retrieve a project type (public type = #modelPublicType.simpleName)"() {
+    def "can declare and retrieve a project type (public type = #modelPublicType.simpleName)"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def modelTypeMetadata = Mock(TypeMetadata)
         def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
@@ -46,10 +46,10 @@ class DefaultProjectFeatureRegistryTest extends Specification {
         def softwareType = Mock(SoftwareType)
 
         when:
-        registry.register(pluginId, ProjectTypeImpl, RegisteringPlugin)
+        declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
 
         and:
-        def implementations = registry.projectFeatureImplementations.values()
+        def implementations = declarations.projectFeatureImplementations.values()
 
         then:
         2 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -75,13 +75,13 @@ class DefaultProjectFeatureRegistryTest extends Specification {
         modelPublicType << [TestModel, Void]
     }
 
-    def "cannot register a plugin that is not a project type"() {
+    def "cannot declare a plugin that is not a project type"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
-        registry.register(pluginId, NotAProjectTypeImpl, RegisteringPlugin)
-        def implementations = registry.projectFeatureImplementations
+        declarations.addDeclaration(pluginId, NotAProjectTypeImpl, DeclaringPlugin)
+        def implementations = declarations.projectFeatureImplementations
 
         then:
         2 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -103,9 +103,9 @@ class DefaultProjectFeatureRegistryTest extends Specification {
         def softwareType = Mock(SoftwareType)
 
         when:
-        registry.register(pluginId, ProjectTypeImpl, RegisteringPlugin)
-        registry.register(pluginId, ProjectTypeImpl, RegisteringPlugin)
-        def implementations = registry.projectFeatureImplementations
+        declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
+        declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
+        def implementations = declarations.projectFeatureImplementations
 
         then:
         2 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -126,7 +126,7 @@ class DefaultProjectFeatureRegistryTest extends Specification {
         implementations.size() == 1
     }
 
-    def "cannot register two plugins with the same project type"() {
+    def "cannot declare two plugins with the same project type"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def duplicateTypeMetadata = Mock(TypeMetadata)
         def modelTypeMetadata = Mock(TypeMetadata)
@@ -137,9 +137,9 @@ class DefaultProjectFeatureRegistryTest extends Specification {
         def duplicateTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
-        registry.register(pluginId, ProjectTypeImpl, RegisteringPlugin)
-        registry.register(pluginId+".duplicate", DuplicateProjectTypeImpl, RegisteringPlugin)
-        registry.getProjectFeatureImplementations()
+        declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
+        declarations.addDeclaration(pluginId+".duplicate", DuplicateProjectTypeImpl, DeclaringPlugin)
+        declarations.getProjectFeatureImplementations()
 
         then:
         4 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -171,7 +171,7 @@ class DefaultProjectFeatureRegistryTest extends Specification {
 
     private static class TestModel { }
 
-    private abstract static class RegisteringPlugin implements Plugin<Settings> { }
+    private abstract static class DeclaringPlugin implements Plugin<Settings> { }
 
     private abstract static class ProjectTypeImpl implements Plugin<Project> { }
 

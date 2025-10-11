@@ -27,16 +27,16 @@ import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
 import org.gradle.plugin.software.internal.ProjectFeatureImplementation
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 class ActionBasedModelDefaultsHandler(
     private val sharedModelDefaults: SharedModelDefaultsInternal,
     private val projectLayout: ProjectLayout,
-    private val projectFeatureRegistry: ProjectFeatureRegistry,
+    private val projectFeatureDeclarations: ProjectFeatureDeclarations,
 ) : ModelDefaultsHandler {
 
     override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
-        val projectFeatureImplementation: ProjectFeatureImplementation<*, *> = projectFeatureRegistry.getProjectFeatureImplementations()[projectFeatureName]!!
+        val projectFeatureImplementation: ProjectFeatureImplementation<*, *> = projectFeatureDeclarations.getProjectFeatureImplementations()[projectFeatureName]!!
 
         if (target is DynamicObjectAware) {
             sharedModelDefaults.setProjectLayout(projectLayout)
