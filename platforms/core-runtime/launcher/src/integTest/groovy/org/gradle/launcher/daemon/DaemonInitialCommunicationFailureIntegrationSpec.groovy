@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
@@ -164,6 +165,8 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         when:
         def socket = new Socket(new InetAddressFactory().localBindingAddress, daemon.port)
+
+        socket.outputStream.write(TcpOutgoingConnector.CONNECTION_PREAMBLE)
         socket.outputStream.write("GET / HTTP/1.0\n\n".getBytes())
         socket.outputStream.flush()
 
