@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@org.jspecify.annotations.NullMarked
 package org.gradle.plugins.ide.internal.configurer;
-
-import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-@ServiceScope(Scope.Build.class)
-public interface UniqueProjectNameProvider {
-    String getUniqueName(ProjectIdentity projectIdentity);
-}

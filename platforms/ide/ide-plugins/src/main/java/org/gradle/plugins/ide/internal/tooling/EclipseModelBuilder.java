@@ -164,7 +164,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         for (Project project : root.getAllprojects()) {
             EclipseModel eclipseModel = project.getExtensions().findByType(EclipseModel.class);
             if (eclipseModel != null) {
-                eclipseModel.getProject().setName(uniqueProjectNameProvider.getUniqueName(project));
+                eclipseModel.getProject().setName(uniqueProjectNameProvider.getUniqueName(((ProjectInternal) project).getProjectIdentity()));
             }
         }
     }
