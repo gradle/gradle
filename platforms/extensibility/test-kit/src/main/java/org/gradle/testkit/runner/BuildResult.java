@@ -16,8 +16,10 @@
 
 package org.gradle.testkit.runner;
 
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.Nullable;
 
+import java.io.BufferedReader;
 import java.util.List;
 
 /**
@@ -39,6 +41,20 @@ public interface BuildResult {
      * @since 2.9
      */
     String getOutput();
+
+    /**
+     * A new {@link BufferedReader} of the textual output produced during the build.
+     * <p>
+     * This is equivalent to the console output produced when running a build from the command line.
+     * It contains both the standard output, and standard error output, of the build.
+     *
+     * <p>The caller is responsible for ensuring that the returned stream is closed.
+     *
+     * @return a reader of the build output
+     * @since 9.3.0
+     */
+    @Incubating
+    BufferedReader getOutputReader();
 
     /**
      * The tasks that were part of the build.
