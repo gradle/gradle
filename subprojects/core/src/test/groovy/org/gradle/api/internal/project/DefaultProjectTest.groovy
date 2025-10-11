@@ -1014,15 +1014,3 @@ class TaskContainerDynamicObject {
         closure.call()
     }
 }
-
-class TestConvention {
-    final static String METHOD_RESULT = 'methodResult'
-    String name
-    String conv
-    String archivesBaseName
-
-    def scriptMethod(Closure cl) {
-        METHOD_RESULT
-    }
-}
-
