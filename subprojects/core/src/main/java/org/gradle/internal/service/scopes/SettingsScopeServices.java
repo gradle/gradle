@@ -38,6 +38,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -89,8 +90,8 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(settings.getClassLoaderScope());
+    protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry, BuildState buildState) {
+        return parentRegistry.createChild(settings.getClassLoaderScope(), "Settings of " + buildState.getDisplayName().getDisplayName());
     }
 
     @Provides

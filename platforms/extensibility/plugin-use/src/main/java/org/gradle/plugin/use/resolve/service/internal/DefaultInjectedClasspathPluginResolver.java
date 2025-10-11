@@ -110,8 +110,8 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         return new DefaultPluginRegistry(pluginInspector,
             parentScope.createChild("injected-plugin", null)
                 .local(classPath)
-                .lock()
-        );
+                .lock(),
+            "adhoc injected plugin");
     }
 
     @Override
