@@ -250,7 +250,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.software.internal.ProjectFeatureRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -723,11 +722,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected ComponentTypeRegistry createComponentTypeRegistry() {
         return new DefaultComponentTypeRegistry();
-    }
-
-    @Provides
-    protected PluginInspector createPluginInspector(ModelRuleSourceDetector modelRuleSourceDetector) {
-        return new PluginInspector(modelRuleSourceDetector);
     }
 
     @Provides
