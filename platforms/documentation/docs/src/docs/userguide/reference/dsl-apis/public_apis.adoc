@@ -18,10 +18,12 @@
 
 Gradle provides many public APIs that allow developers to interact with various build system components.
 
-Any class or package name containing `Internal`, or located in a package segment `.internal.`, is not part of the public Gradle API and should not be relied upon for stable usage.
+Only elements explicitly documented as part of the stable public API are supported for use.
+All other classes, methods, or packages, including, but not limited to, those containing the name `Internal` or located in a package segment `.internal.`, are considered internal implementation details and must not be relied upon for stable usage.
+
 Use of Gradle internal APIs in plugins and build scripts can break builds when either Gradle or plugins change.
 
-The list of public API packages:
+The list of public API packages is as follows:
 
 [source,text]
 ----
@@ -62,4 +64,4 @@ org.gradle.util.**
 ----
 
 NOTE: The `\*` wildcard matches only classes directly in the package (e.g., `org.gradle.Foo`), but **does not include subpackages** like `org.gradle.something.Foo`.
-For subpackages, `**` must be used.
+For indicating that subpackages are included, `**` is used.
