@@ -3,10 +3,12 @@ import gradlebuild.nullaway.NullawayCompatibilityRule
 import gradlebuild.nullaway.NullawayState
 import gradlebuild.nullaway.NullawayStatusTask
 import groovy.lang.GroovySystem
-import net.ltgt.gradle.errorprone.CheckSeverity
+import net.ltgt.gradle.errorprone.CheckSeverity.OFF
+import net.ltgt.gradle.errorprone.CheckSeverity.ERROR
 import net.ltgt.gradle.errorprone.errorprone
 import net.ltgt.gradle.nullaway.nullaway
 import org.gradle.util.internal.VersionNumber
+import java.lang.System.getenv
 
 /*
  * Copyright 2022 the original author or authors.
@@ -66,12 +68,6 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
     nullawayEnabled.convention(false)
 }
 
-nullaway {
-    // NullAway can use NullMarked instead, but for the adoption process it is more effective to assume that all gradle code is already annotated.
-    // This way we can catch discrepancies in modules easier. We should make all packages NullMarked eventually too, but this is a separate task.
-    annotatedPackages.add("org.gradle")
-}
-
 dependencies {
     attributesSchema {
         attribute(NullawayAttributes.nullawayAttribute) {
@@ -125,18 +121,28 @@ project.plugins.withType<JavaBasePlugin> {
         // don't forget to update the version in distributions-dependencies/build.gradle.kts
         addErrorProneDependency("com.google.errorprone:error_prone_core:2.42.0")
         addErrorProneDependency("com.uber.nullaway:nullaway:0.12.10")
+        addErrorProneDependency("tech.picnic.error-prone-support:error-prone-contrib:0.25.0")
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
                 isEnabled = extension.enabled
                 checks = errorproneExtension.disabledChecks.map {
-                    it.associateWith { CheckSeverity.OFF }
+                    it.associateWith { OFF }
                 }
+                error("RedundantStringConversion")
+                // add new with:
+                //errorproneArgs.addAll(
+                //    "-XepPatchLocation:IN_PLACE",
+                //    "-XepPatchChecks:RedundantStringConversion"
+                //)
 
                 nullaway {
+                    // NullAway can use NullMarked instead, but for the adoption process it is more effective to assume that all gradle code is already annotated.
+                    // This way we can catch discrepancies in modules easier. We should make all packages NullMarked eventually too, but this is a separate task.
+                    annotatedPackages.add("org.gradle")
                     checkContracts = true
                     isJSpecifyMode = true
-                    severity = errorproneExtension.nullawayEnabled.map { if (it) CheckSeverity.ERROR else CheckSeverity.OFF }
+                    severity = errorproneExtension.nullawayEnabled.map { if (enabled) ERROR else OFF }
                 }
             }
         }
