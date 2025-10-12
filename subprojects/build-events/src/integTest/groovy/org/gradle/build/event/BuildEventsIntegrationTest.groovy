@@ -16,6 +16,7 @@
 
 package org.gradle.build.event
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -361,7 +362,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':test')
 
         // ensure the test has been executed
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
         result.assertTestClassesExecuted('my.MyTest')
         result.testClass('my.MyTest').assertTestCount(1, 0)
     }
@@ -417,7 +418,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':test')
 
         // ensure the test has been executed
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
         result.assertTestClassesExecuted('my.MyTest')
         result.testClass('my.MyTest').assertTestCount(1, 0)
         result.testClass('my.MyTest').assertStdout(containsString("listener registered"))

@@ -535,7 +535,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         fails 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.testClass("UsefulNPETest")
             .testFailed("testUsefulNPE", equalTo('java.lang.NullPointerException: Cannot invoke "Object.toString()" because "o" is null'))
         result.testClass("UsefulNPETest")
