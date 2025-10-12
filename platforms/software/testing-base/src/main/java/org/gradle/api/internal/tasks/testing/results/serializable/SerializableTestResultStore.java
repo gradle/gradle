@@ -189,6 +189,8 @@ public final class SerializableTestResultStore {
             SerializableTestResult.Builder testNodeBuilder = SerializableTestResult.builder()
                 .name(testDescriptor.getName())
                 .displayName(testDescriptor.getDisplayName())
+                .className(testDescriptor.getClassName())
+                .classDisplayName(testDescriptor.getClassDisplayName())
                 .startTime(testResult.getStartTime())
                 .endTime(testResult.getEndTime())
                 .resultType(testResult.getResultType());
@@ -272,10 +274,10 @@ public final class SerializableTestResultStore {
         }
 
         private static SerializableFailure convertToSerializableFailure(TestFailure failure) {
-            String message = failure.getDetails().getMessage();
-            if (message == null) {
-                // Matching Throwable.toString() behavior, use the class name if no message is provided
-                message = failure.getDetails().getClassName();
+            // Build message in the same way as Throwable.toString()
+            String message = failure.getDetails().getClassName();
+            if (failure.getDetails().getMessage() != null) {
+                message += ": " + failure.getDetails().getMessage();
             }
             List<String> convertedCauses = ExceptionSerializationUtil.extractCauses(failure.getRawFailure()).stream()
                 .map(Throwables::getStackTraceAsString)

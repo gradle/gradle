@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTe
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ import java.util.function.Consumer;
  */
 public class TestTreeModel {
 
-    private static final TestTreeModel EMPTY_MODEL = new TestTreeModel(Path.ROOT, ImmutableListMultimap.of(), ImmutableMap.of());
+    private static final TestTreeModel EMPTY_MODEL = new TestTreeModel(null, Path.ROOT, ImmutableListMultimap.of(), ImmutableMap.of());
 
     /**
      * Load and merge a list of test result stores into a single tree model.
@@ -119,16 +120,16 @@ public class TestTreeModel {
             OptionalLong parentOutputId = result.getParentOutputId();
             if (!parentOutputId.isPresent()) {
                 // We have the root, so now we can resolve all paths and attach to the models.
-                finalizePath(Path.ROOT, result.getOutputId(), thisInfo);
+                finalizePath(null, Path.ROOT, result.getOutputId(), thisInfo);
             } else {
                 childrenByParentId.put(parentOutputId.getAsLong(), new Child(result.getOutputId(), thisInfo));
             }
         }
 
-        private void finalizePath(Path path, long id, PerRootInfo rootInfo) {
+        private void finalizePath(@Nullable TestTreeModel parent, Path path, long id, PerRootInfo rootInfo) {
             // We use LinkedHashMap for the roots to keep them in the order of declaration in TestReport.
             // We use LinkedHashMap for the children to keep them in the order of results in the store.
-            TestTreeModel model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel(p, LinkedListMultimap.create(), new LinkedHashMap<>()));
+            TestTreeModel model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel(parent, p, LinkedListMultimap.create(), new LinkedHashMap<>()));
 
             List<PerRootInfo> existingRootInfos = model.perRootInfo.get(rootIndex);
             if (!existingRootInfos.isEmpty()) {
@@ -155,7 +156,7 @@ public class TestTreeModel {
             for (Child child : children) {
                 String name = child.info.getResult().getName();
                 Path childPath = path.child(name);
-                finalizePath(childPath, child.id, child.info);
+                finalizePath(model, childPath, child.id, child.info);
                 model.children.computeIfAbsent(name, n -> modelsByPath.get(childPath));
             }
         }
@@ -241,14 +242,22 @@ public class TestTreeModel {
         }
     }
 
+    @Nullable
+    private final TestTreeModel parent;
     private final Path path;
     private final ListMultimap<Integer, PerRootInfo> perRootInfo;
     private final Map<String, TestTreeModel> children;
 
-    public TestTreeModel(Path path, ListMultimap<Integer, PerRootInfo> perRootInfo, Map<String, TestTreeModel> children) {
+    private TestTreeModel(@Nullable TestTreeModel parent, Path path, ListMultimap<Integer, PerRootInfo> perRootInfo, Map<String, TestTreeModel> children) {
+        this.parent = parent;
         this.path = path;
         this.perRootInfo = perRootInfo;
         this.children = children;
+    }
+
+    @Nullable
+    public TestTreeModel getParent() {
+        return parent;
     }
 
     /**
@@ -308,6 +317,18 @@ public class TestTreeModel {
             }
         }
         return deepest + 1;
+    }
+
+    /**
+     * Walks the tree depth-first, calling the given consumer for each node.
+     *
+     * @param consumer the consumer to call for each node
+     */
+    public void walkDepthFirst(Consumer<TestTreeModel> consumer) {
+        consumer.accept(this);
+        for (TestTreeModel child : children.values()) {
+            child.walkDepthFirst(consumer);
+        }
     }
 
     private static final int INDENT_SIZE = 2;

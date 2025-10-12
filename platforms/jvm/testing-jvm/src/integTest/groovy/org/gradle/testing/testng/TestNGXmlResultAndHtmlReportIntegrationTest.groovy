@@ -35,6 +35,7 @@ import static org.hamcrest.CoreMatchers.anything
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.startsWith
 
 class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
@@ -96,7 +97,8 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpe
 
     void verify(Mode mode) {
         verifyTestResultWith(new JUnitXmlTestExecutionResult(file("."), mode.outputAssociation), mode.outputAssociation)
-        verifyTestResultWith(new HtmlTestExecutionResult(file(".")), mode.outputAssociation)
+        // Always use WITH_TESTCASE for HTML report as it doesn't aggregate
+        verifyTestResultWith(new HtmlTestExecutionResult(file("."), "build/reports/tests/test", testFramework), WITH_TESTCASE)
     }
 
     def runWithTestConfig(String testConfiguration) {
@@ -120,13 +122,13 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpe
         def mixedMethods = executionResult.testClass("org.MixedMethodsTest")
                 .assertTestCount(4, 2)
                 .assertTestsExecuted("passing", "passing2", "failing", "failing2")
-                .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing!'))
-                .assertTestFailed("failing2", equalTo('java.lang.AssertionError: failing2!'))
+                .assertTestFailed("failing", startsWith('java.lang.AssertionError: failing!'))
+                .assertTestFailed("failing2", startsWith('java.lang.AssertionError: failing2!'))
                 .assertTestPassed("passing")
                 .assertTestPassed("passing2")
                 .assertTestsSkipped()
 
-        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+        if (outputAssociation == WITH_SUITE) {
             mixedMethods
                     .assertStderr(allOf(containsString("err.fail"), containsString("err.fail2"), containsString("err.pass"), containsString("err.pass2")))
                     .assertStderr(not(containsString("out.")))
@@ -148,7 +150,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpe
                 .assertTestCount(2, 0)
                 .assertTestsExecuted("passing", "passing2")
                 .assertTestPassed("passing").assertTestPassed("passing2")
-        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+        if (outputAssociation == WITH_SUITE) {
             passing
                     .assertStdout(equalTo("out\n"))
                     .assertStderr(equalTo(""))
@@ -165,7 +167,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpe
                 .assertTestsExecuted("failing", "failing2")
                 .assertTestFailed("failing", anything()).assertTestFailed("failing2", anything())
 
-        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+        if (outputAssociation == WITH_SUITE) {
             failing
                     .assertStdout(equalTo(""))
                     .assertStderr(equalTo("err\n"))
@@ -182,7 +184,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpe
                 .assertTestCount(1, 0)
                 .assertTestsExecuted("passing").assertTestPassed("passing")
 
-        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+        if (outputAssociation == WITH_SUITE) {
             noOutputs
                     .assertStdout(equalTo(""))
                     .assertStderr(equalTo(""))
@@ -195,9 +197,9 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpe
         def encoding = executionResult.testClass("org.EncodingTest")
                 .assertTestCount(2, 1)
                 .assertTestPassed("encodesCdata")
-                .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]> non-ascii: ż'))
+                .assertTestFailed("encodesAttributeValues", startsWith('java.lang.RuntimeException: html: <> cdata: ]]> non-ascii: ż'))
 
-        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+        if (outputAssociation == WITH_SUITE) {
             encoding
                     .assertStdout(equalTo("""< html allowed, cdata closing token ]]> encoded!
 no EOL, non-ascii char: ż
@@ -223,7 +225,7 @@ xml entity: &amp;
                 .assertTestFailed("p3[1]", containsString("Parameter 2 of iteration 2 of method 'p3' toString() method threw exception"))
                 .assertTestFailed("p4[1](2, \">…Ú)", anything())
 
-        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+        if (outputAssociation == WITH_SUITE) {
             parameterized
                     .assertStdout(equalTo("var1 is: 1\nvar1 is: 3\n"))
                     .assertStderr(equalTo("var2 is: 2\nvar2 is: 4\n"))
@@ -242,14 +244,14 @@ xml entity: &amp;
                 .assertTestPassed("m1")
                 .assertTestsSkipped()
 
-        if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
+        if (outputAssociation == WITH_SUITE) {
             outputLifecycle
-                    .assertStdout(allOf(containsString("m1 out"), containsString("m2 out")))
-                    .assertStderr(allOf(containsString("m1 err"), containsString("m2 err")))
+                    .assertStdout(allOf(containsString("before"), containsString("m1 out"), containsString("m2 out")))
+                    .assertStderr(allOf(containsString("before"), containsString("m1 err"), containsString("m2 err")))
 
-                    // We don't capture anything outside of test methods for TestNG
-                    .assertStdout(not(anyOf(containsString("before"), containsString("after"), containsString("constructor"))))
-                    .assertStderr(not(anyOf(containsString("before"), containsString("after"), containsString("constructor"))))
+                    // We don't capture anything outside of before + test methods for TestNG
+                    .assertStdout(not(anyOf(containsString("after"), containsString("constructor"))))
+                    .assertStderr(not(anyOf(containsString("after"), containsString("constructor"))))
         } else {
             outputLifecycle
                     .assertTestCaseStdout("m1", equalTo("m1 out\n"))
