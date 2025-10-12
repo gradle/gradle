@@ -36,8 +36,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 public class DefaultPluginRegistry implements PluginRegistry {
-
-    private final String debugName;
     private final PluginRegistry parent;
     private final PluginInspector pluginInspector;
     private final ClassLoaderScope classLoaderScope;
@@ -45,12 +43,11 @@ public class DefaultPluginRegistry implements PluginRegistry {
     private final LoadingCache<Class<?>, PluginImplementation<?>> classMappings;
     private final LoadingCache<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>> idMappings;
 
-    public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoaderScope classLoaderScope, String debugName) {
-        this(null, pluginInspector, classLoaderScope, debugName);
+    public DefaultPluginRegistry(PluginInspector pluginInspector, ClassLoaderScope classLoaderScope) {
+        this(null, pluginInspector, classLoaderScope);
     }
 
-    private DefaultPluginRegistry(PluginRegistry parent, final PluginInspector pluginInspector, ClassLoaderScope classLoaderScope, String debugName) {
-        this.debugName = debugName;
+    private DefaultPluginRegistry(PluginRegistry parent, final PluginInspector pluginInspector, ClassLoaderScope classLoaderScope) {
         this.parent = parent;
         this.pluginInspector = pluginInspector;
         this.classLoaderScope = classLoaderScope;
@@ -90,8 +87,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
     }
 
     @Override
-    public PluginRegistry createChild(final ClassLoaderScope lookupScope, String debugName) {
-        return new DefaultPluginRegistry(this, pluginInspector, lookupScope, debugName);
+    public PluginRegistry createChild(final ClassLoaderScope lookupScope) {
+        return new DefaultPluginRegistry(this, pluginInspector, lookupScope);
     }
 
     @Nullable
@@ -184,11 +181,6 @@ public class DefaultPluginRegistry implements PluginRegistry {
         }
 
         return uncheckedGet(idMappings, new PluginIdLookupCacheKey(pluginId, classLoader)).orElse(null);
-    }
-
-    @Override
-    public String toString() {
-        return "Plugin registry for " + debugName;
     }
 
     private static <K, V> V uncheckedGet(LoadingCache<K, V> cache, K key) {

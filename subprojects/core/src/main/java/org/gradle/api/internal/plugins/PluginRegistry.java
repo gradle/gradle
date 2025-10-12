@@ -42,7 +42,7 @@ public interface PluginRegistry {
     @Nullable
     PluginImplementation<?> lookup(PluginId pluginId);
 
-    PluginRegistry createChild(ClassLoaderScope lookupScope, String debugName);
+    PluginRegistry createChild(ClassLoaderScope lookupScope);
 
     /**
      * Finds the plugin id which corresponds to the supplied class name.

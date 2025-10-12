@@ -706,8 +706,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector, BuildState buildState) {
-        return new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope(), buildState.getDisplayName().getDisplayName());
+    protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
+        return new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope());
     }
 
     @Provides

@@ -110,7 +110,7 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     }
 
     private PluginResolutionResult resolveAlreadyOnClasspath(PluginId pluginId, @Nullable String pluginVersion) {
-        DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, parentLoaderScope, "adhoc of plugin id='" + pluginId + "'");
+        DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, parentLoaderScope);
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginId);
         if (plugin != null) {
             PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, pluginVersion, plugin);

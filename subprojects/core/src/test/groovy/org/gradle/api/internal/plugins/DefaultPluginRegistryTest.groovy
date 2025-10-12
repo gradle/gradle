@@ -36,7 +36,7 @@ class DefaultPluginRegistryTest extends Specification {
         getLocalClassLoader() >> classLoader
     }
     def pluginInspector = new PluginInspector(new ModelRuleSourceDetector())
-    private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoaderScope, "test")
+    private DefaultPluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, classLoaderScope)
 
     def "can locate imperative plugin implementation given an id"() {
         def url = writePluginProperties(TestPlugin1)
@@ -276,7 +276,7 @@ class DefaultPluginRegistryTest extends Specification {
         def url = writePluginProperties(TestPlugin1)
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(lookupScope,)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope)
         _ * classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
@@ -296,7 +296,7 @@ class DefaultPluginRegistryTest extends Specification {
         def url = writePluginProperties(TestPlugin1)
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(lookupScope,)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope)
         _ * lookupScope.localClassLoader >> childClassLoader
         _ * childClassLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * childClassLoader.loadClass(TestPlugin1.name) >> TestPlugin1
