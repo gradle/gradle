@@ -144,22 +144,31 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
                 include '**/*Test.*'
             }
         """.stripIndent()
+
+        when:
         succeeds('test')
 
+        then:
         def result = new JUnitXmlTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('JUnitTest')
 
         when:
         // Switch test framework
         file('build.gradle').append 'test.useTestNG()\n'
+        succeeds('test')
 
         then:
-        succeeds('test').assertTasksExecuted(':test')
+        getResult().assertTasksExecuted(':test')
 
         // When we switch test frameworks and rerun a test task, the old results should NOT still be present in the dir
-        result.assertTestClassesNotExecuted('TestNGTest')
+        result.assertTestClassesExecuted('TestNGTest')
+        result.assertTestClassesNotExecuted('JUnitTest')
 
-        succeeds('test').assertAllTasksSkipped()
+        when:
+        succeeds('test')
+
+        then:
+        getResult().assertAllTasksSkipped()
     }
 
     def "test up-to-date status respects test name patterns"() {
