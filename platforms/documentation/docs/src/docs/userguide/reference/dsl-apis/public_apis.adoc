@@ -64,4 +64,4 @@ org.gradle.util.**
 ----
 
 NOTE: The `\*` wildcard matches only classes directly in the package (e.g., `org.gradle.Foo`), but **does not include subpackages** like `org.gradle.something.Foo`.
-For indicating that subpackages are included, `**` is used.
+Conversely, the `**` wildcard matches the noted package and its subpackages.
