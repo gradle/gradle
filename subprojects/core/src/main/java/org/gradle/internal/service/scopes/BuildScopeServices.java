@@ -732,11 +732,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected BuildScopeServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        return new BuildScopeServiceRegistryFactory(services);
-    }
-
-    @Provides
     protected ProjectTaskLister createProjectTaskLister() {
         return new DefaultProjectTaskLister();
     }
