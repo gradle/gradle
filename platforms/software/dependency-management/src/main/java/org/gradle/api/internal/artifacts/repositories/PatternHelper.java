@@ -94,9 +94,9 @@ public class PatternHelper {
                     }
 
                     if (tokenHadValue) {
-                        buffer.append(optionalPart.toString());
+                        buffer.append(optionalPart);
                     } else if (!tokenSeen) {
-                        buffer.append('(').append(optionalPart.toString()).append(')');
+                        buffer.append('(').append(optionalPart).append(')');
                     }
                     insideOptionalPart = false;
                     break;

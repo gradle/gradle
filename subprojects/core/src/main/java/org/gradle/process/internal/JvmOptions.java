@@ -118,7 +118,7 @@ public class JvmOptions {
     protected void formatSystemProperties(Map<String, ?> properties, List<String> args) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
             if (entry.getValue() != null && entry.getValue().toString().length() > 0) {
-                args.add("-D" + entry.getKey() + "=" + entry.getValue().toString());
+                args.add("-D" + entry.getKey() + "=" + entry.getValue());
             } else {
                 args.add("-D" + entry.getKey());
             }

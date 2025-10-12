@@ -86,7 +86,7 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
         deprecation.put("type", getType());
         StringBuilder sb = new StringBuilder();
         for (StackTraceElement ste : getStackTrace()) {
-            sb.append(ste.toString());
+            sb.append(ste);
             sb.append(SystemProperties.getInstance().getLineSeparator());
         }
         deprecation.put("stackTrace", sb.toString());

@@ -73,7 +73,7 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
 
     @Override
     protected void appendContents(TreeFormatter formatter) {
-        formatter.node("source set: " + outputDirectories.toString());
+        formatter.node("source set: " + outputDirectories);
         formatter.node("output directories");
         formatter.startChildren();
         ((FileCollectionInternal) outputDirectories).describeContents(formatter);

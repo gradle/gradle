@@ -116,7 +116,7 @@ public class Describables {
             Describable describable = (Describable) src;
             stringBuilder.append(describable.getDisplayName());
         } else {
-            stringBuilder.append(src.toString());
+            stringBuilder.append(src);
         }
     }
 
@@ -130,7 +130,7 @@ public class Describables {
                 Describable describable = (Describable) src;
                 stringBuilder.append(describable.getDisplayName());
             } else {
-                stringBuilder.append(src.toString());
+                stringBuilder.append(src);
             }
             stringBuilder.setCharAt(pos, Character.toUpperCase(stringBuilder.charAt(pos)));
         }

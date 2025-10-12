@@ -61,7 +61,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
     @Override
     public String getId() {
-        return getLanguage().getName() + "-" + getComponentType().toString();
+        return getLanguage().getName() + "-" + getComponentType();
     }
 
     @Override
@@ -184,7 +184,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     private String templatePath(String baseFileName) {
-        return getLanguage().getName() + getComponentType().toString() + "/" + baseFileName
+        return getLanguage().getName() + getComponentType() + "/" + baseFileName
             + "." + templateLanguage(baseFileName).getExtension() + ".template";
     }
 

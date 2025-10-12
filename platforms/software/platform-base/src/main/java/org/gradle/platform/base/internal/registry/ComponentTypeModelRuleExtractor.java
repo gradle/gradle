@@ -108,13 +108,13 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
 
         ModelType<?> builtType = typeVariables.get(0);
         if (builtType.isWildcard()) {
-            context.add(ruleDefinition, String.format("Type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", builtType.toString()));
+            context.add(ruleDefinition, String.format("Type '%s' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", builtType));
             return null;
         }
 
         ComponentTypeRegistrationInfo info = componentTypeRegistrationInfoFor(builtType);
         if (info == null) {
-            context.add(ruleDefinition, String.format("Type '%s' is not a subtype of '%s'.", builtType.toString(), COMPONENT_SPEC_MODEL_TYPE.toString()));
+            context.add(ruleDefinition, String.format("Type '%s' is not a subtype of '%s'.", builtType, COMPONENT_SPEC_MODEL_TYPE));
             return null;
         }
 

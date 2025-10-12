@@ -298,8 +298,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         }
 
         String propertyName = getPropertyName(annotatedMethod);
-        String settersKey = TO_BE_REPLACED_SETTERS_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType().toString();
-        String propertySettersVisitedKey = TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType().toString();
+        String settersKey = TO_BE_REPLACED_SETTERS_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType();
+        String propertySettersVisitedKey = TO_BE_REPLACED_SETTERS_VISITED_KEY_PREFIX + annotatedMethod.getEnclosingElement().asType();
         Collection<ExecutableElement> setters;
         Set<String> propertySettersVisited = context.computeIfAbsent(propertySettersVisitedKey, key -> new HashSet<>());
         if (isSetterMethodName(annotatedMethod.getSimpleName().toString()) || !propertySettersVisited.add(propertyName)) {
@@ -422,9 +422,9 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         // Using $$, since internal classes types has $ and due to
         // that we have some problems translating from asm Type to javapoet TypeName
         String generatedClassName = String.format("%s.$$BridgeFor$$%s$$%s",
-            packageElement.getQualifiedName().toString(),
-            topClass.getSimpleName().toString(),
-            innerClass.getSimpleName().toString()
+            packageElement.getQualifiedName(),
+            topClass.getSimpleName(),
+            innerClass.getSimpleName()
         );
 
         DeprecationSpec deprecationSpec = readDeprecationSpec(annotationMirror);

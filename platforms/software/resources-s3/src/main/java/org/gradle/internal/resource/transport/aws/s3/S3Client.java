@@ -189,13 +189,13 @@ public class S3Client {
     }
 
     public S3Object getMetaData(URI uri) {
-        LOGGER.debug("Attempting to get s3 meta-data: [{}]", uri.toString());
+        LOGGER.debug("Attempting to get s3 meta-data: [{}]", uri);
         //Would typically use GetObjectMetadataRequest but it does not work with v4 signatures
         return doGetS3Object(uri, true);
     }
 
     public S3Object getResource(URI uri) {
-        LOGGER.debug("Attempting to get s3 resource: [{}]", uri.toString());
+        LOGGER.debug("Attempting to get s3 resource: [{}]", uri);
         return doGetS3Object(uri, false);
     }
 

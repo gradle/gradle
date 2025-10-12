@@ -42,7 +42,7 @@ class UnversionedModuleComponentSelector implements ComponentSelectorInternal {
 
     @Override
     public String getDisplayName() {
-        return moduleIdentifier.toString() + ":*";
+        return moduleIdentifier + ":*";
     }
 
     @Override

@@ -227,7 +227,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
 
         @Override
         public String getDisplayName() {
-            return "Module include path for " + DefaultSwiftBinary.this.toString();
+            return "Module include path for " + DefaultSwiftBinary.this;
         }
 
         @Override

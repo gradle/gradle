@@ -133,7 +133,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
             getAntProject().setUserProperty(MagicNames.ANT_FILE, file.getAbsolutePath());
             ProjectHelper.configureProject(getAntProject(), file);
         } catch (Exception e) {
-            throw new GradleException("Could not import Ant build file '" + String.valueOf(file) + "'.", e);
+            throw new GradleException("Could not import Ant build file '" + file + "'.", e);
         } finally {
             getAntProject().setBaseDir(oldBaseDir);
         }

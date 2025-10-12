@@ -115,7 +115,7 @@ public class Dimensions {
     private static void validateTargetMachines(Collection<TargetMachine> testTargetMachines, Collection<TargetMachine> mainTargetMachines) {
         for (TargetMachine machine : testTargetMachines) {
             if (!mainTargetMachines.contains(machine)) {
-                throw new IllegalArgumentException("The target machine " + machine.toString() + " was specified for the unit test, but this target machine was not specified on the component under test.");
+                throw new IllegalArgumentException("The target machine " + machine + " was specified for the unit test, but this target machine was not specified on the component under test.");
             }
         }
     }

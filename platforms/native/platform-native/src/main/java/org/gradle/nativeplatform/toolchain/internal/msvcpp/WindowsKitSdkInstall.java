@@ -92,14 +92,14 @@ public class WindowsKitSdkInstall extends WindowsKitInstall implements WindowsSd
         @Override
         public List<File> getIncludeDirs() {
             return Arrays.asList(
-                new File(getBaseDir(), "Include/" + getImplementationVersion().toString() + "/um"),
-                new File(getBaseDir(), "Include/" + getImplementationVersion().toString() + "/shared")
+                new File(getBaseDir(), "Include/" + getImplementationVersion() + "/um"),
+                new File(getBaseDir(), "Include/" + getImplementationVersion() + "/shared")
             );
         }
 
         @Override
         public List<File> getLibDirs() {
-            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getImplementationVersion().toString() + "/um/" + platformDirName));
+            return Collections.singletonList(new File(getBaseDir(), "Lib/" + getImplementationVersion() + "/um/" + platformDirName));
         }
 
         @Override

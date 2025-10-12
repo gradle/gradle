@@ -103,7 +103,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public String toString() {
-        return String.format("%s -> %s", from.toString(), dependencyMetadata);
+        return String.format("%s -> %s", from, dependencyMetadata);
     }
 
     @Override

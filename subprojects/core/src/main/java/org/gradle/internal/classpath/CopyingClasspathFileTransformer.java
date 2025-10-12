@@ -44,7 +44,7 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
         }
 
         // Copy the file into the cache
-        File cachedFile = new File(cacheDir, "o_" + sourceSnapshot.getHash().toString() + '/' + source.getName());
+        File cachedFile = new File(cacheDir, "o_" + sourceSnapshot.getHash() + '/' + source.getName());
         if (!cachedFile.isFile()) {
             // Just copy the jar
             GFileUtils.copyFile(source, cachedFile);

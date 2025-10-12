@@ -39,7 +39,7 @@ public final class DefaultTestOutputEvent implements TestOutputEvent {
 
     @Override
     public String getDisplayName() {
-        return descriptor.getDestination().toString() + ": " + descriptor.getMessage();
+        return descriptor.getDestination() + ": " + descriptor.getMessage();
     }
 
     @Override

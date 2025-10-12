@@ -249,6 +249,6 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         DirectedGraphRenderer<NativeBinarySpecInternal> graphRenderer = new DirectedGraphRenderer<NativeBinarySpecInternal>(nodeRenderer, directedGraph);
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(target, writer);
-        throw new CircularReferenceException(String.format("Circular dependency between the following binaries:%n%s", writer.toString()));
+        throw new CircularReferenceException(String.format("Circular dependency between the following binaries:%n%s", writer));
     }
 }

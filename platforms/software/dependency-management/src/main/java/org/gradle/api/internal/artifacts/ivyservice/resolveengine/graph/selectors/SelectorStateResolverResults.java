@@ -234,7 +234,7 @@ class SelectorStateResolverResults {
 
         @Override
         public String toString() {
-            return selector.toString() + " -> " + result.getModuleVersionId();
+            return selector + " -> " + result.getModuleVersionId();
         }
     }
 }

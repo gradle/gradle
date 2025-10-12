@@ -209,7 +209,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
                     paramsListBuilder.append("null");
                 } else {
                     try {
-                        paramsListBuilder.append(parameter.toString());
+                        paramsListBuilder.append(parameter);
                     } catch (Exception e) {
                         // This may be thrown by the caller of this method at a later time
                         iTestResult.setThrowable(new UnrepresentableParameterException(iTestResult, i, e));
@@ -221,7 +221,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
                 }
             }
             paramsListBuilder.append(")");
-            return builder.append(paramsListBuilder.toString()).toString();
+            return builder.append(paramsListBuilder).toString();
         } else {
             return name;
         }

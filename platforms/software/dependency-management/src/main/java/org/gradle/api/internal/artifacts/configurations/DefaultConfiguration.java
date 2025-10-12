@@ -1337,7 +1337,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 path = path.append(Path.path(projectPath));
             }
             path = path.child(name);
-            return "Configuration '" + path.toString() + "'";
+            return "Configuration '" + path + "'";
         }
     }
 

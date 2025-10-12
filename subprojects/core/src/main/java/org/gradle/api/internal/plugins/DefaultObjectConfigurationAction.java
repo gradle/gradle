@@ -161,7 +161,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             if (target instanceof PluginAware) {
                 ((PluginAware) target).getPluginManager().apply(pluginId);
             } else {
-                throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target.toString(), target.getClass().getName()));
+                throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginId, target, target.getClass().getName()));
             }
         }
     }
@@ -171,7 +171,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             if (target instanceof PluginAware) {
                 ((PluginAware) target).getPluginManager().apply(pluginClass);
             } else {
-                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target.toString(), target.getClass().getName()));
+                throw new UnsupportedOperationException(String.format("Cannot apply plugin of class '%s' to '%s' (class: %s) as it does not implement PluginAware", pluginClass.getName(), target, target.getClass().getName()));
             }
         }
     }

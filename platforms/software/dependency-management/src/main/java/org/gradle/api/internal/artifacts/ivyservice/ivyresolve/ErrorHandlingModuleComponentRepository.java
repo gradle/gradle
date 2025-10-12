@@ -129,7 +129,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
         @Override
         public String toString() {
-            return "error handling > " + delegate.toString();
+            return "error handling > " + delegate;
         }
 
         @Override

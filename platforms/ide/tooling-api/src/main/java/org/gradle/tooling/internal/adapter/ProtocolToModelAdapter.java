@@ -293,7 +293,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         throw new IllegalArgumentException(
             String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                literal, enumType.getName(), builder.toString())
+                literal, enumType.getName(), builder)
         );
     }
 

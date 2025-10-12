@@ -138,7 +138,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         if (!Iterables.isEmpty(executedRules)) {
             printNestedAttributeTitle(styledTextoutput, "Rules:");
             for (ModelRuleDescriptor ruleDescriptor : executedRules) {
-                printNestedAttribute(styledTextoutput, "⤷ " + ruleDescriptor.toString());
+                printNestedAttribute(styledTextoutput, "⤷ " + ruleDescriptor);
             }
         }
     }

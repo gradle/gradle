@@ -72,7 +72,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
     @Override
     public WorkResult execute(SwiftCompileSpec spec) {
         if (swiftCompilerVersion.getMajor() < spec.getSourceCompatibility().getVersion() || (swiftCompilerVersion.getMajor() >= 5 && spec.getSourceCompatibility().equals(SwiftVersion.SWIFT3))) {
-            throw new IllegalArgumentException(String.format("Swift compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion.toString(), spec.getSourceCompatibility().getVersion()));
+            throw new IllegalArgumentException(String.format("Swift compiler version '%s' doesn't support Swift language version '%d'", swiftCompilerVersion, spec.getSourceCompatibility().getVersion()));
         }
         return super.execute(spec);
     }

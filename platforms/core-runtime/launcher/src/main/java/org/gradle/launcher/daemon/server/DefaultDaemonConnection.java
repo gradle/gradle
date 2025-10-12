@@ -62,7 +62,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
         disconnectQueue = new DisconnectQueue();
         cancelQueue = new CancelQueue(executorFactory);
         receiveQueue = new ReceiveQueue();
-        executor = executorFactory.create("Handler for " + connection.toString());
+        executor = executorFactory.create("Handler for " + connection);
         executor.execute(new Runnable() {
             @Override
             public void run() {

@@ -236,7 +236,7 @@ public class CommandLineParser {
             if (!first) {
                 builder.append(separator);
             }
-            builder.append(thing.toString());
+            builder.append(thing);
             first = false;
         }
         return builder.toString();

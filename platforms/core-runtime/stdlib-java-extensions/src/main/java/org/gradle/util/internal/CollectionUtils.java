@@ -570,10 +570,10 @@ public abstract class CollectionUtils {
         StringBuilder string = new StringBuilder();
         Iterator<?> iterator = objects.iterator();
         if (iterator.hasNext()) {
-            string.append(iterator.next().toString());
+            string.append(iterator.next());
             while (iterator.hasNext()) {
                 string.append(separator);
-                string.append(iterator.next().toString());
+                string.append(iterator.next());
             }
         }
         return string.toString();

@@ -95,7 +95,7 @@ public class Maven2Gradle {
             buildSrcSettingsScriptBuilder.useVersionCatalogFromOuterBuild("Reuse version catalog from the main build.");
 
             BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.scriptForMavenConversion(dsl, buildContentGenerationContext, buildLocation + "/build", useIncubatingAPIs, insecureProtocolOption);
-            buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
+            buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create(workingDir).generate();
 
             String conventionPluginId = InitSettings.CONVENTION_PLUGIN_NAME_PREFIX + ".java-conventions";

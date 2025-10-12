@@ -46,7 +46,7 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
         try (InputStream input = classFile.open()) {
             return getClassAnalysis(input);
         } catch (IOException e) {
-            throw new RuntimeException("Problems loading class analysis for " + classFile.toString());
+            throw new RuntimeException("Problems loading class analysis for " + classFile);
         }
     }
 }

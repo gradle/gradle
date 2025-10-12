@@ -136,7 +136,7 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
             if (sb.length() > 0) {
                 sb.append(" + ");
             }
-            sb.append(collector.toString());
+            sb.append(collector);
         });
         return sb.toString();
     }

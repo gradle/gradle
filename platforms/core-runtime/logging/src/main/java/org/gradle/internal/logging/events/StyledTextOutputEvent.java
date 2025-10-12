@@ -133,7 +133,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
 
         @Override
         public String toString() {
-            return style.toString() + ":" + text;
+            return style + ":" + text;
         }
     }
 }

@@ -100,7 +100,7 @@ public class GcsClient {
 
     @Nullable
     public StorageObject getResource(URI uri) throws ResourceException {
-        LOGGER.debug("Attempting to get gcs resource: [{}]", uri.toString());
+        LOGGER.debug("Attempting to get gcs resource: [{}]", uri);
 
         String path = cleanResourcePath(uri);
         try {

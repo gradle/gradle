@@ -83,11 +83,11 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
                 StackTraceElement[] stackTrace = e.getStackTrace();
                 printWriter.print(Arrays.stream(stackTrace)
                     .limit(100)
-                    .map(d -> "\"" + d.toString() + "\"")
+                    .map(d -> "\"" + d + "\"")
                     .collect(Collectors.joining(", "))
                 );
                 sw.append("]}");
-                LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), sw.toString());
+                LOGGER.debug("{\"operation\": { \"name\": \"{}\", \"operands\": {}, \"result\": {} } }", operationName, toList(operands), sw);
             }
             throw UncheckedException.throwAsUncheckedException(e);
         }

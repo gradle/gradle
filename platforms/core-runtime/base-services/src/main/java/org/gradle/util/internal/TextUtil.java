@@ -319,7 +319,7 @@ public class TextUtil {
      * @return string with removeString removed or the original string if it did not contain removeString
      */
     public static String minus(String originalString, String removeString) {
-        String s = originalString.toString();
+        String s = originalString;
         int index = s.indexOf(removeString);
         if (index == -1) {
             return s;

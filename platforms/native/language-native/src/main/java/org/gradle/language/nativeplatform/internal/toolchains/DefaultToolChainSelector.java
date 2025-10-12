@@ -109,7 +109,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
                 return version;
             }
         }
-        throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
+        throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion));
     }
 
     static class DefaultResult<T> implements Result<T> {

@@ -37,7 +37,7 @@ public class URIBuilder {
     public URI build() {
         assert GUtil.isTrue(schemePrefix);
         try {
-            return new URI(schemePrefix + ":" + uri.toString());
+            return new URI(schemePrefix + ":" + uri);
         } catch (Exception e) {
             throw new RuntimeException("Unable to build URI based on supplied URI: " + uri, e);
         }

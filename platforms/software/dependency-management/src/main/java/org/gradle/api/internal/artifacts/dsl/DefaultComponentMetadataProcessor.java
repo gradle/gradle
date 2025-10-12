@@ -203,7 +203,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             updatedMetadata = details.asImmutable();
         }
         if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
-            throw new ModuleVersionResolveException(updatedMetadata.getId(), () -> String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId().toString(), updatedMetadata.getStatusScheme()));
+            throw new ModuleVersionResolveException(updatedMetadata.getId(), () -> String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getId(), updatedMetadata.getStatusScheme()));
         }
         return updatedMetadata;
     }

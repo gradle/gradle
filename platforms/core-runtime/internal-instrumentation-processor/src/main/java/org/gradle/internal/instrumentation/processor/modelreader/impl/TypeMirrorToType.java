@@ -101,7 +101,7 @@ public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
             if (element instanceof PackageElement) {
                 typeName.append(((PackageElement) element).getQualifiedName().toString().replace(".", "/")).append("/");
             } else {
-                typeName.append(element.getSimpleName().toString());
+                typeName.append(element.getSimpleName());
                 if (element != typeNesting.get(typeNesting.size() - 1)) {
                     typeName.append("$");
                 }

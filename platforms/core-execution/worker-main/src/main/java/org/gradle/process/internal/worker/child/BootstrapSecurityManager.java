@@ -79,7 +79,7 @@ public class BootstrapSecurityManager extends SecurityManager {
                 if (i > 0) {
                     classpathStr.append(File.pathSeparator);
                 }
-                classpathStr.append(file.toString());
+                classpathStr.append(file);
             }
             System.setProperty("java.class.path", classpathStr.toString());
             securityManagerType = inputStream.readUTF();

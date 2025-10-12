@@ -59,7 +59,7 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
             PackageElement packageElement = elements.getPackageOf(trees.getElement(getCurrentPath()));
             String visitedPackageInfo = packageElement == null || packageElement.getQualifiedName().toString().isEmpty()
                 ? PACKAGE_INFO
-                : packageElement.getQualifiedName().toString() + "." + PACKAGE_INFO;
+                : packageElement.getQualifiedName() + "." + PACKAGE_INFO;
             return super.visitCompilationUnit(node, new ConstantsVisitorContext(visitedPackageInfo, consumer::consumeAccessibleDependent));
         }
         return super.visitCompilationUnit(node, context);

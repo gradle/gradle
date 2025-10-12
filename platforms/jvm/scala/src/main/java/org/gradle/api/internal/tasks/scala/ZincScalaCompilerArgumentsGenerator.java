@@ -64,7 +64,7 @@ public class ZincScalaCompilerArgumentsGenerator {
 
     private void addConcatenatedOption(String name, Object value, List<String> result) {
         if (value != null) {
-            result.add(name + value.toString());
+            result.add(name + value);
         }
     }
 }

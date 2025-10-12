@@ -200,7 +200,7 @@ abstract public class SignOperation implements SignatureSpec {
             case 0:
                 throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains no signatures.");
             default:
-                throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains " + String.valueOf(size) + " signatures.");
+                throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains " + size + " signatures.");
         }
     }
 

@@ -155,7 +155,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     private BuildScriptBuilder pluginsBuildBuildScriptBuilder(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         BuildScriptBuilder pluginsBuildScriptBuilder = scriptBuilderFactory.scriptForNewProjects(settings.getDsl(), buildContentGenerationContext, pluginsBuildLocation(settings) + "/build", settings.isUseIncubatingAPIs());
         pluginsBuildScriptBuilder.withComments(settings.isWithComments() ? BuildInitComments.ON : BuildInitComments.OFF);
-        pluginsBuildScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
+        pluginsBuildScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
         if (getLanguage() == Language.KOTLIN) {
             pluginsBuildScriptBuilder.implementationDependency(null, BuildInitDependency.of("org.jetbrains.kotlin:kotlin-gradle-plugin", libraryVersionProvider.getVersion("kotlin")));
         }

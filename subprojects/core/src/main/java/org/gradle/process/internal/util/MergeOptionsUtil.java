@@ -49,7 +49,7 @@ public class MergeOptionsUtil {
 
     public static String mergeHeapSize(String heapSize1, String heapSize2) {
         int mergedHeapSizeMb = Math.max(getHeapSizeMb(heapSize1), getHeapSizeMb(heapSize2));
-        return mergedHeapSizeMb == -1 ? null : String.valueOf(mergedHeapSizeMb) + "m";
+        return mergedHeapSizeMb == -1 ? null : mergedHeapSizeMb + "m";
     }
 
     public static boolean canBeMerged(String left, String right) {

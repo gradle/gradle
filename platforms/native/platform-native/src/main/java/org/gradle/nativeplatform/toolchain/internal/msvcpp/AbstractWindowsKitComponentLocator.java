@@ -146,7 +146,7 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
         String[] versionDirs = getComponentVersionDirs(windowsKitDir);
         for (String versionDir : versionDirs) {
             VersionNumber version = VersionNumber.withPatchNumber().parse(versionDir);
-            LOGGER.debug("Found {} {} at {}", getDisplayName(), version.toString(), windowsKitDir);
+            LOGGER.debug("Found {} {} at {}", getDisplayName(), version, windowsKitDir);
             File binDir = new File(windowsKitDir, "bin/" + versionDir);
             File unversionedBinDir = new File(windowsKitDir, "bin");
             if (isValidComponentBinDir(binDir)) {

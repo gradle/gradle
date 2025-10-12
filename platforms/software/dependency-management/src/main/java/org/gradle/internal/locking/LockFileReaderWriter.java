@@ -172,7 +172,7 @@ public class LockFileReaderWriter {
     private void parseLine(String line, Map<String, List<String>> result) {
         String[] split = line.split("=");
         if (split.length != 2) {
-            throw new InvalidLockFileException("lock file specified in '" + getUniqueLockfilePath().toString() + "'. Line: '" + line + "'", FORMATTING_DOC_LINK);
+            throw new InvalidLockFileException("lock file specified in '" + getUniqueLockfilePath() + "'. Line: '" + line + "'", FORMATTING_DOC_LINK);
         }
         String[] lockIds = split[1].split(",");
         for (String lockId : lockIds) {
