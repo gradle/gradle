@@ -17,6 +17,7 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.testing.fixture.TestNGCoverage
 
 abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def setup() {
@@ -135,7 +136,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
 
             dependencies {
                 ${testFrameworkDependencies}
-                testImplementation 'org.testng:testng:6.3.1'
+                testImplementation 'org.testng:testng:${TestNGCoverage.SUPPORTS_ICLASS_LISTENER.first()}'
             }
 
             test {

@@ -30,6 +30,7 @@ import java.util.function.Consumer
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.testCase
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.anyOf
 import static org.hamcrest.Matchers.blankOrNullString
 import static org.hamcrest.Matchers.equalTo
 import static org.hamcrest.Matchers.hasItems
@@ -170,7 +171,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         boolean testFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
-            assertTestFailFullMessages(name, displayName, new BaseMatcher<String>() {
+            def messageLinesMatcher = new BaseMatcher<String>() {
                 @Override
                 boolean matches(Object actual) {
                     String str = actual as String
@@ -196,7 +197,11 @@ class HtmlTestExecutionResult implements TestExecutionResult {
                         messageMatchers.toList()
                     )
                 }
-            })
+            }
+            def fullMatcher = messageMatchers.size() == 1
+                ? anyOf(messageMatchers[0], messageLinesMatcher)
+                : messageLinesMatcher
+            assertTestFailFullMessages(name, displayName, fullMatcher)
             return true
         }
 
@@ -281,7 +286,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
-            throw new UnsupportedOperationException()
+            getTest(testCaseName).assertStdout(matcher)
+            return this
         }
 
         TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
@@ -290,7 +296,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
-            throw new UnsupportedOperationException()
+            getTest(testCaseName).assertStderr(matcher)
+            return this
         }
     }
 }

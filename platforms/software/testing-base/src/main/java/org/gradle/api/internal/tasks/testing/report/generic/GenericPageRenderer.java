@@ -75,10 +75,17 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         htmlWriter.startElement("div").attribute("class", "breadcrumbs");
         for (Path path : getModel().getPath().ancestors()) {
             String title = path.equals(Path.ROOT) ? "all" : path.getName();
-            htmlWriter.startElement("a").attribute("href", getUrlTo(getModel().getPath(), path)).characters(title).endElement();
+            htmlWriter.startElement("a")
+                .attribute("class", "breadcrumb")
+                .attribute("href", getUrlTo(getModel().getPath(), path))
+                .characters(title)
+                .endElement();
             htmlWriter.characters(" > ");
         }
-        htmlWriter.characters(getModel().getPath().getName());
+        htmlWriter.startElement("span")
+            .attribute("class", "breadcrumb")
+            .characters(getModel().getPath().getName())
+            .endElement();
         htmlWriter.endElement();
     }
 
