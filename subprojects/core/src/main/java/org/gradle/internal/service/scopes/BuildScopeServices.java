@@ -25,6 +25,7 @@ import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
@@ -53,7 +54,12 @@ import org.gradle.api.internal.initialization.DefaultSharedModelDefaults;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
@@ -703,8 +709,26 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PluginRegistry createPluginRegistry(CorePluginRegistryProvider corePluginRegistryProvider) {
-        return corePluginRegistryProvider.getCorePluginRegistry();
+    protected PluginRegistry createPluginRegistry(CorePluginRegistryProvider corePluginRegistryProvider, GradleInternal gradle) {
+        PluginRegistry corePluginRegistry = corePluginRegistryProvider.getCorePluginRegistry();
+        return corePluginRegistry.createChild(gradle.getClassLoaderScope());
+    }
+
+    @Provides
+    PluginManagerInternal createPluginManager(
+        ServiceRegistry buildScopeServices,
+        Instantiator instantiator,
+        GradleInternal gradleInternal,
+        PluginRegistry pluginRegistry,
+        InstantiatorFactory instantiatorFactory,
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator decorator,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        InternalProblems problems
+    ) {
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal, problems);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(buildScopeServices), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     @Provides
