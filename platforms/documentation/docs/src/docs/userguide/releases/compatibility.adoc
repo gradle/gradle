@@ -18,6 +18,7 @@
 The sections below describe Gradle's compatibility with several integrations.
 Versions not listed here may or may not work.
 
+[[java_runtime]]
 == Java Runtime
 
 Gradle runs on the Java Virtual Machine (JVM), which is often provided by either a JDK or JRE.
