@@ -58,9 +58,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                 if (breadcrumbs == null) {
                     return Path.ROOT
                 }
-                def elements = breadcrumbs.text().split(">").collect {
-                    it.trim()
-                }
+                def elements = breadcrumbs.select(".breadcrumb").collect { it.text().trim() }
                 if (elements.size() == 1 || elements[0] != "all") {
                     throw new IllegalStateException("First element should always be 'all'")
                 }
