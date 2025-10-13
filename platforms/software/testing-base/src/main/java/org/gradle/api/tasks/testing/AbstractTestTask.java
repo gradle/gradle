@@ -252,8 +252,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Internal
     protected int getReportEntrySkipLevels() {
-        // Defaults to one, to skip the workers level
-        return 1;
+        return 0;
     }
 
     /**
