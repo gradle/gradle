@@ -70,19 +70,21 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static Map<Long, ClassNode> createClasses(TestTreeModel root) {
-        ListMultimap<TestTreeModel, TestTreeModel> leavesByGroupingNode = LinkedListMultimap.create();
+        ListMultimap<TestTreeModel, TestTreeModel.PerRootInfo> leavesByGroupingNode = LinkedListMultimap.create();
         walkLeaves(root, leaf -> {
-            TestTreeModel owningNode = findGroupingNode(leaf);
-            leavesByGroupingNode.put(owningNode, leaf);
+            for (TestTreeModel.PerRootInfo perRootInfo : leaf.getPerRootInfo().get(0)) {
+                TestTreeModel groupingNode = findGroupingNode(leaf, perRootInfo.getResult().getClassName());
+                leavesByGroupingNode.put(groupingNode, perRootInfo);
+            }
         });
 
         ImmutableMap.Builder<Long, ClassNode> classesById = ImmutableMap.builderWithExpectedSize(
             leavesByGroupingNode.keySet().size()
         );
         long nextClassId = 1;
-        for (Map.Entry<TestTreeModel, List<TestTreeModel>> entry : Multimaps.asMap(leavesByGroupingNode).entrySet()) {
+        for (Map.Entry<TestTreeModel, List<TestTreeModel.PerRootInfo>> entry : Multimaps.asMap(leavesByGroupingNode).entrySet()) {
             TestTreeModel groupingNode = entry.getKey();
-            List<TestTreeModel> leaves = entry.getValue();
+            List<TestTreeModel.PerRootInfo> leaves = entry.getValue();
 
             ImmutableSet.Builder<Long> methodOutputIds = ImmutableSet.builder();
             TestClassResult classResult = buildClassResult(groupingNode, leaves, nextClassId, methodOutputIds);
@@ -106,17 +108,15 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
 
     private static TestClassResult buildClassResult(
         TestTreeModel groupingNode,
-        List<TestTreeModel> leaves,
+        List<TestTreeModel.PerRootInfo> leaves,
         long nextClassId,
         ImmutableSet.Builder<Long> methodOutputIds
     ) {
         TestClassResult classResult = createEmptyClassResult(groupingNode, nextClassId);
 
-        for (TestTreeModel leaf : leaves) {
-            for (TestTreeModel.PerRootInfo leafPerRootInfo : leaf.getPerRootInfo().get(0)) {
-                classResult.add(buildMethodResult(leafPerRootInfo));
-                methodOutputIds.add(leafPerRootInfo.getOutputId());
-            }
+        for (TestTreeModel.PerRootInfo leafPerRootInfo : leaves) {
+            classResult.add(buildMethodResult(leafPerRootInfo));
+            methodOutputIds.add(leafPerRootInfo.getOutputId());
         }
         return classResult;
     }
@@ -158,11 +158,6 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
         return methodResult;
     }
 
-    private static TestTreeModel findGroupingNode(TestTreeModel leaf) {
-        String className = getOnlyClassName(leaf);
-        return findGroupingNode(leaf, className);
-    }
-
     private static TestTreeModel findGroupingNode(TestTreeModel leaf, @Nullable String className) {
         TestTreeModel current = leaf;
         TestTreeModel parent;
@@ -171,7 +166,8 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
                 return parent;
             }
             // Pick highest non-root node if no class name match
-            if (parent.getParent() == null) {
+            // But don't group the leaf using itself, that doesn't make sense.
+            if (parent.getParent() == null && current != leaf) {
                 // Parent is the root, so the current is the highest non-root node
                 return current;
             }
@@ -179,22 +175,6 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
         }
         // Reached the root, return it
         return current;
-    }
-
-    @Nullable
-    private static String getOnlyClassName(TestTreeModel leaf) {
-        String className = null;
-        for (TestTreeModel.PerRootInfo perRootInfo : leaf.getPerRootInfo().get(0)) {
-            String runClassName = perRootInfo.getResult().getClassName();
-            if (runClassName != null) {
-                if (className == null) {
-                    className = runClassName;
-                } else if (!className.equals(runClassName)) {
-                    throw new IllegalStateException("Runs at " + leaf.getPath() + " have different class names: " + className + " and " + runClassName);
-                }
-            }
-        }
-        return className;
     }
 
     private static void walkLeaves(
