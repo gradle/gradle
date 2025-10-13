@@ -412,21 +412,20 @@ The output reveals that the `lib` project is now built when the `:app:goodClassp
 
 
 [[default_path_sensitivities]]
-== Prefer `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories
+== Use `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories
 
-Prefer using link:{javadocPath}/org/gradle/api/tasks/PathSensitivity.html#NONE[`@PathSensitivity.NONE`] when defining file inputs for tasks, and link:{javadocPath}/org/gradle/api/tasks/PathSensitivity.html#RELATIVE[`@PathSensitivity.RELATIVE`] when defining directory inputs.
+Use link:{javadocPath}/org/gradle/api/tasks/PathSensitivity.html#NONE[`@PathSensitivity.NONE`] for file inputs and link:{javadocPath}/org/gradle/api/tasks/PathSensitivity.html#RELATIVE[`@PathSensitivity.RELATIVE`] for directory inputs.
 
 === Explanation
 
-Most of the time, tasks only care about the **contents** of their input files, not the files' locations.
+Tasks should generally only care about the **contents** of their input files, not their location on disk.
 
 You should annotate `@InputFile` and `@InputFiles` properties as `@PathSensitivity.NONE` unless a task's behavior should change based on the location of the input file(s).
 
 Likewise, you should annotate `@InputDirectory` and `@InputDirectories` properties as `@PathSensitivity.RELATIVE` so that tasks can take into account the paths of the directories' files relative to the build's root directory, ignoring their absolute paths on disk.
 
 `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` are usually incorrect, as they tell Gradle to also consider a file's name, or it's complete absolution path on disk, respectively.
-The first is rarely relevant, and the second ensures a non-relocatable build.
-Task inputs using values can prevent hits using the <<build_cache.adoc#build_cache, build cache>> and <<configuration_cache.adoc#config_cache,configuration cache>>.
+`@PathSensitivity.ABSOLUTE` prevents the <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> from being reused across different machines or directories, making your build non-relocatable.
 The can also cause different task outcomes when the build is run in different directories which can be confusing and hard to debug.
 
 === Example
@@ -438,7 +437,7 @@ include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-avoid/kotl
 include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-avoid/groovy",files="build.gradle[]"]
 ====
 
-<1> This task type uses a file input property, with `@PathSensitivity.ABSOLUTE` which means that the absolute path of the input file is used to determine if the task is up-to-date or can be loaded from cache.  This isn't necessary for the operation of the task, which only cares about file contents.
+<1> This task type uses a file input property, with `@PathSensitivity.ABSOLUTE`, which means that the absolute path of the input file is used to determine if the task is up-to-date or can be loaded from cache.  This isn't necessary for the operation of the task, which only cares about file contents.
 <2> The `search` task will use an input file from a different location if the `useAlternateInput` is set.
 <3> The file in the alternate location is an identical copy of the original input file, but because the absolute path is different, the task will always be considered out-of-date and will never be loaded from cache.
 
