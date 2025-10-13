@@ -17,6 +17,8 @@
 package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 /**
  * This test is to ensure that the {@code ModuleRejectedIncompatibleConstraintsFailureDescriber}
@@ -26,17 +28,39 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  * These are not actually incompatible constraints, and shouldn't be reported as such.
  */
 class ModuleRejectedIncompatibleConstraintsFailureDescriberCapabilitiesConflictIntegrationTest extends AbstractIntegrationSpec {
-    def "example Slf4J logger implementation conflicts with #first and #second do not trigger describer"() {
+    def resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
+
+    def "capability conflict with #first and #second added by plugin with multiple constraints involved does not trigger constraint conflict describer"() {
         given:
-        withBuildScriptWithDependencies(first, second)
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+                id("org.gradlex.jvm-dependency-conflict-resolution") version ("2.4")
+            }
+
+            repositories {
+                ${mavenCentralRepository(GradleDsl.KOTLIN)}
+            }
+
+            dependencies {
+                implementation(\"$first\")
+                implementation(\"$second\")
+            }
+
+            tasks.register("resolve") {
+                val consumerFiles = configurations.named("compileClasspath").get().files
+                doLast {
+                    consumerFiles.forEach {
+                        println(it.name)
+                    }
+                }
+            }
+        """
 
         when:
-        def result = fails('resolve', '-s')
+        fails('resolve')
 
         then:
-        result.assertTasksExecuted(':resolve')
-
-        and:
         result.getError().contains("Cannot select module with conflict on capability 'org.gradlex:slf4j-impl:1.0' also provided by")
         !result.getError().contains("Component is the target of multiple version constraints with conflicting requirements:")
 
@@ -50,27 +74,58 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberCapabilitiesConflictI
         'org.slf4j:slf4j-simple:1.7.27' | 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.0'
     }
 
-    private void withBuildScriptWithDependencies(String... dependencies) {
-        buildKotlinFile << """
+    def "capability conflict on transitive dep with multiple constraints involved does not trigger constraint conflict describer"() {
+        mavenRepo.module("org.hamcrest", "hamcrest-core", "2.2")
+            .dependsOn(mavenRepo.module("org.hamcrest", "hamcrest", "2.2").publish())
+            .publish()
+
+        buildFile << """
             plugins {
-                `java-library`
-                id("org.gradlex.jvm-dependency-conflict-resolution") version ("2.4")
+                id("java-library")
             }
 
-            repositories {
-                gradlePluginPortal()
-                mavenCentral()
-            }
+            ${mavenTestRepository()}
 
             dependencies {
-                ${dependencies.collect { "\t\t\timplementation(\"$it\")" }.join("\n")}
+                implementation("org.hamcrest:hamcrest-core")
+
+                constraints {
+                    implementation("org.hamcrest:hamcrest-core:2.2")
+                }
+
+                constraints {
+                    implementation("org.hamcrest:hamcrest-core") {
+                        version {
+                            strictly("2.2")
+                        }
+                    }
+                }
+            }
+
+            dependencies.components.withModule('org.hamcrest:hamcrest-core') {
+                allVariants {
+                    withCapabilities {
+                        addCapability('org.hamcrest', 'hamcrest', id.version)
+                    }
+                }
             }
 
             tasks.register("resolve") {
+                def consumerFiles = configurations.named("compileClasspath").get().files
                 doLast {
-                    println(configurations["compileClasspath"].files)
+                    consumerFiles.forEach {
+                        println(it.name)
+                    }
                 }
             }
         """
+
+        when:
+        resolve.prepare()
+        fails(":resolve")
+
+        then:
+        result.getError().contains("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by")
+        !result.getError().contains("Component is the target of multiple version constraints with conflicting requirements:")
     }
 }
