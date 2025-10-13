@@ -232,7 +232,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     /**
      * The state of the execution of {@link org.gradle.api.invocation.GradleLifecycle} actions of this project.
      * Its mutation NOT considered a mutable state access.
-     * */
+     */
     @Nullable
     Object getLifecycleActionsState();
 
