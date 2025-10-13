@@ -59,9 +59,12 @@ public class DefaultVisitedArtifactResults implements VisitedArtifactResults {
         DefaultSelectedArtifactResults(ResolutionStrategy.SortOrder sortOrder, List<ResolvedArtifactSet> resolvedArtifactsById) {
             this.resolvedArtifactsById = resolvedArtifactsById;
             if (sortOrder == ResolutionStrategy.SortOrder.DEPENDENCY_FIRST) {
-                this.allArtifacts = CompositeResolvedArtifactSet.of(Lists.reverse(resolvedArtifactsById));
-            } else {
+                // Nodes are traversed DFS post-order from the root, meaning all dependencies of a given
+                // node are visited before the node itself.
                 this.allArtifacts = CompositeResolvedArtifactSet.of(resolvedArtifactsById);
+            } else {
+                // The reverse of a DFS post-order traversal in a DAG is a topological sort of the nodes.
+                this.allArtifacts = CompositeResolvedArtifactSet.of(Lists.reverse(resolvedArtifactsById));
             }
         }
 
