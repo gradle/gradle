@@ -19,7 +19,6 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
-import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -31,15 +30,15 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
-public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProjectNameProvider {
-    private final ProjectStateRegistry projectRegistry;
+public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniqueProjectNameProvider {
+
     @Nullable
     private Map<ProjectIdentity, String> deduplicated;
     private List<ProjectStateWrapper> reservedNames = Collections.emptyList();
     private Map<ProjectIdentity, ProjectStateWrapper> projectToInformationMap = Collections.emptyMap();
 
     public EclipseModelAwareUniqueProjectNameProvider(ProjectStateRegistry projectRegistry) {
-        this.projectRegistry = projectRegistry;
+        super(projectRegistry);
     }
 
     public synchronized void setReservedProjectNames(List<String> reservedNames) {
@@ -134,18 +133,8 @@ public class EclipseModelAwareUniqueProjectNameProvider implements UniqueProject
                 return null;
             }
 
-            // Note that this "parent" may belong to a different build in the build tree
-            Path parentInBuildTreePath = element.project.getIdentity().getBuildTreePath().getParent();
-            if (parentInBuildTreePath == null) {
-                return null;
-            }
-
-            ProjectState parentInBuildTreeState = projectRegistry.findProjectState(parentInBuildTreePath);
-            if (parentInBuildTreeState == null) {
-                return null;
-            }
-
-            return projectToInformationMap.get(parentInBuildTreeState.getIdentity());
+            ProjectIdentity parentInBuildTree = findParentInBuildTree(element.project.getIdentity());
+            return parentInBuildTree == null ? null : projectToInformationMap.get(parentInBuildTree);
         }
     }
 

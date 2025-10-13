@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.configurer;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -26,13 +25,13 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
-public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvider {
-    private final ProjectStateRegistry projectRegistry;
+public class DefaultUniqueProjectNameProvider extends AbstractUniqueProjectNameProvider {
+
     @Nullable
     private Map<ProjectIdentity, String> deduplicated;
 
     public DefaultUniqueProjectNameProvider(ProjectStateRegistry projectRegistry) {
-        this.projectRegistry = projectRegistry;
+        super(projectRegistry);
     }
 
     @Override
@@ -67,16 +66,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
         @Override
         @Nullable
         public ProjectIdentity getParent(ProjectIdentity element) {
-            // Note that this "parent" may belong to a different build in the build tree
-            Path parentInBuildTreePath = element.getBuildTreePath().getParent();
-            if (parentInBuildTreePath == null) {
-                return null;
-            }
-            ProjectState parentInBuildTreeState = projectRegistry.findProjectState(parentInBuildTreePath);
-            if (parentInBuildTreeState == null) {
-                return null;
-            }
-            return parentInBuildTreeState.getIdentity();
+            return findParentInBuildTree(element);
         }
     }
 }
