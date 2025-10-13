@@ -186,11 +186,11 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         result.assertTaskScheduled(":test")
 
         and: "the unit tests are run"
-        def xmlResults = getTestResultsFileAsXml(dslDir, "simpleUnitTest")
-        xmlResults.@name == "simpleUnitTest"
+        def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.testng.SimpleUnitTest")
+        xmlResults.@name == "org.gradle.testng.SimpleUnitTest"
 
         and: "the integration tests aren't run"
-        getTestResultsFile(dslDir, "simpleIntegrationTest").assertDoesNotExist()
+        getTestResultsFile(dslDir, "org.gradle.testng.SimpleIntegrationTest").assertDoesNotExist()
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -210,8 +210,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
 
         and: "the tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.junitplatform.JupiterTest")
-        // This expected count includes the skipped test but only counts the repeated test once
-        assertTestsRunCount(xmlResults, 4)
+        assertTestsRunCount(xmlResults, 5)
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -283,10 +282,10 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         // is having an effect.
         and: "both tests are run"
         assertTestsRunCount(
-            getTestResultsFileAsXml(dslDir, "Test1"),
+            getTestResultsFileAsXml(dslDir, "org.gradle.testng.Test1"),
             2)
         assertTestsRunCount(
-            getTestResultsFileAsXml(dslDir, "Test2"),
+            getTestResultsFileAsXml(dslDir, "org.gradle.testng.Test2"),
             2)
 
         where:
@@ -306,7 +305,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         result.assertTaskScheduled(":test")
 
         and: "both tests are run"
-        def xmlResults = getTestResultsFileAsXml(dslDir, "TestFactory")
+        def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.testng.TestFactory")
         assertTestsRunCount(xmlResults, 4)
         xmlResults.testcase.@name*.text() == ["test1", "test2", "test1", "test2"]
 

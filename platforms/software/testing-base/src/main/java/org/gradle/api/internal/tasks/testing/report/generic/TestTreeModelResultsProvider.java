@@ -37,12 +37,15 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 public class TestTreeModelResultsProvider implements TestResultsProvider {
+
     public static void useResultsFrom(Path resultsDir, Consumer<TestTreeModelResultsProvider> resultsConsumer) {
         SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDir);
         try (SerializableTestResultStore.OutputReader outputReader = resultsStore.openOutputReader()) {
@@ -69,6 +72,9 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
         }
     }
 
+    private static final Comparator<TestTreeModel.PerRootInfo> PER_ROOT_INFO_BY_START_TIME =
+        Comparator.comparing(leaf -> leaf.getResult().getStartTime());
+
     private static Map<Long, ClassNode> createClasses(TestTreeModel root) {
         ListMultimap<TestTreeModel, TestTreeModel.PerRootInfo> leavesByGroupingNode = LinkedListMultimap.create();
         walkLeaves(root, leaf -> {
@@ -84,7 +90,10 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
         long nextClassId = 1;
         for (Map.Entry<TestTreeModel, List<TestTreeModel.PerRootInfo>> entry : Multimaps.asMap(leavesByGroupingNode).entrySet()) {
             TestTreeModel groupingNode = entry.getKey();
-            List<TestTreeModel.PerRootInfo> leaves = entry.getValue();
+            List<TestTreeModel.PerRootInfo> leaves = new ArrayList<>(entry.getValue());
+
+            // We want these sorted by start time in order to preserve ordering between runs.
+            leaves.sort(PER_ROOT_INFO_BY_START_TIME);
 
             ImmutableSet.Builder<Long> methodOutputIds = ImmutableSet.builder();
             TestClassResult classResult = buildClassResult(groupingNode, leaves, nextClassId, methodOutputIds);
