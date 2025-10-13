@@ -100,8 +100,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     File getProjectDir();
 
     /**
-     * Returns the nesting level of a project in a multi-project hierarchy. For single project builds this is always
-     * 0. In a multi-project hierarchy 0 is returned for the root project.
+     * Returns the nesting level of a project in a multi-project hierarchy.
+     * <p>
+     * Returns 0 for the root project, 1 for its direct children, etc.
+     * <p>
+     * The depth is computed independently for each build in the build tree.
      */
     int getDepth();
 
