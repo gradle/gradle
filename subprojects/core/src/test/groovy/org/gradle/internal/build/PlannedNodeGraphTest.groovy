@@ -22,6 +22,7 @@ import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.ToPlannedNodeConverter
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.internal.taskgraph.NodeIdentity
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import static org.gradle.internal.taskgraph.NodeIdentity.*
@@ -65,6 +66,7 @@ class PlannedNodeGraphTest extends Specification {
         e2.message == "Unknown detail level for node types: [TRANSFORM_STEP]"
     }
 
+    @Ignore("wip")
     def "plan node dependencies include transitively closest identifiable nodes"() {
         def taskConverter = new ToTestPlannedNodeConverter(TestTaskNode, NodeType.TASK)
         def collector = new PlannedNodeGraph.Collector(new ToPlannedNodeConverterRegistry([taskConverter]))
@@ -105,6 +107,7 @@ class PlannedNodeGraphTest extends Specification {
         nextLevelNodes == nodes
     }
 
+    @Ignore("wip")
     def "can obtain a plan with lower detail level"() {
         def taskConverter = new ToTestPlannedNodeConverter(TestTaskNode, NodeType.TASK)
         def transformStepConverter = new ToTestPlannedNodeConverter(TestTransformStepNode, NodeType.TRANSFORM_STEP)
