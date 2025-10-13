@@ -1,5 +1,5 @@
 // tag::do-this[]
-plugins { // <3>
+plugins { // <2>
     id("my.base-java-library")
     id("my.java-use-junit5")
 }

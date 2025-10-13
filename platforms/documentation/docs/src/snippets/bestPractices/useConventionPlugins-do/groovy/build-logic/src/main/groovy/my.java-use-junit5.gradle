@@ -2,8 +2,8 @@
 plugins {
     id("java-library")
 }
-// <2>
-tasks.withType(Test).configureEach {
+
+tasks.withType(Test).configureEach { // <3>
     useJUnitPlatform()
     maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 }

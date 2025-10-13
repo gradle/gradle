@@ -614,7 +614,7 @@ You can also now invoke tasks on the `my-web-module` project using the shorter n
 [[use_convention_plugins]]
 == Use Convention Plugins for Common Build Logic
 
-Use <<implementing_gradle_plugins_precompiled.adoc#implemention_precompiled_plugins,convention plugins>> to encapsulate and reuse shared build logic across multiple projects in your build.
+Use <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins,convention plugins>> to encapsulate and reuse shared build logic across multiple projects in your build.
 
 === Explanation
 
@@ -628,11 +628,12 @@ This approach offers several benefits:
 * **Keeps build files clean**: Project build files stay focused on project-specific configuration.
 * **Improves IDE support**: IDEs can better understand and validate build logic when it is structured in plugins.
 
-Convention plugins are quicker to create than <<implementing_gradle_plugins_binary.adoc#implemention_binary_plugins,typed binary plugins>> extending the `Plugin` class.
+Convention plugins are quicker to create than <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins,typed binary plugins>> extending the `Plugin` class.
 They are often a better choice for build logic that does not need to be shared outside a build, and that is simple enough to not require additional type safeness and testability benefits.
 Unlike binary plugins, convention plugins allow accessing plugin extensions, tasks and configurations via static accessors in build scripts written in Kotlin.
 
 While setting up convention plugins takes some initial effort, it pays off by simplifying maintenance, improving comprehensibility, and making it easier to add new projects as your codebase grows.
+As mentioned in <<#favor_composite_builds,Favor `build-logic` Composite Builds for Build Logic>>, we recommend placing your convention plugins in an included build (often named `build-logic`) instead of `buildSrc`.
 
 === Example
 
@@ -650,28 +651,28 @@ include::sample[dir="snippets/bestPractices/useConventionPlugins-avoid/groovy",f
 
 ==== Do This Instead
 
-Create included build with convention plugins for your build in `build-logic`:
+Create included build containing convention plugins for your build in `build-logic` and add it to your settings file:
 
 ====
 include::sample[dir="snippets/bestPractices/useConventionPlugins-do/kotlin",files="settings.gradle.kts[tags=do-this];build-logic/build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",files="settings.gradle[tags=do-this];build-logic/build.gradle[tags=do-this]"]
 ====
 
-<1> Include `build-logic` as an included build with convention plugins.
-<2> Enable the Gradle DSL in `build-logic`.
+<1> Include the `build-logic` build, which defines convention plugins.
+<2> Enable the use of Kotlin DSL in `build-logic`.
 
-Create convention plugins separate in `build-logic`:
+Create convention plugins for each type of project in `build-logic`:
 
 ====
 include::sample[dir="snippets/bestPractices/useConventionPlugins-do/kotlin",files="build-logic/src/main/kotlin/my.base-java-library.gradle.kts[tags=do-this];build-logic/src/main/kotlin/my.java-library.gradle.kts[tags=do-this];build-logic/src/main/kotlin/my.java-use-junit5.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",files="build-logic/src/main/kotlin/my.base-java-library.gradle[tags=do-this];build-logic/src/main/kotlin/my.java-library.gradle[tags=do-this];build-logic/src/main/kotlin/my.java-use-junit5.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",files="build-logic/src/main/groovy/my.base-java-library.gradle[tags=do-this];build-logic/src/main/groovy/my.java-library.gradle[tags=do-this];build-logic/src/main/groovy/my.java-use-junit5.gradle[tags=do-this]"]
 ====
 
-<1> Default settings for Java library plugin.
-<2> Junit5 configuration in convention plugin.
-<3> Convention plugin that aggregates other convention plugins.
+<1> Default settings for a Java library plugin.
+<2> A convention plugin can apply other convention plugins.
+<3> JUnit 5 configuration moved to a convention plugin.
 
-And apply the plugin in any build file where you want to use the shared logic:
+And apply these plugin in any build files to use the shared logic:
 
 ====
 include::sample[dir="snippets/bestPractices/useConventionPlugins-do/kotlin",files="project-a/build.gradle.kts[tags=do-this];project-b/build.gradle.kts[tags=do-this]"]
@@ -679,9 +680,9 @@ include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",file
 ====
 
 === References
-- <<custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>>
-- <<implementing_gradle_plugins_precompiled.adoc#implemention_precompiled_plugins,Implementing Pre-compiled Script Plugins>>
-- <<plugins.adoc#sec:types_of_plugins,Types of Plugins>>
+- <<plugins/custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>>
+- <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins,Implementing Pre-compiled Script Plugins>>
+- <<plugin-development/plugins.adoc#types_of_plugins,Types of Plugins>>
 
 === Tags
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`

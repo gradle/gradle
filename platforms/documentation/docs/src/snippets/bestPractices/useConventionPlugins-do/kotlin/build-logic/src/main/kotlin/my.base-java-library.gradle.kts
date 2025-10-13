@@ -2,8 +2,8 @@
 plugins {
     `java-library`
 }
-// <1>
-java {
+
+java { // <1>
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
