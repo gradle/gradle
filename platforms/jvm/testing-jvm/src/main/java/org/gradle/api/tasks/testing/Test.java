@@ -750,7 +750,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     @Override
     protected int getReportEntrySkipLevels() {
-        return super.getReportEntrySkipLevels() + getTestFramework().getAdditionalReportEntrySkipLevels();
+        // Add 1 for the workers, plus any additional levels required by the test framework
+        return super.getReportEntrySkipLevels() + 1 + getTestFramework().getAdditionalReportEntrySkipLevels();
     }
 
     /**

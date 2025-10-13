@@ -46,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Takes an XCTestTestExecutionSpec and executes the given test binary.
@@ -139,9 +141,10 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
 
         @Override
         public void processTestClass(TestClassRunInfo testClass) {
-            Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
-            TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
-            TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
+            Map<String, Object> testSuiteIds = new ConcurrentHashMap<>();
+            Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<>();
+            TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors, testSuiteIds);
+            TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors, testSuiteIds);
 
             String lineSeparator = SystemProperties.getInstance().getLineSeparator();
             execHandle = executeTest(testClass.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
