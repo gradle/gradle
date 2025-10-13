@@ -83,7 +83,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         0 * _
 
         when:
-        def actualBuilder = registry.locateForClientOperation("model", false, projectState)
+        def actualBuilder = registry.locateForClientOperation("model", false, projectState, projectState.getMutableModel())
 
         then:
         builder1.canBuild("model") >> false
@@ -99,7 +99,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectState.runSync(_) >> { Supplier supplier -> supplier.get() }
+        1 * projectState.runWithModelLock(_) >> { Supplier supplier -> supplier.get() }
         1 * application.reapply(_) >> { Supplier supplier -> supplier.get() }
         1 * builder2.buildAll("model", project) >> "result"
         0 * _
@@ -144,7 +144,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
     def "fails when no parameterized builder is available for requested model"() {
         when:
-        registry.locateForClientOperation("model", true, Stub(ProjectState))
+        registry.locateForClientOperation("model", true, Stub(ProjectState), Mock(ProjectInternal))
 
         then:
         UnknownModelException e = thrown()
@@ -164,7 +164,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         builder2.canBuild("model") >> true
 
         when:
-        registry.locateForClientOperation("model", true, Stub(ProjectState))
+        registry.locateForClientOperation("model", true, Stub(ProjectState), Mock(ProjectInternal))
 
         then:
         UnknownModelException e = thrown()
@@ -185,7 +185,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         projectState.displayName >> Describables.of("<project>")
 
         expect:
-        def actualBuilder = registry.locateForClientOperation("model", true, projectState)
+        def actualBuilder = registry.locateForClientOperation("model", true, projectState, projectState.getMutableModel())
 
         when:
         def result = actualBuilder.build("param")
@@ -195,7 +195,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
 
         and:
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation operation -> operation.call(Stub(BuildOperationContext)) }
-        1 * projectState.runSync (_) >> { Supplier supplier -> supplier.get() }
+        1 * projectState.runWithModelLock (_) >> { Supplier supplier -> supplier.get() }
         1 * builder.buildAll("model", "param", project) >> "result"
         0 * _
     }

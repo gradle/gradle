@@ -86,7 +86,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             def modelAssert = new ComparingModelAssert(scriptFile, resilientModels, original)
             modelAssert.assertBothModelsExist()
             modelAssert.assertClassPathsAreEqual()
-            modelAssert.assertImplicitImportsAreEqual()
+            modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
         }
         resilientModels.failures.isEmpty()
     }
@@ -328,7 +328,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             def modelAssert = new ComparingModelAssert(scriptFile, resilientModels, original)
             modelAssert.assertBothModelsExist()
             modelAssert.assertClassPathsAreEqual()
-            modelAssert.assertImplicitImportsAreEqual()
+            modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
         }
         resilientModels.failures.isEmpty()
     }
@@ -388,10 +388,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             if (scriptFile == d) {
                 // In this case we don't have accessors in the classpath
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
-                modelAssert.assertImplicitImportsAreEqual()
+                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
                 modelAssert.assertClassPathsAreEqual()
-                modelAssert.assertImplicitImportsAreEqual()
+                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             }
         }
         resilientModels.failures.size() == 1
@@ -482,13 +482,13 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
                 modelAssert.assertResilientModelContainsClassPathEntriesWithPath("/accessors/")
                 modelAssert.assertResilientModelContainsClassPathEntriesWithPath("/build-logic.jar")
-                modelAssert.assertImplicitImportsAreEqual()
+                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else if (scriptFile == c) {
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
-                modelAssert.assertImplicitImportsAreEqual()
+                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
                 modelAssert.assertClassPathsAreEqual()
-                modelAssert.assertImplicitImportsAreEqual()
+                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             }
         }
         resilientModels.failures.size() == 1
@@ -571,14 +571,14 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             if (scriptFile == b) {
                 // In this case we don't have accessors and build-logic in the classpath
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
-                modelAssert.assertImplicitImportsAreEqual()
+                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else if (scriptFile == c) {
                 // In this case we don't have accessors, since this project is not configured
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
-                modelAssert.assertImplicitImportsAreEqual()
+                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
                 modelAssert.assertClassPathsAreEqual()
-                modelAssert.assertImplicitImportsAreEqual()
+                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             }
         }
         // At the moment the failure reporting is not consistent and depends on the order of query
@@ -823,7 +823,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             return this
         }
 
-        ComparingModelAssert assertImplicitImportsAreEqual() {
+        ComparingModelAssert assertImplicitImportsAreEqualIgnoringAccessors() {
             def relevantResilientImports = minusAccessors(resilientModel.implicitImports)
             def relevantOriginalImports = minusAccessors(originalModel.implicitImports)
             assert relevantResilientImports == relevantOriginalImports: "Implicit imports are not equal for script ${scriptFile}:\n" +

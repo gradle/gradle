@@ -447,11 +447,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public <S> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
-            return runSync(() -> function.apply(getMutableModel()));
+            return runWithModelLock(() -> function.apply(getMutableModel()));
         }
 
         @Override
-        public <S> S runSync(Supplier<S> action) {
+        public <S> S runWithModelLock(Supplier<S> action) {
             Thread currentThread = Thread.currentThread();
             if (workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || canDoAnythingToThisProject.contains(currentThread)) {
                 // Current thread is allowed to access anything at any time, so run the action

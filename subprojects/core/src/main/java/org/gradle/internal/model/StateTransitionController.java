@@ -71,9 +71,9 @@ public class StateTransitionController<T extends StateTransitionController.State
     /**
      * Verifies that the given state was reached, even if there were failures afterward.
      */
-    public void assertIfFailedThenAfter(T expected) {
+    public void assertInStateOrLaterIgnoringFailures(T expected) {
         CurrentState<T> current = state;
-        if (!current.hasSeenStateIgnoringFailuresAndTransitions(expected)) {
+        if (!current.hasSeenStateIgnoringTransitionsOrFailures(expected)) {
             throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
         }
     }
@@ -314,7 +314,7 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         public abstract boolean hasSeenStateIgnoringTransitions(T toState);
 
-        public abstract boolean hasSeenStateIgnoringFailuresAndTransitions(T toState);
+        public abstract boolean hasSeenStateIgnoringTransitionsOrFailures(T toState);
 
         public CurrentState<T> failed(ExecutionResult<?> failure) {
             return new Failed<>(displayName, this, failure);
@@ -402,12 +402,12 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public boolean hasSeenStateIgnoringFailuresAndTransitions(T toState) {
+        public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
             if (state == toState) {
                 return true;
             }
             if (previous != null) {
-                return previous.hasSeenStateIgnoringFailuresAndTransitions(toState);
+                return previous.hasSeenStateIgnoringTransitionsOrFailures(toState);
             }
             return false;
         }
@@ -483,8 +483,8 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public boolean hasSeenStateIgnoringFailuresAndTransitions(T toState) {
-            return fromState.hasSeenStateIgnoringFailuresAndTransitions(toState);
+        public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
+            return fromState.hasSeenStateIgnoringTransitionsOrFailures(toState);
         }
 
         @Override
@@ -541,8 +541,8 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
-        public boolean hasSeenStateIgnoringFailuresAndTransitions(T toState) {
-            return failureState.hasSeenStateIgnoringFailuresAndTransitions(toState);
+        public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
+            return failureState.hasSeenStateIgnoringTransitionsOrFailures(toState);
         }
 
         @Override

@@ -94,18 +94,6 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     }
 
     @Override
-    public Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target) throws UnknownModelException {
-        return new BuildOperationWrappingBuilder(
-            new LockProjectStateBuilder(locateForClientOperation(modelName, target.getMutableModel(), parameter), target),
-            modelName,
-            target.getOwner(),
-            target,
-            target.getDisplayName(),
-            buildOperationRunner
-        );
-    }
-
-    @Override
     public Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target, ProjectInternal project) throws UnknownModelException {
         return new BuildOperationWrappingBuilder(
             new LockProjectStateBuilder(locateForClientOperation(modelName, project, parameter), target),
@@ -321,7 +309,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
         @Override
         public Object build(Object parameter) {
-            return target.runSync(() -> delegate.build(parameter));
+            return target.runWithModelLock(() -> delegate.build(parameter));
         }
     }
 

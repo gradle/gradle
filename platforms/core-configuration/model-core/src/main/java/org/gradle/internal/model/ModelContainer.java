@@ -39,7 +39,7 @@ public interface ModelContainer<T> {
      * Runs the given supplier, while synchronizing on the project.
      * The mutable state of the project can be used by the calculation, if a reference to it has been retrieved earlier.
      */
-    <S> S runSync(Supplier<S> action);
+    <S> S runWithModelLock(Supplier<S> action);
 
     /**
      * DO NOT USE THIS METHOD. It is here to provide some specific backwards compatibility.

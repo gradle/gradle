@@ -144,6 +144,8 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
 
     /**
      * Returns the mutable model for this project, just as {@link #getMutableModel()}, but works even in the presence of failures, for example when the project failed to configure.
+     *
+     * Should not be used in general, it's specific to obtaining partial TAPI models in the presence of failures.
      */
     ProjectInternal getMutableModelEvenAfterFailure();
 
