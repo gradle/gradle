@@ -54,7 +54,7 @@ Do not make a parameter `@Nullable` just to check and throw a `NullPointerExcept
 
 ## Status
 
-PROPOSED
+ACCEPTED
 
 ## Consequences
 
