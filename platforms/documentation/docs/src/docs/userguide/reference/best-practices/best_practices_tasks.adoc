@@ -420,12 +420,17 @@ Use link:{javadocPath}/org/gradle/api/tasks/PathSensitivity.html#NONE[`@PathSens
 
 Tasks should generally only care about the **contents** of their input files, not their location on disk.
 
-You should annotate `@InputFile` and `@InputFiles` properties as `@PathSensitivity.NONE` unless a task's behavior should change based on the location of the input file(s).
+When annotating input properties that contain files (such as `@InputFile` and `@InputFiles` collections) use `@PathSensitivity.NONE`.
+This tells Gradle to consider only the files' contents when determining if a task is up-to-date.
 
-Likewise, you should annotate `@InputDirectory` and `@InputDirectories` properties as `@PathSensitivity.RELATIVE` so that tasks can take into account the paths of the directories' files relative to the build's root directory, ignoring their absolute paths on disk.
+For input properties that contain directories (such as `@InputDirectory` and `@InputFiles` collections) use `@PathSensitivity.RELATIVE`.
+This tells Gradle to also consider the path to each directory relative to the build's root directory (ignoring its absolute location) for up-to-date checks.
 
-`PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` are usually incorrect, as they tell Gradle to also consider a file's name, or it's complete absolution path on disk, respectively.
-`@PathSensitivity.ABSOLUTE` prevents the <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> from being reused across different machines or directories, making your build non-relocatable.
+Using `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` is generally incorrect.
+
+`PathSensitivity.NAME_ONLY` tells Gradle to also consider a file's name in addition to its contents, which is rarely useful.
+`@PathSensitivity.ABSOLUTE` tells Gradle to consider a files' complete absolute path.
+This prevents <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> hits across different machines or directories, making your build non-relocatable.
 The can also cause different task outcomes when the build is run in different directories which can be confusing and hard to debug.
 
 === Example
