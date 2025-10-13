@@ -49,6 +49,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Generates an HTML report based on test results based on binary results from {@link SerializableTestResultStore}.
@@ -135,11 +136,20 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    // Clean-up old HTML report directories
+                    // Clean-up old HTML report
+                    Path indexHtml = reportsDirectory.resolve("index.html");
                     try {
-                        PathUtils.deleteDirectory(reportsDirectory);
+                        PathUtils.deleteFile(indexHtml);
                     } catch (IOException e) {
-                        LOG.info("Could not delete HTML test reports directory '{}'.", reportsDirectory, e);
+                        LOG.info("Could not delete HTML test reports index.html '{}'.", indexHtml, e);
+                    }
+                    // Delete all directories, but not files, in the reports directory
+                    try (Stream<Path> children = Files.list(reportsDirectory)) {
+                        for (Path dir : children.filter(Files::isDirectory).collect(Collectors.toList())) {
+                            PathUtils.deleteDirectory(dir);
+                        }
+                    } catch (IOException e) {
+                        LOG.info("Could not clean HTML test reports directory '{}'.", reportsDirectory, e);
                     }
                 }
 

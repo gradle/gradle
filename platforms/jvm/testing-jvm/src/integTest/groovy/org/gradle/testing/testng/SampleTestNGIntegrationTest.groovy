@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Before
 import org.junit.Rule
@@ -59,13 +60,11 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         result.testPath('org.gradle.ConcreteTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         result.testPath('org.gradle.ConcreteTest', 'alsoOk').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
 
-        // TODO: useDefaultListeners = true is supposed to cause a additional XML files to be generated in the build/reports/tests/test dir
-        // that contain elements for these configuration methods. This is currently ignored and needs to be fixed.  Then these assertions can
-        // be re-implemented.
-        result.testClass('org.gradle.SuiteSetup').assertConfigMethodPassed('setupSuite')
-        result.testClass('org.gradle.SuiteCleanup').assertConfigMethodPassed('cleanupSuite')
-        result.testClass('org.gradle.TestSetup').assertConfigMethodPassed('setupTest')
-        result.testClass('org.gradle.TestCleanup').assertConfigMethodPassed('cleanupTest')
+        def testNgResult = new TestNGExecutionResult(testDir)
+        testNgResult.testClass('org.gradle.SuiteSetup').assertConfigMethodPassed('setupSuite')
+        testNgResult.testClass('org.gradle.SuiteCleanup').assertConfigMethodPassed('cleanupSuite')
+        testNgResult.testClass('org.gradle.TestSetup').assertConfigMethodPassed('setupTest')
+        testNgResult.testClass('org.gradle.TestCleanup').assertConfigMethodPassed('cleanupTest')
     }
 
     private GenericHtmlTestExecutionResult resultsFor(File rootDir) {
