@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -32,22 +31,19 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -71,13 +67,11 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scope.Project.class)
@@ -132,16 +126,13 @@ public class DependencyGraphBuilder {
         ImmutableModuleReplacements moduleReplacements,
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
         ModuleConflictResolver<ComponentState> moduleConflictResolver,
-        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers,
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
         ConflictResolution conflictResolution,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
         ResolutionParameters.FailureResolutions failureResolutions,
         DependencyGraphVisitor modelVisitor
     ) {
-        ModuleConflictHandler moduleConflictHandler = new DefaultConflictHandler(moduleConflictResolver, moduleReplacements);
-        CapabilitiesConflictHandler capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers);
-
         ResolveState resolveState = new ResolveState(
             idGenerator,
             rootComponent,
@@ -160,8 +151,9 @@ public class DependencyGraphBuilder {
             versionParser,
             conflictResolution,
             syntheticDependencies,
-            moduleConflictHandler,
-            capabilitiesConflictHandler,
+            moduleConflictResolver,
+            moduleReplacements,
+            capabilityResolutionRules,
             variantSelector
         );
 
@@ -195,7 +187,7 @@ public class DependencyGraphBuilder {
                 }
 
                 // Register capabilities for this node
-                if (registerCapabilities(resolveState, node)) {
+                if (capabilitiesConflictHandler.registerCandidate(node)) {
                     // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
                     // There is no reason to continue processing this node otherwise.
                     continue;
@@ -208,63 +200,13 @@ public class DependencyGraphBuilder {
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
-                    moduleConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
+                    moduleConflictHandler.resolveNextConflict();
                 } else {
-                    capabilitiesConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
+                    capabilitiesConflictHandler.resolveNextConflict();
                 }
             }
 
         }
-    }
-
-    /**
-     * Detect and register capability conflicts for the given node, deselecting the node if
-     * it is involved in a conflict.
-     *
-     * @return true iff a conflict was detected.
-     */
-    private static boolean registerCapabilities(final ResolveState resolveState, final NodeState node) {
-        AtomicBoolean foundConflict = new AtomicBoolean(false);
-        CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
-
-        node.forEachCapability(capabilitiesConflictHandler, new Action<CapabilityInternal>() {
-            @Override
-            public void execute(CapabilityInternal capability) {
-                // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
-                // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
-                // then we try to find a module which provides the same capability. It that module has been found, then we register it.
-                // Otherwise, we have nothing to do. This avoids most of registrations.
-                Collection<NodeState> implicitProvidersForCapability = Collections.emptyList();
-                for (ModuleResolveState state : resolveState.getModules()) {
-                    if (state.getId().getGroup().equals(capability.getGroup()) && state.getId().getName().equals(capability.getName())) {
-                        Collection<ComponentState> versions = state.getVersions();
-                        implicitProvidersForCapability = new ArrayList<>(versions.size());
-                        for (ComponentState version : versions) {
-                            List<NodeState> nodes = version.getNodes();
-                            for (NodeState nodeState : nodes) {
-                                // Collect nodes as implicit capability providers if different than current node, selected and not having explicit capabilities
-                                if (node != nodeState && nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
-                                    implicitProvidersForCapability.add(nodeState);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-                PotentialConflict c = capabilitiesConflictHandler.registerCandidate(
-                    DefaultCapabilitiesConflictHandler.candidate(node, capability, implicitProvidersForCapability)
-                );
-                if (c.conflictExists()) {
-                    c.withParticipatingModules(resolveState.getDeselectVersionAction());
-                    foundConflict.set(true);
-                }
-            }
-
-            private boolean doesNotDeclareExplicitCapability(NodeState nodeState) {
-                return nodeState.getMetadata().getCapabilities().asSet().isEmpty();
-            }
-        });
-        return foundConflict.get();
     }
 
     private void resolveEdges(
@@ -323,20 +265,7 @@ public class DependencyGraphBuilder {
         // If no current selection for module, just use the candidate.
         if (currentSelection == null) {
             // This is the first time we've seen the module, so register with conflict resolver.
-            checkForModuleConflicts(resolveState, module);
-        }
-    }
-
-    private static void checkForModuleConflicts(ResolveState resolveState, ModuleResolveState module) {
-        // A new module. Check for conflict with capabilities and module replacements.
-        PotentialConflict c = resolveState.getModuleConflictHandler().registerCandidate(module);
-        if (c.conflictExists()) {
-            // We have a conflict
-            LOGGER.debug("Found new conflicting module {}", module);
-
-            // For each module participating in the conflict, deselect the currently selection, and remove all outgoing edges from the version.
-            // This will propagate through the graph and prune configurations that are no longer required.
-            c.withParticipatingModules(resolveState.getDeselectVersionAction());
+            resolveState.getModuleConflictHandler().registerCandidate(module);
         }
     }
 
