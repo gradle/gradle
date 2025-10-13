@@ -33,10 +33,8 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
 import org.gradle.api.internal.tasks.testing.junit.result.TestEventReporterAsListener;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
@@ -47,6 +45,7 @@ import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
 import org.gradle.api.internal.tasks.testing.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.JunitXmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModelResultsProvider;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -257,6 +256,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return 1;
     }
 
+    /**
+     * Sets the test reporter to use for generating reports.
+     *
+     * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
+     */
+    @Deprecated
     void setTestReporter(TestReporter testReporter) {
         this.testReporter = testReporter;
     }
@@ -558,7 +563,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (html.getRequired().get()) {
             if (testReporter != null) {
                 // Map results for legacy reporting interface
-                reportGenerators.add(new CustomTestReportingGenerator(outputLocation, getBinaryResultsDirectory().getAsFile().get(), testReporter));
+                reportGenerators.add(new CustomTestReportingGenerator(outputLocation, testReporter));
             } else {
                 reportGenerators.add(getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, outputLocation.toPath()));
             }
@@ -759,19 +764,22 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @NullMarked
     private static final class CustomTestReportingGenerator implements TestReportGenerator {
         private final File outputDir;
-        private final File testResultsDir;
         private final TestReporter testReporter;
 
-        private CustomTestReportingGenerator(File outputDir, File testResultsDir, TestReporter testReporter) {
+        private CustomTestReportingGenerator(File outputDir, TestReporter testReporter) {
             this.outputDir = outputDir;
-            this.testResultsDir = testResultsDir;
             this.testReporter = testReporter;
         }
 
         @Override
         public Path generate(List<Path> resultsDirectories) {
-            TestResultsProvider testResultsProvider = new BinaryResultBackedTestResultsProvider(testResultsDir);
-            testReporter.generateReport(testResultsProvider, outputDir);
+            if (resultsDirectories.size() > 1) {
+                throw new IllegalArgumentException("CustomTestReportingGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
+            }
+            TestTreeModelResultsProvider.useResultsFrom(
+                resultsDirectories.get(0),
+                resultsProvider -> testReporter.generateReport(resultsProvider, outputDir)
+            );
             return outputDir.toPath();
         }
     }
