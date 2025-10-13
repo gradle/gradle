@@ -38,7 +38,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -85,10 +84,6 @@ public final class SerializableTestResultStore {
     public SerializableTestResultStore(Path resultsDir) {
         this.serializedResultsFile = resultsDir.resolve("results-generic.bin");
         this.outputZipFile = resultsDir.resolve("output-generic.zip");
-    }
-
-    public static boolean isGenericTestResults(File resultDir) {
-        return Files.exists(resultDir.toPath().resolve("results-generic.bin"));
     }
 
     public Writer openWriter(int diskSkipLevels) throws IOException {

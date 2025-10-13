@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
@@ -37,11 +36,24 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 public class TestTreeModelResultsProvider implements TestResultsProvider {
+    public static void useResultsFrom(Path resultsDir, Consumer<TestTreeModelResultsProvider> resultsConsumer) {
+        SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDir);
+        try (SerializableTestResultStore.OutputReader outputReader = resultsStore.openOutputReader()) {
+            TestTreeModel root = TestTreeModel.loadModelFromStores(Collections.singletonList(resultsStore));
+            TestTreeModelResultsProvider resultsProvider = new TestTreeModelResultsProvider(root, outputReader);
+            resultsConsumer.accept(resultsProvider);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
     private static final class ClassNode {
         final TestClassResult result;
         /**
@@ -258,30 +270,12 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     @Override
-    public boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
-        ClassNode model = classesById.get(classId);
-        if (model != null) {
-            for (long outputId : Iterables.concat(model.outputIds, model.methodOutputIds)) {
-                if (outputReader.hasOutput(outputId, destination)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    @Override
     public boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
         ClassNode model = classesById.get(classId);
         if (model != null && model.methodOutputIds.contains(testId)) {
             return outputReader.hasOutput(testId, destination);
         }
         return false;
-    }
-
-    @Override
-    public boolean isHasResults() {
-        return !classesById.isEmpty();
     }
 
     @Override

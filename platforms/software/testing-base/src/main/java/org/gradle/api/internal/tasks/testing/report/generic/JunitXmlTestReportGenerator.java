@@ -22,13 +22,11 @@ import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.UncheckedException;
-import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -55,36 +53,28 @@ public abstract class JunitXmlTestReportGenerator implements TestReportGenerator
     }
 
     @Override
-    @Nullable
     public Path generate(List<Path> resultsDirectories) {
-        if (resultsDirectories.isEmpty()) {
-            return null;
-        }
-        if (resultsDirectories.size() > 1) {
-            throw new IllegalArgumentException("JunitXmlTestReportGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
-        }
-
-        SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDirectories.get(0));
-        if (!resultsStore.hasResults()) {
-            return null;
-        }
-
         try {
             Files.createDirectories(reportsDirectory);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-
-        try (SerializableTestResultStore.OutputReader outputReader = resultsStore.openOutputReader()) {
-            TestTreeModel root = TestTreeModel.loadModelFromStores(Collections.singletonList(resultsStore));
-            objectFactory.newInstance(
-                Binary2JUnitXmlReportGenerator.class,
-                reportsDirectory.toFile(), new TestTreeModelResultsProvider(root, outputReader), xmlResultOptions
-            ).generate();
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        if (resultsDirectories.isEmpty()) {
+            return reportsDirectory;
         }
+        if (resultsDirectories.size() > 1) {
+            throw new IllegalArgumentException("JunitXmlTestReportGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
+        }
+
+        TestTreeModelResultsProvider.useResultsFrom(
+            resultsDirectories.get(0),
+            resultsProvider ->
+                objectFactory.newInstance(
+                    Binary2JUnitXmlReportGenerator.class,
+                    reportsDirectory.toFile(), resultsProvider, xmlResultOptions
+                ).generate()
+        );
         return reportsDirectory;
     }
 }
