@@ -17,7 +17,6 @@
 package org.gradle.testing.junit
 
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -27,7 +26,6 @@ import org.hamcrest.Matcher
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.startsWith
 
 abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
@@ -305,7 +303,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
             }
             results.testPath('org.gradle.BrokenException', 'broken').onlyRoot()
                 .assertHasResult(TestResult.ResultType.FAILURE)
-                .assertFailureMessages(startsWith('java.lang.UnsupportedOperationException'))
+                .assertFailureMessages(startsWith('org.gradle.api.GradleException: Could not determine failure stacktrace for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
             results.testPath('org.gradle.CustomException', 'custom').onlyRoot()
                 .assertHasResult(TestResult.ResultType.FAILURE)
                 .assertFailureMessages(startsWith('Exception with a custom toString implementation'))
@@ -535,13 +533,16 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         fails 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
-        result.testClass("UsefulNPETest")
-            .testFailed("testUsefulNPE", equalTo('java.lang.NullPointerException: Cannot invoke "Object.toString()" because "o" is null'))
-        result.testClass("UsefulNPETest")
-            .testFailed("testDeepUsefulNPE", equalTo('java.lang.RuntimeException: java.lang.NullPointerException: Cannot invoke "Object.toString()" because "param" is null'))
-        result.testClass("UsefulNPETest")
-            .testFailed("testFailingGetMessage", equalTo('Could not determine failure message for exception of type UsefulNPETest$1: java.lang.RuntimeException'))
+        def result = resultsFor()
+        result.testPath(":UsefulNPETest:testUsefulNPE").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(startsWith('java.lang.NullPointerException: Cannot invoke "Object.toString()" because "o" is null'))
+        result.testPath(":UsefulNPETest:testDeepUsefulNPE").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(startsWith('java.lang.RuntimeException: java.lang.NullPointerException: Cannot invoke "Object.toString()" because "param" is null'))
+        result.testPath(":UsefulNPETest:testFailingGetMessage").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(startsWith('org.gradle.api.GradleException: Could not determine failure stacktrace for exception of type UsefulNPETest$1: java.lang.RuntimeException'))
     }
 
     String failureAssertionError(String message) {
