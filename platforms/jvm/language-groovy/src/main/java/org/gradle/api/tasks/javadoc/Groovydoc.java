@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
@@ -85,6 +86,8 @@ public abstract class Groovydoc extends SourceTask {
     private TextResource overview;
 
     private Set<Link> links = new LinkedHashSet<Link>();
+
+    private Property<JavaLanguageVersion> javaVersion = getPropertyFactory().property(JavaLanguageVersion.class);
 
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
@@ -346,7 +349,9 @@ public abstract class Groovydoc extends SourceTask {
     @Optional
     @Input
     @Incubating
-    public abstract Property<JavaLanguageVersion> getJavaVersion();
+    public Property<JavaLanguageVersion> getJavaVersion() {
+        return javaVersion;
+    }
 
     /**
      * Sets Java version (optional).
@@ -523,4 +528,7 @@ public abstract class Groovydoc extends SourceTask {
 
     @Inject
     protected abstract Deleter getDeleter();
+
+    @Inject
+    protected abstract PropertyFactory getPropertyFactory();
 }
