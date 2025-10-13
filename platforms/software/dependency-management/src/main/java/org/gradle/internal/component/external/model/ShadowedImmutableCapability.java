@@ -29,11 +29,7 @@ public final class ShadowedImmutableCapability implements ShadowedCapability {
     private final String appendix;
 
     public ShadowedImmutableCapability(CapabilityInternal shadowed, String appendix) {
-        if (shadowed instanceof ImmutableCapability) {
-            this.shadowed = (ImmutableCapability) shadowed;
-        } else {
-            this.shadowed = new DefaultImmutableCapability(shadowed.getGroup(), shadowed.getName(), shadowed.getVersion());
-        }
+        this.shadowed = DefaultImmutableCapability.of(shadowed);
         this.appendix = appendix;
     }
 

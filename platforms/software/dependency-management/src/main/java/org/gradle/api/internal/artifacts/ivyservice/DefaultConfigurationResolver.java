@@ -180,8 +180,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         @Override
-        public CapabilitiesResolutionInternal getCapabilityConflictResolutionRules() {
-            return resolutionStrategy.getCapabilitiesResolutionRules();
+        public ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> getCapabilityConflictResolutionRules() {
+            return resolutionStrategy.getCapabilitiesResolutionRules().getRules();
         }
 
         @Override
