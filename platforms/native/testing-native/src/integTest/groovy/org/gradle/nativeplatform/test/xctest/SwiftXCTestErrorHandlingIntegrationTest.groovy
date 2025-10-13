@@ -35,7 +35,7 @@ import org.gradle.util.internal.VersionNumber
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 import static org.gradle.util.Matchers.containsText
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_6_OR_OLDER)
 @Requires(UnitTestPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
