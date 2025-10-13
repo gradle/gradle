@@ -68,7 +68,7 @@ public class ProjectLifecycleController implements Closeable {
         IProjectFactory projectFactory
     ) {
         controller.transition(State.NotCreated, State.Created, () -> {
-            ProjectState parent = owner.getBuildParent();
+            ProjectState parent = owner.getParent();
             ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
             ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
                 LoggingManagerFactory loggingManagerFactory = buildServices.get(LoggingManagerFactory.class);

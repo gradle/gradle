@@ -57,7 +57,7 @@ class RelevantProjectsRegistry(
         if (!projects.add(project)) {
             return
         }
-        val parent = project.buildParent
+        val parent = project.parent
         if (parent != null) {
             collect(parent, projects)
         }

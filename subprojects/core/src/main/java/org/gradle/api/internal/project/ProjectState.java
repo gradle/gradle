@@ -45,17 +45,12 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     BuildState getOwner();
 
     /**
-     * Returns the parent of this project in the project tree. Note that this is not the same as {@link Project#getParent()}, use {@link #getBuildParent()} for that.
+     * Returns the parent of this project, as per {@link Project#getParent()}.
+     * <p>
+     * This will be null for the root project of any build in the build tree.
      */
     @Nullable
     ProjectState getParent();
-
-    /**
-     * Returns the parent of this project, as per {@link Project#getParent()}. This will be null for the root project of a build in the tree, even if the project is not
-     * at the root of the project tree.
-     */
-    @Nullable
-    ProjectState getBuildParent();
 
     /**
      * Returns the direct children of this project, in public iteration order.

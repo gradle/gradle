@@ -307,13 +307,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Nullable
         @Override
         public ProjectState getParent() {
-            Path identityPath = identity.getBuildTreePath();
-            return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
-        }
-
-        @Nullable
-        @Override
-        public ProjectState getBuildParent() {
             if (descriptor.getParent() != null) {
                 // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
                 // Ideally they would be exactly the same, always
@@ -402,7 +395,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Override
         public void ensureConfigured() {
             // Need to configure intermediate parent projects for configure-on-demand
-            ProjectState parent = getBuildParent();
+            ProjectState parent = getParent();
             if (parent != null) {
                 parent.ensureConfigured();
             }
@@ -411,7 +404,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public void ensureSelfConfigured() {
-            ProjectState parent = getBuildParent();
+            ProjectState parent = getParent();
             if (parent != null) {
                 ((ProjectStateImpl) parent).controller.assertConfigured();
             }
