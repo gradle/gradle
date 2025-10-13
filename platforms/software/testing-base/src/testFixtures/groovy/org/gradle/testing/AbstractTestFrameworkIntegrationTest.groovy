@@ -153,7 +153,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         then:
         testResult.assertAtLeastTestPathsExecuted('SomeTest')
-            .testPath('SomeTest:fail').onlyRoot().assertStderr(CoreMatchers.containsString("some error output"))
+            .testPath('SomeTest', failingTestCaseName).onlyRoot().assertStderr(CoreMatchers.containsString("some error output"))
     }
 
     def "failing tests cause report url to be printed"() {
