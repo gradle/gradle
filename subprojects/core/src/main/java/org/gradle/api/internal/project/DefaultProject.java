@@ -1220,11 +1220,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public ServiceRegistryFactory getServiceRegistryFactory() {
-        return services.get(ServiceRegistryFactory.class);
-    }
-
-    @Override
     public AntBuilder ant(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getAnt());
     }
