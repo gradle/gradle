@@ -84,7 +84,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     }
 
     private java.nio.file.Path diskPathForTestPath(String testPath) {
-        htmlReportDirectory.toPath().resolve(GenericHtmlTestReport.getFilePath(Path.path(testPath)))
+        htmlReportDirectory.toPath().resolve(GenericHtmlTestReportGenerator.getFilePath(Path.path(testPath)))
     }
 
     @Override
