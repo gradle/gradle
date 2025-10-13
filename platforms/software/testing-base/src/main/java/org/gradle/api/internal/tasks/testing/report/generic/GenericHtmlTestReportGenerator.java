@@ -23,7 +23,6 @@ import com.google.common.collect.Multimaps;
 import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
-import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -53,10 +52,6 @@ import java.util.stream.Stream;
 
 /**
  * Generates an HTML report based on test results based on binary results from {@link SerializableTestResultStore}.
- *
- * <p>
- * Unlike {@link HtmlTestReport}, this report does not assume that the test results are from JUnit tests. They may even be non-JVM tests.
- * </p>
  *
  * <p>
  * The root results are recorded into `index.html`, and then each parent tells its children to generate starting at `{childName}/index.html`.

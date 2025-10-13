@@ -23,6 +23,10 @@ import java.util.List;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType;
 
+/**
+ * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
+ */
+@Deprecated
 public class TestResult extends TestResultModel implements Comparable<TestResult> {
     private final long duration;
     private final ClassTestResults classResults;
