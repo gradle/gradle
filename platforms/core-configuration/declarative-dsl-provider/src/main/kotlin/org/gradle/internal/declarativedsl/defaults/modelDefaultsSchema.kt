@@ -34,19 +34,19 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguring
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
 import org.gradle.internal.declarativedsl.evaluator.defaults.DEFAULTS_BLOCK_NAME
 import org.gradle.internal.declarativedsl.software.projectFeaturesComponent
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 
 internal
-fun defineModelDefaultsInterpretationSequenceStep(projectFeatureRegistry: ProjectFeatureRegistry) = SimpleInterpretationSequenceStep(
+fun defineModelDefaultsInterpretationSequenceStep(projectFeatureDeclarations: ProjectFeatureDeclarations) = SimpleInterpretationSequenceStep(
     "settingsDefaults",
     features = setOf(DefineModelDefaults(), UnsupportedSyntaxFeatureCheck.feature, AccessOnCurrentReceiverCheck.feature),
-    buildEvaluationAndConversionSchema = { defaultsEvaluationSchema(projectFeatureRegistry) }
+    buildEvaluationAndConversionSchema = { defaultsEvaluationSchema(projectFeatureDeclarations) }
 )
 
 
 private
-fun defaultsEvaluationSchema(projectFeatureRegistry: ProjectFeatureRegistry): EvaluationSchema =
+fun defaultsEvaluationSchema(projectFeatureDeclarations: ProjectFeatureDeclarations): EvaluationSchema =
     buildEvaluationSchema(
         DefaultsTopLevelReceiver::class,
         isTopLevelElement.implies(isDefaultsConfiguringCall),
@@ -56,7 +56,7 @@ fun defaultsEvaluationSchema(projectFeatureRegistry: ProjectFeatureRegistry): Ev
         dependencyCollectors()
         projectFeaturesComponent(
             DefaultsConfiguringBlock::class,
-            projectFeatureRegistry,
+            projectFeatureDeclarations,
             // This is the schema for collecting defaults, so it should not apply defaults:
             withDefaultsApplication = false
         )

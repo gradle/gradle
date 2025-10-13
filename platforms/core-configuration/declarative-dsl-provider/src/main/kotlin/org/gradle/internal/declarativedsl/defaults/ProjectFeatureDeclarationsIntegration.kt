@@ -24,13 +24,13 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsReposi
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolutionResults
 import org.gradle.plugin.software.internal.ProjectFeatureImplementation
 import org.gradle.plugin.software.internal.ModelDefault
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 
 internal
-fun projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureRegistry: ProjectFeatureRegistry): ModelDefaultsRepository = object : ModelDefaultsRepository {
+fun projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureDeclarations: ProjectFeatureDeclarations): ModelDefaultsRepository = object : ModelDefaultsRepository {
     override fun findDefaults(featureName: String): ModelDefaultsResolutionResults? =
-        projectFeatureRegistry.projectFeatureImplementations[featureName]?.let { projectFeature ->
+        projectFeatureDeclarations.projectFeatureImplementations[featureName]?.let { projectFeature ->
             resolutionResultsFromDefaultsFor(featureName, projectFeature)
         }
 }
@@ -58,9 +58,9 @@ fun resolutionResultsFromDefaultsFor(featureName: String, projectFeature: Projec
 
 
 internal
-fun projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureRegistry: ProjectFeatureRegistry): ModelDefaultsDefinitionRegistrar = object : ModelDefaultsDefinitionRegistrar {
+fun projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureDeclarations: ProjectFeatureDeclarations): ModelDefaultsDefinitionRegistrar = object : ModelDefaultsDefinitionRegistrar {
     override fun registerDefaults(modelDefaultsByProjectFeature: Map<String, ModelDefaultsResolutionResults>) {
-        projectFeatureRegistry.projectFeatureImplementations.values.forEach { implementation ->
+        projectFeatureDeclarations.projectFeatureImplementations.values.forEach { implementation ->
             modelDefaultsByProjectFeature[implementation.featureName]?.let { modelDefaults ->
                 val recordsFromModelDefaults = modelDefaults.additions.map(::AdditionRecordDefault) +
                     modelDefaults.assignments.map(::AssignmentRecordDefault) +

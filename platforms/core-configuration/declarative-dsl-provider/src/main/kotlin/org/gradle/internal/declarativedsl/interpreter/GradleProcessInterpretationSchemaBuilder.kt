@@ -24,20 +24,20 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.SchemaNotBuilt
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequence
 import org.gradle.internal.declarativedsl.settings.settingsInterpretationSequence
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 
 class GradleProcessInterpretationSchemaBuilder(
     /** Accessed lazily, as there is no valid [SettingsInternal] reference to be injected when this service is created. */
     private val getSettings: () -> SettingsInternal,
-    private val projectFeatureRegistry: ProjectFeatureRegistry,
+    private val projectFeatureDeclarations: ProjectFeatureDeclarations,
 ) : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult =
         when (scriptContext) {
             is DeclarativeScriptContext.UnknownScript -> SchemaNotBuilt
 
-            DeclarativeScriptContext.SettingsScript -> InterpretationSequenceAvailable(settingsInterpretationSequence(getSettings(), projectFeatureRegistry))
+            DeclarativeScriptContext.SettingsScript -> InterpretationSequenceAvailable(settingsInterpretationSequence(getSettings(), projectFeatureDeclarations))
 
-            DeclarativeScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence(projectFeatureRegistry))
+            DeclarativeScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence(projectFeatureDeclarations))
         }
 }

@@ -34,7 +34,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -45,19 +45,19 @@ import java.util.stream.Collectors;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
- * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} or {@link RegistersProjectFeatures} annotations and registers the
- * specified plugins with the {@link ProjectFeatureRegistry} prior to applying the plugin via the delegate.
+ * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} or {@link RegistersProjectFeatures} annotations and adds the
+ * specified plugins to {@link ProjectFeatureDeclarations} prior to applying the plugin via the delegate.
  */
 @NullMarked
-public class ProjectFeatureRegistrationPluginTarget implements PluginTarget {
+public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
-    private final ProjectFeatureRegistry projectFeatureRegistry;
+    private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
 
-    public ProjectFeatureRegistrationPluginTarget(PluginTarget delegate, ProjectFeatureRegistry projectFeatureRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public ProjectFeatureDeclarationPluginTarget(PluginTarget delegate, ProjectFeatureDeclarations projectFeatureDeclarations, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.delegate = delegate;
-        this.projectFeatureRegistry = projectFeatureRegistry;
+        this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
     }
@@ -71,8 +71,8 @@ public class ProjectFeatureRegistrationPluginTarget implements PluginTarget {
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         TypeToken<?> pluginType = TypeToken.of(plugin.getClass());
         TypeMetadata typeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginType.getRawType());
-        registerProjectTypes(pluginId, typeMetadata);
-        registerProjectFeatures(pluginId, typeMetadata);
+        findAndAddProjectTypes(pluginId, typeMetadata);
+        findAndAddProjectFeatures(pluginId, typeMetadata);
 
         delegate.applyImperative(pluginId, plugin);
     }
@@ -92,24 +92,24 @@ public class ProjectFeatureRegistrationPluginTarget implements PluginTarget {
         return delegate.toString();
     }
 
-    private void registerProjectTypes(@Nullable String pluginId, TypeMetadata typeMetadata) {
+    private void findAndAddProjectTypes(@Nullable String pluginId, TypeMetadata typeMetadata) {
         Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
         registersSoftwareType.ifPresent(registration -> {
-            registerFeatures(registration.value(), Cast.uncheckedCast(typeMetadata.getType()), pluginId);
+            addFeatureDeclarations(registration.value(), Cast.uncheckedCast(typeMetadata.getType()), pluginId);
         });
     }
 
-    private void registerProjectFeatures(@Nullable String pluginId, TypeMetadata typeMetadata) {
+    private void findAndAddProjectFeatures(@Nullable String pluginId, TypeMetadata typeMetadata) {
         Optional<RegistersProjectFeatures> registersProjectFeatures = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersProjectFeatures.class);
         registersProjectFeatures.ifPresent(registration -> {
-            registerFeatures(registration.value(), Cast.uncheckedCast(typeMetadata.getType()), pluginId);
+            addFeatureDeclarations(registration.value(), Cast.uncheckedCast(typeMetadata.getType()), pluginId);
         });
     }
 
-    private void registerFeatures(Class<? extends Plugin<Project>>[] featurePlugins, Class<? extends Plugin<Settings>> registeringPlugin, @Nullable String pluginId) {
+    private void addFeatureDeclarations(Class<? extends Plugin<Project>>[] featurePlugins, Class<? extends Plugin<Settings>> registeringPlugin, @Nullable String pluginId) {
         for (Class<? extends Plugin<Project>> projectFeatureImplClass : featurePlugins) {
             validateProjectFeatures(projectFeatureImplClass, registeringPlugin);
-            projectFeatureRegistry.register(pluginId, projectFeatureImplClass, registeringPlugin);
+            projectFeatureDeclarations.addDeclaration(pluginId, projectFeatureImplClass, registeringPlugin);
         }
     }
 

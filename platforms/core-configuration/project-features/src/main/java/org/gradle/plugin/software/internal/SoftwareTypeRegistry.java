@@ -27,8 +27,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 /**
- * @deprecated Kept for binary compatiblity as an alias for {@link ProjectFeatureRegistry}, as it is exposed in protected members of some tasks
- *   Use {@link ProjectFeatureRegistry} instead.
+ * @deprecated Kept for binary compatiblity as an alias for {@link ProjectFeatureDeclarations}, as it is exposed in protected members of some tasks
+ *   Use {@link ProjectFeatureDeclarations} instead.
  */
 @Deprecated
 @ServiceScope(Scope.Build.class)

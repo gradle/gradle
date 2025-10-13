@@ -81,6 +81,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.Describables
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -101,7 +102,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -125,6 +126,7 @@ class DefaultProjectTest extends Specification {
 
     DefaultProject project, child1, child2, childchild
     ProjectState projectState, child1State, child2State, chilchildState
+    BuildState buildState
 
     ProjectEvaluator projectEvaluator = Mock(ProjectEvaluator)
 
@@ -244,7 +246,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.withNoAssociatedProject()
-        serviceRegistryMock.get(ProjectFeatureRegistry) >> Stub(ProjectFeatureRegistry)
+        serviceRegistryMock.get(ProjectFeatureDeclarations) >> Stub(ProjectFeatureDeclarations)
         serviceRegistryMock.get(ProjectFeatureApplicator) >> Stub(ProjectFeatureApplicator)
         pluginManager.getPluginContainer() >> pluginContainer
 
@@ -266,6 +268,9 @@ class DefaultProjectTest extends Specification {
         build.isRootBuild() >> true
         build.getIdentityPath() >> Path.ROOT
 
+        buildState = Stub(BuildState)
+        buildState.getIdentityPath() >> Path.ROOT
+
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
         serviceRegistryMock.get((Type) DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
@@ -273,15 +278,19 @@ class DefaultProjectTest extends Specification {
         projectState = Mock(ProjectState)
         projectState.name >> 'root'
         projectState.displayName >> Describables.of("displayname")
+        projectState.owner >> buildState
         project = defaultProject('root', projectState, null, rootDir, rootProjectClassLoaderScope)
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
+        child1State.owner >> buildState
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
         child1State.mutableModel >> child1
         child1State.name >> "child1"
         chilchildState = Mock(ProjectState)
+        chilchildState.owner >> buildState
         childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild", null))
         child2State = Mock(ProjectState)
+        child2State.owner >> buildState
         child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2", null))
         child2State.mutableModel >> child2
         child2State.name >> "child2"
@@ -1014,15 +1023,3 @@ class TaskContainerDynamicObject {
         closure.call()
     }
 }
-
-class TestConvention {
-    final static String METHOD_RESULT = 'methodResult'
-    String name
-    String conv
-    String archivesBaseName
-
-    def scriptMethod(Closure cl) {
-        METHOD_RESULT
-    }
-}
-

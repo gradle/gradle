@@ -76,7 +76,7 @@ abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject
     }
 
     @Inject
-    abstract protected ProjectFeatureRegistry getProjectFeatureRegistry();
+    abstract protected ProjectFeatureDeclarations getProjectFeatureRegistry();
 
     @Inject
     abstract protected ProjectFeatureApplicator getProjectFeatureApplicator();
