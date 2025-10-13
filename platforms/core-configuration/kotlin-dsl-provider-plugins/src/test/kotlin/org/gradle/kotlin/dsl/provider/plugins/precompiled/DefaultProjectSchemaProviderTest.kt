@@ -29,7 +29,7 @@ import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.kotlin.dsl.provider.plugins.DefaultProjectSchemaProvider
 import org.gradle.kotlin.dsl.provider.plugins.KotlinDslDclSchemaCollector
 import org.gradle.kotlin.dsl.provider.plugins.typeOf
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -63,7 +63,7 @@ class DefaultProjectSchemaProviderTest {
         assertThat(
             DefaultProjectSchemaProvider(object : KotlinDslDclSchemaCollector {
                 override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> = emptyList()
-                override fun collectProjectTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> = emptyList()
+                override fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>> = emptyList()
             }).targetSchemaFor(
                 androidExtension,
                 typeOf<AndroidExtension>(),

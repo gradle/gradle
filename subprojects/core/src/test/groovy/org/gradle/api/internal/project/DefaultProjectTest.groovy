@@ -102,7 +102,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -246,7 +246,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.withNoAssociatedProject()
-        serviceRegistryMock.get(ProjectFeatureRegistry) >> Stub(ProjectFeatureRegistry)
+        serviceRegistryMock.get(ProjectFeatureDeclarations) >> Stub(ProjectFeatureDeclarations)
         serviceRegistryMock.get(ProjectFeatureApplicator) >> Stub(ProjectFeatureApplicator)
         pluginManager.getPluginContainer() >> pluginContainer
 

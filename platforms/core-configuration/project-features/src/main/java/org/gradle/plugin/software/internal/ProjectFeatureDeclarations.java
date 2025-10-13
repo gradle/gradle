@@ -27,24 +27,24 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 /**
- * Allows registration of project features implemented by plugins.
+ * Declarations of project features implemented by plugins.
  */
 @ServiceScope(Scope.Build.class) // TODO: Might be too specific a scope, but needed something there
-public interface ProjectFeatureRegistry {
+public interface ProjectFeatureDeclarations {
     /**
-     * Registers a plugin as providing a project feature.  Cannot be called again once the list of project features has been
+     * Declares a plugin as providing a project feature.  Cannot be called again once the list of project features has been
      * queried via {@link #getProjectFeatureImplementations()}.
      */
-    void register(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
+    void addDeclaration(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
 
     /**
      * Returns a map of available project features, along with their types and associated plugins, keyed by project feature name.  Note that once
-     * method is called, calling {@link #register(String, Class, Class)} will result in an error.
+     * method is called, calling {@link #addDeclaration(String, Class, Class)} will result in an error.
      */
     Map<String, ProjectFeatureImplementation<?, ?>> getProjectFeatureImplementations();
 
     /**
-     * Returns the schema for the registered project features.
+     * Returns the schema for the declared project features.
      */
     NamedDomainObjectCollectionSchema getSchema();
 }
