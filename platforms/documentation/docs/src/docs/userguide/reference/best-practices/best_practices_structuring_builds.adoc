@@ -365,7 +365,7 @@ However, due to historical reasons, these subtle differences still exist.
 As this changes, this recommendation may be revised in the future.
 For now, these differences can introduce confusion.
 
-Since setting up a composite build requires only minimal additional configuration, we recommend using it over `buildSrc` in most cases.
+Since setting up a composite build requires only minimal additional configuration, we recommend using it over `buildSrc` in most cases, especially for creating <<#use_convention_plugins,convention plugins>>.
 
 === Example
 
@@ -633,6 +633,7 @@ They are often a better choice for build logic that does not need to be shared o
 Unlike binary plugins, convention plugins allow accessing plugin extensions, tasks and configurations via static accessors in build scripts written in Kotlin.
 
 While setting up convention plugins takes some initial effort, it pays off by simplifying maintenance, improving comprehensibility, and making it easier to add new projects as your codebase grows.
+
 As mentioned in <<#favor_composite_builds,Favor `build-logic` Composite Builds for Build Logic>>, we recommend placing your convention plugins in an included build (often named `build-logic`) instead of `buildSrc`.
 
 === Example
@@ -650,6 +651,16 @@ include::sample[dir="snippets/bestPractices/useConventionPlugins-avoid/groovy",f
 <4> Unique project dependencies.
 
 ==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useConventionPlugins-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useConventionPlugins-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 Create included build containing convention plugins for your build in `build-logic` and add it to your settings file:
 
