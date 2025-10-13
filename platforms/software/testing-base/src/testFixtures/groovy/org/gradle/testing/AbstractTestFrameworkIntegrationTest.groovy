@@ -133,7 +133,11 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         then:
         testResult.assertAtLeastTestPathsExecuted('SomeTest', 'SomeTest', 'SomeOtherTest')
-        testResult.testPath('SomeTest', failingTestCaseName).onlyRoot().assertHasResult(TestResult.ResultType.FAILURE).assertStderr(CoreMatchers.containsString("some error output"))
+        def failingTestPath = testResult.testPath('SomeTest', failingTestCaseName).onlyRoot()
+        failingTestPath.assertHasResult(TestResult.ResultType.FAILURE)
+        if (capturesTestOutput()) {
+            failingTestPath.assertStderr(CoreMatchers.containsString("some error output"))
+        }
         testResult.testPath('SomeOtherTest', passingTestCaseName).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
