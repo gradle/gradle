@@ -60,6 +60,7 @@ dependencies {
 
     implementation(projects.core)
     implementation(projects.buildProcessServices)
+    implementation(projects.functional)
     implementation(projects.logging)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
