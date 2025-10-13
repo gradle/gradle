@@ -16,21 +16,22 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.jspecify.annotations.Nullable;
 
-
-/**
- * Interface for emitting problems.
- */
-public interface ProblemEmitter {
+public interface ProblemReporterInternal extends ProblemReporter {
 
     /**
-     * Emits the given problem in an implementation specific way.
+     * Reports the target problem with an explicit operation identifier.
      * <p>
-     * The problem will be associated with the given operation identifier.
+     * This method is used to report problems from workers, where the operation identifier is not available.
      *
-     * @param problem The problem to emit.
+     * @param problem The problem to report.
+     * @param id The operation identifier.
      */
-    void emit(ProblemInternal problem, @Nullable OperationIdentifier id);
+    void report(Problem problem, OperationIdentifier id);
+
+    ProblemInternal internalCreate(Action<? super ProblemSpecInternal> action);
 }

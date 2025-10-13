@@ -48,12 +48,13 @@ import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
-import org.gradle.api.problems.internal.InternalProblem
-import org.gradle.api.problems.internal.InternalProblemBuilder
-import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemBuilderInternal
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.problems.internal.ProblemsInfrastructure
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.util.internal.PatternSets
@@ -408,7 +409,7 @@ class MockInstantiator implements Instantiator {
 
 class TestProblems implements InternalProblems {
     private final TestProblemSummarizer summarizer
-    private final InternalProblems delegate
+    private final ProblemsInternal delegate
 
     TestProblems() {
         this.summarizer = new TestProblemSummarizer()
@@ -431,7 +432,7 @@ class TestProblems implements InternalProblems {
     }
 
     @Override
-    InternalProblemReporter getInternalReporter() {
+    ProblemReporterInternal getInternalReporter() {
         delegate.internalReporter
     }
 
@@ -441,7 +442,7 @@ class TestProblems implements InternalProblems {
     }
 
     @Override
-    InternalProblemBuilder getProblemBuilder() {
+    ProblemBuilderInternal getProblemBuilder() {
         delegate.getProblemBuilder()
     }
 
@@ -478,7 +479,7 @@ class TestProblemSummarizer implements ProblemSummarizer {
     List emitted = []
 
     @Override
-    void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         emitted.add(problem)
     }
 
