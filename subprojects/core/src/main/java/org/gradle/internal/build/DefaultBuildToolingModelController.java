@@ -139,7 +139,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             // Force configuration of the target project to ensure all builders have been registered
             target.ensureConfigured();
             ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, parameter, target);
+            return lookup.locateForClientOperation(modelName, parameter, target, target.getMutableModel());
         }
     }
 }

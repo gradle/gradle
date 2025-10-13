@@ -85,7 +85,7 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public ProjectInternal getMutableModelEvenAfterFailure() {
-        controller.assertIfFailedThenAfter(State.Created);
+        controller.assertInStateOrLaterIgnoringFailures(State.Created);
         return project;
     }
 

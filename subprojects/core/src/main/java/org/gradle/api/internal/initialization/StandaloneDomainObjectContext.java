@@ -159,8 +159,8 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
     }
 
     @Override
-    public <S> S runSync(Supplier<S> action) {
-        throw new UnsupportedOperationException();
+    public <S> S runWithModelLock(Supplier<S> action) {
+        return action.get();
     }
 
     @Override
