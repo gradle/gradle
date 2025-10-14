@@ -46,11 +46,14 @@ public class NodeComparator implements Comparator<Node> {
             if (n2 instanceof OrdinalNode) {
                 OrdinalNode o1 = (OrdinalNode) n1;
                 OrdinalNode o2 = (OrdinalNode) n2;
-                int ordinalCmp = Integer.compare(o1.getOrdinalGroup().getOrdinal(), o2.getOrdinalGroup().getOrdinal());
-                if (ordinalCmp == 0) {
+                int ordinalDiff = Integer.compare(
+                    o1.getOrdinalGroup().getOrdinal(),
+                    o2.getOrdinalGroup().getOrdinal()
+                );
+                if (ordinalDiff == 0) {
                     return o1.getType().compareTo(o2.getType());
                 }
-                return ordinalCmp;
+                return ordinalDiff;
             }
             return -1;
         }
@@ -60,7 +63,10 @@ public class NodeComparator implements Comparator<Node> {
 
         if (n1 instanceof ResolveMutationsNode) {
             if (n2 instanceof ResolveMutationsNode) {
-                return compareTaskNodes(((ResolveMutationsNode) n1).getNode(), ((ResolveMutationsNode) n2).getNode());
+                return compareTaskNodes(
+                    ((ResolveMutationsNode) n1).getNode(),
+                    ((ResolveMutationsNode) n2).getNode()
+                );
             }
             return -1;
         }
@@ -93,7 +99,10 @@ public class NodeComparator implements Comparator<Node> {
 
         if (n1 instanceof ActionNode) {
             if (n2 instanceof ActionNode) {
-                return compareIdentities(n1, n2);
+                return Integer.compare(
+                    System.identityHashCode(n1),
+                    System.identityHashCode(n2)
+                );
             }
             return -1;
         }
@@ -111,12 +120,7 @@ public class NodeComparator implements Comparator<Node> {
     }
 
     private static int compareTaskNodes(LocalTaskNode n1, LocalTaskNode n2) {
-        return n1.getTask().compareTo(
-            n2.getTask()
-        );
+        return n1.getTask().compareTo(n2.getTask());
     }
 
-    private static int compareIdentities(Node o1, Node o2) {
-        return Integer.compare(System.identityHashCode(o1), System.identityHashCode(o2));
-    }
 }
