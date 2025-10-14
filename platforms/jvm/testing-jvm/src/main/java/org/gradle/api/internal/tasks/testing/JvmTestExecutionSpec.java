@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -32,7 +31,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final Iterable<? extends File> classpath;
     private final Iterable<? extends File> modulePath;
     private final FileTree candidateClassFiles;
-    private final Set<Directory> candidateResourceFiles;
+    private final Set<File> candidateResourceDirs;
     private final boolean scanForTestClasses;
     private final boolean scanForTestResources;
     private final FileCollection testClassesDirs;
@@ -46,14 +45,14 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
 
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
                                 FileTree candidateClassFiles, boolean scanForTestClasses,
-                                Set<Directory> candidateResourceFiles, boolean scanForTestResources,
+                                Set<File> candidateResourceDirs, boolean scanForTestResources,
                                 FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
         this.candidateClassFiles = candidateClassFiles;
         this.scanForTestClasses = scanForTestClasses;
-        this.candidateResourceFiles = candidateResourceFiles;
+        this.candidateResourceDirs = candidateResourceDirs;
         this.scanForTestResources = scanForTestResources;
         this.testClassesDirs = testClassesDirs;
         this.path = path;
@@ -69,7 +68,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     @UsedByScanPlugin("test-retry")
     public JvmTestExecutionSpec copyWithTestFramework(TestFramework testFramework) {
         return new JvmTestExecutionSpec(testFramework, this.classpath, this.modulePath,
-            this.candidateClassFiles, this.scanForTestClasses, this.candidateResourceFiles, this.scanForTestResources,
+            this.candidateClassFiles, this.scanForTestClasses, this.candidateResourceDirs, this.scanForTestResources,
             this.testClassesDirs, this.path, this.identityPath, this.forkEvery,
             this.javaForkOptions, this.maxParallelForks, this.previousFailedTestClasses, this.testIsModule
         );
@@ -95,8 +94,8 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return scanForTestClasses;
     }
 
-    public Set<Directory> getCandidateResourceFiles() {
-        return candidateResourceFiles;
+    public Set<File> getCandidateResourceDirs() {
+        return candidateResourceDirs;
     }
 
     public boolean isScanForTestResources() {

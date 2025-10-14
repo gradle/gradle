@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
@@ -27,7 +26,7 @@ import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 
-import java.util.Collections;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -37,16 +36,16 @@ import java.util.regex.Pattern;
 public class DefaultTestClassScanner implements TestDetector {
     private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
-    private final Set<Directory> candidateResourceFiles;
+    private final Set<File> candidateResourceDirs;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
 
     public DefaultTestClassScanner(FileTree candidateClassFiles,
-                                   Set<Directory> candidateResourceFiles,
+                                   Set<File> candidateResourceDirs,
                                    TestFrameworkDetector testFrameworkDetector,
                                    TestClassProcessor testClassProcessor) {
         this.candidateClassFiles = candidateClassFiles;
-        this.candidateResourceFiles = candidateResourceFiles;
+        this.candidateResourceDirs = candidateResourceDirs;
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
     }
@@ -78,8 +77,8 @@ public class DefaultTestClassScanner implements TestDetector {
                 testClassProcessor.processTestDefinition(testDefinition);
             }
         });
-        candidateResourceFiles.forEach(dir -> {
-            TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir.getAsFile());
+        candidateResourceDirs.forEach(dir -> {
+            TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
             testClassProcessor.processTestDefinition(testDefinition);
         });
     }

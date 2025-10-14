@@ -113,4 +113,9 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     public boolean supportsResourceBasedTesting() {
         return true;
     }
+
+    @Override
+    public String getDisplayName() {
+        return "JUnit Platform";
+    }
 }

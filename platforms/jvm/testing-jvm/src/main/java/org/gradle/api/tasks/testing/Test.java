@@ -20,11 +20,11 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -46,7 +46,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -206,7 +205,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
-        getScanForTestResources().convention(getProject().getProviders().provider(() -> !getTestResourcesDirs().get().isEmpty()));
+        getScanForTestDefinitions().convention(getProject().getProviders().provider(() -> !getTestDefinitionDirs().getFiles().isEmpty()));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -663,6 +662,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
+        if (!getTestFramework().supportsResourceBasedTesting() && getScanForTestDefinitions().get()) {
+            // TODO: Can we add a name?  Make TestFramework extend Describable?
+            throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
+        }
+
         validateExecutableMatchesToolchain();
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
@@ -672,7 +676,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), candidateResourceFiles().get(), getScanForTestResources().get(),
+            getCandidateClassFiles(), isScanForTestClasses(), candidateDefinitionDirs().getFiles(), getScanForTestDefinitions().get(),
             getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
@@ -870,7 +874,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @InputFiles
     @Optional
     @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract SetProperty<Directory> getTestResourcesDirs();
+    public abstract ConfigurableFileCollection getTestDefinitionDirs();
 
     /**
      * Sets the directories to scan for compiled test sources.
@@ -1170,7 +1174,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Incubating
     @Input
     @Optional
-    public abstract Property<Boolean> getScanForTestResources();
+    public abstract Property<Boolean> getScanForTestDefinitions();
 
     public void setScanForTestClasses(boolean scanForTestClasses) {
         this.scanForTestClasses = scanForTestClasses;
@@ -1268,8 +1272,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 9.3.0
      */
     @Incubating
-    public SetProperty<Directory> candidateResourceFiles() { // TODO: also adjust naming to get (avoided for now to avoid property must be abstract check)
-        return getTestResourcesDirs(); // TODO: filtering? Make getCandidateResourceFiles a prop directly? One of these methods is unnecessary
+    public ConfigurableFileCollection candidateDefinitionDirs() { // TODO: also adjust naming to getXYZ() (skipped for now to avoid property must be abstract check)
+        return getTestDefinitionDirs(); // TODO: filtering? Make getCandidateResourceFiles a prop directly? One of these methods is unnecessary
     }
 
     /**
