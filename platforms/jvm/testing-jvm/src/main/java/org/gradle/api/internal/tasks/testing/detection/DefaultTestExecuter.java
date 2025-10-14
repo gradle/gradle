@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -42,6 +41,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
@@ -94,7 +94,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                     new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
-        final Set<Directory> testResourceFiles = testExecutionSpec.getCandidateResourceFiles();
+        final Set<File> testResourceDirs = testExecutionSpec.getCandidateResourceDirs();
 
         // TODO: this logic is incorrect - need to handle the ONLY test resources case properly
         // TODO: can iterate test directories directly, don't need to go through DefaultTestClassScanner, which should simplify things
@@ -103,9 +103,9 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
-            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : Collections.emptySet(), testFrameworkDetector, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceDirs : Collections.emptySet(), testFrameworkDetector, processor);
         } else {
-            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : Collections.emptySet(), null, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceDirs : Collections.emptySet(), null, processor);
         }
 
         // What is this?

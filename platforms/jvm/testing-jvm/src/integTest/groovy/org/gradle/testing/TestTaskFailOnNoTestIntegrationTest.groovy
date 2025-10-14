@@ -16,8 +16,8 @@
 
 package org.gradle.testing
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -51,7 +51,7 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
     }
 
-    //@Ignore("This is meant for local testing and only works on Tom's machine")
+    @Ignore("This is meant for local testing and only works on Tom's machine")
     def "resource-based testing detects tests from resources"() {
         settingsFile << """
             // TODO: Absolute paths on Tom's machine for testing
@@ -78,8 +78,8 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
                 targets.all {
                     testTask.configure {
                         // setScanForTestClasses(false)
-                        setScanForTestResources(true)
-                        testResourcesDirs.add(project.layout.projectDirectory.dir("src/test/rbts"))
+                        setScanForTestDefinitions(true)
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/rbts"))
 
                         options {
                             includeEngines("rbt-engine")
@@ -90,6 +90,7 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        // Avoid no source error (TODO: remove this)
         file("src/test/java/NotATest.java") << """
             public class NotATest {}
         """
@@ -100,9 +101,61 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
                 <test name="bar" />
             </tests>
         """
+        file("src/test/rbts/subSomeOtherTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="other" />
+            </tests>
+        """
 
         expect:
         succeeds("test", "-S", "--info")
+
+        and:
+        outputContains("INFO: Executing test: Test [file=SomeTestSpec.rbt, name=foo]")
+        outputContains("INFO: Executing test: Test [file=SomeTestSpec.rbt, name=bar]")
+        outputContains("INFO: Executing test: Test [file=subSomeOtherTestSpec.rbt, name=other]")
+    }
+
+    def "can't do resource-based testing with unsupported test framework #testFrameworkName"() {
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'jvm-test-suite'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                $testFrameworkMethod
+
+                dependencies {
+                    implementation 'org.testng:testng:${TestNGCoverage.NEWEST}'
+                }
+
+                targets.all {
+                    testTask.configure {
+                        setScanForTestDefinitions(true)
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/rbts"))
+                    }
+                }
+            }
+        """
+
+        // Avoid no source error (TODO: remove this)
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+
+        expect:
+        fails("test")
+
+        and:
+        failure.assertHasCause("The $testFrameworkName test framework does not support resource-based testing.")
+
+        where:
+        testFrameworkName | testFrameworkMethod
+        "Test NG"         | "useTestNG()"
+        "JUnit"           | "useJUnit()"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30315")
