@@ -634,10 +634,7 @@ class BasicParsingTest {
             """
             import a.b.c
 
-            // start of actual script content is here -- imports are counted separately because of the workarounds
-
             f(x)
-
 
             a = 1
             """.trimIndent()
@@ -647,21 +644,21 @@ class BasicParsingTest {
             Import [indexes: 0..12, line/column: 1/1..1/13, file: test (
                 name parts = [a, b, c]
             )
-            FunctionCall [indexes: 104..108, line/column: 3/1..3/5, file: test] (
+            FunctionCall [indexes: 14..18, line/column: 3/1..3/5, file: test] (
                 name = f
                 args = [
-                    FunctionArgument.Positional [indexes: 106..107, line/column: 3/3..3/4, file: test] (
-                        expr = NamedReference [indexes: 106..107, line/column: 3/3..3/4, file: test] (
+                    FunctionArgument.Positional [indexes: 16..17, line/column: 3/3..3/4, file: test] (
+                        expr = NamedReference [indexes: 16..17, line/column: 3/3..3/4, file: test] (
                             name = x
                         )
                     )
                 ]
             )
-            Assignment [indexes: 111..116, line/column: 6/1..6/6, file: test] (
-                lhs = NamedReference [indexes: 111..112, line/column: 6/1..6/2, file: test] (
+            Assignment [indexes: 20..25, line/column: 5/1..5/6, file: test] (
+                lhs = NamedReference [indexes: 20..21, line/column: 5/1..5/2, file: test] (
                     name = a
                 )
-                rhs = IntLiteral [indexes: 115..116, line/column: 6/5..6/6, file: test] (1)
+                rhs = IntLiteral [indexes: 24..25, line/column: 5/5..5/6, file: test] (1)
             )
         """.trimIndent()
 

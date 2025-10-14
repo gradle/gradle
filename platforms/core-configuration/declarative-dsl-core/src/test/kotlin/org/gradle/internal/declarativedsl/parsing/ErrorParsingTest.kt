@@ -218,18 +218,13 @@ class ErrorParsingTest {
             )
             ErroneousStatement (
                 ParsingError(
-                    message = Unexpected tokens (use ';' to separate expressions on the same line),
-                    potentialElementSource = indexes: 14..17, line/column: 2/4..2/7, file: test,
-                    erroneousSource = indexes: 14..17, line/column: 2/4..2/7, file: test
+                    message = Expecting an element,
+                    potentialElementSource = indexes: 14..15, line/column: 2/4..2/5, file: test,
+                    erroneousSource = indexes: 14..15, line/column: 2/4..2/5, file: test
                 )
             )
-            ErroneousStatement (
-                ParsingError(
-                    message = Expecting an element,
-                    potentialElementSource = indexes: 17..18, line/column: 2/7..2/8, file: test,
-                    erroneousSource = indexes: 17..18, line/column: 2/7..2/8, file: test
-                )
-            )""".trimIndent()
+            IntLiteral [indexes: 16..17, line/column: 2/6..2/7, file: test] (1)
+        """.trimIndent()
         ParseTestUtil.parse(code).assert(expected)
     }
 
@@ -291,22 +286,19 @@ class ErrorParsingTest {
 
         val expected = """
             ErroneousStatement (
-                MultipleFailures(
-                    ParsingError(
-                        message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ',',
-                        potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test,
-                        erroneousSource = indexes: 42..42, line/column: 1/43..1/43, file: test
-                    )
-                    ParsingError(
-                        message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ')',
-                        potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test,
-                        erroneousSource = indexes: 44..44, line/column: 1/45..1/45, file: test
-                    )
+                ParsingError(
+                    message = Unparsable value argument: "("plugin-id-1) ; kotlin("plugin-id-2")". Expecting ',',
+                    potentialElementSource = indexes: 6..44, line/column: 1/7..1/45, file: test,
+                    erroneousSource = indexes: 42..42, line/column: 1/43..1/43, file: test
                 )
             )""".trimIndent()
         ParseTestUtil.parse(code).assert(expected)
     }
 
+    /**
+     * The Kotlin Script parser fails to report an error here. It simply produces two top-level expressions for `c 3`.
+     * This is tracked in https://youtrack.jetbrains.com/issue/KT-81665/
+     */
     @Test
     fun `missing assignment in one of a series of assignments`() {
         val code = """
@@ -333,13 +325,7 @@ class ErrorParsingTest {
             NamedReference [indexes: 12..13, line/column: 3/1..3/2, file: test] (
                 name = c
             )
-            ErroneousStatement (
-                ParsingError(
-                    message = Unexpected tokens (use ';' to separate expressions on the same line),
-                    potentialElementSource = indexes: 14..15, line/column: 3/3..3/4, file: test,
-                    erroneousSource = indexes: 14..15, line/column: 3/3..3/4, file: test
-                )
-            )
+            IntLiteral [indexes: 14..15, line/column: 3/3..3/4, file: test] (3)
             Assignment [indexes: 16..21, line/column: 4/1..4/6, file: test] (
                 lhs = NamedReference [indexes: 16..17, line/column: 4/1..4/2, file: test] (
                     name = d
@@ -462,13 +448,7 @@ class ErrorParsingTest {
                     erroneousSource = indexes: 16..16, line/column: 3/4..3/4, file: test
                 )
             )
-            ErroneousStatement (
-                ParsingError(
-                    message = Unexpected tokens (use ';' to separate expressions on the same line),
-                    potentialElementSource = indexes: 17..18, line/column: 3/5..3/6, file: test,
-                    erroneousSource = indexes: 17..18, line/column: 3/5..3/6, file: test
-                )
-            )
+            IntLiteral [indexes: 17..18, line/column: 3/5..3/6, file: test] (9)
             Assignment [indexes: 19..25, line/column: 4/1..4/7, file: test] (
                 lhs = NamedReference [indexes: 19..20, line/column: 4/1..4/2, file: test] (
                     name = d
@@ -500,13 +480,7 @@ class ErrorParsingTest {
                     erroneousSource = indexes: 14..15, line/column: 2/9..2/10, file: test
                 )
             )
-            ErroneousStatement (
-                ParsingError(
-                    message = Unexpected tokens (use ';' to separate expressions on the same line),
-                    potentialElementSource = indexes: 16..17, line/column: 2/11..2/12, file: test,
-                    erroneousSource = indexes: 16..17, line/column: 2/11..2/12, file: test
-                )
-            )
+            IntLiteral [indexes: 16..17, line/column: 2/11..2/12, file: test] (3)
             Assignment [indexes: 18..23, line/column: 3/1..3/6, file: test] (
                 lhs = NamedReference [indexes: 18..19, line/column: 3/1..3/2, file: test] (
                     name = d
@@ -829,197 +803,203 @@ class ErrorParsingTest {
                 )
                 rhs = IntLiteral [indexes: 162..163, line/column: 14/7..14/8, file: test] (1)
             )
-            Assignment [indexes: 164..173, line/column: 15/1..15/10, file: test] (
-                lhs = NamedReference [indexes: 164..169, line/column: 15/1..15/6, file: test] (
+            Assignment [indexes: 164..174, line/column: 15/1..15/11, file: test] (
+                lhs = NamedReference [indexes: 164..170, line/column: 15/1..15/7, file: test] (
+                    name = import
+                )
+                rhs = IntLiteral [indexes: 173..174, line/column: 15/10..15/11, file: test] (1)
+            )
+            Assignment [indexes: 175..184, line/column: 16/1..16/10, file: test] (
+                lhs = NamedReference [indexes: 175..180, line/column: 16/1..16/6, file: test] (
                     name = infix
                 )
-                rhs = IntLiteral [indexes: 172..173, line/column: 15/9..15/10, file: test] (1)
+                rhs = IntLiteral [indexes: 183..184, line/column: 16/9..16/10, file: test] (1)
             )
-            Assignment [indexes: 174..182, line/column: 16/1..16/9, file: test] (
-                lhs = NamedReference [indexes: 174..178, line/column: 16/1..16/5, file: test] (
+            Assignment [indexes: 185..193, line/column: 17/1..17/9, file: test] (
+                lhs = NamedReference [indexes: 185..189, line/column: 17/1..17/5, file: test] (
                     name = init
                 )
-                rhs = IntLiteral [indexes: 181..182, line/column: 16/8..16/9, file: test] (1)
+                rhs = IntLiteral [indexes: 192..193, line/column: 17/8..17/9, file: test] (1)
             )
-            Assignment [indexes: 183..193, line/column: 17/1..17/11, file: test] (
-                lhs = NamedReference [indexes: 183..189, line/column: 17/1..17/7, file: test] (
+            Assignment [indexes: 194..204, line/column: 18/1..18/11, file: test] (
+                lhs = NamedReference [indexes: 194..200, line/column: 18/1..18/7, file: test] (
                     name = inline
                 )
-                rhs = IntLiteral [indexes: 192..193, line/column: 17/10..17/11, file: test] (1)
+                rhs = IntLiteral [indexes: 203..204, line/column: 18/10..18/11, file: test] (1)
             )
-            Assignment [indexes: 194..203, line/column: 18/1..18/10, file: test] (
-                lhs = NamedReference [indexes: 194..199, line/column: 18/1..18/6, file: test] (
+            Assignment [indexes: 205..214, line/column: 19/1..19/10, file: test] (
+                lhs = NamedReference [indexes: 205..210, line/column: 19/1..19/6, file: test] (
                     name = inner
                 )
-                rhs = IntLiteral [indexes: 202..203, line/column: 18/9..18/10, file: test] (1)
+                rhs = IntLiteral [indexes: 213..214, line/column: 19/9..19/10, file: test] (1)
             )
-            Assignment [indexes: 204..216, line/column: 19/1..19/13, file: test] (
-                lhs = NamedReference [indexes: 204..212, line/column: 19/1..19/9, file: test] (
+            Assignment [indexes: 215..227, line/column: 20/1..20/13, file: test] (
+                lhs = NamedReference [indexes: 215..223, line/column: 20/1..20/9, file: test] (
                     name = internal
                 )
-                rhs = IntLiteral [indexes: 215..216, line/column: 19/12..19/13, file: test] (1)
+                rhs = IntLiteral [indexes: 226..227, line/column: 20/12..20/13, file: test] (1)
             )
-            Assignment [indexes: 217..229, line/column: 20/1..20/13, file: test] (
-                lhs = NamedReference [indexes: 217..225, line/column: 20/1..20/9, file: test] (
+            Assignment [indexes: 228..240, line/column: 21/1..21/13, file: test] (
+                lhs = NamedReference [indexes: 228..236, line/column: 21/1..21/9, file: test] (
                     name = lateinit
                 )
-                rhs = IntLiteral [indexes: 228..229, line/column: 20/12..20/13, file: test] (1)
+                rhs = IntLiteral [indexes: 239..240, line/column: 21/12..21/13, file: test] (1)
             )
-            Assignment [indexes: 230..242, line/column: 21/1..21/13, file: test] (
-                lhs = NamedReference [indexes: 230..238, line/column: 21/1..21/9, file: test] (
+            Assignment [indexes: 241..253, line/column: 22/1..22/13, file: test] (
+                lhs = NamedReference [indexes: 241..249, line/column: 22/1..22/9, file: test] (
                     name = noinline
                 )
-                rhs = IntLiteral [indexes: 241..242, line/column: 21/12..21/13, file: test] (1)
+                rhs = IntLiteral [indexes: 252..253, line/column: 22/12..22/13, file: test] (1)
             )
-            Assignment [indexes: 243..251, line/column: 22/1..22/9, file: test] (
-                lhs = NamedReference [indexes: 243..247, line/column: 22/1..22/5, file: test] (
+            Assignment [indexes: 254..262, line/column: 23/1..23/9, file: test] (
+                lhs = NamedReference [indexes: 254..258, line/column: 23/1..23/5, file: test] (
                     name = open
                 )
-                rhs = IntLiteral [indexes: 250..251, line/column: 22/8..22/9, file: test] (1)
+                rhs = IntLiteral [indexes: 261..262, line/column: 23/8..23/9, file: test] (1)
             )
-            Assignment [indexes: 252..264, line/column: 23/1..23/13, file: test] (
-                lhs = NamedReference [indexes: 252..260, line/column: 23/1..23/9, file: test] (
+            Assignment [indexes: 263..275, line/column: 24/1..24/13, file: test] (
+                lhs = NamedReference [indexes: 263..271, line/column: 24/1..24/9, file: test] (
                     name = operator
                 )
-                rhs = IntLiteral [indexes: 263..264, line/column: 23/12..23/13, file: test] (1)
+                rhs = IntLiteral [indexes: 274..275, line/column: 24/12..24/13, file: test] (1)
             )
-            Assignment [indexes: 265..272, line/column: 24/1..24/8, file: test] (
-                lhs = NamedReference [indexes: 265..268, line/column: 24/1..24/4, file: test] (
+            Assignment [indexes: 276..283, line/column: 25/1..25/8, file: test] (
+                lhs = NamedReference [indexes: 276..279, line/column: 25/1..25/4, file: test] (
                     name = out
                 )
-                rhs = IntLiteral [indexes: 271..272, line/column: 24/7..24/8, file: test] (1)
+                rhs = IntLiteral [indexes: 282..283, line/column: 25/7..25/8, file: test] (1)
             )
-            Assignment [indexes: 273..285, line/column: 25/1..25/13, file: test] (
-                lhs = NamedReference [indexes: 273..281, line/column: 25/1..25/9, file: test] (
+            Assignment [indexes: 284..296, line/column: 26/1..26/13, file: test] (
+                lhs = NamedReference [indexes: 284..292, line/column: 26/1..26/9, file: test] (
                     name = override
                 )
-                rhs = IntLiteral [indexes: 284..285, line/column: 25/12..25/13, file: test] (1)
+                rhs = IntLiteral [indexes: 295..296, line/column: 26/12..26/13, file: test] (1)
             )
-            Assignment [indexes: 286..297, line/column: 26/1..26/12, file: test] (
-                lhs = NamedReference [indexes: 286..293, line/column: 26/1..26/8, file: test] (
+            Assignment [indexes: 297..308, line/column: 27/1..27/12, file: test] (
+                lhs = NamedReference [indexes: 297..304, line/column: 27/1..27/8, file: test] (
                     name = private
                 )
-                rhs = IntLiteral [indexes: 296..297, line/column: 26/11..26/12, file: test] (1)
+                rhs = IntLiteral [indexes: 307..308, line/column: 27/11..27/12, file: test] (1)
             )
-            Assignment [indexes: 298..311, line/column: 27/1..27/14, file: test] (
-                lhs = NamedReference [indexes: 298..307, line/column: 27/1..27/10, file: test] (
+            Assignment [indexes: 309..322, line/column: 28/1..28/14, file: test] (
+                lhs = NamedReference [indexes: 309..318, line/column: 28/1..28/10, file: test] (
                     name = protected
                 )
-                rhs = IntLiteral [indexes: 310..311, line/column: 27/13..27/14, file: test] (1)
+                rhs = IntLiteral [indexes: 321..322, line/column: 28/13..28/14, file: test] (1)
             )
-            Assignment [indexes: 312..322, line/column: 28/1..28/11, file: test] (
-                lhs = NamedReference [indexes: 312..318, line/column: 28/1..28/7, file: test] (
+            Assignment [indexes: 323..333, line/column: 29/1..29/11, file: test] (
+                lhs = NamedReference [indexes: 323..329, line/column: 29/1..29/7, file: test] (
                     name = public
                 )
-                rhs = IntLiteral [indexes: 321..322, line/column: 28/10..28/11, file: test] (1)
+                rhs = IntLiteral [indexes: 332..333, line/column: 29/10..29/11, file: test] (1)
             )
-            Assignment [indexes: 323..334, line/column: 29/1..29/12, file: test] (
-                lhs = NamedReference [indexes: 323..330, line/column: 29/1..29/8, file: test] (
+            Assignment [indexes: 334..345, line/column: 30/1..30/12, file: test] (
+                lhs = NamedReference [indexes: 334..341, line/column: 30/1..30/8, file: test] (
                     name = reified
                 )
-                rhs = IntLiteral [indexes: 333..334, line/column: 29/11..29/12, file: test] (1)
+                rhs = IntLiteral [indexes: 344..345, line/column: 30/11..30/12, file: test] (1)
             )
-            Assignment [indexes: 335..345, line/column: 30/1..30/11, file: test] (
-                lhs = NamedReference [indexes: 335..341, line/column: 30/1..30/7, file: test] (
+            Assignment [indexes: 346..356, line/column: 31/1..31/11, file: test] (
+                lhs = NamedReference [indexes: 346..352, line/column: 31/1..31/7, file: test] (
                     name = sealed
                 )
-                rhs = IntLiteral [indexes: 344..345, line/column: 30/10..30/11, file: test] (1)
+                rhs = IntLiteral [indexes: 355..356, line/column: 31/10..31/11, file: test] (1)
             )
-            Assignment [indexes: 346..357, line/column: 31/1..31/12, file: test] (
-                lhs = NamedReference [indexes: 346..353, line/column: 31/1..31/8, file: test] (
+            Assignment [indexes: 357..368, line/column: 32/1..32/12, file: test] (
+                lhs = NamedReference [indexes: 357..364, line/column: 32/1..32/8, file: test] (
                     name = tailrec
                 )
-                rhs = IntLiteral [indexes: 356..357, line/column: 31/11..31/12, file: test] (1)
+                rhs = IntLiteral [indexes: 367..368, line/column: 32/11..32/12, file: test] (1)
             )
-            Assignment [indexes: 358..365, line/column: 32/1..32/8, file: test] (
-                lhs = NamedReference [indexes: 358..361, line/column: 32/1..32/4, file: test] (
+            Assignment [indexes: 369..376, line/column: 33/1..33/8, file: test] (
+                lhs = NamedReference [indexes: 369..372, line/column: 33/1..33/4, file: test] (
                     name = set
                 )
-                rhs = IntLiteral [indexes: 364..365, line/column: 32/7..32/8, file: test] (1)
+                rhs = IntLiteral [indexes: 375..376, line/column: 33/7..33/8, file: test] (1)
             )
-            Assignment [indexes: 366..376, line/column: 33/1..33/11, file: test] (
-                lhs = NamedReference [indexes: 366..372, line/column: 33/1..33/7, file: test] (
+            Assignment [indexes: 377..387, line/column: 34/1..34/11, file: test] (
+                lhs = NamedReference [indexes: 377..383, line/column: 34/1..34/7, file: test] (
                     name = vararg
                 )
-                rhs = IntLiteral [indexes: 375..376, line/column: 33/10..33/11, file: test] (1)
+                rhs = IntLiteral [indexes: 386..387, line/column: 34/10..34/11, file: test] (1)
             )
-            Assignment [indexes: 377..386, line/column: 34/1..34/10, file: test] (
-                lhs = NamedReference [indexes: 377..382, line/column: 34/1..34/6, file: test] (
+            Assignment [indexes: 388..397, line/column: 35/1..35/10, file: test] (
+                lhs = NamedReference [indexes: 388..393, line/column: 35/1..35/6, file: test] (
                     name = where
                 )
-                rhs = IntLiteral [indexes: 385..386, line/column: 34/9..34/10, file: test] (1)
+                rhs = IntLiteral [indexes: 396..397, line/column: 35/9..35/10, file: test] (1)
             )
-            Assignment [indexes: 387..396, line/column: 35/1..35/10, file: test] (
-                lhs = NamedReference [indexes: 387..392, line/column: 35/1..35/6, file: test] (
+            Assignment [indexes: 398..407, line/column: 36/1..36/10, file: test] (
+                lhs = NamedReference [indexes: 398..403, line/column: 36/1..36/6, file: test] (
                     name = field
                 )
-                rhs = IntLiteral [indexes: 395..396, line/column: 35/9..35/10, file: test] (1)
+                rhs = IntLiteral [indexes: 406..407, line/column: 36/9..36/10, file: test] (1)
             )
-            Assignment [indexes: 397..409, line/column: 36/1..36/13, file: test] (
-                lhs = NamedReference [indexes: 397..405, line/column: 36/1..36/9, file: test] (
+            Assignment [indexes: 408..420, line/column: 37/1..37/13, file: test] (
+                lhs = NamedReference [indexes: 408..416, line/column: 37/1..37/9, file: test] (
                     name = property
                 )
-                rhs = IntLiteral [indexes: 408..409, line/column: 36/12..36/13, file: test] (1)
+                rhs = IntLiteral [indexes: 419..420, line/column: 37/12..37/13, file: test] (1)
             )
-            Assignment [indexes: 410..422, line/column: 37/1..37/13, file: test] (
-                lhs = NamedReference [indexes: 410..418, line/column: 37/1..37/9, file: test] (
+            Assignment [indexes: 421..433, line/column: 38/1..38/13, file: test] (
+                lhs = NamedReference [indexes: 421..429, line/column: 38/1..38/9, file: test] (
                     name = receiver
                 )
-                rhs = IntLiteral [indexes: 421..422, line/column: 37/12..37/13, file: test] (1)
+                rhs = IntLiteral [indexes: 432..433, line/column: 38/12..38/13, file: test] (1)
             )
-            Assignment [indexes: 423..432, line/column: 38/1..38/10, file: test] (
-                lhs = NamedReference [indexes: 423..428, line/column: 38/1..38/6, file: test] (
+            Assignment [indexes: 434..443, line/column: 39/1..39/10, file: test] (
+                lhs = NamedReference [indexes: 434..439, line/column: 39/1..39/6, file: test] (
                     name = param
                 )
-                rhs = IntLiteral [indexes: 431..432, line/column: 38/9..38/10, file: test] (1)
+                rhs = IntLiteral [indexes: 442..443, line/column: 39/9..39/10, file: test] (1)
             )
-            Assignment [indexes: 433..445, line/column: 39/1..39/13, file: test] (
-                lhs = NamedReference [indexes: 433..441, line/column: 39/1..39/9, file: test] (
+            Assignment [indexes: 444..456, line/column: 40/1..40/13, file: test] (
+                lhs = NamedReference [indexes: 444..452, line/column: 40/1..40/9, file: test] (
                     name = setparam
                 )
-                rhs = IntLiteral [indexes: 444..445, line/column: 39/12..39/13, file: test] (1)
+                rhs = IntLiteral [indexes: 455..456, line/column: 40/12..40/13, file: test] (1)
             )
-            Assignment [indexes: 446..458, line/column: 40/1..40/13, file: test] (
-                lhs = NamedReference [indexes: 446..454, line/column: 40/1..40/9, file: test] (
+            Assignment [indexes: 457..469, line/column: 41/1..41/13, file: test] (
+                lhs = NamedReference [indexes: 457..465, line/column: 41/1..41/9, file: test] (
                     name = delegate
                 )
-                rhs = IntLiteral [indexes: 457..458, line/column: 40/12..40/13, file: test] (1)
+                rhs = IntLiteral [indexes: 468..469, line/column: 41/12..41/13, file: test] (1)
             )
-            Assignment [indexes: 459..467, line/column: 41/1..41/9, file: test] (
-                lhs = NamedReference [indexes: 459..463, line/column: 41/1..41/5, file: test] (
+            Assignment [indexes: 470..478, line/column: 42/1..42/9, file: test] (
+                lhs = NamedReference [indexes: 470..474, line/column: 42/1..42/5, file: test] (
                     name = file
                 )
-                rhs = IntLiteral [indexes: 466..467, line/column: 41/8..41/9, file: test] (1)
-            )
-            Assignment [indexes: 468..478, line/column: 42/1..42/11, file: test] (
-                lhs = NamedReference [indexes: 468..474, line/column: 42/1..42/7, file: test] (
-                    name = expect
-                )
-                rhs = IntLiteral [indexes: 477..478, line/column: 42/10..42/11, file: test] (1)
+                rhs = IntLiteral [indexes: 477..478, line/column: 42/8..42/9, file: test] (1)
             )
             Assignment [indexes: 479..489, line/column: 43/1..43/11, file: test] (
                 lhs = NamedReference [indexes: 479..485, line/column: 43/1..43/7, file: test] (
-                    name = actual
+                    name = expect
                 )
                 rhs = IntLiteral [indexes: 488..489, line/column: 43/10..43/11, file: test] (1)
             )
-            Assignment [indexes: 490..499, line/column: 44/1..44/10, file: test] (
-                lhs = NamedReference [indexes: 490..495, line/column: 44/1..44/6, file: test] (
+            Assignment [indexes: 490..500, line/column: 44/1..44/11, file: test] (
+                lhs = NamedReference [indexes: 490..496, line/column: 44/1..44/7, file: test] (
+                    name = actual
+                )
+                rhs = IntLiteral [indexes: 499..500, line/column: 44/10..44/11, file: test] (1)
+            )
+            Assignment [indexes: 501..510, line/column: 45/1..45/10, file: test] (
+                lhs = NamedReference [indexes: 501..506, line/column: 45/1..45/6, file: test] (
                     name = const
                 )
-                rhs = IntLiteral [indexes: 498..499, line/column: 44/9..44/10, file: test] (1)
+                rhs = IntLiteral [indexes: 509..510, line/column: 45/9..45/10, file: test] (1)
             )
-            Assignment [indexes: 500..511, line/column: 45/1..45/12, file: test] (
-                lhs = NamedReference [indexes: 500..507, line/column: 45/1..45/8, file: test] (
+            Assignment [indexes: 511..522, line/column: 46/1..46/12, file: test] (
+                lhs = NamedReference [indexes: 511..518, line/column: 46/1..46/8, file: test] (
                     name = suspend
                 )
-                rhs = IntLiteral [indexes: 510..511, line/column: 45/11..45/12, file: test] (1)
+                rhs = IntLiteral [indexes: 521..522, line/column: 46/11..46/12, file: test] (1)
             )
-            Assignment [indexes: 512..521, line/column: 46/1..46/10, file: test] (
-                lhs = NamedReference [indexes: 512..517, line/column: 46/1..46/6, file: test] (
+            Assignment [indexes: 523..532, line/column: 47/1..47/10, file: test] (
+                lhs = NamedReference [indexes: 523..528, line/column: 47/1..47/6, file: test] (
                     name = value
                 )
-                rhs = IntLiteral [indexes: 520..521, line/column: 46/9..46/10, file: test] (1)
+                rhs = IntLiteral [indexes: 531..532, line/column: 47/9..47/10, file: test] (1)
             )""".trimIndent()
         results.assert(expected)
     }
