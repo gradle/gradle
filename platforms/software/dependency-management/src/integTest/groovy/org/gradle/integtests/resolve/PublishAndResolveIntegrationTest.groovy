@@ -135,7 +135,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
                 into "${safePath(ivyRepo.moduleDir('org.gradle.test', 'api'), '1.1')}"
             }
             ${taskWhichResolves('api', '1.1')}
-            ${resolveTask}.dependsOn customPublish
+            tasks.${resolveTask}.dependsOn tasks.customPublish
         """
 
         expect:

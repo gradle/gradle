@@ -55,7 +55,7 @@ class ArtifactTransformWithDependenciesParallelIntegrationTest extends AbstractH
                         sleep(500)
                     }
                 }
-                tasks.producer.dependsOn(slow)
+                tasks.producer.dependsOn(tasks.slow)
             }
             project(':consumer') {
                 dependencies {

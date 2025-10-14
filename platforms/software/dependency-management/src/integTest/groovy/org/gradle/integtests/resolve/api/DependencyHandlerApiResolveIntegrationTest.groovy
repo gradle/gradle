@@ -36,7 +36,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
             }
 
             task verifyTestKitJars {
-                dependsOn resolveLibs
+                dependsOn tasks.resolveLibs
             }
         """
 
@@ -50,7 +50,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
                 testImplementation gradleTestKit()
             }
 
-            verifyTestKitJars {
+            tasks.verifyTestKitJars {
                 doLast {
                     def jarFiles = libsDir.listFiles()
                     def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }
@@ -84,7 +84,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
             dependencies {
                 testImplementation gradleApi()
             }
-            verifyTestKitJars {
+            tasks.verifyTestKitJars {
                 doLast {
                     def jarFiles = libsDir.listFiles()
                     def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }

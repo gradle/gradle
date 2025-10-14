@@ -185,7 +185,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: FileProducer) {
                     output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFiles = files(tool.output)
+                ext.inputFiles = files(tasks.tool.output)
             }
 
             project(':a') {
@@ -281,7 +281,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task producer(type: Producer) {
                     outputFile = file("build/\${project.name}.jar")
                 }
-                artifacts."default" producer.outputFile
+                artifacts."default" tasks.producer.outputFile
             }
 
             class Producer extends DefaultTask {
@@ -337,7 +337,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: FileProducer) {
                     output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFile = tool.output
+                ext.inputFile = tasks.tool.output
             }
         """
         setupBuildWithColorTransform {
@@ -390,7 +390,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: DirProducer) {
                     output = file("build/tool-\${project.name}-dir")
                 }
-                ext.inputDir = tool.output
+                ext.inputDir = tasks.tool.output
             }
         """
         setupBuildWithColorTransform {
@@ -445,7 +445,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output = file("build/tool-\${project.name}.jar")
                     doLast { throw new RuntimeException('broken') }
                 }
-                ext.inputFiles = files(tool.output)
+                ext.inputFiles = files(tasks.tool.output)
             }
 
             project(':a') {

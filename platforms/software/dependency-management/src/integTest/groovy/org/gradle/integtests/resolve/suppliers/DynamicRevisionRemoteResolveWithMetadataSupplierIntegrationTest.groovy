@@ -1023,7 +1023,7 @@ group:projectB:2.2;release
         addDependenciesTo(otherBuildFile)
         otherBuildFile << """
             // this is for parallel execution
-            checkDeps.mustRunAfter(rootProject.checkDeps)
+            tasks.checkDeps.mustRunAfter(rootProject.tasks.checkDeps)
         """
         given:
         def supplierInteractions = withPerVersionStatusSupplier(file("buildSrc/src/main/groovy/MP.groovy"))

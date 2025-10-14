@@ -44,7 +44,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
                 }
             }
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 assert candidates == ${candidates}
             }
 """
@@ -398,7 +398,7 @@ Required by:
                 }
             }
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 def artifacts = configurations.conf.incoming.artifacts.artifacts
                 assert artifacts.size() == 2
                 assert artifacts[0].id.componentIdentifier.version == '${chosen}'
