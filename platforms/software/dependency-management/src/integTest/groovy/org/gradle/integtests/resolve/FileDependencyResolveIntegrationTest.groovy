@@ -43,14 +43,14 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             $common
             dependencies {
                 compile project(path: ':sub', configuration: 'compile')
-                compile files('main.jar') { builtBy jar }
+                compile files('main.jar') { builtBy tasks.jar }
             }
         """
 
         file("sub/build.gradle") << """
             $common
             dependencies {
-                compile files('sub.jar') { builtBy jar }
+                compile files('sub.jar') { builtBy tasks.jar }
             }
         """
 
@@ -88,7 +88,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             $common
             dependencies {
                 compile project(path: ':sub', configuration: 'compile')
-                compile fileTree(dir: projectDir, include: '*.jar', builtBy: [jar])
+                compile fileTree(dir: projectDir, include: '*.jar', builtBy: [tasks.jar])
             }
 
             // Nothing built yet, result should be empty
@@ -98,7 +98,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         file("sub/build.gradle") << """
             $common
             dependencies {
-                compile fileTree(dir: projectDir, include: '*.jar', builtBy: [jar])
+                compile fileTree(dir: projectDir, include: '*.jar', builtBy: [tasks.jar])
             }
         """
 
@@ -176,14 +176,14 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             dependencies {
                 compile project(path: ':sub', configuration: 'conf')
                 conf project(path: ':sub', configuration: 'conf')
-                conf jar.outputs.files
+                conf tasks.jar.outputs.files
             }
         """
 
         file("sub/build.gradle") << """
             $common
             dependencies {
-                conf jar.outputs.files
+                conf tasks.jar.outputs.files
                 conf project(path: ':', configuration: 'conf')
             }
         """
@@ -225,14 +225,14 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             $common
             dependencies {
                 compile project(path: ':sub', configuration: 'compile', transitive: false)
-                compile jar.outputs.files
+                compile tasks.jar.outputs.files
             }
         """
 
         file("sub/build.gradle") << """
             $common
             dependencies {
-                compile jar.outputs.files
+                compile tasks.jar.outputs.files
             }
         """
 

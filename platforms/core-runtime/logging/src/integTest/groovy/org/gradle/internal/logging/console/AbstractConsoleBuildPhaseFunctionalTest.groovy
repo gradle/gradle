@@ -434,7 +434,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                     }
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 

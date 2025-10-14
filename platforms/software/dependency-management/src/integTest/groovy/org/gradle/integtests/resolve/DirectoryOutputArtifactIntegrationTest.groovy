@@ -170,7 +170,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         }
 
         artifacts {
-            compile file:file("$buildDir/someDir"), builtBy: generateFiles
+            compile file: file("$buildDir/someDir"), builtBy: tasks.generateFiles
         }
         '''
 
@@ -209,7 +209,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         }
 
         artifacts {
-            compile_output file:compileJava.destinationDirectory.asFile.get(), builtBy: compileJava
+            compile_output file: tasks.compileJava.destinationDirectory.asFile.get(), builtBy: tasks.compileJava
         }
         '''
         file('b/src/main/java/Hello.java') << 'public class Hello {}'
@@ -264,7 +264,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         }
 
         artifacts {
-            compile_output file:compileJava.destinationDirectory.asFile.get(), builtBy: compileJava
+            compile_output file: tasks.compileJava.destinationDirectory.asFile.get(), builtBy: tasks.compileJava
         }
         """
         file('b/src/main/java/Hello.java') << '''import org.apache.commons.lang3.StringUtils;

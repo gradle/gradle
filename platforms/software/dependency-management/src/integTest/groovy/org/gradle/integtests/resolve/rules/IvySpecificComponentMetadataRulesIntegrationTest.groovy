@@ -77,7 +77,7 @@ dependencies {
     }
 }
 
-resolve.doLast { assert IvyRule.ruleInvoked }
+tasks.resolve.doLast { assert IvyRule.ruleInvoked }
 """
         when:
         repositoryInteractions {
@@ -171,7 +171,7 @@ dependencies {
     }
 }
 
-resolve.doLast { assert IvyRule.ruleInvoked }
+tasks.resolve.doLast { assert IvyRule.ruleInvoked }
 """
 
         when:
@@ -220,7 +220,7 @@ dependencies {
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+tasks.resolve.doLast { assert ruleInvoked }
 """
 
         then:
@@ -242,7 +242,7 @@ dependencies {
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+tasks.resolve.doLast { assert ruleInvoked }
 """
 
         then:
@@ -278,7 +278,7 @@ dependencies {
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+tasks.resolve.doLast { assert ruleInvoked }
 """
 
         when:
@@ -326,7 +326,7 @@ dependencies {
     }
 }
 
-resolve.doLast { assert ruleInvoked }
+tasks.resolve.doLast { assert ruleInvoked }
 """
 
         and:
