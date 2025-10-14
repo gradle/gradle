@@ -424,7 +424,7 @@ When annotating input properties that contain files (such as `@InputFile` and `@
 This tells Gradle to consider only the files' contents when determining if a task is up-to-date.
 
 For input properties that contain directories (such as `@InputDirectory` and `@InputFiles` collections) use `@PathSensitivity.RELATIVE`.
-This tells Gradle to also consider the path to each directory relative to the build's root directory (ignoring its absolute location) for up-to-date checks.
+This tells Gradle to also consider only the name of the directory (ignoring its absolute location) and to relativize the paths of all files within that directory to it when doing up-to-date checks.
 
 Using `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` is generally incorrect.
 
