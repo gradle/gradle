@@ -30,7 +30,6 @@ class FindBrokenInternalLinksTest extends Specification {
 
     private setup() {
         docsRoot = new File(projectDir, "docsRoot")
-        new File(docsRoot, 'javadoc').mkdirs()
         sampleDoc = new File(docsRoot, "sample.adoc")
         linkErrors = new File(projectDir, "build/reports/dead-internal-links.txt")
 
@@ -55,22 +54,8 @@ class FindBrokenInternalLinksTest extends Specification {
                 mavenCentral()
             }
 
-            gradleDocumentation {
-                javadocs {
-                    javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
-                    javaPackageListLoc = project.layout.projectDirectory.dir("src/docs/javaPackageList/8/")
-                    groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-4.0.28/html/gapi")
-                    groovyPackageListSrc = "org.apache.groovy:groovy-all:4.0.28:groovydoc"
-                }
-            }
-
-            javadocAll {
-                enabled = false
-            }
-
             tasks.named('checkDeadInternalLinks').configure {
                 documentationRoot = project.layout.projectDirectory.dir('docsRoot')
-                javadocRoot = documentationRoot.dir('javadoc')
             }
         """
     }
@@ -111,70 +96,6 @@ More text
         assertNoDeadLinks()
     }
 
-    def "finds broken javadoc method links"() {
-        given:
-        sampleDoc << """
-=== Invalid Javadoc Links
-
-The `link:{javadocPath}/nowhere/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/nowhere/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
-        """
-
-        when:
-        run('checkDeadInternalLinks').buildAndFail()
-
-        then:
-        assertFoundDeadJavadocLinks(sampleDoc, "nowhere/gradle/api/attributes/AttributesSchema.html", "org/gradle/api/nowhere/AttributesSchema.html")
-    }
-
-    def "finds broken javadoc class links"() {
-        given:
-        sampleDoc << """
-=== Invalid Javadoc Links
-
-Be sure to see: `@link:{javadocPath}/org/gradle/nowhere/tasks/InputDirectory.html[InputDirectory]`
-        """
-
-        when:
-        run('checkDeadInternalLinks').buildAndFail()
-
-        then:
-        assertFoundDeadJavadocLinks(sampleDoc, "org/gradle/nowhere/tasks/InputDirectory.html")
-    }
-
-    def "finds broken javadoc links with leading javadoc path component"() {
-        given:
-        sampleDoc << """
-=== Invalid Javadoc Links
-
-The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
-        """
-
-        when:
-        run('checkDeadInternalLinks').buildAndFail()
-
-        then:
-        assertFoundDeadJavadocLinks(sampleDoc, "javadoc/org/gradle/api/attributes/AttributesSchema.html", "javadoc/org/gradle/api/attributes/AttributesSchema.html")
-    }
-
-    def "validates present files for javadoc links"() {
-        given:
-        sampleDoc << """
-=== Valid Javadoc Links
-
-Be sure to see: `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]`
-The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
-        """
-
-        createJavadocForClass("org/gradle/api/tasks/InputDirectory")
-        createJavadocForClass("org/gradle/api/attributes/AttributesSchema")
-
-        when:
-        run('checkDeadInternalLinks').build()
-
-        then:
-        assertNoDeadLinks()
-    }
-
     def "finds Markdown style links"() {
         given:
         sampleDoc << """
@@ -187,14 +108,6 @@ The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttri
 
         then:
         assertFoundDeadLinks([DeadLink.forMarkdownLink(sampleDoc, "[Invalid markdown link](https://docs.gradle.org/nowhere)")])
-    }
-
-    private File createJavadocForClass(String path) {
-        new File(docsRoot, "javadoc/${path}.html").tap {
-            parentFile.mkdirs()
-            createNewFile()
-            text = "Generated javadoc HTML goes here"
-        }
     }
 
     private GradleRunner run(String... args) {
@@ -224,10 +137,6 @@ The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttri
         assertFoundDeadLinks(sections.collect { DeadLink.forSection(file, it) })
     }
 
-    private void assertFoundDeadJavadocLinks(File file, String... paths) {
-        assertFoundDeadLinks(paths.collect { DeadLink.forJavadoc(file, it) })
-    }
-
     private static final class DeadLink {
         private final File file
         private final String message
@@ -239,10 +148,6 @@ The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttri
 
         static DeadLink forSection(File file, String section) {
             return new DeadLink(file, "Looking for section named $section in ${file.name}")
-        }
-
-        static DeadLink forJavadoc(File file, String path) {
-            return new DeadLink(file, "Missing Javadoc file for $path in ${file.name}" + (path.startsWith("javadoc") ? " (You may need to remove the leading `javadoc` path component)" : ""))
         }
 
         static DeadLink forMarkdownLink(File file, String link) {
