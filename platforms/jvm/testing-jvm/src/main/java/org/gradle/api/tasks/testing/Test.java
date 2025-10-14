@@ -24,6 +24,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -45,6 +46,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -53,6 +55,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -203,6 +206,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
+        getScanForTestResources().convention(getProject().getProviders().provider(() -> !getTestResourcesDirs().get().isEmpty()));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -667,7 +671,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
+            getCandidateClassFiles(), isScanForTestClasses(), candidateResourceFiles().get(), getScanForTestResources().get(),
+            getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
     private void validateExecutableMatchesToolchain() {
@@ -854,6 +860,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public FileCollection getTestClassesDirs() {
         return testClassesDirs;
     }
+
+    /**
+     * Returns the directories to scan for resource-based testing.
+     *
+     * @since 9.3.0
+     */
+    @Incubating
+    @InputFiles
+    @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract SetProperty<Directory> getTestResourcesDirs();
 
     /**
      * Sets the directories to scan for compiled test sources.
@@ -1145,6 +1162,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return scanForTestClasses;
     }
 
+    /**
+     * Whether to scan for test resources for resource-based testing.
+     *
+     * @since 9.3.0
+     */
+    @Incubating
+    @Input
+    @Optional
+    public abstract Property<Boolean> getScanForTestResources();
+
     public void setScanForTestClasses(boolean scanForTestClasses) {
         this.scanForTestClasses = scanForTestClasses;
     }
@@ -1232,6 +1259,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ToBeReplacedByLazyProperty(comment = "Should this be kept as it is?")
     public FileTree getCandidateClassFiles() {
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
+    }
+
+    /**
+     * Returns the classes files to scan for test classes.
+     *
+     * @return The candidate class files.
+     * @since 9.3.0
+     */
+    @Incubating
+    public SetProperty<Directory> candidateResourceFiles() { // TODO: also adjust naming to get (avoided for now to avoid property must be abstract check)
+        return getTestResourcesDirs(); // TODO: filtering? Make getCandidateResourceFiles a prop directly? One of these methods is unnecessary
     }
 
     /**
