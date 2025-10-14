@@ -41,7 +41,7 @@ It connects to (or starts) a Daemon, sends the build request, and streams output
 2) `org.gradle.java.home` (properties) +
 3) <<tooling_api.adoc#tooling_api,Tooling API>> requests (e.g., IDE) +
 4) <<#sec:configuring_daemon_jvm,Daemon JVM toolchains>> +
-4) Falls back to the JVM that launched the Gradle Client or reuses an existing Daemon if conditions are right*.
+5) Falls back to the JVM that launched the Gradle Client or reuses an existing Daemon if conditions are right*
 |===
 *Gradle reuses an existing Daemon only if its Java home/version and JVM args (e.g., `org.gradle.jvmargs`, `GRADLE_OPTS`) are identical.
 Changing JVM args (like increasing memory) will spawn a new Daemon.
