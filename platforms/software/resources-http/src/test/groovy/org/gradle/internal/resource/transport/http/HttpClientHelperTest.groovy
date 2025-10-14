@@ -16,6 +16,9 @@
 
 package org.gradle.internal.resource.transport.http
 
+
+import org.apache.http.HttpHeaders
+import org.apache.http.HttpStatus
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.impl.client.CloseableHttpClient
@@ -25,7 +28,8 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 class HttpClientHelperTest extends AbstractHttpClientTest {
-    @Rule SetSystemProperties sysProp = new SetSystemProperties()
+    @Rule
+    SetSystemProperties sysProp = new SetSystemProperties()
 
     def "throws HttpRequestException if an IO error occurs during a request"() {
         def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings) {
@@ -96,5 +100,88 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
                 createSslContext() >> SSLContexts.createDefault()
             }
         }
+    }
+
+    def "get valid range"() {
+        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
+        HttpSettings settings = DefaultHttpSettings.builder()
+            .withAuthenticationSettings([])
+            .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier({})
+            .build()
+        def client = new HttpClientHelper(new DocumentationRegistry(), settings)
+
+        when:
+        def source = "https://repo1.maven.org/maven2/org/springframework/spring-core/6.1.12/spring-core-6.1.12.pom" // 2026 bytes at 2024-08-30
+        def response = client.performGet(source, true, 0, 100)
+
+        then:
+        assert response.statusLine.statusCode == HttpStatus.SC_PARTIAL_CONTENT
+
+        def contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE)
+        assert contentRange != null
+
+        assert contentRange.matches("bytes 0-100/\\d+")
+
+//        println "content length = " + response.getHeader(HttpHeaders.CONTENT_LENGTH) // "101"
+    }
+
+    def "missing range end"() {
+        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
+        HttpSettings settings = DefaultHttpSettings.builder()
+            .withAuthenticationSettings([])
+            .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier({})
+            .build()
+        def client = new HttpClientHelper(new DocumentationRegistry(), settings)
+
+        when:
+        def source = "https://repo1.maven.org/maven2/org/springframework/spring-core/6.1.12/spring-core-6.1.12.pom" // 2026 bytes at 2024-08-30
+        def response = client.performGet(source, true, 0, null)
+
+        then:
+        assert response.statusLine.statusCode == HttpStatus.SC_PARTIAL_CONTENT
+
+        def contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE)
+        assert contentRange != null
+
+        //                          bytes 0-2025/2026
+        assert contentRange.matches("bytes 0-\\d+/\\d+")
+    }
+
+    def "get invalid range"() {
+        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
+        HttpSettings settings = DefaultHttpSettings.builder()
+            .withAuthenticationSettings([])
+            .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier({})
+            .build()
+        def client = new HttpClientHelper(new DocumentationRegistry(), settings)
+
+        when:
+        def source = "https://repo1.maven.org/maven2/org/springframework/spring-core/6.1.12/spring-core-6.1.12.pom" // 2026 bytes at 2024-08-30
+        def requestRangeStart = 0
+        def requestRangeEnd = 6000
+        def response = client.performGet(source, true, requestRangeStart, requestRangeEnd)
+
+        then:
+        assert response.statusLine.statusCode == HttpStatus.SC_PARTIAL_CONTENT
+
+        def contentRange = response.getHeader(HttpHeaders.CONTENT_RANGE)
+        assert contentRange != null
+
+        def split = contentRange.replace("bytes ", "").split("/")
+        def receivedBytesRangeStrs = split[0].split("-")
+        def totalBytes = split[1]
+        assert receivedBytesRangeStrs[0] == requestRangeStart.toString()
+        assert receivedBytesRangeStrs[1] != requestRangeEnd
+
+        def receivedBytesRange = Long.parseLong(receivedBytesRangeStrs[1])
+        assert receivedBytesRange == Long.parseLong(totalBytes) - 1
+
+//        println "content length = " + response.getHeader(HttpHeaders.CONTENT_LENGTH) // "2026"
+
+        // input stream length may not equals to received range length in response header
+        assert response.getContent().bytes.length != receivedBytesRange
     }
 }
