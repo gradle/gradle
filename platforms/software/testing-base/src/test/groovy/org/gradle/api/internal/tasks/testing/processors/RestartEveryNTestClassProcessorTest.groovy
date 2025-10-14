@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestDefinition
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.Factory
 import spock.lang.Specification
@@ -25,39 +25,39 @@ import spock.lang.Specification
 class RestartEveryNTestClassProcessorTest extends Specification {
     private final Factory<TestClassProcessor> factory = Mock();
     private final TestClassProcessor delegate = Mock();
-    private final TestClassRunInfo test1 = Mock();
-    private final TestClassRunInfo test2 = Mock();
-    private final TestClassRunInfo test3 = Mock();
+    private final TestDefinition test1 = Mock();
+    private final TestDefinition test2 = Mock();
+    private final TestDefinition test3 = Mock();
     private final TestResultProcessor resultProcessor = Mock();
     private RestartEveryNTestClassProcessor processor = new RestartEveryNTestClassProcessor(factory, 2);
 
     def 'creates delegate processor on first test'() {
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
+        processor.processTestDefinition(test1)
 
         then:
         1 * factory.create() >> delegate
         then:
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         0 * _._
     }
 
     def 'ends processing on delegate processor on nth test'() {
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
-        processor.processTestClass(test2)
+        processor.processTestDefinition(test1)
+        processor.processTestDefinition(test2)
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         then:
-        1 * delegate.processTestClass(test2)
+        1 * delegate.processTestDefinition(test2)
         then:
         1 * delegate.stop()
         0 * _._
@@ -69,43 +69,43 @@ class RestartEveryNTestClassProcessorTest extends Specification {
 
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
-        processor.processTestClass(test2)
+        processor.processTestDefinition(test1)
+        processor.processTestDefinition(test2)
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         then:
-        1 * delegate.processTestClass(test2)
+        1 * delegate.processTestDefinition(test2)
         then:
         1 * delegate.stop()
         0 * _._
 
         when:
-        processor.processTestClass(test3)
+        processor.processTestDefinition(test3)
 
         then:
         1 * factory.create() >> delegate2
         then:
         1 * delegate2.startProcessing(resultProcessor)
         then:
-        1 * delegate2.processTestClass(test3)
+        1 * delegate2.processTestDefinition(test3)
         0 * _._
     }
 
     def 'processing on delegate processor ends on end of processing'() {
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
+        processor.processTestDefinition(test1)
         processor.stop()
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         then:
         1 * delegate.stop()
         0 * _._
@@ -119,17 +119,17 @@ class RestartEveryNTestClassProcessorTest extends Specification {
     def 'does nothing on end of processing when on nth test'() {
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
-        processor.processTestClass(test2)
+        processor.processTestDefinition(test1)
+        processor.processTestDefinition(test2)
         processor.stop()
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         then:
-        1 * delegate.processTestClass(test2)
+        1 * delegate.processTestDefinition(test2)
         then:
         1 * delegate.stop()
         0 * _._
@@ -141,17 +141,17 @@ class RestartEveryNTestClassProcessorTest extends Specification {
 
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
-        processor.processTestClass(test2)
+        processor.processTestDefinition(test1)
+        processor.processTestDefinition(test2)
         processor.stop()
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         then:
-        1 * delegate.processTestClass(test2)
+        1 * delegate.processTestDefinition(test2)
         then:
         1 * delegate.stop()
         0 * _._
@@ -160,14 +160,14 @@ class RestartEveryNTestClassProcessorTest extends Specification {
     def "stopNow propagates to factory created processors"() {
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
+        processor.processTestDefinition(test1)
         processor.stopNow()
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         then:
         1 * delegate.stopNow()
         0 * _._
@@ -176,17 +176,17 @@ class RestartEveryNTestClassProcessorTest extends Specification {
     def "stopNow does not propagate when no processor"() {
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
-        processor.processTestClass(test2)
+        processor.processTestDefinition(test1)
+        processor.processTestDefinition(test2)
         processor.stopNow()
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         then:
-        1 * delegate.processTestClass(test2)
+        1 * delegate.processTestDefinition(test2)
         then:
         1 * delegate.stop()
         0 * _._
@@ -195,13 +195,13 @@ class RestartEveryNTestClassProcessorTest extends Specification {
     def "stopNow does nothing after stop completed"() {
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
+        processor.processTestDefinition(test1)
         processor.stop()
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         1 * delegate.stop()
 
         when:
@@ -210,21 +210,21 @@ class RestartEveryNTestClassProcessorTest extends Specification {
         0 * _._
     }
 
-    def "processTestClass has no effect after stopNow"() {
+    def "processTestDefinition has no effect after stopNow"() {
         when:
         processor.startProcessing(resultProcessor)
-        processor.processTestClass(test1)
+        processor.processTestDefinition(test1)
         processor.stopNow()
 
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
         then:
-        1 * delegate.processTestClass(test1)
+        1 * delegate.processTestDefinition(test1)
         1 * delegate.stopNow()
 
         when:
-        processor.processTestClass(test2)
+        processor.processTestDefinition(test2)
 
         then:
         0 * _._
