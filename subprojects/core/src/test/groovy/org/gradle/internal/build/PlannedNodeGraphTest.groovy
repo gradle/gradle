@@ -17,15 +17,15 @@
 package org.gradle.internal.build
 
 import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.NodeComparator
 import org.gradle.execution.plan.PlannedNodeInternal
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.ToPlannedNodeConverter
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry
 import org.gradle.internal.taskgraph.NodeIdentity
-import spock.lang.Ignore
 import spock.lang.Specification
 
-import static org.gradle.internal.taskgraph.NodeIdentity.*
+import static org.gradle.internal.taskgraph.NodeIdentity.NodeType
 
 class PlannedNodeGraphTest extends Specification {
 
@@ -66,7 +66,6 @@ class PlannedNodeGraphTest extends Specification {
         e2.message == "Unknown detail level for node types: [TRANSFORM_STEP]"
     }
 
-    @Ignore("wip")
     def "plan node dependencies include transitively closest identifiable nodes"() {
         def taskConverter = new ToTestPlannedNodeConverter(TestTaskNode, NodeType.TASK)
         def collector = new PlannedNodeGraph.Collector(new ToPlannedNodeConverterRegistry([taskConverter]))
@@ -107,7 +106,6 @@ class PlannedNodeGraphTest extends Specification {
         nextLevelNodes == nodes
     }
 
-    @Ignore("wip")
     def "can obtain a plan with lower detail level"() {
         def taskConverter = new ToTestPlannedNodeConverter(TestTaskNode, NodeType.TASK)
         def transformStepConverter = new ToTestPlannedNodeConverter(TestTransformStepNode, NodeType.TRANSFORM_STEP)
@@ -294,7 +292,7 @@ class PlannedNodeGraphTest extends Specification {
         }
     }
 
-    static class TestNode extends Node {
+    static class TestNode extends NodeComparator.ComparableNode {
         String name
 
         TestNode(String name) {
@@ -312,6 +310,12 @@ class PlannedNodeGraphTest extends Specification {
         @Override
         String toString() {
             return "TestNode($name)"
+        }
+
+        @Override
+        int compareTo(NodeComparator.ComparableNode o) {
+            assert o instanceof TestNode
+            this.name <=> ((TestNode) o).name
         }
     }
 

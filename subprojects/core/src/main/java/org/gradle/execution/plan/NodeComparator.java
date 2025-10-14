@@ -116,8 +116,18 @@ public class NodeComparator implements Comparator<Node> {
             );
         }
 
+        // For testing only.
+        if (n1 instanceof ComparableNode && n2 instanceof ComparableNode) {
+            return ((ComparableNode) n1).compareTo((ComparableNode) n2);
+        }
+
         throw new IllegalArgumentException(String.format("Cannot compare nodes of type %s and %s", n1.getClass(), n2.getClass()));
     }
+
+    /**
+     * For testing only.
+     */
+    public static abstract class ComparableNode extends Node implements Comparable<ComparableNode> {}
 
     private static int compareTaskNodes(LocalTaskNode n1, LocalTaskNode n2) {
         return n1.getTask().compareTo(n2.getTask());
