@@ -37,8 +37,9 @@ import java.util.Collection;
 /**
  * Serializes test results.
  *
- * Only retained for use by {@code TestFilesCleanupService} in the GBT build. To be removed when we no longer need it.
+ * @deprecated only retained for use by {@code TestFilesCleanupService} in the GBT build. To be removed when we no longer need it.
  */
+@Deprecated
 public class TestResultSerializer {
     private static final int RESULT_VERSION = 3;
 
