@@ -43,7 +43,6 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +109,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         @Override
         public void detect() {
             for (String includedTests : testSelection.getIncludedTests()) {
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests, Collections.emptyList());
+                TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests);
                 testClassProcessor.processTestClass(testClass);
             }
         }

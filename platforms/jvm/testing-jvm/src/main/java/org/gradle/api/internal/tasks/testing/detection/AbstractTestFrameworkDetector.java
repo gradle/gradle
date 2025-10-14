@@ -31,10 +31,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +55,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     protected AbstractTestFrameworkDetector(ClassFileExtractionManager classFileExtractionManager) {
         assert classFileExtractionManager != null;
         this.classFileExtractionManager = classFileExtractionManager;
-        this.superClasses = new HashMap<File, Boolean>();
+        this.superClasses = new HashMap<>();
     }
 
     protected abstract T createClassVisitor();
@@ -91,7 +90,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             return;
         }
 
-        testClassDirectories = new ArrayList<File>();
+        testClassDirectories = new ArrayList<>();
 
         if (testClassesDirectories != null) {
             testClassDirectories.addAll(testClassesDirectories);
@@ -122,7 +121,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
         InputStream classStream = null;
         try {
-            classStream = new BufferedInputStream(new FileInputStream(testClassFile));
+            classStream = new BufferedInputStream(Files.newInputStream(testClassFile.toPath()));
             final ClassReader classReader = new ClassReader(IOUtils.toByteArray(classStream));
             classReader.accept(classVisitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
             return TestClass.forParseableFile(classVisitor);
@@ -136,12 +135,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     @Override
     public boolean processTestClass(final RelativeFile testClassFile) {
-        return processTestClass(testClassFile.getFile(), false, new Factory<String>() {
-            @Override
-            public String create() {
-                return testClassFile.getRelativePath().getPathString().replace(".class", "");
-            }
-        });
+        return processTestClass(testClassFile.getFile(), false, () -> testClassFile.getRelativePath().getPathString().replace(".class", ""));
     }
 
     /**
@@ -204,7 +198,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private void maybePublishTestClass(boolean isTest, TestClass testClass, boolean superClass) {
         if (isTest && !testClass.isAbstract() && !superClass) {
             String className = Type.getObjectType(testClass.getClassName()).getClassName();
-            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className, testClass.getSuiteClassNames()));
+            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
         }
     }
 
@@ -218,22 +212,20 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         private final boolean isAbstract;
         private final String className;
         private final String superClassName;
-        private final List<String> suiteClasses;
 
         public static TestClass forParseableFile(TestClassVisitor testClassVisitor) {
-            return new TestClass(testClassVisitor.isTest(), testClassVisitor.isAbstract(), testClassVisitor.getSuiteClassNames(), testClassVisitor.getClassName(), testClassVisitor.getSuperClassName());
+            return new TestClass(testClassVisitor.isTest(), testClassVisitor.isAbstract(), testClassVisitor.getClassName(), testClassVisitor.getSuperClassName());
         }
 
         static TestClass forUnparseableFile(String className) {
-            return new TestClass(true, false, Collections.emptyList(), className, null);
+            return new TestClass(true, false, className, null);
         }
 
-        private TestClass(boolean test, boolean isAbstract, List<String> suiteClasses, String className, String superClassName) {
+        private TestClass(boolean test, boolean isAbstract, String className, String superClassName) {
             this.test = test;
             this.isAbstract = isAbstract;
             this.className = className;
             this.superClassName = superClassName;
-            this.suiteClasses = suiteClasses;
         }
 
         boolean isTest() {
@@ -242,10 +234,6 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
         boolean isAbstract() {
             return isAbstract;
-        }
-
-        List<String> getSuiteClassNames() {
-            return Collections.unmodifiableList(suiteClasses);
         }
 
         String getClassName() {

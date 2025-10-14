@@ -35,7 +35,7 @@ class TestEventSerializerTest extends SerializerSpec {
     def serializer = TestEventSerializer.create()
 
     def "serializes DefaultTestClassRunInfo"() {
-        def info = new DefaultTestClassRunInfo("some-test", Collections.emptyList())
+        def info = new DefaultTestClassRunInfo("some-test")
 
         when:
         def result = serialize(info)
