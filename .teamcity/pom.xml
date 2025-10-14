@@ -6,7 +6,7 @@
         <mockk.version>1.13.13</mockk.version>
         <bytebuddy.version>1.15.7</bytebuddy.version>
         <junit.version>5.11.3</junit.version>
-        <jackson.version>2.18.2</jackson.version>
+        <jackson.version>2.20.0</jackson.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- https://kotlinlang.org/docs/maven.html#enable-incremental-compilation -->
