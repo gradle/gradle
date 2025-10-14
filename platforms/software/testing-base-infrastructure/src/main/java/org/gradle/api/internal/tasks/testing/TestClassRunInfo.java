@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.tasks.testing;
 
-import java.util.List;
-
 public interface TestClassRunInfo {
     String getTestClassName();
-    List<String> getSuiteClassNames();
 }

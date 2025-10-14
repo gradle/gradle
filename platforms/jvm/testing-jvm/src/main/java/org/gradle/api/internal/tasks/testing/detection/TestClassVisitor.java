@@ -20,9 +20,6 @@ import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Base class for ASM test class scanners.
  */
@@ -79,9 +76,5 @@ public abstract class TestClassVisitor extends ClassVisitor {
 
     private boolean innerClassIsNonStatic(String name, int access) {
         return name.equals(getClassName()) && (access & Opcodes.ACC_STATIC) == 0;
-    }
-
-    public List<String> getSuiteClassNames() {
-        return Collections.emptyList();
     }
 }

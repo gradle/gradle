@@ -17,29 +17,20 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
-
 public class DefaultTestClassRunInfo implements TestClassRunInfo {
-    private String testClassName;
-    private List<String> suiteClassNames;
+    private final String testClassName;
 
-    public DefaultTestClassRunInfo(String testClassName, List<String> suiteClassNames) {
+    public DefaultTestClassRunInfo(String testClassName) {
         if (StringUtils.isEmpty(testClassName)) {
             throw new IllegalArgumentException("testClassName is empty!");
         }
 
         this.testClassName = testClassName;
-        this.suiteClassNames = suiteClassNames;
     }
 
     @Override
     public String getTestClassName() {
         return testClassName;
-    }
-
-    @Override
-    public List<String> getSuiteClassNames() {
-        return suiteClassNames;
     }
 
     @Override

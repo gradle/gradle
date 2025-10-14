@@ -53,7 +53,7 @@ class TestNGTestClassProcessorTest extends Specification {
     void process(Iterable<String> classNames) {
         classProcessor.startProcessing(processor)
         for (String c : classNames) {
-            classProcessor.processTestClass(new DefaultTestClassRunInfo(c, Collections.emptyList()))
+            classProcessor.processTestClass(new DefaultTestClassRunInfo(c))
         }
         classProcessor.stop()
     }
@@ -220,7 +220,7 @@ class TestNGTestClassProcessorTest extends Specification {
         classProcessor.startProcessing(processor)
 
         when:
-        classProcessor.processTestClass(new DefaultTestClassRunInfo('unknown', Collections.emptyList()))
+        classProcessor.processTestClass(new DefaultTestClassRunInfo('unknown'))
 
         then:
         def ex = thrown(GradleException)
