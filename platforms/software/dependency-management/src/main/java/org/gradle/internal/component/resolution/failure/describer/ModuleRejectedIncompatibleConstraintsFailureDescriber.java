@@ -44,7 +44,12 @@ public abstract class ModuleRejectedIncompatibleConstraintsFailureDescriber exte
 
     @Override
     public boolean canDescribeFailure(ModuleRejectedFailure failure) {
-        return findConflictingConstraints(failure).size() > 1;
+        List<AssessedSelectionReason> versionsByReason = findConflictingConstraints(failure);
+        int uniqueVersions = versionsByReason.stream()
+            .map(AssessedSelectionReason::getRequiredVersion)
+            .collect(Collectors.toSet())
+            .size();
+        return uniqueVersions > 1;
     }
 
     private List<AssessedSelectionReason> findConflictingConstraints(ModuleRejectedFailure failure) {

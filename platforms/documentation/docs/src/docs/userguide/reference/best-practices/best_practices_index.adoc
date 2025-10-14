@@ -18,7 +18,7 @@
 The table below provides a complete list of documented Gradle Best Practices.
 
 ****
-There are currently *30 Best Practices*.
+There are currently *31 Best Practices*.
 ****
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
@@ -39,6 +39,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_structuring_builds.adoc#no_source_in_root,Do Not Put Source Files in the Root Project>> | Structuring Builds | 9.0.0
 | <<best_practices_structuring_builds.adoc#favor_composite_builds,Favor build-logic Composite Builds for Build Logic>> | Structuring Builds | 9.0.0
 | <<best_practices_structuring_builds.adoc#avoid_empty_projects,Avoid Unintentionally Creating Empty Projects>> | Structuring Builds | 9.1.0
+| <<best_practices_structuring_builds.adoc#use_convention_plugins,Use Convention Plugins>> | Structuring Builds | 9.3.0
 
 | <<best_practices_dependencies.adoc#single-gav-string,Single GAV String>> | Dependencies | 8.14
 | <<best_practices_dependencies.adoc#use_version_catalogs,Use Version Catalogs to Centralize Dependency Versions>> | Dependencies | 9.0.0

@@ -19,10 +19,11 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
-import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.UncheckedException;
@@ -43,19 +44,19 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     private final ListenerManager listenerManager;
     private final StyledTextOutputFactory textOutputFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final HtmlTestReportGenerator htmlTestReportGenerator;
+    private final ObjectFactory objectFactory;
 
     @Inject
     public DefaultTestEventReporterFactory(
         ListenerManager listenerManager,
         StyledTextOutputFactory textOutputFactory,
         ProgressLoggerFactory progressLoggerFactory,
-        HtmlTestReportGenerator htmlTestReportGenerator
+        ObjectFactory objectFactory
     ) {
         this.listenerManager = listenerManager;
         this.textOutputFactory = textOutputFactory;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.htmlTestReportGenerator = htmlTestReportGenerator;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -77,14 +78,15 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         SerializableTestResultStore.Writer resultsSerializingListener = newResultsSerializingListener(binaryResultsDir);
         testListenerInternalBroadcaster.add(resultsSerializingListener);
 
+        GenericHtmlTestReportGenerator htmlReportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
+
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
             rootName,
             testListenerInternalBroadcaster.getSource(),
             new LongIdGenerator(),
-            htmlReportDirectory.getAsFile().toPath(),
             binaryResultsDir,
             resultsSerializingListener,
-            htmlTestReportGenerator,
+            htmlReportGenerator,
             listenerManager.getBroadcaster(TestExecutionResultsListener.class)
         ));
     }
