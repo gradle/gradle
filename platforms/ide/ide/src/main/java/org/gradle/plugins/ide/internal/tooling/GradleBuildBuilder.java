@@ -122,8 +122,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             .setProjectIdentifier(id)
             .setBuildTreePath(project.getIdentityPath().asString())
             .setProjectDirectory(project.getProjectDir());
-        if (project.getBuildParent() != null) {
-            converted.setParent(convertedProjects.get(project.getBuildParent()));
+        if (project.getParent() != null) {
+            converted.setParent(convertedProjects.get(project.getParent()));
         }
         convertedProjects.put(project, converted);
         for (ProjectState child : project.getChildProjects()) {

@@ -33,7 +33,7 @@ public abstract class AbstractUniqueProjectNameProvider implements UniqueProject
     /**
      * Finds the "parent" project based on the build-tree path of the current project.
      * <p>
-     * This is different from looking up the {@link ProjectState#getBuildParent() parent project} inside a given build,
+     * This is different from looking up the {@link ProjectState#getParent() parent project} inside a given build,
      * because a root project of a build does not have a parent. In the context of project hiearachy shown in the IDE, however,
      * we are looking for the "parent" project based on the build-tree path.
      * This means that the <b>"parent" project might belong to a different build.</b>
