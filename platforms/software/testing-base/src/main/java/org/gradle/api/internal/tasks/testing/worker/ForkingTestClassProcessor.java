@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -77,7 +77,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestDefinition testDefinition) {
         lock.lock();
         try {
             if (stoppedNow) {
@@ -95,7 +95,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 }
             }
 
-            remoteProcessor.processTestClass(testClass);
+            remoteProcessor.processTestDefinition(testDefinition);
         } finally {
             lock.unlock();
         }

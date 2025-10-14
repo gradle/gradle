@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 
+import java.util.Collections;
 import java.util.regex.Pattern;
 
 /**
@@ -34,12 +37,16 @@ import java.util.regex.Pattern;
 public class DefaultTestClassScanner implements TestDetector {
     private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
+    private final Set<Directory> candidateResourceFiles;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
 
-    public DefaultTestClassScanner(FileTree candidateClassFiles, TestFrameworkDetector testFrameworkDetector,
+    public DefaultTestClassScanner(FileTree candidateClassFiles,
+                                   Set<Directory> candidateResourceFiles,
+                                   TestFrameworkDetector testFrameworkDetector,
                                    TestClassProcessor testClassProcessor) {
         this.candidateClassFiles = candidateClassFiles;
+        this.candidateResourceFiles = candidateResourceFiles;
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
     }
@@ -67,9 +74,13 @@ public class DefaultTestClassScanner implements TestDetector {
         candidateClassFiles.visit(new ClassFileVisitor() {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo(getClassName(fileDetails));
-                testClassProcessor.processTestClass(testClass);
+                TestDefinition testDefinition = new ClassTestDefinition(getClassName(fileDetails));
+                testClassProcessor.processTestDefinition(testDefinition);
             }
+        });
+        candidateResourceFiles.forEach(dir -> {
+            TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir.getAsFile());
+            testClassProcessor.processTestDefinition(testDefinition);
         });
     }
 

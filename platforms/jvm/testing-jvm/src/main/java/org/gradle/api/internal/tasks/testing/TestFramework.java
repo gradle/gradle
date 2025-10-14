@@ -74,4 +74,7 @@ public interface TestFramework extends Closeable {
         return 0;
     }
 
+    default boolean supportsResourceBasedTesting() {
+        return false;
+    }
 }

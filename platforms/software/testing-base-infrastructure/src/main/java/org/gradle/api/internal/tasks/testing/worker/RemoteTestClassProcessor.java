@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 
 /**
  * @see org.gradle.api.internal.tasks.testing.TestClassProcessor
@@ -30,7 +30,7 @@ public interface RemoteTestClassProcessor {
     /**
      * Does not block.
      */
-    void processTestClass(TestClassRunInfo testClass);
+    void processTestDefinition(TestDefinition testDefinition);
 
     /**
      * Does not block.

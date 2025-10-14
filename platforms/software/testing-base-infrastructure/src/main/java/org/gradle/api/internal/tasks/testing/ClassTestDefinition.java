@@ -16,11 +16,18 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.NullMarked;
 
-public class DefaultTestClassRunInfo implements TestClassRunInfo {
+/**
+ * A test definition which denotes a single test class.
+ *
+ * @implNote Kept non-{@code final} to enable mocking.
+ */
+@NullMarked
+public class ClassTestDefinition implements TestDefinition {
     private final String testClassName;
 
-    public DefaultTestClassRunInfo(String testClassName) {
+    public ClassTestDefinition(String testClassName) {
         if (StringUtils.isEmpty(testClassName)) {
             throw new IllegalArgumentException("testClassName is empty!");
         }
@@ -28,9 +35,22 @@ public class DefaultTestClassRunInfo implements TestClassRunInfo {
         this.testClassName = testClassName;
     }
 
-    @Override
     public String getTestClassName() {
         return testClassName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "test class '" + testClassName + "'";
+    }
+
+    /**
+     * {@inheritDoc}
+     * @implNote Returns the name of the test class.
+     */
+    @Override
+    public String getId() {
+        return getTestClassName();
     }
 
     @Override
@@ -42,7 +62,7 @@ public class DefaultTestClassRunInfo implements TestClassRunInfo {
             return false;
         }
 
-        DefaultTestClassRunInfo that = (DefaultTestClassRunInfo) o;
+        ClassTestDefinition that = (ClassTestDefinition) o;
 
         return testClassName.equals(that.testClassName);
     }
@@ -54,6 +74,6 @@ public class DefaultTestClassRunInfo implements TestClassRunInfo {
 
     @Override
     public String toString() {
-        return "DefaultTestClassRunInfo(" + testClassName + ')';
+        return "ClassTestDefinition(" + getId() + ')';
     }
 }

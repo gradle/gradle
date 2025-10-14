@@ -23,6 +23,10 @@ import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 @NullMarked
 public class JUnitTestClassDetector extends TestClassVisitor {
     JUnitTestClassDetector(final TestFrameworkDetector detector) {

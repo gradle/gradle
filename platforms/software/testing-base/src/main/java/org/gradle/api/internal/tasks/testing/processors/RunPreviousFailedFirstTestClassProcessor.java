@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
+import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -29,12 +32,14 @@ import java.util.Set;
  */
 public class RunPreviousFailedFirstTestClassProcessor implements TestClassProcessor {
     private final Set<String> previousFailedTestClasses;
+    private final Set<File> previousFailedTestDefinitionDirectories;
     private final TestClassProcessor delegate;
-    private final LinkedHashSet<TestClassRunInfo> prioritizedTestClasses = new LinkedHashSet<TestClassRunInfo>();
-    private final LinkedHashSet<TestClassRunInfo> otherTestClasses = new LinkedHashSet<TestClassRunInfo>();
+    private final LinkedHashSet<TestDefinition> prioritizedTestDefinitions = new LinkedHashSet<>();
+    private final LinkedHashSet<TestDefinition> otherTestDefinitions = new LinkedHashSet<>();
 
-    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, TestClassProcessor delegate) {
+    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor delegate) {
         this.previousFailedTestClasses = previousFailedTestClasses;
+        this.previousFailedTestDefinitionDirectories = previousFailedTestDefinitionDirectories;
         this.delegate = delegate;
     }
 
@@ -44,21 +49,21 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
-        if (previousFailedTestClasses.contains(testClass.getTestClassName())) {
-            prioritizedTestClasses.add(testClass);
+    public void processTestDefinition(TestDefinition testDefinition) {
+        if (wasPreviouslyRun(testDefinition)) {
+            prioritizedTestDefinitions.add(testDefinition);
         } else {
-            otherTestClasses.add(testClass);
+            otherTestDefinitions.add(testDefinition);
         }
     }
 
     @Override
     public void stop() {
-        for (TestClassRunInfo test : prioritizedTestClasses) {
-            delegate.processTestClass(test);
+        for (TestDefinition test : prioritizedTestDefinitions) {
+            delegate.processTestDefinition(test);
         }
-        for (TestClassRunInfo test : otherTestClasses) {
-            delegate.processTestClass(test);
+        for (TestDefinition test : otherTestDefinitions) {
+            delegate.processTestDefinition(test);
         }
         delegate.stop();
     }
@@ -66,5 +71,15 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     @Override
     public void stopNow() {
         delegate.stopNow();
+    }
+
+    private boolean wasPreviouslyRun(TestDefinition testDefinition) {
+        if (testDefinition instanceof ClassTestDefinition) {
+            return previousFailedTestClasses.contains(((ClassTestDefinition) testDefinition).getTestClassName());
+        } else if (testDefinition instanceof DirectoryBasedTestDefinition){
+            return previousFailedTestDefinitionDirectories.contains(((DirectoryBasedTestDefinition) testDefinition).getTestDefintionFile());
+        } else {
+            throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
+        }
     }
 }

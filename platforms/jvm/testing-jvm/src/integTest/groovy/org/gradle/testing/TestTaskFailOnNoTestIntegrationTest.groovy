@@ -16,7 +16,9 @@
 
 package org.gradle.testing
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUPITER_VERSION
@@ -47,6 +49,60 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("test")
         failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
+    }
+
+    //@Ignore("This is meant for local testing and only works on Tom's machine")
+    def "resource-based testing detects tests from resources"() {
+        settingsFile << """
+            // TODO: Absolute paths on Tom's machine for testing
+            includeBuild("/Users/ttresansky/Projects/sample-rbt-engine")
+        """
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'jvm-test-suite'
+                id("rbt-plugin")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                useJUnitJupiter()
+
+                dependencies {
+                    implementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
+                    runtimeOnly "org.gradle:engine:0.1.0"
+                }
+
+                targets.all {
+                    testTask.configure {
+                        // setScanForTestClasses(false)
+                        setScanForTestResources(true)
+                        testResourcesDirs.add(project.layout.projectDirectory.dir("src/test/rbts"))
+
+                        options {
+                            includeEngines("rbt-engine")
+                            // excludeEngines("junit-jupiter")
+                        }
+                    }
+                }
+            }
+        """
+
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+
+        file("src/test/rbts/SomeTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="foo" />
+                <test name="bar" />
+            </tests>
+        """
+
+        expect:
+        succeeds("test", "-S", "--info")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30315")

@@ -18,17 +18,13 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
 
+import java.util.function.Consumer;
+
 /**
- * A type that consumes tests.
+ * Something that consumes tests (such as by running them).
  * <p>
- * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests by class name.
+ * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests.
  */
 @NullMarked
-public interface TestClassConsumer {
-    /**
-     * Consumes a class-based test given the class's name.
-     *
-     * @param testClassInfo Specifies the test class to consume
-     */
-    void consumeClass(TestClassRunInfo testClassInfo);
+public interface TestDefinitionConsumer extends Consumer<TestDefinition> {
 }

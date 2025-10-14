@@ -16,9 +16,10 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.OnlyClassBasedTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.TestDetector;
@@ -109,13 +110,13 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         @Override
         public void detect() {
             for (String includedTests : testSelection.getIncludedTests()) {
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests);
-                testClassProcessor.processTestClass(testClass);
+                TestDefinition testDefinition = new ClassTestDefinition(includedTests);
+                testClassProcessor.processTestDefinition(testDefinition);
             }
         }
     }
 
-    static class XCTestProcessor implements TestClassProcessor {
+    static class XCTestProcessor implements OnlyClassBasedTestClassProcessor {
         private TestResultProcessor resultProcessor;
         private ExecHandle execHandle;
         private final ClientExecHandleBuilder execHandleBuilder;
@@ -139,14 +140,15 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
 
         @Override
-        public void processTestClass(TestClassRunInfo testClass) {
+        public void processClassTestDefinition(ClassTestDefinition testDefinition) {
             Map<String, Object> testSuiteIds = new ConcurrentHashMap<>();
-            Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<>();
+            Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors, testSuiteIds);
             TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors, testSuiteIds);
 
             String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-            execHandle = executeTest(testClass.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+            execHandle = executeTest(testDefinition.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+
             try {
                 execHandle.start();
                 ExecResult result = execHandle.waitForFinish();
