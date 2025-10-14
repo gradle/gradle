@@ -239,6 +239,17 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
 
                 @Test
                 public void printMethod(){ System.out.println("Testing" + name); }
+
+                // DO NOT DELETE
+                // Removing this may cause the test to work on some OSes and fail on others.
+                // TestNG orders tests by the toString() of the instance.
+                // If this is not overridden, then it will depend on the identity hashcode,
+                // which IS STABLE across our test workers, but different on different OSes.
+                // See https://bugs.openjdk.org/browse/JDK-8329968 for why the hashcode is stable.
+                @Override
+                public String toString() {
+                    return "FactoryTest[name=" + name + "]";
+                }
             }
         '''.stripIndent()
         file('src/test/java/org/gradle/factory/TestNGFactory.java') << '''
@@ -258,12 +269,13 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
 
         then:
         testResults.assertTestPathsExecuted(
-            ':org.gradle.factory.FactoryTest:printMethod',
+            ':org.gradle.factory.FactoryTest:printMethod on FactoryTest[name=First]',
+            ':org.gradle.factory.FactoryTest:printMethod on FactoryTest[name=Second]',
         )
-        testResults.testPath(':org.gradle.factory.FactoryTest:printMethod').onlyOneRootAndRun(1)
+        testResults.testPath(':org.gradle.factory.FactoryTest:printMethod on FactoryTest[name=First]').onlyRoot()
             .assertStdout(containsString('TestingFirst'))
             .assertStdout(not(containsString('Default test name')))
-        testResults.testPath(':org.gradle.factory.FactoryTest:printMethod').onlyOneRootAndRun(2)
+        testResults.testPath(':org.gradle.factory.FactoryTest:printMethod on FactoryTest[name=Second]').onlyRoot()
             .assertStdout(containsString('TestingSecond'))
     }
 
@@ -342,6 +354,17 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
                 public void testGet2() {
                     Assert.assertEquals(true, true);
                 }
+
+                // DO NOT DELETE
+                // Removing this may cause the test to work on some OSes and fail on others.
+                // TestNG orders tests by the toString() of the instance.
+                // If this is not overridden, then it will depend on the identity hashcode,
+                // which IS STABLE across our test workers, but different on different OSes.
+                // See https://bugs.openjdk.org/browse/JDK-8329968 for why the hashcode is stable.
+                @Override
+                public String toString() {
+                    return "TestNG7878";
+                }
             }
         """
 
@@ -350,16 +373,16 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
 
         then:
         testResults.assertTestPathsExecuted(
-            ':TestNG7878:runFirst',
-            ':TestNG7878:testGet2',
+            ':TestNG7878:runFirst on TestNG7878',
+            ':TestNG7878:testGet2 on TestNG7878',
         )
-        testResults.testPath(':TestNG7878:runFirst').onlyOneRootAndRun(1)
+        testResults.testPath(':TestNG7878:runFirst on TestNG7878').onlyOneRootAndRun(1)
             .assertHasResult(TestResult.ResultType.SUCCESS)
-        testResults.testPath(':TestNG7878:runFirst').onlyOneRootAndRun(2)
+        testResults.testPath(':TestNG7878:runFirst on TestNG7878').onlyOneRootAndRun(2)
             .assertHasResult(TestResult.ResultType.SUCCESS)
-        testResults.testPath(':TestNG7878:testGet2').onlyOneRootAndRun(1)
+        testResults.testPath(':TestNG7878:testGet2 on TestNG7878').onlyOneRootAndRun(1)
             .assertHasResult(TestResult.ResultType.SUCCESS)
-        testResults.testPath(':TestNG7878:testGet2').onlyOneRootAndRun(2)
+        testResults.testPath(':TestNG7878:testGet2 on TestNG7878').onlyOneRootAndRun(2)
             .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
