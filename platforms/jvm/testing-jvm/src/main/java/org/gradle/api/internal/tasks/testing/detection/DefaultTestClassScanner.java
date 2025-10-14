@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 
-import java.util.Collections;
 import java.util.regex.Pattern;
 
 /**
@@ -68,7 +67,7 @@ public class DefaultTestClassScanner implements TestDetector {
         candidateClassFiles.visit(new ClassFileVisitor() {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo(getClassName(fileDetails), Collections.emptyList());
+                TestClassRunInfo testClass = new DefaultTestClassRunInfo(getClassName(fileDetails));
                 testClassProcessor.processTestClass(testClass);
             }
         });

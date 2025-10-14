@@ -22,16 +22,9 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @NullMarked
 public class JUnitTestClassDetector extends TestClassVisitor {
-    private final List<String> suiteClassNames = new ArrayList<>();
-
     JUnitTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
@@ -46,24 +39,6 @@ public class JUnitTestClassDetector extends TestClassVisitor {
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/junit/runner/RunWith;".equals(desc)) {
             setTest(true);
-        }
-
-        if ("Lorg/junit/runners/Suite$SuiteClasses;".equals(desc)) {
-            return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
-                @Override
-                public AnnotationVisitor visitArray(String name) {
-                    if ("value".equals(name)) {
-                        return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
-                            @Override
-                            public void visit(String name, Object value) {
-                                suiteClassNames.add(((Type) value).getClassName());
-                            }
-                        };
-                    }
-
-                    return null;
-                }
-            };
         }
 
         return null;
@@ -85,10 +60,5 @@ public class JUnitTestClassDetector extends TestClassVisitor {
         } else {
             return null;
         }
-    }
-
-    @Override
-    public List<String> getSuiteClassNames() {
-        return Collections.unmodifiableList(suiteClassNames);
     }
 }
