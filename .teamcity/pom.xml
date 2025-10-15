@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Gradle_Check Config DSL Script</name>
     <properties>
-        <mockk.version>1.13.13</mockk.version>
+        <mockk.version>1.14.6</mockk.version>
         <bytebuddy.version>1.17.8</bytebuddy.version>
         <jackson.version>2.20.0</jackson.version>
         <junit.version>5.11.3</junit.version>
