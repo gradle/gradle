@@ -40,8 +40,9 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
     @Override
     String subprojectName() { 'app' }
 
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.KOTLIN_TEST
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.KOTLIN_TEST)
     }
 
     def "defaults to kotlin build scripts"() {

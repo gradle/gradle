@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins
 
 import groovy.io.FileType
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
@@ -112,7 +113,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
     }
 
     protected void assertTestPassed(String projectName, String className, String name) {
-        GenericTestExecutionResult testResults = resultsFor(targetDir.file(projectName), "tests/test", getTestFramework())
+        GenericTestExecutionResult testResults = new GenericHtmlTestExecutionResult(targetDir.file(projectName), "build/reports/tests/test", resultsTestFramework)
         testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 

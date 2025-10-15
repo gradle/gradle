@@ -184,6 +184,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
 
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
+        resultsTestFramework(testFramework as BuildInitTestFramework)
         run('init', '--type', 'java-application', '--test-framework', testFramework.id, '--package', 'my.app', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
@@ -197,7 +198,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         run("build")
 
         then:
-        assertTestPassed("my.app.AppTest", "appHasAGreeting", testFramework as BuildInitTestFramework)
+        assertTestPassed("my.app.AppTest", "appHasAGreeting")
 
         when:
         run("run")
