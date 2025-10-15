@@ -279,6 +279,8 @@ dependencies {
 
 The embedded Kotlin has been upgraded from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.20[Kotlin 2.2.20].
 
+// TODO: 2.3.0
+
 ==== Removed incubating `ObjectFactory#dependencyCollector()` method
 
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
