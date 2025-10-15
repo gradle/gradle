@@ -18,6 +18,8 @@ package gradlebuild.docs;
 
 import gradlebuild.basics.PublicApi;
 import gradlebuild.basics.PublicKotlinDslApi;
+import org.asciidoctor.gradle.jvm.AsciidoctorJExtension;
+import org.asciidoctor.gradle.jvm.AsciidoctorTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -37,6 +39,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import java.util.Collections;
+import java.util.regex.Pattern;
 
 public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     @Override
@@ -51,19 +54,45 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         extension.getQuickFeedback().convention(providers.provider(() -> project.hasProperty("quickDocs")));
 
+        project.apply(target -> target.plugin("org.asciidoctor.jvm.convert"));
+
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
         project.apply(target -> target.plugin(GradleKotlinDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleUserManualPlugin.class));
 
+        configureAsciidoctorJ(project, tasks);
+
         addUtilityTasks(tasks, extension);
 
         checkDocumentation(tasks, extension);
     }
 
-    private void applyConventions(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {
+    private void configureAsciidoctorJ(Project project, TaskContainer tasks) {
+        AsciidoctorJExtension asciidoctorj =
+            project.getExtensions().getByType(AsciidoctorJExtension.class);
 
+        asciidoctorj.setVersion("2.5.13");
+        asciidoctorj.getModules().getPdf().setVersion("2.3.10");
+
+        // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
+        // TODO: tables are not handled properly in pdfs
+        Pattern allowed =
+            Pattern.compile("^(?!GIF image format not supported|dropping cells from incomplete row detected end of table|.*Asciidoctor PDF does not support table cell content that exceeds the height of a single page).*");
+
+        asciidoctorj.getFatalWarnings().add(allowed);
+
+        tasks.withType(AsciidoctorTask.class).configureEach(task -> {
+            final AsciidoctorJExtension doctorj = task.getExtensions().getByType(AsciidoctorJExtension.class);
+            doctorj.docExtensions(
+                project.getDependencies().create(project.project(":docs-asciidoctor-extensions")),
+                project.getDependencies().create(project.files("src/main/resources"))
+            );
+        });
+    }
+
+    private void applyConventions(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {
         TaskProvider<Sync> stageDocs = tasks.register("stageDocs", Sync.class, task -> {
             // release notes goes in the root of the docs
             task.from(extension.getReleaseNotes().getRenderedDocumentation());

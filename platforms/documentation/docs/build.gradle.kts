@@ -4,18 +4,19 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.integrationtests.model.GradleDistribution
-import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
 import java.io.FileFilter
 
 plugins {
+    // Applies Java conventions
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
+    // Internal Gradle plugin with standard JVM project conventions
     id("gradlebuild.jvm-library")
-    // TODO: Apply asciidoctor in documentation plugin instead.
-    id("org.asciidoctor.jvm.convert")
+    // Internal docs plugin
     id("gradlebuild.documentation")
+    // Internal samples plugin
     id("gradlebuild.generate-samples")
 }
 
@@ -93,24 +94,6 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
-}
-
-asciidoctorj {
-    setVersion("2.5.13")
-    modules.pdf.setVersion("2.3.10")
-    // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
-    // TODO: tables are not handled properly in pdfs
-    fatalWarnings.add(
-        Regex("^(?!GIF image format not supported|dropping cells from incomplete row detected end of table|.*Asciidoctor PDF does not support table cell content that exceeds the height of a single page).*").toPattern()
-    )
-}
-
-tasks.withType<AsciidoctorTask>().configureEach {
-    val doctorj = extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>()
-    doctorj.docExtensions(
-        project.dependencies.create(project(":docs-asciidoctor-extensions")),
-        project.dependencies.create(files("src/main/resources"))
-    )
 }
 
 gradleDocumentation {
