@@ -37,7 +37,8 @@ class StageTriggers(
     init {
         triggers = mutableListOf()
         val allDependencies =
-            stageProject.specificBuildTypes + stageProject.performanceTests + stageProject.functionalTests + stageProject.docsTestTriggers
+            stageProject.specificBuildTypes + stageProject.performanceTests + stageProject.functionalTests + stageProject.docsTestTriggers +
+                stageProject.flakyTestQuarantineTriggers
         triggers.add(StageTrigger(model, stage, prevStage, null, allDependencies))
 
         stageWithOsTriggers.getOrDefault(stage.stageName, emptyList()).forEach { targetOs ->
