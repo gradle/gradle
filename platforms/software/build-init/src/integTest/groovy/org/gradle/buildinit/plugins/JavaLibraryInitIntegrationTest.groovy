@@ -181,6 +181,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
+        resultsTestFramework(testFramework as BuildInitTestFramework)
         run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
@@ -194,7 +195,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue", testFramework as BuildInitTestFramework)
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         [scriptDsl, testFramework] << [
@@ -207,6 +208,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         def dslFixture = dslFixtureFor(scriptDsl as BuildInitDsl)
 
         when:
+        resultsTestFramework(testFramework as BuildInitTestFramework)
         run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
@@ -221,7 +223,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue", testFramework as BuildInitTestFramework)
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethodReturnsTrue")
 
         where:
         [scriptDsl, testFramework] << [

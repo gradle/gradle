@@ -28,8 +28,9 @@ class GroovyApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
     @Override
     String subprojectName() { 'app' }
 
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.SPOCK
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.SPOCK)
     }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {

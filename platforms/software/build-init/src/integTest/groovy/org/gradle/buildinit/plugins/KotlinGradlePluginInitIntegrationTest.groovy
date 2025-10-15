@@ -36,8 +36,9 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     @Override
     String subprojectName() { 'plugin' }
 
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.KOTLIN_TEST
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.KOTLIN_TEST)
     }
 
     def "defaults to kotlin build scripts"() {

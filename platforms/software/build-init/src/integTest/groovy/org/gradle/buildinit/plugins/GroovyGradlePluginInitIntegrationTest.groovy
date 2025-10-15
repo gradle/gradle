@@ -29,8 +29,9 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     @Override
     String subprojectName() { 'plugin' }
 
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.SPOCK
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.SPOCK)
     }
 
     def "defaults to Groovy build scripts"() {

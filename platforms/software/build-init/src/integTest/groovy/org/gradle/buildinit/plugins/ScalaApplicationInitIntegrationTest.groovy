@@ -32,8 +32,8 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
     String subprojectName() { 'app' }
 
     @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.SCALA_TEST
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.SCALA_TEST)
     }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
