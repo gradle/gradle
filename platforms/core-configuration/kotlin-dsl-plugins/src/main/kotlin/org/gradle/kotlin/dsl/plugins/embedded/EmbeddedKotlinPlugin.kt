@@ -19,13 +19,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.logging.Logger
-
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
-
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
-
 import javax.inject.Inject
 
 
@@ -55,6 +52,20 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
 
             kotlinArtifactConfigurationNames.forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
+            }
+
+            workAroundKgpEagerConfigurations()
+        }
+    }
+
+    // See https://github.com/gradle/gradle/issues/35309
+    // TODO remove once https://youtrack.jetbrains.com/issue/KT-81706/ is fixed
+    private fun Project.workAroundKgpEagerConfigurations() {
+        afterEvaluate {
+            configurations.named { name -> name == "swiftExportClasspath" }.configureEach { swift ->
+                swift.withDependencies { dependencies ->
+                    dependencies.clear()
+                }
             }
         }
     }
