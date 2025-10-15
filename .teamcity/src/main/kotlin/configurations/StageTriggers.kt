@@ -54,7 +54,10 @@ class StageTriggers(
 const val PROVIDER_API_MIGRATION_BRANCH = "provider-api-migration/public-api-changes"
 const val BOT_DAILY_UPGRADLE_WRAPPER_BRANCH = "devprod/upgrade-to-latest-wrapper"
 
-fun determineBranchFilter(branches: List<String>): String = branches.map { "+:$it" }.joinToString("\n")
+const val DEPENDABOT_BRANCH_PATTERN = "dependabot/*"
+
+fun determineBranchFilter(branches: List<String>): String =
+    listOf(DEPENDABOT_BRANCH_PATTERN).joinToString("\n") { "-:$it" } + "\n" + branches.joinToString("\n") { "+:$it" }
 
 class StageTrigger(
     model: CIBuildModel,
