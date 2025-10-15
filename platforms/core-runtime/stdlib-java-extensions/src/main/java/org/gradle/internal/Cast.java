@@ -16,6 +16,7 @@
 
 package org.gradle.internal;
 
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 public abstract class Cast {
@@ -67,8 +68,8 @@ public abstract class Cast {
     }
 
     @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
-    @Nullable
-    public static <T> T uncheckedCast(@Nullable Object object) {
+    @Contract("!null -> !null")
+    public static <T> @Nullable T uncheckedCast(@Nullable Object object) {
         return (T) object;
     }
 
