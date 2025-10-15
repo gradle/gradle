@@ -335,7 +335,8 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         public boolean supportsPlatform(NativePlatformInternal targetPlatform) {
             return targetPlatform.getOperatingSystem().isCurrent()
                     && (targetPlatform.getOperatingSystem().isMacOsX()
-                        || (targetPlatform.getOperatingSystem().isLinux() && DefaultNativePlatform.getCurrentArchitecture().isArm64()))
+                        || (targetPlatform.getOperatingSystem().isLinux() && DefaultNativePlatform.getCurrentArchitecture().isArm64())
+                        || (targetPlatform.getOperatingSystem().isFreeBSD() && DefaultNativePlatform.getCurrentArchitecture().isArm64()))
                 && targetPlatform.getArchitecture().isArm();
         }
 
