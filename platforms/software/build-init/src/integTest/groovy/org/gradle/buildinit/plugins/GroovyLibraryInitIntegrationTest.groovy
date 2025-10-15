@@ -25,8 +25,9 @@ class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
     public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.groovy"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.groovy"
 
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.SPOCK
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.SPOCK)
     }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {

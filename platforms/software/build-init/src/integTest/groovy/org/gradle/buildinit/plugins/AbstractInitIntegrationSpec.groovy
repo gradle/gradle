@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.tasks.testing.TestResult
@@ -32,18 +33,38 @@ import static org.gradle.initialization.StartParameterBuildOptions.Configuration
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
-import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 
-abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     TestFile containerDir
     TestFile targetDir
     TestFile subprojectDir
+    private TestFramework resultsTestFramework = TestFramework.JUNIT_JUPITER
+
+    void resultsTestFramework(TestFramework testFramework) {
+        this.resultsTestFramework = testFramework
+    }
+
+    void resultsTestFramework(BuildInitTestFramework initTestFramework) {
+        this.resultsTestFramework = switch (initTestFramework) {
+            case BuildInitTestFramework.JUNIT -> TestFramework.JUNIT4
+            case BuildInitTestFramework.JUNIT_JUPITER -> TestFramework.JUNIT_JUPITER
+            case BuildInitTestFramework.TESTNG -> TestFramework.TEST_NG
+            case BuildInitTestFramework.SPOCK -> TestFramework.SPOCK
+            case BuildInitTestFramework.KOTLINTEST -> TestFramework.KOTLIN_TEST
+            case BuildInitTestFramework.SCALATEST -> TestFramework.SCALA_TEST
+            case BuildInitTestFramework.XCTEST -> TestFramework.XC_TEST
+            case BuildInitTestFramework.CPPTest ->
+                throw new IllegalArgumentException("C++ test framework does not produce Gradle test results")
+            case BuildInitTestFramework.NONE ->
+                throw new IllegalArgumentException("No test framework specified")
+        }
+    }
+
+    TestFramework getResultsTestFramework() {
+        return resultsTestFramework
+    }
 
     abstract String subprojectName()
-
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT_JUPITER // Default framework in init
-    }
 
     def setup() {
         file("settings.gradle") << """
@@ -71,47 +92,21 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec imple
     }
 
     protected void assertTestPassed(String className, String name) {
-        assertTestPassed(className, name, getTestFramework())
+        assertTestPassed(className, name, resultsTestFramework)
     }
 
-    protected void assertTestPassed(String className, String name, BuildInitTestFramework initTestFramework) {
-        TestFramework testFramework
-        switch (initTestFramework) {
-            case BuildInitTestFramework.JUNIT:
-                testFramework = TestFramework.JUNIT4
-                break
-            case BuildInitTestFramework.JUNIT_JUPITER:
-                testFramework = TestFramework.JUNIT_JUPITER
-                break
-            case BuildInitTestFramework.TESTNG:
-                testFramework = TestFramework.TEST_NG
-                break
-            case BuildInitTestFramework.SPOCK:
-                testFramework = TestFramework.SPOCK
-                break
-            case BuildInitTestFramework.KOTLINTEST:
-                testFramework = TestFramework.KOTLIN_TEST
-                break
-            case BuildInitTestFramework.SCALATEST:
-                testFramework = TestFramework.SCALA_TEST
-                break
-            default:
-                throw new IllegalArgumentException("Unknown test framework: $initTestFramework")
-        }
-        assertTestPassed(className, name, testFramework)
-    }
 
     protected void assertTestPassed(String className, String name, TestFramework testFramework) {
-        GenericTestExecutionResult testResults = resultsFor(subprojectDir, "tests/test", testFramework)
+        GenericTestExecutionResult testResults = new GenericHtmlTestExecutionResult(subprojectDir, "build/reports/tests/test", testFramework)
         testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     protected void assertFunctionalTestPassed(String className, String name) {
-        assertFunctionalTestPassed(className, name, getTestFramework())
+        assertFunctionalTestPassed(className, name, resultsTestFramework)
     }
 
     protected void assertFunctionalTestPassed(String className, String name, TestFramework testFramework) {
-        GenericTestExecutionResult testResults = resultsFor(subprojectDir, "tests/functionalTest", testFramework)
+        GenericTestExecutionResult testResults = new GenericHtmlTestExecutionResult(subprojectDir, "build/reports/tests/functionalTest", testFramework)
         testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 

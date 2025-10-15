@@ -28,8 +28,9 @@ class ScalaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationS
     public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.scala"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibrarySuite.scala"
 
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.SCALA_TEST
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.SCALA_TEST)
     }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
