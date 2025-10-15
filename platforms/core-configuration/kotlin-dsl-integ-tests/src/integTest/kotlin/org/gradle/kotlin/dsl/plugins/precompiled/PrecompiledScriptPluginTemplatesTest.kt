@@ -182,7 +182,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             "my-project-script.gradle.kts",
             """
 
-            task<Jar>("jar")
+            tasks.register<Jar>("jar")
 
             """
         )
