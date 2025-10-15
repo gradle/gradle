@@ -168,34 +168,41 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
 
         then:
         def htmlReport = resultsFor(testDirectory, 'allTests')
+
         htmlReport.testPath("org.gradle.testing.UnitTest").onlyRoot().assertChildCount(1, 0)
         htmlReport.testPath("org.gradle.testing.UnitTest", "foo").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(equalTo('org.gradle.testing.UnitTest#foo\n'))
+
         htmlReport.testPath("org.gradle.testing.SuperTest").onlyRoot().assertChildCount(2, 1)
         htmlReport.testPath("org.gradle.testing.SuperTest", "failing").onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(containsString('java.lang.AssertionError: failing test'))
             .assertStdout(containsString('org.gradle.testing.SuperTest#failing\n'))
+
         htmlReport.testPath("org.gradle.testing.SuperTest", "passing").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(containsString('org.gradle.testing.SuperTest#passing\n'))
 
+        htmlReport.testPath("org.gradle.testing.SubTest").root("Gradle Test Run :superTest").assertChildCount(2, 1)
+        htmlReport.testPath("org.gradle.testing.SubTest", "onlySub").root("Gradle Test Run :superTest")
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertStdout(containsString('org.gradle.testing.SubTest#onlySub super\n'))
 
-        // TODO: needs to be converted
-//        htmlReport.testPath("org.gradle.testing.SubTest").onlyRoot().assertChildCount(2, 1)
-//        htmlReport.testPath("org.gradle.testing.SubTest", "onlySub").onlyRoot()
-//            .assertHasResult(TestResult.ResultType.FAILURE)
-//        htmlReport.testPath("org.gradle.testing.SubTest", "passing").onlyRoot()
-//            .assertHasResult(TestResult.ResultType.SUCCESS)
-//
-//
-//
-//
-//            .assertStdout(allOf(containsString('org.gradle.testing.SubTest#passing sub\n'),
-//                containsString('org.gradle.testing.SubTest#passing super\n'),
-//                containsString('org.gradle.testing.SubTest#onlySub sub\n'),
-//                containsString('org.gradle.testing.SubTest#onlySub super\n')))
+        htmlReport.testPath("org.gradle.testing.SubTest", "passing").root("Gradle Test Run :superTest")
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(containsString('org.gradle.testing.SubTest#passing super\n'))
+
+        htmlReport.testPath("org.gradle.testing.SuperTest", "failing").root("Gradle Test Run :superTest")
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertStdout(containsString('org.gradle.testing.SuperTest#failing\n'))
+            .assertFailureMessages(containsString('java.lang.AssertionError: failing test'))
+
+        htmlReport.testPath("org.gradle.testing.SuperTest", "passing").root("Gradle Test Run :superTest")
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(containsString('org.gradle.testing.SuperTest#passing\n'))
+
+        htmlReport.testPath("org.gradle.testing.SubTest").root("Gradle Test Run :subTest").assertChildCount(2, 0)
     }
 
     def "report includes results of most recent invocation"() {
