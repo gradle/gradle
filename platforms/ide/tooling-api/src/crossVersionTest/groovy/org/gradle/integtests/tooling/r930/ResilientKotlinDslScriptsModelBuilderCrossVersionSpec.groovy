@@ -653,6 +653,38 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         e.message.startsWith("The supplied build action failed with an exception.")
     }
 
+    @ToBeImplemented
+    def "resilient Kotlin DSL can be queried with null target"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+        buildFileKts << """
+            broken !!!
+        """
+
+        // Should be:
+        // when:
+        // def model = succeeds {
+        //    action(new KotlinModelOnNullTargetAction())
+        //        .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+        //        .run()
+        // }
+        // then:
+        // !model.scriptModels.isEmpty()
+
+        when:
+        fails {
+            action(new KotlinModelOnNullTargetAction())
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
+        }
+
+        then:
+        def e = thrown(BuildActionFailureException)
+        e.message.contains("The supplied build action failed with an exception.")
+    }
+
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {
         def scriptModels = model.scriptModels
         assert scriptModels.size() == expectedFiles.size(): "Expected ${expectedFiles.size()} script models, but got ${scriptModels.size()} "
@@ -764,6 +796,20 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         static KotlinModelAction originalModel(QueryStrategy queryStrategy) {
             return new KotlinModelAction(queryStrategy, KotlinDslScriptsModel.class)
+        }
+    }
+
+    static class KotlinModelOnNullTargetAction implements BuildAction<KotlinModel>, Serializable {
+        @Override
+        KotlinModel execute(BuildController controller) {
+            Map<File, KotlinDslScriptModel> scriptModels = [:]
+            Map<File, Failure> failures = [:]
+            ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(null, ResilientKotlinDslScriptsModel.class)
+            scriptModels.putAll(buildScriptModel.model.scriptModels)
+            if (buildScriptModel.failure) {
+                failures[null] = buildScriptModel.failure
+            }
+            return new KotlinModel(scriptModels, failures)
         }
     }
 
