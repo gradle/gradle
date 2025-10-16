@@ -402,7 +402,7 @@ fun CompilerConfiguration.setModuleName(name: String) {
 @OptIn(ExperimentalCompilerApi::class)
 private
 fun CompilerConfiguration.addScriptingCompilerComponents() {
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR") // TODO: just a temporary hack, to be able to build, needs solution
     add(
         org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar.PLUGIN_COMPONENT_REGISTRARS,
         ScriptingCompilerConfigurationComponentRegistrar()
