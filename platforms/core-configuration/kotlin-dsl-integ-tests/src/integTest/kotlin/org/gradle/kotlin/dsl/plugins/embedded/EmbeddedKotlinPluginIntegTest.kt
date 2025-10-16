@@ -20,8 +20,10 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import spock.lang.Issue
 
 
 class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
@@ -95,10 +97,12 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
             $repositoriesBlock
 
             dependencies {
-                ${dependencyDeclarationsFor(
-                "implementation",
-                listOf("compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable")
-            )}
+                ${
+                dependencyDeclarationsFor(
+                    "implementation",
+                    listOf("compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable")
+                )
+            }
             }
 
             configurations["compileClasspath"].files.map { println(it) }
@@ -227,6 +231,31 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
         val result = build("assemble")
 
         result.assertTaskScheduled(":compileKotlin")
+    }
+
+    /**
+     * See EmbeddedKotlinPlugin.workAroundKgpEagerConfigurations()
+     * TODO remove once https://youtrack.jetbrains.com/issue/KT-81706/ is fixed
+     */
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/35309")
+    fun `clears swift configurations created by KGP`() {
+        withDefaultSettings()
+
+        withBuildScript(
+            """
+            plugins {
+                `embedded-kotlin`
+            }
+
+            $repositoriesBlock
+            """
+        )
+
+        build("dependencies", "--write-verification-metadata", "sha256")
+
+        val verificationMetadata = existing("gradle/verification-metadata.xml")
+        assertThat(verificationMetadata.readText(), not(containsString("swift-export")))
     }
 
     private
