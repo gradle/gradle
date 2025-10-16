@@ -128,31 +128,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     private void generateFiles(TestTreeModel model, final List<SerializableTestResultStore.OutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-            buildOperationRunner.run(new RunnableBuildOperation() {
-                @Override
-                public void run(BuildOperationContext context) {
-                    // Clean-up old HTML report
-                    Path indexHtml = reportsDirectory.resolve("index.html");
-                    try {
-                        PathUtils.deleteFile(indexHtml);
-                    } catch (IOException e) {
-                        LOG.info("Could not delete HTML test reports index.html '{}'.", indexHtml, e);
-                    }
-                    // Delete all directories, but not files, in the reports directory
-                    try (Stream<Path> children = Files.list(reportsDirectory)) {
-                        for (Path dir : children.filter(Files::isDirectory).collect(Collectors.toList())) {
-                            PathUtils.deleteDirectory(dir);
-                        }
-                    } catch (IOException e) {
-                        LOG.info("Could not clean HTML test reports directory '{}'.", reportsDirectory, e);
-                    }
-                }
-
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Delete old generic HTML results");
-                }
-            });
+            buildOperationRunner.run(new DeleteOldReportOperation(reportsDirectory));
 
             ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
@@ -239,6 +215,39 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         @Override
         public void run(BuildOperationContext context) {
             output.renderHtmlPage(fileUrl, results, new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry));
+        }
+    }
+
+    private static final class DeleteOldReportOperation implements RunnableBuildOperation {
+        private final Path reportsDirectory;
+
+        private DeleteOldReportOperation(Path reportsDirectory) {
+            this.reportsDirectory = reportsDirectory;
+        }
+
+        @Override
+        public void run(BuildOperationContext context) {
+            // Clean-up old HTML report
+            Path indexHtml = reportsDirectory.resolve("index.html");
+            try {
+                PathUtils.deleteFile(indexHtml);
+            } catch (IOException e) {
+                LOG.info("Could not delete HTML test reports index.html '{}'.", indexHtml, e);
+            }
+            // Delete all directories, but not files, in the reports directory
+            // This avoids deleting files from other report types that may be in the same directory
+            try (Stream<Path> children = Files.list(reportsDirectory)) {
+                for (Path dir : children.filter(Files::isDirectory).collect(Collectors.toList())) {
+                    PathUtils.deleteDirectory(dir);
+                }
+            } catch (IOException e) {
+                LOG.info("Could not clean HTML test reports directory '{}'.", reportsDirectory, e);
+            }
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor.displayName("Delete old generic HTML results");
         }
     }
 }
