@@ -17,6 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -33,12 +34,12 @@ public interface BuildTreeModelControllerServices {
      *     <li>{@link BuildActionModelRequirements}</li>
      * </ul>
      */
-    Supplier servicesForBuildTree(BuildActionModelRequirements actionModelRequirements);
+    Supplier servicesForBuildTree(BuildActionModelRequirements actionModelRequirements, InternalOptions options);
 
     /**
      * Creates a {@link Supplier} that will contribute the services required for the model of a nested build tree with the given parameters.
      *
-     * <p>Contributes the same services as {@link #servicesForBuildTree(BuildActionModelRequirements)}.</p>
+     * <p>Contributes the same services as {@link #servicesForBuildTree(BuildActionModelRequirements, InternalOptions)}.</p>
      */
     Supplier servicesForNestedBuildTree(StartParameterInternal startParameter);
 

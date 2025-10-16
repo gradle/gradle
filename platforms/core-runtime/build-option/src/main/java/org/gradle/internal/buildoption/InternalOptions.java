@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * A service that determines the value for an {@link InternalOption}.
  */
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope({Scope.CrossBuildSession.class, Scope.BuildTree.class}) // TODO: make it CrossBuildSession?
 public interface InternalOptions {
     /**
      * Lookup the value for an {@link InternalOption}.
