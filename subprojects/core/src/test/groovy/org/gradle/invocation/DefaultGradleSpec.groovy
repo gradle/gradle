@@ -53,7 +53,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.CloseableServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -79,7 +79,7 @@ class DefaultGradleSpec extends Specification {
     GradleInternal gradle
 
     def setup() {
-        def serviceRegistry = Stub(ServiceRegistry)
+        def serviceRegistry = Stub(CloseableServiceRegistry)
         _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
         _ * serviceRegistry.get(ClassLoaderScopeRegistry) >> Mock(ClassLoaderScopeRegistry)
         _ * serviceRegistry.get(FileResolver) >> Mock(FileResolver)

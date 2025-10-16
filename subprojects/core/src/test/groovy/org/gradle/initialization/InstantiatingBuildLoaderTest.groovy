@@ -22,7 +22,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildProjectRegistry
@@ -37,7 +36,6 @@ import spock.lang.Specification
 class InstantiatingBuildLoaderTest extends Specification {
 
     InstantiatingBuildLoader buildLoader
-    IProjectFactory projectFactory
     File testDir
     File rootProjectDir
     File childProjectDir
@@ -62,7 +60,6 @@ class InstantiatingBuildLoaderTest extends Specification {
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
-        projectFactory = Mock(IProjectFactory)
         buildLoader = new InstantiatingBuildLoader()
         testDir = tmpDir.testDirectory
         (rootProjectDir = new File(testDir, 'root')).mkdirs()

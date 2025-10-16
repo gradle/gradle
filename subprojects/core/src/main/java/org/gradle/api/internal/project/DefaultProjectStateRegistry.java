@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Describables;
@@ -35,11 +36,12 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
+import org.gradle.util.internal.NameValidator;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
@@ -55,14 +57,22 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closeable {
+
     private final WorkerLeaseService workerLeaseService;
+    private final StateTransitionControllerFactory stateTransitionControllerFactory;
+
     private final Object lock = new Object();
     private final Map<Path, ProjectStateImpl> projectsByPath = new LinkedHashMap<>();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = new HashMap<>();
     private final Map<BuildIdentifier, DefaultBuildProjectRegistry> projectsByBuild = new HashMap<>();
 
-    public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
+    @Inject
+    public DefaultProjectStateRegistry(
+        WorkerLeaseService workerLeaseService,
+        StateTransitionControllerFactory stateTransitionControllerFactory
+    ) {
         this.workerLeaseService = workerLeaseService;
+        this.stateTransitionControllerFactory = stateTransitionControllerFactory;
     }
 
     @Override
@@ -118,14 +128,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         } else {
             identity = ProjectIdentity.forSubproject(owner.getIdentityPath(), projectPath);
         }
+        NameValidator.validate(identity.getProjectName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
 
-        ServiceRegistry buildServices = owner.getMutableModel().getServices();
-        IProjectFactory projectFactory = buildServices.get(IProjectFactory.class);
-        StateTransitionControllerFactory stateTransitionControllerFactory = buildServices.get(StateTransitionControllerFactory.class);
-        ProjectStateImpl projectState = new ProjectStateImpl(owner, identity, descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
+        ProjectStateImpl projectState = new ProjectStateImpl(owner, identity, descriptor, stateTransitionControllerFactory);
+
         projectsByPath.put(identity.getBuildTreePath(), projectState);
         projectsById.put(projectState.getComponentIdentifier(), projectState);
-        projectRegistry.add(projectPath, projectState);
+        projectRegistry.add(identity.getProjectPath(), projectState);
         return projectState;
     }
 
@@ -257,7 +266,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     private class ProjectStateImpl implements ProjectState, Closeable {
 
         private final ProjectDescriptorInternal descriptor;
-        private final IProjectFactory projectFactory;
         private final BuildState owner;
         private final ProjectIdentity identity;
         private final ResourceLock allProjectsLock;
@@ -270,18 +278,18 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             BuildState owner,
             ProjectIdentity identity,
             ProjectDescriptorInternal descriptor,
-            IProjectFactory projectFactory,
-            StateTransitionControllerFactory stateTransitionControllerFactory,
-            ServiceRegistry buildServices
+            StateTransitionControllerFactory stateTransitionControllerFactory
         ) {
             this.owner = owner;
             this.descriptor = descriptor;
-            this.projectFactory = projectFactory;
             this.identity = identity;
             this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identity.getBuildTreePath());
             this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identity.getBuildTreePath());
-            this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, buildServices);
+            this.controller = new ProjectLifecycleController(
+                getDisplayName(),
+                stateTransitionControllerFactory
+            );
         }
 
         @Override
@@ -384,7 +392,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
-            controller.createMutableModel(descriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
+            controller.createMutableModel(descriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope);
         }
 
         @Override

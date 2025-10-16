@@ -16,39 +16,46 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.logging.LoggingManagerFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.scripts.ProjectScopedScriptResolution;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ProjectScopeServices;
-import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
+import java.io.File;
 
 /**
  * Controls the lifecycle of the mutable {@link ProjectInternal} instance for a project, plus its services.
  */
-@ServiceScope(Scope.Project.class)
 public class ProjectLifecycleController implements Closeable {
-    private final ServiceRegistry buildServices;
+
     private final StateTransitionController<State> controller;
-    private ProjectInternal project;
-    private CloseableServiceRegistry projectScopeServices;
+
+    private @Nullable DefaultProject project;
+    private @Nullable CloseableServiceRegistry projectScopeServices;
 
     private enum State implements StateTransitionController.State {
         NotCreated, Created, Configured
     }
 
-    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ServiceRegistry buildServices) {
-        this.buildServices = buildServices;
-        controller = factory.newController(displayName, State.NotCreated);
+    public ProjectLifecycleController(
+        DisplayName displayName,
+        StateTransitionControllerFactory factory
+    ) {
+        this.controller = factory.newController(displayName, State.NotCreated);
     }
 
     public boolean isCreated() {
@@ -64,19 +71,46 @@ public class ProjectLifecycleController implements Closeable {
         BuildState build,
         ProjectState owner,
         ClassLoaderScope selfClassLoaderScope,
-        ClassLoaderScope baseClassLoaderScope,
-        IProjectFactory projectFactory
+        ClassLoaderScope baseClassLoaderScope
     ) {
         controller.transition(State.NotCreated, State.Created, () -> {
-            ProjectState parent = owner.getParent();
-            ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
-            ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
-                LoggingManagerFactory loggingManagerFactory = buildServices.get(LoggingManagerFactory.class);
-                projectScopeServices = ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
-                return projectScopeServices;
-            };
-            project = projectFactory.createProject(build.getMutableModel(), descriptor, owner, parentModel, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope);
+            this.project = createProject(descriptor, build, owner, selfClassLoaderScope, baseClassLoaderScope);
+            this.projectScopeServices = project.getCloseableServices();
         });
+    }
+
+    private static DefaultProject createProject(
+        ProjectDescriptorInternal descriptor,
+        BuildState build,
+        ProjectState owner,
+        ClassLoaderScope selfClassLoaderScope,
+        ClassLoaderScope baseClassLoaderScope
+    ) {
+        GradleInternal gradle = build.getMutableModel();
+        ServiceRegistry buildServices = gradle.getServices();
+
+        ServiceRegistryFactory serviceRegistryFactory = domainObject -> ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject);
+
+        // Need to wrap resolution of the build file to associate the build file with the correct project
+        File buildFile = buildServices.get(ProjectScopedScriptResolution.class).resolveScriptsForProject(owner.getIdentity(), descriptor::getBuildFile);
+
+        Instantiator instantiator = buildServices.get(InstantiatorFactory.class).decorateScheme().instantiator();
+        DefaultProject project = instantiator.newInstance(DefaultProject.class,
+            buildFile,
+            owner,
+            serviceRegistryFactory,
+            selfClassLoaderScope,
+            baseClassLoaderScope
+        );
+
+        // TODO: We should find a proper home for all of these side-effects instead of doing them here.
+        buildServices.get(DependencyResolutionManagementInternal.class).configureProject(project);
+        project.beforeEvaluate(p -> {
+            buildServices.get(DependenciesAccessors.class).createExtensions(project);
+        });
+        gradle.getProjectRegistry().addProject(project);
+
+        return project;
     }
 
     public ProjectInternal getMutableModel() {
@@ -105,4 +139,5 @@ public class ProjectLifecycleController implements Closeable {
             }
         }
     }
+
 }

@@ -54,6 +54,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -83,10 +84,12 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -101,6 +104,8 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.internal.resource.UriTextResource;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -162,22 +167,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ProjectState owner;
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
-    private final ServiceRegistry services;
-
-    private final ProjectInternal rootProject;
-
-    private final GradleInternal gradle;
+    private final CloseableServiceRegistry services;
 
     private final ScriptSource buildScriptSource;
 
-    private final File projectDir;
-
     private final File buildFile;
-
-    @Nullable
-    private final ProjectInternal parent;
-
-    private final String name;
 
     private @Nullable Object group;
 
@@ -210,13 +204,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     private Object beforeProjectActionState;
 
+    @Inject
     public DefaultProject(
-        String name,
-        @Nullable ProjectInternal parent,
-        File projectDir,
         File buildFile,
-        ScriptSource buildScriptSource,
-        GradleInternal gradle,
         ProjectState owner,
         ServiceRegistryFactory serviceRegistryFactory,
         ClassLoaderScope selfClassLoaderScope,
@@ -225,16 +215,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
-        this.rootProject = parent != null ? parent.getRootProject() : this;
-        this.projectDir = projectDir;
         this.buildFile = buildFile;
-        this.parent = parent;
-        this.name = name;
-        this.state = new ProjectStateInternal();
-        this.buildScriptSource = buildScriptSource;
-        this.gradle = gradle;
 
-        services = serviceRegistryFactory.createFor(this);
+        this.services = serviceRegistryFactory.createFor(this);
+
+        this.state = new ProjectStateInternal();
+        this.buildScriptSource = new TextResourceScriptSource(UriTextResource.from("build file", buildFile, getFileResolver()));
+
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
@@ -246,7 +233,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         ProjectFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(ProjectFeatureApplicator.class), services.get(ProjectFeatureDeclarations.class), getObjects());
 
-        evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
+        evaluationListener.add(getBuildState().getMutableModel().getProjectEvaluationBroadcaster());
 
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
 
@@ -322,6 +309,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
     }
 
+    private ProjectState getRootProjectState() {
+        return getBuildState().getProjects().getRootProject();
+    }
+
+    private BuildState getBuildState() {
+        return owner.getOwner();
+    }
+
     private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
         return new ListenerBroadcast<>(ProjectEvaluationListener.class);
     }
@@ -365,12 +360,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getRootProject(ProjectInternal referrer) {
-        return getCrossProjectModelAccess().access(referrer, rootProject);
+        return getCrossProjectModelAccess().access(referrer, getRootProjectState().getMutableModel());
     }
 
     @Override
     public GradleInternal getGradle() {
-        return getCrossProjectModelAccess().gradleInstanceForProject(this, gradle);
+        return getCrossProjectModelAccess().gradleInstanceForProject(this, getBuildState().getMutableModel());
     }
 
     @Inject
@@ -398,7 +393,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public File getRootDir() {
-        return rootProject.getProjectDir();
+        return getRootProjectState().getProjectDir();
     }
 
     @Override
@@ -410,16 +405,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     @Override
     public ProjectInternal getParent(ProjectInternal referrer) {
+        ProjectState parent = owner.getParent();
         if (parent == null) {
             return null;
         }
-        return getCrossProjectModelAccess().access(referrer, parent);
-    }
-
-    @Nullable
-    @Override
-    public ProjectIdentifier getParentIdentifier() {
-        return parent;
+        return getCrossProjectModelAccess().access(referrer, parent.getMutableModel());
     }
 
     @Override
@@ -434,7 +424,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public String getName() {
-        return name;
+        return owner.getName();
     }
 
     @Override
@@ -469,7 +459,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
 
         return Stream.concat(
-            Stream.of(rootProject.getName()),
+            Stream.of(getRootProjectState().getName()),
             parent.getProjectIdentity().getProjectPath().segments().stream()
         ).collect(Collectors.joining("."));
     }
@@ -647,7 +637,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Path getBuildPath() {
-        return gradle.getIdentityPath();
+        return getBuildState().getIdentityPath();
     }
 
     @Override
@@ -782,8 +772,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public IsolatedProject getIsolated() {
-        return new DefaultIsolatedProject(this, rootProject);
+        return new DefaultIsolatedProject(owner, getFileFactory());
     }
+
+    @Inject
+    protected abstract FileFactory getFileFactory();
 
     @Override
     public DefaultProject evaluate() {
@@ -828,7 +821,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public File getProjectDir() {
-        return projectDir;
+        return owner.getProjectDir();
     }
 
     @Override
@@ -1207,7 +1200,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract ProcessOperations getProcessOperations();
 
     @Override
+    // This override is needed for the @Inject methods to inject services form the project-scoped
+    // services instead of the service registry that this instance is instantiated with.
     public ServiceRegistry getServices() {
+        return services;
+    }
+
+    public CloseableServiceRegistry getCloseableServices() {
         return services;
     }
 

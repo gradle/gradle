@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.service.scopes;
 
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 
 /**
  * A hierarchical service registry.
@@ -27,5 +27,5 @@ public interface ServiceRegistryFactory {
      * @param domainObject The domain object.
      * @return The registry containing the services for the domain object.
      */
-    ServiceRegistry createFor(Object domainObject);
+    CloseableServiceRegistry createFor(Object domainObject);
 }

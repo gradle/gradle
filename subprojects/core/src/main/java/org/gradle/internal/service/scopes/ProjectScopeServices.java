@@ -123,14 +123,13 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(
         ServiceRegistry buildServices,
-        ProjectInternal project,
-        LoggingManagerFactory loggingManagerInternalFactory
+        ProjectInternal project
     ) {
         return ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Project.class)
             .displayName("project services")
             .parent(buildServices)
-            .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
+            .provider(new ProjectScopeServices(project, buildServices.get(LoggingManagerFactory.class)))
             .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
             .build();
     }

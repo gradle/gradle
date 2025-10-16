@@ -58,9 +58,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
@@ -283,7 +281,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(FileOperations.class, DefaultFileOperations.class);
         registration.add(FileSystemOperations.class, DefaultFileSystemOperations.class);
         registration.add(ArchiveOperations.class, DefaultArchiveOperations.class);
-        registration.add(IProjectFactory.class, ProjectFactory.class);
         registration.add(SettingsLoaderFactory.class, DefaultSettingsLoaderFactory.class);
         registration.add(ResolvedBuildLayout.class);
         registration.add(NodeValidator.class, DefaultNodeValidator.class);

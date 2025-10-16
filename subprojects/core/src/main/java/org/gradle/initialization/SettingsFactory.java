@@ -74,7 +74,7 @@ public class SettingsFactory {
         private CloseableServiceRegistry services;
 
         @Override
-        public ServiceRegistry createFor(Object domainObject) {
+        public CloseableServiceRegistry createFor(Object domainObject) {
             services = SettingsScopeServices.create(buildScopeServices, (SettingsInternal) domainObject);
             return services;
         }

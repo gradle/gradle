@@ -23,12 +23,12 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -44,8 +44,6 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
-import org.gradle.internal.resource.DefaultTextFileResourceLoader
-import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -53,8 +51,8 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator
-import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -128,7 +126,7 @@ class DefaultProjectSpec extends Specification {
         isolatedProject.name == 'root'
         isolatedProject.path == ':'
         isolatedProject.buildTreePath == ':'
-        isolatedProject.projectDirectory === project.layout.projectDirectory
+        isolatedProject.projectDirectory == project.layout.projectDirectory
         isolatedProject.rootProject === isolatedProject
     }
 
@@ -244,6 +242,7 @@ class DefaultProjectSpec extends Specification {
             property(Object) >> propertyFactory.property(Object)
             newInstance(ProjectFeaturesDynamicObject, _) >> Stub(ProjectFeaturesDynamicObject)
         }
+        def fileResolver = TestFiles.resolver(tmpDir.testDirectory)
 
         def serviceRegistry = new DefaultServiceRegistry()
 
@@ -262,11 +261,12 @@ class DefaultProjectSpec extends Specification {
         })
         serviceRegistry.add(ListenerBuildOperationDecorator, Mock(ListenerBuildOperationDecorator))
         serviceRegistry.add(ArtifactHandler, Mock(ArtifactHandler))
-        serviceRegistry.add(FileResolver, Stub(FileResolver))
+        serviceRegistry.add(FileResolver, fileResolver)
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
         serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
         serviceRegistry.add(ProjectFeatureDeclarations, Stub(ProjectFeatureDeclarations))
         serviceRegistry.add(ProjectFeatureApplicator, Stub(ProjectFeatureApplicator))
+        serviceRegistry.add(FileFactory, TestFiles.fileFactory())
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.add(AntBuilderFactory, Mock(AntBuilderFactory) {
@@ -275,12 +275,12 @@ class DefaultProjectSpec extends Specification {
 
         serviceRegistry.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-                def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+            DefaultProjectLayout createProjectLayout(FileResolver fileRes, FileCollectionFactory fileCollectionFactory) {
+                def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileRes, fileCollectionFactory)
                 return new DefaultProjectLayout(
-                    fileResolver.resolve("."),
-                    fileResolver.resolve("."),
-                    fileResolver,
+                    fileRes.resolve("."),
+                    fileRes.resolve("."),
+                    fileRes,
                     DefaultTaskDependencyFactory.withNoAssociatedProject(),
                     PatternSets.getNonCachingPatternSetFactory(),
                     PropertyHost.NO_OP,
@@ -318,19 +318,15 @@ class DefaultProjectSpec extends Specification {
         _ * container.owner >> build.owner
         _ * container.displayName >> Describables.of(name)
         _ * container.identity >> identity
+        _ * container.getName() >> name
+        _ * container.projectDir >> fileResolver.resolve(".")
 
-        def descriptor = Mock(ProjectDescriptor) {
-            getName() >> name
-            getProjectDir() >> new File("project")
-            getBuildFile() >> new File("build file")
-        }
-
-        def scriptResolution = Stub(ProjectScopedScriptResolution) {
-            resolveScriptsForProject(_, _) >> { project, action -> action.get() }
-        }
-
-        def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
-        def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
-        return factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        return TestUtil.instantiatorFactory().decorateLenient(serviceRegistry).newInstance(DefaultProject.class,
+            fileResolver.resolve("build file"),
+            container,
+            serviceRegistryFactory,
+            Stub(ClassLoaderScope),
+            Stub(ClassLoaderScope)
+        )
     }
 }
