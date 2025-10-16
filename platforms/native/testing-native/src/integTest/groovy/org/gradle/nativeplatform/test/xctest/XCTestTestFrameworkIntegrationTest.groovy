@@ -133,12 +133,12 @@ allprojects { p ->
     }
 
     @Override
-    String getPassingTestCaseName() {
+    String getPassingTestMethodName() {
         return "testPass"
     }
 
     @Override
-    String getFailingTestCaseName() {
+    String getFailingTestMethodName() {
         return "testFail"
     }
 

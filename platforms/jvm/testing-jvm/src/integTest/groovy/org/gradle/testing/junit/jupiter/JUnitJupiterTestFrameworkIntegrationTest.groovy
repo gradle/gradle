@@ -51,18 +51,18 @@ class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkInte
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
                 @org.junit.jupiter.api.Test
-                public void ${failingTestMethodName} {
+                public void ${failingTestMethodName}() {
                     System.err.println("some error output");
                     org.junit.jupiter.api.Assertions.fail(\"test failure message\");
                 }
                 @org.junit.jupiter.api.Test
-                public void ${passingTestMethodName} { }
+                public void ${passingTestMethodName}() { }
             }
         """
         file('src/test/java/SomeOtherTest.java') << """
             public class SomeOtherTest {
                 @org.junit.jupiter.api.Test
-                public void ${passingTestMethodName} { }
+                public void ${passingTestMethodName}() { }
             }
         """
     }
@@ -87,22 +87,12 @@ class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkInte
     }
 
     @Override
-    String getPassingTestCaseName() {
+    String getPassingTestMethodName() {
         return "pass"
     }
 
     @Override
-    String getFailingTestCaseName() {
-        return "fail"
-    }
-
-    @Override
-    String getPassingTestMethodName() {
-        return "pass()"
-    }
-
-    @Override
     String getFailingTestMethodName() {
-        return "fail()"
+        return "fail"
     }
 }

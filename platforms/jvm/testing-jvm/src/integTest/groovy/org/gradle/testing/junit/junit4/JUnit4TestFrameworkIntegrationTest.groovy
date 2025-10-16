@@ -79,12 +79,12 @@ class JUnit4TestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
-    String getPassingTestCaseName() {
+    String getPassingTestMethodName() {
         return "pass"
     }
 
     @Override
-    String getFailingTestCaseName() {
+    String getFailingTestMethodName() {
         return "fail"
     }
 }
