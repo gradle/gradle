@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 
+import java.io.File;
 import java.util.Set;
 import java.util.regex.Pattern;
 
