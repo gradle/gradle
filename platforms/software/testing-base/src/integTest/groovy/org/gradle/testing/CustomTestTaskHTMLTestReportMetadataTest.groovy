@@ -46,10 +46,10 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         def results = resultsFor("tests/failing")
         results.testPath(":failing suite")
             .onlyRoot()
-            .assertMetadata(["suitekey"])
+            .assertMetadataKeys(["suitekey"])
         results.testPath(":failing suite:failing test")
             .onlyRoot()
-            .assertMetadata(["testkey", "testkey2", "testkey3", "testkey4"])
+            .assertMetadataKeys(["testkey", "testkey2", "testkey3", "testkey4"])
 
         and: "Also in the aggregate report"
         def aggregateResults = aggregateResults()
@@ -58,7 +58,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
             .assertChildCount(1, 1)
         aggregateResults.testPath(":failing suite:failing test")
             .onlyRoot()
-            .assertMetadata(["testkey", "testkey2", "testkey3", "testkey4"])
+            .assertMetadataKeys(["testkey", "testkey2", "testkey3", "testkey4"])
     }
 
     def "emits test report with metadata with multiple values in metadata event"() {
@@ -76,7 +76,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         def results = resultsFor("tests/failing")
         results.testPath(":failing suite:failing test")
             .onlyRoot()
-            .assertMetadata(["group1key1", "group1key2", "group2key1", "group2key2"])
+            .assertMetadataKeys(["group1key1", "group1key2", "group2key1", "group2key2"])
     }
 
     def "emits complex aggregated test report with metadata"() {
@@ -98,29 +98,29 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
             .assertChildCount(2, 0)
         aggregateResults.testPath(":Unit Tests Suite:test1")
             .onlyRoot()
-            .assertMetadata(["key1"])
+            .assertMetadataKeys(["key1"])
         aggregateResults.testPath(":Unit Tests Suite:test2")
             .onlyRoot()
-            .assertMetadata(["key2"])
+            .assertMetadataKeys(["key2"])
 
         aggregateResults.testPath(":Slow Integration Tests Suite")
             .onlyRoot()
             .assertChildCount(1, 0)
-            .assertMetadata(["suitekey1"])
+            .assertMetadataKeys(["suitekey1"])
         aggregateResults.testPath(":Slow Integration Tests Suite:intTest1")
             .onlyRoot()
-            .assertMetadata(["ikey1"])
+            .assertMetadataKeys(["ikey1"])
 
         aggregateResults.testPath(":Slower Integration Tests Suite")
             .onlyRoot()
             .assertChildCount(2, 1)
-            .assertMetadata(["suitekey2", "suitekey2-another"])
+            .assertMetadataKeys(["suitekey2", "suitekey2-another"])
         aggregateResults.testPath(":Slower Integration Tests Suite:intTest2")
             .onlyRoot()
-            .assertMetadata(["ikey2"])
+            .assertMetadataKeys(["ikey2"])
         aggregateResults.testPath(":Slower Integration Tests Suite:intTest3")
             .onlyRoot()
-            .assertMetadata(["ikey3"])
+            .assertMetadataKeys(["ikey3"])
     }
 
     def "emits test report with metadata with rendered values"() {

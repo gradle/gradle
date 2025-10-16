@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
@@ -85,6 +86,30 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             .onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(containsText("failure message"))
+    }
+
+    def "HTML report contains metadata from both suites"() {
+        given:
+        buildFile << taskWithTwoSameNameSuites("doubled")
+
+        when:
+        fails("doubled")
+
+        then:
+        def results = aggregateResults()
+        results.testPath(":doubled suite:doubled test")
+            .singleRootWithRun(1)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath(":doubled suite:doubled test")
+            .singleRootWithRun(2)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results
+            .testPath(":doubled suite")
+            .onlyRoot()
+            .assertMetadata(ImmutableListMultimap.of(
+                "index", "0",
+                "index", "1"
+            ).entries().toList())
     }
 
     def "emits test results in error exception message when test fails"() {
@@ -328,6 +353,45 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                                  myTest.failed(Instant.now(), "failure message")
                             }
                             mySuite.failed(Instant.now())
+                       }
+                       reporter.failed(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("${name}", ${name}CustomTestTask)
+        """
+    }
+
+    def taskWithTwoSameNameSuites(String name) {
+        assert !name.toCharArray().any { it.isWhitespace() }
+
+        """
+            abstract class ${name}CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "${name}",
+                        getLayout().getBuildDirectory().dir("test-results/${name}").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
+                    )) {
+                       reporter.started(Instant.now())
+                       for (int i = 0; i < 2; i++) {
+                           try (def mySuite = reporter.reportTestGroup("${name} suite")) {
+                                mySuite.started(Instant.now())
+                                try (def myTest = mySuite.reportTest("${name} test", "${name} test")) {
+                                     myTest.started(Instant.now())
+                                     myTest.succeeded(Instant.now())
+                                }
+                                mySuite.metadata(Instant.now(), "index", i)
+                                mySuite.succeeded(Instant.now())
+                           }
                        }
                        reporter.failed(Instant.now())
                    }
