@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a test result that can be stored for a long time (potentially across process invocations).
@@ -335,33 +336,44 @@ public final class SerializableTestResult {
     }
 
     /**
-     * Merge two test results together. Properties that aren't able to merged must be supplied explicitly, such as the name and display name.
+     * Merge two test results together. Certain properties must be equal in order to merge two results.
      *
-     * @param other the other test result to merge with this one
-     * @param name the name of the merged test result
-     * @param displayName the display name of the merged test result
-     * @param className the class name of the merged test result, if any
-     * @param classDisplayName the class display name of the merged test result, if any
-     * @param resultType the result type of the merged test result
-     * @param assumptionFailure the assumption failure of the merged test result, if any
      * @return the merged test result
      */
-    public SerializableTestResult merge(
-        SerializableTestResult other,
-        String name,
-        String displayName,
-        @Nullable String className,
-        @Nullable String classDisplayName,
-        TestResult.ResultType resultType,
-        @Nullable SerializableFailure assumptionFailure
-    ) {
+    public SerializableTestResult merge(SerializableTestResult other) {
+        if (!name.equals(other.name)) {
+            throw new IllegalArgumentException("Cannot merge test results with different names: " + name + " and " + other.name);
+        }
+        if (!displayName.equals(other.displayName)) {
+            throw new IllegalArgumentException("Cannot merge test results with different display names: " + displayName + " and " + other.displayName);
+        }
+        if (!Objects.equals(className, other.className)) {
+            throw new IllegalArgumentException("Cannot merge test results with different class names: " + className + " and " + other.className);
+        }
+        if (!Objects.equals(classDisplayName, other.classDisplayName)) {
+            throw new IllegalArgumentException("Cannot merge test results with different class display names: " + classDisplayName + " and " + other.classDisplayName);
+        }
+        if (assumptionFailure != null && other.assumptionFailure != null) {
+            throw new IllegalArgumentException("Cannot merge test results with multiple assumption failures");
+        }
+
+        // Merge result type by taking the worst result
+        TestResult.ResultType resultType;
+        if (this.resultType == TestResult.ResultType.FAILURE || other.resultType == TestResult.ResultType.FAILURE) {
+            resultType = TestResult.ResultType.FAILURE;
+        } else if (this.resultType == TestResult.ResultType.SKIPPED || other.resultType == TestResult.ResultType.SKIPPED) {
+            resultType = TestResult.ResultType.SKIPPED;
+        } else {
+            resultType = TestResult.ResultType.SUCCESS;
+        }
+
         SerializableTestResult.Builder builder = new Builder()
             .name(name)
             .displayName(displayName)
             .className(className)
             .classDisplayName(classDisplayName)
             .resultType(resultType)
-            .assumptionFailure(assumptionFailure)
+            .assumptionFailure(assumptionFailure != null ? assumptionFailure : other.assumptionFailure)
             .startTime(Math.min(startTime, other.startTime))
             .endTime(Math.max(endTime, other.endTime));
         builder.failures.addAll(failures);

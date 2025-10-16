@@ -163,7 +163,7 @@ public class TestTreeModel {
     }
 
     public static final class PerRootInfo {
-        private final SerializableTestResultStore.OutputTrackedResult outputTrackedResult;
+        private SerializableTestResultStore.OutputTrackedResult outputTrackedResult;
         private final List<String> children;
         private final BitSet childIsLeaf;
         private int totalLeafCount;
@@ -227,6 +227,9 @@ public class TestTreeModel {
             totalLeafCount += rootInfo.totalLeafCount;
             failedLeafCount += rootInfo.failedLeafCount;
             skippedLeafCount += rootInfo.skippedLeafCount;
+
+            SerializableTestResult mergedResult = getResult().merge(rootInfo.getResult());
+            outputTrackedResult = outputTrackedResult.withInnerResult(mergedResult);
         }
 
         private boolean isExistingNonLeafChild(String child) {
