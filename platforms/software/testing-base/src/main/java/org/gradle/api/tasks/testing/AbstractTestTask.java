@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -587,7 +588,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             return reportGenerators.get(0);
         } else {
             // Using get(0) prefers the HTML report if present
-            return new MultiTestReportGenerator(reportGenerators.get(0), reportGenerators.subList(1, reportGenerators.size()));
+            return new MultiTestReportGenerator(reportGenerators.get(0), ImmutableSet.copyOf(reportGenerators.subList(1, reportGenerators.size())));
         }
     }
 
