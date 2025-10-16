@@ -36,6 +36,7 @@ dependencies {
     smokeTestImplementation(projects.testKit)
     smokeTestImplementation(projects.launcher)
     smokeTestImplementation(projects.persistentCache)
+    smokeTestImplementation(projects.internalTesting)
     smokeTestImplementation(projects.jvmServices)
     smokeTestImplementation(projects.buildOption)
     smokeTestImplementation(projects.processServices)
