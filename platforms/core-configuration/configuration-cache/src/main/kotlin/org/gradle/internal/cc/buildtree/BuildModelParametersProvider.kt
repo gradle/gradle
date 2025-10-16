@@ -19,7 +19,6 @@ package org.gradle.internal.cc.buildtree
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
@@ -27,7 +26,6 @@ import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.logger
-import kotlin.collections.iterator
 
 
 /**
@@ -77,10 +75,10 @@ object BuildModelParametersProvider {
     fun parameters(
         requirements: BuildActionModelRequirements,
         startParameter: StartParameterInternal,
+        options: InternalOptions,
         configurationCacheLogLevel: LogLevel
     ): BuildModelParameters {
 
-        val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         warnOnPreviouslyExistingOptions(options)
         val requiresModels = requirements.isCreatesModel
 
@@ -187,7 +185,7 @@ object BuildModelParametersProvider {
     }
 
     private
-    fun validateIsolatedProjectsCachingOption(options: DefaultInternalOptions) {
+    fun validateIsolatedProjectsCachingOption(options: InternalOptions) {
         val param = options[isolatedProjectsCaching]
         val supported = listOf(InvocationScenarioParameter.TOOLING, InvocationScenarioParameter.NONE)
         require(param in supported) {

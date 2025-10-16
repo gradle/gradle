@@ -18,6 +18,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLayoutValidator;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionModelRequirements;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
@@ -47,15 +48,18 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
     private final BuildTreeModelControllerServices buildTreeModelControllerServices;
     private final BuildLayoutValidator buildLayoutValidator;
     private final ValueSnapshotter valueSnapshotter;
+    private final InternalOptions options;
 
     public BuildTreeLifecycleBuildActionExecutor(
         BuildTreeModelControllerServices buildTreeModelControllerServices,
         BuildLayoutValidator buildLayoutValidator,
-        ValueSnapshotter valueSnapshotter
+        ValueSnapshotter valueSnapshotter,
+        InternalOptions options
     ) {
         this.buildTreeModelControllerServices = buildTreeModelControllerServices;
         this.buildLayoutValidator = buildLayoutValidator;
         this.valueSnapshotter = valueSnapshotter;
+        this.options = options;
     }
 
     @Override
@@ -65,7 +69,7 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
             buildLayoutValidator.validate(action.getStartParameter());
 
             BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
-            BuildTreeModelControllerServices.Supplier modelServices = buildTreeModelControllerServices.servicesForBuildTree(actionRequirements);
+            BuildTreeModelControllerServices.Supplier modelServices = buildTreeModelControllerServices.servicesForBuildTree(actionRequirements, options);
             result = runRootBuildAction(action, buildSession.getServices(), modelServices);
         } catch (Throwable t) {
             if (result == null) {

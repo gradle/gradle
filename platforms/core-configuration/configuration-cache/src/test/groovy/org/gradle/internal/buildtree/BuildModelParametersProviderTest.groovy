@@ -21,6 +21,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import spock.lang.Specification
@@ -235,7 +236,9 @@ class BuildModelParametersProviderTest extends Specification {
         LogLevel logLevel = (args.logLevel as LogLevel) ?: LogLevel.QUIET
 
         def requirements = requirements(runsTasks, createsModel, startParameterConfig)
-        return BuildModelParametersProvider.parameters(requirements, requirements.startParameter, logLevel)
+        def startParameter = requirements.startParameter
+        def options = new DefaultInternalOptions(startParameter.systemPropertiesArgs)
+        return BuildModelParametersProvider.parameters(requirements, startParameter, options, logLevel)
     }
 
     private BuildActionModelRequirements requirements(boolean runsTasks, boolean createsModel, Closure startParameterConfig) {
