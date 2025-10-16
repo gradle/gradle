@@ -39,7 +39,7 @@ import java.util.Arrays;
  * Runs a lightweight HTTP file server for the generated docs using the JDK’s built-in
  * {@code jdk.httpserver} module.
  *
- * Usage: run {@code :serveDocs}, then open {@code http://localhost:<port>}.</p>
+ * Usage: run {@code :serveDocs}, then open {@code http://localhost:<port>}.
  */
 @DisableCachingByDefault(because = "This task starts a HTTP server and should not be cached.")
 public abstract class ServeDocs extends DefaultTask {
