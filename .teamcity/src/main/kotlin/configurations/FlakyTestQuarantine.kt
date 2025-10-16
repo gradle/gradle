@@ -53,7 +53,7 @@ class FlakyTestQuarantineProject(
         model.stages
             .filter { it.stageName <= StageName.READY_FOR_RELEASE }
             .flatMap { it.functionalTests }
-            .filter { it.os == os }
+            .filter { it.os == os && !it.testType.crossVersionTests }
             .forEach {
                 buildType(FlakyTestQuarantine(model, stage, it))
             }
