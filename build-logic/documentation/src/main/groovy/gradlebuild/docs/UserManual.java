@@ -47,6 +47,9 @@ public abstract class UserManual {
      */
     public abstract DirectoryProperty getStagingRoot();
 
+    /**
+     * This is an intermediate working directory (not the final rendered output).
+     */
     public abstract DirectoryProperty getStagedDocumentation();
 
     /**
