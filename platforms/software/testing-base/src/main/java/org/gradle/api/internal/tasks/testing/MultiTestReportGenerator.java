@@ -20,17 +20,23 @@ import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A {@link TestReportGenerator} that uses multiple report generators to generate reports. A primary generator is used as the user-facing report.
  */
 @NullMarked
-public class MultiTestReportGenerator implements TestReportGenerator {
+public final class MultiTestReportGenerator implements TestReportGenerator {
 
     private final TestReportGenerator primary;
-    private final List<TestReportGenerator> others;
+    private final Set<TestReportGenerator> others;
 
-    public MultiTestReportGenerator(TestReportGenerator primary, List<TestReportGenerator> others) {
+    public MultiTestReportGenerator(TestReportGenerator primary, Set<TestReportGenerator> others) {
+        if (others.contains(primary)) {
+            throw new IllegalArgumentException(
+                "The primary report generator must not be in the set of other report generators."
+            );
+        }
         this.primary = primary;
         this.others = others;
     }
