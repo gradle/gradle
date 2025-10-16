@@ -44,7 +44,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class TestTreeModelResultsProvider implements TestResultsProvider {
+/**
+ * A {@link TestResultsProvider} that provides results from a {@link TestTreeModel}. This handles condensing the multiple
+ * levels of the tree model into test classes and test methods, so that the results can be consumed by existing report
+ * renderers, such as the JUnit XML report renderer.
+ *
+ * <p>
+ * Any nodes above a test class will not be represented in the results. Primarily, this will be an issue for the root node,
+ * but may also affect results from JUnit 4 suites or non-class-based tests.
+ * </p>
+ */
+public final class TestTreeModelResultsProvider implements TestResultsProvider {
 
     public static void useResultsFrom(Path resultsDir, Consumer<TestTreeModelResultsProvider> resultsConsumer) {
         SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDir);
