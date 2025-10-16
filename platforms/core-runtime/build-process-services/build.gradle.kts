@@ -19,3 +19,7 @@ dependencies {
 
     testRuntimeOnly(projects.resources)
 }
+
+errorprone {
+    nullawayEnabled = true
+}
