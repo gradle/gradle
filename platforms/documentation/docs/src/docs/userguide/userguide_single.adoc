@@ -176,6 +176,7 @@ include::reporting_problems.adoc[leveloffset=+2]
 
 include::building_java_projects.adoc[leveloffset=+2]
 include::java_testing.adoc[leveloffset=+2]
+include::dependency_management_for_java_projects.adoc[leveloffset=+2]
 
 // Java Toolchains
 include::toolchains.adoc[leveloffset=+2]
