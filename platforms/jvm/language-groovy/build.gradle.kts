@@ -16,6 +16,7 @@ dependencies {
     api(projects.jvmServices)
     api(projects.languageJava)
     api(projects.languageJvm)
+    api(projects.modelCore)
     api(projects.platformBase)
     api(projects.problemsApi)
     api(projects.serviceProvider)
