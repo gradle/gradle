@@ -19,6 +19,10 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.stdlibJavaExtensions)
 
+    implementation(libs.guava)
     implementation(libs.inject)
 }
 
+errorprone {
+    nullawayEnabled = true
+}
