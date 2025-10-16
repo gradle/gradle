@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.report.generic;
+package org.gradle.api.internal.tasks.testing.report.generic
 
-import java.util.List;
-
-public interface GenericTestExecutionResult {
+interface GenericTestExecutionResult {
     /**
      * Asserts that the given test paths (and only the given test paths) were executed.
      *
@@ -75,6 +73,26 @@ public interface GenericTestExecutionResult {
         SCALA_TEST,
         XC_TEST,
         CUSTOM,
+        ;
+
+        /**
+         * Given the name of a test method, returns the name of the test case that would be reported by this test
+         * framework.
+         *
+         * <p>
+         * For example, JUnit 4 uses the method name as the test case name, whereas JUnit Jupiter appends {@code ()}
+         * to the method name.
+         * </p>
+         *
+         * @param testMethodName the name of the test method
+         * @return the name of the test case as reported by this test framework
+         */
+        String getTestCaseName(String testMethodName) {
+            return switch (this) {
+                case JUNIT_JUPITER, KOTLIN_TEST -> testMethodName + "()"
+                default -> testMethodName;
+            };
+        }
     }
 
     /**
