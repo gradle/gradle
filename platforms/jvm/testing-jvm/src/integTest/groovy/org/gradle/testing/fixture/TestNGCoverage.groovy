@@ -30,7 +30,7 @@ class TestNGCoverage {
     /**
      * This is the minimum version that works correctly with the new Generic test reporting infrastructure.
      * Earlier versions will not properly create TestDescriptors for classes containing tests, leading to
-     * incorrect test reporting.  Other versions are kept reference, but nothing earlier than this should
+     * incorrect test reporting.  Other versions are kept for reference, but nothing earlier than this should
      * be tested in multi-version tests.
      */
     private static final String FIXED_ICLASS_LISTENER = '6.9.13.3' // Introduces fixed IClassListener
