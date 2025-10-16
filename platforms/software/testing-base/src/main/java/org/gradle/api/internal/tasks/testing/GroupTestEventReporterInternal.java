@@ -19,6 +19,14 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 
+/**
+ * API for reporting tests that allows using existing descriptors rather than letting the reporter generate them.
+ *
+ * <p>
+ * In the future, we should see if we can improve the {@link GroupTestEventReporter} API and remove this interface.
+ * This may not be possible due to the way that {@code AbstractTestTask} functions, though.
+ * </p>
+ */
 public interface GroupTestEventReporterInternal extends GroupTestEventReporter {
     /**
      * Create a child reporter for a test descriptor. This is used internally to ferry existing test descriptors

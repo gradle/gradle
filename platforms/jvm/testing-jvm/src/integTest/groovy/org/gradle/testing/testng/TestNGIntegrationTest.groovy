@@ -376,13 +376,13 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
             ':TestNG7878:runFirst on TestNG7878',
             ':TestNG7878:testGet2 on TestNG7878',
         )
-        testResults.testPath(':TestNG7878:runFirst on TestNG7878').onlyOneRootAndRun(1)
+        testResults.testPath(':TestNG7878:runFirst on TestNG7878').singleRootWithRun(1)
             .assertHasResult(TestResult.ResultType.SUCCESS)
-        testResults.testPath(':TestNG7878:runFirst on TestNG7878').onlyOneRootAndRun(2)
+        testResults.testPath(':TestNG7878:runFirst on TestNG7878').singleRootWithRun(2)
             .assertHasResult(TestResult.ResultType.SUCCESS)
-        testResults.testPath(':TestNG7878:testGet2 on TestNG7878').onlyOneRootAndRun(1)
+        testResults.testPath(':TestNG7878:testGet2 on TestNG7878').singleRootWithRun(1)
             .assertHasResult(TestResult.ResultType.SUCCESS)
-        testResults.testPath(':TestNG7878:testGet2 on TestNG7878').onlyOneRootAndRun(2)
+        testResults.testPath(':TestNG7878:testGet2 on TestNG7878').singleRootWithRun(2)
             .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 

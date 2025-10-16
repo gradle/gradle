@@ -289,7 +289,7 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         @Override
-        TestPathRootExecutionResult onlyOneRootAndRun(int runNumber) {
+        TestPathRootExecutionResult singleRootWithRun(int runNumber) {
             List<Element> singleRoot = getSingleRoot()
             return new HtmlTestPathRootExecutionResult(singleRoot.get(runNumber - 1), rootDisplayNames.first())
         }

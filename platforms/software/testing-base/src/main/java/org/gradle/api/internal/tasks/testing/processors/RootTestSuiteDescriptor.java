@@ -18,6 +18,9 @@ package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 
+/**
+ * Used by {@link TestMainAction} as the root descriptor for the entire test run.
+ */
 public final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
     public RootTestSuiteDescriptor(Object id, String name) {
         super(id, name);
