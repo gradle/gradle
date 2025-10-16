@@ -79,8 +79,10 @@ class GroupingProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[0] == "display-name"
-        renderedTextLines[1] == "  contextual-label"
+        renderedText == '''
+display-name
+display-name (id: test-group-0:test-group-1:test-id)
+  contextual-label'''.strip()
     }
 
     def "individual problem with details are displayed"() {
@@ -94,7 +96,7 @@ class GroupingProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "    details"
+        renderedTextLines[2] == "  details"
     }
 
     def "individual problem with multiline details are displayed and indented correctly"() {
@@ -108,8 +110,8 @@ class GroupingProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "    details:1"
-        renderedTextLines[3] == "    details:2"
+        renderedTextLines[2] == "  details:1"
+        renderedTextLines[3] == "  details:2"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32016")
@@ -131,9 +133,10 @@ class GroupingProblemRendererTest extends Specification {
         then:
         renderedText.normalize() == """\
             |display-name
-            |  Unlabelled problem details:
-            |    details:1
-            |    details:2
+            |display-name (id: test-group-0:test-group-1:id)
+            |  details:1
+            |  details:2
+            |display-name (id: test-group-0:test-group-1:id)
             |  Some context for one problem
             |    details:1
             |    details:2""".stripMargin()

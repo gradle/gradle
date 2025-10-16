@@ -30,9 +30,16 @@ import java.util.stream.Collectors;
 
 public class StandaloneProblemRenderer extends ProblemRenderer {
 
+    private final String prefix;
+
     StandaloneProblemRenderer(Writer output) {
-        super(output);
+        this(output, "Problem found: ");
     }
+    StandaloneProblemRenderer(Writer output, String prefix) {
+        super(output);
+        this.prefix = prefix;
+    }
+
     public void render(InternalProblem problem) {
         // first line: generic message rendering the problem categor
         indent(output, problemHeaderMessage(problem), 0);
@@ -76,8 +83,8 @@ public class StandaloneProblemRenderer extends ProblemRenderer {
         }
     }
 
-    private static String problemHeaderMessage(InternalProblem problem) {
-        StringBuilder result = new StringBuilder("Problem found: ");
+    private String problemHeaderMessage(InternalProblem problem) {
+        StringBuilder result = new StringBuilder(prefix);
         String displayName = problem.getDefinition().getId().getDisplayName();
         String name = (displayName == null || displayName.isEmpty()) ? problem.getDefinition().getId().toString() : displayName;
         name = name.replaceAll("[\\r\\n]+", " ");

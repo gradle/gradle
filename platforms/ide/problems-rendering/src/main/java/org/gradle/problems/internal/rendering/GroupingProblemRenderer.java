@@ -16,13 +16,10 @@
 
 package org.gradle.problems.internal.rendering;
 
-import com.google.common.base.Strings;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -32,21 +29,22 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @NullMarked
-public class GroupingProblemRenderer extends ProblemRenderer {
+public class GroupingProblemRenderer extends StandaloneProblemRenderer {
 
     GroupingProblemRenderer(Writer writer) {
-        super(writer);
+        super(writer, "");
     }
 
     public void render(List<InternalProblem> problems) {
         render(output, problems);
     }
 
+    @Override
     public void render(InternalProblem problem) {
         render(Collections.singletonList(problem));
     }
 
-    private static void render(PrintWriter output, List<InternalProblem> problems) {
+    private void render(PrintWriter output, List<InternalProblem> problems) {
         // Group problems by problem id
         // When generic rendering is addressed, maybe we also group by the whole problem group hierarchy
         Map<ProblemId, List<InternalProblem>> problemIdListMap = problems.stream().collect(Collectors.groupingBy(internalProblem -> internalProblem.getDefinition().getId()));
@@ -57,7 +55,7 @@ public class GroupingProblemRenderer extends ProblemRenderer {
         }
     }
 
-    private static void renderProblemsById(PrintWriter output, ProblemId problemId, List<InternalProblem> problems, String separator) {
+    private void renderProblemsById(PrintWriter output, ProblemId problemId, List<InternalProblem> problems, String separator) {
         String sep = separator;
         boolean isJavaCompilationProblem = problemId.getGroup().equals(GradleCoreProblemGroup.compilation().java()) && !problemId.getName().equals("initialization-failed");
         if (isJavaCompilationProblem) {
@@ -69,45 +67,16 @@ public class GroupingProblemRenderer extends ProblemRenderer {
         } else {
             output.printf(sep);
             sep = "%n";
-            formatMultiline(output, problemId.getDisplayName(), 0);
+            indent(output, problemId.getDisplayName(), 0);
             for (InternalProblem problem : problems) {
                 output.printf(sep);
-                renderProblem(output, problem);
+                super.render(problem);
             }
         }
     }
 
-    static void renderProblem(PrintWriter output, InternalProblem problem) {
-        formatMultiline(output, getProblemLabel(problem), 1);
-        if (problem.getDetails() != null) {
-            output.printf("%n");
-            formatMultiline(output, problem.getDetails(), 2);
-        }
-    }
-
-    @Nullable
-    private static String getProblemLabel(InternalProblem problem) {
-        if (problem.getContextualLabel() != null) {
-            return problem.getContextualLabel();
-        } else if (problem.getException() != null) {
-            return problem.getException().getLocalizedMessage();
-        } else if (problem.getDetails() != null) {
-            return "Unlabelled problem details:";
-        }
-        return null;
-    }
-
     static void renderJavaCompilationProblem(PrintWriter output, InternalProblem problem) {
-        formatMultiline(output, problem.getDetails(), 0);
+        indent(output, problem.getDetails(), 0);
     }
 
-    static void formatMultiline(PrintWriter output, @Nullable String message, int level) {
-        if (message == null) {
-            return;
-        }
-        @SuppressWarnings("InlineMeInliner")
-        String prefix = Strings.repeat(" ", level * 2);
-        String formatted = TextUtil.indent(message, prefix);
-        output.print(formatted);
-    }
 }
