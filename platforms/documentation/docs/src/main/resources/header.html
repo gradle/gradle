@@ -157,6 +157,9 @@
         <nav class="docs-navigation">
             <div class="search-container"></div>
             <h3 id="overview"><a href="../userguide/userguide.html">Gradle User Manual</a></h3>
+            <ul>
+                <li><a href="../userguide/getting_started.html">Getting Started</a></li>
+            </ul>
 
             <h3 id="what-is-new">Releases</h3>
             <ul>
@@ -184,9 +187,8 @@
                 <li><a href="../userguide/feature_lifecycle.html">Gradle's Feature Lifecycle</a></li>
             </ul>
 
-            <h3 id="running-gradle-builds">Gradle Tutorials</h3>
+            <h3 id="fundamentals">Gradle Fundamentals</h3>
             <ul>
-                <li><a href="../userguide/getting_started.html">Getting Started</a></li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#running-introduction" aria-expanded="false" aria-controls="introduction">Running Gradle Builds</a>
                     <ul id="running-introduction">
                         <li><a href="../userguide/gradle_basics.html">1. Core Concepts</a></li>
@@ -202,16 +204,6 @@
 
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Beginner Tutorial</a>
-                    <ul id="running-tutorial">
-                        <li><a href="../userguide/part1_gradle_init.html">1. Initializing the Project</a></li>
-                        <li><a href="../userguide/part2_gradle_tasks.html">2. Running Tasks</a></li>
-                        <li><a href="../userguide/part3_gradle_dep_man.html">3. Understanding Dependencies</a></li>
-                        <li><a href="../userguide/part4_gradle_plugins.html">4. Applying Plugins</a></li>
-                        <li><a href="../userguide/part5_gradle_inc_builds.html">5. Exploring Incremental Builds</a></li>
-                        <li><a href="../userguide/part6_gradle_caching.html">6. Enabling the Build Cache</a></li>
-                    </ul>
-                </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#beyond-the-basics" aria-expanded="false" aria-controls="beyond-the-basics">Authoring Gradle Builds</a>
                     <ul id="authoring-introduction">
                         <li><a href="../userguide/gradle_directories_intermediate.html">1. Anatomy of a Gradle Build</a></li>
@@ -224,6 +216,30 @@
                         <li><a href="../userguide/plugins_intermediate.html">8. Working with Plugins</a></li>
                     </ul>
                 </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#deep-dive" aria-expanded="false" aria-controls="deep-dive">Developing Gradle Plugins</a>
+                    <ul id="developing-introduction">
+                        <li><a href="../userguide/plugin_introduction_advanced.html">1. Plugin Introduction</a></li>
+                        <li><a href="../userguide/pre_compiled_script_plugin_advanced.html">2. Pre-Compiled Script Plugins</a></li>
+                        <li><a href="../userguide/binary_plugin_advanced.html">3. Binary Plugins</a></li>
+                        <li><a href="../userguide/developing_binary_plugin_advanced.html">4. Developing Binary Plugins</a></li>
+                        <li><a href="../userguide/testing_binary_plugin_advanced.html">5. Testing Binary Plugins</a></li>
+                        <li><a href="../userguide/publishing_binary_plugin_advanced.html">6. Publishing Binary Plugins</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 id="tutorials">Gradle Tutorials</h3>
+            <ul>
+                <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Beginner Tutorial</a>
+                    <ul id="running-tutorial">
+                        <li><a href="../userguide/part1_gradle_init.html">1. Initializing the Project</a></li>
+                        <li><a href="../userguide/part2_gradle_tasks.html">2. Running Tasks</a></li>
+                        <li><a href="../userguide/part3_gradle_dep_man.html">3. Understanding Dependencies</a></li>
+                        <li><a href="../userguide/part4_gradle_plugins.html">4. Applying Plugins</a></li>
+                        <li><a href="../userguide/part5_gradle_inc_builds.html">5. Exploring Incremental Builds</a></li>
+                        <li><a href="../userguide/part6_gradle_caching.html">6. Enabling the Build Cache</a></li>
+                    </ul>
+                </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Intermediate Tutorial</a>
                     <ul id="authoring-tutorial">
                         <li><a href="../userguide/part1_gradle_init_project.html">1. Initializing the Project</a></li>
@@ -233,16 +249,6 @@
                         <li><a href="../userguide/part5_build_scripts.html">5. Writing a Build Script</a></li>
                         <li><a href="../userguide/part6_writing_tasks.html">6. Writing Tasks</a></li>
                         <li><a href="../userguide/part7_writing_plugins.html">7. Writing Plugins</a></li>
-                    </ul>
-                </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#deep-dive" aria-expanded="false" aria-controls="deep-dive">Developing Gradle Plugins</a>
-                    <ul id="developing-introduction">
-                        <li><a href="../userguide/plugin_introduction_advanced.html">1. Plugin Introduction</a></li>
-                        <li><a href="../userguide/pre_compiled_script_plugin_advanced.html">2. Pre-Compiled Script Plugins</a></li>
-                        <li><a href="../userguide/binary_plugin_advanced.html">3. Binary Plugins</a></li>
-                        <li><a href="../userguide/developing_binary_plugin_advanced.html">4. Developing Binary Plugins</a></li>
-                        <li><a href="../userguide/testing_binary_plugin_advanced.html">5. Testing Binary Plugins</a></li>
-                        <li><a href="../userguide/publishing_binary_plugin_advanced.html">6. Publishing Binary Plugins</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Advanced Tutorial</a>
@@ -428,6 +434,45 @@
                         <li><a href="../userguide/test_kit.html">Testing with TestKit</a></li>
                     </ul>
                 </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#platformst" aria-expanded="false" aria-controls="platforms">Platforms</a>
+                    <ul id="platforms">
+                        <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm" aria-expanded="false" aria-controls="jvm">JVM Builds</a>
+                            <ul id="jvm">
+                                <li><a href="../userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
+                                <li><a href="../userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
+                                <li><a class="nav-dropdown" data-toggle="collapse" href="#java-toolchains" aria-expanded="false" aria-controls="java-toolchains">Java Toolchains</a>
+                                    <ul id="java-toolchains">
+                                        <li><a href="../userguide/toolchains.html">Toolchains for JVM projects</a></li>
+                                        <li><a href="../userguide/toolchain_plugins.html">Toolchain Resolver Plugins</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="../userguide/dependency_management_for_java_projects.html">Managing Dependencies</a></li>
+                                <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm-plugins" aria-expanded="false" aria-controls="jvm-plugins">JVM Plugins</a>
+                                    <ul id="jvm-plugins">
+                                        <li><a href="../userguide/java_library_plugin.html">Java Library Plugin</a></li>
+                                        <li><a href="../userguide/application_plugin.html">Java Application Plugin</a></li>
+                                        <li><a href="../userguide/java_platform_plugin.html">Java Platform Plugin</a></li>
+                                        <li><a href="../userguide/groovy_plugin.html">Groovy Plugin</a></li>
+                                        <li><a href="../userguide/scala_plugin.html">Scala Plugin</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp" aria-expanded="false" aria-controls="cpp">C++ Builds</a>
+                            <ul id="cpp">
+                                <li><a href="../userguide/building_cpp_projects.html">Building C++ projects</a></li>
+                                <li><a href="../userguide/cpp_testing.html">Testing C++ projects</a></li>
+                            </ul>
+                        </li>
+                        <li><a class="nav-dropdown" data-toggle="collapse" href="#swift" aria-expanded="false" aria-controls="swift">Swift Builds</a>
+                            <ul id="swift">
+                                <li><a href="../userguide/building_swift_projects.html">Building Swift projects</a></li>
+                                <li><a href="../userguide/swift_testing.html">Testing Swift projects</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#advanced-topics" aria-expanded="false" aria-controls="advanced-topics">Other Topics</a>
                     <ul id="advanced-topics-topics">
                         <li><a href="../userguide/ant.html">Using Ant from Gradle</a></li>
@@ -457,44 +502,6 @@
                         <li><a href="../userguide/configuration_cache_requirements.html">Requirements for your Build Logic</a></li>
                         <li><a href="../userguide/configuration_cache_debugging.html">Debugging and Troubleshooting</a></li>
                         <li><a href="../userguide/configuration_cache_status.html">Status</a></li>
-                    </ul>
-                </li>
-            </ul>
-
-            <h3 id="platforms">Platforms</h3>
-            <ul>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm" aria-expanded="false" aria-controls="jvm">JVM Builds</a>
-                    <ul id="jvm">
-                        <li><a href="../userguide/building_java_projects.html">Building Java &amp; JVM projects</a></li>
-                        <li><a href="../userguide/java_testing.html">Testing Java &amp; JVM projects</a></li>
-                        <li><a class="nav-dropdown" data-toggle="collapse" href="#java-toolchains" aria-expanded="false" aria-controls="java-toolchains">Java Toolchains</a>
-                            <ul id="java-toolchains">
-                                <li><a href="../userguide/toolchains.html">Toolchains for JVM projects</a></li>
-                                <li><a href="../userguide/toolchain_plugins.html">Toolchain Resolver Plugins</a></li>
-                            </ul>
-                        </li>
-                        <li><a href="../userguide/dependency_management_for_java_projects.html">Managing Dependencies</a></li>
-                        <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm-plugins" aria-expanded="false" aria-controls="jvm-plugins">JVM Plugins</a>
-                            <ul id="jvm-plugins">
-                                <li><a href="../userguide/java_library_plugin.html">Java Library Plugin</a></li>
-                                <li><a href="../userguide/application_plugin.html">Java Application Plugin</a></li>
-                                <li><a href="../userguide/java_platform_plugin.html">Java Platform Plugin</a></li>
-                                <li><a href="../userguide/groovy_plugin.html">Groovy Plugin</a></li>
-                                <li><a href="../userguide/scala_plugin.html">Scala Plugin</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#cpp" aria-expanded="false" aria-controls="cpp">C++ Builds</a>
-                    <ul id="cpp">
-                        <li><a href="../userguide/building_cpp_projects.html">Building C++ projects</a></li>
-                        <li><a href="../userguide/cpp_testing.html">Testing C++ projects</a></li>
-                    </ul>
-                </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#swift" aria-expanded="false" aria-controls="swift">Swift Builds</a>
-                    <ul id="swift">
-                        <li><a href="../userguide/building_swift_projects.html">Building Swift projects</a></li>
-                        <li><a href="../userguide/swift_testing.html">Testing Swift projects</a></li>
                     </ul>
                 </li>
             </ul>
