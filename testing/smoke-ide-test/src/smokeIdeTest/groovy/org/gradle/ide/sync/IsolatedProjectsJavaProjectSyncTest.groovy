@@ -16,14 +16,14 @@
 
 package org.gradle.ide.sync
 
-import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemReportFixture
 import org.gradle.test.fixtures.Flaky
 
 
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/4661")
 class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncTest {
 
-    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
+    private ConfigurationCacheProblemReportFixture fixture = new ConfigurationCacheProblemReportFixture(testDirectory)
 
     def "can sync simple java build without problems"() {
         given:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.sync.fixtures
+package org.gradle.integtests.fixtures.configurationcache
 
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.file.TestFile
+import org.hamcrest.CoreMatchers
+import org.hamcrest.Matcher
 
+import javax.annotation.Nullable
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
 
-class IsolatedProjectsIdeSyncFixture {
+/**
+ * A fixture for asserting against the configuration cache HTML report without relying on GradleExecuter and friends.
+ */
+class ConfigurationCacheProblemReportFixture {
 
     private final ConfigurationCacheProblemsFixture configurationCacheProblemsFixture
     private final TestFile rootDir
 
-    IsolatedProjectsIdeSyncFixture(TestFile rootDir) {
+    ConfigurationCacheProblemReportFixture(TestFile rootDir) {
         this.configurationCacheProblemsFixture = new ConfigurationCacheProblemsFixture(rootDir)
         this.rootDir = rootDir
     }
@@ -108,5 +113,37 @@ class IsolatedProjectsIdeSyncFixture {
 
         assert reportDirs.size() == 1
         return reportDirs[0]
+    }
+
+    private static class HasConfigurationCacheProblemsInReportSpec {
+
+        final List<Pair<Matcher<String>, String>> locationsWithProblems = []
+
+        @Nullable
+        Integer totalProblemsCount
+
+        boolean ignoreTotalProblemsCount
+
+        void validateSpec() {
+            def totalCount = totalProblemsCount ?: locationsWithProblems.size()
+            if (totalCount < locationsWithProblems.size()) {
+                throw new IllegalArgumentException("Count of total problems can't be lesser than count of unique problems.")
+            }
+        }
+
+        HasConfigurationCacheProblemsInReportSpec withLocatedProblem(String location, String problem) {
+            withLocatedProblem(CoreMatchers.startsWith(location), problem)
+            return this
+        }
+
+        HasConfigurationCacheProblemsInReportSpec withLocatedProblem(Matcher<String> location, String problem) {
+            locationsWithProblems.add(Pair.of(location, problem))
+            return this
+        }
+
+        HasConfigurationCacheProblemsInReportSpec withTotalProblemsCount(int totalProblemsCount) {
+            this.totalProblemsCount = totalProblemsCount
+            return this
+        }
     }
 }
