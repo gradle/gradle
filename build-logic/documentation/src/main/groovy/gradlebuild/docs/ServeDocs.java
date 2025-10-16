@@ -36,7 +36,10 @@ import javax.inject.Inject;
 import java.util.Arrays;
 
 /**
- * Serves the given directory with a simple HTTP server.
+ * Runs a lightweight HTTP file server for the generated docs using the JDK’s built-in
+ * {@code jdk.httpserver} module.
+ *
+ * <p>Usage: run {@code :serveDocs}, then open {@code http://localhost:<port>}.</p>
  */
 @DisableCachingByDefault(because = "This task starts a HTTP server and should not be cached.")
 public abstract class ServeDocs extends DefaultTask {

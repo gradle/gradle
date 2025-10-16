@@ -12,6 +12,7 @@ import java.io.FileFilter
 plugins {
     // Applies Java conventions
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
+
     // Internal Gradle plugin with standard JVM project conventions
     id("gradlebuild.jvm-library")
     // Internal docs plugin
@@ -25,6 +26,7 @@ repositories {
 }
 
 configurations {
+    // Define an outgoing configuration that publishes the fully rendered docs
     consumable("gradleFullDocsElements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
@@ -35,13 +37,16 @@ configurations {
 }
 
 configurations {
+    // Make the docs test runtime extend the distribution runtime classpath,
+    // so docs tests can run with the built Gradle distribution.
     named("docsTestRuntimeClasspath") {
         extendsFrom(configurations.getByName("integTestDistributionRuntimeOnly"))
     }
 }
 
 configurations.docsTestImplementation {
-    // The 'gradlebuild.generate-samples' plugin uses the 'org.gradle.samples' plugin from the old gradle/guides build, which pulls in slf4j-simple, which we don't want.
+    // The 'gradlebuild.generate-samples' plugin uses the 'org.gradle.samples' plugin from the old gradle/guides build,
+    // which pulls in slf4j-simple, which we don't want.
     // Because this is done directly by the plugin application logic, we can't use a ComponentMetadataRule to exclude it.
     // See: https://github.com/gradle/guides/blob/ba018cec535d90f75876bfcca29381d213a956cc/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/SamplesDocumentationPlugin.java#L335
     exclude("org.slf4j", "slf4j-simple")
@@ -49,6 +54,7 @@ configurations.docsTestImplementation {
 
 dependencyAnalysis {
     issues {
+        // Don’t flag unused deps for the docsTest source set
         ignoreSourceSet(sourceSets.docsTest.name)
     }
 }
@@ -57,14 +63,18 @@ dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))
 
+    // Legacy XSL/T/Xerces bits used by the old user guide generation pipeline
     userGuideTask("xalan:xalan:2.7.1")
     userGuideTask("xerces:xercesImpl:2.11.0")
     userGuideTask("net.sf.xslthl:xslthl:2.0.1")
 
+    // DocBook stylesheets for the user guide
     userGuideStyleSheets("net.sf.docbook:docbook-xsl:1.75.2:resources@zip")
 
+    // JQuery (served as a webjar from Google APIs repo helper)
     jquery("jquery:jquery.min:3.5.1@js")
 
+    // Test dependencies for various docs checks and link tests
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
@@ -72,6 +82,7 @@ dependencies {
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.httpmime)
 
+    // Docs tests: align versions to the distribution, and bring in internal test infra
     docsTestImplementation(platform(project(":distributions-dependencies")))
     docsTestImplementation(project(":internal-integ-testing"))
     docsTestImplementation(project(":base-services"))
@@ -79,6 +90,7 @@ dependencies {
     docsTestImplementation(libs.junit)
     docsTestRuntimeOnly(libs.junitPlatform)
 
+    // For running samples/tests with the full Gradle distribution
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
@@ -97,6 +109,7 @@ java {
 }
 
 gradleDocumentation {
+    // Configure outbound API links for Javadoc/Groovydoc references in the site
     javadocs {
         val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
         javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }

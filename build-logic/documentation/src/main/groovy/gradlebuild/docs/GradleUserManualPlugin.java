@@ -45,6 +45,10 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
+/**
+ * Gradle plugin that assembles the Gradle User Manual.
+ *
+ */
 public class GradleUserManualPlugin implements Plugin<Project> {
 
     public static final String DOCS_GRADLE_ORG = "https://docs.gradle.org/";

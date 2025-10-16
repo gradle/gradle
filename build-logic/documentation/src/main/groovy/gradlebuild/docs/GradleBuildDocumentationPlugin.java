@@ -41,9 +41,19 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import java.util.Collections;
 import java.util.regex.Pattern;
 
+/**
+ * Root docs plugin that:
+ *  - Creates the typed model/extension (`gradleDocumentation`) holding inputs/outputs.
+ *  - Applies sub-plugins that actually generate each docs section (release notes, Javadoc, DSL, Kotlin DSL, user manual).
+ *  - Applies and standardizes Asciidoctor across all Asciidoctor tasks (version, fatal warnings, custom doc extensions).
+ *  - Wires a single `stageDocs` task that assembles all section outputs into a final deployable tree under build/docs.
+ *  - Adds convenience tasks: `docs` (aggregate) and `serveDocs` (local HTTP server).
+ *  - Adds minimal verification by feeding the rendered release notes into the test task inputs.
+ */
 public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
+        // Common handles we use throughout
         ProjectLayout layout = project.getLayout();
         TaskContainer tasks = project.getTasks();
         ObjectFactory objects = project.getObjects();
@@ -118,6 +128,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));
         extension.getDocumentationRenderedRoot().convention(layout.getBuildDirectory().dir("docs"));
         extension.getStagingRoot().convention(layout.getBuildDirectory().dir("working"));
+        extension.getReleaseNotes().getStagingRoot().convention(layout.getBuildDirectory().dir("working/release-notes"));
 
         ConfigurableFileTree css = objects.fileTree();
         css.from(extension.getSourceRoot().dir("css"));

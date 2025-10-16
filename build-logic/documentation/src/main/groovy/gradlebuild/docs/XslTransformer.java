@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package gradlebuild.docs;
 
 import javax.xml.transform.Transformer;
@@ -24,6 +25,19 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+/**
+ * Small command-line XSLT runner used by the docs build to transform DocBook (XML) into HTML/PDF.
+ * <p>
+ * It loads an XSLT stylesheet via JAXP ({@link javax.xml.transform.TransformerFactory}) and
+ * applies it to a source XML file, writing the result to the given destination file. If a fourth
+ * argument is provided, it is passed to the stylesheet as the {@code base.dir} parameter (commonly
+ * used by DocBook stylesheets when generating multiple outputs and resolving relative links).</p>
+ * <p>
+ * Usage: {@code java gradlebuild.docs.XslTransformer <style-sheet> <source-file> <dest-file> [dest-dir]}
+ * <p>
+ * Note: The actual XSLT engine (e.g., Xalan) is selected from the classpath. Ensure the desired
+ * implementation and stylesheets are on the build classpath.</p>
+ */
 public class XslTransformer {
     public static void main(String[] args) throws TransformerException, IOException {
         if (args.length < 3 || args.length > 4) {
