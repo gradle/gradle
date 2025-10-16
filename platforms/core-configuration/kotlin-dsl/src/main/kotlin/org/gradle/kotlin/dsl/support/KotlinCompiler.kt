@@ -217,7 +217,6 @@ private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(sc
 
 
 @VisibleForTesting
-internal
 fun compileToDirectory(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
