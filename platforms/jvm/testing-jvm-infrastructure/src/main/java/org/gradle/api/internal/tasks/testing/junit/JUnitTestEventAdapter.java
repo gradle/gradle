@@ -160,6 +160,16 @@ public class JUnitTestEventAdapter extends RunListener {
         return requirePostRunStartData().childDescToParentNode.get(description);
     }
 
+    /**
+     * Start the parent of the given description if it is not already active, and throw an exception if there is no parent.
+     *
+     * <p>
+     * This method also starts any ancestor nodes that are not already active.
+     * </p>
+     *
+     * @param description the description whose parent should be started
+     * @return the id of the parent
+     */
     private Object startRequiredParentIfNeeded(Description description) {
         Object parentId = startParentIfNeeded(description);
         if (parentId == null) {
@@ -168,6 +178,16 @@ public class JUnitTestEventAdapter extends RunListener {
         return parentId;
     }
 
+    /**
+     * Start the parent of the given description, if it has one, and it is not already active.
+     *
+     * <p>
+     * This method also starts any ancestor nodes that are not already active.
+     * </p>
+     *
+     * @param description the description whose parent should be started
+     * @return the id of the parent, or {@code null} if there is no parent
+     */
     @Nullable
     private Object startParentIfNeeded(Description description) {
         TestNode parent = getParentOf(description);
@@ -178,6 +198,17 @@ public class JUnitTestEventAdapter extends RunListener {
         return parent.resolveId();
     }
 
+    /**
+     * Start the given parent node if it is not already active. Note that this differs from the other methods
+     * as it takes the parent node directly, rather than looking it up from a child description.
+     *
+     * <p>
+     * This method also starts any ancestor nodes that are not already active.
+     * </p>
+     *
+     * @param parent the parent node to start
+     * @param now the current time
+     */
     private void startParentByNodeIfNeeded(TestNode parent, long now) {
         Object grandparentId = startParentIfNeeded(parent.description);
         synchronized (lock) {

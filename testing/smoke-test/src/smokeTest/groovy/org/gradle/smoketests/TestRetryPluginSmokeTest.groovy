@@ -109,15 +109,15 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
             ":org.acme.AcmeTest:skipped"
         )
         def failing = results.testPath(":org.acme.AcmeTest:failing")
-        failing.onlyRootRunCount == 3
-        failing.onlyOneRootAndRun(1).assertHasResult(TestResult.ResultType.FAILURE)
-        failing.onlyOneRootAndRun(2).assertHasResult(TestResult.ResultType.FAILURE)
-        failing.onlyOneRootAndRun(3).assertHasResult(TestResult.ResultType.FAILURE)
+        failing.singleRootRunCount == 3
+        failing.singleRootWithRun(1).assertHasResult(TestResult.ResultType.FAILURE)
+        failing.singleRootWithRun(2).assertHasResult(TestResult.ResultType.FAILURE)
+        failing.singleRootWithRun(3).assertHasResult(TestResult.ResultType.FAILURE)
 
         def flaky = results.testPath(":org.acme.AcmeTest:flaky")
-        flaky.onlyRootRunCount == 2
-        flaky.onlyOneRootAndRun(1).assertHasResult(TestResult.ResultType.FAILURE)
-        flaky.onlyOneRootAndRun(2).assertHasResult(TestResult.ResultType.SUCCESS)
+        flaky.singleRootRunCount == 2
+        flaky.singleRootWithRun(1).assertHasResult(TestResult.ResultType.FAILURE)
+        flaky.singleRootWithRun(2).assertHasResult(TestResult.ResultType.SUCCESS)
 
         def successful = results.testPath(":org.acme.AcmeTest:successful")
         successful.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
