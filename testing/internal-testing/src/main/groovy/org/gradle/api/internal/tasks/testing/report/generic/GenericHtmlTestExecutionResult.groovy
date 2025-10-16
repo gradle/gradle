@@ -185,6 +185,10 @@ Unexpected paths: ${unexpectedPaths}""")
 
     @VisibleForTesting
     String frameworkTestPath(String testPath) {
+        if (testFramework == TestFramework.CUSTOM) {
+            return testPath
+        }
+
         String basePrefix, baseSuffix
         if (Strings.isNullOrEmpty(testPath)) {
             basePrefix = ""
@@ -210,21 +214,9 @@ Unexpected paths: ${unexpectedPaths}""")
             }
         }
 
-        return switch (testFramework) {
-            case TestFramework.SPOCK, TestFramework.JUNIT4, TestFramework.SCALA_TEST,
-                 TestFramework.XC_TEST, TestFramework.CUCUMBER, TestFramework.TEST_NG -> {
-                def prefix = Strings.isNullOrEmpty(basePrefix) ? ":" : ":" + basePrefix
-                def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
-                yield prefix + suffix
-            }
-            case TestFramework.JUNIT_JUPITER, TestFramework.KOTLIN_TEST -> {
-                def prefix = Strings.isNullOrEmpty(basePrefix) ? ":" : ":" + basePrefix
-                def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix + "()"
-                yield prefix + suffix
-            }
-            case TestFramework.CUSTOM -> testPath
-            default -> throw new IllegalArgumentException("Unknown test framework: " + testFramework)
-        }
+        def prefix = Strings.isNullOrEmpty(basePrefix) ? ":" : ":" + basePrefix
+        def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + testFramework.getTestCaseName(baseSuffix)
+        return prefix + suffix
     }
 
     private java.nio.file.Path diskPathForTestPath(String frameworkTestPath) {
