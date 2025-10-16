@@ -358,6 +358,10 @@ public final class SerializableTestResultStore {
         public OptionalLong getParentOutputId() {
             return parentId == 0 ? OptionalLong.empty() : OptionalLong.of(parentId);
         }
+
+        public OutputTrackedResult withInnerResult(SerializableTestResult newInnerResult) {
+            return new OutputTrackedResult(id, newInnerResult, parentId);
+        }
     }
 
     /**

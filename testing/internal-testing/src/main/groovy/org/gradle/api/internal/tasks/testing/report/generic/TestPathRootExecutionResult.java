@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.testing.TestResult;
 import org.hamcrest.Matcher;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents the result of executing a test path in a specific root.
@@ -96,14 +98,31 @@ public interface TestPathRootExecutionResult {
      * @param keys the keys to verify, in the order they were recorded
      * @return {@code this}
      */
-    TestPathRootExecutionResult assertMetadata(List<String> keys);
-
+    TestPathRootExecutionResult assertMetadataKeys(List<String> keys);
 
     /**
      * Asserts that the given metadata keys are present in the test result with the given rendered text.
      *
+     * <p>
+     * If you have duplicate keys, use {@link #assertMetadata(List)} instead.
+     * </p>
+     *
      * @param metadata the metadata to verify, in the order they were recorded
      * @return {@code this}
      */
-    TestPathRootExecutionResult assertMetadata(LinkedHashMap<String, String> metadata);
+    default TestPathRootExecutionResult assertMetadata(LinkedHashMap<String, String> metadata) {
+        return assertMetadata(ImmutableList.copyOf(metadata.entrySet()));
+    }
+
+    /**
+     * Asserts that the given metadata keys are present in the test result with the given rendered text.
+     *
+     * <p>
+     * There may be duplicate keys, hence the use of a list of entries.
+     * </p>
+     *
+     * @param metadata the metadata to verify, in the order they were recorded
+     * @return {@code this}
+     */
+    TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata);
 }

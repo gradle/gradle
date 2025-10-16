@@ -20,6 +20,7 @@ import com.google.common.base.Strings
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.collect.ListMultimap
+import com.google.common.collect.Maps
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
 import com.google.common.collect.Multisets
@@ -467,17 +468,19 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         @Override
-        TestPathRootExecutionResult assertMetadata(List<String> expectedKeys) {
+        TestPathRootExecutionResult assertMetadataKeys(List<String> expectedKeys) {
             def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
             assertThat("in " + displayName, metadataKeys, equalTo(expectedKeys))
             return this
         }
 
         @Override
-        TestPathRootExecutionResult assertMetadata(LinkedHashMap<String, String> expectedMetadata) {
+        TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> expectedMetadata) {
             def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
             def metadataRenderedValues = html.select('.metadata td.value').collect { it.html()}
-            def metadata = [metadataKeys, metadataRenderedValues].transpose().collectEntries { key, value -> [key, value] }
+            def metadata = [metadataKeys, metadataRenderedValues].transpose().collect { List<String> it ->
+                Maps.immutableEntry(it[0], it[1])
+            }
             assertThat("in " + displayName, metadata, equalTo(expectedMetadata))
             return this
         }
