@@ -239,7 +239,7 @@ public class TestEventSerializer {
                 details = new AssumptionFailureDetails(message, className, stacktrace);
             } else if (rawFailure instanceof TestFailureSerializationException) {
                 details = new DefaultTestFailureDetails(rawFailure.getMessage(), rawFailure.getClass().getName(), Throwables.getStackTraceAsString(rawFailure));
-            }else {
+            } else {
                 details = new DefaultTestFailureDetails(message, className, stacktrace);
             }
 

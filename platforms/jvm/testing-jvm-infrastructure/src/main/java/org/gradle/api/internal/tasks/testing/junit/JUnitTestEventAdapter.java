@@ -102,15 +102,15 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private static final class PostRunStartData {
-        final Map<Description, TestNode> parentDescToNode;
-        final Map<Description, TestNode> childDescToParent;
+        final Map<Description, TestNode> descToNode;
+        final Map<Description, TestNode> childDescToParentNode;
 
         PostRunStartData(
-            Map<Description, TestNode> parentDescToNode,
-            Map<Description, TestNode> childDescToParent
+            Map<Description, TestNode> descToNode,
+            Map<Description, TestNode> childDescToParentNode
         ) {
-            this.parentDescToNode = parentDescToNode;
-            this.childDescToParent = childDescToParent;
+            this.descToNode = descToNode;
+            this.childDescToParentNode = childDescToParentNode;
         }
     }
 
@@ -129,7 +129,7 @@ public class JUnitTestEventAdapter extends RunListener {
     private final Set<Description> assumptionFailed = new HashSet<>();
     private volatile boolean testsStarted = false;
     @Nullable
-    private volatile String rootClassName;
+    private volatile String rootName;
 
     public JUnitTestEventAdapter(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
@@ -138,13 +138,13 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     /**
-     * Sets the root class name. This is used to override the root description name, as some runners
-     * don't set a class name on the root description, e.g. {@link org.junit.internal.runners.JUnit38ClassRunner}.
+     * Sets the root name. This is used to override the root description name, as some runners
+     * don't set a name on the root description, e.g. {@link org.junit.internal.runners.JUnit38ClassRunner}.
      *
-     * @param className the root class name
+     * @param rootName the root name
      */
-    public void setRootClassName(String className) {
-        this.rootClassName = className;
+    public void setRootName(String rootName) {
+        this.rootName = rootName;
     }
 
     private PostRunStartData requirePostRunStartData() {
@@ -157,7 +157,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Nullable
     private TestNode getParentOf(Description description) {
-        return requirePostRunStartData().childDescToParent.get(description);
+        return requirePostRunStartData().childDescToParentNode.get(description);
     }
 
     private Object startRequiredParentIfNeeded(Description description) {
@@ -186,8 +186,8 @@ public class JUnitTestEventAdapter extends RunListener {
             }
             activeParents.addLast(parent.description);
         }
-        String className = grandparentId == null ? rootClassName : className(parent.description);
-        if (className == null) {
+        String rootName = grandparentId == null ? this.rootName : className(parent.description);
+        if (rootName == null) {
             throw new AssertionError("No class name found for " + parent.description);
         }
         TestDescriptorInternal parentDescriptor;
@@ -195,9 +195,9 @@ public class JUnitTestEventAdapter extends RunListener {
             // When Description.getTestClass() returns null and we have a grandparent,
             // it indicates "suites" of parameterized tests, or some other kind of synthetic grouping.
             // Avoid treating these as classes.
-            parentDescriptor = new DefaultTestSuiteDescriptor(parent.resolveId(), className);
+            parentDescriptor = new DefaultTestSuiteDescriptor(parent.resolveId(), rootName);
         } else {
-            parentDescriptor = new DefaultTestClassDescriptor(parent.resolveId(), className, classDisplayName(className));
+            parentDescriptor = new DefaultTestClassDescriptor(parent.resolveId(), rootName, classDisplayName(rootName));
         }
         resultProcessor.started(parentDescriptor, new TestStartEvent(now, grandparentId));
     }
@@ -208,7 +208,7 @@ public class JUnitTestEventAdapter extends RunListener {
     @Override
     public void testSuiteStarted(Description description) {
         testsStarted = true;
-        TestNode testNode = requirePostRunStartData().parentDescToNode.get(description);
+        TestNode testNode = requirePostRunStartData().descToNode.get(description);
         if (testNode != null) {
             startParentByNodeIfNeeded(testNode, clock.getCurrentTime());
         }
@@ -219,7 +219,7 @@ public class JUnitTestEventAdapter extends RunListener {
     // If not called, the suite end time is when the whole run finishes
     @Override
     public void testSuiteFinished(Description description) {
-        TestNode testNode = requirePostRunStartData().parentDescToNode.get(description);
+        TestNode testNode = requirePostRunStartData().descToNode.get(description);
         if (testNode == null) {
             return;
         }
@@ -290,7 +290,7 @@ public class JUnitTestEventAdapter extends RunListener {
     @Nullable
     private TestNode startParentMatchingClassName(String className, long now) {
         TestNode parent = null;
-        for (Map.Entry<Description, TestNode> entry : requirePostRunStartData().parentDescToNode.entrySet()) {
+        for (Map.Entry<Description, TestNode> entry : requirePostRunStartData().descToNode.entrySet()) {
             if (className.equals(className(entry.getKey()))) {
                 parent = entry.getValue();
                 startParentByNodeIfNeeded(entry.getValue(), now);
@@ -382,7 +382,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     private void processIgnoredClass(Description description) {
         // Start the class
-        TestNode classNode = requirePostRunStartData().parentDescToNode.get(description);
+        TestNode classNode = requirePostRunStartData().descToNode.get(description);
         if (classNode == null) {
             throw new AssertionError("No class node found for " + description);
         }
@@ -447,7 +447,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Nullable
     private static Class<?> getTestClassIfPossible(Description description) {
-        if (DESCRIPTION_GET_TEST_CLASS == null) {
+        if (!supportsTestClassMethod()) {
             return null;
         }
         try {
@@ -507,30 +507,29 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testRunStarted(Description description) {
-        Map<Description, TestNode> parentDescToNode = new HashMap<>();
-        Map<Description, TestNode> childDescToParent = new HashMap<>();
-        addParentIds(description, parentDescToNode, childDescToParent);
-        PostRunStartData postRunStartData = new PostRunStartData(
-            Collections.unmodifiableMap(parentDescToNode),
-            Collections.unmodifiableMap(childDescToParent)
+        Map<Description, TestNode> descToNode = new HashMap<>();
+        Map<Description, TestNode> childDescToParentNode = new HashMap<>();
+        addParentIds(description, descToNode, childDescToParentNode);
+        this.postRunStartData = new PostRunStartData(
+            Collections.unmodifiableMap(descToNode),
+            Collections.unmodifiableMap(childDescToParentNode)
         );
-        this.postRunStartData = postRunStartData;
 
         // Start root immediately so output is captured for it
-        startParentByNodeIfNeeded(Objects.requireNonNull(parentDescToNode.get(description)), clock.getCurrentTime());
+        startParentByNodeIfNeeded(Objects.requireNonNull(descToNode.get(description)), clock.getCurrentTime());
     }
 
     private void addParentIds(
         Description description,
-        Map<Description, TestNode> parentDescToNodeBuilder,
-        Map<Description, TestNode> childDescToParentBuilder
+        Map<Description, TestNode> descToNode,
+        Map<Description, TestNode> childDescToParentNode
     ) {
         TestNode thisNode = new TestNode(idGenerator, description);
-        parentDescToNodeBuilder.put(description, thisNode);
+        descToNode.put(description, thisNode);
         for (Description child : description.getChildren()) {
-            childDescToParentBuilder.put(child, thisNode);
+            childDescToParentNode.put(child, thisNode);
             if (methodName(child) == null) {
-                addParentIds(child, parentDescToNodeBuilder, childDescToParentBuilder);
+                addParentIds(child, descToNode, childDescToParentNode);
             }
         }
     }
@@ -545,9 +544,10 @@ public class JUnitTestEventAdapter extends RunListener {
             // Complete any active parents, in reverse order
             long now = clock.getCurrentTime();
 
+            PostRunStartData postRunStartData = requirePostRunStartData();
             Description parent;
             while ((parent = activeParents.pollLast()) != null) {
-                Object parentId = Objects.requireNonNull(requirePostRunStartData().parentDescToNode.get(parent)).resolveId();
+                Object parentId = Objects.requireNonNull(postRunStartData.descToNode.get(parent)).resolveId();
                 resultProcessor.completed(parentId, new TestCompleteEvent(now));
             }
 

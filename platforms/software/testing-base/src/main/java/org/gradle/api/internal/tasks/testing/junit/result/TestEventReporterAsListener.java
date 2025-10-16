@@ -37,12 +37,12 @@ import java.util.Map;
 import java.util.function.Function;
 
 @NullMarked
-public class TestEventReporterAsListener implements TestListenerInternal, AutoCloseable {
-    private final Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootInitializer;
+public final class TestEventReporterAsListener implements TestListenerInternal, AutoCloseable {
+    private final Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootTestReporterCreator;
     private final Map<Object, TestEventReporter> reportersById = new HashMap<>();
 
-    public TestEventReporterAsListener(Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootInitializer) {
-        this.rootInitializer = rootInitializer;
+    public TestEventReporterAsListener(Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootTestReporterCreator) {
+        this.rootTestReporterCreator = rootTestReporterCreator;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class TestEventReporterAsListener implements TestListenerInternal, AutoCl
                 reporter = parentReporter.reportTestDirectly(testDescriptor);
             }
         } else {
-            reporter = rootInitializer.apply(testDescriptor);
+            reporter = rootTestReporterCreator.apply(testDescriptor);
         }
         reporter.started(Instant.ofEpochMilli(startEvent.getStartTime()));
         reportersById.put(testDescriptor.getId(), reporter);

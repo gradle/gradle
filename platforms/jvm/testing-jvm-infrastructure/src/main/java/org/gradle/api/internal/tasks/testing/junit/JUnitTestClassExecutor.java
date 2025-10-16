@@ -78,7 +78,7 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
                 return;
             }
 
-            listener.setRootClassName(testClassName);
+            listener.setRootName(testClassName);
             started = true;
             runRequest(request);
         } catch (Throwable throwable) {
@@ -179,9 +179,6 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
     @NullMarked
     private static class ErrorCollectingListener extends RunListener {
         private final List<Throwable> errors = new ArrayList<>();
-
-        public ErrorCollectingListener() {
-        }
 
         @Override
         public void testFailure(Failure failure) {

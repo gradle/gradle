@@ -35,9 +35,9 @@ public class DefaultTestLoggingContainer implements TestLoggingContainer {
     private final Map<LogLevel, TestLogging> perLevelTestLogging = Maps.newEnumMap(LogLevel.class);
 
     @Inject
-    public DefaultTestLoggingContainer(ObjectFactory instantiator) {
+    public DefaultTestLoggingContainer(ObjectFactory objectFactory) {
         for (LogLevel level: LogLevel.values()) {
-            perLevelTestLogging.put(level, instantiator.newInstance(DefaultTestLogging.class));
+            perLevelTestLogging.put(level, objectFactory.newInstance(DefaultTestLogging.class));
         }
 
         setEvents(EnumSet.of(TestLogEvent.FAILED));
