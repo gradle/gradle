@@ -23,15 +23,13 @@ import java.io.PrintWriter;
 public class HeaderRenderer implements PartialProblemRenderer {
 
     private final HeaderRenderOptions options;
-    private final PrintWriter output;
 
-    public HeaderRenderer(HeaderRenderOptions options, PrintWriter output) {
+    public HeaderRenderer(HeaderRenderOptions options) {
         this.options = options;
-        this.output = output;
     }
 
     @Override
-    public void render(InternalProblem problem) {
+    public void render(InternalProblem problem, PrintWriter output) {
         output.print(headerFor(problem));
     }
 

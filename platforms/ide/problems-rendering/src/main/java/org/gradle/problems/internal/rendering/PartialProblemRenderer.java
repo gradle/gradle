@@ -18,10 +18,12 @@ package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.internal.InternalProblem;
 
+import java.io.PrintWriter;
+
 /**
  * Renders a part of a problem.
  */
 public interface PartialProblemRenderer {
 
-    void render(InternalProblem problem);
+    void render(InternalProblem problem, PrintWriter output);
 }

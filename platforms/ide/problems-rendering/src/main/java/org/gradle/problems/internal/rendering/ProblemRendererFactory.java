@@ -31,10 +31,9 @@ public class ProblemRendererFactory {
         PrintWriter writer = new PrintWriter(output);
         return new GroupingProblemRenderer(
             new HeaderRenderer(
-                new HeaderRenderOptions("", false),
-                writer
+                new HeaderRenderOptions("", false)
             ),
-            new BodyRenderer(writer),
+            new BodyRenderer(),
             writer);
     }
 
@@ -42,10 +41,10 @@ public class ProblemRendererFactory {
         PrintWriter writer = new PrintWriter(output);
         return new StandaloneProblemRenderer(
             new HeaderRenderer(
-                new HeaderRenderOptions("Problem found: ", true),
-                writer
+                new HeaderRenderOptions("Problem found: ", true)
             ),
-            new BodyRenderer(writer)
+            new BodyRenderer(),
+            writer
         );
     }
 }

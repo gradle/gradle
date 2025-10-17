@@ -18,18 +18,22 @@ package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.internal.InternalProblem;
 
+import java.io.PrintWriter;
+
 public class StandaloneProblemRenderer {
 
     private final HeaderRenderer headerRenderer;
     private final BodyRenderer bodyRenderer;
+    private final PrintWriter writer;
 
-    StandaloneProblemRenderer(HeaderRenderer headerRenderer, BodyRenderer bodyRenderer) {
+    StandaloneProblemRenderer(HeaderRenderer headerRenderer, BodyRenderer bodyRenderer, PrintWriter writer) {
         this.headerRenderer = headerRenderer;
         this.bodyRenderer = bodyRenderer;
+        this.writer = writer;
     }
 
     public void render(InternalProblem problem) {
-        headerRenderer.render(problem);
-        bodyRenderer.render(problem);
+        headerRenderer.render(problem, writer);
+        bodyRenderer.render(problem, writer);
     }
 }

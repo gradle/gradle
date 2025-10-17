@@ -69,8 +69,8 @@ public class GroupingProblemRenderer {
         } else {
             for (InternalProblem problem : problems) {
                 output.printf(sep);
-                headerRenderer.render(problem);
-                bodyRenderer.render(problem);
+                headerRenderer.render(problem, output);
+                bodyRenderer.render(problem, output);
                 sep = "%n";
             }
         }

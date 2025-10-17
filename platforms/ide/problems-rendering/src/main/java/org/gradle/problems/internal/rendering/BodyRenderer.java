@@ -29,14 +29,8 @@ import java.util.stream.Collectors;
 
 public class BodyRenderer implements PartialProblemRenderer {
 
-    private final PrintWriter output;
-
-    public BodyRenderer(PrintWriter output) {
-        this.output = output;
-    }
-
     @Override
-    public void render(InternalProblem problem) {
+    public void render(InternalProblem problem, PrintWriter output) {
         // contextual message, if any
         String problemSubMessage = getContextualMessage(problem);
         if (problemSubMessage != null) {
