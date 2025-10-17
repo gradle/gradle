@@ -25,5 +25,11 @@ fun InternalOptions.getInternalFlag(systemPropertyName: String, defaultValue: Bo
     getOption(InternalFlag(systemPropertyName, defaultValue)).get()
 
 
-fun InternalOptions.getInternalString(systemPropertyName: String, defaultValue: String?) =
+fun InternalOptions.getInternalString(systemPropertyName: String, defaultValue: String): String =
+    getOption(StringInternalOption(systemPropertyName, defaultValue)).get()
+
+
+@JvmName("getInternalStringOrNull")
+@Suppress("RedundantNullableReturnType") // Option.Value can't carry nullability information
+fun InternalOptions.getInternalString(systemPropertyName: String, defaultValue: String?): String? =
     getOption(StringInternalOption(systemPropertyName, defaultValue)).get()
