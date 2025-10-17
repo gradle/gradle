@@ -16,15 +16,12 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.io.PrintWriter;
 import java.io.Writer;
 
 /**
  * Base class for rendering problems to a text output.
  */
-@NullMarked
 public class ProblemRenderer {
 
     protected PrintWriter output;

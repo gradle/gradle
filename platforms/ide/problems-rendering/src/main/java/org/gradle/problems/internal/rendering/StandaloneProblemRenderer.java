@@ -21,7 +21,6 @@ import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.internal.TextUtil;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.PrintWriter;
@@ -29,7 +28,6 @@ import java.io.Writer;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@NullMarked
 public class StandaloneProblemRenderer extends ProblemRenderer {
 
     private final RenderOptions options;

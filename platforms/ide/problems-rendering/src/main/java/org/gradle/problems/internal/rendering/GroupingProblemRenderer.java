@@ -19,7 +19,6 @@ package org.gradle.problems.internal.rendering;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
-import org.jspecify.annotations.NullMarked;
 
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@NullMarked
 public class GroupingProblemRenderer extends StandaloneProblemRenderer {
 
     GroupingProblemRenderer(Writer writer) {
