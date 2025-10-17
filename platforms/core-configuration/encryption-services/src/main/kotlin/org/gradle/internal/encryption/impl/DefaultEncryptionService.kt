@@ -23,6 +23,7 @@ import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.core.getInternalString
+import org.gradle.internal.extensions.core.getInternalStringOrNull
 import org.gradle.internal.file.FileSystem
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -46,7 +47,7 @@ class DefaultEncryptionService(
     val encryptionRequestedOption: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.encryption", true)
 
     private
-    val keystoreDirOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
+    val keystoreDirOption: String? = options.getInternalStringOrNull("org.gradle.configuration-cache.internal.key-store-dir")
 
     private
     val encryptionAlgorithmOption: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)

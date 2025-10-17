@@ -180,7 +180,7 @@ object BuildModelParametersProvider {
             "org.gradle.internal.isolated-projects.configure-on-demand.tasks" to isolatedProjectsConfigureOnDemand.systemPropertyName,
         )
         for ((previous, current) in replacements) {
-            if (options.getOption(StringInternalOption(previous, null)).isExplicit) {
+            if (options.getOption(StringInternalOption.of(previous)).isExplicit) {
                 logger.warn("Warning: option '$previous' has been replaced with '$current'")
             }
         }
