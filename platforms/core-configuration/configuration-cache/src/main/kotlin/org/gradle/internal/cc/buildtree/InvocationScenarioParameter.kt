@@ -18,6 +18,7 @@ package org.gradle.internal.cc.buildtree
 
 import org.gradle.internal.buildoption.InternalOption
 
+
 enum class InvocationScenarioParameter(
     val runningTasks: Boolean,
     val buildingModels: Boolean,
@@ -34,12 +35,14 @@ enum class InvocationScenarioParameter(
         fun fromValue(value: String) = entries.firstOrNull { it.value == value }
     }
 
-    class Option(private val systemProperty: String, private val default: InvocationScenarioParameter) : InternalOption<InvocationScenarioParameter> {
+    class Option(
+        systemProperty: String,
+        private val default: InvocationScenarioParameter
+    ) : InternalOption<InvocationScenarioParameter>(systemProperty) {
+
         override fun getDefaultValue(): InvocationScenarioParameter = default
 
-        override fun getSystemPropertyName(): String = systemProperty
-
         override fun convert(value: String): InvocationScenarioParameter =
-            fromValue(value) ?: error("Invalid value '$value' for system property '$systemProperty'. Allowed values are: ${entries.joinToString(",") { it.value }}")
+            fromValue(value) ?: error("Invalid value '$value' for property '$systemPropertyName'. Allowed values are: ${entries.joinToString(",") { it.value }}")
     }
 }

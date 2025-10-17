@@ -23,10 +23,31 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <T> The value of the option.
  */
-public interface InternalOption<T extends @Nullable Object> extends Option {
-    T getDefaultValue();
+public abstract class InternalOption<T extends @Nullable Object> implements Option {
 
-    String getSystemPropertyName();
+    private final static String INTERNAL_PROPERTY_PREFIX = "org.gradle.internal.";
 
-    T convert(String value);
+    private final String systemPropertyName;
+
+    public InternalOption(String systemPropertyName) {
+        if (!isInternalOption(systemPropertyName)) {
+            throw new IllegalArgumentException("Internal property name must start with '" + INTERNAL_PROPERTY_PREFIX + "', got '" + systemPropertyName + "'");
+        }
+
+        this.systemPropertyName = systemPropertyName;
+    }
+
+    public String getSystemPropertyName() {
+        return systemPropertyName;
+    }
+
+    public abstract T getDefaultValue();
+
+    public abstract T convert(String value);
+
+    private static boolean isInternalOption(String name) {
+        return name.startsWith(INTERNAL_PROPERTY_PREFIX) ||
+            name.startsWith("org.gradle.unsafe.") || // TODO: avoid reading public 'unsafe' properties via internal options
+            name.startsWith("org.gradle.configuration-cache.internal."); // TODO:configuration-cache - https://github.com/gradle/gradle/issues/35489
+    }
 }
