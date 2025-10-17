@@ -365,6 +365,70 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
         clazz.assertTestFailed("testFailing[]", CoreMatchers.anything())
     }
 
+    def "can handle unusual test names"() {
+        String incrediblyLongName = (99..1).collect { "$it bottles of java on the wall, $it bottles of java," }.join(" ")
+        String endsPoorlyName = "ends with ellipse..."
+
+        when:
+        buildFile """
+            $spockSetup
+        """
+
+        file("src/test/groovy/NamesTest.groovy") << """
+            import spock.lang.Specification
+
+            class NamesTest extends Specification {
+                def "$incrediblyLongName"() {
+                    expect:
+                    println("Success!")
+                }
+
+                def "$endsPoorlyName"() {
+                    expect:
+                    println("Success!")
+                }
+            }
+        """.stripIndent()
+
+        then:
+        succeeds "test"
+
+        def results = resultsFor()
+        [incrediblyLongName, endsPoorlyName].each { name ->
+            results.testPath("NamesTest", name).onlyRoot()
+                .assertHasResult(TestResult.ResultType.SUCCESS)
+                .assertStdout(equalTo("Success!\n"))
+        }
+    }
+
+    def "replaces illegal characters in test names"() {
+        String illegalTestName = "this uses \u0000, \ud800, \udfff, \ufffe which could be a problem"
+
+        when:
+        buildFile """
+            $spockSetup
+        """
+
+        file("src/test/groovy/NamesTest.groovy") << """
+            import spock.lang.Specification
+
+            class NamesTest extends Specification {
+                def "$illegalTestName"() {
+                    expect:
+                    println("Success!")
+                }
+            }
+        """.stripIndent()
+
+        then:
+        succeeds "test"
+
+        def results = resultsFor()
+        results.testPath("NamesTest", illegalTestName).onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(equalTo("Success!\n"))
+    }
+
     protected static String getJunitSetup() {
         """
             apply plugin: 'java'
@@ -374,6 +438,26 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
             }
         """.stripIndent()
     }
+
+    protected static String getSpockSetup() {
+        """
+            plugins {
+                id 'groovy'
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
+            }
+        """.stripIndent()
+    }
+
 
     private static String getPackageAndImportsWithCategory() {
         return """
