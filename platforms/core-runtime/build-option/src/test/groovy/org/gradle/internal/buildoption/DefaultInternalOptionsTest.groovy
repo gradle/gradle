@@ -74,7 +74,19 @@ class DefaultInternalOptionsTest extends Specification {
         create("org.gradle.feature.flag")
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Internal property name must start with 'org.gradle.internal.'"
+        e.message.startsWith("Internal property name must start with 'org.gradle.internal.'")
+
+        when:
+        create("org.gradle.internal-feature")
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message.startsWith("Internal property name must start with 'org.gradle.internal.'")
+
+        when:
+        create("just.feature")
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message.startsWith("Internal property name must start with 'org.gradle.internal.'")
 
         where:
         option                  | create

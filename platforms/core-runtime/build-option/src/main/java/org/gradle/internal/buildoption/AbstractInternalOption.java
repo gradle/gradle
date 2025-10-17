@@ -24,7 +24,7 @@ public abstract class AbstractInternalOption<T> implements InternalOption<T> {
 
     public AbstractInternalOption(String systemPropertyName) {
         if (systemPropertyName == null || !systemPropertyName.startsWith(INTERNAL_PROPERTY_PREFIX)) {
-            throw new IllegalArgumentException("Internal property name must start with '" + INTERNAL_PROPERTY_PREFIX + "'");
+            throw new IllegalArgumentException("Internal property name must start with '" + INTERNAL_PROPERTY_PREFIX + "', got '" + systemPropertyName + "'");
         }
 
         this.systemPropertyName = systemPropertyName;
