@@ -33,11 +33,13 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
-import org.jetbrains.kotlin.buildtools.api.CompilationService
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import java.io.File
 
 
@@ -81,7 +83,14 @@ class KotlinCompileClasspathFingerprinter(
 
     private
     fun computeHashForFile(file: File): HashCode {
-        val snapshots = compilationService.calculateClasspathSnapshot(file, ClassSnapshotGranularity.CLASS_LEVEL, true).classSnapshots
+        val toolchains = KotlinToolchains.loadImplementation(ClassLoader.getSystemClassLoader())
+        val jvmPlatformToolchain = toolchains.getToolchain(JvmPlatformToolchain::class.java)
+        val snapshotOperation = jvmPlatformToolchain.createClasspathSnapshottingOperation(file.toPath())
+            .apply {
+                this[JvmClasspathSnapshottingOperation.GRANULARITY] = ClassSnapshotGranularity.CLASS_LEVEL
+                this[JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES] = true
+            }
+        val snapshots = toolchains.createBuildSession().executeOperation(snapshotOperation).classSnapshots
         return hash(snapshots)
     }
 
@@ -143,12 +152,3 @@ class CurrentFileCollectionFingerprintImpl(private val fingerprints: Map<String,
         throw UnsupportedOperationException("Not implemented")
     }
 }
-
-
-internal
-val compilationService = compilationServiceFor<KotlinCompileClasspathFingerprinter>()
-
-
-internal
-inline fun <reified T : Any> compilationServiceFor(): CompilationService =
-    CompilationService.loadImplementation(T::class.java.classLoader)
