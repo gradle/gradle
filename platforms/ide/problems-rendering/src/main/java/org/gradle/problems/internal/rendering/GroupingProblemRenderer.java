@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class GroupingProblemRenderer extends StandaloneProblemRenderer {
 
     GroupingProblemRenderer(Writer writer) {
-        super(writer, "");
+        super(writer, new RenderOptions("", false));
     }
 
     public void render(List<InternalProblem> problems) {
@@ -65,12 +65,10 @@ public class GroupingProblemRenderer extends StandaloneProblemRenderer {
                 sep = "%n";
             }
         } else {
-            output.printf(sep);
-            sep = "%n";
-            indent(output, problemId.getDisplayName(), 0);
             for (InternalProblem problem : problems) {
                 output.printf(sep);
                 super.render(problem);
+                sep = "%n";
             }
         }
     }

@@ -21,6 +21,7 @@ import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.PrintWriter;
@@ -28,16 +29,18 @@ import java.io.Writer;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@NullMarked
 public class StandaloneProblemRenderer extends ProblemRenderer {
 
-    private final String prefix;
+    private final RenderOptions options;
 
     StandaloneProblemRenderer(Writer output) {
-        this(output, "Problem found: ");
+        this(output, new RenderOptions("Problem found: ", true));
     }
-    StandaloneProblemRenderer(Writer output, String prefix) {
+
+    StandaloneProblemRenderer(Writer output, RenderOptions options) {
         super(output);
-        this.prefix = prefix;
+        this.options = options;
     }
 
     public void render(InternalProblem problem) {
@@ -66,7 +69,7 @@ public class StandaloneProblemRenderer extends ProblemRenderer {
                 indent(output, "Solution: " + lines[0], 4);
                 for (int i = 1; i < lines.length; i++) {
                     output.printf("%n");
-                    indent(output, lines[i], 14);
+                    indent(output, lines[i], 14); // 4 + "Solution: ".length()
                 }
             }
         }
@@ -84,12 +87,12 @@ public class StandaloneProblemRenderer extends ProblemRenderer {
     }
 
     private String problemHeaderMessage(InternalProblem problem) {
-        StringBuilder result = new StringBuilder(prefix);
+        StringBuilder result = new StringBuilder(options.getPrefix());
         String displayName = problem.getDefinition().getId().getDisplayName();
         String name = (displayName == null || displayName.isEmpty()) ? problem.getDefinition().getId().toString() : displayName;
         name = name.replaceAll("[\\r\\n]+", " ");
         result.append(name);
-        if (!(displayName == null || displayName.isEmpty())) {
+        if (options.isRenderId() && displayName != null && !displayName.isEmpty()) {
             result.append(" (id: ");
             result.append(problem.getDefinition().getId());
             result.append(")");

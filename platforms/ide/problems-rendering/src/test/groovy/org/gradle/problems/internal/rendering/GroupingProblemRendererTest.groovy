@@ -52,7 +52,7 @@ class GroupingProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[0] == "test-id-display-name"
+        renderedProblem == 'test-id-display-name'
     }
 
     DefaultProblemBuilder createProblemBuilder() {
@@ -79,10 +79,10 @@ class GroupingProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedText == '''
+        renderedProblem == '''
 display-name
-display-name (id: test-group-0:test-group-1:test-id)
-  contextual-label'''.strip()
+  contextual-label
+        '''.strip()
     }
 
     def "individual problem with details are displayed"() {
@@ -96,7 +96,10 @@ display-name (id: test-group-0:test-group-1:test-id)
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "  details"
+        renderedProblem == '''
+display-name
+  details
+        '''.strip()
     }
 
     def "individual problem with multiline details are displayed and indented correctly"() {
@@ -110,8 +113,11 @@ display-name (id: test-group-0:test-group-1:test-id)
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "  details:1"
-        renderedTextLines[3] == "  details:2"
+        renderedProblem == '''
+display-name
+  details:1
+  details:2
+        '''.strip()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32016")
@@ -131,15 +137,15 @@ display-name (id: test-group-0:test-group-1:test-id)
         renderer.render([problem1, problem2])
 
         then:
-        renderedText.normalize() == """\
-            |display-name
-            |display-name (id: test-group-0:test-group-1:id)
-            |  details:1
-            |  details:2
-            |display-name (id: test-group-0:test-group-1:id)
-            |  Some context for one problem
-            |    details:1
-            |    details:2""".stripMargin()
+        renderedProblem.normalize() == '''
+display-name
+  details:1
+  details:2
+display-name
+  Some context for one problem
+    details:1
+    details:2
+        '''.strip()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32016")
@@ -158,17 +164,14 @@ display-name (id: test-group-0:test-group-1:test-id)
         renderer.render([problem1, problem2])
 
         then:
-        renderedText.normalize() == """\
-            |Unused variable a in line 10
-            |Unused variable a in line 20""".stripMargin()
+        renderedProblem == '''
+Unused variable a in line 10
+Unused variable a in line 20
+        '''.strip()
     }
 
-    def getRenderedText() {
+    def getRenderedProblem() {
         return stringWriter.toString()
-    }
-
-    def getRenderedTextLines() {
-        return renderedText.split('\r?\n')
     }
 
     private static ProblemGroup getLevel0Group() {
