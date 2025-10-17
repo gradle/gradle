@@ -233,5 +233,5 @@ object BuildModelParametersProvider {
     }
 
     private
-    operator fun <T> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
+    operator fun <T : Any> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
 }

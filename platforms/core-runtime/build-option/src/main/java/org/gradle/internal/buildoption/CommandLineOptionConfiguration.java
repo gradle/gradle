@@ -28,6 +28,7 @@ import java.util.List;
  */
 public class CommandLineOptionConfiguration {
     private final String longOption;
+    @Nullable
     private final String shortOption;
     private final String description;
     private boolean incubating;
