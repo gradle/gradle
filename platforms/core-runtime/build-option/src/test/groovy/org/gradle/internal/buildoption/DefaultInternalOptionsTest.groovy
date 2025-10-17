@@ -34,7 +34,7 @@ class DefaultInternalOptionsTest extends Specification {
         value1.explicit
 
         def value2 = options.getOption(new InternalFlag("prop2", false))
-        value2.get()
+        !value2.get()
         value2.explicit
 
         def value3 = options.getOption(new InternalFlag("prop3", true))
@@ -42,7 +42,7 @@ class DefaultInternalOptionsTest extends Specification {
         value3.explicit
 
         def value4 = options.getOption(new InternalFlag("prop4", false))
-        value4.get()
+        !value4.get()
         value4.explicit
     }
 
