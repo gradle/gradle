@@ -44,7 +44,7 @@ public class StandaloneProblemRenderer extends ProblemRenderer {
     }
 
     public void render(InternalProblem problem) {
-        // first line: generic message rendering the problem categor
+        // first line: generic message rendering the problem category
         indent(output, problemHeaderMessage(problem), 0);
 
         // second line: contextual message, if any

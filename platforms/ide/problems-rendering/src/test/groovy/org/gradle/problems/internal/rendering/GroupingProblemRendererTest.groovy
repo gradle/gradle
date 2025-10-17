@@ -137,7 +137,7 @@ display-name
         renderer.render([problem1, problem2])
 
         then:
-        renderedProblem.normalize() == '''
+        renderedProblem == '''
 display-name
   details:1
   details:2

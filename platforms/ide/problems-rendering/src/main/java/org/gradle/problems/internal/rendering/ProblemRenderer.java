@@ -34,7 +34,7 @@ public class ProblemRenderer {
     }
 
     public static GroupingProblemRenderer groupingProblemRenderer(Writer output) {
-        return new  GroupingProblemRenderer(output);
+        return new GroupingProblemRenderer(output);
     }
 
     public static StandaloneProblemRenderer standaloneProblemRenderer(Writer output) {

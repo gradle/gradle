@@ -45,10 +45,10 @@ class StandaloneProblemRendererTest extends Specification {
         def problem = createProblem { InternalProblemBuilder spec ->
             spec.id(
                 createId(
-                "sample-problems",
-                displayName,
-                "prototype-project",
-                displayName
+                    "sample-problems",
+                    displayName,
+                    "prototype-project",
+                    displayName
             ))
         }
 
