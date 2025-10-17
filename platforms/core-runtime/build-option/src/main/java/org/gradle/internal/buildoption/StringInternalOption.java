@@ -20,20 +20,21 @@ import org.jspecify.annotations.Nullable;
 
 public class StringInternalOption implements InternalOption<String> {
     private final String systemPropertyName;
+    @Nullable
     private final String defaultValue;
 
-    public StringInternalOption(String systemPropertyName, String defaultValue) {
+    public StringInternalOption(String systemPropertyName, @Nullable String defaultValue) {
         this.systemPropertyName = systemPropertyName;
         this.defaultValue = defaultValue;
     }
 
-    @Nullable
     @Override
     public String getSystemPropertyName() {
         return systemPropertyName;
     }
 
     @Override
+    @Nullable
     public String getDefaultValue() {
         return defaultValue;
     }
