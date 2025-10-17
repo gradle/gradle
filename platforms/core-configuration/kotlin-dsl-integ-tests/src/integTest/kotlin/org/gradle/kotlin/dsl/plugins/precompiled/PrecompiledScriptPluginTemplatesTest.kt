@@ -187,9 +187,9 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             """
         )
 
-        val task = mock<Jar>()
+        val task = mock<TaskProvider<Jar>>()
         val tasks = mock<TaskContainer> {
-            on { create(any<String>(), any<Class<Task>>()) } doReturn task
+            on { register(any<String>(), any<Class<Jar>>()) } doReturn task
         }
         val project = mock<Project> {
             on { getTasks() } doReturn tasks
@@ -200,7 +200,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             "My_project_script_gradle"
         )
 
-        verify(tasks).create("jar", Jar::class.java)
+        verify(tasks).register("jar", Jar::class.java)
     }
 
     @Test
