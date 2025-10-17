@@ -68,9 +68,9 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
         where:
         minGradle | kotlinLanguageVersion
-        "6.8"     | "1.8"
-        "6.8"     | "1.9"
-        "6.8"     | "2.0"
+        "7.3"     | "1.8" // 6.8, but 7.3 is the first to support running on Java 17
+        "7.3"     | "1.9" // 6.8, but 7.3 is the first to support running on Java 17
+        "7.3"     | "2.0" // 6.8, but 7.3 is the first to support running on Java 17
         "8.11"    | "2.1"
     }
 
