@@ -857,7 +857,7 @@ You should no longer define your own `wrapper` and `init` tasks. Configure the e
 .build.gradle.kts
 [source,kotlin]
 ----
-tasks.register<Wrapper>("wrapper") {
+task<Wrapper>("wrapper") {
     ...
 }
 ----
