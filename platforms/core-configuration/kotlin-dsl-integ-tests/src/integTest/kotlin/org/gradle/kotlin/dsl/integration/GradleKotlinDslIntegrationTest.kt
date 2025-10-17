@@ -1022,7 +1022,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 @TaskAction fun run() = println("it works!")
             }
 
-            task<SimpleTask>("build")
+            tasks.register<SimpleTask>("build")
             """
         )
 

@@ -239,7 +239,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             """
         )
         val settingsFile = cachedSettingsFile(withSettings(""), false, false)
-        val buildFile = cachedBuildFile(withBuildScript("""task<MyTask>("myTask")"""), true)
+        val buildFile = cachedBuildFile(withBuildScript("""tasks.register<MyTask>("myTask")"""), true)
 
         // and: kotlin-dsl cache assertions
         fun KotlinDslCacheFixture.assertCacheHits(run: Int) {
