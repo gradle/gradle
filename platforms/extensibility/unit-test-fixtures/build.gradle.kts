@@ -34,6 +34,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
@@ -45,9 +46,9 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.native)
+    implementation(projects.problemsApi)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.problemsApi)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
