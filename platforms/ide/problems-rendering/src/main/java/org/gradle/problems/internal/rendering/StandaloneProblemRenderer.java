@@ -22,18 +22,17 @@ import java.io.PrintWriter;
 
 public class StandaloneProblemRenderer {
 
-    private final HeaderRenderer headerRenderer;
-    private final BodyRenderer bodyRenderer;
-    private final PrintWriter writer;
+    private final ProblemRendererRegistry rendererRegistry;
+    private final RenderOptions options;
+    private final PrintWriter output;
 
-    StandaloneProblemRenderer(HeaderRenderer headerRenderer, BodyRenderer bodyRenderer, PrintWriter writer) {
-        this.headerRenderer = headerRenderer;
-        this.bodyRenderer = bodyRenderer;
-        this.writer = writer;
+    StandaloneProblemRenderer(ProblemRendererRegistry rendererRegistry, RenderOptions options, PrintWriter output) {
+        this.rendererRegistry = rendererRegistry;
+        this.options = options;
+        this.output = output;
     }
 
     public void render(InternalProblem problem) {
-        headerRenderer.render(problem, writer);
-        bodyRenderer.render(problem, writer);
+        rendererRegistry.getRendererFor(problem.getDefinition().getId()).render(problem, options, output);
     }
 }

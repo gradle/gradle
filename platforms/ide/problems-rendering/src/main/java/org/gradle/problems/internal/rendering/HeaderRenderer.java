@@ -22,18 +22,15 @@ import java.io.PrintWriter;
 
 public class HeaderRenderer implements PartialProblemRenderer {
 
-    private final HeaderRenderOptions options;
-
-    public HeaderRenderer(HeaderRenderOptions options) {
-        this.options = options;
+    public HeaderRenderer() {
     }
 
     @Override
-    public void render(InternalProblem problem, PrintWriter output) {
-        output.print(headerFor(problem));
+    public void render(InternalProblem problem, RenderOptions options, PrintWriter output) {
+        output.print(headerFor(options, problem));
     }
 
-    private String headerFor(InternalProblem problem) {
+    private String headerFor(RenderOptions options, InternalProblem problem) {
         StringBuilder result = new StringBuilder(options.getPrefix());
         String displayName = problem.getDefinition().getId().getDisplayName();
         String name = (displayName == null || displayName.isEmpty()) ? problem.getDefinition().getId().toString() : displayName;

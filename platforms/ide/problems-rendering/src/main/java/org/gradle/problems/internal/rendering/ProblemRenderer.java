@@ -16,14 +16,9 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.internal.InternalProblem;
-
-import java.io.PrintWriter;
-
 /**
- * Renders a part of a problem.
+ * Renders a complete problem report.
  */
-public interface PartialProblemRenderer {
+public interface ProblemRenderer extends PartialProblemRenderer {
 
-    void render(InternalProblem problem, RenderOptions options,  PrintWriter output);
 }

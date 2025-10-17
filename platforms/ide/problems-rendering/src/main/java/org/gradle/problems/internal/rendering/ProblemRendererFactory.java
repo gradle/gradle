@@ -30,20 +30,16 @@ public class ProblemRendererFactory {
     public static GroupingProblemRenderer groupingProblemRenderer(Writer output) {
         PrintWriter writer = new PrintWriter(output);
         return new GroupingProblemRenderer(
-            new HeaderRenderer(
-                new HeaderRenderOptions("", false)
-            ),
-            new BodyRenderer(),
+            new ProblemRendererRegistry(),
+            new RenderOptions("", false),
             writer);
     }
 
     public static StandaloneProblemRenderer standaloneProblemRenderer(Writer output) {
         PrintWriter writer = new PrintWriter(output);
         return new StandaloneProblemRenderer(
-            new HeaderRenderer(
-                new HeaderRenderOptions("Problem found: ", true)
-            ),
-            new BodyRenderer(),
+            new ProblemRendererRegistry(),
+            new RenderOptions("Problem found: ", true),
             writer
         );
     }

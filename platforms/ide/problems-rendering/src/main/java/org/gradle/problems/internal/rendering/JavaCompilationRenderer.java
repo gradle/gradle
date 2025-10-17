@@ -20,10 +20,10 @@ import org.gradle.api.problems.internal.InternalProblem;
 
 import java.io.PrintWriter;
 
-/**
- * Renders a part of a problem.
- */
-public interface PartialProblemRenderer {
+public class JavaCompilationRenderer implements ProblemRenderer {
 
-    void render(InternalProblem problem, RenderOptions options,  PrintWriter output);
+    @Override
+    public void render(InternalProblem problem, RenderOptions options, PrintWriter output) {
+        output.print(problem.getDetails());
+    }
 }

@@ -16,24 +16,19 @@
 
 package org.gradle.problems.internal.rendering;
 
-public class HeaderRenderOptions {
+import org.gradle.api.problems.internal.InternalProblem;
 
-    private final String prefix;
-    private final boolean renderId;
+import java.io.PrintWriter;
 
-    public HeaderRenderOptions(
-        String prefix,
-        boolean renderId
-    ) {
-        this.prefix = prefix;
-        this.renderId = renderId;
-    }
+public class DefaultProblemRenderer implements ProblemRenderer {
 
-    public String getPrefix() {
-        return prefix;
-    }
+    // The header and the body are rendered separately to simulate how to enforce unified headers for contributed renderers.
+    private static HeaderRenderer headerRenderer = new HeaderRenderer();
+    private static BodyRenderer bodyRenderer = new BodyRenderer();
 
-    public boolean isRenderId() {
-        return renderId;
+    @Override
+    public void render(InternalProblem problem, RenderOptions options, PrintWriter output) {
+        headerRenderer.render(problem, options, output);
+        bodyRenderer.render(problem, options, output);
     }
 }

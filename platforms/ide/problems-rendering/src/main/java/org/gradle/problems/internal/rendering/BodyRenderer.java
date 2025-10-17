@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class BodyRenderer implements PartialProblemRenderer {
 
     @Override
-    public void render(InternalProblem problem, PrintWriter output) {
+    public void render(InternalProblem problem, RenderOptions options, PrintWriter output) {
         // contextual message, if any
         String problemSubMessage = getContextualMessage(problem);
         if (problemSubMessage != null) {

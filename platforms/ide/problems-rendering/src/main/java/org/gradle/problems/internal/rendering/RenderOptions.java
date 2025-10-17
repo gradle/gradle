@@ -16,14 +16,24 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.internal.InternalProblem;
+public class RenderOptions {
 
-import java.io.PrintWriter;
+    private final String prefix;
+    private final boolean renderId;
 
-/**
- * Renders a part of a problem.
- */
-public interface PartialProblemRenderer {
+    public RenderOptions(
+        String prefix,
+        boolean renderId
+    ) {
+        this.prefix = prefix;
+        this.renderId = renderId;
+    }
 
-    void render(InternalProblem problem, RenderOptions options,  PrintWriter output);
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public boolean isRenderId() {
+        return renderId;
+    }
 }

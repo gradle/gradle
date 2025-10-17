@@ -17,7 +17,6 @@
 package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 
 import java.io.PrintWriter;
@@ -28,13 +27,13 @@ import java.util.stream.Collectors;
 
 public class GroupingProblemRenderer {
 
-    private final HeaderRenderer headerRenderer;
-    private final BodyRenderer bodyRenderer;
+    private final ProblemRendererRegistry problemRendererRegistry;
+    private final RenderOptions options;
     private final PrintWriter output;
 
-    GroupingProblemRenderer(HeaderRenderer headerRenderer, BodyRenderer bodyRenderer, PrintWriter output) {
-        this.headerRenderer = headerRenderer;
-        this.bodyRenderer = bodyRenderer;
+    GroupingProblemRenderer(ProblemRendererRegistry problemRendererRegistry, RenderOptions options, PrintWriter output) {
+        this.problemRendererRegistry = problemRendererRegistry;
+        this.options = options;
         this.output = output;
     }
 
@@ -59,24 +58,11 @@ public class GroupingProblemRenderer {
 
     private void renderProblemsById(PrintWriter output, ProblemId problemId, List<InternalProblem> problems, String separator) {
         String sep = separator;
-        boolean isJavaCompilationProblem = problemId.getGroup().equals(GradleCoreProblemGroup.compilation().java()) && !problemId.getName().equals("initialization-failed");
-        if (isJavaCompilationProblem) {
-            for (InternalProblem problem : problems) {
-                output.printf(sep);
-                renderJavaCompilationProblem(output, problem);
-                sep = "%n";
-            }
-        } else {
-            for (InternalProblem problem : problems) {
-                output.printf(sep);
-                headerRenderer.render(problem, output);
-                bodyRenderer.render(problem, output);
-                sep = "%n";
-            }
+        ProblemRenderer renderer = problemRendererRegistry.getRendererFor(problemId);
+        for (InternalProblem problem : problems) {
+            output.printf(sep);
+            renderer.render(problem, options, output);
+            sep = "%n";
         }
-    }
-
-    static void renderJavaCompilationProblem(PrintWriter output, InternalProblem problem) {
-        output.print(problem.getDetails());
     }
 }
