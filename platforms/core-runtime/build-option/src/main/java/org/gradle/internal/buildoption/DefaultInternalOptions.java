@@ -27,6 +27,10 @@ public class DefaultInternalOptions implements InternalOptions {
 
     @Override
     public <T> Option.Value<T> getOption(InternalOption<T> option) {
+        if (!(option instanceof AbstractInternalOption)) {
+            throw new IllegalArgumentException("Internal option must be an instance of " + AbstractInternalOption.class.getSimpleName());
+        }
+
         String value = startParameterSystemProperties.get(option.getSystemPropertyName());
         if (value == null) {
             value = System.getProperty(option.getSystemPropertyName());
