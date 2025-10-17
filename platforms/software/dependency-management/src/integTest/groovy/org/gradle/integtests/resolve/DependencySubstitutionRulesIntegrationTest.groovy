@@ -391,7 +391,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
             artifacts {
                 runtimeElements (file("artifact.txt")) {
-                    builtBy build
+                    builtBy tasks.build
                 }
             }
         """
@@ -772,7 +772,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             group = "org.utils"
             version = '3.0'
 
-            jar.archiveVersion = '3.0'
+            tasks.jar.archiveVersion = '3.0'
         """
 
         file("impl/build.gradle") << """
@@ -1342,7 +1342,7 @@ Required by:
         }
 
         configurations.runtimeElements.outgoing {
-            artifact jar
+            artifact tasks.jar
         }
 
         def moduleId(String group, String name, String version) {

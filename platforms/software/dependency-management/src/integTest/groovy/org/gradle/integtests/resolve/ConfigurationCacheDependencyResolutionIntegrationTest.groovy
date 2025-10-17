@@ -61,7 +61,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                     content = providers.systemProperty("\${project.name}Content").orElse("content")
                     output = layout.buildDirectory.file("\${project.name}.out")
                 }
-                configurations.default.outgoing.artifact(producer.output)
+                configurations.default.outgoing.artifact(tasks.producer.output)
             }
             repositories {
                 maven { url = uri('${remoteRepo.uri}') }
@@ -76,7 +76,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                 implementation project(':a')
                 implementation project(':b')
                 implementation "group:lib1:6500"
-                implementation files('a.thing', additionalFile.output)
+                implementation files('a.thing', tasks.additionalFile.output)
             }
         """
     }
@@ -181,7 +181,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                     content = providers.systemProperty("\${project.name}Content").orElse("0")
                     output = layout.buildDirectory.file("\${project.name}.out")
                 }
-                configurations.default.outgoing.artifact(producer.output)
+                configurations.default.outgoing.artifact(tasks.producer.output)
             }
             configurations {
                 implementation
@@ -1040,7 +1040,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
             dependencies { implementation project(':producer') }
             dependencies { implementation files('thing.blue') }
             dependencies { implementation 'test:test:12' }
-            jar.dependsOn(resolve)
+            tasks.jar.dependsOn(tasks.resolve)
         """
 
         file("buildSrc/thing.blue").createFile()

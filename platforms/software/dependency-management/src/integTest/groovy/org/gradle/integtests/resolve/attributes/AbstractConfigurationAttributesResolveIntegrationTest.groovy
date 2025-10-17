@@ -298,9 +298,9 @@ include 'a', 'b'
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                freeDebug fooJar
-                freeRelease fooJar
-                bar barJar
+                freeDebug tasks.fooJar
+                freeRelease tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -506,7 +506,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
                destinationDirectory = buildDir
             }
             artifacts {
-                'default' barJar
+                'default' tasks.barJar
             }
         """
 
@@ -823,9 +823,9 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                'default' defaultJar
-                foo fooJar
-                bar barJar
+                'default' tasks.defaultJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -883,9 +883,9 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                'default' defaultJar
-                foo fooJar
-                bar barJar
+                'default' tasks.defaultJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1107,8 +1107,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                debug fooJar
-                compile barJar
+                debug tasks.fooJar
+                compile tasks.barJar
             }
         """
 
@@ -1263,8 +1263,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1344,8 +1344,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1426,8 +1426,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar, foo2Jar
-                bar barJar, bar2Jar
+                foo tasks.fooJar, tasks.foo2Jar
+                bar tasks.barJar, tasks.bar2Jar
             }
         """
 
@@ -1515,8 +1515,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1605,8 +1605,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                _compileFreeDebug(fooJar)
-                _compileFreeRelease(barJar)
+                _compileFreeDebug(tasks.fooJar)
+                _compileFreeRelease(tasks.barJar)
             }
         """
 
@@ -1776,8 +1776,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1837,9 +1837,9 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                'default' defaultJar
-                foo fooJar
-                bar barJar
+                'default' tasks.defaultJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1860,8 +1860,8 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         '''
     }

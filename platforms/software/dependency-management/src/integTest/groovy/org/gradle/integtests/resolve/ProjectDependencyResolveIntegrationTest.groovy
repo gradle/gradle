@@ -60,7 +60,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 archiveBaseName = 'a'
                 destinationDirectory = buildDir
             }
-            artifacts { api jar }
+            artifacts { api tasks.jar }
         """
 
         file("b/build.gradle") << """
@@ -117,7 +117,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
             task jar(type: Jar) { archiveBaseName = 'a' }
-            artifacts { api jar }
+            artifacts { api tasks.jar }
         """
 
         file("b/build.gradle") << """
@@ -179,8 +179,8 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 archiveBaseName = 'A2'
             }
             artifacts {
-                configA1 A1jar
-                configA2 A2jar
+                configA1 tasks.A1jar
+                configA2 tasks.A2jar
             }
         """
 
@@ -242,7 +242,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             dependencies { compile project(path: ':b', configuration: 'compile') }
             task aJar(type: Jar) { }
             gradle.taskGraph.whenReady { project.version = 'late' }
-            artifacts { compile aJar }
+            artifacts { compile tasks.aJar }
         '''
 
         file('b/build.gradle') << '''
@@ -253,7 +253,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             configurations { compile }
             task bJar(type: Jar) { }
             gradle.taskGraph.whenReady { project.version = 'transitive-late' }
-            artifacts { compile bJar }
+            artifacts { compile tasks.bJar }
         '''
 
         file('build.gradle') << '''
@@ -302,9 +302,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
             task aJar(type: Jar) {
-                dependsOn configureJar
+                dependsOn tasks.configureJar
             }
-            artifacts { compile aJar }
+            artifacts { compile tasks.aJar }
         '''
 
         file('build.gradle') << '''
@@ -351,7 +351,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             dependencies { deps 'group:externalA:1.5' }
             task xJar(type: Jar) { archiveBaseName='x' }
             task yJar(type: Jar) { archiveBaseName='y' }
-            artifacts { 'default' xJar, yJar }
+            artifacts { 'default' tasks.xJar, tasks.yJar }
         """
 
         file("b/build.gradle") << """
@@ -482,7 +482,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
             task jar(type: Jar)
             artifacts {
-                'default' jar
+                'default' tasks.jar
             }
         """
 
@@ -545,7 +545,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
-                    outgoing.artifact(jar)
+                    outgoing.artifact(tasks.jar)
                 }
             }
         """
@@ -606,7 +606,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
 
             artifacts {
-                delegate.default zip
+                delegate.default tasks.zip
             }
         """
         file("b/build.gradle") << """
@@ -697,9 +697,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 archiveFileName = 'A3.jar'
             }
             artifacts {
-                configOne A1jar
-                configTwo A2jar
-                configTwo A3jar
+                configOne tasks.A1jar
+                configTwo tasks.A2jar
+                configTwo tasks.A3jar
             }
         """
 

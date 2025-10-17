@@ -598,11 +598,11 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             configurations.compile.outgoing.variants {
                 free {
                     attributes.attribute(flavor, 'free')
-                    artifact freeJar
+                    artifact tasks.freeJar
                 }
                 paid {
                     attributes.attribute(flavor, 'paid')
-                    artifact paidJar
+                    artifact tasks.paidJar
                 }
             }
         """

@@ -186,7 +186,7 @@ baz:1.0 requested
         """
         resolve.prepare()
         buildFile << """
-            checkDeps {
+            tasks.checkDeps {
                 doLast {
                     def result = configurations.conf.incoming.resolutionResult
                     result.allComponents {

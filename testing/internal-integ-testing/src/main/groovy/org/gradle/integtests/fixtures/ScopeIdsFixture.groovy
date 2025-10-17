@@ -122,7 +122,7 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
                 }
                 tasks.withType(DefaultTask) {
                     if (name != "collectScopeIds") {
-                        dependsOn collectScopeIds
+                        dependsOn tasks.collectScopeIds
                     }
                 }
             }
