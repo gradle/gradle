@@ -35,12 +35,10 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
-    implementation(projects.files)
     implementation(projects.modelCore)
 
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.fileCollections)

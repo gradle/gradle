@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures
 
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.TestClassExecutionResult.TestCase
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
@@ -29,17 +30,21 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     HtmlTestExecutionResult htmlResult
     JUnitXmlTestExecutionResult xmlResult
 
-    DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test') {
+    DefaultTestExecutionResult(TestFile projectDir, TestFramework testFramework) {
+        this(projectDir, 'build', '', '', 'test', testFramework)
+    }
+
+    DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
         String binaryPath = binary?"/$binary":''
         binaryPath = testedBinary?"$binaryPath/$testedBinary":"$binaryPath";
         if(binary){
-            htmlResult = new HtmlTestExecutionResult(projectDir, "$buildDirName/reports${binaryPath}/tests/")
+            htmlResult = new HtmlTestExecutionResult(projectDir, "$buildDirName/reports${binaryPath}/tests/", testFramework)
             xmlResult = new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results${binaryPath}")
 
             results << htmlResult
             results << xmlResult
         }else{
-            htmlResult = new HtmlTestExecutionResult(projectDir, "$buildDirName/reports/tests/${testTaskName}")
+            htmlResult = new HtmlTestExecutionResult(projectDir, "$buildDirName/reports/tests/${testTaskName}", testFramework)
             xmlResult = new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results/${testTaskName}")
 
             results << htmlResult
@@ -175,8 +180,8 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
-        TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
-            testClassResults*.assertTestCount(tests, failures, errors)
+        TestClassExecutionResult assertTestCount(int tests, int failures) {
+            testClassResults*.assertTestCount(tests, failures)
             this
         }
 

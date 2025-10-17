@@ -16,11 +16,13 @@
 
 package org.gradle.testing.junit.junit4
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitSuitesIntegrationTest
 import org.junit.Assume
 
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
 
 abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIntegrationTest {
     abstract boolean supportsSuiteOutput()
@@ -45,6 +47,11 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
     @Override
     String getTestFrameworkSuiteDependencies() {
         return ""
+    }
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
     }
 
     def "suite output is visible"() {
@@ -84,6 +91,16 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
 
             public class OkTest {
 
+                ${beforeClassAnnotation} public static void init() {
+                    System.out.println("before OkTest class out");
+                    System.err.println("before OkTest class err");
+                }
+
+                ${afterClassAnnotation} public static void end() {
+                    System.out.println("after OkTest class out");
+                    System.err.println("after OkTest class err");
+                }
+
                 @Test
                 public void ok() throws Exception {
                     System.err.println("This is test stderr");
@@ -102,6 +119,16 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             ${testFrameworkImports}
 
             public class OtherTest {
+
+                ${beforeClassAnnotation} public static void init() {
+                    System.out.println("before OtherTest class out");
+                    System.err.println("before OtherTest class err");
+                }
+
+                ${afterClassAnnotation} public static void end() {
+                    System.out.println("after OtherTest class out");
+                    System.err.println("after OtherTest class err");
+                }
 
                 @Test
                 public void ok() throws Exception {
@@ -125,18 +152,26 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         executer.withTasks('test').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.ASuite', 'org.gradle.OkTest', 'org.gradle.OtherTest')
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('suite class loaded'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('before suite class out'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('non-asci char: ż'))
-        result.testClass('org.gradle.ASuite').assertStderr(containsString('before suite class err'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('after suite class out'))
-        result.testClass('org.gradle.ASuite').assertStderr(containsString('after suite class err'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('This is test stderr'))
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('sys out from another test method'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('sys err from another test method'))
-        result.testClass('org.gradle.OtherTest').assertStdout(containsString('This is other stdout'))
+        GenericHtmlTestExecutionResult result = new GenericHtmlTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
+        result.assertTestPathsExecuted(
+            ':org.gradle.ASuite:org.gradle.OkTest:ok',
+            ':org.gradle.ASuite:org.gradle.OkTest:anotherOk',
+            ':org.gradle.ASuite:org.gradle.OtherTest:ok'
+        )
+        result.testPath(':org.gradle.ASuite').onlyRoot().assertStdout(equalTo("suite class loaded\nbefore suite class out\nnon-asci char: ż\nafter suite class out\n"))
+        result.testPath(':org.gradle.ASuite').onlyRoot().assertStderr(equalTo("before suite class err\nafter suite class err\n"))
+
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest').onlyRoot().assertStdout(equalTo("before OkTest class out\nafter OkTest class out\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest').onlyRoot().assertStderr(equalTo("before OkTest class err\nafter OkTest class err\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest:ok').onlyRoot().assertStdout(equalTo(""))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest:ok').onlyRoot().assertStderr(equalTo("This is test stderr\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest:anotherOk').onlyRoot().assertStdout(equalTo("sys out from another test method\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest:anotherOk').onlyRoot().assertStderr(equalTo("sys err from another test method\n"))
+
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest').onlyRoot().assertStdout(equalTo("before OtherTest class out\nafter OtherTest class out\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest').onlyRoot().assertStderr(equalTo("before OtherTest class err\nafter OtherTest class err\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest:ok').onlyRoot().assertStdout(equalTo("This is other stdout\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest:ok').onlyRoot().assertStderr(equalTo(""))
     }
 
     def "supports Junit3 suites"() {
@@ -209,20 +244,17 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         executer.withTasks('test').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.SomeTest1', 'org.gradle.SomeTest2', 'org.gradle.SomeSuite')
-        result.testClass("org.gradle.SomeTest1").assertTestCount(1, 0, 0)
-        result.testClass("org.gradle.SomeTest1").assertTestsExecuted("testOk1")
-        result.testClass("org.gradle.SomeTest2").assertTestCount(1, 0, 0)
-        result.testClass("org.gradle.SomeTest2").assertTestsExecuted("testOk2")
-        result.testClass("org.gradle.SomeSuite").assertTestCount(0, 0, 0)
+        GenericTestExecutionResult result = resultsFor()
+        result.assertTestPathsExecuted(
+            ':org.gradle.SomeSuite:org.gradle.SomeTest1:testOk1',
+            ':org.gradle.SomeSuite:org.gradle.SomeTest2:testOk2'
+        )
         if (supportsSuiteOutput()) {
-            result.testClass("org.gradle.SomeSuite").assertStdout(containsString("stdout in TestSetup#setup"))
-            result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
-            // JUnit3 suite teardown output does not seem to get captured with Vintage (even with 5.9.0)
-            // TODO need to investigate whether this is a bug in JUnit or in Gradle testing or what
-            //result.testClass("org.gradle.SomeSuite").assertStdout(containsString("stdout in TestSetup#teardown"))
-            //result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
+            result.testPath(":org.gradle.SomeSuite").onlyRoot().assertStdout(containsString("stdout in TestSetup#setup"))
+            result.testPath(":org.gradle.SomeSuite").onlyRoot().assertStderr(containsString("stderr in TestSetup#setup"))
+            // Due to the way JUnit 3 suites work, we cannot associate the output correctly, even in recent JUnit 4 and Vintage.
+            result.testPath("org.gradle.SomeSuite:org.gradle.SomeTest2").onlyRoot().assertStdout(containsString("stdout in TestSetup#teardown"))
+            result.testPath("org.gradle.SomeSuite:org.gradle.SomeTest2").onlyRoot().assertStderr(containsString("stderr in TestSetup#teardown"))
         }
     }
 }

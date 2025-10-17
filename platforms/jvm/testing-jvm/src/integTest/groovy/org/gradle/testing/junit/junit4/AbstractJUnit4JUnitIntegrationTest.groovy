@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.junit.AbstractJUnitIntegrationTest
 import org.junit.Assume
 import spock.lang.Issue
@@ -122,8 +122,7 @@ abstract class AbstractJUnit4JUnitIntegrationTest extends AbstractJUnitIntegrati
         executer.withTasks('test').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.ExecutionOrderTest')
-        result.testClass('org.gradle.ExecutionOrderTest').assertTestPassed('classUnderTestIsLoadedOnlyByRunner')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.ExecutionOrderTest', 'classUnderTestIsLoadedOnlyByRunner').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

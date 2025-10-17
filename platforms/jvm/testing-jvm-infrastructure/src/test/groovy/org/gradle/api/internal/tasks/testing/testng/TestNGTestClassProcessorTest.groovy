@@ -45,6 +45,7 @@ class TestNGTestClassProcessorTest extends Specification {
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
+    @SuppressWarnings('GroovyAssignabilityCheck')
     void process(Class... clazz) {
         process(clazz*.name)
     }
@@ -232,7 +233,6 @@ class TestNGTestClassProcessorTest extends Specification {
         when:
         process(ATestNGClass, ATestNGClassWithBeforeAndAfter) //the latter is not matched
 
-        then:
         then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, _)
         then: 1 * processor.started({ it.id == 2 && it.name == 'Gradle test' && it.className == null }, _)
         then: 1 * processor.started({ it.id == 3 && it.name == 'ok' && it.className == ATestNGClass.name }, _)

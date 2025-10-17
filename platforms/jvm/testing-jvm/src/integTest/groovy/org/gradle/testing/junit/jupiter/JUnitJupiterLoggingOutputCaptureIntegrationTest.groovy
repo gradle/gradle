@@ -16,13 +16,14 @@
 
 package org.gradle.testing.junit.jupiter
 
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.junit.AbstractJUnitLoggingOutputCaptureIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.is
 
 // https://github.com/junit-team/junit5/issues/1285
 @TargetCoverage({ JUNIT_JUPITER })
@@ -131,30 +132,40 @@ class JUnitJupiterLoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggi
         ))
 
 
-        def htmlReport = new HtmlTestExecutionResult(testDirectory)
-        def classReport = htmlReport.testClass("OkTest")
-        classReport.assertStdout(containsString(
+        def results = resultsFor(testDirectory)
+        def classReport = results.testPath("OkTest").onlyRoot()
+        classReport.assertStdout(is(
             "class loaded\n" +
             "before class out\n" +
             "test constructed\n" +
-            "before out\n" +
-            "ok out\n" +
-            "after out\n" +
             "test constructed\n" +
-            "before out\n" +
-            "test out: \u03b1</html>\n" +
-            "after out\n" +
             "after class out\n"
         ))
-        classReport.assertStderr(containsString(
+        classReport.assertStderr(is(
             "before class err\n" +
-            "before err\n" +
-            "ok err\n" +
-            "after err\n" +
+            "after class err\n"
+        ))
+        def okReport = results.testPath("OkTest", "ok").onlyRoot()
+        okReport.assertStdout(is(
+            "before out\n" +
+            "test out: \u03b1</html>\n" +
+            "after out\n"
+        ))
+        okReport.assertStderr(is(
             "before err\n" +
             "test err\n" +
-            "after err\n" +
-            "after class err\n"
+            "after err\n"
+        ))
+        def anotherOkReport = results.testPath("OkTest", "anotherOk").onlyRoot()
+        anotherOkReport.assertStdout(is(
+            "before out\n" +
+            "ok out\n" +
+            "after out\n"
+        ))
+        anotherOkReport.assertStderr(is(
+            "before err\n" +
+            "ok err\n" +
+            "after err\n"
         ))
     }
 

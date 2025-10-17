@@ -16,19 +16,24 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.testing.fixture.TestNGCoverage.providesClassListener
 import static org.hamcrest.CoreMatchers.is
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec {
+@TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
+class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     def setup() {
         buildFile << """
@@ -118,14 +123,8 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
          * This test documents the current behavior. It's not right, we're missing a lot of output in the report.
          */
 
-        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
-        def classResult = xmlReport.testClass("FooTest")
-
-        assertTestClassExecutionResultOutput(classResult)
-
-        def htmlReport = new HtmlTestExecutionResult(testDirectory)
-        def classReport = htmlReport.testClass("FooTest")
-        assertTestClassExecutionResultReport(classReport)
+        def results = resultsFor()
+        assertTestPathOutput(results, "FooTest")
     }
 
     def "attaches output events to correct test descriptors"() {
@@ -144,18 +143,11 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
 
         outputContains expectedOutput('Gradle test')
 
-        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
-        def classResult = xmlReport.testClass("FooTest")
-
-
         /**
          * This test documents the current behavior. It's not right, we're missing a lot of output in the report.
          */
-        assertTestClassExecutionResultOutput(classResult)
-
-        def htmlReport = new HtmlTestExecutionResult(testDirectory)
-        def classReport = htmlReport.testClass("FooTest")
-        assertTestClassExecutionResultReport(classReport)
+        def results = resultsFor()
+        assertTestPathOutput(results, "FooTest")
     }
 
     boolean containsLinesThatMatch(String text, String... regexes) {
@@ -164,66 +156,35 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
         }
     }
 
-    private String expectedOutput(String testSuiteName) {
-        providesClassListener(version) ? expectedEventOutputWithTestClassListener(testSuiteName) : expectedEventOutputWithoutTestClassListener(testSuiteName)
-    }
-
-    private void assertTestClassExecutionResultOutput(TestClassExecutionResult classResult) {
-        classResult.assertTestCaseStderr("m1", is("m1 err\n"))
-        classResult.assertTestCaseStderr("m2", is("m2 err\n"))
-        classResult.assertTestCaseStdout("m1", is("m1: \u03b1</html>\n"))
-        classResult.assertTestCaseStdout("m2", is("m2 out\n"))
-
-        if (providesClassListener(version)) {
-            classResult.assertStderr(is("beforeClass err\n"))
-            classResult.assertStdout(is("beforeClass out\n"))
-        } else {
-            classResult.assertStderr(is(""))
-            classResult.assertStdout(is(""))
-        }
-    }
-
-    private void assertTestClassExecutionResultReport(TestClassExecutionResult classReport) {
-        if (providesClassListener(version)) {
-            classReport.assertStdout(is("beforeClass out\nm1: \u03b1</html>\nm2 out\n"))
-            classReport.assertStderr(is("beforeClass err\nm1 err\nm2 err\n"))
-        } else {
-            classReport.assertStdout(is("m1: \u03b1</html>\nm2 out\n"))
-            classReport.assertStderr(is("m1 err\nm2 err\n"))
-        }
-    }
-
-    static String expectedEventOutputWithoutTestClassListener(String testSuiteName) {
-        """Test suite '$testSuiteName' -> beforeTest out
-Test suite '$testSuiteName' -> beforeTest err
-Test suite '$testSuiteName' -> beforeClass out
-Test suite '$testSuiteName' -> beforeClass err
-Test method m1(FooTest) -> m1: α</html>
-Test method m1(FooTest) -> m1 err
-Test method m2(FooTest) -> m2 out
-Test method m2(FooTest) -> m2 err
-Test suite '$testSuiteName' -> afterClass out
-Test suite '$testSuiteName' -> afterClass err
-Test suite '$testSuiteName' -> afterTest out
-Test suite '$testSuiteName' -> afterTest err
-"""
-    }
-
-    static String expectedEventOutputWithTestClassListener(String testSuiteName) {
-        """Test suite '$testSuiteName' -> beforeTest out
-Test suite '$testSuiteName' -> beforeTest err
+    private static String expectedOutput(String testSuiteName) {
+        """Test suite '${testSuiteName}' -> beforeTest out
+Test suite '${testSuiteName}' -> beforeTest err
 Test class FooTest -> beforeClass out
 Test class FooTest -> beforeClass err
 Test method m1(FooTest) -> m1: α</html>
 Test method m1(FooTest) -> m1 err
 Test method m2(FooTest) -> m2 out
 Test method m2(FooTest) -> m2 err
-Test suite '$testSuiteName' -> afterClass out
-Test suite '$testSuiteName' -> afterClass err
-Test suite '$testSuiteName' -> afterTest out
-Test suite '$testSuiteName' -> afterTest err
+Test suite '${testSuiteName}' -> afterClass out
+Test suite '${testSuiteName}' -> afterClass err
+Test suite '${testSuiteName}' -> afterTest out
+Test suite '${testSuiteName}' -> afterTest err
 """
     }
+
+    private static void assertTestPathOutput(GenericHtmlTestExecutionResult results, String className) {
+        results.testPath(className, "m1").onlyRoot()
+            .assertStderr(is("m1 err\n"))
+            .assertStdout(is("m1: \u03b1</html>\n"))
+        results.testPath(className, "m2").onlyRoot()
+            .assertStderr(is("m2 err\n"))
+            .assertStdout(is("m2 out\n"))
+
+        results.testPath(className).onlyRoot()
+            .assertStderr(is("beforeClass err\n"))
+            .assertStdout(is("beforeClass out\n"))
+    }
+
 
     def "can configure logging output inclusion in xml reports"() {
         given:

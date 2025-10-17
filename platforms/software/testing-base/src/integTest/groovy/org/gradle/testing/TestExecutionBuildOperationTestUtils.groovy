@@ -70,10 +70,10 @@ abstract class TestExecutionBuildOperationTestUtils {
         assert firstLevelTestOps*.details.testDescriptor.composite == [true, true]
 
         def suiteTestOps = operations.children(firstLevelTestOps[1], ExecuteTestBuildOperationType)
-        assert suiteTestOps.size() == 4
-        assert suiteTestOps*.details.testDescriptor.name as Set == ["ok", "fail", "otherFail", "otherOk"] as Set
+        assert suiteTestOps.size() == 2
+        assert suiteTestOps*.details.testDescriptor.name as Set == ["org.gradle.Test", "org.gradle.OtherTest"] as Set
         assert suiteTestOps*.details.testDescriptor.className as Set == ["org.gradle.Test", "org.gradle.Test", "org.gradle.OtherTest", "org.gradle.OtherTest"] as Set
-        assert suiteTestOps*.details.testDescriptor.composite == [false, false, false, false]
+        assert suiteTestOps*.details.testDescriptor.composite == [true, true]
 
         def testTestOps = operations.children(firstLevelTestOps[0], ExecuteTestBuildOperationType)
         assert testTestOps.size() == 2

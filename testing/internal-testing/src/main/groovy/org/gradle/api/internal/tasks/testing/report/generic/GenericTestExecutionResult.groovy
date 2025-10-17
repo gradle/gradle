@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.report.generic;
+package org.gradle.api.internal.tasks.testing.report.generic
 
-import java.util.List;
-
-public interface GenericTestExecutionResult {
-    String EXECUTION_FAILURE = "failed to execute tests";
-
+interface GenericTestExecutionResult {
     /**
      * Asserts that the given test paths (and only the given test paths) were executed.
      *
@@ -29,6 +25,15 @@ public interface GenericTestExecutionResult {
      * </p>
      */
     GenericTestExecutionResult assertTestPathsExecuted(String... testPaths);
+
+    /**
+     * Asserts that the given test paths were executed. Others may also have been executed.
+     *
+     * <p>
+     * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * </p>
+     */
+    GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPaths);
 
     /**
      * Asserts that the given test paths (and only the given test paths) were <strong>NOT</strong> executed.
@@ -47,6 +52,48 @@ public interface GenericTestExecutionResult {
      * </p>
      */
     TestPathExecutionResult testPath(String testPath);
+
+    /**
+     * Returns the result for the given test class and method.
+     * <p>
+     * These are paths in the style of {@link org.gradle.util.Path}, e.g. `e1:e2:e3...`.
+     *
+     * @param testPathElements the elements of the path to be concatenated with `:` as separator
+     * @return the complete path for the given test path elements
+     */
+    TestPathExecutionResult testPath(String... testPathElements);
+
+    enum TestFramework {
+        CUCUMBER,
+        TEST_NG,
+        JUNIT_JUPITER,
+        SPOCK,
+        JUNIT4,
+        KOTLIN_TEST,
+        SCALA_TEST,
+        XC_TEST,
+        CUSTOM,
+        ;
+
+        /**
+         * Given the name of a test method, returns the name of the test case that would be reported by this test
+         * framework.
+         *
+         * <p>
+         * For example, JUnit 4 uses the method name as the test case name, whereas JUnit Jupiter appends {@code ()}
+         * to the method name.
+         * </p>
+         *
+         * @param testMethodName the name of the test method
+         * @return the name of the test case as reported by this test framework
+         */
+        String getTestCaseName(String testMethodName) {
+            return switch (this) {
+                case JUNIT_JUPITER, KOTLIN_TEST -> testMethodName + "()"
+                default -> testMethodName;
+            };
+        }
+    }
 
     /**
      * Checks if the given test path exists.

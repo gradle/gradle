@@ -25,6 +25,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
     abstract TestSourceGenerator getTestSourceGenerator()
     abstract String getSingularCategoryOrTagName()
     abstract String getPluralCategoryOrTagName()
+    abstract String[] normalizeTestMethodNames(String... methodNames)
 
     def setup() {
         executer.noExtraLogging()
@@ -88,14 +89,17 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         run('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('NoCatTests', 'SomeTests', 'SomeOtherCatTests')
-        result.testClass("SomeOtherCatTests").assertTestCount(2, 0, 0)
-        result.testClass("SomeOtherCatTests").assertTestsExecuted('someOtherOk1', 'someOtherOk2')
-        result.testClass("NoCatTests").assertTestCount(2, 0, 0)
-        result.testClass("NoCatTests").assertTestsExecuted('noCatOk1', 'noCatOk2')
-        result.testClass("SomeTests").assertTestCount(3, 0, 0)
-        result.testClass("SomeTests").assertTestsExecuted('noCatOk3', 'noCatOk4', 'someOtherCatOk2')
+        def results = resultsFor(testDirectory)
+        results.assertAtLeastTestPathsExecuted('NoCatTests', 'SomeTests', 'SomeOtherCatTests')
+        results.testPath('SomeOtherCatTests').onlyRoot()
+            .assertChildCount(2, 0)
+            .assertChildrenExecuted(normalizeTestMethodNames('someOtherOk1', 'someOtherOk2'))
+        results.testPath("NoCatTests").onlyRoot()
+            .assertChildCount(2, 0)
+            .assertChildrenExecuted(normalizeTestMethodNames('noCatOk1', 'noCatOk2'))
+        results.testPath("SomeTests").onlyRoot()
+            .assertChildCount(3, 0)
+            .assertChildrenExecuted(normalizeTestMethodNames('noCatOk3', 'noCatOk4', 'someOtherCatOk2'))
     }
 
     def "can include categories or tags only"() {
@@ -145,12 +149,13 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         run('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('CategoryATests', 'SomeTests')
-        result.testClass("CategoryATests").assertTestCount(4, 0, 0)
-        result.testClass("CategoryATests").assertTestsExecuted('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4')
-        result.testClass("SomeTests").assertTestCount(1, 0, 0)
-        result.testClass("SomeTests").assertTestsExecuted('catAOk1')
+        def results = resultsFor(testDirectory)
+        results.assertAtLeastTestPathsExecuted('CategoryATests', 'SomeTests')
+        results.testPath('CategoryATests').onlyRoot()
+            .assertChildCount(4, 0)
+            .assertChildrenExecuted(normalizeTestMethodNames('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4'))
+        results.testPath("SomeTests").onlyRoot().assertChildCount(1, 0)
+        results.testPath("SomeTests").onlyRoot().assertChildrenExecuted(normalizeTestMethodNames('catAOk1'))
     }
 
     def "emits warning when specifying a conflicting include/exclude"() {
@@ -194,10 +199,10 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         assertOutputContainsCategoryOrTagWarning('CategoryC')
 
         and:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('CategoryATests')
-        result.testClass("CategoryATests").assertTestCount(4, 0, 0)
-        result.testClass("CategoryATests").assertTestsExecuted('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4')
+        def results = resultsFor(testDirectory)
+        results.testPath('CategoryATests').onlyRoot()
+            .assertChildCount(4, 0)
+            .assertChildrenExecuted(normalizeTestMethodNames('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4'))
     }
 
     def "emits warning when specifying multiple conflicting includes/excludes"() {

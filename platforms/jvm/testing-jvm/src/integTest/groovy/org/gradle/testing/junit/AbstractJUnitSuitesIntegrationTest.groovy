@@ -16,13 +16,16 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getTestFrameworkSuiteDependencies()
     abstract String getTestFrameworkSuiteImports()
     abstract String getTestFrameworkSuiteAnnotations(String classes)
+    abstract GenericTestExecutionResult.TestFramework getTestFramework()
 
     def "test classes can be shared by multiple suites"() {
         given:
@@ -73,9 +76,13 @@ abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVe
         executer.withTasks('test').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.SomeTest')
-        result.testClass("org.gradle.SomeTest").assertTestCount(2, 0, 0)
-        result.testClass("org.gradle.SomeTest").assertTestsExecuted("ok", "ok")
+        GenericHtmlTestExecutionResult result = resultsFor()
+        result.assertTestPathsExecuted(
+            ':org.gradle.SomeTestSuite:org.gradle.SomeTest:ok',
+            ':org.gradle.SomeOtherTestSuite:org.gradle.SomeTest:ok'
+        )
+        result.testPath(":org.gradle.SomeTestSuite:org.gradle.SomeTest:ok").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":org.gradle.SomeOtherTestSuite:org.gradle.SomeTest:ok").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+
     }
 }

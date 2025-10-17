@@ -42,6 +42,7 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
+    testImplementation(testFixtures(projects.testingBase))
 
     integTestRuntimeOnly(projects.kotlinDsl)
     integTestRuntimeOnly(projects.kotlinDslProviderPlugins)

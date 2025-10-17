@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.collect.Multimaps;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -28,6 +29,7 @@ import org.gradle.util.Path;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -73,10 +75,17 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         htmlWriter.startElement("div").attribute("class", "breadcrumbs");
         for (Path path : getModel().getPath().ancestors()) {
             String title = path.equals(Path.ROOT) ? "all" : path.getName();
-            htmlWriter.startElement("a").attribute("href", getUrlTo(getModel().getPath(), path)).characters(title).endElement();
+            htmlWriter.startElement("a")
+                .attribute("class", "breadcrumb")
+                .attribute("href", getUrlTo(getModel().getPath(), path))
+                .characters(title)
+                .endElement();
             htmlWriter.characters(" > ");
         }
-        htmlWriter.characters(getModel().getPath().getName());
+        htmlWriter.startElement("span")
+            .attribute("class", "breadcrumb")
+            .characters(getModel().getPath().getName())
+            .endElement();
         htmlWriter.endElement();
     }
 
@@ -117,25 +126,43 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     @Override
     protected ReportRenderer<TestTreeModel, SimpleHtmlWriter> getContentRenderer() {
         TabsRenderer<TestTreeModel> rootTabsRenderer = new TabsRenderer<>();
-        getModel().getPerRootInfo().forEach((rootIndex, info) -> {
-            final TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
-            tabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex));
-            SerializableTestResultStore.OutputReader outputReader = outputReaders.get(rootIndex);
-            if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdOut)) {
-                tabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, outputReader, TestOutputEvent.Destination.StdOut));
-            }
-            if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdErr)) {
-                tabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, outputReader, TestOutputEvent.Destination.StdErr));
-            }
-            if (!info.getMetadatas().isEmpty()) {
-                tabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, metadataRendererRegistry));
+        Multimaps.asMap(getModel().getPerRootInfo()).forEach((rootIndex, infos) -> {
+            List<TabsRenderer<TestTreeModel>> perRootInfoTabsRenderers = new ArrayList<>(infos.size());
+            for (int perRootInfoIndex = 0; perRootInfoIndex < infos.size(); perRootInfoIndex++) {
+                TestTreeModel.PerRootInfo info = infos.get(perRootInfoIndex);
+
+                final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
+                perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex));
+                SerializableTestResultStore.OutputReader outputReader = outputReaders.get(rootIndex);
+                if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdOut)) {
+                    perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
+                }
+                if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdErr)) {
+                    perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
+                }
+                if (!info.getMetadatas().isEmpty()) {
+                    perRootInfoTabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, perRootInfoIndex, metadataRendererRegistry));
+                }
+
+                perRootInfoTabsRenderers.add(perRootInfoTabsRenderer);
             }
 
+            // If necessary, render each run in its own tab
+            TabsRenderer<TestTreeModel> directlyBelowRootTabsRenderer;
+            if (perRootInfoTabsRenderers.size() == 1) {
+                directlyBelowRootTabsRenderer = perRootInfoTabsRenderers.get(0);
+            } else {
+                directlyBelowRootTabsRenderer = new TabsRenderer<>();
+                for (int i = 0; i < perRootInfoTabsRenderers.size(); i++) {
+                    directlyBelowRootTabsRenderer.add("run " + (i + 1), perRootInfoTabsRenderers.get(i));
+                }
+            }
             rootTabsRenderer.add(rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
                 @Override
                 public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
-                    output.startElement("h1").characters(info.getResult().getDisplayName()).endElement();
-                    tabsRenderer.render(model, output);
+                    // Assume all runs share the same display name, it's probably not materially relevant if they don't.
+                    output.startElement("h1").characters(infos.get(0).getResult().getDisplayName()).endElement();
+                    directlyBelowRootTabsRenderer.render(model, output);
                 }
             });
         });

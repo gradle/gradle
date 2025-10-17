@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 
 class JUnit4TestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
@@ -29,6 +30,11 @@ class JUnit4TestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
+
+    @Override
     void createPassingFailingTest() {
         file('src/main/java/AppException.java').writelns(
             "public class AppException extends Exception { }"
@@ -37,18 +43,18 @@ class JUnit4TestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
                 @org.junit.Test
-                public void ${failingTestCaseName}() {
+                public void ${failingTestMethodName}() {
                     System.err.println("some error output");
                     org.junit.Assert.fail(\"test failure message\");
                 }
                 @org.junit.Test
-                public void ${passingTestCaseName}() { }
+                public void ${passingTestMethodName}() { }
             }
         """
         file('src/test/java/SomeOtherTest.java') << """
             public class SomeOtherTest {
                 @org.junit.Test
-                public void ${passingTestCaseName}() { }
+                public void ${passingTestMethodName}() { }
             }
         """
     }
@@ -73,12 +79,12 @@ class JUnit4TestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
-    String getPassingTestCaseName() {
+    String getPassingTestMethodName() {
         return "pass"
     }
 
     @Override
-    String getFailingTestCaseName() {
+    String getFailingTestMethodName() {
         return "fail"
     }
 }

@@ -16,11 +16,15 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 
 trait XCTestExecutionResult {
     TestExecutionResult getTestExecutionResult() {
-        return new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'xcTest')
+        return new DefaultTestExecutionResult(
+            testDirectory, 'build', '', '', 'xcTest',
+            GenericTestExecutionResult.TestFramework.XC_TEST
+        )
     }
 }
