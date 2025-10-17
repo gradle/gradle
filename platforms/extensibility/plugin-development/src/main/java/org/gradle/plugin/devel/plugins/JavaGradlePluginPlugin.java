@@ -113,7 +113,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
      *
      * Experimental property used to test using an external Gradle API dependency.
      */
-    static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = new InternalFlag("org.gradle.unsafe.suppress-gradle-api");
+    static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = new InternalFlag("org.gradle.internal.suppress-gradle-api");
 
     /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
