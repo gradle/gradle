@@ -24,7 +24,7 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.problems.ProblemUtils;
-import org.gradle.problems.internal.rendering.ProblemRenderer;
+import org.gradle.problems.internal.rendering.ProblemRendererFactory;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class ConsoleProblemEmitter implements ProblemEmitter {
     private static void render(InternalProblem problem) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        ProblemRenderer.standaloneProblemRenderer(pw).render(problem);
+        ProblemRendererFactory.standaloneProblemRenderer(pw).render(problem);
         String result = sw.toString();
         LOGGER.warn(result);
     }

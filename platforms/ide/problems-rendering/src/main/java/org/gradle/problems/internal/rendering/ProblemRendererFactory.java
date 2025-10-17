@@ -22,19 +22,30 @@ import java.io.Writer;
 /**
  * Base class for rendering problems to a text output.
  */
-public class ProblemRenderer {
+public class ProblemRendererFactory {
 
-    protected PrintWriter output;
-
-    protected ProblemRenderer(Writer output) {
-        this.output = new PrintWriter(output);
+    private ProblemRendererFactory() {
     }
 
     public static GroupingProblemRenderer groupingProblemRenderer(Writer output) {
-        return new GroupingProblemRenderer(output);
+        PrintWriter writer = new PrintWriter(output);
+        return new GroupingProblemRenderer(
+            new HeaderRenderer(
+                new HeaderRenderOptions("", false),
+                writer
+            ),
+            new BodyRenderer(writer),
+            writer);
     }
 
     public static StandaloneProblemRenderer standaloneProblemRenderer(Writer output) {
-        return new StandaloneProblemRenderer(output);
+        PrintWriter writer = new PrintWriter(output);
+        return new StandaloneProblemRenderer(
+            new HeaderRenderer(
+                new HeaderRenderOptions("Problem found: ", true),
+                writer
+            ),
+            new BodyRenderer(writer)
+        );
     }
 }

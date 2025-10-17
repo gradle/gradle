@@ -37,7 +37,7 @@ class StandaloneProblemRendererTest extends Specification {
 
     def setup() {
         output = new StringWriter()
-        renderer = ProblemRenderer.standaloneProblemRenderer(new PrintWriter(output))
+        renderer = ProblemRendererFactory.standaloneProblemRenderer(new PrintWriter(output))
     }
 
     def "render problem with no group and id display name"(String displayName) {

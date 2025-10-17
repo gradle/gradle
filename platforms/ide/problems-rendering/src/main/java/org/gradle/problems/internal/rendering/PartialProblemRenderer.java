@@ -18,18 +18,10 @@ package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.internal.InternalProblem;
 
-public class StandaloneProblemRenderer {
+/**
+ * Renders a part of a problem.
+ */
+public interface PartialProblemRenderer {
 
-    private final HeaderRenderer headerRenderer;
-    private final BodyRenderer bodyRenderer;
-
-    StandaloneProblemRenderer(HeaderRenderer headerRenderer, BodyRenderer bodyRenderer) {
-        this.headerRenderer = headerRenderer;
-        this.bodyRenderer = bodyRenderer;
-    }
-
-    public void render(InternalProblem problem) {
-        headerRenderer.render(problem);
-        bodyRenderer.render(problem);
-    }
+    void render(InternalProblem problem);
 }

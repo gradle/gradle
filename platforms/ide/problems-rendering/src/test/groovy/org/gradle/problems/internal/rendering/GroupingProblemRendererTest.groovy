@@ -39,7 +39,7 @@ class GroupingProblemRendererTest extends Specification {
     def setup() {
         stringWriter = new StringWriter()
         writer = new PrintWriter(stringWriter)
-        renderer = ProblemRenderer.groupingProblemRenderer(writer)
+        renderer = ProblemRendererFactory.groupingProblemRenderer(writer)
     }
 
     def "individual problem header is correct when only group display name is present"() {

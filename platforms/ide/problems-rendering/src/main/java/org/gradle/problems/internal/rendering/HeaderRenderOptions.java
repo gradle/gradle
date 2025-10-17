@@ -16,12 +16,12 @@
 
 package org.gradle.problems.internal.rendering;
 
-public class RenderOptions {
+public class HeaderRenderOptions {
 
     private final String prefix;
     private final boolean renderId;
 
-    public RenderOptions(
+    public HeaderRenderOptions(
         String prefix,
         boolean renderId
     ) {

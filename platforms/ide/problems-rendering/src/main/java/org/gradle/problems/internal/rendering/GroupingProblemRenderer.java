@@ -21,23 +21,27 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class GroupingProblemRenderer extends StandaloneProblemRenderer {
+public class GroupingProblemRenderer {
 
-    GroupingProblemRenderer(Writer writer) {
-        super(writer, new RenderOptions("", false));
+    private final HeaderRenderer headerRenderer;
+    private final BodyRenderer bodyRenderer;
+    private final PrintWriter output;
+
+    GroupingProblemRenderer(HeaderRenderer headerRenderer, BodyRenderer bodyRenderer, PrintWriter output) {
+        this.headerRenderer = headerRenderer;
+        this.bodyRenderer = bodyRenderer;
+        this.output = output;
     }
 
     public void render(List<InternalProblem> problems) {
         render(output, problems);
     }
 
-    @Override
     public void render(InternalProblem problem) {
         render(Collections.singletonList(problem));
     }
@@ -65,14 +69,14 @@ public class GroupingProblemRenderer extends StandaloneProblemRenderer {
         } else {
             for (InternalProblem problem : problems) {
                 output.printf(sep);
-                super.render(problem);
+                headerRenderer.render(problem);
+                bodyRenderer.render(problem);
                 sep = "%n";
             }
         }
     }
 
     static void renderJavaCompilationProblem(PrintWriter output, InternalProblem problem) {
-        indent(output, problem.getDetails(), 0);
+        output.print(problem.getDetails());
     }
-
 }
