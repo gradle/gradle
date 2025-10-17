@@ -43,7 +43,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         this(property, null, emptyList());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // otherwise, vararg heap pollution warning-as-error
     public AbstractBuildOption(@Nullable String property, V... commandLineOptionConfiguration) {
         this(property, null, Arrays.asList(commandLineOptionConfiguration));
     }
@@ -52,7 +52,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         this(property, deprecatedProperty, emptyList());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // otherwise, vararg heap pollution warning-as-error
     public AbstractBuildOption(@Nullable String property, @Nullable String deprecatedProperty, V... commandLineOptionConfiguration) {
         this(property, deprecatedProperty, Arrays.asList(commandLineOptionConfiguration));
     }
