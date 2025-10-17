@@ -23,8 +23,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <T> The value of the option.
  */
-public interface InternalOption<T> extends Option {
-    @Nullable
+public interface InternalOption<T extends @Nullable Object> extends Option {
     T getDefaultValue();
 
     String getSystemPropertyName();
