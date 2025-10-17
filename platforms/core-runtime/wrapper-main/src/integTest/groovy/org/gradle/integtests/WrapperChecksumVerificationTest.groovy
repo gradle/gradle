@@ -159,4 +159,48 @@ Visit https://gradle.org/release-checksums/ to verify the checksums of official 
         then:
         file(WRAPPER_PROPERTIES_PATH).getProperties().get(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == underDevelopmentDistributionChecksum
     }
+
+    def "wrapper shows link to Gradle checksums when distributionSha256Sum is missing"() {
+        given:
+        configureServer(true)
+        prepareWrapper(new URI(gradleBin))
+
+        and:
+        file(WRAPPER_PROPERTIES_PATH) << 'distributionSha256Sum=missing'
+
+        when:
+        def failure = wrapperExecuter.withStackTraceChecksDisabled().runWithFailure()
+        def f = new File(file("user-home/wrapper/dists/gradle-bin").listFiles()[0], "gradle-bin.zip")
+
+        then:
+        failure.error.contains("""
+Verification of Gradle distribution failed!
+
+Your Gradle distribution may have been tampered with.
+Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct and you are downloading the wrapper from a trusted source.
+
+Distribution Url: $gradleBin
+Download Location: $f.absolutePath
+Expected checksum: 'missing'
+Actual checksum:   '$distributionHash'
+Visit https://gradle.org/release-checksums/ to verify the checksums of official distributions.
+""".trim())
+    }
+
+    def "wrapper succeeds when a valid checksum is provided after missing checksum"() {
+        given:
+        configureServer(true)
+        prepareWrapper(new URI(gradleBin))
+
+        and: "Initially set an invalid/missing checksum"
+        file(WRAPPER_PROPERTIES_PATH) << 'distributionSha256Sum=missing'
+
+        when: "We update the properties file with a valid checksum"
+        writeValidDistributionHash()
+        def success = wrapperExecuter.run()
+
+        then:
+        success.output.contains('BUILD SUCCESSFUL')
+        file(WRAPPER_PROPERTIES_PATH).getProperties().get(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == distributionHash
+    }
 }
