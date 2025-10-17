@@ -91,6 +91,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.failures.isEmpty()
     }
 
+    @ToBeImplemented // TODO: we should be able to do better
     def "basic build - broken settings file"() {
         given:
         settingsKotlinFile << """
@@ -239,6 +240,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
     }
 
+    @ToBeImplemented // TODO: we should be able to do better
     def "basic build with included build - broken settings and build file in included build"() {
         given:
         settingsKotlinFile << """
@@ -597,7 +599,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         INCLUDED_BUILDS_FIRST | 1                       | "A problem occurred configuring project ':b'." | null
     }
 
-    @ToBeImplemented("Needs resilient GradleBuild model")
+    @ToBeImplemented("Needs resilient GradleBuild model") // TODO
     def "build with convention plugins - broken settings convention"() {
         given:
         settingsKotlinFile << """
@@ -653,7 +655,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         e.message.startsWith("The supplied build action failed with an exception.")
     }
 
-    @ToBeImplemented
+    @ToBeImplemented // TODO
     def "resilient Kotlin DSL can be queried with null target"() {
         given:
         settingsKotlinFile << """
