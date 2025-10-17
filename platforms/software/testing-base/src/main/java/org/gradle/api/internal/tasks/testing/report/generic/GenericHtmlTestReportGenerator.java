@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.FileUtils;
+import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -71,7 +71,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         if (path.segmentCount() == 0) {
             filePath = "index.html";
         } else {
-            filePath = String.join("/", Iterables.transform(path.segments(), FileUtils::toSafeFileName)) + "/index.html";
+            filePath = String.join("/", Iterables.transform(path.segments(), SafeFileLocationUtils::toSafeFileName)) + "/index.html";
         }
         return filePath;
     }
