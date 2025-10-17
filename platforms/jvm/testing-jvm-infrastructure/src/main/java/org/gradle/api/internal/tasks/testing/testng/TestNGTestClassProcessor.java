@@ -17,8 +17,9 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.OnlyClassBasedTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -29,7 +30,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassProcessor {
+public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassProcessor, OnlyClassBasedTestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<>();
     private final File testReportDir;
     private final TestNGSpec spec;
@@ -76,13 +77,13 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processClassTestDefinition(ClassTestDefinition testDefinition) {
         if (startedProcessing) {
             // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
             try {
-                testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
+                testClasses.add(applicationClassLoader.loadClass(testDefinition.getTestClassName()));
             } catch (Throwable e) {
-                throw new GradleException(String.format("Could not load test class '%s'.", testClass.getTestClassName()), e);
+                throw new GradleException(String.format("Could not load %s.", testDefinition.getDisplayName()), e);
             }
         }
     }

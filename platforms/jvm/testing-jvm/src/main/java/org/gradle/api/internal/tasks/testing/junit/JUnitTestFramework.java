@@ -120,4 +120,9 @@ public abstract class JUnitTestFramework implements TestFramework {
             }
         }
     }
+
+    @Override
+    public String getDisplayName() {
+        return "JUnit";
+    }
 }

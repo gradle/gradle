@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
@@ -53,6 +54,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -203,6 +205,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
+        getScanForTestDefinitions().convention(getProject().getProviders().provider(() -> !getTestDefinitionDirs().getFiles().isEmpty()));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -659,6 +662,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
+        if (!getTestFramework().supportsResourceBasedTesting() && getScanForTestDefinitions().get()) {
+            // TODO: Can we add a name?  Make TestFramework extend Describable?
+            throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
+        }
+
         validateExecutableMatchesToolchain();
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
@@ -667,7 +675,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
+            getCandidateClassFiles(), isScanForTestClasses(), candidateDefinitionDirs().getFiles(), getScanForTestDefinitions().get(),
+            getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
     private void validateExecutableMatchesToolchain() {
@@ -854,6 +864,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public FileCollection getTestClassesDirs() {
         return testClassesDirs;
     }
+
+    /**
+     * Returns the directories to scan for resource-based testing.
+     *
+     * @since 9.3.0
+     */
+    @Incubating
+    @InputFiles
+    @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getTestDefinitionDirs();
 
     /**
      * Sets the directories to scan for compiled test sources.
@@ -1145,6 +1166,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return scanForTestClasses;
     }
 
+    /**
+     * Whether to scan for test resources for resource-based testing.
+     *
+     * @since 9.3.0
+     */
+    @Incubating
+    @Input
+    @Optional
+    public abstract Property<Boolean> getScanForTestDefinitions();
+
     public void setScanForTestClasses(boolean scanForTestClasses) {
         this.scanForTestClasses = scanForTestClasses;
     }
@@ -1232,6 +1263,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ToBeReplacedByLazyProperty(comment = "Should this be kept as it is?")
     public FileTree getCandidateClassFiles() {
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
+    }
+
+    /**
+     * Returns the classes files to scan for test classes.
+     *
+     * @return The candidate class files.
+     * @since 9.3.0
+     */
+    @Incubating
+    public ConfigurableFileCollection candidateDefinitionDirs() { // TODO: also adjust naming to getXYZ() (skipped for now to avoid property must be abstract check)
+        return getTestDefinitionDirs(); // TODO: filtering? Make getCandidateResourceFiles a prop directly? One of these methods is unnecessary
     }
 
     /**
