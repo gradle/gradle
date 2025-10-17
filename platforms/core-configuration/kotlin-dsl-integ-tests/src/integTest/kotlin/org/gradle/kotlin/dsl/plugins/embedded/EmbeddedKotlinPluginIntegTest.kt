@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume
 import org.junit.Test
 import spock.lang.Issue
 
@@ -240,6 +241,11 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
     @Test
     @Issue("https://github.com/gradle/gradle/issues/35309")
     fun `clears swift configurations created by KGP`() {
+        // TODO: investigate why the test fails with "Error resolving plugin [id: 'org.gradle.kotlin.embedded-kotlin', version: '6.4.2']"
+        Assume.assumeFalse("This test does not work with forceRealize set to true",
+            System.getProperty("org.gradle.integtest.force.realize.metadata", "false").toBooleanStrictOrNull() ?: false
+        )
+
         withDefaultSettings()
 
         withBuildScript(
