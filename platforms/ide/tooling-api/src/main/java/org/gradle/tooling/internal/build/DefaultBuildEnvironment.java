@@ -32,6 +32,7 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
     private final String gradleVersion;
     private final File javaHome;
     private final List<String> jvmArguments;
+    private final String versionOutput;
     private DefaultBuildIdentifier buildIdentifier;
 
     public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments) {
@@ -40,6 +41,16 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
         this.gradleVersion = gradleVersion;
         this.javaHome = javaHome;
         this.jvmArguments = jvmArguments;
+        this.versionOutput = null;
+    }
+
+    public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments, String versionOutput) {
+        this.buildIdentifier = buildIdentifier;
+        this.gradleUserHome = gradleUserHome;
+        this.gradleVersion = gradleVersion;
+        this.javaHome = javaHome;
+        this.jvmArguments = jvmArguments;
+        this.versionOutput = versionOutput;
     }
 
     public DefaultBuildIdentifier getBuildIdentifier() {
@@ -61,6 +72,11 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
             @Override
             public String getGradleVersion() {
                 return gradleVersion;
+            }
+
+            @Override
+            public String getVersionOutput() {
+                return versionOutput;
             }
         };
     }

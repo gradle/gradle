@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.cli;
 
 /**
- * Tooling models for the build environment, which includes information such as Gradle or Java versions.
+ * Placeholder class to avoid accidental dependencies from :cli to runtime internals.
+ * The actual implementation lives in :launcher (org.gradle.launcher.cli.internal.CliTextPrinter).
  */
-@NullMarked
-package org.gradle.tooling.model.build;
+public final class CliTextPrinter {
+    private CliTextPrinter() {}
+}
 
-import org.jspecify.annotations.NullMarked;
