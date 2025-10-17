@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.plugins.embedded
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
@@ -239,6 +241,7 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
      */
     @Test
     @Issue("https://github.com/gradle/gradle/issues/35309")
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `clears swift configurations created by KGP`() {
         withDefaultSettings()
 
