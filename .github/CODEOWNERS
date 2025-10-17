@@ -158,6 +158,6 @@ platforms/documentation/docs/src/docs/userguide/reference/core-plugins/jacoco_pl
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/java_gradle_plugin.adoc          @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/pmd_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/war_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/dependency-management/                                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/platforms/jvm/                                          @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/dependency-management/                        @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/                                @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/directory_layout.adoc   @gradle/bt-docs-reviewers @gradle/bt-jvm
