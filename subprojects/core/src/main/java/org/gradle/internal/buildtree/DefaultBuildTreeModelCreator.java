@@ -185,11 +185,11 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
             }
         }
 
-        private ProjectState findProject(BuildState build, BuildTreeModelTarget.Project projectPath) {
+        private ProjectState findProject(BuildState build, BuildTreeModelTarget.Project project) {
             if (!build.isProjectsLoaded()) {
                 build.ensureProjectsLoaded();
             }
-            return build.getProjects().getProject(projectPath.getProjectPath());
+            return build.getProjects().getProject(project.getProjectPath());
         }
     }
 }
