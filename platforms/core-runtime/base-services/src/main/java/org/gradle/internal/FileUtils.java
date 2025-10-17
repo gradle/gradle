@@ -17,9 +17,7 @@
 package org.gradle.internal;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.io.FileSystem;
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.GradleException;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,14 +29,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class FileUtils {
-    public static final int WINDOWS_PATH_LIMIT = 260;
-
-    /**
-     * The character used to replace illegal characters in file names.
-     */
-    private static final char ILLEGAL_CHAR_REPLACEMENT = '-';
-
-
     private static final Comparator<File> FILE_SEGMENT_COMPARATOR = new Comparator<File>() {
         @Override
         public int compare(File left, File right) {
@@ -68,30 +58,6 @@ public class FileUtils {
             return len1 - len2;
         }
     };
-
-    /**
-     * Converts a string into a string that is safe to use as a file name.
-     * The result will preserve Unicode characters while replacing filesystem-illegal
-     * and web-problematic characters with "-".
-     */
-    public static String toSafeFileName(String name) {
-        // Use Windows filesystem rules for cross-platform compatibility
-        String result = FileSystem.WINDOWS.toLegalFileName(name, ILLEGAL_CHAR_REPLACEMENT);
-
-        // Replace additional characters that may cause issues in web/HTML contexts
-        return result.replace(' ', ILLEGAL_CHAR_REPLACEMENT)
-            .replace('\t', ILLEGAL_CHAR_REPLACEMENT)
-            .replace('\n', ILLEGAL_CHAR_REPLACEMENT)
-            .replace('\r', ILLEGAL_CHAR_REPLACEMENT);
-    }
-
-    public static File assertInWindowsPathLengthLimitation(File file) {
-        if (file.getAbsolutePath().length() > WINDOWS_PATH_LIMIT) {
-            throw new GradleException(String.format("Cannot create file. '%s' exceeds windows path limitation of %d character.", file.getAbsolutePath(), WINDOWS_PATH_LIMIT));
-
-        }
-        return file;
-    }
 
     /**
      * Returns the outer most files that encompass the given files inclusively.

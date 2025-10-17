@@ -16,51 +16,15 @@
 
 package org.gradle.internal
 
-import org.apache.commons.lang3.RandomStringUtils
-import org.gradle.api.GradleException
+
 import spock.lang.Specification
 
-import static FileUtils.assertInWindowsPathLengthLimitation
-import static FileUtils.toSafeFileName
 import static org.gradle.internal.FileUtils.calculateRoots
 import static org.gradle.internal.FileUtils.withExtension
 
 class FileUtilsTest extends Specification {
 
     private static final String SEP = File.separator
-
-    def "toSafeFileName preserves Unicode and replaces problematic characters"() {
-        expect:
-        toSafeFileName(input) == output
-        where:
-        input           | output
-        'Test_$1-2.3'   | 'Test_$1-2.3'
-        'with space'    | 'with-space'
-        'with #'        | 'with-#'
-        'with /'        | 'with--'
-        'with \\'       | 'with--'
-        'with / \\ #'   | 'with-----#'
-        'with\tspace'   | 'with-space'
-        'with\nline'    | 'with-line'
-        'with\rreturn'  | 'with-return'
-        '한글테스트'     | '한글테스트'
-        'Test 中文'      | 'Test-中文'
-        'Gradle Test Executor 1' | 'Gradle-Test-Executor-1'
-    }
-
-    def "assertInWindowsPathLengthLimitation throws exception when path limit exceeded"() {
-        when:
-        File inputFile = new File(RandomStringUtils.randomAlphanumeric(10))
-        then:
-        inputFile == assertInWindowsPathLengthLimitation(inputFile);
-
-        when:
-        inputFile = new File(RandomStringUtils.randomAlphanumeric(261))
-        assertInWindowsPathLengthLimitation(inputFile);
-        then:
-        def e = thrown(GradleException);
-        e.message.contains("exceeds windows path limitation of 260 character.")
-    }
 
     List<File> toRoots(Iterable<? extends File> files) {
         calculateRoots(files)
@@ -120,30 +84,5 @@ class FileUtilsTest extends Specification {
         "file"              | "-1"       | "file-1"
         "file"              | ""         | "file"
         "file."             | "-2"       | "file-2."
-    }
-
-    def "toSafeFileName handles edge cases"() {
-        expect:
-        toSafeFileName(input) == output
-        where:
-        input           | output
-        ''              | ''
-        '   '           | '---'
-        'normal'        | 'normal'
-        '...'           | '...'
-        'file:name'     | 'file-name'
-        'file<>name'    | 'file--name'
-        'file|name'     | 'file-name'
-        'file"name'     | 'file-name'
-        'file*name'     | 'file-name'
-        'file?name'     | 'file-name'
-    }
-
-    def "toSafeFileName handles null input"() {
-        when:
-        toSafeFileName(null)
-
-        then:
-        thrown(NullPointerException)
     }
 }

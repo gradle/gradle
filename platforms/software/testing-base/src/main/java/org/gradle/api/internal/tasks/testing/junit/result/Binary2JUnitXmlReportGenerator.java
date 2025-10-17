@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -100,7 +100,7 @@ public class Binary2JUnitXmlReportGenerator {
     }
 
     private String getReportFileName(TestClassResult result) {
-        return REPORT_FILE_PREFIX + FileUtils.toSafeFileName(result.getClassName()) + REPORT_FILE_EXTENSION;
+        return REPORT_FILE_PREFIX + SafeFileLocationUtils.toSafeFileName(result.getClassName()) + REPORT_FILE_EXTENSION;
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.testing.report;
 
 import org.apache.commons.lang3.StringUtils;
-import org.gradle.internal.FileUtils;
+import org.gradle.internal.SafeFileLocationUtils;
 
 import java.util.Collection;
 import java.util.Set;
@@ -46,7 +46,7 @@ public class ClassTestResults extends CompositeTestResults {
         this.name = name;
         this.displayName = displayName;
         this.packageResults = packageResults;
-        baseUrl = HTML_REPORT_PREFIX + FileUtils.toSafeFileName(name) + HTML_EXTENSION;
+        baseUrl = HTML_REPORT_PREFIX + SafeFileLocationUtils.toSafeFileName(name) + HTML_EXTENSION;
     }
 
     public long getId() {
