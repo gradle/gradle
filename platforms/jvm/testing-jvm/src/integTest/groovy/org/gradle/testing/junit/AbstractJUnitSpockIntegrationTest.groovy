@@ -146,6 +146,24 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
         result.testPath(":Sub").onlyRoot().assertChildCount(2, 0)
     }
 
+    def 'can run spock test with unlikely names'() {
+        given:
+        writeSpockDependencies()
+
+        file('src/test/groovy/NamesTest.groovy') << '''
+            import spock.lang.Specification
+
+            class NamesTest extends Specification {
+                def "shouts if .. is not allowed in the name..."() {
+                    expect: true
+                }
+            }
+        '''
+
+        expect:
+        succeeds('test')
+    }
+
     private void writeSpockDependencies() {
         file("build.gradle") << """
             apply plugin: 'groovy'
