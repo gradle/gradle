@@ -65,10 +65,6 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         return deprecatedProperty;
     }
 
-    protected boolean isTrue(String value) {
-        return value != null && value.trim().equalsIgnoreCase("true");
-    }
-
     protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
         CommandLineOption option = parser.option(options)
             .hasDescription(description);
