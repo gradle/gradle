@@ -102,9 +102,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.buildState = buildState;
         this.startParameter = startParameter;
         this.buildScopeServices = buildScopeServices;
-        this.crossProjectConfigurator = this.buildScopeServices.get(CrossProjectConfigurator.class);
-        this.isolatedProjectEvaluationListenerProvider = this.buildScopeServices.get(IsolatedProjectEvaluationListenerProvider.class);
-        this.gradleLifecycleActionExecutor = this.buildScopeServices.get(GradleLifecycleActionExecutor.class);
+        this.crossProjectConfigurator = buildScopeServices.get(CrossProjectConfigurator.class);
+        this.isolatedProjectEvaluationListenerProvider = buildScopeServices.get(IsolatedProjectEvaluationListenerProvider.class);
+        this.gradleLifecycleActionExecutor = buildScopeServices.get(GradleLifecycleActionExecutor.class);
 
         this.buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         this.projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
@@ -116,7 +116,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
                 if (!rootProjectActions.isEmpty()) {
                     gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProject);
-                    DefaultGradle.this.buildScopeServices.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                    buildScopeServices.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
                 }
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
@@ -126,7 +126,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         });
 
         if (buildState.getParent() == null) {
-            this.buildScopeServices.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
+            buildScopeServices.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
         }
     }
 
