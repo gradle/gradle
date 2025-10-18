@@ -407,6 +407,11 @@ class SmokeTestGradleRunner extends GradleRunner {
         }
 
         @Override
+        BufferedReader getOutputReader() {
+            return delegate.outputReader
+        }
+
+        @Override
         List<BuildTask> getTasks() {
             return delegate.tasks
         }
