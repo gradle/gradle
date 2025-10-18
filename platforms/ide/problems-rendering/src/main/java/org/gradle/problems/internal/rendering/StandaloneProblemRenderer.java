@@ -16,9 +16,23 @@
 
 package org.gradle.problems.internal.rendering;
 
-/**
- * Renders a complete problem report.
- */
-public interface ProblemRenderer extends PartialProblemRenderer {
+import org.gradle.api.problems.internal.InternalProblem;
 
+import java.io.PrintWriter;
+
+public class StandaloneProblemRenderer {
+
+    private final ProblemRendererRegistry rendererRegistry;
+    private final RenderOptions options;
+    private final PrintWriter output;
+
+    StandaloneProblemRenderer(ProblemRendererRegistry rendererRegistry, RenderOptions options, PrintWriter output) {
+        this.rendererRegistry = rendererRegistry;
+        this.options = options;
+        this.output = output;
+    }
+
+    public void render(InternalProblem problem) {
+        rendererRegistry.getRendererFor(problem.getDefinition().getId()).render(problem, options, output);
+    }
 }

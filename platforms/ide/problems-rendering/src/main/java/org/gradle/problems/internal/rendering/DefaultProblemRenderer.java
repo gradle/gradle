@@ -16,9 +16,19 @@
 
 package org.gradle.problems.internal.rendering;
 
-/**
- * Renders a complete problem report.
- */
-public interface ProblemRenderer extends PartialProblemRenderer {
+import org.gradle.api.problems.internal.InternalProblem;
 
+import java.io.PrintWriter;
+
+public class DefaultProblemRenderer implements ProblemRenderer {
+
+    // The header and the body are rendered separately to simulate how to enforce unified headers for contributed renderers.
+    private static HeaderRenderer headerRenderer = new HeaderRenderer();
+    private static BodyRenderer bodyRenderer = new BodyRenderer();
+
+    @Override
+    public void render(InternalProblem problem, RenderOptions options, PrintWriter output) {
+        headerRenderer.render(problem, options, output);
+        bodyRenderer.render(problem, options, output);
+    }
 }

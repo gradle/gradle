@@ -38,7 +38,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
-import org.gradle.problems.internal.rendering.ProblemRenderer;
+import org.gradle.problems.internal.rendering.ProblemRendererFactory;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
@@ -442,7 +442,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     builder.append(System.lineSeparator());
                 }
                 StringWriter problemWriter = new StringWriter();
-                new ProblemRenderer(problemWriter).render(new ArrayList<>(problems));
+                ProblemRendererFactory.groupingProblemRenderer(problemWriter).render(new ArrayList<>(problems));
                 builder.append(problemWriter);
 
                 // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.

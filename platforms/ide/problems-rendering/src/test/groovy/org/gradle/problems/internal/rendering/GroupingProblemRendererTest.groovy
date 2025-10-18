@@ -30,16 +30,16 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Issue
 import spock.lang.Specification
 
-class ProblemRendererTest extends Specification {
+class GroupingProblemRendererTest extends Specification {
 
     private StringWriter stringWriter
     private PrintWriter writer
-    private ProblemRenderer renderer
+    private GroupingProblemRenderer renderer
 
     def setup() {
         stringWriter = new StringWriter()
         writer = new PrintWriter(stringWriter)
-        renderer = new ProblemRenderer(writer)
+        renderer = ProblemRendererFactory.groupingProblemRenderer(writer)
     }
 
     def "individual problem header is correct when only group display name is present"() {
@@ -52,10 +52,10 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[0] == "test-id-display-name"
+        renderedProblem == 'test-id-display-name'
     }
 
-    def DefaultProblemBuilder createProblemBuilder() {
+    DefaultProblemBuilder createProblemBuilder() {
         new DefaultProblemBuilder(
             new ProblemsInfrastructure(
                 new AdditionalDataBuilderFactory(),
@@ -79,8 +79,10 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[0] == "display-name"
-        renderedTextLines[1] == "  contextual-label"
+        renderedProblem == '''
+display-name
+  contextual-label
+        '''.strip()
     }
 
     def "individual problem with details are displayed"() {
@@ -94,7 +96,10 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "    details"
+        renderedProblem == '''
+display-name
+  details
+        '''.strip()
     }
 
     def "individual problem with multiline details are displayed and indented correctly"() {
@@ -108,8 +113,11 @@ class ProblemRendererTest extends Specification {
         renderer.render(problem)
 
         then:
-        renderedTextLines[2] == "    details:1"
-        renderedTextLines[3] == "    details:2"
+        renderedProblem == '''
+display-name
+  details:1
+  details:2
+        '''.strip()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32016")
@@ -129,14 +137,15 @@ class ProblemRendererTest extends Specification {
         renderer.render([problem1, problem2])
 
         then:
-        renderedText.normalize() == """\
-            |display-name
-            |  Unlabelled problem details:
-            |    details:1
-            |    details:2
-            |  Some context for one problem
-            |    details:1
-            |    details:2""".stripMargin()
+        renderedProblem == '''
+display-name
+  details:1
+  details:2
+display-name
+  Some context for one problem
+    details:1
+    details:2
+        '''.strip()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32016")
@@ -155,17 +164,14 @@ class ProblemRendererTest extends Specification {
         renderer.render([problem1, problem2])
 
         then:
-        renderedText.normalize() == """\
-            |Unused variable a in line 10
-            |Unused variable a in line 20""".stripMargin()
+        renderedProblem == '''
+Unused variable a in line 10
+Unused variable a in line 20
+        '''.strip()
     }
 
-    def getRenderedText() {
+    def getRenderedProblem() {
         return stringWriter.toString()
-    }
-
-    def getRenderedTextLines() {
-        return renderedText.split('\r?\n')
     }
 
     private static ProblemGroup getLevel0Group() {

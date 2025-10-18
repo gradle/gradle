@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+package org.gradle.problems.internal.rendering;
 
-description = "Problems API rendering infrastructure"
+public class RenderOptions {
 
-dependencies {
-    api(projects.problemsApi)
+    private final String prefix;
+    private final boolean renderId;
 
-    compileOnly(libs.jspecify)
+    public RenderOptions(
+        String prefix,
+        boolean renderId
+    ) {
+        this.prefix = prefix;
+        this.renderId = renderId;
+    }
 
-    implementation(libs.guava)
-    implementation(projects.baseServices)
+    public String getPrefix() {
+        return prefix;
+    }
 
-    integTestImplementation(projects.internalTesting)
-    integTestImplementation(testFixtures(projects.logging))
-    integTestDistributionRuntimeOnly(projects.distributionsFull)
+    public boolean isRenderId() {
+        return renderId;
+    }
 }
