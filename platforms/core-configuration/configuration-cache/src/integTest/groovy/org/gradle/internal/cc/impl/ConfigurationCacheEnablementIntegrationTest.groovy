@@ -126,9 +126,9 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         task    | ccOn  | problemsAs| maxProblems   | quiet | recreate  | debug | options
         "check" | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.configuration-cache.problems=warn"]
         "check" | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.configuration-cache.max-problems=100"]
-        "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.configuration-cache.internal.quiet=true"]
-        "check" | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.configuration-cache.internal.recreate-cache=true"]
-        "check" | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.configuration-cache.internal.debug=true"]
+        "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.internal.configuration-cache.quiet=true"]
+        "check" | false | _         | _             | _     | true      | _     | ["-Dorg.gradle.internal.configuration-cache.recreate-cache=true"]
+        "check" | false | _         | _             | _     | _         | true  | ["-Dorg.gradle.internal.configuration-cache.debug=true"]
         "check" | false | WARN      | _             | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache-problems=warn"]
         "check" | false | _         | 100           | _     | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.max-problems=100"]
         "check" | false | _         | _             | true  | _         | _     | ["-Dorg.gradle.unsafe.configuration-cache.quiet=true"]

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,13 @@
 
 package org.gradle.internal.buildoption;
 
-public class StringInternalOption extends AbstractInternalOption<String> {
-    private final String defaultValue;
+class BooleanOptionUtil {
 
-    public StringInternalOption(String systemPropertyName, String defaultValue) {
-        super(systemPropertyName);
-        this.defaultValue = defaultValue;
-    }
-
-    @Override
-    public String getDefaultValue() {
-        return defaultValue;
-    }
-
-    @Override
-    public String convert(String value) {
-        return value;
+    /**
+     * Returns the same value as {@link Boolean#parseBoolean(String)},
+     * exception that the string is additionally trimmed before parsing.
+     */
+    static boolean isTrue(String value) {
+        return value != null && value.trim().equalsIgnoreCase("true");
     }
 }

@@ -43,13 +43,13 @@ class DefaultEncryptionService(
 ) : EncryptionService {
 
     private
-    val encryptionRequestedOption: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.encryption", true)
+    val encryptionRequestedOption: Boolean = options.getInternalFlag("org.gradle.internal.configuration-cache.encryption", true)
 
     private
-    val keystoreDirOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
+    val keystoreDirOption: String? = options.getInternalString("org.gradle.internal.configuration-cache.key-store-dir", null)
 
     private
-    val encryptionAlgorithmOption: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
+    val encryptionAlgorithmOption: String = options.getInternalString("org.gradle.internal.configuration-cache.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
 
     private
     val secretKey: SecretKey? by lazy {

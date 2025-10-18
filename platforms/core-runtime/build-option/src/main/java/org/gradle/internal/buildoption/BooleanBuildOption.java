@@ -47,7 +47,7 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, Boole
         OptionValue<String> propertyValue = getFromProperties(properties);
         String value = propertyValue.getValue();
         if (value != null) {
-            applyTo(isTrue(value), settings, propertyValue.getOrigin());
+            applyTo(BooleanOptionUtil.isTrue(value), settings, propertyValue.getOrigin());
         }
     }
 

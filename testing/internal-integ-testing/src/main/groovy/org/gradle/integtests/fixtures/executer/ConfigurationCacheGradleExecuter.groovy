@@ -30,7 +30,7 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheParallelOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
-        "-Dorg.gradle.configuration-cache.internal.report-output-directory=.gradle/configuration-cache/reports"
+        "-Dorg.gradle.internal.configuration-cache.report-output-directory=.gradle/configuration-cache/reports"
     ].collect { it.toString() }
 
     ConfigurationCacheGradleExecuter(
