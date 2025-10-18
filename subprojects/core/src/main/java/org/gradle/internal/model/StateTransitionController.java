@@ -69,6 +69,16 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
+     * Verifies that the given state was reached, even if there were failures afterward.
+     */
+    public void assertInStateOrLaterIgnoringFailures(T expected) {
+        CurrentState<T> current = state;
+        if (!current.hasSeenStateIgnoringTransitionsOrFailures(expected)) {
+            throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
+        }
+    }
+
+    /**
      * Calculates a value when the current state is not the given state. Allows concurrent access to the state and does not block other threads from transitioning the state.
      * Fails if the current state is the given state or if a transition to the given state is happening or a previous transition has failed.
      *
@@ -304,8 +314,10 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         public abstract boolean hasSeenStateIgnoringTransitions(T toState);
 
+        public abstract boolean hasSeenStateIgnoringTransitionsOrFailures(T toState);
+
         public CurrentState<T> failed(ExecutionResult<?> failure) {
-            return new Failed<>(displayName, state, failure);
+            return new Failed<>(displayName, this, failure);
         }
 
         public RuntimeException rethrow() {
@@ -390,6 +402,17 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
+            if (state == toState) {
+                return true;
+            }
+            if (previous != null) {
+                return previous.hasSeenStateIgnoringTransitionsOrFailures(toState);
+            }
+            return false;
+        }
+
+        @Override
         public CurrentState<T> nextState(T toState) {
             return new InState<>(displayName, toState, this);
         }
@@ -460,6 +483,11 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
+            return fromState.hasSeenStateIgnoringTransitionsOrFailures(toState);
+        }
+
+        @Override
         public CurrentState<T> nextState(T toState) {
             return fromState.nextState(toState);
         }
@@ -470,9 +498,11 @@ public class StateTransitionController<T extends StateTransitionController.State
      */
     private static class Failed<T> extends CurrentState<T> {
         final ExecutionResult<?> failure;
+        final CurrentState<T> failureState;
 
-        public Failed(DisplayName displayName, T state, ExecutionResult<?> failure) {
-            super(displayName, state);
+        public Failed(DisplayName displayName, CurrentState<T> failureState, ExecutionResult<?> failure) {
+            super(displayName, failureState.state);
+            this.failureState = failureState;
             this.failure = failure;
         }
 
@@ -511,6 +541,11 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        public boolean hasSeenStateIgnoringTransitionsOrFailures(T toState) {
+            return failureState.hasSeenStateIgnoringTransitionsOrFailures(toState);
+        }
+
+        @Override
         public ExecutionResult<Void> asResult() {
             return failure.asFailure();
         }
@@ -541,12 +576,12 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         @Override
         public CurrentState<T> failed(ExecutionResult<?> failure) {
-            return new Failed<>(displayName, state, this.failure.withFailures(failure.asFailure()));
+            return new Failed<>(displayName, this, this.failure.withFailures(failure.asFailure()));
         }
 
         @Override
         public CurrentState<T> nextState(T toState) {
-            return new Failed<>(displayName, toState, failure);
+            return new Failed<>(displayName, this, failure);
         }
     }
 

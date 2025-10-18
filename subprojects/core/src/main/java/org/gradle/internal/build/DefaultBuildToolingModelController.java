@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Objects;
 
 public class DefaultBuildToolingModelController implements BuildToolingModelController {
+
     private final BuildLifecycleController buildController;
     private final BuildState buildState;
     private final ToolingModelBuilderLookup buildScopeLookup;
@@ -65,11 +66,15 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             throw new IllegalArgumentException("Project has unexpected owner.");
         }
         // Force configuration of the containing build and then locate the builder for target project
-        buildController.configureProjects();
+        configureProjectsForModel(modelName);
         return doLocate(target, modelName, param);
     }
 
-    private ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
+    protected void configureProjectsForModel(String modelName) {
+        buildController.configureProjects();
+    }
+
+    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
         return new ProjectToolingScope(target, modelName, param);
     }
 
@@ -108,10 +113,10 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         }
     }
 
-    private static class ProjectToolingScope extends AbstractToolingScope {
-        private final ProjectState target;
-        private final String modelName;
-        private final boolean parameter;
+    protected static class ProjectToolingScope extends AbstractToolingScope {
+        protected final ProjectState target;
+        protected final String modelName;
+        protected final boolean parameter;
 
         public ProjectToolingScope(
             ProjectState target,
@@ -134,7 +139,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             // Force configuration of the target project to ensure all builders have been registered
             target.ensureConfigured();
             ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, parameter, target);
+            return lookup.locateForClientOperation(modelName, parameter, target, target.getMutableModel());
         }
     }
 }
