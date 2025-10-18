@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import groovy.transform.ToString
 import junit.framework.AssertionFailedError
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
@@ -45,49 +43,28 @@ import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
-import static org.junit.Assert.assertThrows
 import static org.junit.Assert.assertTrue
 
-final class ConfigurationCacheProblemsFixture {
-
+class ConfigurationCacheProblemsFixture {
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 
-    private final File rootDir
+    protected final File rootDir
 
     ConfigurationCacheProblemsFixture(File rootDir) {
         this.rootDir = rootDir
     }
-
-    void assertFailureHasError(
-        ExecutionFailure failure,
-        String error,
-        @DelegatesTo(value = HasConfigurationCacheErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    HasConfigurationCacheProblemsSpec newProblemsSpec(
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
-        assertFailureHasError(failure, error, ConfigureUtil.configureUsing(specClosure))
+        return newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
     }
 
-    void assertFailureHasError(
-        ExecutionFailure failure,
-        String error,
-        Action<HasConfigurationCacheErrorSpec> specAction = {}
+    protected HasConfigurationCacheProblemsSpec newProblemsSpec(
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
     ) {
-        assertFailureHasError(failure, newErrorSpec(error, specAction))
-    }
-
-    void assertFailureHasError(
-        ExecutionFailure failure,
-        HasConfigurationCacheErrorSpec spec
-    ) {
-        spec.validateSpec()
-
-        assertFailureDescription(failure, failureDescriptionMatcherForError(spec))
-
-        if (spec.hasProblems()) {
-            assertHasConsoleSummary(failure.output, spec)
-            assertProblemsHtmlReport(failure.output, rootDir, spec)
-        } else {
-            assertNoProblemsSummary(failure.output)
-        }
+        def spec = new HasConfigurationCacheProblemsSpec()
+        specAction.execute(spec)
+        return spec
     }
 
     HasConfigurationCacheErrorSpec newErrorSpec(
@@ -106,139 +83,18 @@ final class ConfigurationCacheProblemsFixture {
         return spec
     }
 
-    void assertFailureHasProblems(
-        ExecutionFailure failure,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertFailureHasProblems(failure, ConfigureUtil.configureUsing(specClosure))
-    }
+    void assertOutputHasError(String output, HasConfigurationCacheErrorSpec spec) {
+        spec.validateSpec()
 
-    void assertFailureHasProblems(
-        ExecutionFailure failure,
-        Action<HasConfigurationCacheProblemsSpec> specAction = {}
-    ) {
-        assertFailureHasProblems(failure, newProblemsSpec(specAction))
-    }
-
-    void assertFailureHasProblems(
-        ExecutionFailure failure,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertNoProblemsSummary(failure.output)
-        assertFailureDescription(failure, failureDescriptionMatcherForProblems(spec))
-        assertProblemsHtmlReport(failure.error, rootDir, spec)
-    }
-
-    void assertFailureHasTooManyProblems(
-        ExecutionFailure failure,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertFailureHasTooManyProblems(failure, ConfigureUtil.configureUsing(specClosure))
-    }
-
-    void assertFailureHasTooManyProblems(
-        ExecutionFailure failure,
-        Action<HasConfigurationCacheProblemsSpec> specAction = {}
-    ) {
-        assertFailureHasTooManyProblems(failure, newProblemsSpec(specAction))
-    }
-
-    void assertFailureHasTooManyProblems(
-        ExecutionFailure failure,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertNoProblemsSummary(failure.output)
-        assertFailureDescription(failure, failureDescriptionMatcherForTooManyProblems(spec))
-        assertProblemsHtmlReport(failure.error, rootDir, spec)
-    }
-
-    void assertResultHasProblems(
-        ExecutionResult result,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertResultHasProblems(result, ConfigureUtil.configureUsing(specClosure))
-    }
-
-    void assertResultHasProblems(
-        ExecutionResult result,
-        Action<HasConfigurationCacheProblemsSpec> specAction = {}
-    ) {
-        assertResultHasProblems(result, newProblemsSpec(specAction))
-    }
-
-    void assertResultHasProblems(
-        ExecutionResult result,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        // assert !(result instanceof ExecutionFailure)
         if (spec.hasProblems()) {
-            assertHasConsoleSummary(result.output, spec)
-            assertProblemsHtmlReport(result.output, rootDir, spec)
+            assertHasConsoleSummary(failure.output, spec)
+            assertProblemsHtmlReport(failure.output, rootDir, spec)
         } else {
-            assertNoProblemsSummary(result.output)
-        }
-        // TODO:bamboo avoid reading jsModel more than once when asserting on problems AND inputs AND incompatible tasks
-        assertInputs(result.output, rootDir, spec)
-        assertIncompatibleTasks(result.output, rootDir, spec)
-    }
-
-    void assertFailureHtmlReportHasProblems(
-        ExecutionFailure failure,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertFailureHtmlReportHasProblems(failure, ConfigureUtil.configureUsing(specClosure))
-    }
-
-    void assertFailureHtmlReportHasProblems(
-        ExecutionFailure failure,
-        Action<HasConfigurationCacheProblemsSpec> specAction = {}
-    ) {
-        assertHtmlReportHasProblems(failure.error, newProblemsSpec(specAction))
-    }
-
-    void assertResultHtmlReportHasProblems(
-        ExecutionResult result,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertResultHtmlReportHasProblems(result, ConfigureUtil.configureUsing(specClosure))
-    }
-
-    /**
-     * Asserts a report generated for non-fatal
-     * @param result
-     * @param specAction
-     */
-    void assertResultHtmlReportHasProblems(
-        ExecutionResult result,
-        Action<HasConfigurationCacheProblemsSpec> specAction = {}
-    ) {
-        assertHtmlReportHasProblems(result.output, newProblemsSpec { HasConfigurationCacheProblemsSpec it ->
-            it.checkReportProblems = true
-            specAction.execute(it)
-        })
-    }
-
-    void assertResultConsoleSummaryHasNoProblems(ExecutionResult result) {
-        assertThrows(AssertionFailedError) {
-            extractSummary(result.output)
+            assertNoProblemsSummary(failure.output)
         }
     }
 
-    void assertResultHasConsoleSummary(
-        ExecutionResult result,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertResultHasConsoleSummary(result, ConfigureUtil.configureUsing(specClosure))
-    }
-
-    void assertResultHasConsoleSummary(
-        ExecutionResult result,
-        Action<HasConfigurationCacheProblemsSpec> specAction = {}
-    ) {
-        assertHasConsoleSummary(result.output, newProblemsSpec(specAction))
-    }
-
-    private void assertHtmlReportHasProblems(
+    void assertHtmlReportHasProblems(
         String output,
         HasConfigurationCacheProblemsSpec spec
     ) {
@@ -247,32 +103,18 @@ final class ConfigurationCacheProblemsFixture {
         assertIncompatibleTasks(output, rootDir, spec)
     }
 
-    HasConfigurationCacheProblemsSpec newProblemsSpec(
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        return newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
-    }
-
-    HasConfigurationCacheProblemsSpec newProblemsSpec(
-        Action<HasConfigurationCacheProblemsSpec> specAction = {}
-    ) {
-        def spec = new HasConfigurationCacheProblemsSpec()
-        specAction.execute(spec)
-        return spec
-    }
-
-    private static Matcher<String> failureDescriptionMatcherForError(HasConfigurationCacheErrorSpec spec) {
+    protected static Matcher<String> failureDescriptionMatcherForError(HasConfigurationCacheErrorSpec spec) {
         return equalTo("Configuration cache state could not be cached: ${spec.error}".toString())
     }
 
-    private static Matcher<String> failureDescriptionMatcherForProblems(HasConfigurationCacheProblemsSpec spec) {
+    protected static Matcher<String> failureDescriptionMatcherForProblems(HasConfigurationCacheProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
             "Configuration cache problems found in this build.",
             spec
         )
     }
 
-    private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasConfigurationCacheProblemsSpec spec) {
+    protected static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasConfigurationCacheProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
             "Maximum number of configuration cache problems has been reached.\n" +
                 "This behavior can be adjusted. " +
@@ -302,18 +144,11 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
-    private static void assertNoProblemsSummary(String text) {
+    protected static void assertNoProblemsSummary(String text) {
         assertThat(text, not(containsString("configuration cache problem")))
     }
 
-    private static void assertFailureDescription(
-        ExecutionFailure failure,
-        Matcher<String> failureMatcher
-    ) {
-        failure.assertThatDescription(failureMatcher)
-    }
-
-    private static void assertHasConsoleSummary(String text, HasConfigurationCacheProblemsSpec spec) {
+    protected static void assertHasConsoleSummary(String text, HasConfigurationCacheProblemsSpec spec) {
         if (spec.checkReportProblems) {
             // At this time, message expectations are either console-compatible or report-compatible.
             // Only the former are prefixed by location information ("Build file 'build.gradle': line...: <core-message>" or "Task `:foo` of type `Bar`: <core-message>").
@@ -333,7 +168,7 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
-    private static void assertProblemsHtmlReport(
+    protected static void assertProblemsHtmlReport(
         String output,
         File rootDir,
         HasConfigurationCacheProblemsSpec spec
@@ -350,7 +185,7 @@ final class ConfigurationCacheProblemsFixture {
         )
     }
 
-    private static void assertInputs(
+    protected static void assertInputs(
         String output,
         File rootDir,
         HasConfigurationCacheProblemsSpec spec
@@ -358,7 +193,7 @@ final class ConfigurationCacheProblemsFixture {
         assertItems('input', output, rootDir, spec.inputs)
     }
 
-    private static void assertIncompatibleTasks(
+    protected static void assertIncompatibleTasks(
         String output,
         File rootDir,
         HasConfigurationCacheProblemsSpec spec
@@ -409,21 +244,21 @@ final class ConfigurationCacheProblemsFixture {
         assert expectedItems.isEmpty(): "Expecting $expectedItems in the report, found $unexpectedItems"
     }
 
-    static String formatItemForAssert(Map<String, Object> item, String kind) {
+    private static String formatItemForAssert(Map<String, Object> item, String kind) {
         def trace = formatTrace(item['trace'][0])
         List<Map<String, Object>> itemFragments = item[kind]
         def message = formatStructuredMessage(itemFragments)
         "${trace}: ${message}"
     }
 
-    static String formatStructuredMessage(List<Map<String, Object>> fragments) {
+    private static String formatStructuredMessage(List<Map<String, Object>> fragments) {
         fragments.collect {
             // See StructuredMessage.Fragment
             it['text'] ?: "'${it['name']}'"
         }.join('')
     }
 
-    static String formatTrace(Map<String, Object> trace) {
+    private static String formatTrace(Map<String, Object> trace) {
         def kind = trace['kind']
         switch (kind) {
             case "Task": return trace['path']
@@ -438,7 +273,7 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
-    private static void assertProblemsHtmlReport(
+    protected static void assertProblemsHtmlReport(
         File rootDir,
         String output,
         int totalProblemCount,
@@ -474,7 +309,7 @@ final class ConfigurationCacheProblemsFixture {
         }
     }
 
-    static Map<String, Object> readJsModelFromReportDir(TestFile reportDir) {
+    private static Map<String, Object> readJsModelFromReportDir(TestFile reportDir) {
         assertThat("HTML report URI not found", reportDir, notNullValue())
         assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
         def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
@@ -543,7 +378,7 @@ final class ConfigurationCacheProblemsFixture {
         return (jsModel.diagnostics as List<Object>).count { it['problem'] != null && it['error']?.getAt('parts') != null }
     }
 
-    private static ProblemsSummary extractSummary(String text) {
+    protected static ProblemsSummary extractSummary(String text) {
         def headerPattern = Pattern.compile("(\\d+) (problems were|problem was) found (storing|reusing|updating) the configuration cache(, (\\d+) of which seem(s)? unique)?.*")
         def problemPattern = Pattern.compile("- (.*)")
         def docPattern = Pattern.compile(" {2}\\QSee https://docs.gradle.org\\E.*")
@@ -813,3 +648,4 @@ class HasConfigurationCacheProblemsSpec {
         return this
     }
 }
+
