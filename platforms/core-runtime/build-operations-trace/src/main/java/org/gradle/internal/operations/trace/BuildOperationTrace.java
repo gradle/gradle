@@ -41,6 +41,7 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.concurrent.Stoppable;
@@ -123,7 +124,7 @@ public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
-    private static final StringInternalOption TRACE_OPTION = new StringInternalOption(SYSPROP, null);
+    private static final InternalOption<@Nullable String> TRACE_OPTION = StringInternalOption.of(SYSPROP);
 
     /**
      * A list of either details or result class names, delimited by {@link #FILTER_SEPARATOR},
@@ -136,7 +137,7 @@ public class BuildOperationTrace implements Stoppable {
      */
     public static final String FILTER_SYSPROP = SYSPROP + ".filter";
 
-    private static final StringInternalOption FILTER_OPTION = new StringInternalOption(FILTER_SYSPROP, null);
+    private static final InternalOption<@Nullable String> FILTER_OPTION = StringInternalOption.of(FILTER_SYSPROP);
 
     /**
      * A flag controlling whether tree generation is enabled ({@code true} by default).

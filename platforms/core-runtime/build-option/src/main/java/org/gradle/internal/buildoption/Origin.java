@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
 public abstract class Origin {
     protected String source;
@@ -34,13 +35,13 @@ public abstract class Origin {
         this.source = source;
     }
 
-    public abstract void handleInvalidValue(String value, String hint);
+    public abstract void handleInvalidValue(String value, @Nullable String hint);
 
     public void handleInvalidValue(String value) {
         handleInvalidValue(value, null);
     }
 
-    String hintMessage(String hint) {
+    String hintMessage(@Nullable String hint) {
         if (TextUtil.isBlank(hint)) {
             return "";
         }
@@ -53,7 +54,7 @@ public abstract class Origin {
         }
 
         @Override
-        public void handleInvalidValue(String value, String hint) {
+        public void handleInvalidValue(String value, @Nullable String hint) {
             String message = String.format("Value '%s' given for %s Gradle property is invalid%s", value, source, hintMessage(hint));
             throw new IllegalArgumentException(message);
         }
@@ -65,7 +66,7 @@ public abstract class Origin {
         }
 
         @Override
-        public void handleInvalidValue(String value, String hint) {
+        public void handleInvalidValue(String value, @Nullable String hint) {
             String message = String.format("Argument value '%s' given for --%s option is invalid%s", value, source, hintMessage(hint));
             throw new CommandLineArgumentException(message);
         }

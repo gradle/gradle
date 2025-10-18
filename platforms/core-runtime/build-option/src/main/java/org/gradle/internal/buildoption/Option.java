@@ -16,12 +16,14 @@
 
 package org.gradle.internal.buildoption;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Represents some user configurable value that can be defined outside the Gradle model, for example via a command-line option or a Gradle
  * property. Some options may also be configurable via the Gradle API, for example feature previews.
  */
 public interface Option {
-    abstract class Value<T> {
+    abstract class Value<T extends @Nullable Object> {
         public abstract boolean isExplicit();
 
         public abstract T get();
@@ -29,7 +31,7 @@ public interface Option {
         /**
          * Creates the default value for an option.
          */
-        public static <T> Value<T> defaultValue(final T value) {
+        public static <T extends @Nullable Object> Value<T> defaultValue(final T value) {
             return new Value<T>() {
                 @Override
                 public boolean isExplicit() {
@@ -46,7 +48,7 @@ public interface Option {
         /**
          * Creates an explicit value for an option.
          */
-        public static <T> Value<T> value(final T value) {
+        public static <T extends @Nullable Object> Value<T> value(final T value) {
             return new Value<T>() {
                 @Override
                 public boolean isExplicit() {
