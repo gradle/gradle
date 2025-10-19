@@ -15,25 +15,21 @@
  */
 package org.gradle.api.publish.maven.internal.artifact;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * An artifact published as part of a {@link MavenPublication}.
+ * Internal representation of a {@link MavenArtifact}.
  */
 @NullMarked
 public interface MavenArtifactInternal extends MavenArtifact {
 
     /**
-     * If {@code true}, and if publishing to a remote Maven repository,
-     * Gradle will generate checksum files for the artifact.
-     * <p>
-     * If {@code false}, checksum files will not be generated.
-     * <p>
-     * This is used to disable checksum files for {@code .asc} signature files,
-     * because Maven Central does not require them:
-     * <a href="https://central.sonatype.org/publish/requirements/#provide-file-checksums">https://central.sonatype.org/publish/requirements/#provide-file-checksums</a>.
+     * Controls whether checksum files should be generated and published for the artifact.
+     *
+     * @see MavenPublication#getEnableChecksumsForDerivedArtifacts()
      */
-    boolean enableChecksumFileGeneration();
+    Provider<Boolean> getEnableChecksumFileGeneration();
 }

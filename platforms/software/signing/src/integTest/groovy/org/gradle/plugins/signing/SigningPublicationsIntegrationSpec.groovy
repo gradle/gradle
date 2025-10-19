@@ -21,6 +21,7 @@ import spock.lang.Issue
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.function.Function
 import java.util.stream.Collectors
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
@@ -860,7 +861,11 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             publishing {
                 publications {
                     mavenJava(MavenPublication) {
+                        group = 'sign'
+                        artifactId = '$artifactId'
+                        version = '$version'
                         from components.java
+                        $config
                     }
                 }
                 repositories {
@@ -883,11 +888,43 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         then:
         Path repoDir = file("build", "repo").toPath()
 
-        def sigFiles = Files.walk(repoDir)
-            .filter { Files.isRegularFile(it) }
-            .filter { it.fileName.toString().contains(".asc.") }
-            .collect(Collectors.toList())
+        List<Path> sigFiles = Files.walk(repoDir)
+            .filter(Files::isRegularFile)
+            .filter { it.fileName.toString().endsWith(".asc") }
+            .toList()
 
-        sigFiles == []
+        def mapSigsToChecksums = sigFiles
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    Function.identity(),
+                    { Path p ->
+                        Files.list(p.parent)
+                            .filter(Files::isRegularFile)
+                            .filter { it.fileName.toString().startsWith(p.fileName.toString() + ".") }
+                            .map { repoDir.relativize(it).join('/') }
+                            .sorted()
+                            .toList()
+                    }
+                )
+            )
+
+        expect:
+        for (Path sigFile : sigFiles) {
+            def actualChecksums = mapSigsToChecksums[sigFile]
+            def expected = expectedChecksums.stream()
+                .map { cs -> sigFile.resolveSibling(sigFile.fileName.toString() + "." + cs) }
+                .map { repoDir.relativize(it).join('/') }
+                .sorted()
+                .toList()
+
+            assert actualChecksums == expected
+        }
+
+        where:
+        config                                          | expectedChecksums
+        "enableChecksumsForDerivedArtifacts.set(true)"  | ["md5", "sha1", "sha256", "sha512"]
+        "enableChecksumsForDerivedArtifacts.set(false)" | []
+        "// not configured"                             | []
     }
 }
