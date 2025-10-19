@@ -115,7 +115,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
 
     private static boolean isChecksumFileGenerationEnabled(MavenArtifact artifact) {
         if (artifact instanceof MavenArtifactInternal) {
-            return ((MavenArtifactInternal) artifact).enableChecksumFileGeneration();
+            return ((MavenArtifactInternal) artifact).getEnableChecksumFileGeneration().get();
         } else {
             throw new IllegalArgumentException("Unknown artifact type: " + artifact.getClass());
         }
