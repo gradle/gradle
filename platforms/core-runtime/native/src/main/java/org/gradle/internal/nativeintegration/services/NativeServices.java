@@ -51,6 +51,7 @@ import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformB
 import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
+import org.gradle.internal.nativeintegration.jna.WindowsReflectiveProcessEnvironment;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
@@ -411,6 +412,12 @@ public class NativeServices implements ServiceRegistrationProvider {
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
             }
+        }
+
+        // Use Windows reflection-based fallback when native-platform is unavailable
+        if (operatingSystem.isWindows()) {
+            LOGGER.info("Using Windows reflection-based process environment (native-platform unavailable)");
+            return new WindowsReflectiveProcessEnvironment();
         }
 
         return new UnsupportedEnvironment();
