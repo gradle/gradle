@@ -17,8 +17,10 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.base.Strings;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -83,7 +85,7 @@ public abstract class AbstractMavenArtifact implements MavenArtifactInternal, Pu
     }
 
     @Override
-    public boolean enableChecksumFileGeneration() {
-        return true;
+    public Provider<Boolean> getEnableChecksumFileGeneration() {
+        return Providers.TRUE;
     }
 }

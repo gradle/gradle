@@ -40,6 +40,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.VersionMappingStrategy;
@@ -104,6 +105,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     private boolean artifactsOverridden;
     private boolean silenceAllPublicationWarnings;
     private boolean withBuildIdentifier;
+    private final Property<Boolean> enableChecksumsForDerivedArtifacts;
 
     @Inject
     public DefaultMavenPublication(
@@ -155,6 +157,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         coordinates.getGroupId().convention(providerFactory.provider(module::getGroup));
         coordinates.getArtifactId().convention(providerFactory.provider(module::getName));
         coordinates.getVersion().convention(providerFactory.provider(module::getVersion));
+
+        this.enableChecksumsForDerivedArtifacts = objectFactory.property(Boolean.class).convention(false);
     }
 
     @Override
@@ -339,6 +343,11 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     }
 
     @Override
+    public Property<Boolean> getEnableChecksumsForDerivedArtifacts() {
+        return enableChecksumsForDerivedArtifacts;
+    }
+
+    @Override
     public VersionMappingStrategyInternal getVersionMappingStrategy() {
         return versionMappingStrategy;
     }
@@ -369,7 +378,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             (AbstractMavenArtifact) originalArtifact,
             file,
             taskDependencyFactory,
-            false
+            enableChecksumsForDerivedArtifacts
         );
         derivedArtifacts.add(artifact);
         return artifact;
@@ -569,13 +578,17 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         return artifactPath.toString();
     }
 
+    PublicationArtifactSet<MavenArtifact> getDerivedArtifacts() {
+        return derivedArtifacts;
+    }
+
     static class SerializableMavenArtifact implements MavenArtifactInternal, PublicationArtifactInternal {
 
         private final File file;
         private final String extension;
         private final String classifier;
         private final boolean shouldBePublished;
-        private final boolean enableChecksumFileGeneration;
+        private final Provider<Boolean> enableChecksumFileGeneration;
 
         public SerializableMavenArtifact(MavenArtifact artifact) {
             PublicationArtifactInternal artifactInternal = (PublicationArtifactInternal) artifact;
@@ -583,7 +596,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             this.extension = artifact.getExtension();
             this.classifier = artifact.getClassifier();
             this.shouldBePublished = artifactInternal.shouldBePublished();
-            this.enableChecksumFileGeneration = ((MavenArtifactInternal) artifact).enableChecksumFileGeneration();
+            this.enableChecksumFileGeneration = ((MavenArtifactInternal) artifact).getEnableChecksumFileGeneration();
         }
 
         @Override
@@ -628,7 +641,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         }
 
         @Override
-        public boolean enableChecksumFileGeneration() {
+        public Provider<Boolean> getEnableChecksumFileGeneration() {
             return enableChecksumFileGeneration;
         }
     }
