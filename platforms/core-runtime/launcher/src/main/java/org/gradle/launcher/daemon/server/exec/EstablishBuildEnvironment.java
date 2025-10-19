@@ -64,8 +64,11 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
 
         // Log only the variable names and not their values. Environment variables often contain sensitive data that should not be leaked to log files.
         LOGGER.debug("Configuring env variables: {}", build.getParameters().getEnvVariables().keySet());
+        LOGGER.debug("Attempting to configure {} environment variables", build.getParameters().getEnvVariables().size());
+        LOGGER.debug("ProcessEnvironment implementation: {}", processEnvironment.getClass().getName());
 
         EnvironmentModificationResult setEnvironmentResult = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
+        LOGGER.debug("Environment modification result: {} (success={})", setEnvironmentResult, setEnvironmentResult.isSuccess());
         if(!setEnvironmentResult.isSuccess()) {
             LOGGER.warn("Warning: Unable able to set daemon's environment variables to match the client because: "
                 + System.getProperty("line.separator") + "  "
