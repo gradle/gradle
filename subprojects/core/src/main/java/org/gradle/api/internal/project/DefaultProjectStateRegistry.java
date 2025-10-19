@@ -30,7 +30,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -266,7 +265,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
         private final ProjectLifecycleController controller;
-        private final Lazy<Integer> depth = Lazy.unsafe().of(() -> getParent() != null ? getParent().getDepth() + 1 : 0);
 
         ProjectStateImpl(
             BuildState owner,
@@ -309,13 +307,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Nullable
         @Override
         public ProjectState getParent() {
-            Path identityPath = identity.getBuildTreePath();
-            return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
-        }
-
-        @Nullable
-        @Override
-        public ProjectState getBuildParent() {
             if (descriptor.getParent() != null) {
                 // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
                 // Ideally they would be exactly the same, always
@@ -383,7 +374,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public int getDepth() {
-            return depth.get();
+            return getProjectPath().segmentCount();
         }
 
         @Override
@@ -404,7 +395,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Override
         public void ensureConfigured() {
             // Need to configure intermediate parent projects for configure-on-demand
-            ProjectState parent = getBuildParent();
+            ProjectState parent = getParent();
             if (parent != null) {
                 parent.ensureConfigured();
             }
@@ -413,7 +404,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public void ensureSelfConfigured() {
-            ProjectState parent = getBuildParent();
+            ProjectState parent = getParent();
             if (parent != null) {
                 ((ProjectStateImpl) parent).controller.assertConfigured();
             }

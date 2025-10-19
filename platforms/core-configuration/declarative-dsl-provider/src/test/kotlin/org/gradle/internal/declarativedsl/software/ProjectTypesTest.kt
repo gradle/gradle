@@ -28,7 +28,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndCon
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.ProjectFeatureImplementation
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -39,7 +39,7 @@ import org.mockito.kotlin.mock
 class ProjectTypesTest {
     @Test
     fun `project types are added to the schema along with their supertypes`() {
-        val registryMock = mock<ProjectFeatureRegistry> { mock ->
+        val registryMock = mock<ProjectFeatureDeclarations> { mock ->
             on(mock.projectFeatureImplementations).thenReturn(
                 setOf(object : ProjectFeatureImplementation<Subtype, Subtype> {
                     override fun getFeatureName(): String = "subtype"

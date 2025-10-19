@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results
 
-
 import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -29,7 +28,7 @@ import java.util.function.Supplier
  */
 class DefaultVisitedGraphResultsTest extends Specification {
 
-    MinimalResolutionResult resolutionResult = new MinimalResolutionResult(0, Mock(Supplier), ImmutableAttributes.EMPTY)
+    MinimalResolutionResult resolutionResult = new MinimalResolutionResult(Mock(Supplier), ImmutableAttributes.EMPTY)
 
     def "hasResolutionFailure returns true if there is a failure"() {
         given:

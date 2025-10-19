@@ -1,5 +1,7 @@
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.buildCommitId
+import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
@@ -93,7 +95,7 @@ tasks {
         }
     }
 
-    fun SmokeTest.configureForSmokeTest(remoteProjectOutputFiles: Any? = null) {
+    fun SmokeTest.configureForSmokeTest(remoteProjectOutputFiles: Any? = null, includes: List<String> = emptyList(), excludes: List<String> = emptyList()) {
         group = "Verification"
         testClassesDirs = smokeTestSourceSet.output.classesDirs
         classpath = smokeTestSourceSet.runtimeClasspath
@@ -106,10 +108,17 @@ tasks {
                 .ignoreEmptyDirectories()
                 .withPathSensitivity(PathSensitivity.RELATIVE)
         }
+        useJUnitPlatform {
+            filter {
+                isFailOnNoMatchingTests = (flakyTestStrategy != FlakyTestStrategy.ONLY)
+                includes.forEach { includeTestsMatching(it) }
+                excludes.forEach { excludeTestsMatching(it) }
+            }
+        }
     }
 
-    fun SmokeTest.configureForSmokeTest(remoteProject: TaskProvider<RemoteProject>) {
-        configureForSmokeTest(remoteProject.map { it.outputDirectory })
+    fun SmokeTest.configureForSmokeTest(remoteProject: TaskProvider<RemoteProject>, includes: List<String> = emptyList(), excludes: List<String> = emptyList()) {
+        configureForSmokeTest(remoteProject.map { it.outputDirectory }, includes, excludes)
     }
 
     val gradleBuildTestPattern = "org.gradle.smoketests.GradleBuild*SmokeTest"
@@ -118,25 +127,13 @@ tasks {
 
     register<SmokeTest>("smokeTest") {
         description = "Runs Smoke tests"
-        configureForSmokeTest()
-        useJUnitPlatform {
-            filter {
-                excludeTestsMatching(gradleBuildTestPattern)
-                excludeTestsMatching(santaTrackerTestPattern)
-            }
-        }
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, santaTrackerTestPattern))
     }
 
     register<SmokeTest>("configCacheSmokeTest") {
         description = "Runs Smoke tests with the configuration cache"
         systemProperty("org.gradle.integtest.executer", "configCache")
-        configureForSmokeTest()
-        useJUnitPlatform {
-            filter {
-                excludeTestsMatching(gradleBuildTestPattern)
-                excludeTestsMatching(santaTrackerTestPattern)
-            }
-        }
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, santaTrackerTestPattern))
     }
 
     register<SmokeTest>("gradleBuildSmokeTest") {
@@ -149,36 +146,21 @@ tasks {
                 exclude(".github/**")
                 exclude(".teamcity/**")
             }
-        })
-        useJUnitPlatform {
-            filter {
-                includeTestsMatching(gradleBuildTestPattern)
-            }
-        }
+        }, includes = listOf(gradleBuildTestPattern))
     }
 
     register<SmokeTest>("santaTrackerSmokeTest") {
         description = "Runs Santa Tracker Smoke tests"
-        configureForSmokeTest(santaTracker)
+        configureForSmokeTest(santaTracker, includes = listOf(santaTrackerTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
-        useJUnitPlatform {
-            filter {
-                includeTestsMatching(santaTrackerTestPattern)
-            }
-        }
     }
 
     register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
         description = "Runs Santa Tracker Smoke tests with the configuration cache"
-        configureForSmokeTest(santaTracker)
+        configureForSmokeTest(santaTracker, includes = listOf(santaTrackerTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
-        useJUnitPlatform {
-            filter {
-                includeTestsMatching(santaTrackerTestPattern)
-            }
-        }
     }
 }
 

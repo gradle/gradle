@@ -27,7 +27,7 @@ import javax.inject.Inject;
 public interface ProjectFeatureApplicationContextInternal extends ProjectFeatureApplicationContext {
 
     @Inject
-    ProjectFeatureRegistry getProjectFeatureRegistry();
+    ProjectFeatureDeclarations getProjectFeatureRegistry();
 
     @Inject
     ProjectFeatureApplicator getProjectFeatureApplicator();

@@ -486,11 +486,6 @@ class EdgeState implements DependencyGraphEdge {
         return isConstraint;
     }
 
-    @Override
-    public long getFromVariant() {
-        return from.getNodeId();
-    }
-
     @Nullable
     private ComponentState getSelectedComponent() {
         return selector.getTargetModule().getSelected();

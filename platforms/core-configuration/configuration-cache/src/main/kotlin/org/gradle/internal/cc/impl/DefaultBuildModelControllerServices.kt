@@ -57,7 +57,6 @@ import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.DefaultGradle
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
@@ -99,13 +98,14 @@ class DefaultBuildModelControllerServices(
         private val buildState: BuildState,
         private val buildScopeServices: ServiceRegistry
     ) : ServiceRegistrationProvider {
+
         @Provides
-        fun createGradleModel(instantiator: Instantiator, serviceRegistryFactory: ServiceRegistryFactory): GradleInternal? {
+        fun createGradleModel(instantiator: Instantiator): GradleInternal {
             return instantiator.newInstance(
                 DefaultGradle::class.java,
                 buildState,
                 buildDefinition.startParameter,
-                serviceRegistryFactory
+                buildScopeServices
             )
         }
 

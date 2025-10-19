@@ -441,6 +441,11 @@ class SmokeTestGradleRunner extends GradleRunner {
             new ConfigurationCacheBuildOperationsFixture(operations).assertStateLoaded()
         }
 
+        void assertConfigurationCacheStateStoreDiscarded() {
+            assertBuildOperationTracePresent()
+            new ConfigurationCacheBuildOperationsFixture(operations).assertStateStoreDiscarded()
+        }
+
         private void assertBuildOperationTracePresent() {
             assert operations != null, "Build operation trace was not captured"
         }

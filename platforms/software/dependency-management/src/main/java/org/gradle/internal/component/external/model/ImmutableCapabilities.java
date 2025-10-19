@@ -22,6 +22,7 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -47,7 +48,7 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
         if (capability == null) {
             return EMPTY;
         }
-        return new ImmutableCapabilities(ImmutableSet.of(asImmutable(capability)));
+        return new ImmutableCapabilities(ImmutableSet.of(DefaultImmutableCapability.of(capability)));
     }
 
     public static ImmutableCapabilities of(@Nullable Collection<? extends Capability> capabilities) {
@@ -61,17 +62,9 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
 
         ImmutableSet.Builder<ImmutableCapability> builder = ImmutableSet.builderWithExpectedSize(capabilities.size());
         for (Capability capability : capabilities) {
-            builder.add(asImmutable(capability));
+            builder.add(DefaultImmutableCapability.of(capability));
         }
         return new ImmutableCapabilities(builder.build());
-    }
-
-    private static ImmutableCapability asImmutable(Capability capability) {
-        if (capability instanceof ImmutableCapability) {
-            return (ImmutableCapability) capability;
-        } else {
-            return new DefaultImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion());
-        }
     }
 
     public ImmutableSet<ImmutableCapability> asSet() {
@@ -80,6 +73,10 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
 
     @Override
     public Iterator<ImmutableCapability> iterator() {
+        if (capabilities.isEmpty()) {
+            // Avoid allocating an iterator object for the empty set
+            return Collections.emptyIterator();
+        }
         return capabilities.iterator();
     }
 

@@ -54,6 +54,20 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
             kotlinArtifactConfigurationNames.forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)
             }
+
+            workAroundKgpEagerConfigurations()
+        }
+    }
+
+    // See https://github.com/gradle/gradle/issues/35309
+    // TODO remove once https://youtrack.jetbrains.com/issue/KT-81706/ is fixed
+    private fun Project.workAroundKgpEagerConfigurations() {
+        afterEvaluate {
+            configurations.named { name -> name == "swiftExportClasspath" }.configureEach { swift ->
+                swift.withDependencies { dependencies ->
+                    dependencies.clear()
+                }
+            }
         }
     }
 }

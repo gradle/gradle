@@ -160,7 +160,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
         PluginRegistry parentRegistry;
-        ProjectState parent = project.getOwner().getBuildParent();
+        ProjectState parent = project.getOwner().getParent();
         if (parent == null) {
             parentRegistry = rootRegistry.createChild(project.getBaseClassLoaderScope());
         } else {

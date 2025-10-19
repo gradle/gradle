@@ -53,6 +53,7 @@ include::file_system_watching.adoc[leveloffset=+2]
 
 include::groovy_build_script_primer.adoc[leveloffset=+2]
 include::kotlin_dsl.adoc[leveloffset=+2]
+include::public_apis.adoc[leveloffset=+2]
 include::default_script_imports.adoc[leveloffset=+2]
 
 == BEST PRACTICES
@@ -70,7 +71,69 @@ include::best_practices_security.adoc[leveloffset=+2]
 
 include::plugin_reference.adoc[leveloffset=2]
 
-== GRADLE TYPES
+== DEPENDENCY MANAGEMENT
+
+// Getting Started
+include::getting_started_dep_man.adoc[leveloffset=+2]
+
+// Learning the Basics
+include::declaring_dependencies.adoc[leveloffset=+2]
+include::dependency_configurations.adoc[leveloffset=+2]
+include::declaring_repositories.adoc[leveloffset=+2]
+include::centralizing_dependencies.adoc[leveloffset=+2]
+include::dependency_constraints_conflicts.adoc[leveloffset=+2]
+
+// Advanced Concepts
+include::dependency_resolution.adoc[leveloffset=+2]
+include::graph_resolution.adoc[leveloffset=+2]
+include::variant_aware_resolution.adoc[leveloffset=+2]
+include::artifact_resolution.adoc[leveloffset=+2]
+
+// Declaring Dependencies (detailed)
+include::declaring_dependencies_basics.adoc[leveloffset=+2]
+include::viewing_debugging_dependencies.adoc[leveloffset=+2]
+include::dependency_versions.adoc[leveloffset=+2]
+include::dependency_constraints.adoc[leveloffset=+2]
+include::declaring_configurations.adoc[leveloffset=+2]
+include::gradle_dependencies.adoc[leveloffset=+2]
+include::dependency_verification.adoc[leveloffset=+2]
+
+// Declaring Repositories (detailed)
+include::declaring_repositories_basics.adoc[leveloffset=+2]
+include::centralizing_repositories.adoc[leveloffset=+2]
+include::supported_repository_types.adoc[leveloffset=+2]
+include::supported_metadata_formats.adoc[leveloffset=+2]
+include::supported_repository_protocols.adoc[leveloffset=+2]
+include::filtering_repository_content.adoc[leveloffset=+2]
+
+// Centralizing Dependencies
+include::platforms.adoc[leveloffset=+2]
+include::version_catalogs.adoc[leveloffset=+2]
+include::centralizing_catalog_platform.adoc[leveloffset=+2]
+
+// Managing Dependencies
+include::dependency_locking.adoc[leveloffset=+2]
+include::resolution_rules.adoc[leveloffset=+2]
+include::component_metadata_rules.adoc[leveloffset=+2]
+include::dependency_caching.adoc[leveloffset=+2]
+
+// Controlling Dependency Resolution
+include::dependency_resolution_consistency.adoc[leveloffset=+2]
+include::resolving_specific_artifacts.adoc[leveloffset=+2]
+include::component_capabilities.adoc[leveloffset=+2]
+include::variant_attributes.adoc[leveloffset=+2]
+include::artifact_views.adoc[leveloffset=+2]
+include::artifact_transforms.adoc[leveloffset=+2]
+
+// Publishing Libraries
+include::publishing_setup.adoc[leveloffset=+2]
+include::publishing_gradle_module_metadata.adoc[leveloffset=+2]
+include::publishing_signing.adoc[leveloffset=+2]
+include::publishing_customization.adoc[leveloffset=+2]
+include::publishing_maven.adoc[leveloffset=+2]
+include::publishing_ivy.adoc[leveloffset=+2]
+
+== GRADLE MANAGED TYPES
 
 include::lazy_eager_evaluation.adoc[leveloffset=+2]
 include::properties_providers.adoc[leveloffset=+2]
@@ -87,41 +150,65 @@ include::composite_builds.adoc[leveloffset=+2]
 include::configuration_on_demand.adoc[leveloffset=+2]
 include::isolated_projects.adoc[leveloffset=+2]
 
-== DEVELOPING TASKS
+== TASK DEVELOPMENT
 
 include::more_about_tasks.adoc[leveloffset=+2]
 include::controlling_task_execution.adoc[leveloffset=+2]
 include::organizing_tasks.adoc[leveloffset=+2]
-//include::implementing_custom_tasks.adoc[leveloffset=+2]
+include::implementing_custom_tasks.adoc[leveloffset=+2]
 include::lazy_configuration.adoc[leveloffset=+2]
 include::worker_api.adoc[leveloffset=+2]
 include::custom_tasks.adoc[leveloffset=+2]
 include::build_services.adoc[leveloffset=+2]
 
-== DEVELOPING PLUGINS
+== PLUGIN DEVELOPMENT
 
 include::plugins.adoc[leveloffset=+2]
-include::implementing_gradle_plugins.adoc[leveloffset=+2]
 include::implementing_gradle_plugins_precompiled.adoc[leveloffset=+2]
+include::implementing_gradle_plugins_convention.adoc[leveloffset=+2]
 include::implementing_gradle_plugins_binary.adoc[leveloffset=+2]
 include::testing_gradle_plugins.adoc[leveloffset=+2]
+include::preparing_to_publish.adoc[leveloffset=+2]
 include::publishing_gradle_plugins.adoc[leveloffset=+2]
 include::reporting_problems.adoc[leveloffset=+2]
 
+== JVM BUILDS
+
+include::building_java_projects.adoc[leveloffset=+2]
+include::java_testing.adoc[leveloffset=+2]
+include::dependency_management_for_java_projects.adoc[leveloffset=+2]
+
+// Java Toolchains
+include::toolchains.adoc[leveloffset=+2]
+include::toolchain_plugins.adoc[leveloffset=+2]
+
+// JVM Plugins
+include::java_library_plugin.adoc[leveloffset=+2]
+include::application_plugin.adoc[leveloffset=+2]
+include::java_platform_plugin.adoc[leveloffset=+2]
+include::groovy_plugin.adoc[leveloffset=+2]
+include::scala_plugin.adoc[leveloffset=+2]
+
+== C++ BUILDS
+
+include::building_cpp_projects.adoc[leveloffset=+2]
+include::cpp_testing.adoc[leveloffset=+2]
+
+== SWIFT BUILDS
+
+include::building_swift_projects.adoc[leveloffset=+2]
+include::swift_testing.adoc[leveloffset=+2]
+
 == OTHER TOPICS
 
-include::init_scripts.adoc[leveloffset=+2]
-include::dataflow_actions.adoc[leveloffset=+2]
-include::test_kit.adoc[leveloffset=+2]
 include::ant.adoc[leveloffset=+2]
 
 [[part:optimizing_build_times]]
-== OPTIMIZING BUILD PERFORMANCE
+== OPTIMIZING GRADLE BUILDS
 
 include::performance.adoc[leveloffset=+2]
 
-== BUILD CACHE
-
+// Build Cache
 include::build_cache.adoc[leveloffset=+2]
 include::build_cache_use_cases.adoc[leveloffset=+2]
 include::build_cache_performance.adoc[leveloffset=+2]
@@ -131,92 +218,21 @@ include::caching_android_projects.adoc[leveloffset=+2]
 include::build_cache_debugging.adoc[leveloffset=+2]
 include::common_caching_problems.adoc[leveloffset=+2]
 
-== CONFIGURATION CACHE
-
+// Configuration Cache
 include::configuration_cache.adoc[leveloffset=+2]
 include::configuration_cache_enabling.adoc[leveloffset=+2]
 include::configuration_cache_requirements.adoc[leveloffset=+2]
 include::configuration_cache_debugging.adoc[leveloffset=+2]
 include::configuration_cache_status.adoc[leveloffset=+2]
 
-[[part:dependency_management]]
-== DECLARING DEPENDENCIES
-
-include::declaring_dependencies_basics.adoc[leveloffset=+2]
-include::viewing_debugging_dependencies.adoc[leveloffset=+2]
-include::dependency_versions.adoc[leveloffset=+2]
-include::dependency_constraints.adoc[leveloffset=+2]
-include::declaring_configurations.adoc[leveloffset=+2]
-include::gradle_dependencies.adoc[leveloffset=+2]
-include::dependency_verification.adoc[leveloffset=+2]
-
-== DECLARING REPOSITORIES
-
-include::declaring_repositories_basics.adoc[leveloffset=+2]
-include::centralizing_repositories.adoc[leveloffset=+2]
-include::supported_repository_types.adoc[leveloffset=+2]
-include::supported_metadata_formats.adoc[leveloffset=+2]
-include::supported_repository_protocols.adoc[leveloffset=+2]
-include::filtering_repository_content.adoc[leveloffset=+2]
-
-== CENTRALIZING DEPENDENCIES
-
-include::platforms.adoc[leveloffset=+2]
-include::version_catalogs.adoc[leveloffset=+2]
-include::centralizing_catalog_platform.adoc[leveloffset=+2]
-
-== MANAGING DEPENDENCIES
-
-include::dependency_locking.adoc[leveloffset=+2]
-include::resolution_rules.adoc[leveloffset=+2]
-include::component_metadata_rules.adoc[leveloffset=+2]
-include::dependency_caching.adoc[leveloffset=+2]
-
-== CONTROLLING DEPENDENCY RESOLUTION
-
-include::dependency_resolution_consistency.adoc[leveloffset=+2]
-include::resolving_specific_artifacts.adoc[leveloffset=+2]
-include::component_capabilities.adoc[leveloffset=+2]
-include::variant_attributes.adoc[leveloffset=+2]
-include::artifact_views.adoc[leveloffset=+2]
-include::artifact_transforms.adoc[leveloffset=+2]
-
-== PUBLISHING LIBRARIES
-
-include::publishing_setup.adoc[leveloffset=+2]
-include::publishing_gradle_module_metadata.adoc[leveloffset=+2]
-include::publishing_signing.adoc[leveloffset=+2]
-include::publishing_customization.adoc[leveloffset=+2]
-include::publishing_maven.adoc[leveloffset=+2]
-include::publishing_ivy.adoc[leveloffset=+2]
-
-[[part:platforms]]
-[[part:jvm_projects]]
-== JVM BUILDS
-
-include::building_java_projects.adoc[leveloffset=+2]
-include::java_testing.adoc[leveloffset=+2]
-include::dependency_management_for_java_projects.adoc[leveloffset=+2]
-
-== JAVA TOOLCHAINS
-
-include::toolchains.adoc[leveloffset=+2]
-include::toolchain_plugins.adoc[leveloffset=+2]
-
-== JVM PLUGINS
-
-include::java_library_plugin.adoc[leveloffset=+2]
-include::application_plugin.adoc[leveloffset=+2]
-include::java_platform_plugin.adoc[leveloffset=+2]
-include::groovy_plugin.adoc[leveloffset=+2]
-include::scala_plugin.adoc[leveloffset=+2]
-
 [[part:integration]]
 == INTEGRATION
 
-include::third_party_integration.adoc[leveloffset=2]
-include::tooling_api.adoc[leveloffset=2]
-include::test_reporting_api.adoc[leveloffset=2]
+include::third_party_integration.adoc[leveloffset=+2]
+
+// APIs
+include::tooling_api.adoc[leveloffset=+2]
+include::test_reporting_api.adoc[leveloffset=+2]
 
 == LICENSE INFORMATION
 
