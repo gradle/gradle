@@ -73,7 +73,37 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="stream-testkit-output"></a>
+### Stream TestKit output
 
+Gradle TestKit's `BuildResult` now offers a new method for accessing the build console output efficiently, especially for builds that produce a large volume of logs.
+
+[`BuildResult.getOutput()`](https://docs.gradle.org/@version@/javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+returns a `String` with the full build console output.
+This can use large amounts of memory for builds with extensive logs.
+
+A new 
+[`BuildResult.getOutputReader()`](https://docs.gradle.org/@version@/javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+method is available, returning a `BufferedReader` for streaming the build output incrementally.
+This can help reduce memory pressure in TestKit tests.
+
+Please ensure you close the `BufferedReader` after use; we recommend the standard Java try-with-resources pattern for this:
+
+```java
+void testProject() {
+    BuildResult buildResult = GradleRunner.create()
+        .withProjectDir(File("test-project"))
+        .withArguments(":build", "--info")
+        .build();
+
+    try (BufferedReader outputReader = buildResult.getOutputReader()) {
+        List<String> logLines = outputReader.lines()
+            .filter(line -> line.contains("example build message"))
+            .collect(Collectors.toList());
+        // do something with the log lines...
+    }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
