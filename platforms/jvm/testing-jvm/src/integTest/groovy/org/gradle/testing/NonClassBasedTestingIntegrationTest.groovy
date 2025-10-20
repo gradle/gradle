@@ -19,21 +19,23 @@ package org.gradle.testing
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testing.fixture.TestNGCoverage
+import org.gradle.util.internal.TextUtil
 
 /**
  * Tests that exercise and demonstrate Non-Class-Based Testing using the {@code Test} task
  * and a sample resource-based JUnit Platform Test Engine defined in this project's {@code testFixtures}.
  */
 class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
-    private engineJarLibPath
+    private static engineJarLibPath
 
-    def setup() {
+    def setupSpec() {
         def version = IntegrationTestBuildContext.INSTANCE.getVersion().getBaseVersion().version
         // TODO: there's probably a better place to put this and/or way to get this on the path
-        engineJarLibPath = IntegrationTestBuildContext.TEST_DIR.file("../../software/testing-base/build/libs/gradle-testing-base-$version-test-fixtures.jar").path
+        def path = IntegrationTestBuildContext.TEST_DIR.file("../../software/testing-base/build/libs/gradle-testing-base-$version-test-fixtures.jar").path
+        engineJarLibPath = TextUtil.convertLineSeparatorsToUnix(path)
     }
 
-    def "empty test definitions location skips"() {
+    def "empty test definitions directory skips"() {
         given:
         buildFile << """
             plugins {
@@ -63,6 +65,39 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         testTaskWasSkippedDueToNoSources()
+    }
+
+    def "non-existent test definitions directory fails"() {
+        def badPath = "src/test/i-dont-exist"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'jvm-test-suite'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${setupSuiteWithEngineFixture()}
+
+                targets.all {
+                    testTask.configure {
+                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$badPath"))
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions() // Written to default dir, not badPath
+
+        when:
+        fails("test")
+
+        then:
+        failureCauseContains("Test definitions directory does not exist: " + testDirectory.file(badPath))
     }
 
     def "resource-based test engine detects and executes test definitions (excluding jupiter engine = #excludingJupiter)"() {
@@ -123,7 +158,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
                 targets.all {
                     testTask.configure {
                         scanForTestDefinitions = true
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
+                        testDefinitionDirs.setFrom(project.layout.projectDirectory.file("$customLocation"))
 
                         options {
                             includeEngines("rbt-engine")
@@ -237,6 +272,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        file("src/test/definitions").createDir()
+
         if (hasTestClasses) {
             writeTestClasses()
         }
@@ -294,12 +331,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
     }
 
-    private setupSuiteWithEngineFixture() {
+    private String setupSuiteWithEngineFixture() {
         return """
                 useJUnitJupiter()
 
                 dependencies {
-                    implementation files('${engineJarLibPath}')
+                    implementation files("${engineJarLibPath}")
                 }
         """
     }
