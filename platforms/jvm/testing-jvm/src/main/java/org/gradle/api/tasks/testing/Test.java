@@ -54,7 +54,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -169,6 +168,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @NullMarked
 @CacheableTask
 public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
+    private static final String TEST_DEFINITIONS_DIR = "src/test/definitions";
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
@@ -182,6 +182,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
+
+    @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
@@ -191,12 +193,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
-        stableClasspath.from(new Callable<Object>() {
-            @Override
-            public Object call() {
-                return getClasspath();
-            }
-        });
+        stableClasspath.from((Callable<Object>) this::getClasspath);
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
@@ -205,7 +202,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
-        getScanForTestDefinitions().convention(getProject().getProviders().provider(() -> !getTestDefinitionDirs().getFiles().isEmpty()));
+
+        getTestDefinitionDirs().from(getProject().getLayout().getProjectDirectory().file(TEST_DEFINITIONS_DIR));
+        getCandidateDefinitionDirs().convention(getTestDefinitionDirs()); // Filtering would be done here, as in getCandidateClassFiles().  Does it need a separate prop, or could it reuse patternSet?
+        getScanForTestDefinitions().convention(false);
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -676,7 +676,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), candidateDefinitionDirs().getFiles(), getScanForTestDefinitions().get(),
+            getCandidateClassFiles(), isScanForTestClasses(), getCandidateDefinitionDirs().getFiles(), getScanForTestDefinitions().get(),
             getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
@@ -870,10 +870,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      *
      * @since 9.3.0
      */
+    @Internal
     @Incubating
-    @InputFiles
-    @Optional
-    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getTestDefinitionDirs();
 
     /**
@@ -1166,6 +1164,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return scanForTestClasses;
     }
 
+    public void setScanForTestClasses(boolean scanForTestClasses) {
+        this.scanForTestClasses = scanForTestClasses;
+    }
+
     /**
      * Whether to scan for test resources for resource-based testing.
      *
@@ -1173,12 +1175,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Incubating
     @Input
-    @Optional
     public abstract Property<Boolean> getScanForTestDefinitions();
-
-    public void setScanForTestClasses(boolean scanForTestClasses) {
-        this.scanForTestClasses = scanForTestClasses;
-    }
 
     /**
      * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be restarted when this limit is reached.
@@ -1272,9 +1269,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 9.3.0
      */
     @Incubating
-    public ConfigurableFileCollection candidateDefinitionDirs() { // TODO: also adjust naming to getXYZ() (skipped for now to avoid property must be abstract check)
-        return getTestDefinitionDirs(); // TODO: filtering? Make getCandidateResourceFiles a prop directly? One of these methods is unnecessary
-    }
+    @InputFiles
+    @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getCandidateDefinitionDirs();
 
     /**
      * Executes the action against the {@link #getFilter()}.

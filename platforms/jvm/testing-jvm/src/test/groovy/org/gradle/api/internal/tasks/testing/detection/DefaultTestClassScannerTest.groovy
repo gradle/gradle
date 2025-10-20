@@ -31,7 +31,7 @@ class DefaultTestClassScannerTest extends Specification {
     def processor = Stub(TestClassProcessor)
 
     @Subject
-    def scanner = new DefaultTestClassScanner(files, Collections.emptySet(), detector, processor)
+    def scanner = new DefaultTestScanner(files, Collections.emptySet(), detector, processor)
 
     void passesEachClassFileToTestClassDetector() {
         given:

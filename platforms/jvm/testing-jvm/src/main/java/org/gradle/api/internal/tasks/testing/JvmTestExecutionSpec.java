@@ -23,6 +23,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 
 @UsedByScanPlugin("test-distribution, test-retry")
@@ -31,9 +32,9 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final Iterable<? extends File> classpath;
     private final Iterable<? extends File> modulePath;
     private final FileTree candidateClassFiles;
-    private final Set<File> candidateResourceDirs;
+    private final Set<File> candidateTestDefinitionDirs;
     private final boolean scanForTestClasses;
-    private final boolean scanForTestResources;
+    private final boolean scanForTestDefinitions;
     private final FileCollection testClassesDirs;
     private final String path;
     private final Path identityPath;
@@ -43,17 +44,24 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final Set<String> previousFailedTestClasses;
     private final boolean testIsModule;
 
+    @UsedByScanPlugin("test-distribution, pts")
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
                                 FileTree candidateClassFiles, boolean scanForTestClasses,
-                                Set<File> candidateResourceDirs, boolean scanForTestResources,
+                                FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
+        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, Collections.emptySet(), false, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, testIsModule);
+    }
+
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath,
+                                FileTree candidateClassFiles, boolean scanForTestClasses,
+                                Set<File> candidateTestDefinitionDirs, boolean scanForTestDefinitions,
                                 FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
         this.candidateClassFiles = candidateClassFiles;
         this.scanForTestClasses = scanForTestClasses;
-        this.candidateResourceDirs = candidateResourceDirs;
-        this.scanForTestResources = scanForTestResources;
+        this.candidateTestDefinitionDirs = candidateTestDefinitionDirs;
+        this.scanForTestDefinitions = scanForTestDefinitions;
         this.testClassesDirs = testClassesDirs;
         this.path = path;
         this.identityPath = identityPath;
@@ -68,7 +76,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     @UsedByScanPlugin("test-retry")
     public JvmTestExecutionSpec copyWithTestFramework(TestFramework testFramework) {
         return new JvmTestExecutionSpec(testFramework, this.classpath, this.modulePath,
-            this.candidateClassFiles, this.scanForTestClasses, this.candidateResourceDirs, this.scanForTestResources,
+            this.candidateClassFiles, this.scanForTestClasses, this.candidateTestDefinitionDirs, this.scanForTestDefinitions,
             this.testClassesDirs, this.path, this.identityPath, this.forkEvery,
             this.javaForkOptions, this.maxParallelForks, this.previousFailedTestClasses, this.testIsModule
         );
@@ -94,12 +102,12 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return scanForTestClasses;
     }
 
-    public Set<File> getCandidateResourceDirs() {
-        return candidateResourceDirs;
+    public Set<File> getCandidateTestDefinitionDirs() {
+        return candidateTestDefinitionDirs;
     }
 
-    public boolean isScanForTestResources() {
-        return scanForTestResources;
+    public boolean isScanForTestDefinitions() {
+        return scanForTestDefinitions;
     }
 
     @UsedByScanPlugin("test-retry")
