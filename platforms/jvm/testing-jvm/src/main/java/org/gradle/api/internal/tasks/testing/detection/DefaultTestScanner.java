@@ -86,12 +86,13 @@ public class DefaultTestScanner implements TestDetector {
                         TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
                         testClassProcessor.processTestDefinition(testDefinition);
                     } else {
-                        throw new GradleException("Cannot read test definition directory: " + dir.getAbsolutePath());
+                        throw new GradleException("Cannot read test definitions directory: " + dir.getAbsolutePath());
                     }
                 } else {
-                    throw new GradleException("Test definition directory is not a directory: " + dir.getAbsolutePath());
+                    throw new GradleException("Test definitions directory is not a directory: " + dir.getAbsolutePath());
                 }
-
+            } else {
+                throw new GradleException("Test definitions directory does not exist: " + dir.getAbsolutePath());
             }
         });
     }
