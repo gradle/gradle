@@ -99,12 +99,12 @@ configurations.resolvable("foo") {
 
 Gradle TestKit's `BuildResult` now offers a new method for accessing the build console output efficiently, especially for builds that produce a large volume of logs.
 
-[`BuildResult.getOutput()`](https://docs.gradle.org/@version@/javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+[`BuildResult.getOutput()`](javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
 returns a `String` with the full build console output.
 This can use large amounts of memory for builds with extensive logs.
 
 A new 
-[`BuildResult.getOutputReader()`](https://docs.gradle.org/@version@/javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+[`BuildResult.getOutputReader()`](javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
 method is available, returning a `BufferedReader` for streaming the build output incrementally.
 This can help reduce memory pressure in TestKit tests.
 
