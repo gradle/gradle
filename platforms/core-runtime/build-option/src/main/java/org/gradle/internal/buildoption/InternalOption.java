@@ -16,12 +16,14 @@
 
 package org.gradle.internal.buildoption;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * An internal Gradle option, that can be set using a system property.
  *
  * @param <T> The value of the option.
  */
-public interface InternalOption<T> extends Option {
+public interface InternalOption<T extends @Nullable Object> extends Option {
     T getDefaultValue();
 
     String getSystemPropertyName();
