@@ -399,7 +399,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
         resilientModels.failures.size() == 1
-        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "c/build.gradle.kts' line: 5")
+        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "c" + File.separatorChar + "build.gradle.kts' line: 5")
         expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], expectedFailure)
 
         where:
@@ -496,7 +496,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
         resilientModels.failures.size() == 1
-        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "b/build.gradle.kts' line: 2")
+        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "b" + File.separatorChar + "build.gradle.kts' line: 2")
         expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "Failing script")
 
         where:
