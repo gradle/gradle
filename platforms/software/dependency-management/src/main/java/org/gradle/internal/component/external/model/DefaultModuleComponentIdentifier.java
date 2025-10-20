@@ -42,11 +42,13 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         String group = moduleIdentifier.getGroup();
         String module = moduleIdentifier.getName();
         StringBuilder builder = new StringBuilder(group.length() + module.length() + version.length() + 2);
+        builder.append("module '");
         builder.append(group);
         builder.append(":");
         builder.append(module);
         builder.append(":");
         builder.append(version);
+        builder.append("'");
         return builder.toString();
     }
 

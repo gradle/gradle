@@ -49,12 +49,12 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     }
 
     public ModuleVersionResolveException(ComponentSelector selector, Throwable cause) {
-        this(selector, format("Could not resolve %s.", selector));
+        this(selector, format("Could not resolve %s", selector));
         initCause(cause);
     }
 
     public ModuleVersionResolveException(ComponentSelector selector, Iterable<? extends Throwable> causes) {
-        this(selector, format("Could not resolve %s.", selector));
+        this(selector, format("Could not resolve %s", selector));
         initCauses(causes);
     }
 
@@ -106,11 +106,15 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
             return super.getMessage();
         }
         Formatter formatter = new Formatter();
-        formatter.format("%s%nRequired by:", super.getMessage());
-        for (List<Describable> path : paths) {
-            formatter.format("%n    %s", toString(path.get(0)));
-            for (int i = 1; i < path.size(); i++) {
-                formatter.format(" > %s", toString(path.get(i)));
+        if (paths.size() == 1) {
+            formatter.format("%s required by %s.", super.getMessage(), toString(paths.get(0).get(0)));
+        } else {
+            formatter.format("%s required by:", super.getMessage());
+            for (List<Describable> path : paths) {
+                formatter.format("%n    %s", toString(path.get(0)));
+                for (int i = 1; i < path.size(); i++) {
+                    formatter.format(" > %s", toString(path.get(i)));
+                }
             }
         }
         return formatter.toString();
