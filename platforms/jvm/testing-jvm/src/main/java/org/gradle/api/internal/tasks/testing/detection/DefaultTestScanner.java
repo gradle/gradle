@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
@@ -34,19 +35,19 @@ import java.util.regex.Pattern;
  * The default test class scanner. Depending on the availability of a test framework detector,
  * a detection or filename scan is performed to find test classes.
  */
-public class DefaultTestClassScanner implements TestDetector {
+public class DefaultTestScanner implements TestDetector {
     private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
-    private final Set<File> candidateResourceDirs;
+    private final Set<File> candidateDefinitionDirs;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
 
-    public DefaultTestClassScanner(FileTree candidateClassFiles,
-                                   Set<File> candidateResourceDirs,
-                                   TestFrameworkDetector testFrameworkDetector,
-                                   TestClassProcessor testClassProcessor) {
+    public DefaultTestScanner(FileTree candidateClassFiles,
+                              Set<File> candidateDefinitionDirs,
+                              TestFrameworkDetector testFrameworkDetector,
+                              TestClassProcessor testClassProcessor) {
         this.candidateClassFiles = candidateClassFiles;
-        this.candidateResourceDirs = candidateResourceDirs;
+        this.candidateDefinitionDirs = candidateDefinitionDirs;
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
     }
@@ -78,9 +79,20 @@ public class DefaultTestClassScanner implements TestDetector {
                 testClassProcessor.processTestDefinition(testDefinition);
             }
         });
-        candidateResourceDirs.forEach(dir -> {
-            TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
-            testClassProcessor.processTestDefinition(testDefinition);
+        candidateDefinitionDirs.forEach(dir -> {
+            if (dir.exists()) {
+                if (dir.isDirectory()) {
+                    if (dir.canRead()) {
+                        TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
+                        testClassProcessor.processTestDefinition(testDefinition);
+                    } else {
+                        throw new GradleException("Cannot read test definition directory: " + dir.getAbsolutePath());
+                    }
+                } else {
+                    throw new GradleException("Test definition directory is not a directory: " + dir.getAbsolutePath());
+                }
+
+            }
         });
     }
 

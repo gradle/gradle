@@ -20,16 +20,21 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.testing.fixture.TestNGCoverage
 
+/**
+ * Tests that exercise and demonstrate Non-Class-Based Testing using the {@code Test} task
+ * and a sample resource-based JUnit Platform Test Engine defined in this project's {@code testFixtures}.
+ */
 class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
     private engineJarLibPath
 
     def setup() {
         def version = IntegrationTestBuildContext.INSTANCE.getVersion().getBaseVersion().version
-        // TODO: there's probably a better way to get this on the path
+        // TODO: there's probably a better place to put this and/or way to get this on the path
         engineJarLibPath = IntegrationTestBuildContext.TEST_DIR.file("../../software/testing-base/build/libs/gradle-testing-base-$version-test-fixtures.jar").path
     }
 
-    def "resource-based test engine detects tests and executes tests (also scanning for test classes = #scanningForTestClasses, excluding jupiter engine = #excludingJupiter)"() {
+    def "empty test definitions location skips"() {
+        given:
         buildFile << """
             plugins {
                 id 'java'
@@ -39,17 +44,43 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             testing.suites.test {
-                useJUnitJupiter()
-
-                dependencies {
-                    implementation files('${engineJarLibPath}')
-                }
+                ${setupSuiteWithEngineFixture()}
 
                 targets.all {
                     testTask.configure {
-                        setScanForTestClasses($scanningForTestClasses)
-                        setScanForTestDefinitions(true)
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/rbts"))
+                        scanForTestDefinitions = true
+
+                        options {
+                            includeEngines("rbt-engine")
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        testTaskWasSkippedDueToNoSources()
+    }
+
+    def "resource-based test engine detects and executes test definitions (excluding jupiter engine = #excludingJupiter)"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'jvm-test-suite'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${setupSuiteWithEngineFixture()}
+
+                targets.all {
+                    testTask.configure {
+                        scanForTestDefinitions = true
 
                         options {
                             includeEngines("rbt-engine")
@@ -62,40 +93,92 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        // Avoid no source error (TODO: remove this)
-        file("src/test/java/NotATest.java") << """
-            public class NotATest {}
-        """
+        writeTestDefinitions()
 
-        file("src/test/rbts/SomeTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
-            <tests>
-                <test name="foo" />
-                <test name="bar" />
-            </tests>
-        """
-        file("src/test/rbts/subSomeOtherTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
-            <tests>
-                <test name="other" />
-            </tests>
-        """
+        when:
+        succeeds("test", "--info")
 
-        expect:
-        succeeds("test", "-S", "--info")
-
-        and:
-        outputContains("INFO: Executing test: Test [file=SomeTestSpec.rbt, name=foo]")
-        outputContains("INFO: Executing test: Test [file=SomeTestSpec.rbt, name=bar]")
-        outputContains("INFO: Executing test: Test [file=subSomeOtherTestSpec.rbt, name=other]")
+        then:
+        nonClassBasedTestsExecuted()
 
         where:
-        scanningForTestClasses  | excludingJupiter
-        true                    | true
-        true                    | false
-        false                   | true
-        false                   | false
+        excludingJupiter << [true, false]
     }
 
-    def "can't do resource-based testing with unsupported test framework #testFrameworkName"() {
+    def "resource-based test engine detects and executes test definitions in custom location"() {
+        String customLocation = "src/test/some-other-place"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'jvm-test-suite'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${setupSuiteWithEngineFixture()}
+
+                targets.all {
+                    testTask.configure {
+                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
+
+                        options {
+                            includeEngines("rbt-engine")
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions(customLocation)
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        nonClassBasedTestsExecuted()
+    }
+
+    def "empty custom test definitions location skips"() {
+        String customLocation = "src/test/some-other-place"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'jvm-test-suite'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${setupSuiteWithEngineFixture()}
+
+                targets.all {
+                    testTask.configure {
+                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
+
+                        options {
+                            includeEngines("rbt-engine")
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        testTaskWasSkippedDueToNoSources()
+    }
+
+    def "can't do resource-based testing with unsupported test framework = #testFrameworkName"() {
+        given:
         buildFile << """
             plugins {
                 id 'java'
@@ -113,27 +196,148 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
 
                 targets.all {
                     testTask.configure {
-                        setScanForTestDefinitions(true)
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/rbts"))
+                        scanForTestDefinitions = true
                     }
                 }
             }
         """
 
-        // Avoid no source error (TODO: remove this)
-        file("src/test/java/NotATest.java") << """
-            public class NotATest {}
-        """
+        writeTestDefinitions()
 
-        expect:
+        when:
         fails("test")
 
-        and:
+        then:
         failure.assertHasCause("The $testFrameworkName test framework does not support resource-based testing.")
 
         where:
         testFrameworkName | testFrameworkMethod
         "Test NG"         | "useTestNG()"
         "JUnit"           | "useJUnit()"
+    }
+
+    def "missing test classes and/or definitions is skipped or fails when appropriate (scan for test classes = #scanForTestClasses, has test classes = #hasTestClasses, scan for test defs = #scanForTestDefs, has test defs = #hasTestDefs )"() {
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'jvm-test-suite'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${setupSuiteWithEngineFixture()}
+
+                targets.all {
+                    testTask.configure {
+                        scanForTestClasses = $scanForTestClasses
+                        scanForTestDefinitions = $scanForTestDefs
+                    }
+                }
+            }
+        """
+
+        if (hasTestClasses) {
+            writeTestClasses()
+        }
+        if (hasTestDefs) {
+            writeTestDefinitions()
+        }
+
+        when:
+        if (shouldFail) {
+            fails("test", "--info")
+        } else {
+            succeeds("test", "--info")
+        }
+
+        then:
+        if (shouldBeSkipped) {
+            testTaskWasSkippedDueToNoSources()
+        } else if (shouldFail) {
+            sourcesPresentAndNoTestsFound()
+        } else {
+            if (scanForTestClasses && hasTestClasses) {
+                classBasedTestsExecuted()
+            }
+            if (scanForTestDefs && hasTestDefs) {
+                nonClassBasedTestsExecuted()
+            }
+        }
+
+        where:
+        scanForTestClasses  | hasTestClasses    | scanForTestDefs   | hasTestDefs   || shouldBeSkipped  || shouldFail
+        true                | true              | true              | true          || false            || false
+        true                | false             | true              | true          || false            || false
+        true                | true              | false             | true          || false            || false
+        true                | true              | true              | false         || false            || false
+        true                | false             | false             | true          || false            || true
+        true                | false             | true              | false         || true             || false
+        true                | true              | false             | false         || false            || false
+        true                | false             | false             | false         || true             || false
+        false               | true              | true              | true          || false            || false
+        false               | false             | true              | true          || false            || false
+        false               | true              | false             | true          || false            || true
+        false               | true              | true              | false         || false            || true
+        false               | false             | false             | true          || false            || true
+        false               | false             | true              | false         || true             || false
+        false               | true              | false             | false         || false            || true
+        false               | false             | false             | false         || true             || false
+    }
+
+    private void testTaskWasSkippedDueToNoSources() {
+        result.assertTaskSkipped(":test")
+        outputContains("Skipping task ':test' as it has no source files and no previous output files.")
+    }
+
+    private void sourcesPresentAndNoTestsFound() {
+        failureCauseContains("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
+    }
+
+    private setupSuiteWithEngineFixture() {
+        return """
+                useJUnitJupiter()
+
+                dependencies {
+                    implementation files('${engineJarLibPath}')
+                }
+        """
+    }
+
+    private void classBasedTestsExecuted() {
+        outputContains("Tested!")
+    }
+
+    private void nonClassBasedTestsExecuted() {
+        outputContains("INFO: Executing test: Test [file=SomeTestSpec.rbt, name=foo]")
+        outputContains("INFO: Executing test: Test [file=SomeTestSpec.rbt, name=bar]")
+        outputContains("INFO: Executing test: Test [file=subSomeOtherTestSpec.rbt, name=other]")
+    }
+
+    private void writeTestClasses() {
+        file("src/test/java/SomeTest.java") << """
+            import org.junit.jupiter.api.Test;
+
+            public class SomeTest {
+                @Test
+                public void testMethod() {
+                    System.out.println("Tested!");
+                }
+            }
+        """
+    }
+
+    private void writeTestDefinitions(String path = "src/test/definitions") {
+        file("$path/SomeTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="foo" />
+                <test name="bar" />
+            </tests>
+        """
+        file("$path/subSomeOtherTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="other" />
+            </tests>
+        """
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -93,20 +94,16 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
                     new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
-        final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
-        final Set<File> testResourceDirs = testExecutionSpec.getCandidateResourceDirs();
+        final FileTree testClassFiles = testExecutionSpec.isScanForTestClasses() ? testExecutionSpec.getCandidateClassFiles() : FileCollectionFactory.emptyTree();
+        final Set<File> testDefinitionDirs = testExecutionSpec.isScanForTestDefinitions() ? testExecutionSpec.getCandidateTestDefinitionDirs() : Collections.emptySet();
 
-        // TODO: this logic is incorrect - need to handle the ONLY test resources case properly
-        // TODO: can iterate test directories directly, don't need to go through DefaultTestClassScanner, which should simplify things
-        TestDetector detector;
-        if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
+        if (testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
-            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceDirs : Collections.emptySet(), testFrameworkDetector, processor);
-        } else {
-            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceDirs : Collections.emptySet(), null, processor);
         }
+
+        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testFramework.getDetector(), processor);
 
         // What is this?
         // In some versions of the Gradle retry plugin, it would retry any test that had any kind of failure associated with it.
