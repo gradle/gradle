@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
-import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -38,7 +37,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
     }
 
-    FetchModelResult<Model, GradleBuild> runFetchModelAction(Consumer<BuildActionExecuter<FetchModelResult<Model, GradleBuild>>> configurer = {}) {
+    FetchModelResult<GradleBuild> runFetchModelAction(Consumer<BuildActionExecuter<FetchModelResult<GradleBuild>>> configurer = {}) {
         succeeds {
             def action = action(new FetchModelAction())
                 .withArguments(RESILIENT_MODEL_TRUE)
@@ -139,7 +138,6 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.failures.toString().contains("Script compilation error")
         !model.model.includedBuilds.isEmpty()
     }
-
 
     def "should return failure when caching models with isolated projects"() {
         given:

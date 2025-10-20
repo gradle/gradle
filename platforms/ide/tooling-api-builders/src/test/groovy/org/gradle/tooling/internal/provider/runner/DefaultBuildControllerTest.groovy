@@ -53,8 +53,8 @@ class DefaultBuildControllerTest extends Specification {
         cancellationToken,
         buildEventConsumer,
         sideEffectExecutor,
-        payloadSerializer,
-        resilientIssueRecorder
+        payloadSerializer
+
     )
 
     def "cannot get build model from unmanaged thread"() {
