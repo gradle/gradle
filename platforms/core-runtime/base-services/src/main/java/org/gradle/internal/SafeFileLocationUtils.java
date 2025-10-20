@@ -39,8 +39,19 @@ import java.util.Arrays;
 public final class SafeFileLocationUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
 
+    // SipHash-2-4 provides decent collision resistance of 64 bits while being fast to compute
     private static final HashFunction HASHER = Hashing.sipHash24();
     private static final BaseEncoding BASE_ENCODING = BaseEncoding.base32Hex().omitPadding();
+
+    /**
+     * A short, distinctive prefix to indicate that a file name has been truncated.
+     *
+     * <p>
+     * Uses underscores as they are likely valid characters on all filesystems,
+     * and visually distinctive. Uses "cut" instead of "truncated" to keep it short.
+     * </p>
+     */
+    private static final byte[] TRUNCATED_PREFIX_BYTES = "_cut_".getBytes(StandardCharsets.UTF_8);
 
     /**
      * The maximum file name length in bytes for most filesystems (e.g. ext4, NTFS).
@@ -60,7 +71,7 @@ public final class SafeFileLocationUtils {
      * </p>
      */
     @VisibleForTesting
-    static final int MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES = MAX_FILE_NAME_LENGTH_IN_BYTES - 1 - (HASHER.bits() + 4) / 5;
+    static final int MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES = MAX_FILE_NAME_LENGTH_IN_BYTES - TRUNCATED_PREFIX_BYTES.length - 1 - (HASHER.bits() + 4) / 5;
 
     /**
      * The character used to replace illegal characters in file names.
@@ -89,10 +100,15 @@ public final class SafeFileLocationUtils {
             .replace('\r', ILLEGAL_CHAR_REPLACEMENT);
     }
 
-    private static final CharsetEncoder UTF_8_ENCODER_WITH_ILLEGAL_CHAR_REPLACEMENT = StandardCharsets.UTF_8.newEncoder()
-        .onMalformedInput(CodingErrorAction.REPLACE)
-        .onUnmappableCharacter(CodingErrorAction.REPLACE)
-        .replaceWith(String.valueOf(ILLEGAL_CHAR_REPLACEMENT).getBytes(StandardCharsets.UTF_8));
+    // CharsetEncoder is not thread-safe, so use ThreadLocal to hold one per thread
+    // These are not very expensive memory-wise, so this should be OK
+    private static final ThreadLocal<CharsetEncoder> UTF_8_ENCODER_WITH_ILLEGAL_CHAR_REPLACEMENT =
+        ThreadLocal.withInitial(() ->
+            StandardCharsets.UTF_8.newEncoder()
+                .onMalformedInput(CodingErrorAction.REPLACE)
+                .onUnmappableCharacter(CodingErrorAction.REPLACE)
+                .replaceWith(String.valueOf(ILLEGAL_CHAR_REPLACEMENT).getBytes(StandardCharsets.UTF_8))
+        );
 
     /**
      * Remove malformed or un-mappable characters and shorten the name if necessary.
@@ -103,7 +119,7 @@ public final class SafeFileLocationUtils {
     private static String cleanAndShortenName(String name) {
         byte[] rawName;
         try {
-            ByteBuffer buffer = UTF_8_ENCODER_WITH_ILLEGAL_CHAR_REPLACEMENT.encode(CharBuffer.wrap(name));
+            ByteBuffer buffer = UTF_8_ENCODER_WITH_ILLEGAL_CHAR_REPLACEMENT.get().encode(CharBuffer.wrap(name));
             rawName = new byte[buffer.remaining()];
             buffer.get(rawName);
         } catch (CharacterCodingException e) {
@@ -142,6 +158,8 @@ public final class SafeFileLocationUtils {
         } else {
             safeLength = getSafeLength(rawName, MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES);
         }
+        // Copy truncated prefix
+        result.put(TRUNCATED_PREFIX_BYTES);
         // Copy safe length of original name
         result.put(rawName, 0, safeLength);
         // Copy hyphen
