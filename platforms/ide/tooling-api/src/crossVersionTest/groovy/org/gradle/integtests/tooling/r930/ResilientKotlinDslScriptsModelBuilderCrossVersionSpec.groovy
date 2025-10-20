@@ -399,8 +399,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
         resilientModels.failures.size() == 1
-        resilientModels.failures[settingsKotlinFile.parentFile].contains("c/build.gradle.kts' line: 5")
-        resilientModels.failures[settingsKotlinFile.parentFile].contains(expectedFailure)
+        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "c/build.gradle.kts' line: 5")
+        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], expectedFailure)
 
         where:
         description                | breakage                                     | expectedFailure  | queryStrategy
@@ -496,8 +496,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
         resilientModels.failures.size() == 1
-        resilientModels.failures[settingsKotlinFile.parentFile].contains("b/build.gradle.kts' line: 2")
-        resilientModels.failures[settingsKotlinFile.parentFile].contains("Failing script")
+        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "b/build.gradle.kts' line: 2")
+        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "Failing script")
 
         where:
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
@@ -589,10 +589,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         def actualNoOfFailures = resilientModels.failures.size()
         assert actualNoOfFailures == expectedNoOfFailures : "Expected $expectedNoOfFailures failures, but had ${actualNoOfFailures}"
         rootBuildFailure?.with {
-            assert resilientModels.failures[settingsKotlinFile.parentFile].contains(it)
+            expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], it)
         }
         includedBuildFailure?.with {
-            assert resilientModels.failures[included].contains(it)
+            expectFailureToContain(resilientModels.failures[included], it)
         }
 
         where:
@@ -732,6 +732,11 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                     "Expected jar named $expectedJar in the script model classpath for file $expectedFile, " +
                             "but it wasn't there: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
         }
+    }
+
+    static void expectFailureToContain(String actualFailure, String expectedFragment) {
+        assert actualFailure.contains(expectedFragment) :
+                "Failure expected to contain \"${expectedFragment}\", but was \"\n${actualFailure}\n\" instead!"
     }
 
     static class KotlinModel implements Serializable {
