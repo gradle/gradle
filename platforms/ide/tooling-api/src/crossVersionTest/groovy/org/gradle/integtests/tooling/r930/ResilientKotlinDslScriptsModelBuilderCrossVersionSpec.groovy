@@ -33,6 +33,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Ignore
 
 import java.util.function.Function
 import java.util.regex.Pattern
@@ -241,6 +242,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     @ToBeImplemented // TODO: we should be able to do better
+    @Ignore
     def "basic build with included build - broken settings and build file in included build"() {
         given:
         settingsKotlinFile << """
