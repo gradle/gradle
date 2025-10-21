@@ -266,6 +266,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "core-build-discovery-api",
+    "path": "platforms/core-runtime/core-build-discovery-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "core-flow-services-api",
     "path": "platforms/core-configuration/core-flow-services-api",
     "unitTests": false,

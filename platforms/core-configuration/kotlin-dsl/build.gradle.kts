@@ -18,6 +18,7 @@ dependencies {
     api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.coreBuildDiscoveryApi)
     api(projects.concurrent)
     api(projects.fileOperations)
     api(projects.hashing)

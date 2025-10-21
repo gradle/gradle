@@ -71,6 +71,7 @@ val core = platform("core") {
         subproject("cli")
         subproject("client-services")
         subproject("concurrent")
+        subproject("core-build-discovery-api")
         subproject("daemon-main")
         subproject("daemon-protocol")
         subproject("daemon-services")

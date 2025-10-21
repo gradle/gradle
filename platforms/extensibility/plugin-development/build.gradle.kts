@@ -26,6 +26,7 @@ dependencies {
 
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
+    implementation(projects.coreBuildDiscoveryApi)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)

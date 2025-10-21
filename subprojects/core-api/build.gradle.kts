@@ -30,6 +30,7 @@ dependencies {
     api(libs.ant)
     api(libs.inject)
 
+    implementation(projects.coreBuildDiscoveryApi)
     implementation(projects.io)
     implementation(projects.baseServicesGroovy)
     implementation(projects.logging)
