@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -51,6 +52,11 @@ public class ClassTestDefinition implements TestDefinition {
     @Override
     public String getId() {
         return getTestClassName();
+    }
+
+    @Override
+    public boolean matches(TestSelectionMatcher matcher) {
+        return matcher.mayIncludeClass(getId());
     }
 
     @Override
