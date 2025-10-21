@@ -69,15 +69,23 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
         and:
         // 255 is the filesystem limit on many systems, so we limit to that.
-        def htmlReportName = "_cut_" +
-            ("A" * (255 - ("_cut_" + "-GF6HOQ7STNL92.html").length())) +
-            "-GF6HOQ7STNL92.html"
-        def xmlReportName = "_cut_TEST-" +
-            ("A" * (255 - ("_cut_TEST-" + "-1VTVAN1369SJ8.xml").length())) +
-            "-1VTVAN1369SJ8.xml"
+        def htmlReportName = buildSafeFileName("_cut_", "-EAOQSUM057012.html")
+        def xmlReportName = buildSafeFileName("_cut_TEST-", "-VDVVE6CE3E5C8.xml")
         file("build/reports/tests/test/index.html").text.contains(name)
-        file("build/reports/tests/test/classes/$htmlReportName").exists()
-        file("build/test-results/test/$xmlReportName").exists()
+        // These do an `any` check to give a better error message on failure
+        file("build/reports/tests/test/classes/").listFiles().any {
+            it.name == htmlReportName
+        }
+        file("build/test-results/test/").listFiles().any {
+            it.name == xmlReportName
+        }
+    }
+
+    private static String buildSafeFileName(String prefix, String suffix) {
+        def maxFileNameLength = 255
+        def safeLength = maxFileNameLength - (Utf8.encodedLength(prefix) + Utf8.encodedLength(suffix))
+        def safeName = "A" * safeLength
+        return "${prefix}${safeName}${suffix}"
     }
 
     @Issue("GRADLE-2702")
