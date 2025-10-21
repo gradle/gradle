@@ -32,6 +32,15 @@ class DefaultServiceRegistryTest extends Specification {
     def registry = new DefaultServiceRegistry("test registry")
         .addProvider(new TestProvider())
 
+    def notAllowedToInherit() {
+        when:
+        new DefaultServiceRegistry() {}
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Inheriting from DefaultServiceRegistry is not allowed. Use ScopedServiceRegistry instead."
+    }
+
     def throwsExceptionForUnknownService() {
         when:
         registry.get(StringBuilder.class)

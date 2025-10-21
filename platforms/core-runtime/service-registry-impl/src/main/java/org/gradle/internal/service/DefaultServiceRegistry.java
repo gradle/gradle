@@ -91,6 +91,12 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     private final static Service[] NO_DEPENDENTS = new Service[0];
     private final static Object[] NO_PARAMS = new Object[0];
 
+    // Simulation of a sealed class with public constructors in Java 8
+    private final static Set<Class<? extends DefaultServiceRegistry>> ALLOWED_IMPLEMENTATIONS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        DefaultServiceRegistry.class,
+        ScopedServiceRegistry.class
+    )));
+
     private final ClassInspector inspector;
     private final OwnServices ownServices;
     private final ServiceProvider allServices;
@@ -114,6 +120,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     public DefaultServiceRegistry(@Nullable String displayName, ServiceRegistry... parents) {
+        if (!ALLOWED_IMPLEMENTATIONS.contains(getClass())) {
+            throw new IllegalArgumentException(String.format("Inheriting from %s is not allowed. Use %s instead.", DefaultServiceRegistry.class.getSimpleName(), ScopedServiceRegistry.class.getSimpleName()));
+        }
+
         this.displayName = displayName;
         this.ownServices = new OwnServices();
         if (parents.length == 0) {
