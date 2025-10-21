@@ -16,8 +16,11 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -27,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.DatagramPacket;
 import java.net.SocketAddress;
-import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -80,10 +82,11 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private final Lock lock = new ReentrantLock();
 
-    private final Long2ObjectOpenHashMap<ContendedAction> contendedActions = new Long2ObjectOpenHashMap<>();
-    private final Long2ObjectOpenHashMap<FileLockReleasedSignal> lockReleasedSignals = new Long2ObjectOpenHashMap<>();
-    private final Long2IntOpenHashMap unlocksRequestedFrom = new Long2IntOpenHashMap();
-    private final Long2IntOpenHashMap unlocksConfirmedFrom = new Long2IntOpenHashMap();
+    // Using the array-based maps as we expect the number of items to be small
+    private final Long2ObjectMap<ContendedAction> contendedActions = new Long2ObjectArrayMap<>();
+    private final Long2ObjectMap<FileLockReleasedSignal> lockReleasedSignals = new Long2ObjectArrayMap<>();
+    private final Long2IntMap unlocksRequestedFrom = new Long2IntArrayMap();
+    private final Long2IntMap unlocksConfirmedFrom = new Long2IntArrayMap();
 
     private final FileLockCommunicator communicator;
     private final InetAddressProvider inetAddressProvider;
@@ -306,7 +309,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         private final Lock lock = new ReentrantLock();
         private final long lockId;
         private final Consumer<FileLockReleasedSignal> action;
-        private Set<SocketAddress> requesters = new LinkedHashSet<>();
+        private Set<SocketAddress> requesters = new ObjectLinkedOpenHashSet<>();
         private boolean running;
 
         private ContendedAction(long lockId, Consumer<FileLockReleasedSignal> action) {
