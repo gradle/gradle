@@ -20,6 +20,7 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
+    implementation(projects.buildDiscovery)
     implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.fileCollections)
