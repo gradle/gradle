@@ -172,12 +172,12 @@ class DefaultBuildController implements
         try {
             Object model = getModel(target, modelIdentifier, parameter).getModel();
             Collection<InternalFailure> failures = getRecordedFailures().collect(toImmutableList());
-            return new DefaultInternalFetchModelResult<>(target, uncheckedNonnullCast(model), failures);
+            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(model), failures);
         } catch (Exception e) {
             ImmutableList.Builder<InternalFailure> builder = ImmutableList.builder();
             getRecordedFailures().forEach(builder::add);
             builder.add(DefaultFailure.fromThrowable(e));
-            return new DefaultInternalFetchModelResult<>(target, null, builder.build());
+            return new DefaultInternalFetchModelResult<>(null, builder.build());
         } finally {
             resilientIssuesRecorder.clear();
         }

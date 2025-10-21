@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.FetchModelResult
-import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion('>=9.3')
@@ -147,10 +146,10 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    static class FetchModelAction implements BuildAction<FetchModelResult<Model, GradleBuild>>, Serializable {
+    static class FetchModelAction implements BuildAction<FetchModelResult<GradleBuild>>, Serializable {
         @Override
-        FetchModelResult<Model, GradleBuild> execute(BuildController controller) {
-            return controller.fetch(null, GradleBuild, null, null)
+        FetchModelResult<GradleBuild> execute(BuildController controller) {
+            return controller.fetch(GradleBuild, null, null)
         }
     }
 }
