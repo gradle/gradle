@@ -21,7 +21,6 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 
-import javax.inject.Inject;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -38,10 +37,6 @@ public class DefaultTestLogging implements TestLogging {
     private boolean showStackTraces = true;
     private TestExceptionFormat exceptionFormat = TestExceptionFormat.FULL;
     private Set<TestStackTraceFilter> stackTraceFilters = EnumSet.of(TestStackTraceFilter.TRUNCATE);
-
-    @Inject
-    public DefaultTestLogging() {
-    }
 
     @Override
     public Set<TestLogEvent> getEvents() {

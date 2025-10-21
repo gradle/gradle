@@ -662,8 +662,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        if (!getTestFramework().supportsResourceBasedTesting() && getScanForTestDefinitions().get()) {
-            // TODO: Can we add a name?  Make TestFramework extend Describable?
+        if (!getTestFramework().supportsNonClassBasedTesting() && getScanForTestDefinitions().get()) {
             throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
         }
 

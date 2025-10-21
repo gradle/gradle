@@ -72,7 +72,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer {
     @Override
     public void accept(TestDefinition testDefinition) {
         if (!(testDefinition instanceof ClassTestDefinition)) {
-            throw new IllegalArgumentException("JUnitTestClassExecutor only supports ClassTestDefinition instances.");
+            throw new IllegalArgumentException(JUnitTestExecutor.class.getSimpleName() + " only supports class-based testing.");
         }
 
         String testClassName = ((ClassTestDefinition) testDefinition).getTestClassName();
