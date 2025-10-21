@@ -84,7 +84,6 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             }
             throw t;
         }
-
         try {
             testResultWriter.close();
         } catch (IOException e) {
@@ -95,15 +94,6 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         Path reportIndexFile = testReportGenerator == null
             ? null
             : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
-
-        TestEventReporterFactoryInternal.FailureReportResult reportResult = tryReportFailures.get();
-        String failureMessage;
-        if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) {
-            failureMessage = ((TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) reportResult).getFailureMessage();
-        } else {
-            failureMessage = this.failureMessage;
-        }
-        boolean hasTestFailures = failureMessage != null;
 
         // Notify aggregate listener of final results
         boolean hasTestFailures = failureMessage != null;
