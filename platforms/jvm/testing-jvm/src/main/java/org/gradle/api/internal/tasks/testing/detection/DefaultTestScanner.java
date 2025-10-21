@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -41,15 +42,18 @@ public class DefaultTestScanner implements TestDetector {
     private final Set<File> candidateDefinitionDirs;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
+    private final File projectDir;
 
     public DefaultTestScanner(FileTree candidateClassFiles,
                               Set<File> candidateDefinitionDirs,
                               TestFrameworkDetector testFrameworkDetector,
-                              TestClassProcessor testClassProcessor) {
+                              TestClassProcessor testClassProcessor,
+                              File projectDir) {
         this.candidateClassFiles = candidateClassFiles;
         this.candidateDefinitionDirs = candidateDefinitionDirs;
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
+        this.projectDir = projectDir;
     }
 
     @Override
@@ -83,7 +87,7 @@ public class DefaultTestScanner implements TestDetector {
             if (dir.exists()) {
                 if (dir.isDirectory()) {
                     if (dir.canRead()) {
-                        TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
+                        TestDefinition testDefinition = buildDirectoryTestDefinition(dir);
                         testClassProcessor.processTestDefinition(testDefinition);
                     } else {
                         throw new GradleException("Cannot read test definitions directory: " + dir.getAbsolutePath());
@@ -95,6 +99,15 @@ public class DefaultTestScanner implements TestDetector {
                 throw new GradleException("Test definitions directory does not exist: " + dir.getAbsolutePath());
             }
         });
+    }
+
+    private DirectoryBasedTestDefinition buildDirectoryTestDefinition(File dir) {
+        Path relativePath = projectDir.toPath().relativize(dir.toPath());
+        String[] segments = new String[relativePath.getNameCount()];
+        for (int i = 0; i < segments.length; i++) {
+            segments[i] = relativePath.getName(i).toString();
+        }
+        return new DirectoryBasedTestDefinition(segments);
     }
 
     private abstract class ClassFileVisitor extends EmptyFileVisitor implements ReproducibleFileVisitor {

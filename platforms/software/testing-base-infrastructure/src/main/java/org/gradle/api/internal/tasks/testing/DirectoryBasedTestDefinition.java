@@ -20,20 +20,21 @@ import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * A test definition which denotes a directory containing non-class-based tests.
  */
 @NullMarked
 public final class DirectoryBasedTestDefinition implements TestDefinition {
-    private final File resourceFile;
+    private final String[] pathSegments;
 
-    public DirectoryBasedTestDefinition(File resourceFile) {
-        this.resourceFile = resourceFile;
+    public DirectoryBasedTestDefinition(String[] pathSegments) {
+        this.pathSegments = pathSegments;
     }
 
-    public File getTestDefintionFile() {
-        return resourceFile;
+    public File getDirectory(File projectDir) {
+        return projectDir.toPath().resolve(getId()).toFile();
     }
 
     /**
@@ -42,13 +43,16 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
      */
     @Override
     public String getId() {
-        return resourceFile.getAbsolutePath(); // TODO: Relative path here too
+        return String.join(File.separator, pathSegments);
+    }
+
+    public String[] getSegments() {
+        return pathSegments;
     }
 
     @Override
     public String getDisplayName() {
-        // TODO: Use the relative path from the build's root - make field a RelativeFile?
-        return "tests in directory '" + resourceFile.getAbsolutePath() + "'";
+        return "tests in directory '" + getId() + "'";
     }
 
     @Override
@@ -68,12 +72,12 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
 
         DirectoryBasedTestDefinition that = (DirectoryBasedTestDefinition) o;
 
-        return resourceFile.equals(that.resourceFile);
+        return Arrays.equals(pathSegments, that.pathSegments);
     }
 
     @Override
     public int hashCode() {
-        return resourceFile.hashCode();
+        return Arrays.hashCode(pathSegments);
     }
 
     @Override

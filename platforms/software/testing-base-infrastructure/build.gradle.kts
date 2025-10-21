@@ -13,9 +13,9 @@ gradleModule {
 dependencies {
     api(projects.baseServices)
     api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
     api(projects.messaging)
     api(projects.serialization)
+    api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.workerMain)
 

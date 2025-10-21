@@ -36,11 +36,13 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     private final TestClassProcessor delegate;
     private final LinkedHashSet<TestDefinition> prioritizedTestDefinitions = new LinkedHashSet<>();
     private final LinkedHashSet<TestDefinition> otherTestDefinitions = new LinkedHashSet<>();
+    private final File projectDir;
 
-    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor delegate) {
+    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor delegate, File projectDir) {
         this.previousFailedTestClasses = previousFailedTestClasses;
         this.previousFailedTestDefinitionDirectories = previousFailedTestDefinitionDirectories;
         this.delegate = delegate;
+        this.projectDir = projectDir;
     }
 
     @Override
@@ -77,7 +79,7 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
         if (testDefinition instanceof ClassTestDefinition) {
             return previousFailedTestClasses.contains(((ClassTestDefinition) testDefinition).getTestClassName());
         } else if (testDefinition instanceof DirectoryBasedTestDefinition){
-            return previousFailedTestDefinitionDirectories.contains(((DirectoryBasedTestDefinition) testDefinition).getTestDefintionFile());
+            return previousFailedTestDefinitionDirectories.contains(((DirectoryBasedTestDefinition) testDefinition).getDirectory(projectDir));
         } else {
             throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
         }

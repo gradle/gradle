@@ -182,6 +182,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
+    private final File projectDir;
 
     @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
@@ -206,6 +207,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         getTestDefinitionDirs().from(getProject().getLayout().getProjectDirectory().file(TEST_DEFINITIONS_DIR));
         getCandidateDefinitionDirs().convention(getTestDefinitionDirs()); // Filtering would be done here, as in getCandidateClassFiles().  Does it need a separate prop, or could it reuse patternSet?
         getScanForTestDefinitions().convention(false);
+
+        projectDir = getProject().getRootDir();
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -738,7 +741,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 getServices().get(WorkerLeaseService.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
-                (DefaultTestFilter) getFilter());
+                (DefaultTestFilter) getFilter(),
+                projectDir);
         } else {
             return testExecuter;
         }

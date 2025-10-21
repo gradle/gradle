@@ -47,7 +47,6 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,12 +127,21 @@ public class TestEventSerializer {
     private static class DirectoryBasedTestDefinitionSerializer implements Serializer<DirectoryBasedTestDefinition> {
         @Override
         public DirectoryBasedTestDefinition read(Decoder decoder) throws Exception {
-            return new DirectoryBasedTestDefinition(new File(decoder.readString()));
+            int numSegments = decoder.readSmallInt();
+            String[] segments = new String[numSegments];
+            for (int i = 0; i < numSegments; i++) {
+                segments[i] = decoder.readString();
+            }
+            return new DirectoryBasedTestDefinition(segments);
         }
 
         @Override
         public void write(Encoder encoder, DirectoryBasedTestDefinition value) throws Exception {
-            encoder.writeString(value.getTestDefintionFile().getAbsolutePath()); // TODO: Absolute path won't work, need a relative path from the build dir? resource path from root of the test classpath? something that will work remotely
+            String[] segments = value.getSegments();
+            encoder.writeSmallInt(segments.length);
+            for (String segment : segments) {
+                encoder.writeString(segment);
+            }
         }
     }
 

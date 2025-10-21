@@ -62,11 +62,12 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final Clock clock;
     private final DefaultTestFilter testFilter;
     private TestClassProcessor processor;
+    private final File projectDir;
 
     public DefaultTestExecuter(
         WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
         WorkerLeaseService workerLeaseService, int maxWorkerCount,
-        Clock clock, DefaultTestFilter testFilter
+        Clock clock, DefaultTestFilter testFilter, File projectDir
     ) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
@@ -75,6 +76,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         this.maxWorkerCount = maxWorkerCount;
         this.clock = clock;
         this.testFilter = testFilter;
+        this.projectDir = projectDir;
     }
 
     @Override
@@ -92,7 +94,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         processor =
             new PatternMatchTestClassProcessor(testFilter,
                 new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
-                    new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
+                    new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory), projectDir));
 
         final FileTree testClassFiles = testExecutionSpec.isScanForTestClasses() ? testExecutionSpec.getCandidateClassFiles() : FileCollectionFactory.emptyTree();
         final Set<File> testDefinitionDirs = testExecutionSpec.isScanForTestDefinitions() ? testExecutionSpec.getCandidateTestDefinitionDirs() : Collections.emptySet();
@@ -103,7 +105,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
         }
 
-        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testFramework.getDetector(), processor);
+        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testFramework.getDetector(), processor, projectDir);
 
         // What is this?
         // In some versions of the Gradle retry plugin, it would retry any test that had any kind of failure associated with it.
