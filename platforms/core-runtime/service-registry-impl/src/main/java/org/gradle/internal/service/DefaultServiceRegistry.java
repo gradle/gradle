@@ -50,27 +50,6 @@ import static org.gradle.util.internal.CollectionUtils.join;
 /**
  * A hierarchical {@link ServiceRegistry} implementation.
  *
- * <p>Subclasses can register services by:</p>
- *
- * <ul>
- *
- * <li>Calling {@link #add(Class, Object)} or {@link #add(Object)} to register a service instance.</li>
- *
- * <li>Calling {@link #addProvider(ServiceRegistrationProvider)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>
- *
- * <li>Adding a factory method. A factory method should be annotated with {@literal @}{@link Provides}, have a name that starts with 'create', and have a non-void return type.
- * For example, <code>@Provides protected SomeService createSomeService() { ....
- * }</code>.
- * Parameters are injected using services from this registry or its parents. Parameter of type {@link ServiceRegistry} will receive the service registry that owns the service. Parameter of
- * type {@code List<T>} will receive all services of type {@code T}, if any.
- * If a parameter has the same type as the return type of the factory method, then that parameter will be located in the parent registry.
- * This allows decorating services, i.e. specializing a service from a parent scope.</li>
- *
- * <li>Adding a configure method. A configure method should be called 'configure', take a {@link ServiceRegistration} parameter, and a have a void return type. Additional parameters are injected using
- * services from this registry or its parents.</li>
- *
- * </ul>
- *
  * <p>Service instances are closed when the registry that created them is closed using {@link #close()}.
  * If a service instance implements {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable}
  * then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called.
@@ -84,7 +63,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
  * registered as a listener.</p>
  */
-public class DefaultServiceRegistry implements CloseableServiceRegistry, ContainsServices, ServiceRegistrationProvider {
+public class DefaultServiceRegistry implements CloseableServiceRegistry, ContainsServices {
     private enum State {INIT, STARTED, CLOSED}
 
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
@@ -136,9 +115,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             this.inspector = parents[0] instanceof DefaultServiceRegistry ? ((DefaultServiceRegistry) parents[0]).inspector : new ClassInspector();
         }
         this.thisAsServiceProvider = allServices;
-
-        ServiceAccessToken token = ServiceAccess.createToken(getDisplayName());
-        findProviderMethods(this, token);
     }
 
     private static ServiceProvider setupParentServices(ServiceRegistry[] parents) {
