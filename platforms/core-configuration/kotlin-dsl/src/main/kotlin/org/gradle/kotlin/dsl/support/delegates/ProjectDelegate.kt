@@ -171,13 +171,19 @@ abstract class ProjectDelegate : Project {
     override fun allprojects(configureClosure: Closure<*>) =
         delegate.allprojects(configureClosure)
 
+    @Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(type)"))
     override fun <T : Any> container(type: Class<T>): NamedDomainObjectContainer<T> =
+        @Suppress("deprecation")
         delegate.container(type)
 
+    @Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(type, factory)"))
     override fun <T : Any> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> =
+        @Suppress("deprecation")
         delegate.container(type, factory)
 
+    @Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(type, factoryClosure)"))
     override fun <T : Any> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> =
+        @Suppress("deprecation")
         delegate.container(type, factoryClosure)
 
     override fun repositories(configureClosure: Closure<*>) =
@@ -213,7 +219,7 @@ abstract class ProjectDelegate : Project {
     override fun getProjectDir(): File =
         delegate.projectDir
 
-    override fun files(vararg paths: Any): ConfigurableFileCollection =
+    override fun files(vararg paths: Any?): ConfigurableFileCollection =
         delegate.files(*paths)
 
     override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection =
@@ -418,7 +424,7 @@ abstract class ProjectDelegate : Project {
     override fun tarTree(tarPath: Any): FileTree =
         delegate.tarTree(tarPath)
 
-    override fun delete(vararg paths: Any): Boolean =
+    override fun delete(vararg paths: Any?): Boolean =
         delegate.delete(*paths)
 
     override fun delete(action: Action<in DeleteSpec>): WorkResult =

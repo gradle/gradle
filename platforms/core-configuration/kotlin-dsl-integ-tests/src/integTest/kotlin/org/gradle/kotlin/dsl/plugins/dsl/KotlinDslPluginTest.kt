@@ -39,7 +39,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
         // The test applies the in-development version of the kotlin-dsl
         // which, by convention, it is always ahead of the version expected by
         // the in-development version of Gradle
-        // (see publishedKotlinDslPluginsVersion in kotlin-dsl.gradle.kts)
+        // (see publishedKotlinDslPluginsVersion in the project's build logic)
         withKotlinDslPlugin()
 
         withDefaultSettings().appendText(
@@ -75,7 +75,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -280,7 +280,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -334,7 +334,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     private

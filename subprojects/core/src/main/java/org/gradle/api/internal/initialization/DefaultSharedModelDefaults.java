@@ -25,22 +25,22 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.plugin.software.internal.SoftwareTypeImplementation;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.ProjectFeatureImplementation;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 
 public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, MethodMixIn {
-    private final SoftwareTypeRegistry softwareTypeRegistry;
+    private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final DynamicMethods dynamicMethods = new DynamicMethods();
 
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ProjectLayout> projectLayout = new ThreadLocal<>();
 
     @Inject
-    public DefaultSharedModelDefaults(SoftwareTypeRegistry softwareTypeRegistry) {
-        this.softwareTypeRegistry = softwareTypeRegistry;
+    public DefaultSharedModelDefaults(ProjectFeatureDeclarations projectFeatureDeclarations) {
+        this.projectFeatureDeclarations = projectFeatureDeclarations;
     }
 
     @Override
@@ -57,22 +57,22 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
     public ProjectLayout getLayout() {
         ProjectLayout instance = projectLayout.get();
         if (instance == null) {
-            throw new GradleException("ProjectLayout should be referenced only inside of software type default configuration blocks");
+            throw new GradleException("ProjectLayout should be referenced only inside of project type default configuration blocks");
         }
         return instance;
     }
 
     @Override
     public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
-        if (softwareTypeRegistry.getSoftwareTypeImplementations().containsKey(name)) {
-            SoftwareTypeImplementation<?> softwareType = softwareTypeRegistry.getSoftwareTypeImplementations().get(name);
-            if (softwareType.getModelPublicType().isAssignableFrom(publicType)) {
-                softwareType.addModelDefault(new ActionBasedDefault<>(configureAction));
+        if (projectFeatureDeclarations.getProjectFeatureImplementations().containsKey(name)) {
+            ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
+            if (projectFeature.getDefinitionPublicType().isAssignableFrom(publicType)) {
+                projectFeature.addModelDefault(new ActionBasedDefault<>(configureAction));
             } else {
-                throw new IllegalArgumentException(String.format("Cannot add convention for software type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, softwareType.getModelPublicType()));
+                throw new IllegalArgumentException(String.format("Cannot add convention for project type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, projectFeature.getDefinitionPublicType()));
             }
         } else {
-            throw new IllegalArgumentException(String.format("Cannot add convention for unknown software type '%s'.", name));
+            throw new IllegalArgumentException(String.format("Cannot add convention for unknown project type '%s'.", name));
         }
     }
 
@@ -86,14 +86,14 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
         public boolean hasMethod(String name, Object... arguments) {
             return arguments.length == 1 &&
                 (arguments[0] instanceof Action || arguments[0] instanceof Closure) &&
-                softwareTypeRegistry.getSoftwareTypeImplementations().containsKey(name);
+                projectFeatureDeclarations.getProjectFeatureImplementations().containsKey(name);
         }
 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (hasMethod(name, arguments)) {
-                SoftwareTypeImplementation<?> softwareType = softwareTypeRegistry.getSoftwareTypeImplementations().get(name);
-                add(name, softwareType.getModelPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
+                ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
+                add(name, projectFeature.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
             } else {
                 return DynamicInvokeResult.notFound();

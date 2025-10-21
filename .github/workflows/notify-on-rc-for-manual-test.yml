@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Send Slack notification about new RCs for manual testing
         id: slack
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook: ${{ secrets.IDE_EXPERIENCE_TEAM_SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook

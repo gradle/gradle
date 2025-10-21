@@ -17,6 +17,7 @@
 package org.gradle.tooling.provider.model;
 
 import org.gradle.api.Project;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Responsible for building tooling models to return to the tooling API client.
@@ -50,7 +51,8 @@ public interface ToolingModelBuilder {
      *
      * @param modelName The model name, usually the same as the name of the Java interface used by the client.
      * @param project The project to create the model for.
-     * @return The model.
+     * @return The model, or null if not available.
      */
+    @Nullable
     Object buildAll(String modelName, Project project);
 }

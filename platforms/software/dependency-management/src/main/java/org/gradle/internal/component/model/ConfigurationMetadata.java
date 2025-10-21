@@ -18,7 +18,6 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -36,7 +35,7 @@ import java.util.Set;
  * @see VariantGraphResolveMetadata
  * @see ConfigurationGraphResolveMetadata
  */
-public interface ConfigurationMetadata extends HasAttributes {
+public interface ConfigurationMetadata {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      *
@@ -50,10 +49,6 @@ public interface ConfigurationMetadata extends HasAttributes {
 
     DisplayName asDescribable();
 
-    /**
-     * Attributes are immutable on ConfigurationMetadata
-     */
-    @Override
     ImmutableAttributes getAttributes();
 
     /**

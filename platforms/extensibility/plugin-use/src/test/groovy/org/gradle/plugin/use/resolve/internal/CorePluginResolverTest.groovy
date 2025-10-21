@@ -17,7 +17,7 @@
 package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.Plugin
-import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
 import org.gradle.api.internal.plugins.PluginManagerInternal
@@ -96,7 +96,7 @@ class CorePluginResolverTest extends Specification {
 
     def "cannot have custom artifact"() {
         when:
-        resolver.resolve(new DefaultPluginRequest(DefaultPluginId.of("foo"), true, PluginRequestInternal.Origin.OTHER, "test", 1, null, Mock(ModuleVersionSelector), null, null))
+        resolver.resolve(new DefaultPluginRequest(DefaultPluginId.of("foo"), true, PluginRequestInternal.Origin.OTHER, "test", 1, null, Mock(ModuleComponentSelector), null, null))
 
         then:
         1 * pluginRegistry.lookup(DefaultPluginId.of("foo")) >> impl

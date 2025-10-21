@@ -14,27 +14,17 @@
  * limitations under the License.
  */
 
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = "DCL-related utilities that are meant to be reused in the Gradle subprojects but not in DCL client applications"
 
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        apiVersion.set(KotlinVersion.KOTLIN_1_9)
-        languageVersion.set(KotlinVersion.KOTLIN_1_9)
-    }
-}
-
 dependencies {
-    api(projects.core)
+    compileOnly(projects.projectFeaturesApi)
 
-    implementation(projects.declarativeDslApi)
     implementation(projects.coreApi)
+    implementation(projects.declarativeDslApi)
 
     api(libs.futureKotlin("stdlib"))
     implementation(libs.futureKotlin("reflect"))

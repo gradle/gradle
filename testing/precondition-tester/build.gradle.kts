@@ -57,6 +57,9 @@ dependencies {
     testImplementation(libs.junit5JupiterApi) {
         because("Assume API comes from here")
     }
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 tasks {
@@ -86,4 +89,8 @@ fun Test.setupPreconditionTesting() {
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+errorprone {
+    nullawayEnabled = true
 }

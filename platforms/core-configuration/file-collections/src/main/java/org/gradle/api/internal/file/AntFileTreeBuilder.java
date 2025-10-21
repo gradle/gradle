@@ -36,6 +36,7 @@ public class AntFileTreeBuilder implements AntBuilderAware {
     public Object addToAntBuilder(Object node, String childNodeName) {
         final DynamicObject dynamicObject = new BeanDynamicObject(node);
         dynamicObject.invokeMethod(childNodeName == null ? "resources" : childNodeName, new Closure(this) {
+            @SuppressWarnings("unused") // Magic Groovy method
             public Object doCall(Object ignore) {
                 for (Map.Entry<String, File> entry : files.entrySet()) {
                     String name = entry.getKey();

@@ -45,24 +45,25 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     @Test
     @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4723
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
+        val requestedKotlinVersion = "2.0.0"
         withBuildScript(
             """
             buildscript {
                 $repositoriesBlock
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-stdlib:2.0.0")
-                    classpath("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib:$requestedKotlinVersion")
+                    classpath("org.jetbrains.kotlin:kotlin-reflect:$requestedKotlinVersion")
                 }
             }
             plugins {
-                kotlin("jvm") version "2.0.0"
+                kotlin("jvm") version "$requestedKotlinVersion"
             }
             """
         )
 
         val result = build("buildEnvironment")
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:2.0.0 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:$requestedKotlinVersion -> $embeddedKotlinVersion"))
         }
     }
 

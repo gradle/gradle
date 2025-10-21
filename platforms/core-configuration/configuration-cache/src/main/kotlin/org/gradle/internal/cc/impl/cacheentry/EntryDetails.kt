@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.cacheentry
 
 import org.gradle.cache.internal.streams.BlockAddress
+import org.gradle.internal.serialize.graph.codecs.ValueObject
 import org.gradle.util.Path
 import java.io.File
 
@@ -31,4 +32,4 @@ class EntryDetails(
     val intermediateModels: Map<ModelKey, BlockAddress>,
     val projectMetadata: Map<Path, BlockAddress>,
     val sideEffects: List<BlockAddress>,
-)
+) : ValueObject

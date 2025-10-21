@@ -55,7 +55,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
      */
     public synchronized <T> T getUserData(Object consumerId, Factory<T> onMiss) {
         if (userData.containsKey(consumerId)) {
-            return Cast.uncheckedCast(userData.get(consumerId));
+            return Cast.uncheckedNonnullCast(userData.get(consumerId));
         }
         T value = onMiss.create();
         userData.put(consumerId, value);
@@ -172,7 +172,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         }
 
         @Override
-        public byte @Nullable [] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+        public byte @Nullable [] instrumentClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) {
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

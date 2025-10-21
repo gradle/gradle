@@ -104,4 +104,14 @@ public class DefaultFailure implements Serializable, InternalFailure {
             .collect(toList());
     }
 
+
+    @Override
+    public String toString() {
+        return "DefaultFailure{" +
+            "message='" + message + '\'' +
+            ", description='" + description + '\'' +
+            ", causes=" + causes +
+            ", problems=" + problems +
+            '}';
+    }
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.resolve.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -57,6 +58,11 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
     @Override
     public VariantResolveMetadata.@Nullable Identifier getIdentifier() {
         return id;
+    }
+
+    @Override
+    public VariantIdentifier getSourceVariantId() {
+        return delegate.getSourceVariantId();
     }
 
     @Override

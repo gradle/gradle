@@ -62,6 +62,15 @@ import java.util.Map;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
+/**
+ * Default implementation of a {@link JvmTestSuite}.
+ * <p>
+ * This class provides the basic functionality for creating and managing a JVM test suite, including
+ * configuring the source set, wiring dependencies, and creating test targets.
+ * <p>
+ * The default test suite (named {@link JvmTestSuitePlugin#DEFAULT_TEST_SUITE_NAME}) will default to using the
+ * JUnit 4 test framework for backwards compatibility.  Any other test suite will default to using the JUnit Jupiter test framework.
+ */
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;

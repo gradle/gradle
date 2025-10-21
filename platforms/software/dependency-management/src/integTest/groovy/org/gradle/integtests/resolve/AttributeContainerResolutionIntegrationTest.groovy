@@ -30,10 +30,10 @@ class AttributeContainerResolutionIntegrationTest extends AbstractIntegrationSpe
                         def otherAttribute = Attribute.of("zzz", Named)
                         attributeProvider(Attribute.of("aaa", Named), provider {
                             assert getAttribute(otherAttribute).name == "other"
-                            objects.named(Named, "value")
+                            named(Named, "value")
                         })
                         attributeProvider(otherAttribute, provider {
-                            objects.named(Named, "other")
+                            named(Named, "other")
                         })
                     }
                 }

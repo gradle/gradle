@@ -28,6 +28,8 @@ import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.TaskIdentity;
+import org.gradle.composite.ResilientIssuesRecorder;
+import org.gradle.composite.internal.DefaultResilientIssuesRecorder;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -79,6 +81,11 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    protected ResilientIssuesRecorder createResilientIssuesRecorder(FailureFactory failureFactory){
+        return new DefaultResilientIssuesRecorder(failureFactory);
+    }
+
+    @Provides
     ProblemSummarizer createProblemSummarizer(
         BuildOperationProgressEventEmitter eventEmitter,
         CurrentBuildOperationRef currentBuildOperationRef,
@@ -99,7 +106,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
                 } else {
                     return workExecutionTracker
                         .getCurrentTask(id)
-                        .map(task -> new TaskIdentity(task.getTaskIdentity().getBuildPath(), task.getTaskIdentity().getTaskPath()))
+                        .map(task -> new TaskIdentity(task.getTaskIdentity().getPath().asString()))
                         .orElse(null);
                 }
             }

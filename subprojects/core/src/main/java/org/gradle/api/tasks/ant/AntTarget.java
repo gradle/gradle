@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -87,6 +88,7 @@ public abstract class AntTarget extends ConventionTask {
      */
     @Internal
     @Override
+    @Nullable
     @ToBeReplacedByLazyProperty
     public String getDescription() {
         return target == null ? null : target.getDescription();
@@ -96,7 +98,7 @@ public abstract class AntTarget extends ConventionTask {
      * {@inheritDoc}
      */
     @Override
-    public void setDescription(String description) {
+    public void setDescription(@Nullable String description) {
         if (target != null) {
             target.setDescription(description);
         }

@@ -144,6 +144,7 @@ class KnownProblemIds {
         'validation:type-validation:not-cacheable-without-reason': ['Not cacheable without reason'],
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
         'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
+        'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 
         // dependency resolution failures
         'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],
@@ -152,6 +153,7 @@ class KnownProblemIds {
         'dependency-variant-resolution:ambiguous-variants': ['Multiple variants exist that would match the request'],
         'dependency-variant-resolution:no-compatible-variants': ['No variants exist that would match the request'],
         'dependency-variant-resolution:no-variants-with-matching-capabilities': ['No variants exist with capabilities that would match the request'],
+        'dependency-variant-resolution:no-version-satisfies' : ['No version satisfies the constraints'],
 
         'dependency-variant-resolution:ambiguous-artifact-transform': ['Multiple artifacts transforms exist that would satisfy the request'],
         'dependency-variant-resolution:no-compatible-artifact': ['No artifacts exist that would match the request'],

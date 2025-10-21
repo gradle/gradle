@@ -149,18 +149,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             configurations.runtimeClasspath.resolutionStrategy {
                 dependencySubstitution {
                     all {
-                        assert it.target == it.requested
                         it.useTarget group: it.requested.group, name: it.requested.module, version: '1.4'
                     }
                     all {
-                        assert it.target.version == '1.4'
-                        assert it.target.module == it.requested.module
-                        assert it.target.group == it.requested.group
                         it.useTarget group: it.requested.group, name: it.requested.module, version: '1.5'
-                    }
-                    all {
-                        assert it.target.version == '1.5'
-                        //don't change the version
                     }
                 }
             }
@@ -197,21 +189,11 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             configurations.runtimeClasspath.resolutionStrategy {
                 dependencySubstitution {
                     all {
-                        assert it.target == it.requested
                         it.useTarget group: 'org.utils', name: it.requested.module, version: '1.4'
                     }
                 }
                 eachDependency {
-                    assert it.target.version == '1.4'
-                    assert it.target.name == it.requested.name
-                    assert it.target.group == it.requested.group
                     it.useVersion '1.5'
-                }
-                dependencySubstitution {
-                    all {
-                        assert it.target.version == '1.5'
-                        //don't change the version
-                    }
                 }
             }
         """
@@ -1337,13 +1319,13 @@ Required by:
             resolvable("runtimeClasspath") {
                 extendsFrom(implementation.get())
                 attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "FOOBAR"))
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "FOOBAR"))
                 }
             }
             consumable("runtimeElements") {
                 extendsFrom(implementation.get())
                 attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "FOOBAR"))
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "FOOBAR"))
                 }
             }
         }

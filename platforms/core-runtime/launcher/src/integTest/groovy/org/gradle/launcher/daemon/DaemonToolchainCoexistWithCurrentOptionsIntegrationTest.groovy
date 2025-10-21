@@ -39,7 +39,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm)
         captureJavaHome()
-        executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
+        executer.withArgument("-Dorg.gradle.java.installations.auto-detect=false")
 
         expect:
         withInstallations(otherJvm).succeeds("help")

@@ -37,8 +37,8 @@ import org.gradle.util.TestUtil
 final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerTest {
 
     @Override
-    protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator(), TestUtil.propertyFactory())
+    protected AttributeContainerInternal createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
+        AttributeContainerInternal container = AttributeTestUtil.attributesFactory().mutable()
         attributes.forEach {key, value ->
             container.attribute(key, value)
         }
@@ -359,8 +359,8 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def container = createContainer()
 
         when:
-        container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
-        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, TestUtil.objectInstantiator().named(LibraryElements, "aar"))
+        container.attribute(Usage.USAGE_ATTRIBUTE, container.named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
+        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, container.named(LibraryElements, "aar"))
 
         then:
         def immutable = container.asImmutable()
@@ -373,8 +373,8 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def container = createContainer()
 
         when:
-        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, TestUtil.objectInstantiator().named(LibraryElements, "aar"))
-        container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
+        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, container.named(LibraryElements, "aar"))
+        container.attribute(Usage.USAGE_ATTRIBUTE, container.named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
 
         then:
         def immutable = container.asImmutable()

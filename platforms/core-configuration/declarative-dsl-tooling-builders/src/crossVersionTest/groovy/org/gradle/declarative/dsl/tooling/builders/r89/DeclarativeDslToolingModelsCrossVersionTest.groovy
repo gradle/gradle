@@ -86,7 +86,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 
-    def 'schema contains custom software type from included build'() {
+    def 'schema contains custom project type from included build'() {
         given:
         withSoftwareTypePlugins(targetVersion).prepareToExecute()
 
@@ -358,13 +358,13 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+            import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 
+            @SuppressWarnings("UnstableApiUsage")
+            @RegistersSoftwareTypes({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {
-                    ((SettingsInternal)target).getServices().get(SoftwareTypeRegistry.class).register(SoftwareTypeImplPlugin.class, SoftwareTypeRegistrationPlugin.class);
-                    ((SettingsInternal)target).getServices().get(SoftwareTypeRegistry.class).register(AnotherSoftwareTypeImplPlugin.class, SoftwareTypeRegistrationPlugin.class);
                 }
             }
         """

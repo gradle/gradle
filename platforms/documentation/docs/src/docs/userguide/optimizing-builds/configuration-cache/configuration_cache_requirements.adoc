@@ -29,7 +29,7 @@ The following sections describe each requirement and provide guidance on resolvi
 [[config_cache:requirements:disallowed_types]]
 == Certain Types must not be Referenced by Tasks
 
-Some types must not be referenced by task fields or in task actions (such as `doFirst {}` or `doLast {}`).
+Some types must not be referenced by task fields or in task actions (methods annotated `@TaskAction`, or the `doFirst {}` and `doLast {}` DSL blocks).
 
 These types fall into the following categories:
 
@@ -88,7 +88,7 @@ The following is the fixed version:
 include::sample[dir="snippets/configurationCache/disallowedTypesFixed/kotlin",files="build.gradle.kts[tags=task-type]"]
 include::sample[dir="snippets/configurationCache/disallowedTypesFixed/groovy",files="build.gradle[tags=task-type]"]
 ====
-<1> No more problems reported, we now reference the supported type `FileCollection`
+<1> No more problems reported, the task now uses the supported type `ConfigurableFileCollection`
 
 If an ad-hoc task in a script captures a disallowed reference in a `doLast {}` closure:
 
@@ -98,7 +98,7 @@ include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="
 ====
 <1> This will be reported as a problem because the `doLast {}` closure is capturing a reference to the `SourceSet`
 
-You still need to fulfil the same requirement, that is not referencing a disallowed type.
+You still need to fulfill the same requirement, that is, do not reference the disallowed type during task execution.
 
 This is how the task declaration above can be fixed:
 
@@ -176,7 +176,8 @@ The table below lists recommended replacements for commonly used `Project` metho
 | A task input or output property or a script variable to capture the result of using `project.projectDir` to calculate the actual parameter.
 
 | `project.buildDir`
-| A task input or output property or a script variable to capture the result of using `project.buildDir` to calculate the actual parameter.
+| `project.buildDir` has been deprecated. You should use `project.layout.buildDirectory`.
+Use a task input or output property or a script variable to capture the result of using `project.layout.buildDirectory` to calculate the actual parameter.
 
 | `project.name`
 | A task input or output property or a script variable to capture the result of using `project.name` to calculate the actual parameter.
@@ -256,7 +257,7 @@ The table below lists recommended replacements for commonly used `Project` metho
 == Accessing a Task Instance from Another Instance
 
 Tasks must not directly access the state of another task instance.
-Instead, they should be connected using <<lazy_configuration#working_with_task_dependencies_in_lazy_properties, inputs and outputs relationships>>.
+Instead, they should be connected using <<lazy_configuration#working_with_task_dependencies_in_lazy_properties, input and output relationships>>.
 
 This requirement ensures that tasks remain isolated and correctly cacheable.
 As a result, it is unsupported to write tasks that configure other tasks at execution time.
@@ -328,11 +329,17 @@ Recommended Alternatives:
 [[config_cache:requirements:external_processes]]
 == Running External Processes
 
-Plugin and build scripts should avoid running external processes at configuration time.
+TIP: Plugin and build scripts should avoid running external processes at configuration time.
 
-In general, it is preferred to run external processes in tasks with properly declared inputs and outputs to avoid unnecessary work when the task is `UP-TO-DATE`.
-However, if needed, you should only use the configuration-cache-compatible APIs described below instead of Java and Groovy standard APIs, or Gradle-provided methods `Project.exec`, `Project.javaexec`, `ExecOperations.exec`, and `ExecOperations.javaexec`.
-The flexibility of these methods prevents Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
+You should avoid using these APIs for running processes during configuration:
+
+- *Java/Kotlin*: `ProcessBuilder`, `Runtime.exec(...)`, etc...
+- *Groovy*: `*.execute()`, etc...
+- *Gradle*: `ExecOperations.exec`, `ExecOperations.javaexec`, etc...
+
+The flexibility of these methods prevent Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
+
+However, if running processes is required at configuration time, you can use the configuration-cache-compatible APIs detailed below.
 
 For simpler cases, when grabbing the output of the process is enough,
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:exec(org.gradle.api.Action)[`providers.exec()`] and

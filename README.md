@@ -65,7 +65,6 @@ Kickstart your Gradle knowledge with courses, guides, and community support tail
 
 - **[DPE University Free Courses](https://dpeuniversity.gradle.com/app/catalog)**: A collection of hands-on courses for learning Gradle, complete with project-based tasks to improve real-world skills.
 - **[Gradle Community Resources](https://community.gradle.org/resources/)**: Discover a range of resources, tutorials, and guides to support your Gradle journey, from foundational concepts to advanced practices.
-- **[Gradle Cookbook](https://cookbook.gradle.org/preface/)**: Access a practical collection of Gradle recipes and best practices to help you work efficiently with Gradle in various scenarios.
 
 ---
 

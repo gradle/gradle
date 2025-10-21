@@ -108,11 +108,9 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
         long resultId = decoder.readSmallLong();
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         String repo = decoder.readNullableString();
-        visitor.startVisitComponent(resultId, reason, repo);
-
         ComponentIdentifier componentIdentifier = componentIdSerializer.read(decoder);
         ModuleVersionIdentifier moduleVersionIdentifier = moduleVersionIdSerializer.read(decoder);
-        visitor.visitComponentDetails(componentIdentifier, moduleVersionIdentifier);
+        visitor.startVisitComponent(resultId, reason, repo, componentIdentifier, moduleVersionIdentifier);
 
         // TODO: Deserialize all selectable variant results if present.
         visitor.visitComponentVariants(ImmutableList.of());

@@ -28,10 +28,13 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.UncheckedException;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.HashSet;
 import java.util.Set;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newBufferedReader;
 
 public class ValidatingMavenPublisher implements MavenPublisher {
     private static final java.lang.String ID_REGEX = "[A-Za-z0-9_\\-.]+";
@@ -86,7 +89,7 @@ public class ValidatingMavenPublisher implements MavenPublisher {
     }
 
     private Model readModelFromPom(File pomFile) throws IOException, XmlPullParserException {
-        try (FileReader reader = new FileReader(pomFile)) {
+        try (Reader reader = newBufferedReader(pomFile.toPath(), UTF_8)) {
             return new MavenXpp3Reader().read(reader);
         }
     }

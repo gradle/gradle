@@ -205,8 +205,6 @@ fun BuildType.paramsForBuildToolBuild(
 ) {
     params {
         param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
-        param("env.GRADLE_CACHE_REMOTE_SERVER", "%gradle.cache.remote.server%")
-
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
@@ -332,10 +330,11 @@ fun functionalTestParameters(
 ): List<String> =
     listOf(
         "-PteamCityBuildId=%teamcity.build.id%",
-        os.javaInstallationLocations(arch),
+        "-Dorg.gradle.java.installations.auto-download=false",
         "-Porg.gradle.java.installations.auto-download=false",
+        "-Dorg.gradle.java.installations.auto-detect=false",
         "-Porg.gradle.java.installations.auto-detect=false",
-    )
+    ) + os.javaInstallationLocations(arch)
 
 fun promotionBuildParameters(
     dependencyBuildId: RelativeId,
@@ -380,7 +379,13 @@ fun BuildSteps.killProcessStep(
                     arch,
                 )
             }/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
-            if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
+            if (os ==
+                Os.WINDOWS
+            ) {
+                "\npowershell -Command \"Get-CimInstance -ClassName Win32_Process -Filter \\\"Name = 'java.exe'\\\" | Select-Object ProcessId, Name, CommandLine | Format-List\""
+            } else {
+                ""
+            }
         skipConditionally(buildType)
         if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
             onlyRunOnGitHubMergeQueueBranch()

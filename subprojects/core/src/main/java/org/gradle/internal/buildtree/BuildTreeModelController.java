@@ -47,5 +47,6 @@ public interface BuildTreeModelController {
      *
      * @see #queryModelActionsRunInParallel()
      */
+    @Nullable
     <T> List<T> runQueryModelActions(List<Supplier<T>> actions);
 }

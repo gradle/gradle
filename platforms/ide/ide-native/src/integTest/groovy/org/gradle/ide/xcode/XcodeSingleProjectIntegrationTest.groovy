@@ -25,7 +25,7 @@ class XcodeSingleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds("xcode")
 
         then:
-        result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
+        result.assertTasksScheduled(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
 
         def workspace = rootXcodeWorkspace
         workspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")

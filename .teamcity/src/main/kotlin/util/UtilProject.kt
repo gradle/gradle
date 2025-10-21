@@ -13,6 +13,7 @@ object UtilProject : Project({
     buildType(RerunFlakyTest(Os.MACOS, Arch.AMD64))
     buildType(RerunFlakyTest(Os.MACOS, Arch.AARCH64))
     buildType(WarmupEc2Agent)
+    buildType(UpdateWrapper)
 
     buildType(PublishKotlinDslPlugin)
 

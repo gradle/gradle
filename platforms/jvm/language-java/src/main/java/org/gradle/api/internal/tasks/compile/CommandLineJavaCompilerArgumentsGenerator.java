@@ -41,6 +41,6 @@ public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToA
     private Iterable<String> shortenArgs(File tempDir, List<String> args) {
         // for command file format, see http://docs.oracle.com/javase/6/docs/technotes/tools/windows/javac.html#commandlineargfile
         // use platform character and line encoding
-        return ArgWriter.argsFileGenerator(new File(tempDir, "java-compiler-args.txt"), ArgWriter.unixStyleFactory()).transform(args);
+        return ArgWriter.argsFileGenerator(new File(tempDir, "java-compiler-args.txt"), ArgWriter.unixStyleFactory()).apply(args);
     }
 }

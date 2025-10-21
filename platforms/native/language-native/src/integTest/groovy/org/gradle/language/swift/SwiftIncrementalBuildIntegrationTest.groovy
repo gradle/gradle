@@ -56,8 +56,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
+        result.assertTasksScheduled(assembleAppTasks)
         result.assertTasksExecuted(assembleAppTasks)
-        result.assertTasksNotSkipped(assembleAppTasks)
         executable("build/exe/main/debug/App").exec().out == app.expectedOutput
 
         when:
@@ -65,15 +65,15 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
+        result.assertTasksScheduled(assembleAppTasks)
         result.assertTasksExecuted(assembleAppTasks)
-        result.assertTasksNotSkipped(assembleAppTasks)
         executable("build/exe/main/debug/App").exec().out == app.expectedAlternateOutput
 
         when:
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(assembleAppTasks)
+        result.assertTasksScheduled(assembleAppTasks)
         result.assertTasksSkipped(assembleAppTasks)
     }
 
@@ -101,8 +101,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(assembleAppAndLibTasks, ":assemble")
-        result.assertTasksNotSkipped(assembleAppAndLibTasks)
+        result.assertTasksScheduled(assembleAppAndLibTasks, ":assemble")
+        result.assertTasksExecuted(assembleAppAndLibTasks)
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
         when:
@@ -110,15 +110,15 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(assembleAppAndLibTasks, ":assemble")
-        result.assertTasksNotSkipped(assembleAppAndLibTasks)
+        result.assertTasksScheduled(assembleAppAndLibTasks, ":assemble")
+        result.assertTasksExecuted(assembleAppAndLibTasks)
         installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
 
         when:
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(assembleAppAndLibTasks, ":assemble")
+        result.assertTasksScheduled(assembleAppAndLibTasks, ":assemble")
         result.assertTasksSkipped(assembleAppAndLibTasks, ":assemble")
     }
 
@@ -144,8 +144,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
+        result.assertTasksScheduled(assembleAppTasks)
         result.assertTasksExecuted(assembleAppTasks)
-        result.assertTasksNotSkipped(assembleAppTasks)
 
         outputs.deletedClasses("multiply", "sum")
 
@@ -180,8 +180,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
+        result.assertTasksScheduled(assembleLibTasks)
         result.assertTasksExecuted(assembleLibTasks)
-        result.assertTasksNotSkipped(assembleLibTasks)
         outputs.deletedClasses("multiply", "sum")
 
         // See https://github.com/gradle/gradle-native/issues/1004
@@ -211,7 +211,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(assembleAppTasks)
+        result.assertTasksScheduled(assembleAppTasks)
         result.assertTasksSkipped(assembleAppTasks)
 
         installation("build/install/main/debug").exec().out == app.expectedOutput
@@ -233,7 +233,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(assembleLibTasks)
+        result.assertTasksScheduled(assembleLibTasks)
         result.assertTasksSkipped(assembleLibTasks)
 
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
@@ -281,8 +281,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
-        result.assertTasksExecuted(assembleAppAndLibTasks, ":assemble")
-        result.assertTasksNotSkipped(getAssembleAppTasks(":app"))
+        result.assertTasksScheduled(assembleAppAndLibTasks, ":assemble")
+        result.assertTasksExecuted(getAssembleAppTasks(":app"))
         result.assertTasksSkipped(":assemble", getAssembleLibTasks(":greeter"))
 
         executable("app/build/exe/main/debug/App").assertDoesNotExist()
@@ -320,8 +320,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
+        result.assertTasksScheduled(assembleAppTasks)
         result.assertTasksExecuted(assembleAppTasks)
-        result.assertTasksNotSkipped(assembleAppTasks)
 
         executable("build/exe/main/debug/App").assertDoesNotExist()
         file("build/exe/main/debug").assertDoesNotExist()
@@ -355,8 +355,8 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         succeeds "assemble"
 
         then:
+        result.assertTasksScheduled(assembleLibTasks)
         result.assertTasksExecuted(assembleLibTasks)
-        result.assertTasksNotSkipped(assembleLibTasks)
 
         sharedLibrary("build/lib/main/debug/Hello").assertDoesNotExist()
         file("build/lib/main/debug").assertDoesNotExist()

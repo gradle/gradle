@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn.GRADLE9;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn.UNSPECIFIED;
 import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo.BridgeType.INSTANCE_METHOD_BRIDGE;
+import static org.gradle.internal.instrumentation.processor.codegen.CodeGenUtils.SUPPRESS_DEPRECATIONS;
 import static org.gradle.internal.instrumentation.processor.codegen.CodeGenUtils.SUPPRESS_UNCHECKED_AND_RAWTYPES;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.DEPRECATION_LOGGER;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.FILE_SYSTEM_LOCATION;
@@ -82,6 +83,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
 
         return builder -> builder
             .addAnnotation(GENERATED_ANNOTATION.asClassName())
+            .addAnnotation(SUPPRESS_DEPRECATIONS)
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addJavadoc("Auto generated class. Should not be used directly.")
             .addMethods(methods);

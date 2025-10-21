@@ -22,6 +22,7 @@ import org.gradle.api.Named;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -40,21 +41,21 @@ import java.util.function.Supplier;
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
-    private final Supplier<? extends ResolvedComponentResult> rootSource;
+    private final Supplier<ResolvedDependencyGraph> graphSource;
     private final Lazy<AttributeContainer> lazyDesugaredAttributes;
 
     public ResolveConfigurationResolutionBuildOperationResult(
-        Supplier<? extends ResolvedComponentResult> rootSource,
+        Supplier<ResolvedDependencyGraph> graphSource,
         ImmutableAttributes requestedAttributes,
         AttributesFactory attributesFactory
     ) {
-        this.rootSource = rootSource;
+        this.graphSource = graphSource;
         this.lazyDesugaredAttributes = Lazy.unsafe().of(() -> desugarAttributes(attributesFactory, requestedAttributes));
     }
 
     @Override
     public ResolvedComponentResult getRootComponent() {
-        return rootSource.get();
+        return graphSource.get().getRootComponent();
     }
 
     @Override
@@ -68,7 +69,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         model.put("resolvedDependenciesCount", getRootComponent().getDependencies().size());
 
         final Map<String, Map<String, String>> components = new HashMap<>();
-        eachElement(rootSource.get(), component -> components.put(
+        eachElement(getRootComponent(), component -> components.put(
             component.getId().getDisplayName(),
             Collections.singletonMap("repoId", getRepositoryId(component))
         ), Actions.doNothing(), new HashSet<>());

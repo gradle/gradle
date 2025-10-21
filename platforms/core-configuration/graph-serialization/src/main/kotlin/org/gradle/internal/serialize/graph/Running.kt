@@ -27,7 +27,7 @@ import kotlin.coroutines.startCoroutine
  */
 fun <T : ReadContext, R> T.runReadOperation(readOperation: suspend T.() -> R): R {
     contract {
-        callsInPlace(readOperation, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(readOperation, InvocationKind.AT_MOST_ONCE)
     }
     return runToCompletion {
         readOperation()
@@ -48,8 +48,12 @@ fun <T : WriteContext, U> T.runWriteOperation(writeOperation: suspend T.() -> U)
  * [Starts][startCoroutine] the suspending [block], asserts it runs
  * to completion and returns its result.
  */
+@Suppress("LEAKED_IN_PLACE_LAMBDA")
 private
 fun <R> runToCompletion(block: suspend () -> R): R {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+    }
     var completion: Result<R>? = null
     block.startCoroutine(
         Continuation(EmptyCoroutineContext) {

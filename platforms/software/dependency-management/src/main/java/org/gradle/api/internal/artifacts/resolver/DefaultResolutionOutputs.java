@@ -26,7 +26,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection;
-import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -86,15 +85,12 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
     @Override
     public Provider<ResolvedVariantResult> getRootVariant() {
-        return new DefaultProvider<>(() -> {
-            MinimalResolutionResult resolutionResult = getResolutionResult();
-            return resolutionResult.getRootSource().get().getVariant(resolutionResult.getRootVariantId());
-        });
+        return new DefaultProvider<>(() -> getResolutionResult().getGraphSource().get().getRootVariant());
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> getResolutionResult().getRootSource().get());
+        return new DefaultProvider<>(() -> getResolutionResult().getGraphSource().get().getRootComponent());
     }
 
     private MinimalResolutionResult getResolutionResult() {
@@ -177,25 +173,23 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
         @Override
         public ArtifactCollectionInternal getArtifacts() {
+            SelectedArtifactSet selectedArtifacts = new ResolutionResultProviderBackedSelectedArtifactSet(
+                resolutionAccess.getResults().map(this::selectArtifacts)
+            );
+
             return new DefaultArtifactCollection(
-                getFiles(),
+                selectedArtifacts,
                 lenient,
                 resolutionAccess.getHost(),
+                taskDependencyFactory,
                 calculatedValueContainerFactory,
                 attributeDesugaring
             );
         }
 
         @Override
-        public ResolutionBackedFileCollection getFiles() {
-            return new ResolutionBackedFileCollection(
-                new ResolutionResultProviderBackedSelectedArtifactSet(
-                    resolutionAccess.getResults().map(this::selectArtifacts)
-                ),
-                lenient,
-                resolutionAccess.getHost(),
-                taskDependencyFactory
-            );
+        public FileCollectionInternal getFiles() {
+            return getArtifacts().getArtifactFiles();
         }
 
         private SelectedArtifactSet selectArtifacts(ResolverResults results) {

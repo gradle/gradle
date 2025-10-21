@@ -6,12 +6,6 @@ plugins {
 
 description = "A library that aids in testing Gradle plugins and build logic in general"
 
-errorprone {
-    disabledChecks.addAll(
-        "CatchAndPrintStackTrace", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.classloaders)
@@ -22,7 +16,7 @@ dependencies {
 
     implementation(projects.core)
     implementation(projects.fileTemp)
-    implementation(projects.io)
+    api(libs.guava)
     implementation(projects.logging)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)

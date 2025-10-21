@@ -15,16 +15,31 @@ dependencies {
 // tag::concrete-classpath[]
 configurations {
     // declare a resolvable configuration that is going to resolve the compile classpath of the application
+// end::java-configuration-example[]
+
+    // Using lazy & newer API: realized only when needed
+// tag::java-configuration-example[]
     resolvable("compileClasspath") {
-        //isCanBeConsumed = false
-        //isCanBeDeclared = false
         extendsFrom(implementation)
     }
+// end::java-configuration-example[]
+    // Using lazy & older API: realized only when needed
+    register("compileClasspath-lazy") {
+        isCanBeConsumed = false
+        isCanBeDeclared = false
+        extendsFrom(implementation)
+    }
+
+    // Using eager & older API: realized immediately - avoid
+    create("compileClasspath-eager") {
+        isCanBeConsumed = false
+        isCanBeDeclared = false
+        extendsFrom(implementation)
+    }
+// tag::java-configuration-example[]
 // end::concrete-classpath[]
     // declare a resolvable configuration that is going to resolve the runtime classpath of the application
     resolvable("runtimeClasspath") {
-        //isCanBeConsumed = false
-        //isCanBeDeclared = false
         extendsFrom(implementation)
     }
 // tag::concrete-classpath[]
@@ -34,16 +49,31 @@ configurations {
 // tag::setup-configurations[]
 configurations {
     // a consumable configuration meant for consumers that need the API of this component
+// end::java-configuration-example[]
+
+    // Using lazy & newer API: realized only when needed
+// tag::java-configuration-example[]
     consumable("exposedApi") {
-        //isCanBeResolved = false
-        //isCanBeDeclared = false
         extendsFrom(implementation)
     }
+// end::java-configuration-example[]
+    // Using lazy & older API: realized only when needed
+    register("exposedApi-lazy") {
+        isCanBeResolved = false
+        isCanBeDeclared = false
+        extendsFrom(implementation)
+    }
+
+    // Using eager & older API: realized immediately - avoid
+    create("exposedApi-eager") {
+        isCanBeResolved = false
+        isCanBeDeclared = false
+        extendsFrom(implementation)
+    }
+// tag::java-configuration-example[]
 // end::setup-configurations[]
     // a consumable configuration meant for consumers that need the implementation of this component
     consumable("exposedRuntime") {
-        //isCanBeResolved = false
-        //isCanBeDeclared = false
         extendsFrom(implementation)
     }
 // tag::setup-configurations[]

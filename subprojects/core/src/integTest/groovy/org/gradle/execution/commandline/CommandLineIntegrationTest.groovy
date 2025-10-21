@@ -220,7 +220,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires([UnitTestPreconditions.Unix, IntegTestPreconditions.NotEmbeddedExecutor])
     def "can specify system properties using gradle opts environment variable with line breaks"() {
         when:
         createProject()

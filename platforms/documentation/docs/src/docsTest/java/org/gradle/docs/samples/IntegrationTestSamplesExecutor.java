@@ -128,7 +128,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .map(Jvm::getJavaHome)
             .map(File::getAbsolutePath)
             .collect(Collectors.joining(","));
-        return "-Porg.gradle.java.installations.paths=" + allJdkPaths;
+        return "-Dorg.gradle.java.installations.paths=" + allJdkPaths;
     }
 
     private static String capitalize(String s) {

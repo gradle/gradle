@@ -261,7 +261,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("Other script output")
-        result.assertTaskExecuted(":printScriptOutput")
+        result.assertTaskScheduled(":printScriptOutput")
     }
 
     static String cmdToExecConfig(String... args) {

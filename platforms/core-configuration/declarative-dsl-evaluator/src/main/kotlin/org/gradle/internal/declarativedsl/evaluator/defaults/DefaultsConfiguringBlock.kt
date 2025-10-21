@@ -18,6 +18,6 @@ package org.gradle.internal.declarativedsl.evaluator.defaults
 
 /**
  * A receiver for the defaults block.  Note that this class is only used to provide a receiver for custom accessors
- * that expose the software types available in the build.
+ * that expose the project types available in the build.
  */
 class DefaultsConfiguringBlock

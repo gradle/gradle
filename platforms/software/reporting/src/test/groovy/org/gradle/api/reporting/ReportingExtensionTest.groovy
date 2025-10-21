@@ -26,28 +26,6 @@ class ReportingExtensionTest extends Specification {
     Project project = ProjectBuilder.builder().build()
     ReportingExtension extension = TestUtil.newInstance(ReportingExtension.class, project)
 
-    def "defaults to reports dir in build dir"() {
-        expect:
-        extension.baseDirectory.get().asFile == new File(project.layout.buildDirectory.get().asFile, ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
-
-        when:
-        project.layout.buildDirectory.set(project.file("newBuildDir"))
-
-        then:
-        extension.baseDirectory.get().asFile == new File(project.file("newBuildDir"), ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
-    }
-
-    def "defaults to reports directory in build dir"() {
-        expect:
-        extension.baseDirectory.asFile.get() == new File(project.buildDir, ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
-
-        when:
-        project.layout.buildDirectory.set(project.file("newBuildDir"))
-
-        then:
-        extension.baseDirectory.asFile.get() == new File(project.file("newBuildDir"), ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
-    }
-
     def "reports directory can be changed lazily"() {
         given:
         def dir = "a"

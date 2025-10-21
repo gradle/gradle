@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.precompile.v1
 
+import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
@@ -31,9 +32,11 @@ import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
+import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import org.jetbrains.kotlin.scripting.definitions.getEnvironment
 import kotlin.script.dependencies.Environment
 import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.KotlinType
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptConfigurationRefinementContext
 import kotlin.script.experimental.api.asSuccess
@@ -46,7 +49,6 @@ import kotlin.script.experimental.api.refineConfiguration
 import kotlin.script.experimental.api.with
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
@@ -56,8 +58,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
     fileExtension = "gradle.kts",
     compilationConfiguration = PrecompiledPluginsBlockCompilationConfiguration::class
 )
-@ScriptTemplateDefinition
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledPluginsBlock(private val pluginDependencies: PluginDependenciesSpec) {
 
@@ -71,6 +71,9 @@ object PrecompiledPluginsBlockCompilationConfiguration : ScriptCompilationConfig
     isStandalone(false)
     baseClass(PrecompiledPluginsBlock::class)
     defaultImportsForPrecompiledScript()
+    annotationsForSamWithReceivers.put(listOf(
+        KotlinType(HasImplicitReceiver::class),
+    ))
 })
 
 
@@ -83,7 +86,6 @@ object PrecompiledPluginsBlockCompilationConfiguration : ScriptCompilationConfig
     fileExtension = "init.gradle.kts",
     compilationConfiguration = PrecompiledInitScriptCompilationConfiguration::class
 )
-@ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledInitScript(
@@ -100,7 +102,6 @@ open class PrecompiledInitScript(
     fileExtension = "settings.gradle.kts",
     compilationConfiguration = PrecompiledSettingsScriptCompilationConfiguration::class
 )
-@ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledSettingsScript(
@@ -159,7 +160,6 @@ open class PrecompiledSettingsScript(
     fileExtension = "gradle.kts",
     compilationConfiguration = PrecompiledProjectScriptCompilationConfiguration::class
 )
-@ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledProjectScript(

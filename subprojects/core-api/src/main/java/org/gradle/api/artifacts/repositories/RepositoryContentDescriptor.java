@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>Descriptor of a repository content, used to avoid reaching to
@@ -104,7 +105,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      *
      * @param configurationNames the names of the configurations the repository will be used for
      */
-    void onlyForConfigurations(String... configurationNames);
+    void onlyForConfigurations(@Nullable String... configurationNames);
 
     /**
      * Declares that this repository should not be used for a specific
@@ -112,7 +113,7 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      *
      * @param configurationNames the names of the configurations the repository will not be used for
      */
-    void notForConfigurations(String... configurationNames);
+    void notForConfigurations(@Nullable String... configurationNames);
 
     /**
      * Declares that this repository will only be searched if the consumer requires a

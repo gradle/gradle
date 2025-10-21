@@ -122,6 +122,7 @@
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use single-string notation instead")
     fun DependencyHandler.`api`(
         group: String,
         name: String,
@@ -287,7 +288,7 @@
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
-    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    @Deprecated("Use single-string notation instead")
     fun DependencyHandler.`compile`(
         group: String,
         name: String,
@@ -375,8 +376,8 @@
 
 
     /**
-     * Adds model defaults for the [softwareType][AccessorNameSpec(original=softwareType)] software type.
+     * Adds model defaults for the [projectType][AccessorNameSpec(original=projectType)] project type.
      */
-    fun SharedModelDefaults.`softwareType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType>): Unit =
-        add("softwareType", org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType, configure)
+    fun SharedModelDefaults.`projectType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestProjectType>): Unit =
+        add("projectType", org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestProjectType, configure)
 

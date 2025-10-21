@@ -18,7 +18,6 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
@@ -27,7 +26,6 @@ import org.junit.Rule
 class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     def setup() {
         executer.withRepositoryMirrors()
@@ -66,7 +64,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
         succeeds 'compileJava'
 
         then:
-        result.assertTasksExecutedInOrder(':compileScala', ':compileJava')
+        result.assertTasksScheduledInOrder(':compileScala', ':compileJava')
 
         where:
         configurationStyle | setup
@@ -104,7 +102,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
         succeeds 'compileMySourcesJava'
 
         then:
-        result.assertTasksExecutedInOrder(':compileMySourcesScala', ':compileMySourcesJava')
+        result.assertTasksScheduledInOrder(':compileMySourcesScala', ':compileMySourcesJava')
     }
 
 }

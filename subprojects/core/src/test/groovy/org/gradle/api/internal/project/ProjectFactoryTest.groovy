@@ -17,10 +17,9 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.reflect.Instantiator
@@ -30,6 +29,7 @@ import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -37,15 +37,15 @@ class ProjectFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def instantiator = Mock(Instantiator)
-    def projectDescriptor = Stub(DefaultProjectDescriptor)
+    def projectDescriptor = Stub(ProjectDescriptorInternal)
     def gradle = Stub(GradleInternal)
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
     def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
-    def buildId = DefaultBuildIdentifier.ROOT
+    def buildId = Path.ROOT
     def owner = Stub(BuildState)
     def projectState = Stub(ProjectState) {
-        getIdentity() >> { new ProjectIdentity(buildId, projectDescriptor.path(), projectDescriptor.path(), projectDescriptor.name) }
+        getIdentity() >> { ProjectIdentity.forRootProject(buildId, projectDescriptor.name) }
     }
     def scriptResolution = Stub(ProjectScopedScriptResolution) {
         resolveScriptsForProject(_, _) >> { project, action -> action.get() }
@@ -57,7 +57,7 @@ class ProjectFactoryTest extends Specification {
     def dependencyResolutionManagement = Mock(DependencyResolutionManagementInternal)
 
     def setup() {
-        owner.buildIdentifier >> buildId
+        owner.identityPath >> buildId
     }
 
     def "creates a project with build script"() {

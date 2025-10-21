@@ -209,7 +209,7 @@ rootProject {
         run "root"
 
         then:
-        result.assertTasksExecuted(':worker', ':a:worker', ':b:worker', ':root')
+        result.assertTasksScheduled(':worker', ':a:worker', ':b:worker', ':root')
     }
 
     def "notices changes to init scripts that do not change the file length"() {

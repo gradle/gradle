@@ -17,12 +17,11 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 import java.util.List;
 
 /**
- * Applies the model defaults for a given software type to a target project if the provided plugin class is a software type plugin.
+ * Applies the model defaults for a given project type to a target project if the provided plugin class is a project type plugin.
  */
 public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     private final List<ModelDefaultsHandler> defaultsHandlers;
@@ -32,7 +31,7 @@ public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     }
 
     @Override
-    public <T> void applyDefaultsTo(T target, ClassLoaderScope classLoaderScope, Plugin<?> plugin, SoftwareTypeImplementation<?> softwareTypeImplementation) {
-        defaultsHandlers.forEach(handler -> handler.apply(target, classLoaderScope, softwareTypeImplementation.getSoftwareType(), plugin));
+    public void applyDefaultsTo(Object target, Object definition, ClassLoaderContext classLoaderContext, Plugin<?> plugin, ProjectFeatureImplementation<?, ?> projectFeatureImplementation) {
+        defaultsHandlers.forEach(handler -> handler.apply(target, definition, classLoaderContext, projectFeatureImplementation.getFeatureName(), plugin));
     }
 }

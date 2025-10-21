@@ -17,11 +17,10 @@
 package org.gradle.execution.plan.edges;
 
 import com.google.common.collect.ImmutableSortedSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.execution.plan.Node;
 
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.NavigableSet;
 import java.util.Set;
 
 import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
@@ -32,13 +31,13 @@ import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
  * <p>Attempts to efficiently determine whether a node can start or not based on the state of its dependencies, by tracking those dependencies that are still to complete.</p>
  */
 public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
-    private final NavigableSet<Node> orderedDependencies = newSortedNodeSet();
+    private final Set<Node> orderedDependencies = newSortedNodeSet();
     private Set<Node> waitingFor;
     private boolean nodeCannotStart;
     private boolean pruned;
 
     @Override
-    public NavigableSet<Node> getDependencySuccessors() {
+    public Set<Node> getDependencySuccessors() {
         return orderedDependencies;
     }
 
@@ -46,7 +45,7 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
     public DependencySuccessorsOnlyNodeSet addDependency(Node node) {
         orderedDependencies.add(node);
         if (waitingFor == null) {
-            waitingFor = new HashSet<>();
+            waitingFor = new ObjectOpenHashSet<>();
         }
         // It would be better to discard dependencies that have already completed at this point, rather than collecting them and checking their state later
         // However, it is not always known whether a dependency will be scheduled or not when it is added here.
@@ -58,7 +57,7 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
     }
 
     @Override
-    public NavigableSet<Node> getMustSuccessors() {
+    public Set<Node> getMustSuccessors() {
         return ImmutableSortedSet.of();
     }
 

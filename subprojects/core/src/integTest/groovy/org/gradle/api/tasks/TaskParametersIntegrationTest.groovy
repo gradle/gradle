@@ -74,7 +74,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         """
 
         expect:
-        run("foo").assertTaskNotSkipped(":foo")
+        run("foo").assertTaskExecuted(":foo")
         run("foo").assertTaskSkipped(":foo")
     }
 
@@ -254,7 +254,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         """
 
         expect:
-        succeeds "b" assertTasksExecutedInOrder ":a", ":b"
+        succeeds "b" assertTasksScheduledInOrder ":a", ":b"
     }
 
     def "task is out of date when property added"() {

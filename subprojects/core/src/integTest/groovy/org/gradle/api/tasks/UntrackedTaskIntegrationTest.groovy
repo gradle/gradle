@@ -231,7 +231,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         unreadableDir.setReadable(true)
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "tracked task producing named pipe fails"() {
         def rootDir = file("build/root")
         def namedPipe = rootDir.file("unreadable")

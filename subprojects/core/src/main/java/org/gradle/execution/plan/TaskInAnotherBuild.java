@@ -211,4 +211,8 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     }
 
     protected abstract IncludedBuildTaskResource getTarget();
+
+    public TaskNode getTargetNode() {
+        return getTarget().getTaskNode();
+    }
 }

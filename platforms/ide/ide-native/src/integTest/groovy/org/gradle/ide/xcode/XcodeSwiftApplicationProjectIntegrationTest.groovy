@@ -107,7 +107,7 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
                 .succeeds()
 
         then:
-        resultLib.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
+        resultLib.assertTasksScheduled(':greeter:compileDebugSwift', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
     }
 
     @NotYetImplemented

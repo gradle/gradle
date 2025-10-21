@@ -96,8 +96,8 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
         withInstallations(Jvm.current(), otherJvm).succeeds("check")
 
         then:
-        result.assertTaskExecuted(":test")
-        result.assertTaskExecuted(":testOtherJdk")
+        result.assertTaskScheduled(":test")
+        result.assertTaskScheduled(":testOtherJdk")
     }
 
     // currently not supported, namespacing issues
@@ -152,7 +152,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
         withInstallations(Jvm.current(), otherJvm).succeeds("testAggregateTestReport")
 
         then:
-        result.assertTaskExecuted(":testAggregateTestReport")
+        result.assertTaskScheduled(":testAggregateTestReport")
     }
 
     def "reports of multiple targets can be aggregated if variant information is specified"() {
@@ -189,6 +189,6 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
         withInstallations(Jvm.current(), otherJvm).succeeds("testAggregateTestReport")
 
         then:
-        result.assertTaskExecuted(":testAggregateTestReport")
+        result.assertTaskScheduled(":testAggregateTestReport")
     }
 }

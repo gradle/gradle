@@ -16,13 +16,14 @@
 
 package org.gradle.execution.plan;
 
-import java.util.HashSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
 import java.util.Set;
 
 public final class ConsumerState {
 
     private boolean outputProduced = false;
-    private final Set<Node> nodesYetToConsumeOutput = new HashSet<>();
+    private final Set<Node> nodesYetToConsumeOutput = new ObjectOpenHashSet<>();
 
     public void started() {
         outputProduced = true;

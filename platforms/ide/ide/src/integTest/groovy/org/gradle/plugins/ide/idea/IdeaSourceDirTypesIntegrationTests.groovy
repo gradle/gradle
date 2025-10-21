@@ -48,7 +48,7 @@ class IdeaSourceDirTypesIntegrationTests extends AbstractIntegrationSpec {
         succeeds ":idea"
 
         then:
-        result.assertTasksExecuted(":ideaModule", ":ideaProject", ":ideaWorkspace", ":idea")
+        result.assertTasksScheduled(":ideaModule", ":ideaProject", ":ideaWorkspace", ":idea")
 
         def moduleFixture = parseIml(file ( 'root.iml'))
         def sources = moduleFixture.getContent().getProperty("sources")

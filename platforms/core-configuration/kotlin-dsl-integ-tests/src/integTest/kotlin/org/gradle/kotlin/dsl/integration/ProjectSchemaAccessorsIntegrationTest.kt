@@ -275,10 +275,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                     """
                     package my
 
-                    class Nested {
-                        class Extension(private val name: String) : org.gradle.api.Named {
-                            override fun getName() = name
-                        }
+                    interface Nested {
+                        interface Extension : org.gradle.api.Named
                     }
                     """
                 )
@@ -288,8 +286,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                     """
                     package my
 
-                    extensions.add("nested", Nested.Extension("foo"))
-                    extensions.add("beans", container(Nested.Extension::class))
+                    extensions.add("nested", objects.newInstance(Nested.Extension::class, "foo"))
+                    extensions.add("beans", objects.domainObjectContainer(Nested.Extension::class))
                     """
                 )
             }
@@ -565,12 +563,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 class DocumentationPlugin : Plugin<Project> {
 
                     override fun apply(project: Project) {
-                        val books = project.container(Book::class, ::Book)
+                        val books = project.objects.domainObjectContainer(Book::class)
                         project.extensions.add("the books", books)
                     }
                 }
 
-                data class Book(val name: String)
+                abstract class Book(val name: String)
 
                 """
             )
@@ -675,7 +673,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             plugins { `java-library` }
 
             dependencies {
-                compileOnly(group = "org.slf4j", name = "slf4j-api", version = "1.7.25")
+                compileOnly("org.slf4j:slf4j-api:1.7.25")
                 api("com.google.guava:guava:21.0")
                 implementation("ch.qos.logback:logback-classic:1.2.3") {
                     isTransitive = false

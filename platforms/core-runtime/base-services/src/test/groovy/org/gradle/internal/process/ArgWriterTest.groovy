@@ -101,7 +101,7 @@ class ArgWriterTest extends Specification {
         def generator = ArgWriter.argsFileGenerator(argsFile, ArgWriter.unixStyleFactory())
 
         expect:
-        generator.transform(["a", "\u0302", "a b c"]) == ["@${argsFile.absolutePath}"]
+        generator.apply(["a", "\u0302", "a b c"]) == ["@${argsFile.absolutePath}"] as List<String>
         argsFile.text == toPlatformLineSeparators('a\n\u0302\n"a b c"\n')
     }
 
@@ -110,7 +110,7 @@ class ArgWriterTest extends Specification {
         def generator = ArgWriter.argsFileGenerator(argsFile, ArgWriter.unixStyleFactory())
 
         expect:
-        generator.transform([]) == []
+        generator.apply([]) == []
         !argsFile.file
     }
 }

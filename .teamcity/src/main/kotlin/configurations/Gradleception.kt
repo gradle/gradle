@@ -1,6 +1,7 @@
 package configurations
 
 import common.BuildToolBuildJvm
+import common.FlakyTestStrategy
 import common.Jvm
 import common.Os
 import common.buildScanTagParam
@@ -153,7 +154,11 @@ class Gradleception(
 
                 localGradle {
                     name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                    tasks = "clean sanityCheck test ${extraTasks.joinToString(" ")} -PflakyTests=exclude --no-configuration-cache"
+                    extraTasks
+                    tasks =
+                        "clean sanityCheck test ${extraTasks.joinToString(
+                            " ",
+                        )} -PflakyTests=${FlakyTestStrategy.EXCLUDE} --no-configuration-cache"
                     gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                     gradleParams = defaultParameters
                 }

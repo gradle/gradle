@@ -38,7 +38,8 @@ public class Architectures {
             new KnownArchitecture("ppc"),
             new KnownArchitecture("ppc64"),
             new KnownArchitecture("sparc-v8", "sparc", "sparc32"),
-            new KnownArchitecture("sparc-v9", "sparc64", "ultrasparc")
+            new KnownArchitecture("sparc-v9", "sparc64", "ultrasparc"),
+            new KnownArchitecture("e2k")
     );
 
     public static ArchitectureInternal forInput(String input) {

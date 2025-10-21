@@ -25,5 +25,9 @@ fun InternalOptions.getInternalFlag(systemPropertyName: String, defaultValue: Bo
     getOption(InternalFlag(systemPropertyName, defaultValue)).get()
 
 
-fun InternalOptions.getInternalString(systemPropertyName: String, defaultValue: String?) =
-    getOption(StringInternalOption(systemPropertyName, defaultValue)).get()
+fun InternalOptions.getString(systemPropertyName: String, defaultValue: String): String =
+    getOption(StringInternalOption.of(systemPropertyName, defaultValue)).get()
+
+
+fun InternalOptions.getStringOrNull(systemPropertyName: String): String? =
+    getOption(StringInternalOption.of(systemPropertyName)).get()

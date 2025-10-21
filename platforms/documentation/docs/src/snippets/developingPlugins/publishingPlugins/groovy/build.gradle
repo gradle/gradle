@@ -1,6 +1,6 @@
 // tag::plugins_block[]
 plugins {
-    id 'com.gradle.plugin-publish' version '1.2.1'
+    id 'com.gradle.plugin-publish' version '2.0.0'
 }
 // end::plugins_block[]
 
@@ -21,7 +21,7 @@ gradlePlugin { // <1>
     // ... // <2>
 
     plugins { // <3>
-        greetingsPlugin { // <4>
+        register('greetingsPlugin') { // <4>
             id = '<your plugin identifier>' // <5>
             displayName = '<short displayable name for plugin>' // <6>
             description = '<human-readable description of what your plugin is about>' // <7>
@@ -37,7 +37,7 @@ gradlePlugin {
     website = 'https://github.com/ysb33r/gradleTest'
     vcsUrl = 'https://github.com/ysb33r/gradleTest.git'
     plugins {
-        gradletestPlugin {
+        register('gradletestPlugin') {
             id = 'org.ysb33r.gradletest'
             displayName = 'Plugin for compatibility testing of Gradle plugins'
             description = 'A plugin that helps you test your plugin against a variety of Gradle versions'

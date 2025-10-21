@@ -26,7 +26,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.TestExecHttpServer
 import org.gradle.process.TestJavaMain
 import org.gradle.test.precondition.Requires
@@ -407,6 +406,40 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "JavaExec" | javaExecSpec()
     }
 
+    def "produces useful help message when working directory does not exist"() {
+        buildFile << """
+            task run(type: Exec) {
+                ${execSpecWithJavaExecutable()}
+                workingDir = file("does/not/exist")
+            }
+        """
+
+        when:
+        fails("run")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':run'")
+            .assertHasCause("Working directory '${file("does/not/exist")}' does not exist.")
+            .assertHasNoCause("No such file or directory")
+    }
+
+    def "produces useful help message when working directory is not a directory"() {
+        file("is/not/dir").touch()
+        buildFile << """
+            task run(type: Exec) {
+                ${execSpecWithJavaExecutable()}
+                workingDir = file("is/not/dir")
+            }
+        """
+
+        when:
+        fails("run")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':run'")
+            .assertHasCause("Working directory '${file("is/not/dir")}' is not a directory.")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/32213")
     def "execOperations.#method process is stopped when build is cancelled"() {
         settingsFile << "include 'a'"
@@ -452,10 +485,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
     }
 
-    private static def execSpec(def owner = "") {
-        "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
-    }
-
     private static def execSpecWithJavaExecutable(def owner = "") {
         """
             ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
@@ -468,13 +497,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
             ${prop(owner, "args")}('-cp',${javaExecHttpServerClasspath()}, '${TestExecHttpServer.name}', '${TextUtil.normaliseFileSeparators(serverInfoFile.absolutePath)}')
         """
-    }
-
-    private static def echoCommandLineArgs(String message) {
-        if (OperatingSystem.current().isWindows()) {
-            return """ "cmd.exe", "/d", "/c", "echo $message" """.trim()
-        }
-        return """ "echo", "$message" """.trim()
     }
 
     private static def javaExecSpec(def owner = "") {

@@ -188,6 +188,42 @@ test = { module = 'org:test', version = '1.0' }
         succeeds("verifyCopy")
     }
 
+    def "can declare multi-string dependency with DependencyFactory"() {
+        buildFile << """
+            def group = "org"
+            def artifactId = "foo"
+            def version = "1.0"
+
+            configurations.dependencyScope("implementation") {
+                dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+            }
+        """
+
+        when:
+        succeeds("dependencies", "--configuration", "implementation")
+
+        then:
+        outputContains("org:foo:1.0")
+    }
+
+    def "can declare multi-string dependency with DependencyFactory in Kotlin"() {
+        buildKotlinFile << """
+            val group = "org"
+            val artifactId = "foo"
+            val version = "1.0"
+
+            configurations.dependencyScope("implementation") {
+                dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+            }
+        """
+
+        when:
+        succeeds("dependencies", "--configuration", "implementation")
+
+        then:
+        outputContains("org:foo:1.0")
+    }
+
     String getCopyTestBase() {
         """
             configurations {

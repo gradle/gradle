@@ -21,9 +21,9 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -107,7 +107,7 @@ object BuildServices : ServiceRegistrationProvider {
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         internalOptions: InternalOptions,
-        gradlePropertiesController: GradlePropertiesController,
+        gradleProperties: GradleProperties,
         transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
         propertyUpgradeReportConfig: PropertyUpgradeReportConfig
@@ -133,7 +133,7 @@ object BuildServices : ServiceRegistrationProvider {
             fileCollectionFactory,
             inputFingerprinter,
             internalOptions,
-            gradlePropertiesController,
+            gradleProperties,
             transformFactoryForLegacy,
             gradleCoreTypeRegistry,
             propertyUpgradeReportConfig

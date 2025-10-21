@@ -1,10 +1,12 @@
 // tag::platform[]
+// tag::convention[]
 plugins {
     id 'java-platform'
 // end::platform[]
     id 'myproject.publishing-conventions'
 // tag::platform[]
 }
+// end::convention[]
 
 dependencies {
     // The platform declares constraints on all components that
@@ -17,6 +19,8 @@ dependencies {
 }
 // end::platform[]
 
+// tag::convention[]
+
 publishing {
     publications {
         maven(MavenPublication) {
@@ -24,3 +28,4 @@ publishing {
         }
     }
 }
+// end::convention[]

@@ -36,9 +36,9 @@ abstract class BasePublishGradleDistribution(
         artifactRules =
             """
             **/build/git-checkout/platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
-            **/build/distributions/*.zip => promote-build-distributions
-            **/build/releases-data-checkout/data/releases.xml
+            **/build/git-checkout/build/distributions/*.zip => promote-build-distributions
             **/build/git-checkout/build/reports/integTest/** => distribution-tests
+            **/build/releases-data-checkout/data/releases.xml
             **/smoke-tests/build/reports/tests/** => post-smoke-tests
             **/build/version-info.properties => version-info.properties
             """.trimIndent()

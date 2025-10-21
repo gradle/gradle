@@ -58,7 +58,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         Throwable e = thrown()
         e.message.startsWith("Could not fetch model of type 'List' using connection")
         e.cause.message.contains("Resolution of the configuration ':a:compileClasspath' was attempted without an exclusive lock. This is unsafe and not allowed.")
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${targetDist.version.version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${targetDist.version.version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 
     private void setupBuild() {

@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
@@ -44,15 +43,9 @@ import java.util.stream.Collectors;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class GeneratePluginDescriptors extends DefaultTask {
-
-    private final ListProperty<PluginDeclaration> declarations;
     private final Provider<Map<String, String>> implementationClassById;
-    private final DirectoryProperty outputDirectory;
 
     public GeneratePluginDescriptors() {
-        ObjectFactory objectFactory = getProject().getObjects();
-        declarations = objectFactory.listProperty(PluginDeclaration.class);
-        outputDirectory = objectFactory.directoryProperty();
         implementationClassById = getDeclarations().map(declarations -> declarations.stream()
             .collect(Collectors.toMap(PluginDeclaration::getId, PluginDeclaration::getImplementationClass, (a, b) -> b, LinkedHashMap::new))
         );
@@ -62,9 +55,7 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
      * The plugin declarations used to create the descriptors.
      */
     @Internal("Changes for the declarations are tracked via implementationClassById")
-    public ListProperty<PluginDeclaration> getDeclarations() {
-        return declarations;
-    }
+    public abstract ListProperty<PluginDeclaration> getDeclarations();
 
     /**
      * Returns all {@code (id, implementation class)} pairs from {@link #getDeclarations()}.
@@ -77,13 +68,11 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
     }
 
     @OutputDirectory
-    public DirectoryProperty getOutputDirectory() {
-        return outputDirectory;
-    }
+    public abstract DirectoryProperty getOutputDirectory();
 
     @TaskAction
     public void generatePluginDescriptors() {
-        File outputDir = outputDirectory.get().getAsFile();
+        File outputDir = getOutputDirectory().get().getAsFile();
         clearOutputDirectory(outputDir);
         for (Map.Entry<String, String> entry : implementationClassById.get().entrySet()) {
             String id = entry.getKey();

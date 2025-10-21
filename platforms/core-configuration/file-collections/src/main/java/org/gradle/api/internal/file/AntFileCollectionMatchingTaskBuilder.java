@@ -55,9 +55,11 @@ public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
         }
 
         dynamicObject.invokeMethod("or", new Closure<Void>(this) {
+            @SuppressWarnings("unused") // Magic Groovy method
             public Object doCall(Object ignore) {
                 for (final DirectoryTree fileTree : existing) {
                     dynamicObject.invokeMethod("and", new Closure<Void>(this) {
+                        @SuppressWarnings("unused") // Magic Groovy method
                         public Object doCall(Object ignore) {
                             dynamicObject.invokeMethod("gradleBaseDirSelector", Collections.singletonMap("baseDir", fileTree.getDir()));
                             fileTree.getPatterns().addToAntBuilder(node, null);

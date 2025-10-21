@@ -21,16 +21,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.function.Supplier;
 
 @NotThreadSafe
-class UnsafeLazy<T> implements Lazy<T> {
-    @Nullable
-    private Supplier<T> supplier;
-    private T value;
+class UnsafeLazy<T extends @Nullable Object> implements Lazy<T> {
+    private @Nullable Supplier<T> supplier;
+    private @Nullable T value;
 
     public UnsafeLazy(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
     @Override
+    // NullAway cannot infer the invariant here:
+    // supplier != null => value == null
+    // supplier == null => value != null
+    @SuppressWarnings("NullAway")
     public T get() {
         if (supplier != null) {
             value = supplier.get();

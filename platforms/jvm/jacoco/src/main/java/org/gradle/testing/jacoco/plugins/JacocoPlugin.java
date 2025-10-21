@@ -90,7 +90,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        extension.getReportsDirectory().convention(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
+        extension.getReportsDirectory().convention(reportingExtension.getBaseDirectory().dir("jacoco"));
 
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);

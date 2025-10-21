@@ -18,11 +18,13 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineOption;
 import org.gradle.cli.CommandLineParser;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Provides a basic infrastructure for build option implementations.
@@ -31,49 +33,53 @@ import java.util.Map;
  */
 public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfiguration> implements BuildOption<T> {
 
+    @Nullable
     protected final String property;
     protected final List<V> commandLineOptionConfigurations;
+    @Nullable
     protected final String deprecatedProperty;
 
     public AbstractBuildOption(String property) {
-        this(property, null, Collections.<V>emptyList());
+        this(property, null, emptyList());
     }
 
-    @SuppressWarnings("unchecked")
-    public AbstractBuildOption(String property, String deprecatedProperty, V... commandLineOptionConfiguration) {
-        this(property, deprecatedProperty, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
+    @SuppressWarnings("unchecked") // otherwise, vararg heap pollution warning-as-error
+    public AbstractBuildOption(@Nullable String property, V... commandLineOptionConfiguration) {
+        this(property, null, Arrays.asList(commandLineOptionConfiguration));
     }
 
-    @SuppressWarnings("unchecked")
-    public AbstractBuildOption(String property, V... commandLineOptionConfiguration) {
-        this(property, null, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
+    public AbstractBuildOption(@Nullable String property, String deprecatedProperty) {
+        this(property, deprecatedProperty, emptyList());
     }
 
-    private AbstractBuildOption(String property, String deprecatedProperty, List<V> commandLineOptionConfigurations) {
+    @SuppressWarnings("unchecked") // otherwise, vararg heap pollution warning-as-error
+    public AbstractBuildOption(@Nullable String property, @Nullable String deprecatedProperty, V... commandLineOptionConfiguration) {
+        this(property, deprecatedProperty, Arrays.asList(commandLineOptionConfiguration));
+    }
+
+    private AbstractBuildOption(@Nullable String property, @Nullable String deprecatedProperty, List<V> commandLineOptionConfigurations) {
         this.property = property;
         this.deprecatedProperty = deprecatedProperty;
         this.commandLineOptionConfigurations = commandLineOptionConfigurations;
     }
 
     @Override
+    @Nullable
     public String getProperty() {
         return property;
     }
 
     @Override
+    @Nullable
     public String getDeprecatedProperty() {
         return deprecatedProperty;
-    }
-
-    protected boolean isTrue(String value) {
-        return value != null && value.trim().equalsIgnoreCase("true");
     }
 
     protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
         CommandLineOption option = parser.option(options)
             .hasDescription(description);
 
-        if(deprecated) {
+        if (deprecated) {
             option.deprecated();
         }
 
@@ -99,17 +105,22 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
     }
 
     protected static class OptionValue<T> {
+        @Nullable
         private final T value;
+        @Nullable
         private final Origin origin;
 
-        public OptionValue(T value, Origin origin) {
+        public OptionValue(@Nullable T value, @Nullable Origin origin) {
             this.value = value;
             this.origin = origin;
         }
 
+        @Nullable
         public T getValue() {
             return value;
         }
+
+        @Nullable
         public Origin getOrigin() {
             return origin;
         }

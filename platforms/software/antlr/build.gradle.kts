@@ -6,7 +6,6 @@ description = "Adds support for generating parsers from Antlr grammars."
 
 errorprone {
     disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
         "Finally", // 1 occurrences
     )
 }

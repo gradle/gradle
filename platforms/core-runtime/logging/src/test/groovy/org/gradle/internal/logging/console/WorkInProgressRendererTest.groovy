@@ -28,11 +28,10 @@ class WorkInProgressRendererTest extends OutputSpecification {
     def metaData = Mock(ConsoleMetaData);
     def renderer = new WorkInProgressRenderer(listener, console.getBuildProgressArea(), new DefaultWorkInProgressFormatter(metaData), new ConsoleLayoutCalculator(metaData))
 
-    def setup() {
-        metaData.getRows() >> 2
-    }
-
     def "start and complete events in the same batch are ignored"() {
+        given:
+        metaData.getRows() >> 6
+
         when:
         renderer.onOutput(start(1, ":foo"))
         renderer.onOutput(start(2, ":bar"))
@@ -42,10 +41,13 @@ class WorkInProgressRendererTest extends OutputSpecification {
 
         then:
         progressArea.display == ["> :bar"]
+        cursorParkText == ""
     }
 
     def "events are forwarded to the listener even if are not rendered"() {
         given:
+        metaData.getRows() >> 6
+
         def startEvent = start(1, ":foo")
         def completeEvent = complete(1)
 
@@ -59,15 +61,22 @@ class WorkInProgressRendererTest extends OutputSpecification {
     }
 
     def "progress operation without message have no effect on progress area"() {
+        given:
+        metaData.getRows() >> 6
+
         when:
         renderer.onOutput(start(1))
         console.flush()
 
         then:
         progressArea.display == []
+        cursorParkText == ""
     }
 
     def "parent progress operation without message is ignored when renderable child completes"() {
+        given:
+        metaData.getRows() >> 2
+
         when:
         renderer.onOutput(start(1))
         renderer.onOutput(start(id: 2, parentId: 1, status: ":foo"))
@@ -89,6 +98,8 @@ class WorkInProgressRendererTest extends OutputSpecification {
 
     def "forward the event unmodified to the listener"() {
         given:
+        metaData.getRows() >> 6
+
         def event1 = event("event 1")
         def event2 = event("event 2")
 
@@ -102,7 +113,10 @@ class WorkInProgressRendererTest extends OutputSpecification {
         0 * _
     }
 
-    def "test completing children of offscreen parents"() {
+    def "completing children of offscreen parents"() {
+        given:
+        metaData.getRows() >> 2 // only a single line will be displayable
+
         // This test confirms that when a child task is completed for a
         // parent task that is currently offscreen, that we don't accumulate
         // additional copies of that pending parent task to show later
@@ -114,8 +128,9 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        // task 3 should not be shown because there should not be enough space for it
+        // task 2 should not be shown because there should not be enough space for it
         progressArea.display == ["> :one"]
+        cursorParkText == "  (1 line not showing)"
 
         and:
         // start a child for 2 while it's offscreen, and complete that child
@@ -133,6 +148,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         and:
         // note that task 2 is still not shown
         progressArea.display == ["> :one"]
+        cursorParkText == "  (1 line not showing)"
 
         then:
         // task 1 completes
@@ -143,6 +159,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         and:
         // task 2 should appear because there should be enough space for it now
         progressArea.display == ["> :two"]
+        cursorParkText == ""
 
         then:
         // task 2 completes
@@ -153,10 +170,79 @@ class WorkInProgressRendererTest extends OutputSpecification {
         then:
         // there should be no more copies of task 2 claiming to be running
         progressArea.display == ["> IDLE"]
+        cursorParkText == ""
+    }
+
+    def "multiple offscreen operations"() {
+        given:
+        metaData.getRows() >> 4 // only two active operations can be displayable
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":one"))
+        renderer.onOutput(start(id: 2, status: ":two"))
+        renderer.onOutput(start(id: 3, status: ":three"))
+        renderer.onOutput(start(id: 4, status: ":four"))
+        renderer.onOutput(start(id: 5, status: ":five"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :one", "> :two"]
+        cursorParkText == "  (3 lines not showing)"
+
+        and:
+        renderer.onOutput(complete(2))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :one", "> :three"]
+        cursorParkText == "  (2 lines not showing)"
+
+        and:
+        renderer.onOutput(complete(1))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :four", "> :three"]
+        cursorParkText == "  (1 line not showing)"
+
+        and:
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :four", "> :five"]
+        cursorParkText == ""
+
+        and:
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> IDLE", "> :five"]
+        cursorParkText == ""
+
+        and:
+        renderer.onOutput(complete(5))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> IDLE", "> IDLE"]
+        cursorParkText == ""
     }
 
 
     private ConsoleStub.TestableBuildProgressTextArea getProgressArea() {
         console.buildProgressArea as ConsoleStub.TestableBuildProgressTextArea
+    }
+
+
+    private String getCursorParkText() {
+        (console.buildProgressArea.cursorParkLine as ConsoleStub.TestableRedrawableLabel).getDisplay()
     }
 }

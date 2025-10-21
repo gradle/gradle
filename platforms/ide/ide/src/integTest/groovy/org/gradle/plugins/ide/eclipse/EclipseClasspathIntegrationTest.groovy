@@ -986,7 +986,7 @@ task generateForMain
 task generateForTest
 ''')
         //then
-        result.assertTasksExecuted(':generateForMain', ':generateForTest', ':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')
+        result.assertTasksScheduled(':generateForMain', ':generateForTest', ':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')
     }
 
     @Test

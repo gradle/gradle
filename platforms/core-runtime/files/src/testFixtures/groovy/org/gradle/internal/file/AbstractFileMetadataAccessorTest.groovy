@@ -166,7 +166,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, VIA_SYMLINK)
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "stats named pipes"() {
         def pipe = tmpDir.file("testPipe").createNamedPipe()
 

@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.ScheduledWork
+import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.configuration.problems.ProblemFactory
@@ -60,6 +61,14 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         delegate.removeTaskExecutionGraphListener(listener.wrap())
     }
 
+    override fun addExecutionListener(listener: TaskExecutionGraphExecutionListener) {
+        delegate.addExecutionListener(listener)
+    }
+
+    override fun removeExecutionListener(listener: TaskExecutionGraphExecutionListener) {
+        delegate.removeExecutionListener(listener)
+    }
+
     override fun whenReady(closure: Closure<*>) {
         delegate.whenReady(CrossProjectModelAccessTrackingClosure(closure, referrerProject, crossProjectModelAccess))
     }
@@ -72,7 +81,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         return delegate.findTask(path).also { task ->
             if (task == null) {
                 // check whether the path refers to a different project
-                val parentPath = Path.path(path).parent?.path
+                val parentPath = Path.path(path).parent?.asString()
                 if (parentPath != referrerProject.path) {
                     // even though the task was not found, the current project is coupled with the other project:
                     // if the configuration of that project changes, the result of this call might be different
@@ -205,6 +214,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         delegate.collectScheduledWork()
 
     override fun size(): Int = delegate.size()
+
+    override fun getLegacyTaskListenerBroadcast() = delegate.legacyTaskListenerBroadcast
 
     @Deprecated("Deprecated in Java")
     override fun addTaskExecutionListener(@Suppress("DEPRECATION") listener: org.gradle.api.execution.TaskExecutionListener) {

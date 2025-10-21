@@ -16,6 +16,7 @@
 
 package org.gradle.internal.locking;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -36,7 +37,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.dsl.dependencies.LockEntryFilter;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -274,7 +274,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
         @Override
         public void artifactSelection(Action<? super ArtifactSelectionDetails> action) {
-            throw new UnsupportedOperationException();
+            // No need to execute the artifact selection action.
+            // We only care if the dependency selector was substituted.
         }
 
         boolean didSubstitute() {
@@ -287,60 +288,19 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         }
 
         @Override
-        public ComponentSelector getTarget() {
+        public @Nullable ComponentSelector getConfiguredTargetSelector() {
             return selector;
         }
 
         @Override
-        public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
-            return Collections.emptyList();
+        public @Nullable ImmutableList<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+            throw new UnsupportedOperationException("Should not be called");
         }
 
         @Override
-        public boolean isUpdated() {
-            return false;
+        public @Nullable ImmutableList<DependencyArtifactSelector> getConfiguredArtifactSelectors() {
+            throw new UnsupportedOperationException("Should not be called");
         }
 
-        @Override
-        public ArtifactSelectionDetailsInternal getArtifactSelectionDetails() {
-            return new NoOpArtifactSelectionDetails();
-        }
-
-        private static class NoOpArtifactSelectionDetails implements ArtifactSelectionDetailsInternal {
-            @Override
-            public boolean isUpdated() {
-                return false;
-            }
-
-            @Override
-            public List<DependencyArtifactSelector> getTargetSelectors() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public boolean hasSelectors() {
-                return false;
-            }
-
-            @Override
-            public List<DependencyArtifactSelector> getRequestedSelectors() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public void withoutArtifactSelectors() {
-
-            }
-
-            @Override
-            public void selectArtifact(String type, @Nullable String extension, @Nullable String classifier) {
-
-            }
-
-            @Override
-            public void selectArtifact(DependencyArtifactSelector selector) {
-
-            }
-        }
     }
 }

@@ -1,0 +1,43 @@
+name: "Check CODEOWNERS file"
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions: { }
+
+jobs:
+  code-owners-validation:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Secrets
+        uses: gradle/actions-internal/get-aws-secrets@v1
+        if: (github.event_name != 'pull_request' && github.repository_owner == 'gradle') || github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
+          secret-ids: |
+            ORG_TEAM_GITHUB_ACCESS_TOKEN, gha/gradle/_all/ORG_TEAM_GITHUB_ACCESS_TOKEN
+
+      - uses: actions/checkout@v5
+
+      - name: GitHub CODEOWNERS Validator
+        uses: mszostok/codeowners-validator@v0.7.4
+        with:
+          checks: "files,duppatterns,syntax"
+          experimental_checks: "notowned,avoid-shadowing"
+
+      # downgrading to 0.7.2 for owners check to avoid issues with token permissions check,
+      # see https://github.com/mszostok/codeowners-validator/issues/224
+      - name: GitHub CODEOWNERS Validator
+        uses: mszostok/codeowners-validator@v0.7.2
+        if: (github.event_name != 'pull_request' && github.repository_owner == 'gradle') || github.event.pull_request.head.repo.full_name == github.repository
+        with:
+          checks: "owners"
+          github_access_token: "${{ env.ORG_TEAM_GITHUB_ACCESS_TOKEN }}"
+          owner_checker_owners_must_be_teams: true

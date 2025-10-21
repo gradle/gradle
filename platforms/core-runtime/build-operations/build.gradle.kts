@@ -18,9 +18,13 @@ dependencies {
     api(libs.jspecify)
 
     implementation(libs.slf4jApi)
+    implementation(libs.guava)
 
     testFixturesImplementation(libs.guava)
 
     testImplementation(testFixtures(projects.time))
 }
 
+errorprone {
+    nullawayEnabled = true
+}

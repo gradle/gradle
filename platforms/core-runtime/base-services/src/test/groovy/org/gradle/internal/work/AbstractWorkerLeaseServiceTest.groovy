@@ -16,7 +16,6 @@
 
 package org.gradle.internal.work
 
-
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockContainer
 import org.gradle.internal.resources.TestTrackedResourceLock
@@ -29,8 +28,12 @@ abstract class AbstractWorkerLeaseServiceTest extends ConcurrentSpec {
         return workerLeaseService(true, maxWorkers)
     }
 
-    WorkerLeaseService workerLeaseService(boolean parallel, int maxWorkers = 1) {
-        def service = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(maxWorkers))
+    WorkerLeaseService workerLeaseService(
+        boolean parallel,
+        int maxWorkers = 1,
+        ResourceLockStatistics resourceLockStatistics = ResourceLockStatistics.NO_OP
+    ) {
+        def service = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(maxWorkers), resourceLockStatistics)
         service.startProjectExecution(parallel)
         return service
     }

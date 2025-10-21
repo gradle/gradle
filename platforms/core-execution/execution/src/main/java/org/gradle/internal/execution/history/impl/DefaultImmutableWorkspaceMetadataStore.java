@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspaceMetadataStore {
     private static final String METADATA_FILE = "metadata.bin";
@@ -39,8 +40,13 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
     private final OriginMetadataSerializer originMetadataSerializer = new OriginMetadataSerializer();
 
     @Override
-    public ImmutableWorkspaceMetadata loadWorkspaceMetadata(File workspace) {
+    public Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace) {
         File metadataFile = new File(workspace, METADATA_FILE);
+
+        if (!metadataFile.exists()) {
+            return Optional.empty();
+        }
+
         //noinspection IOStreamConstructor
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
             OriginMetadata originMetadata = originMetadataSerializer.read(decoder);
@@ -55,7 +61,7 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
                     outputPropertyHashes.put(outputProperty, hashCode);
                 }
             }
-            return new ImmutableWorkspaceMetadata(originMetadata, outputPropertyHashes.build());
+            return Optional.of(new ImmutableWorkspaceMetadata(originMetadata, outputPropertyHashes.build()));
         } catch (IOException e) {
             throw new UncheckedIOException("Could not read workspace metadata from " + metadataFile, e);
         }

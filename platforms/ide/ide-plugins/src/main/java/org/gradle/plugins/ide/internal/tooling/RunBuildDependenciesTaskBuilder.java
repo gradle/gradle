@@ -18,6 +18,8 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
@@ -35,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
-
 @NullMarked
 public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private Map<String, Boolean> projectOpenStatus;
@@ -51,7 +51,8 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
         this.projectOpenStatus = eclipseRuntime.getWorkspace().getProjects().stream()
             .collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
 
-        List<TaskDependency> buildDependencies = populate(project.getRootProject());
+        ProjectState rootProjectState = ((ProjectInternal) project.getRootProject()).getOwner();
+        List<TaskDependency> buildDependencies = populate(rootProjectState);
         if (!buildDependencies.isEmpty()) {
             Gradle rootGradle = getRootGradle(project.getGradle());
             Project rootProject = rootGradle.getRootProject();
@@ -73,15 +74,18 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
         return getRootGradle(parent);
     }
 
-    private List<TaskDependency> populate(Project project) {
-        project.getPluginManager().apply(EclipsePlugin.class);
-        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
-        EclipseClasspath eclipseClasspath = eclipseModel.getClasspath();
+    private List<TaskDependency> populate(ProjectState p) {
+        List<TaskDependency> currentElements = p.fromMutableState(project -> {
+            project.getPluginManager().apply(EclipsePlugin.class);
+            EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
+            EclipseClasspath eclipseClasspath = eclipseModel.getClasspath();
 
-        EclipseModelBuilder.ClasspathElements elements = EclipseModelBuilder.gatherClasspathElements(projectOpenStatus, eclipseClasspath, false);
-        List<TaskDependency> buildDependencies = new ArrayList<>(elements.getBuildDependencies());
+            EclipseModelBuilder.ClasspathElements elements = EclipseModelBuilder.gatherClasspathElements(projectOpenStatus, eclipseClasspath, false);
+            return elements.getBuildDependencies();
+        });
 
-        for (Project childProject : getChildProjectsForInternalUse(project)) {
+        List<TaskDependency> buildDependencies = new ArrayList<>(currentElements);
+        for (ProjectState childProject : p.getChildProjects()) {
             buildDependencies.addAll(populate(childProject));
         }
         return buildDependencies;

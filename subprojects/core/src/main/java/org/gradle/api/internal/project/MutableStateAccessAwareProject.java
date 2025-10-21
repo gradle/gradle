@@ -75,7 +75,6 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -90,7 +89,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
@@ -110,11 +109,9 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
         ProjectInternal target,
         ProjectInternal referrer,
-        Function<ProjectInternal, T> wrapper
+        Supplier<T> wrapperSupplier
     ) {
-        return target == referrer
-            ? target
-            : wrapper.apply(target);
+        return target == referrer ? target : wrapperSupplier.get();
     }
 
     protected final ProjectInternal delegate;
@@ -135,14 +132,17 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    @SuppressWarnings({"EqualsDoesntCheckParameterClass", "EqualsWhichDoesntCheckParameterClass"})
     public final boolean equals(Object other) {
-        return delegate.equals(other);
+        if (!(other instanceof ProjectInternal)) {
+            return false;
+        }
+        ProjectInternal otherProject = (ProjectInternal) other;
+        return getProjectIdentity().equals(otherProject.getProjectIdentity());
     }
 
     @Override
     public final int hashCode() {
-        return delegate.hashCode();
+        return getProjectIdentity().hashCode();
     }
 
     @Nullable
@@ -427,11 +427,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public Set<Project> getSubprojects() {
         return Cast.uncheckedCast(delegate.getSubprojects(referrer));
-    }
-
-    @Override
-    public Map<String, Project> getChildProjectsUnchecked() {
-        return delegate.getChildProjectsUnchecked();
     }
 
     @Nullable
@@ -842,12 +837,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public ServiceRegistryFactory getServiceRegistryFactory() {
-        onMutableStateAccess("serviceRegistryFactory");
-        return delegate.getServiceRegistryFactory();
-    }
-
-    @Override
     public StandardOutputCapture getStandardOutputCapture() {
         return delegate.getStandardOutputCapture();
     }
@@ -859,16 +848,19 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
         return delegate.container(type);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
         return delegate.container(type, factory);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         return delegate.container(type, factoryClosure);
     }

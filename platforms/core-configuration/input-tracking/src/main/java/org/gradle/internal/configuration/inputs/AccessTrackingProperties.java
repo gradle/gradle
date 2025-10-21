@@ -504,8 +504,7 @@ public class AccessTrackingProperties extends Properties {
     private Object getAndReportAccess(@Nullable Object key) {
         Object value = delegate.get(key);
         // delegate.get(null) actually throws NPE.
-        assert key != null;
-        reportAccess(key, value);
+        reportAccess(Objects.requireNonNull(key), value);
         return value;
     }
 

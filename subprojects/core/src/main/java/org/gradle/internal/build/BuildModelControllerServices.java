@@ -21,7 +21,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Contributes build scoped services.
@@ -38,7 +37,7 @@ public interface BuildModelControllerServices {
      *     <li>{@link org.gradle.api.internal.GradleInternal}</li>
      * </ul>
      */
-    Supplier servicesForBuild(BuildDefinition buildDefinition, BuildState owner, @Nullable BuildState parentBuild);
+    Supplier servicesForBuild(BuildDefinition buildDefinition, BuildState buildState);
 
     interface Supplier {
         void applyServicesTo(ServiceRegistration registration, ServiceRegistry buildScopeServices);

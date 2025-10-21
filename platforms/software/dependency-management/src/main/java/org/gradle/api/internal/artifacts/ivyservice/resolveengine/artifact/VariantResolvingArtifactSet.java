@@ -125,7 +125,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         ComponentArtifactResolveMetadata componentArtifactMetadata = component.prepareForArtifactResolution().getArtifactMetadata();
         VariantArtifactResolveState artifactState = variant.prepareForArtifactResolution();
         ImmutableList<ComponentArtifactMetadata> adhocArtifacts = artifactState.getAdhocArtifacts(requestedArtifacts);
-        return ImmutableList.of(variantArtifactResolver.resolveAdhocVariant(componentArtifactMetadata, adhocArtifacts));
+        return ImmutableList.of(variantArtifactResolver.resolveAdhocVariant(componentArtifactMetadata, variant.getMetadata().getId(), adhocArtifacts));
     }
 
     /**
@@ -194,7 +194,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         ImmutableList.Builder<ResolvedVariant> resolved = ImmutableList.builderWithExpectedSize(unresolved.size());
 
         for (VariantResolveMetadata artifactSet : unresolved) {
-            ResolvedVariant resolvedArtifactSet = variantArtifactResolver.resolveVariantArtifactSet(component, artifactSet);
+            ResolvedVariant resolvedArtifactSet = variantArtifactResolver.resolveVariantArtifactSet(component, variant.getMetadata().getId(), artifactSet);
             resolved.add(resolvedArtifactSet);
         }
 

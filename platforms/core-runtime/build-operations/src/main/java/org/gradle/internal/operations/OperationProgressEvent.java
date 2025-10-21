@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 public final class OperationProgressEvent {
 
     private final long time;
-    private final Object details;
+    private final @Nullable Object details;
 
     /**
      * Create a new progress event to carry a progress event's details.

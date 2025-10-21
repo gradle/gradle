@@ -16,8 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,17 +23,17 @@ import java.util.List;
 public abstract class AbstractProjectSpec implements ProjectSpec {
     private static final String UNRELATED_BUILD_HINT = " If this is an unrelated build, it must have its own settings file.";
     @Override
-    public boolean containsProject(ProjectRegistry<? extends ProjectIdentifier> registry) {
+    public boolean containsProject(ProjectDescriptorRegistry registry) {
         checkPreconditions(registry);
-        List<ProjectIdentifier> matches = new ArrayList<ProjectIdentifier>();
+        List<ProjectDescriptorInternal> matches = new ArrayList<>();
         select(registry, matches);
         return !matches.isEmpty();
     }
 
     @Override
-    public <T extends ProjectIdentifier> T selectProject(String settingsDescription, ProjectRegistry<? extends T> registry) {
+    public ProjectDescriptorInternal selectProject(String settingsDescription, ProjectDescriptorRegistry registry) {
         checkPreconditions(registry);
-        List<T> matches = new ArrayList<T>();
+        List<ProjectDescriptorInternal> matches = new ArrayList<>();
         select(registry, matches);
         if (matches.isEmpty()) {
             String message = formatNoMatchesMessage(settingsDescription) + UNRELATED_BUILD_HINT;
@@ -47,12 +45,12 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
         return matches.get(0);
     }
 
-    protected void checkPreconditions(ProjectRegistry<?> registry) {
+    protected void checkPreconditions(ProjectDescriptorRegistry registry) {
     }
 
-    protected abstract String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches);
+    protected abstract String formatMultipleMatchesMessage(Iterable<ProjectDescriptorInternal> matches);
 
     protected abstract String formatNoMatchesMessage(String settings);
 
-    protected abstract <T extends ProjectIdentifier> void select(ProjectRegistry<? extends T> candidates, List<? super T> matches);
+    protected abstract void select(ProjectDescriptorRegistry candidates, List<ProjectDescriptorInternal> matches);
 }

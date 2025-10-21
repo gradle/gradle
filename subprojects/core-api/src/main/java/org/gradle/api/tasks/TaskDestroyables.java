@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the files or directories that a {@link org.gradle.api.Task} destroys (removes).
@@ -32,5 +33,5 @@ public interface TaskDestroyables {
      *
      * @since 4.3
      */
-    void register(Object... paths);
+    void register(@Nullable Object... paths);
 }

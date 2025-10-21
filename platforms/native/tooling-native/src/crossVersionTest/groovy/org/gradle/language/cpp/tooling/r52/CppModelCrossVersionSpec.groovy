@@ -123,11 +123,11 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseX86Binary.linkageDetails.outputLocation == toolchain.executable(file("build/exe/main/release/x86/app")).strippedRuntimeFile
         releaseX86Binary.linkageDetails.additionalArgs.empty
         if (toolchain.visualCpp) {
-            releaseX86Binary.linkageDetails.linkTask.path == ":linkReleaseX86"
-            releaseX86Binary.linkageDetails.linkTask.name == "linkReleaseX86"
+            assert releaseX86Binary.linkageDetails.linkTask.path == ":linkReleaseX86"
+            assert releaseX86Binary.linkageDetails.linkTask.name == "linkReleaseX86"
         } else {
-            releaseX86Binary.linkageDetails.linkTask.path == ":stripSymbolsReleaseX86"
-            releaseX86Binary.linkageDetails.linkTask.name == "stripSymbolsReleaseX86"
+            assert releaseX86Binary.linkageDetails.linkTask.path == ":stripSymbolsReleaseX86"
+            assert releaseX86Binary.linkageDetails.linkTask.name == "stripSymbolsReleaseX86"
         }
 
         def releaseX8664Binary = project.mainComponent.binaries[3]
@@ -150,8 +150,8 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseX8664Binary.linkageDetails.outputLocation == toolchain.executable(file("build/exe/main/release/x86-64/app")).strippedRuntimeFile
         releaseX8664Binary.linkageDetails.additionalArgs.empty
         if (toolchain.visualCpp) {
-            releaseX8664Binary.linkageDetails.linkTask.path == ":linkReleaseX86-64"
-            releaseX8664Binary.linkageDetails.linkTask.name == "linkReleaseX86-64"
+            assert releaseX8664Binary.linkageDetails.linkTask.path == ":linkReleaseX86-64"
+            assert releaseX8664Binary.linkageDetails.linkTask.name == "linkReleaseX86-64"
         } else {
             releaseX8664Binary.linkageDetails.linkTask.path == ":stripSymbolsReleaseX86-64"
             releaseX8664Binary.linkageDetails.linkTask.name == "stripSymbolsReleaseX86-64"
@@ -249,11 +249,11 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseX86Binary.linkageDetails.outputLocation == toolchain.sharedLibrary(file("build/lib/main/release/x86/lib")).strippedLinkFile
         releaseX86Binary.linkageDetails.additionalArgs.empty
         if (toolchain.visualCpp) {
-            releaseX86Binary.linkageDetails.linkTask.path == ":linkReleaseX86"
-            releaseX86Binary.linkageDetails.linkTask.name == "linkReleaseX86"
+            assert releaseX86Binary.linkageDetails.linkTask.path == ":linkReleaseX86"
+            assert releaseX86Binary.linkageDetails.linkTask.name == "linkReleaseX86"
         } else {
-            releaseX86Binary.linkageDetails.linkTask.path == ":stripSymbolsReleaseX86"
-            releaseX86Binary.linkageDetails.linkTask.name == "stripSymbolsReleaseX86"
+            assert releaseX86Binary.linkageDetails.linkTask.path == ":stripSymbolsReleaseX86"
+            assert releaseX86Binary.linkageDetails.linkTask.name == "stripSymbolsReleaseX86"
         }
 
         def releaseX8664Binary = project.mainComponent.binaries[3]
@@ -276,11 +276,11 @@ class CppModelCrossVersionSpec extends ToolingApiSpecification {
         releaseX8664Binary.linkageDetails.outputLocation == toolchain.sharedLibrary(file("build/lib/main/release/x86-64/lib")).strippedLinkFile
         releaseX8664Binary.linkageDetails.additionalArgs.empty
         if (toolchain.visualCpp) {
-            releaseX8664Binary.linkageDetails.linkTask.path == ":linkReleaseX86-64"
-            releaseX8664Binary.linkageDetails.linkTask.name == "linkReleaseX86-64"
+            assert releaseX8664Binary.linkageDetails.linkTask.path == ":linkReleaseX86-64"
+            assert releaseX8664Binary.linkageDetails.linkTask.name == "linkReleaseX86-64"
         } else {
-            releaseX8664Binary.linkageDetails.linkTask.path == ":stripSymbolsReleaseX86-64"
-            releaseX8664Binary.linkageDetails.linkTask.name == "stripSymbolsReleaseX86-64"
+            assert releaseX8664Binary.linkageDetails.linkTask.path == ":stripSymbolsReleaseX86-64"
+            assert releaseX8664Binary.linkageDetails.linkTask.name == "stripSymbolsReleaseX86-64"
         }
 
         project.testComponent == null

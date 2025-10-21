@@ -47,7 +47,7 @@ class TaskOriginTracker implements BuildOperationTracker {
 
     @Nullable
     InternalPluginIdentifier getOriginPlugin(TaskIdentity<?> taskIdentity) {
-        return origins.get(taskIdentity.uniqueId);
+        return origins.get(taskIdentity.getId());
     }
 
     @Override

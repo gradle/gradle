@@ -22,15 +22,15 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 public class DefaultProjectModelResolver implements ProjectModelResolver {
-    private final ProjectRegistry<ProjectInternal> delegate;
+    private final ProjectRegistry delegate;
 
-    public DefaultProjectModelResolver(ProjectRegistry<ProjectInternal> delegate) {
+    public DefaultProjectModelResolver(ProjectRegistry delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public ModelRegistry resolveProjectModel(String path) {
-        ProjectInternal projectInternal = delegate.getProject(path);
+        ProjectInternal projectInternal = delegate.getProjectInternal(path);
         if (projectInternal == null) {
             throw new UnknownProjectException("Project with path '" + path + "' not found.");
         }

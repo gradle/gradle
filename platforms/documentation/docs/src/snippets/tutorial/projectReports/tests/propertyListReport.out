@@ -1,6 +1,6 @@
 
 ------------------------------------------------------------
-Project ':api' - The shared API for the application
+Project ':api'
 ------------------------------------------------------------
 
 allprojects: [project ':api']

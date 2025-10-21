@@ -27,14 +27,14 @@ import static org.gradle.util.Path.path
 class PathTest extends Specification {
     def "construction from string"() {
         expect:
-        path(':').getPath() == ':'
+        path(':').asString() == ':'
         path(':').is(Path.ROOT)
-        Path.ROOT.getPath() == ':'
-        path('a').getPath() == 'a'
-        path('a:b:c').getPath() == 'a:b:c'
-        path(':a').getPath() == ':a'
-        path(':a:b').getPath() == ':a:b'
-        path(':a:b:').getPath() == ':a:b'
+        Path.ROOT.asString() == ':'
+        path('a').asString() == 'a'
+        path('a:b:c').asString() == 'a:b:c'
+        path(':a').asString() == ':a'
+        path(':a:b').asString() == ':a:b'
+        path(':a:b:').asString() == ':a:b'
     }
 
     def "equals and hashCode"() {
@@ -332,6 +332,18 @@ class PathTest extends Specification {
         path('a').ancestors().toList() == []
         path('a:b').ancestors().toList() == paths(['a'])
         path('a:b:c').ancestors().toList() == paths(['a', 'a:b'])
+    }
+
+    def "can determine if one path starts with another"() {
+        expect:
+        path(':a:b').startsWith(path(':a'))
+        path(':a:b').startsWith(path(':a:b'))
+        !path(':a:b').startsWith(path(':b'))
+        !path(':a:b').startsWith(path('a'))
+        !path('a:b').startsWith(path(':a'))
+        !path('a:b').startsWith(path('b'))
+        path('a:b:c').startsWith(path('a:b'))
+        path('a:b:c').startsWith(path('a:b:c'))
     }
 
     def paths(List<String> paths) {

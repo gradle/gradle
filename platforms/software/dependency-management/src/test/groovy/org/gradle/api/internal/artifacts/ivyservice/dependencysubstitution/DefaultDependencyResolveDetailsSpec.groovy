@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
@@ -38,8 +40,8 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
-        !details.delegate.updated
-        details.delegate.ruleDescriptors == []
+        details.delegate.configuredTargetSelector == null
+        details.delegate.ruleDescriptors == null
 
         when:
         details.useVersion("1.0") //the same version
@@ -47,7 +49,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "1.0")
-        details.delegate.updated
+        details.delegate.configuredTargetSelector != null
         details.delegate.ruleDescriptors == [SELECTED_BY_RULE]
 
         when:
@@ -56,7 +58,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
         then:
         details.requested == newVersionSelector("org", "foo", "1.0")
         details.target == newVersionSelector("org", "foo", "2.0")
-        details.delegate.updated
+        details.delegate.configuredTargetSelector != null
         details.delegate.ruleDescriptors == [SELECTED_BY_RULE, SELECTED_BY_RULE]
     }
 
@@ -78,7 +80,7 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
 
         then:
         details.target.toString() == 'org:bar:2.0'
-        details.delegate.updated
+        details.delegate.configuredTargetSelector != null
         details.delegate.ruleDescriptors == [SELECTED_BY_RULE]
     }
 
@@ -181,13 +183,20 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static def getReason(DefaultDependencyResolveDetails details) {
-        assert details.delegate.updated
+        assert details.delegate.configuredTargetSelector != null
         assert details.delegate.ruleDescriptors.size() == 1
         return details.delegate.ruleDescriptors[0]
     }
 
     private static def newDependencyResolveDetails(String group, String name, String version, String reason = null, List<IvyArtifactName> artifacts = []) {
-        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), newComponentSelector(group, name, version), artifacts), newVersionSelector(group, name, version))
+        return new DefaultDependencyResolveDetails(
+            new DefaultDependencySubstitution(
+                DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
+                newComponentSelector(group, name, version),
+                ImmutableList.copyOf(artifacts)
+            ),
+            DefaultModuleVersionIdentifier.newId(group, name, version)
+        )
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {

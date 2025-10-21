@@ -71,7 +71,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         assert bJar.lastModified() > oldTimestamp
 
         then:
-        result.assertTasksNotSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar")
+        result.assertTasksExecuted(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar")
         result.assertTasksSkipped(":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
@@ -195,7 +195,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds(":a:javadoc")
         then:
-        result.assertTasksNotSkipped(":a:javadoc")
+        result.assertTasksExecuted(":a:javadoc")
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
             ":a:compileJava", ":a:processResources", ":a:classes", ":duplicate")
         when:
@@ -209,7 +209,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds(":a:javadoc")
         then:
-        result.assertTasksNotSkipped(":a:javadoc")
+        result.assertTasksExecuted(":a:javadoc")
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
             ":a:compileJava", ":a:processResources", ":a:classes", ":duplicate")
     }

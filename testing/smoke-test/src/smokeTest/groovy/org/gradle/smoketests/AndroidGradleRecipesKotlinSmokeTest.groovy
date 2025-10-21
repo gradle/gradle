@@ -81,7 +81,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             android {
                 namespace = "org.gradle.smoketests.androidrecipes"
                 compileSdk = 29
-                buildToolsVersion("${TestedVersions.androidTools}")
+                buildToolsVersion("${AGP_VERSIONS.buildToolsVersion()}")
                 buildFeatures { buildConfig = true }
                 kotlinOptions { jvmTarget = "1.8" }
             }
@@ -132,6 +132,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         and:
         def runner = mixedRunner(false, agpVersion, kotlinVersionNumber, taskName)
             .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecation(agpVersion)
                 maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
 
@@ -151,6 +152,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
         when: 'running the build for the 2nd time'
         result = runner.deprecations(AndroidDeprecations) {
+            expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
             maybeExpectIsPropertyDeprecationWarnings(agpVersion)
         }.build()
 

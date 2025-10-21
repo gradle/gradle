@@ -38,7 +38,11 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 /**
  * Keep package-info files for packages split up into multiple directories/projects
  * from being different. If allowed to be different behaviour can become nondeterministic
- * based on classpath ordering.
+ * based on classpath ordering:
+ * <ul>
+ *     <li>Runtime annotations may kick in or not.</li>
+ *     <li>Javadoc may pick up different files to generate package pages</li>
+ * </ul>
  */
 public class PackageInfoTest {
 

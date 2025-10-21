@@ -110,7 +110,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         and:
         succeeds "groovydoc"
         then:
-        result.assertTaskNotSkipped(":groovydoc")
+        result.assertTaskExecuted(":groovydoc")
         overviewSummary.text.contains("Goodbye World")
     }
 

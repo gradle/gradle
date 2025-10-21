@@ -1,1 +1,12 @@
 rootProject.name = "plugin-with-variants"
+
+// tag::publish-3[]
+pluginManagement {
+    repositories {
+        maven {
+            url = uri("../plugin/build/local-repo")
+        }
+        gradlePluginPortal()
+    }
+}
+// end::publish-3[]

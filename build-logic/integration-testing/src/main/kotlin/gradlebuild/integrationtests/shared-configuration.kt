@@ -64,7 +64,6 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
         val srcDistribution = bucket("${prefix}TestSrcDistribution", "Declare a src distribution to be used by tests - useful for testing the final distribution that is published")
 
         getByName("${prefix}TestRuntimeClasspath") {
-            extendsFrom(distributionRuntimeOnly)
             if (platformImplementation != null) {
                 extendsFrom(platformImplementation)
             }
@@ -251,7 +250,6 @@ fun Project.configureIde(testType: TestType) {
 
 private
 fun Project.bucket(name: String, description: String) = configurations.create(name) {
-    isVisible = false
     isCanBeResolved = false
     isCanBeConsumed = false
     this.description = description
@@ -267,7 +265,6 @@ fun Project.resolver(name: String, libraryElements: String, extends: Configurati
     }
     isCanBeResolved = true
     isCanBeConsumed = false
-    isVisible = false
     if (extends != null) {
         extendsFrom(extends)
     }
@@ -280,7 +277,6 @@ fun Project.localRepositoryResolver(name: String, extends: Configuration? = null
     }
     isCanBeResolved = true
     isCanBeConsumed = false
-    isVisible = false
     if (extends != null) {
         extendsFrom(extends)
     }

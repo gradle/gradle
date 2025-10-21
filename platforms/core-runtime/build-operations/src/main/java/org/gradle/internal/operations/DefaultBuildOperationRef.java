@@ -19,8 +19,8 @@ import org.jspecify.annotations.Nullable;
 
 public class DefaultBuildOperationRef implements BuildOperationRef {
 
-    private final OperationIdentifier id;
-    private final OperationIdentifier parentId;
+    private final @Nullable OperationIdentifier id;
+    private final @Nullable OperationIdentifier parentId;
 
     public DefaultBuildOperationRef(@Nullable OperationIdentifier id, @Nullable OperationIdentifier parentId) {
         this.id = id;
@@ -28,12 +28,12 @@ public class DefaultBuildOperationRef implements BuildOperationRef {
     }
 
     @Override
-    public OperationIdentifier getId() {
+    public @Nullable OperationIdentifier getId() {
         return id;
     }
 
     @Override
-    public OperationIdentifier getParentId() {
+    public @Nullable OperationIdentifier getParentId() {
         return parentId;
     }
 

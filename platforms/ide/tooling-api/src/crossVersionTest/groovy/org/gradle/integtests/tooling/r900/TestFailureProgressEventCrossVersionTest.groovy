@@ -82,6 +82,6 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         collector.failures.size() == 1
         collector.failures[0] instanceof DefaultTestFrameworkFailure
         collector.failures[0].className == "org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"
-        collector.failures[0].message =~ /Could not start Gradle Test Executor \d+: Failed to load JUnit 4.  Please ensure that JUnit 4 is available on the test runtime classpath./
+        collector.failures[0].message =~ /Could not start Gradle Test Executor \d+: Failed to load JUnit 4.*/
     }
 }

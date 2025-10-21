@@ -207,7 +207,7 @@ model {
         succeeds "mainExecutable"
 
         then:
-        result.assertTasksExecuted(":compileMainExecutableMainCpp", ":preLinkMainExecutable", ":linkMainExecutable", ":postLinkMainExecutable", ":mainExecutable")
+        result.assertTasksScheduled(":compileMainExecutableMainCpp", ":preLinkMainExecutable", ":linkMainExecutable", ":postLinkMainExecutable", ":mainExecutable")
     }
 
     @Issue("GRADLE-2973")

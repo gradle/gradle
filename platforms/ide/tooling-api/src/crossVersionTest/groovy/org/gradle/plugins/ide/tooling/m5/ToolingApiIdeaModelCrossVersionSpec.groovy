@@ -290,13 +290,9 @@ project(':impl') {
 
         then:
         def libs = impl.dependencies
-        if (targetVersion >= GradleVersion.version("3.4")) {
-            libs.size() == 3
-        } else {
-            libs.size() == 1
-        }
+        libs.size() == 1
         libs.each {
-            it.targetModuleName == 'api'
+            assert it.targetModuleName == 'api'
         }
     }
 }

@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Function;
 
 final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     private static final URL STYLE_URL = Resources.getResource(GenericPageRenderer.class, "style.css");
@@ -39,8 +40,8 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         }
         // We know we're emitting to the file system, so let's just use NIO Path to do the path manipulation.
         // We need the `.` for relative resolution to work properly
-        java.nio.file.Path relativePath = Paths.get("./" + GenericHtmlTestReport.getFilePath(originatingPath)).getParent()
-            .relativize(Paths.get("./" + GenericHtmlTestReport.getFilePath(targetPath)));
+        java.nio.file.Path relativePath = Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(originatingPath)).getParent()
+            .relativize(Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(targetPath)));
         // Escape things that aren't `/` for the URL
         StringBuilder url = new StringBuilder();
         for (java.nio.file.Path segment : relativePath) {
@@ -86,17 +87,21 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
     @Override
     protected String getTitle() {
-        // This should maybe be the display name, but we'd need to handle different display names for the same path.
-        String name = getModel().getPath().getName();
-        if (name == null) {
-            return "All Results";
-        }
-        return name;
+        // Show "All Results" in the root, otherwise show nothing, the display name will be provided in each root.
+        return buildTitle("All Results", name -> "");
     }
 
     @Override
     protected String getPageTitle() {
-        return "Test results - " + getTitle();
+        return buildTitle("Test results - All Results", name -> "Test results - " + name);
+    }
+
+    private String buildTitle(String rootTitle, Function<String, String> buildTitleFromName) {
+        String name = getModel().getPath().getName();
+        if (name == null) {
+            return rootTitle;
+        }
+        return buildTitleFromName.apply(name);
     }
 
     @Override
@@ -126,7 +131,13 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 tabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, metadataRendererRegistry));
             }
 
-            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), tabsRenderer);
+            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
+                @Override
+                public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
+                    output.startElement("h1").characters(info.getResult().getDisplayName()).endElement();
+                    tabsRenderer.render(model, output);
+                }
+            });
         });
         return rootTabsRenderer;
     }

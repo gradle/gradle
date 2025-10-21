@@ -23,7 +23,7 @@ class KotlinTypeStringTest {
     fun `#kotlinTypeStringFor parameterized type`() {
         assertThat(
             kotlinTypeStringFor(typeOf<List<Array<String>>>()),
-            equalTo("java.util.List<Array<String>>")
+            equalTo("java.util.List<out Array<String>>")
         )
     }
 
@@ -31,7 +31,7 @@ class KotlinTypeStringTest {
     fun `#kotlinTypeStringFor Kotlin function type`() {
         assertThat(
             kotlinTypeStringFor(typeOf<(String) -> String>()),
-            equalTo("kotlin.jvm.functions.Function1<String, String>")
+            equalTo("kotlin.jvm.functions.Function1<in String, out String>")
         )
     }
 

@@ -34,7 +34,8 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 128
+    protected static final NATIVE_PLATFORM_BINARIES = 16
+    protected static final THIRD_PARTY_LIB_COUNT = 113
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -65,6 +66,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "configuration-problems-base",
         "core",
         "core-api",
+        "core-flow-services-api",
         "core-kotlin-extensions",
         "daemon-main",
         "daemon-protocol",
@@ -88,6 +90,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "functional",
         "gradle-cli",
         "gradle-cli-main",
+        "groovy-loader",
         "hashing",
         "input-tracking",
         "installation-beacon",
@@ -112,6 +115,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems-rendering",
         "process-memory-services",
         "process-services",
+        "project-features",
+        "project-features-api",
         "report-rendering",
         "request-handler-worker",
         "resources",
@@ -163,7 +168,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        79
+        80
     }
 
     /**
@@ -181,16 +186,19 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     int getLibJarsCount() {
-        coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + thirdPartyLibJarsCount
+        coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + thirdPartyLibJarsCount + NATIVE_PLATFORM_BINARIES
     }
 
     def "distribution size should not change too much"() {
         expect:
-        def actual = (int) Math.ceil((double) getZip().size() / 1024 / 1024)
-        def expected = getDistributionSizeMiB()
+        def actualKB = (int) Math.ceil((double) getZip().size() / 1024)
+        def expectedKB = getDistributionSizeMiB() * 1024
 
-        assert actual <= expected + 1: "Distribution is at least 1MiB larger, content needs to be verified. Current size: ${actual} MiB. Expected size: ${expected} MiB."
-        assert actual >= expected - 1: "Distribution is  at least 1MiB smaller, content needs to be verified. Current size: ${actual} MiB. Expected size: ${expected} MiB."
+        int margin = buildContext.version.isSnapshot() ? 1024 : 2048 // Allow 1 MiB margin for current dev, 2 MiB for more stable releases (promotion builds)
+        def message = "content needs to be verified. Current size: ${(int) (actualKB / 1024)} MiB (${actualKB} KiB). Expected size: ${getDistributionSizeMiB()} ± ${margin / 1024} MiB."
+
+        assert actualKB <= expectedKB + margin: "Distribution is unexpectedly larger, $message"
+        assert actualKB >= expectedKB - margin: "Distribution is unexpectedly smaller, $message"
     }
 
     def "no duplicate jar entries in distribution"() {
@@ -322,7 +330,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 515 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 518 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

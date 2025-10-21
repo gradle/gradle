@@ -26,11 +26,11 @@ class ModelDefaultsStorage : ModelDefaultsDefinitionRegistrar, ModelDefaultsRepo
     private
     val modelDefaultsMap = mutableMapOf<String, ModelDefaultsResolutionResults>()
 
-    override fun registerDefaults(modelDefaultsBySoftwareType: Map<String, ModelDefaultsResolutionResults>) {
+    override fun registerDefaults(modelDefaultsByProjectFeature: Map<String, ModelDefaultsResolutionResults>) {
         modelDefaultsMap.clear()
-        modelDefaultsMap.putAll(modelDefaultsBySoftwareType)
+        modelDefaultsMap.putAll(modelDefaultsByProjectFeature)
     }
 
-    override fun findDefaults(softwareTypeName: String): ModelDefaultsResolutionResults? =
-        modelDefaultsMap[softwareTypeName]
+    override fun findDefaults(featureName: String): ModelDefaultsResolutionResults? =
+        modelDefaultsMap[featureName]
 }

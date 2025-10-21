@@ -20,11 +20,7 @@ import com.google.common.collect.ImmutableMap
 import org.gradle.api.Action
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.artifacts.transform.TransformAction
-import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
-import org.gradle.api.internal.artifacts.TransformRegistration
-import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultLocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -46,6 +42,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.serialize.graph.Codec
@@ -78,6 +75,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
         val requestedAttributes = !value.requestAttributes.isEmpty
         writeBoolean(requestedAttributes)
         writeBoolean(value.allowNoMatchingVariants)
+        write(value.sourceVariantId)
         write(value.dependencyMetadata.componentId)
         write(value.dependencyMetadata.files)
         write(value.componentFilter)
@@ -103,7 +101,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
             writeBoolean(artifactType != null)
             val mappings = mutableMapOf<ImmutableAttributes, MappingSpec>()
             value.artifactTypeRegistry.visitArtifactTypeAttributes(value.transformRegistry.registrations) { sourceAttributes ->
-                val recordingSet = RecordingVariantSet(value.dependencyMetadata.componentId, value.dependencyMetadata.files, sourceAttributes)
+                val recordingSet = RecordingVariantSet(value.sourceVariantId, value.dependencyMetadata.files, sourceAttributes)
                 val selected = value.variantSelector.select(recordingSet, value.requestAttributes, true)
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
@@ -124,7 +122,8 @@ class LocalFileDependencyBackedArtifactSetCodec(
     override suspend fun ReadContext.decode(): LocalFileDependencyBackedArtifactSet {
         val requestedAttributes = readBoolean()
         val allowNoMatchingVariants = readBoolean()
-        val componentId = read() as ComponentIdentifier?
+        val sourceVariantId = read() as VariantIdentifier
+        val dependencyComponentId = read() as ComponentIdentifier?
         val files = readNonNull<FileCollectionInternal>()
         val filter = readNonNull<Spec<ComponentIdentifier>>()
 
@@ -146,7 +145,8 @@ class LocalFileDependencyBackedArtifactSetCodec(
             FixedArtifactVariantSelector(matchingOnArtifactFormat, transforms)
         }
         return DeserializedLocalFileDependencyArtifactSet(
-            FixedFileMetadata(componentId, files),
+            FixedFileMetadata(dependencyComponentId, files),
+            sourceVariantId,
             filter,
             selector,
             artifactTypeRegistry,
@@ -163,6 +163,7 @@ class LocalFileDependencyBackedArtifactSetCodec(
 private
 class DeserializedLocalFileDependencyArtifactSet(
     dependencyMetadata: LocalFileDependencyMetadata,
+    variantIdentifier: VariantIdentifier,
     componentFilter: Spec<ComponentIdentifier>,
     variantSelector: ArtifactVariantSelector,
     artifactTypeRegistry: ImmutableArtifactTypeRegistry,
@@ -170,6 +171,7 @@ class DeserializedLocalFileDependencyArtifactSet(
     allowNoMatchingVariants: Boolean
 ) : LocalFileDependencyBackedArtifactSet(
     dependencyMetadata,
+    variantIdentifier,
     componentFilter,
     variantSelector,
     artifactTypeRegistry,
@@ -183,7 +185,7 @@ class DeserializedLocalFileDependencyArtifactSet(
 
 private
 class RecordingVariantSet(
-    private val componentId: ComponentIdentifier?,
+    private val sourceVariantId: VariantIdentifier,
     private val source: FileCollectionInternal,
     private val attributes: ImmutableAttributes
 ) : ResolvedVariantSet, ResolvedVariant, ResolvedArtifactSet {
@@ -210,6 +212,10 @@ class RecordingVariantSet(
         return null
     }
 
+    override fun getSourceVariantId(): VariantIdentifier {
+        return sourceVariantId
+    }
+
     override fun getAttributes(): ImmutableAttributes {
         return attributes
     }
@@ -218,8 +224,8 @@ class RecordingVariantSet(
         return ImmutableCapabilities.EMPTY
     }
 
-    override fun getComponentIdentifier(): ComponentIdentifier? {
-        return componentId
+    override fun getComponentIdentifier(): ComponentIdentifier {
+        return sourceVariantId.componentId
     }
 
     override fun visitDependencies(context: TaskDependencyResolveContext) {
@@ -339,13 +345,3 @@ class FixedFileMetadata(
 }
 
 
-private
-object EmptyVariantTransformRegistry : VariantTransformRegistry {
-    override fun <T : TransformParameters> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in org.gradle.api.artifacts.transform.TransformSpec<T>>) {
-        throw UnsupportedOperationException("Should not be called")
-    }
-
-    override fun getRegistrations(): Set<TransformRegistration> {
-        return emptySet()
-    }
-}

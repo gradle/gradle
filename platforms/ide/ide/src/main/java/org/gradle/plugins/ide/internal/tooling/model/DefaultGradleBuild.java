@@ -77,6 +77,6 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
 
     @Override
     public File getRootDir() {
-        return getBuildIdentifier().getRootDir();
+        return buildIdentifier.getRootDir();
     }
 }

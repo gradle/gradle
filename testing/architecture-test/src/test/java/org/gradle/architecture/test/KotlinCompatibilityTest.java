@@ -157,6 +157,8 @@ public class KotlinCompatibilityTest {
             long nullableGetterCount = getters.stream().filter(Accessors::getterAnnotatedWithNullable).count();
             long nullableSetterCount = setters.stream().filter(Accessors::setterAnnotatedWithNullable).count();
 
+            // TODO(mlopatkin) the accessors may not be available for legitimate code. One violating example is
+            //   Throwable.getCause(): Throwable? and Throwable.setCause(Throwable), where the latter is package-private.
             boolean gettersArePartiallyNull = 0 < nullableGetterCount && nullableGetterCount < getters.size();
             boolean settersArePartiallyNull = 0 < nullableSetterCount && nullableSetterCount < setters.size();
             if (gettersArePartiallyNull || settersArePartiallyNull) {

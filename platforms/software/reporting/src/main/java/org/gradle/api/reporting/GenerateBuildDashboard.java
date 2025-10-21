@@ -23,6 +23,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.ConfigurationCacheDegradation;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
@@ -30,11 +32,13 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -52,7 +56,8 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     private final BuildDashboardReports reports;
 
     public GenerateBuildDashboard() {
-        reports = getProject().getObjects().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
+        ConfigurationCacheDegradation.requireDegradation(this, "Task is not compatible with the Configuration Cache");
+        reports = getObjectFactory().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);
     }
 
@@ -83,7 +88,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     private Set<Reporting<? extends ReportContainer<?>>> getAggregatedTasks() {
         final Set<Reporting<? extends ReportContainer<?>>> reports = new HashSet<>();
-        getProject().allprojects(new Action<Project>() {
+        DeprecationLogger.whileDisabled(this::getProject).allprojects(new Action<Project>() {
             @Override
             public void execute(Project project) {
                 project.getTasks().all(new Action<Task>() {
@@ -184,6 +189,9 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
             setDidWork(false);
         }
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     private static class ReportState implements Serializable {
         private final String name;

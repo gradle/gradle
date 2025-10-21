@@ -65,7 +65,7 @@ class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
         succeeds('assemble')
 
         then:
-        result.assertTasksExecuted(':compileDebugSharedCpp', ':linkDebugShared', ':assemble')
+        result.assertTasksScheduled(':compileDebugSharedCpp', ':linkDebugShared', ':assemble')
         sharedLibrary('build/lib/main/debug/shared/foo').assertExists()
     }
 
@@ -81,14 +81,14 @@ class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
         succeeds('assembleDebugStatic')
 
         then:
-        result.assertTasksExecuted(':compileDebugStaticCpp', ':createDebugStatic', ':assembleDebugStatic')
+        result.assertTasksScheduled(':compileDebugStaticCpp', ':createDebugStatic', ':assembleDebugStatic')
         staticLibrary('build/lib/main/debug/static/foo').assertExists()
 
         when:
         succeeds('assembleDebugShared')
 
         then:
-        result.assertTasksExecuted(':compileDebugSharedCpp', ':linkDebugShared', ':assembleDebugShared')
+        result.assertTasksScheduled(':compileDebugSharedCpp', ':linkDebugShared', ':assembleDebugShared')
         sharedLibrary('build/lib/main/debug/shared/foo').assertExists()
     }
 }

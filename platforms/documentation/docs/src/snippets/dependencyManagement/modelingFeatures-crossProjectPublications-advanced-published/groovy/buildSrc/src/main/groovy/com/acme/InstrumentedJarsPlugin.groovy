@@ -9,23 +9,13 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
-import org.gradle.api.component.SoftwareComponentFactory
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.component.AdhocComponentWithVariants
-
-import javax.inject.Inject
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.tasks.bundling.Jar
 
 // https://issues.apache.org/jira/browse/GROOVY-10055
 //@CompileStatic
 class InstrumentedJarsPlugin implements Plugin<Project> {
-    // tag::inject_software_component_factory[]
-    private final SoftwareComponentFactory softwareComponentFactory
-
-    @Inject
-    InstrumentedJarsPlugin(SoftwareComponentFactory softwareComponentFactory) {
-        this.softwareComponentFactory = softwareComponentFactory
-    }
-    // end::inject_software_component_factory[]
 
     @Override
     void apply(Project project) {
@@ -59,6 +49,7 @@ class InstrumentedJarsPlugin implements Plugin<Project> {
     private void configurePublication(Project project, Configuration outgoing) {
         // tag::create_adhoc_component[]
         // create an adhoc component
+        def softwareComponentFactory = project.extensions.getByType(PublishingExtension).softwareComponentFactory
         def adhocComponent = softwareComponentFactory.adhoc("myAdhocComponent")
         // add it to the list of components that this project declares
         project.components.add(adhocComponent)

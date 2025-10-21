@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A {@code TaskOutputs} represents the outputs of a task.</p>
@@ -142,7 +143,7 @@ public interface TaskOutputs {
      *
      * @see CacheableTask
      */
-    TaskOutputFilePropertyBuilder files(Object... paths);
+    TaskOutputFilePropertyBuilder files(@Nullable Object... paths);
 
     /**
      * Registers some output directories for this task.
@@ -162,7 +163,7 @@ public interface TaskOutputs {
      *
      * @since 3.3
      */
-    TaskOutputFilePropertyBuilder dirs(Object... paths);
+    TaskOutputFilePropertyBuilder dirs(@Nullable Object... paths);
 
     /**
      * Registers some output file for this task.

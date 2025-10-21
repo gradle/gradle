@@ -51,7 +51,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("buildSrc/src/main/kotlin/CustomTask.kt") << customKotlinTask()
         file("input.txt") << "input"
         buildFile << """
-            task<CustomTask>("customTask") {
+            tasks.register<CustomTask>("customTask") {
                 inputFile = project.file("input.txt")
                 outputFile = project.file("build/output.txt")
             }
@@ -59,7 +59,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
 
         when:
         file("buildSrc/build").deleteDir()
@@ -79,7 +79,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskSourceFile << customKotlinTask()
         file("input.txt") << "input"
         buildFile << """
-            task<CustomTask>("customTask") {
+            tasks.register<CustomTask>("customTask") {
                 inputFile = project.file("input.txt")
                 outputFile = project.file("build/output.txt")
             }
@@ -87,7 +87,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
         file("build/output.txt").text == "input"
 
         when:
@@ -96,7 +96,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         cleanBuildDir()
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
         file("build/output.txt").text == "input modified"
     }
 

@@ -38,6 +38,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
+    public static final String GRADLE_TEST_WORKER_NAME = "Gradle Test Executor";
+
     private final WorkerProcessFactory workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
@@ -101,7 +103,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     RemoteTestClassProcessor forkProcess() {
         WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
-        builder.setBaseName("Gradle Test Executor");
+        builder.setBaseName(GRADLE_TEST_WORKER_NAME);
         builder.setImplementationClasspath(classpath.getImplementationClasspath());
         builder.applicationClasspath(classpath.getApplicationClasspath());
         builder.applicationModulePath(classpath.getApplicationModulepath());

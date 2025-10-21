@@ -236,13 +236,13 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             tasks.withType<KotlinCompile> {
                 // can configure the Kotlin compiler
-                kotlinOptions.suppressWarnings = true
+                compilerOptions.suppressWarnings = true
             }
 
             tasks.register("print-kotlin-version") {
                 val kotlinCompilerVersion = KotlinCompilerVersion.VERSION
                 val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
-                    it.name + "=" + it.kotlinOptions.suppressWarnings
+                    it.name + "=" + it.compilerOptions.suppressWarnings.get()
                 }
                 doLast {
                     println(kotlinCompilerVersion + compileOptions)
@@ -928,13 +928,13 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             import org.gradle.api.*
             import org.gradle.kotlin.dsl.*
 
-            class Book(val name: String)
+            abstract class Book(val name: String)
 
             class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
                     extensions.add(typeOf<MutableMap<String, String>>(), "mapOfString", mutableMapOf("foo" to "bar"))
                     extensions.add(typeOf<MutableMap<String, Int>>(), "mapOfInt", mutableMapOf("deep" to 42))
-                    extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", container(Book::class))
+                    extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", project.objects.domainObjectContainer(Book::class))
                 }
             }
             """
@@ -1022,7 +1022,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 @TaskAction fun run() = println("it works!")
             }
 
-            task<SimpleTask>("build")
+            tasks.register<SimpleTask>("build")
             """
         )
 
@@ -1244,11 +1244,11 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val taskName = ":writeInputToFile"
 
-        build(taskName, "-PinputString=string1").assertTasksExecutedAndNotSkipped(taskName)
+        build(taskName, "-PinputString=string1").assertTasksExecuted(taskName)
 
         build(taskName, "-PinputString=string1").assertTasksSkipped(taskName)
 
-        build(taskName, "-PinputString=string2").assertTasksExecutedAndNotSkipped(taskName)
+        build(taskName, "-PinputString=string2").assertTasksExecuted(taskName)
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,21 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
+import java.util.List;
 
+/**
+ * Shared interface between legacy/JVM and generic test report generators.
+ */
 @NullMarked
 public interface TestReportGenerator {
-    boolean hasResults();
-
-    void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, Path outputDir);
+    /**
+     * Generate a report from the test results in the given results directories, if there are any.
+     *
+     * @param resultsDirectories the directories containing the test results
+     * @return the path to the main file/directory of the generated report
+     */
+    Path generate(List<Path> resultsDirectories);
 }

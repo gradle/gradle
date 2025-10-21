@@ -17,11 +17,10 @@
 package org.gradle.api.internal.attributes.matching;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface AttributeMatcher {
@@ -50,8 +49,8 @@ public interface AttributeMatcher {
      * criteria attributes. Then, if there is more than one match, performs disambiguation to attempt
      * to reduce the set of matches to a more preferred subset.
      */
-    <T extends HasAttributes> List<T> matchMultipleCandidates(
-        Collection<? extends T> candidates,
+    <T extends AttributeMatchingCandidate> List<T> matchMultipleCandidates(
+        List<? extends T> candidates,
         ImmutableAttributes requested
     );
 
@@ -59,32 +58,28 @@ public interface AttributeMatcher {
     List<MatchingDescription<?>> describeMatching(ImmutableAttributes candidate, ImmutableAttributes requested);
 
     class MatchingDescription<T> {
-        private final Attribute<T> requestedAttribute;
-        private final AttributeValue<T> requestedValue;
-        private final AttributeValue<T> found;
+
+        private final ImmutableAttributesEntry<T> requested;
+        private final @Nullable ImmutableAttributesEntry<T> found;
         private final boolean match;
 
-        public MatchingDescription(Attribute<T> requestedAttribute, AttributeValue<T> requestedValue, AttributeValue<T> found, boolean match) {
-            this.requestedAttribute = requestedAttribute;
-            this.requestedValue = requestedValue;
+        public MatchingDescription(ImmutableAttributesEntry<T> requested, @Nullable ImmutableAttributesEntry<T> found, boolean match) {
+            this.requested = requested;
             this.found = found;
             this.match = match;
         }
 
-        public Attribute<T> getRequestedAttribute() {
-            return requestedAttribute;
+        public ImmutableAttributesEntry<T> getRequested() {
+            return requested;
         }
 
-        public AttributeValue<T> getRequestedValue() {
-            return requestedValue;
-        }
-
-        public AttributeValue<T> getFound() {
+        public @Nullable ImmutableAttributesEntry<T> getFound() {
             return found;
         }
 
         public boolean isMatch() {
             return match;
         }
+
     }
 }

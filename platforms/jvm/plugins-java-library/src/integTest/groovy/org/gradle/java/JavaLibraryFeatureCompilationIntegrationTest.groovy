@@ -549,6 +549,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         """
 
         when:
+        2.times { executer.expectDocumentedDeprecationWarning("The `registerFeature` method was called, but the Java plugin has not yet been applied. This behavior has been deprecated. This will fail with an error in Gradle 10. `registerFeature` should only be called in projects where the Java plugin has been applied. Apply the `java`, `java-library`, `application`, `groovy`, or any other plugin that applies the Java plugin. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_no_java_plugin") }
         succeeds ':compileMain211Java', ':compileMain212Java'
 
         then:
@@ -580,6 +581,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         when:
         executer.expectDocumentedDeprecationWarning("The 'main' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
+        executer.expectDocumentedDeprecationWarning("The `registerFeature` method was called, but the Java plugin has not yet been applied. This behavior has been deprecated. This will fail with an error in Gradle 10. `registerFeature` should only be called in projects where the Java plugin has been applied. Apply the `java`, `java-library`, `application`, `groovy`, or any other plugin that applies the Java plugin. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_no_java_plugin")
         succeeds 'dependencies'
 
         then:
@@ -617,6 +619,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         when:
         executer.expectDocumentedDeprecationWarning("The 'feature' feature was created using the main source set. This behavior has been deprecated. This will fail with an error in Gradle 10. The main source set is reserved for production code and should not be used for features. Use another source set instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_main_source_set")
+        executer.expectDocumentedDeprecationWarning("The `registerFeature` method was called, but the Java plugin has not yet been applied. This behavior has been deprecated. This will fail with an error in Gradle 10. `registerFeature` should only be called in projects where the Java plugin has been applied. Apply the `java`, `java-library`, `application`, `groovy`, or any other plugin that applies the Java plugin. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_no_java_plugin")
         succeeds 'dependencies'
 
         then:

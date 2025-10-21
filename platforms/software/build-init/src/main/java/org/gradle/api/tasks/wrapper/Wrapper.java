@@ -24,15 +24,16 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.GradleVersionResolver;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
@@ -327,11 +328,17 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     /**
-     * The list of available gradle distribution types.
+     * The list of available gradle distribution types. Always returns the contents of {@link DistributionType#values()}. 
+     * @deprecated Since 9.3.0. Use {@link DistributionType#values()} directly instead.
      */
-    @ToBeReplacedByLazyProperty(comment = "Not supported yet", issue = "https://github.com/gradle/gradle/issues/29341")
-    @OptionValues("distribution-type")
+    @Internal
+    @Deprecated
     public List<DistributionType> getAvailableDistributionTypes() {
+        DeprecationLogger.deprecateMethod(Wrapper.class, "getAvailableDistributionTypes")
+            .replaceWith("Wrapper.DistributionType.values()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_wrapper_get_available_distribution_types")
+            .nagUser();
         return Arrays.asList(DistributionType.values());
     }
 

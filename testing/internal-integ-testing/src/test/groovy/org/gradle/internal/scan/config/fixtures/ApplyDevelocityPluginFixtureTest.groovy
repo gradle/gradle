@@ -19,6 +19,7 @@ package org.gradle.internal.scan.config.fixtures
 import spock.lang.Specification
 
 import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.VERSION
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.CONVENTIONS_PLUGIN_VERSION
 
 class ApplyDevelocityPluginFixtureTest extends Specification {
 
@@ -35,6 +36,7 @@ class ApplyDevelocityPluginFixtureTest extends Specification {
         then:
         file.text =="""plugins {
             |    id("com.gradle.develocity") version("${VERSION}")
+            |    id("io.github.gradle.develocity-conventions-plugin").version("${CONVENTIONS_PLUGIN_VERSION}")
             |}
             |
             |includeBuild '../lib'""".stripMargin()
@@ -65,6 +67,7 @@ class ApplyDevelocityPluginFixtureTest extends Specification {
             |
             |plugins {
             |    id("com.gradle.develocity") version("${VERSION}")
+            |    id("io.github.gradle.develocity-conventions-plugin").version("${CONVENTIONS_PLUGIN_VERSION}")
             |}
             |
             |includeBuild '../lib'""".stripMargin()

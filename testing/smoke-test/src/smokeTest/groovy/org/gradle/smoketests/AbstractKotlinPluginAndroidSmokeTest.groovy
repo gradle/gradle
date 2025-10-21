@@ -48,13 +48,14 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     file(sampleBuildFileName),
                     kotlinVersion: kotlinPluginVersion,
                     androidPluginVersion: androidPluginVersion,
-                    androidBuildToolsVersion: TestedVersions.androidTools)
+                    androidBuildToolsVersion: AGP_VERSIONS.buildToolsVersion())
         }
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
 
         when:
         def result = mixedRunner(parallel, androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
             .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecation(androidPluginVersion)
                 expectIsPropertyDeprecationWarnings(androidPluginVersion)
             }
             .build()

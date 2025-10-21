@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
@@ -44,9 +43,9 @@ class InstantiatingBuildLoaderTest extends Specification {
     File childProjectDir
     ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
     StartParameter startParameter = new StartParameter()
-    ProjectDescriptor rootDescriptor
+    ProjectDescriptorInternal rootDescriptor
     ProjectInternal rootProject
-    ProjectDescriptor childDescriptor
+    ProjectDescriptorInternal childDescriptor
     ProjectInternal childProject
     GradleInternal gradle
     SettingsInternal settingsInternal
@@ -82,7 +81,7 @@ class InstantiatingBuildLoaderTest extends Specification {
             getServices() >> services
             getOwner() >> buildState
         }
-        def descriptorRegistry = Mock(ProjectRegistry) {
+        def descriptorRegistry = Mock(ProjectDescriptorRegistry) {
             getRootProject() >> rootDescriptor
         }
         settingsInternal = Mock(SettingsInternal) {
@@ -131,10 +130,10 @@ class InstantiatingBuildLoaderTest extends Specification {
         1 * gradle.setDefaultProject(childProject)
 
         and:
-        rootProject.childProjectsUnchecked['child'].is childProject
+        rootProject.childProjects['child'] == childProject
     }
 
-    ProjectDescriptor descriptor(String name, ProjectDescriptor parent, File projectDir) {
+    ProjectDescriptorInternal descriptor(String name, ProjectDescriptorInternal parent, File projectDir) {
         new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, TestFiles.resolver(rootProjectDir))
     }
 

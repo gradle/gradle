@@ -17,8 +17,6 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import static org.gradle.api.artifacts.ArtifactRepositoryContainer.GOOGLE_URL
@@ -79,13 +77,6 @@ class RepoScriptBlockUtil {
             repositoryDefinition(dsl, type, getName(), mirrorUrl)
         }
 
-        void configure(RepositoryHandler repositories) {
-            repositories.maven { MavenArtifactRepository repo ->
-                repo.name = getName()
-                repo.url = mirrorUrl
-            }
-        }
-
         String getName() {
             return mirrorUrl ? name() + "_MIRROR" : name()
         }
@@ -96,10 +87,6 @@ class RepoScriptBlockUtil {
 
     static String getMavenCentralMirrorUrl() {
         MirroredRepository.MAVEN_CENTRAL.mirrorUrl
-    }
-
-    static void configureMavenCentral(RepositoryHandler repositories) {
-        MirroredRepository.MAVEN_CENTRAL.configure(repositories)
     }
 
     static String mavenCentralRepository(GradleDsl dsl = GROOVY) {

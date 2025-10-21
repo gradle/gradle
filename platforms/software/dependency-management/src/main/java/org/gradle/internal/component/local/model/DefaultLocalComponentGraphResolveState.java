@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -42,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Holds the resolution state for a local component. The state is calculated as required, and an instance can be used for multiple resolutions across a build tree.
@@ -55,9 +52,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     // The variants to use for variant selection during graph resolution
     private final CalculatedValue<LocalComponentGraphSelectionCandidates> graphSelectionCandidates;
-
-    // The public view of all selectable variants of this component
-    private final CalculatedValue<List<ResolvedVariantResult>> selectableVariantResults;
 
     public DefaultLocalComponentGraphResolveState(
         long instanceId,
@@ -72,9 +66,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         this.graphSelectionCandidates = calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
             computeGraphSelectionCandidates(variantFactory)
-        );
-        this.selectableVariantResults = calculatedValueContainerFactory.create(Describables.of("public variants of", getMetadata()), context ->
-            computeSelectableVariantResults(this)
         );
     }
 
@@ -119,27 +110,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             variantsWithAttributes.build(),
             variantsByConfigurationName.build()
         );
-    }
-
-    @Override
-    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
-        selectableVariantResults.finalizeIfNotAlready();
-        return selectableVariantResults.get();
-    }
-
-    private static List<ResolvedVariantResult> computeSelectableVariantResults(DefaultLocalComponentGraphResolveState component) {
-        return component.getCandidatesForGraphVariantSelection()
-            .getVariantsForAttributeMatching()
-            .stream()
-            .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
-            .map(variant -> new DefaultResolvedVariantResult(
-                component.getId(),
-                Describables.of(variant.getName()),
-                component.getAttributeDesugaring().desugar(variant.getAttributes().asImmutable()),
-                component.capabilitiesFor(variant.getCapabilities()),
-                null
-            ))
-            .collect(Collectors.toList());
     }
 
     private static class LocalComponentArtifactResolveMetadata implements ComponentArtifactResolveMetadata {

@@ -40,10 +40,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             }
 
             gradle.buildFinished { result ->
-                println '# gradle.buildFinished failure=' + Util.unpack(result.failure) + ' [' + gradle.identityPath + ']'
+                println '# gradle.buildFinished failure=' + Util.unpack(result.failure) + ' [' + gradle.buildPath + ']'
             }
             gradle.taskGraph.whenReady {
-                println '# gradle.taskGraphReady [' + gradle.identityPath + ']'
+                println '# gradle.taskGraphReady [' + gradle.buildPath + ']'
             }
             gradle.addBuildListener(new LoggingBuildListener())
             class LoggingBuildListener extends BuildAdapter {
@@ -52,13 +52,13 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
                     println '# buildListener.settingsEvaluated [:' + buildName + ']'
                 }
                 void projectsLoaded(Gradle gradle) {
-                    println '# buildListener.projectsLoaded [' + gradle.identityPath + ']'
+                    println '# buildListener.projectsLoaded [' + gradle.buildPath + ']'
                 }
                 void projectsEvaluated(Gradle gradle) {
-                    println '# buildListener.projectsEvaluated [' + gradle.identityPath + ']'
+                    println '# buildListener.projectsEvaluated [' + gradle.buildPath + ']'
                 }
                 void buildFinished(BuildResult result) {
-                    println '# buildListener.buildFinished failure=' + Util.unpack(result.failure) + ' [' + result.gradle.identityPath + ']'
+                    println '# buildListener.buildFinished failure=' + Util.unpack(result.failure) + ' [' + result.gradle.buildPath + ']'
                 }
             }
 """

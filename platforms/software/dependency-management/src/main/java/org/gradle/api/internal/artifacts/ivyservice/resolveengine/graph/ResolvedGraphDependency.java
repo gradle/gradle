@@ -50,11 +50,6 @@ public interface ResolvedGraphDependency {
     boolean isConstraint();
 
     /**
-     * Returns the simple id of the source variant, as per {@link ResolvedGraphVariant#getNodeId()}.
-     */
-    long getFromVariant();
-
-    /**
      * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
      * <p>
      * If at the end of graph traversal this method returns null, <strong>the graph is broken and a bug

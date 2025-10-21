@@ -18,7 +18,6 @@ package org.gradle.api.plugins.scala
 import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
@@ -135,7 +134,6 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         task.destinationDir == project.java.docsDir.file("scaladoc").get().asFile
         task.source as List == project.sourceSets.main.scala as List // We take sources of main
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 
     def "configures scala doc tasks defined by the build script"() {

@@ -22,3 +22,13 @@ updates:
       - "@dev-productivity"
       - "a:chore"
       - "in:building-gradle"
+  - package-ecosystem: "maven"
+    directory: "/.teamcity"
+    cooldown:
+      default-days: 7 # don't immediately create PRs for available updates
+    schedule:
+      interval: "daily"
+    labels:
+      - "@dev-productivity"
+      - "a:chore"
+      - "in:building-gradle"

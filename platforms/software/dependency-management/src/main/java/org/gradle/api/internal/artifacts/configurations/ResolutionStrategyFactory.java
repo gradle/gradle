@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -32,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCa
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
@@ -62,7 +60,6 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
     private final ObjectFactory objectFactory;
     private final StartParameter startParameter;
     private final NotationParser<Object, Capability> capabilityNotationParser;
-    private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
 
     @Inject
     public ResolutionStrategyFactory(
@@ -90,15 +87,13 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         this.objectFactory = objectFactory;
         this.startParameter = startParameter;
         this.capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        this.componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create();
     }
 
     @Override
     public ResolutionStrategyInternal create() {
         CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(
             DefaultCapabilitiesResolution.class,
-            capabilityNotationParser,
-            componentIdentifierNotationParser
+            capabilityNotationParser
         );
 
         DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forResolutionStrategy(

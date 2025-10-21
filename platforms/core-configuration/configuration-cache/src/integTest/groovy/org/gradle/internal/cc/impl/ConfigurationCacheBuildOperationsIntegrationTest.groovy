@@ -245,13 +245,6 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         outputContains('In script plugin')
         buildLogicBuiltAndWorkGraphStoredAndLoaded()
 
-        // TODO - should get a cache hit for this build (https://github.com/gradle/gradle/issues/23267)
-        when:
-        configurationCacheRun 'help'
-
-        then:
-        buildLogicBuiltAndWorkGraphStoredAndLoaded()
-
         when:
         configurationCacheRun 'help'
 

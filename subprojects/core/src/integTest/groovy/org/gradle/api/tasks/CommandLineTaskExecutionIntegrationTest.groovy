@@ -59,7 +59,7 @@ class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             run("one")
-            result.assertTasksExecuted(":one", ":last")
+            result.assertTasksScheduled(":one", ":last")
         }
     }
 }

@@ -307,7 +307,7 @@ class DetermineExecutionPlanAction {
         List<Node> cycle = sortedListOf(nodes);
 
         DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
-            (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
+            (it, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
             (it, values, connectedNodes) -> {
                 for (Node dependency : cycle) {
                     Set<Node> successors = Sets.newHashSet(it.getHardSuccessors());

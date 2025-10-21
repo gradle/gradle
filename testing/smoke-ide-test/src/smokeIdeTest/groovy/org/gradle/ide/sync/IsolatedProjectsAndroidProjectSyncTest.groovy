@@ -18,11 +18,13 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
+import org.gradle.test.fixtures.Flaky
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4661")
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     // https://developer.android.com/build/releases/gradle-plugin
-    private final static String AGP_VERSION = new AndroidGradlePluginVersions().getLatest()
+    private final static String AGP_VERSION = new AndroidGradlePluginVersions().getLatestStable()
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
 

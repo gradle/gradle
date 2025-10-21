@@ -8,6 +8,9 @@
                 </tr>
             </thead>
             <tr>
+                <td>buildPath</td>
+            </tr>
+            <tr>
                 <td>gradleVersion</td>
             </tr>
             <tr>

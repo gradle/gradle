@@ -24,7 +24,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Visits properties of beans which are inputs, outputs, destroyables, local state, service references or software types.
+ * Visits properties of beans which are inputs, outputs, destroyables, local state, service references or project types.
  */
 public interface PropertyVisitor {
     default void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable FileNormalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {}

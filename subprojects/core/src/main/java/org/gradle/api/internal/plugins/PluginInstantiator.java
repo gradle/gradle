@@ -25,7 +25,7 @@ import java.lang.reflect.Modifier;
 
 /**
  * An instantiator that uses the correct instantiation scheme depending on the plugin type.  This allows
- * us to use a decorated instantiator for types that need it (such as software type plugins) and continue
+ * us to use a decorated instantiator for types that need it (such as project type plugins) and continue
  * using the injected instantiator for types that do not need it (such as plugin types marked as final).
  */
 @NullMarked

@@ -22,7 +22,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 
 import java.nio.file.Files
 
-@Requires(UnitTestPreconditions.UnixDerivative)
+@Requires(UnitTestPreconditions.Unix)
 class UnixDerivativeSymlinkDeleterTest extends AbstractSymlinkDeleterTest {
     @Override
     protected void createSymbolicLink(File link, TestFile target) {

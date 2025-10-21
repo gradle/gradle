@@ -28,7 +28,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
-import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -101,8 +100,19 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
+        @Nullable
         public <T> List<T> runQueryModelActions(List<Supplier<T>> actions) {
-            return actionRunner.run(actions);
+            return buildOperationRunner.call(new CallableBuildOperation<List<T>>() {
+                @Override
+                public List<T> call(BuildOperationContext context) {
+                    return actionRunner.run(actions);
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName(String.format("Run nested tooling build actions (%d)", actions.size()));
+                }
+            });
         }
 
         private ToolingModelScope locateBuilderForTarget(BuildTreeModelTarget target, String modelName, boolean parameter) {
@@ -123,7 +133,7 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
         private ToolingModelScope locateBuilderForProjectTarget(BuildTreeModelTarget.Project projectTarget, String modelName, boolean parameter) {
             BuildState build = findBuild(projectTarget.getBuildRootDir());
-            ProjectState project = findProject(build, projectTarget.getProjectPath());
+            ProjectState project = findProject(build, projectTarget);
             return locateBuilderForProjectTarget(project, modelName, parameter);
         }
 
@@ -175,9 +185,11 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
             }
         }
 
-        private ProjectState findProject(BuildState build, Path projectPath) {
-            build.ensureProjectsLoaded();
-            return build.getProjects().getProject(projectPath);
+        private ProjectState findProject(BuildState build, BuildTreeModelTarget.Project project) {
+            if (!build.isProjectsLoaded()) {
+                build.ensureProjectsLoaded();
+            }
+            return build.getProjects().getProject(project.getProjectPath());
         }
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
+import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -54,7 +55,7 @@ import java.util.List;
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPluginRequestApplicator.class);
 
-    private final PluginRegistry pluginRegistry;
+    private final PluginRegistry corePluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
     private final PluginArtifactRepositoriesProvider pluginRepositoriesProvider;
     private final PluginResolutionStrategyInternal pluginResolutionStrategy;
@@ -63,7 +64,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginApplicationListener pluginApplicationListenerBroadcaster;
 
     public DefaultPluginRequestApplicator(
-        PluginRegistry pluginRegistry,
+        CorePluginRegistryProvider corePluginRegistryProvider,
         PluginResolverFactory pluginResolverFactory,
         PluginArtifactRepositoriesProvider pluginRepositoriesProvider,
         PluginResolutionStrategyInternal pluginResolutionStrategy,
@@ -71,7 +72,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         PluginVersionTracker pluginVersionTracker,
         ListenerManager listenerManager
     ) {
-        this.pluginRegistry = pluginRegistry;
+        this.corePluginRegistry = corePluginRegistryProvider.getCorePluginRegistry();
         this.pluginResolverFactory = pluginResolverFactory;
         this.pluginRepositoriesProvider = pluginRepositoriesProvider;
         this.pluginResolutionStrategy = pluginResolutionStrategy;
@@ -138,7 +139,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         ClassLoaderScope parentLoaderScope = classLoaderScope.getParent();
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(parentLoaderScope.getExportClassLoader());
         PluginResolver pluginResolver = pluginResolverFactory.create(resolveContext);
-        return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector, pluginVersionTracker);
+        return new AlreadyOnClasspathPluginResolver(pluginResolver, corePluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector, pluginVersionTracker);
     }
 
     /**

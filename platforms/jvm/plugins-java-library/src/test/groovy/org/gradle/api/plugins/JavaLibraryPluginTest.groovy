@@ -42,7 +42,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def api = project.configurations.getByName(JvmConstants.API_CONFIGURATION_NAME)
 
         then:
-        !api.visible
         api.extendsFrom == [] as Set
         !api.canBeConsumed
         !api.canBeResolved
@@ -51,7 +50,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def implementation = project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
-        !implementation.visible
         implementation.extendsFrom == [api] as Set
         !implementation.canBeConsumed
         !implementation.canBeResolved
@@ -61,7 +59,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         runtimeOnly.transitive
-        !runtimeOnly.visible
         !runtimeOnly.canBeConsumed
         !runtimeOnly.canBeResolved
         runtimeOnly.extendsFrom == [] as Set
@@ -71,7 +68,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         runtimeElements.transitive
-        !runtimeElements.visible
         runtimeElements.canBeConsumed
         !runtimeElements.canBeResolved
         runtimeElements.extendsFrom == [implementation, runtimeOnly] as Set
@@ -81,7 +77,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         runtimeClasspath.transitive
-        !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
         runtimeClasspath.extendsFrom == [runtimeOnly, implementation] as Set
@@ -91,7 +86,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         compileOnlyApi.extendsFrom == [] as Set
-        !compileOnlyApi.visible
         compileOnlyApi.transitive
         !compileOnlyApi.canBeConsumed
         !compileOnlyApi.canBeResolved
@@ -101,7 +95,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         compileOnly.extendsFrom == [compileOnlyApi] as Set
-        !compileOnly.visible
         compileOnly.transitive
 
         when:
@@ -109,14 +102,12 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         compileClasspath.extendsFrom == toSet(compileOnly, implementation)
-        !compileClasspath.visible
         compileClasspath.transitive
 
         when:
         def apiElements = project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
 
         then:
-        !apiElements.visible
         apiElements.extendsFrom == [api, compileOnlyApi] as Set
         apiElements.canBeConsumed
         !apiElements.canBeResolved
@@ -126,7 +117,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testImplementation.extendsFrom == toSet(implementation)
-        !testImplementation.visible
         !testImplementation.canBeConsumed
         !testImplementation.canBeResolved
 
@@ -135,7 +125,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testRuntimeOnly.transitive
-        !testRuntimeOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
         testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
@@ -145,7 +134,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testCompileOnly.extendsFrom == toSet(compileOnlyApi)
-        !testCompileOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
         testCompileOnly.transitive
@@ -155,7 +143,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         testCompileClasspath.extendsFrom == toSet(testCompileOnly, testImplementation)
-        !testCompileClasspath.visible
         testCompileClasspath.transitive
 
         when:

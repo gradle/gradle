@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -35,18 +36,18 @@ import java.util.List;
 @ServiceScope(Scope.Build.class)
 public class PluginResolverFactory {
 
-    private final PluginRegistry pluginRegistry;
+    private final PluginRegistry corePluginRegistry;
     private final DocumentationRegistry documentationRegistry;
     private final ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver;
     private final List<PluginResolverContributor> pluginResolverContributors;
 
     public PluginResolverFactory(
-        PluginRegistry pluginRegistry,
+        CorePluginRegistryProvider corePluginRegistryProvider,
         DocumentationRegistry documentationRegistry,
         ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
         List<PluginResolverContributor> pluginResolverContributors
     ) {
-        this.pluginRegistry = pluginRegistry;
+        this.corePluginRegistry = corePluginRegistryProvider.getCorePluginRegistry();
         this.documentationRegistry = documentationRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
         this.pluginResolverContributors = pluginResolverContributors;
@@ -80,8 +81,8 @@ public class PluginResolverFactory {
      * to mask plugins which would have been found later in the order.
      */
     private void addDefaultResolvers(PluginArtifactRepositories pluginResolveContext, List<PluginResolver> resolvers) {
-        resolvers.add(new NoopPluginResolver(pluginRegistry));
-        resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
+        resolvers.add(new NoopPluginResolver(corePluginRegistry));
+        resolvers.add(new CorePluginResolver(documentationRegistry, corePluginRegistry));
 
         injectedClasspathPluginResolver.collectResolversInto(resolvers);
 

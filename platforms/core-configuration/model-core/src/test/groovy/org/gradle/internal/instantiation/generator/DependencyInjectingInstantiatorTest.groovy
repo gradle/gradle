@@ -172,7 +172,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasNoInjectConstructor has no constructor that is annotated with @Inject."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasNoInjectConstructor has no constructor that is annotated with @Inject (javax.inject.Inject) for dependency injection."
     }
 
     def "fails when class has multiple constructors with different visibilities and none are annotated"() {
@@ -181,7 +181,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMixedConstructors has no constructor that is annotated with @Inject."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMixedConstructors has no constructor that is annotated with @Inject (javax.inject.Inject) for dependency injection."
     }
 
     def "fails when class has multiple constructors that are annotated"() {
@@ -190,7 +190,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMultipleInjectConstructors has multiple constructors that are annotated with @Inject."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMultipleInjectConstructors has multiple constructors that are annotated with @Inject (javax.inject.Inject) for dependency injection."
     }
 
     def "fails when class has multiple constructors with different visibilities that are annotated"() {
@@ -199,7 +199,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMixedInjectConstructors has multiple constructors that are annotated with @Inject."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMixedInjectConstructors has multiple constructors that are annotated with @Inject (javax.inject.Inject) for dependency injection."
     }
 
     def "fails when class has non-public zero args constructor that is not annotated"() {
@@ -211,7 +211,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasNonPublicNoArgsConstructor should be public or package protected or annotated with @Inject."
+        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasNonPublicNoArgsConstructor should be public or package protected or annotated with @Inject (javax.inject.Inject) for dependency injection."
     }
 
     def "fails when class has public constructor with args and that is not annotated"() {
@@ -223,7 +223,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasSingleConstructorWithArgsAndNoAnnotation should be annotated with @Inject."
+        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasSingleConstructorWithArgsAndNoAnnotation should be annotated with @Inject (javax.inject.Inject) for dependency injection."
     }
 
     def "fails when class has private constructor with args and that is not annotated"() {
@@ -232,7 +232,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasPrivateArgsConstructor should be annotated with @Inject."
+        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasPrivateArgsConstructor should be annotated with @Inject (javax.inject.Inject) for dependency injection."
     }
 
     def "fails when null passed as constructor argument value"() {

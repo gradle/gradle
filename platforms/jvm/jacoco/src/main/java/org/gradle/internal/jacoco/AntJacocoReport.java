@@ -41,9 +41,10 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
         ));
         final Map<String, Object> emptyArgs = Collections.emptyMap();
         antBuilder.invokeMethod("jacocoReport", new Object[]{Collections.emptyMap(), new Closure<Object>(this, this) {
-            @SuppressWarnings("UnusedDeclaration")
+            @SuppressWarnings("unused") // Magic Groovy method
             public Object doCall(Object ignore) {
                 antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                    @SuppressWarnings("unused") // Magic Groovy method
                     public Object doCall(Object ignore) {
                         params.getExecutionData().filter(File::exists).addToAntBuilder(antBuilder, "resources");
                         return Void.class;
@@ -51,8 +52,10 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
                 }});
                 Map<String, Object> structureArgs = ImmutableMap.<String, Object>of("name", params.getProjectName().get());
                 antBuilder.invokeMethod("structure", new Object[]{structureArgs, new Closure<Object>(this, this) {
+                    @SuppressWarnings("unused") // Magic Groovy method
                     public Object doCall(Object ignore) {
                         antBuilder.invokeMethod("classfiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                            @SuppressWarnings("unused") // Magic Groovy method
                             public Object doCall(Object ignore) {
                                 params.getAllClassesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
                                 return Void.class;
@@ -66,6 +69,7 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
                             sourcefilesArgs = Collections.singletonMap("encoding", encoding);
                         }
                         antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefilesArgs, new Closure<Object>(this, this) {
+                            @SuppressWarnings("unused") // Magic Groovy method
                             public Object doCall(Object ignore) {
                                 params.getAllSourcesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
                                 return Void.class;

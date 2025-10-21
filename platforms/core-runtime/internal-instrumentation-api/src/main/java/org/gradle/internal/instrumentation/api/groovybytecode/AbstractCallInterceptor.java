@@ -57,6 +57,11 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
     @Nullable
     @SuppressWarnings("unused")
     private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
+        boolean isSafeNavigation = (flags & IndyInterface.SAFE_NAVIGATION) != 0;
+        if (isSafeNavigation && InvocationUtils.unwrap(args[0]) == null) {
+            // Skip interception for safe navigation calls on null receiver
+            return original.invokeExact(args);
+        }
         boolean isSpread = (flags & IndyInterface.SPREAD_CALL) != 0;
         return intercept(new MethodHandleInvocation(original, args, isSpread), consumer);
     }

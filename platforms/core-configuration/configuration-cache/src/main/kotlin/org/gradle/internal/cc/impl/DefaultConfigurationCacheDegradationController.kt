@@ -19,9 +19,13 @@ package org.gradle.internal.cc.impl
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.HoldsProjectState
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.vcs.internal.VcsMappingsStore
@@ -30,34 +34,14 @@ import java.util.concurrent.ConcurrentHashMap
 @ServiceScope(BuildTree::class)
 internal class DefaultConfigurationCacheDegradationController(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
-    private val vcsMappingsStore: VcsMappingsStore
-) : ConfigurationCacheDegradationController {
+    private val vcsMappingsStore: VcsMappingsStore,
+    private val buildModelParameters: BuildModelParameters
+) : ConfigurationCacheDegradationController, HoldsProjectState {
 
     private val logger = Logging.getLogger(DefaultConfigurationCacheDegradationController::class.java)
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
-    private var taskDegradationReasons = ImmutableMap.of<Task, List<String>>()
-    private var featureDegradationReasons = ImmutableMap.of<String, List<String>>()
 
-    val hasDegradationReasons: Boolean
-        get() = taskDegradationReasons.isNotEmpty()
-            || featureDegradationReasons.isNotEmpty()
-
-    val hasTaskDegradationReasons: Boolean
-        get() = taskDegradationReasons.isNotEmpty()
-
-    val degradedTaskCount: Int
-        get() = taskDegradationReasons.size
-
-    fun getDegradationReasonsForTask(task: Task): List<String>? =
-        taskDegradationReasons[task]
-
-    fun visitDegradedTasks(consumer: (Task, List<String>) -> Unit) {
-        taskDegradationReasons.forEach(consumer)
-    }
-
-    fun visitDegradedFeatures(consumer: (String, List<String>) -> Unit) {
-        featureDegradationReasons.forEach(consumer)
-    }
+    val degradationDecision by lazy { collectDegradationReasons() }
 
     override fun requireConfigurationCacheDegradation(task: Task, reason: Provider<String>) {
         if (!configurationTimeBarrier.isAtConfigurationTime) {
@@ -69,14 +53,20 @@ internal class DefaultConfigurationCacheDegradationController(
         }
     }
 
-    fun collectDegradationReasons() {
-        collectFeatureDegradationReasons()
-        collectTaskDegradationReasons()
+    override fun discardAll() {
+        tasksDegradationRequests.clear()
     }
 
-    private fun collectTaskDegradationReasons() {
+    private fun collectDegradationReasons(): DegradationDecision =
+        if (buildModelParameters.isRequiresToolingModels) {
+            DegradationDecision.shouldNotDegrade
+        } else {
+            DegradationDecision(collectTaskDegradationReasons(), collectFeatureDegradationReasons())
+        }
+
+    private fun collectTaskDegradationReasons(): Map<TaskIdentity<*>, List<String>> =
         if (tasksDegradationRequests.isNotEmpty()) {
-            val builder = ImmutableMap.builderWithExpectedSize<Task, List<String>>(tasksDegradationRequests.size)
+            val builder = ImmutableMap.builderWithExpectedSize<TaskIdentity<*>, List<String>>(tasksDegradationRequests.size)
             for ((task, reasons) in tasksDegradationRequests) {
                 if (workGraphContains(task)) {
                     val reasonsInEffect = reasons
@@ -84,26 +74,52 @@ internal class DefaultConfigurationCacheDegradationController(
                         .sorted()
 
                     if (reasonsInEffect.isNotEmpty()) {
-                        builder.put(task, reasonsInEffect)
+                        builder.put(task.identity, reasonsInEffect)
                     }
                 }
             }
-            taskDegradationReasons = builder.build()
-        }
-    }
+            builder.build()
+        } else ImmutableMap.of()
 
-    private fun collectFeatureDegradationReasons() {
+    private fun collectFeatureDegradationReasons(): Map<String, List<String>> =
         if (isSourceDependenciesUsed()) {
-            featureDegradationReasons = ImmutableMap.of(
+            ImmutableMap.of(
                 "source dependencies",
                 listOf("Source dependencies are not compatible yet")
             )
-        }
-    }
+        } else ImmutableMap.of()
 
     private fun workGraphContains(task: Task): Boolean =
         task.project.gradle.taskGraph.hasTask(task)
 
     private fun isSourceDependenciesUsed(): Boolean =
         vcsMappingsStore.asResolver().hasRules()
+
+    internal data class DegradationDecision(
+        private val taskDegradationReasons: Map<TaskIdentity<*>, List<String>>,
+        private val featureDegradationReasons: Map<String, List<String>>
+    ) {
+        val shouldDegrade: Boolean
+            get() = taskDegradationReasons.isNotEmpty() || featureDegradationReasons.isNotEmpty()
+
+        val degradedTaskCount: Int
+            get() = taskDegradationReasons.size
+
+        fun degradationReasonForTask(taskIdentity: TaskIdentity<*>): List<String>? = taskDegradationReasons[taskIdentity]
+
+        fun onDegradedTask(consumer: (TaskIdentity<*>, List<String>) -> Unit) {
+            taskDegradationReasons.forEach(consumer)
+        }
+
+        fun onDegradedFeature(consumer: (String, List<String>) -> Unit) {
+            featureDegradationReasons.forEach(consumer)
+        }
+
+        companion object {
+            val shouldNotDegrade = DegradationDecision(ImmutableMap.of(), ImmutableMap.of())
+        }
+    }
 }
+
+private val Task.identity: TaskIdentity<*>
+    get() = (this as TaskInternal).taskIdentity

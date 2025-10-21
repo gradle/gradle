@@ -1,5 +1,5 @@
 class StateObject {
-    // ...
+    // ...we assume there is some mutable state here, and an equals implementation...
 }
 
 abstract class StatefulTask extends DefaultTask {
@@ -13,6 +13,7 @@ abstract class StatefulTask extends DefaultTask {
 
 tasks.register("checkEquality", StatefulTask) {
     def objectValue = new StateObject()
+    // ...configure objectValue as needed...
     def stringsValue = ["a", "b"] as ArrayList<String>
 
     stateObject = objectValue

@@ -1,0 +1,5 @@
+// tag::avoid-this[]
+plugins {
+    id("java-library")
+}
+// end::avoid-this[]

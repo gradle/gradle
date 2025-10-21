@@ -27,13 +27,11 @@ typealias LightTree = FlyweightCapableTreeStructure<LighterASTNode>
 
 fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(
     sourceIdentifier: SourceIdentifier,
-    sourceCode: String,
-    sourceOffset: Int
+    sourceCode: String
 ) =
     LightTreeSourceData(
         sourceIdentifier,
         sourceCode,
-        sourceOffset,
         root.range()
     )
 
@@ -41,22 +39,16 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(
 class LightTreeSourceData(
     override val sourceIdentifier: SourceIdentifier,
     private val sourceCode: String,
-    private val sourceOffset: Int,
     private val nodeRange: IntRange,
 ) : SourceData {
 
     override fun toString(): String = "LightTreeSourceData(${sourceIdentifier.fileIdentifier}:$nodeRange)"
 
-    override val indexRange: IntRange by lazy {
-        val originalRange = nodeRange
-        val first = originalRange.first - sourceOffset
-        val last = originalRange.last - sourceOffset
-        first..last
-    }
+    override val indexRange: IntRange = nodeRange
 
     private
     val lineColumnInfo: LineColumnInfo by lazy {
-        LineColumnInfo.fromIndexRange(sourceCode, sourceOffset, indexRange)
+        LineColumnInfo.fromIndexRange(sourceCode, indexRange)
     }
     override
     val lineRange: IntRange
@@ -68,12 +60,12 @@ class LightTreeSourceData(
     val endColumn: Int
         get() = lineColumnInfo.endColumn
     override
-    fun text(): String = sourceCode.substring((indexRange.first + sourceOffset)..(indexRange.last + sourceOffset))
+    fun text(): String = sourceCode.substring(indexRange)
 
     private
     class LineColumnInfo(val startLine: Int, val startColumn: Int, val endLine: Int, val endColumn: Int) {
         companion object Factory {
-            fun fromIndexRange(text: String, offset: Int, offsetRelativeIndexRange: IntRange): LineColumnInfo {
+            fun fromIndexRange(text: String, indexRange: IntRange): LineColumnInfo {
                 fun String.newLineLength(index: Int): Int =
                     when (this[index]) {
                         '\n' -> 1
@@ -85,33 +77,28 @@ class LightTreeSourceData(
 
                 fun String.isValidIndex(index: Int) = index in indices
 
-                check(text.isValidIndex(offset))
+                check(text.isValidIndex(indexRange.first) || indexRange.first == text.lastIndex + 1)
+                check(text.isValidIndex(indexRange.last))
 
-                val realStartIndex = offset + offsetRelativeIndexRange.first
-                check(text.isValidIndex(realStartIndex))
-
-                val realEndIndex = offset + offsetRelativeIndexRange.last
-                check(text.isValidIndex(realEndIndex))
-
-                check(realEndIndex - realStartIndex >= -1) // -1 is for empty intervals
+                check(indexRange.last - indexRange.first >= -1) // -1 is for empty intervals
 
                 var startLine = -1
                 var startColumn = -1
                 var endLine = -1
                 var endColumn = -1
 
-                var i = offset
+                var i = 0
                 var line = 1
                 var column = 1
                 while (i < text.length) {
-                    if (i == realStartIndex) {
+                    if (i == indexRange.first) {
                         startLine = line
                         startColumn = column
                     }
-                    if (i == realEndIndex) {
+                    if (i == indexRange.last) {
                         endLine = line
                         endColumn = column
-                        if (realStartIndex == realEndIndex + 1) { // might be an empty range, e.g. 20..19
+                        if (indexRange.first == indexRange.last + 1) { // might be an empty range, e.g. 20..19
                             startLine = line
                             startColumn = column + 1
                         }
@@ -240,14 +227,12 @@ val LighterASTNode.isUseful: Boolean
 
 
 internal
-fun LighterASTNode.expectKind(expected: IElementType) {
-    check(isKind(expected))
-}
-
-
-internal
 fun List<LighterASTNode>.expectSingleOfKind(expected: IElementType): LighterASTNode =
     this.single { it.isKind(expected) }
+
+internal
+fun List<LighterASTNode>.expectSingleOrNoneOfKind(expected: IElementType): LighterASTNode? =
+    this.singleOrNull { it.isKind(expected) }
 
 
 internal
@@ -256,8 +241,8 @@ fun LighterASTNode.isKind(expected: IElementType) =
 
 
 internal
-fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier, sourceCode: String, sourceOffset: Int) =
-    LightTreeSourceData(sourceIdentifier, sourceCode, sourceOffset, this.range())
+fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier, sourceCode: String) =
+    LightTreeSourceData(sourceIdentifier, sourceCode, this.range())
 
 
 private

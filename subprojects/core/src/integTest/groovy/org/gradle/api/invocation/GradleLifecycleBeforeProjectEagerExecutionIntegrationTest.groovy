@@ -145,7 +145,6 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
             "prepareForRuleBasedPlugins()",
             "repositories {}",
             "repositories",
-            "serviceRegistryFactory",
             "services",
             "setBuildDir('build')",
             "setDescription('foo')",

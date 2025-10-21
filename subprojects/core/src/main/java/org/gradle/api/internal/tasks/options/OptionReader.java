@@ -45,7 +45,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
     private final Map<OptionElement, JavaMethod<Object, ?>> cachedOptionValueMethods = new HashMap<>();

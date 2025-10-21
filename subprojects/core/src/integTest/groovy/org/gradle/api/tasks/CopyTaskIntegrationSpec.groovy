@@ -2153,7 +2153,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         when:
         run 'copy'
         then:
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":copy")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":copy")
     }
 
     def "changing spec-level property #property makes task out-of-date"() {

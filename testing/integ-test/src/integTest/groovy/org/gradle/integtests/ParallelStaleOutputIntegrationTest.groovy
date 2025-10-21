@@ -90,6 +90,6 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatDescription(Matchers.matchesRegexp("Could not create task ':(a|b):bar'\\."))
         failure.assertHasCause("Could not create task of type 'BadTask'.")
         failure.assertThatCause(Matchers.matchesRegexp("Resolution of the configuration ':(a|b):myconf' was attempted without an exclusive lock\\. This is unsafe and not allowed\\."))
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 }

@@ -134,6 +134,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ExternalModuleComponentResolverFactory.class);
         registration.add(ResolverProviderFactories.class);
         registration.add(DefaultProjectDependencyFactory.class);
+        registration.add(DependencyManagementManagedTypesFactory.class);
     }
 
     @Provides

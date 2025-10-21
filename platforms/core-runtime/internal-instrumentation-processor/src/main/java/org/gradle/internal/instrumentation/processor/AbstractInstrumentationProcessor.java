@@ -36,7 +36,6 @@ import org.jspecify.annotations.NonNull;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -66,7 +65,6 @@ import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getExecutableElementsFromElements;
 
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public abstract class AbstractInstrumentationProcessor extends AbstractProcessor {
 
     public static final String PROJECT_NAME_OPTIONS = "org.gradle.annotation.processing.instrumented.project";
@@ -81,6 +79,11 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return getSupportedAnnotations().stream().map(Class::getName).collect(Collectors.toSet());
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
     }
 
     private Set<Class<? extends Annotation>> getSupportedAnnotations() {

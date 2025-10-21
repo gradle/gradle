@@ -31,6 +31,9 @@ public class IncubationLogger {
         INCUBATING_FEATURE_HANDLER.reset();
     }
 
+    /**
+     * Prints {@value #INCUBATION_MESSAGE} as a warning.
+     */
     public static synchronized void incubatingFeatureUsed(String incubatingFeature) {
         INCUBATING_FEATURE_HANDLER.featureUsed(new IncubatingFeatureUsage(incubatingFeature, IncubationLogger.class));
     }

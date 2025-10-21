@@ -39,8 +39,8 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         dslDir.file('target/lib/hello-app.jar').isFile()
 
         and: "The compilejava task is executed in place of the original 'build' task"
-        result.assertTaskExecuted(':compileJava')
-        result.assertTaskNotExecuted(':build')
+        result.assertTaskScheduled(':compileJava')
+        result.assertTasksNotScheduled(':build')
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -90,8 +90,8 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         def result = succeeds(':web:build')
 
         then: "The compile tasks are run in both 'util' and 'web' projects"
-        result.assertTaskExecuted(':util:compile')
-        result.assertTaskExecuted(':web:compile')
+        result.assertTaskScheduled(':util:compile')
+        result.assertTaskScheduled(':web:compile')
 
         where:
         dsl << ['groovy', 'kotlin']

@@ -16,7 +16,9 @@
 
 package org.gradle.internal.operations;
 
-public interface CallableBuildOperation<T> extends BuildOperation {
+import org.jspecify.annotations.Nullable;
+
+public interface CallableBuildOperation<T extends @Nullable Object> extends BuildOperation {
 
     T call(BuildOperationContext context) throws Exception;
 }

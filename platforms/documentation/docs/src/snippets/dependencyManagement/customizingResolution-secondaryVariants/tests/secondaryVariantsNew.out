@@ -1,0 +1,28 @@
+> Task :outgoingVariants
+
+--------------------------------------------------
+Variant fooFiles
+--------------------------------------------------
+
+Capabilities
+    - com.gradle:some-library:1.2.3 (default capability)
+Attributes
+    - FooAttribute = main
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant fooFilesVariant1
+    --------------------------------------------------
+
+    Attributes
+        - FooAttribute        = main
+        - FooVariantAttribute = variant1
+
+    --------------------------------------------------
+    Secondary Variant fooFilesVariant2
+    --------------------------------------------------
+
+    Attributes
+        - FooAttribute        = secondary
+        - FooVariantAttribute = variant2

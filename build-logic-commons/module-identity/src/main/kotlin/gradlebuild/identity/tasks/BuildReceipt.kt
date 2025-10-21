@@ -16,7 +16,6 @@
 
 package gradlebuild.identity.tasks
 
-import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -121,10 +120,5 @@ abstract class BuildReceipt : DefaultTask() {
                 " timestamp: ${buildTimestamp.get()}," +
                 " snapshot: ${snapshot.get()})"
         )
-        if (BuildEnvironment.isCiServer) {
-            lifecycle(
-                "##teamcity[buildStatus text='{build.status.text}, Promoted version ${version.get()}']"
-            )
-        }
     }
 }

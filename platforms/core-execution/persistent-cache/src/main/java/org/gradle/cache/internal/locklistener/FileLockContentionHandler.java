@@ -25,6 +25,8 @@ import java.util.function.Consumer;
 
 @ServiceScope(Scope.Global.class)
 public interface FileLockContentionHandler {
+    int INVALID_PORT = -1;
+
     void start(long lockId, Consumer<FileLockReleasedSignal> whenContended);
 
     void stop(long lockId);

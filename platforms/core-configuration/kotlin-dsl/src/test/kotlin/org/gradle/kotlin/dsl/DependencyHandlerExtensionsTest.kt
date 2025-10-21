@@ -33,6 +33,7 @@ import spock.lang.Issue
 class DependencyHandlerExtensionsTest {
 
     @Test
+    @Suppress("DEPRECATION")
     fun `given group, name, version, configuration, classifier and ext, 'create' extension will build corresponding map`() {
 
         val expectedModuleMap = mapOf(
@@ -148,7 +149,7 @@ class DependencyHandlerExtensionsTest {
             dependency
         }
         val projectPath: Path = Path.path(":project")
-        whenever(dependency.path).thenReturn(projectPath.path)
+        whenever(dependency.path).thenReturn(projectPath.asString())
 
         dependencies {
 
@@ -156,7 +157,7 @@ class DependencyHandlerExtensionsTest {
                 events.add("configured")
                 assertThat(
                     path,
-                    sameInstance(projectPath.path)
+                    sameInstance(projectPath.asString())
                 )
             }
         }

@@ -163,12 +163,11 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests daemon")
     def "url connection caching is not disabled by default"() {
-
         given:
         buildFile << """
             task checkUrlConnectionCaching {
                 doLast {
-                    URL url = new URL("jar:file://valid_jar_url_syntax.jar!/")
+                    URL url = new URL("${buildFile.toURI().toASCIIString()}")
                     URLConnection urlConnection = url.openConnection()
                     assert urlConnection.defaultUseCaches
                 }
@@ -394,14 +393,14 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         def jdk24 = AvailableJavaHomes.getJdk24()
 
         when:
-        executer.withJvm(jdk21).withArguments("-Porg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
+        executer.withJvm(jdk21).withArguments("-Dorg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
         succeeds("printFoo")
 
         then:
         outputContains("JAR = DEFAULT")
 
         when:
-        executer.withJvm(jdk24).withArguments("-Porg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
+        executer.withJvm(jdk24).withArguments("-Dorg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
         succeeds("printFoo")
 
         then:

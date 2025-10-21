@@ -36,15 +36,19 @@ import java.io.Closeable;
 import java.util.function.Function;
 
 public abstract class AbstractBuildState implements BuildState, Closeable {
+
+    private final @Nullable BuildState parent;
     private final CloseableServiceRegistry buildServices;
     private final Lazy<BuildLifecycleController> buildLifecycleController;
     private final Lazy<ProjectStateRegistry> projectStateRegistry;
     private final Lazy<BuildWorkGraphController> workGraphController;
 
     public AbstractBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
+        this.parent = parent;
+
         // Create the controllers using the services of the nested tree
         BuildModelControllerServices buildModelControllerServices = buildTree.getServices().get(BuildModelControllerServices.class);
-        BuildModelControllerServices.Supplier supplier = buildModelControllerServices.servicesForBuild(buildDefinition, this, parent);
+        BuildModelControllerServices.Supplier supplier = buildModelControllerServices.servicesForBuild(buildDefinition, this);
         buildServices = prepareServices(buildTree, buildDefinition, supplier);
         buildLifecycleController = Lazy.locking().of(() -> buildServices.get(BuildLifecycleController.class));
         projectStateRegistry = Lazy.locking().of(() -> buildServices.get(ProjectStateRegistry.class));
@@ -58,6 +62,11 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
             .parent(buildTree.getServices())
             .provider(prepareServicesProvider(buildDefinition, supplier))
             .build();
+    }
+
+    @Override
+    public @Nullable BuildState getParent() {
+        return parent;
     }
 
     protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
@@ -159,4 +168,5 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
         return getBuildController().withToolingModels(action);
     }
+
 }

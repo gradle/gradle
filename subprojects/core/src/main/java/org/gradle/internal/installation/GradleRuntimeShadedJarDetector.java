@@ -62,28 +62,11 @@ public class GradleRuntimeShadedJarDetector {
     }
 
     private static boolean findMarkerFileInJar(File jar) {
-        JarFile jarFile = null;
-
-        try {
-            jarFile = new JarFile(jar);
+        try (JarFile jarFile = new JarFile(jar)) {
             JarEntry markerFile = jarFile.getJarEntry(MARKER_FILENAME);
-
-            if (markerFile != null) {
-                return true;
-            }
+            return markerFile != null;
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            if (jarFile != null) {
-                try {
-                    jarFile.close();
-                } catch (IOException e) {
-                    //noinspection ThrowFromFinallyBlock
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
         }
-
-        return false;
     }
 }

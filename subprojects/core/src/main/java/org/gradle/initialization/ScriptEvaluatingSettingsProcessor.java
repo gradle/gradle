@@ -24,6 +24,8 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
+import org.gradle.internal.composite.BuildIncludeListener;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -38,17 +40,20 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private final GradleProperties gradleProperties;
     private final ScriptPluginFactory configurerFactory;
     private final TextFileResourceLoader textFileResourceLoader;
+    private final BuildIncludeListener buildIncludeListener;
 
     public ScriptEvaluatingSettingsProcessor(
         ScriptPluginFactory configurerFactory,
         SettingsFactory settingsFactory,
         GradleProperties gradleProperties,
-        TextFileResourceLoader textFileResourceLoader
+        TextFileResourceLoader textFileResourceLoader,
+        BuildIncludeListener buildIncludeListener
     ) {
         this.configurerFactory = configurerFactory;
         this.settingsFactory = settingsFactory;
         this.gradleProperties = gradleProperties;
         this.textFileResourceLoader = textFileResourceLoader;
+        this.buildIncludeListener = buildIncludeListener;
     }
 
     @Override
@@ -65,7 +70,12 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         SettingsInternal settings = state.getSettings();
         gradle.getBuildListenerBroadcaster().beforeSettings(settings);
         settings.getCaches().finalizeConfiguration(gradle);
-        applySettingsScript(settingsScript, settings);
+        try {
+            applySettingsScript(settingsScript, settings);
+        } catch (LocationAwareException e) {
+            buildIncludeListener.settingsScriptFailed(state.getSettings(), e);
+            throw e;
+        }
         LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getElapsed());
         return state;
     }

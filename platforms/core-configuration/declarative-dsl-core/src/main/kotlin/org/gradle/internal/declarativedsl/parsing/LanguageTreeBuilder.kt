@@ -14,6 +14,6 @@ class DefaultLanguageTreeBuilder : LanguageTreeBuilder {
         parsedLightTree: ParsedLightTree,
         sourceIdentifier: SourceIdentifier
     ): LanguageTreeResult =
-        GrammarToTree(sourceIdentifier, parsedLightTree.wrappedCode, parsedLightTree.originalCodeOffset, parsedLightTree.suffixLength)
+        GrammarToTree(sourceIdentifier, parsedLightTree.code)
             .script(parsedLightTree.lightTree)
 }

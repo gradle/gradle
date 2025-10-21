@@ -16,47 +16,38 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.DependencyArtifactSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetailsInternal {
 
-    private final DefaultDependencySubstitution owner;
-    private final List<DependencyArtifactSelector> requestedSelectors;
-    private List<DependencyArtifactSelector> targetSelectors;
+    private final ImmutableList<IvyArtifactName> requestedArtifacts;
+    private @Nullable List<DependencyArtifactSelector> targetSelectors;
 
-    public DefaultArtifactSelectionDetails(DefaultDependencySubstitution defaultDependencySubstitution, List<IvyArtifactName> requested) {
-        this.owner = defaultDependencySubstitution;
-        this.requestedSelectors = requested.isEmpty() ? ImmutableList.of():ImmutableList.copyOf(requested.stream()
-            .map(e -> new DefaultDependencyArtifactSelector(e.getType(), e.getExtension(), e.getClassifier()))
-            .collect(Collectors.toList()));
+    public DefaultArtifactSelectionDetails(ImmutableList<IvyArtifactName> requestedArtifacts) {
+        this.requestedArtifacts = requestedArtifacts;
     }
 
     @Override
     public boolean hasSelectors() {
-        return !requestedSelectors.isEmpty();
+        return !requestedArtifacts.isEmpty();
     }
 
     @Override
     public List<DependencyArtifactSelector> getRequestedSelectors() {
-        return requestedSelectors;
+        return Lists.transform(requestedArtifacts, artifact ->
+            new DefaultDependencyArtifactSelector(artifact.getType(), artifact.getExtension(), artifact.getClassifier())
+        );
     }
 
     @Override
     public void withoutArtifactSelectors() {
         targetSelectors = new ArrayList<>();
-        markUpdated();
-    }
-
-    private void markUpdated() {
-        owner.addRuleDescriptor(ComponentSelectionReasons.SELECTED_BY_RULE);
     }
 
     @Override
@@ -68,18 +59,13 @@ public class DefaultArtifactSelectionDetails implements ArtifactSelectionDetails
     public void selectArtifact(DependencyArtifactSelector selector) {
         if (targetSelectors == null) {
             targetSelectors = new ArrayList<>();
-            markUpdated();
         }
         targetSelectors.add(selector);
     }
 
     @Override
-    public boolean isUpdated() {
-        return targetSelectors != null;
+    public @Nullable ImmutableList<DependencyArtifactSelector> getConfiguredSelectors() {
+        return targetSelectors != null ? ImmutableList.copyOf(targetSelectors) : null;
     }
 
-    @Override
-    public List<DependencyArtifactSelector> getTargetSelectors() {
-        return targetSelectors == null ? Collections.emptyList() : ImmutableList.copyOf(targetSelectors);
-    }
 }

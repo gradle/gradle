@@ -324,10 +324,6 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 listener.finished(notification);
             }
         }
-
-        public void reset() {
-
-        }
     }
 
     private static class Started implements BuildOperationStartedNotification {

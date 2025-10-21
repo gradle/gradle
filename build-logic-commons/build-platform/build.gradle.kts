@@ -18,9 +18,8 @@ val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
 val spockVersion = if (isGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val groovyGroup = if (isGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
-val asmVersion = "9.7.1"
-// To try out better kotlin compilation avoidance and incremental compilation
-// with -Pkotlin.incremental.useClasspathSnapshot=true
+val asmVersion = "9.8"
+// To try out newer kotlin versions
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
     .getOrElse(embeddedKotlinVersion)
 
@@ -28,15 +27,15 @@ dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.24.0")
         api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
-        api("com.gradle:develocity-gradle-plugin:4.0.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+        api("com.gradle:develocity-gradle-plugin:4.2.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.3.1")
-        api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.10")
+        api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
         api("me.champeau.jmh:jmh-gradle-plugin:0.7.2")
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:2.17.0")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:3.0.1")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
@@ -74,7 +73,7 @@ dependencies {
         api("org.codenarc:CodeNarc:$codenarcVersion")
         api("org.eclipse.jgit:org.eclipse.jgit:7.2.1.202505142326-r")
         api("org.javassist:javassist:3.30.2-GA")
-        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
+        api("org.jetbrains.kotlin:kotlin-metadata-jvm:$kotlinVersion")
         api("org.jsoup:jsoup:1.15.3")
         api("org.junit.jupiter:junit-jupiter:5.8.2")
         api("org.junit.vintage:junit-vintage-engine:5.8.2")

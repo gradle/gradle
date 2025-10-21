@@ -61,9 +61,10 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
         final Map<String, Object> emptyArgs = Collections.emptyMap();
         try {
             antBuilder.invokeMethod("jacocoReport", new Object[]{Collections.emptyMap(), new Closure<Object>(this, this) {
-                @SuppressWarnings("UnusedDeclaration")
+                @SuppressWarnings("unused") // Magic Groovy method
                 public Object doCall(Object ignore) {
                     antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                        @SuppressWarnings("unused") // Magic Groovy method
                         public Object doCall(Object ignore) {
                             params.getExecutionData().filter(File::exists).addToAntBuilder(antBuilder, "resources");
                             return Void.class;
@@ -71,8 +72,10 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                     }});
                     Map<String, Object> structureArgs = ImmutableMap.<String, Object>of("name", params.getProjectName().get());
                     antBuilder.invokeMethod("structure", new Object[]{structureArgs, new Closure<Object>(this, this) {
+                        @SuppressWarnings("unused") // Magic Groovy method
                         public Object doCall(Object ignore) {
                             antBuilder.invokeMethod("classfiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
+                                @SuppressWarnings("unused") // Magic Groovy method
                                 public Object doCall(Object ignore) {
                                     params.getAllClassesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
                                     return Void.class;
@@ -86,6 +89,7 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                                 sourcefilesArgs = Collections.singletonMap("encoding", encoding);
                             }
                             antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefilesArgs, new Closure<Object>(this, this) {
+                                @SuppressWarnings("unused") // Magic Groovy method
                                 public Object doCall(Object ignore) {
                                     params.getAllSourcesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
                                     return Void.class;
@@ -102,12 +106,12 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                             "violationsproperty", VIOLATIONS_ANT_PROPERTY);
 
                         antBuilder.invokeMethod("check", new Object[] {checkArgs, new Closure<Object>(this, this) {
-                            @SuppressWarnings("UnusedDeclaration")
+                            @SuppressWarnings("unused") // Magic Groovy method
                             public Object doCall(Object ignore) {
                                 for (final JacocoViolationRule rule : rules) {
                                     Map<String, Object> ruleArgs = ImmutableMap.<String, Object>of("element", rule.getElement(), "includes", Joiner.on(':').join(rule.getIncludes()), "excludes", Joiner.on(':').join(rule.getExcludes()));
                                     antBuilder.invokeMethod("rule", new Object[] {ruleArgs, new Closure<Object>(this, this) {
-                                        @SuppressWarnings("UnusedDeclaration")
+                                        @SuppressWarnings("unused") // Magic Groovy method
                                         public Object doCall(Object ignore) {
                                             for (JacocoLimit limit : rule.getLimits()) {
                                                 Map<String, Object> limitArgs = new HashMap<String, Object>();

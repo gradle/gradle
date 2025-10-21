@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.language.LibraryDependencies;
@@ -39,20 +38,14 @@ import javax.inject.Inject;
 import java.util.Collections;
 
 public abstract class DefaultSwiftLibrary extends DefaultSwiftComponent<SwiftBinary> implements SwiftLibrary {
-    private final SetProperty<Linkage> linkage;
     private final ConfigurationContainer configurations;
-    private final Property<SwiftBinary> developmentBinary;
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
     public DefaultSwiftLibrary(String name, ConfigurationContainer configurations) {
         super(name);
         this.configurations = configurations;
-        this.developmentBinary = getObjectFactory().property(SwiftBinary.class);
-
-        linkage = getObjectFactory().setProperty(Linkage.class);
-        linkage.set(Collections.singleton(Linkage.SHARED));
-
+        getLinkage().convention(Collections.singleton(Linkage.SHARED));
         dependencies = getObjectFactory().newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
     }
 
@@ -93,12 +86,5 @@ public abstract class DefaultSwiftLibrary extends DefaultSwiftComponent<SwiftBin
     }
 
     @Override
-    public Property<SwiftBinary> getDevelopmentBinary() {
-        return developmentBinary;
-    }
-
-    @Override
-    public SetProperty<Linkage> getLinkage() {
-        return linkage;
-    }
+    public abstract Property<SwiftBinary> getDevelopmentBinary();
 }

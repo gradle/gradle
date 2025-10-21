@@ -46,6 +46,7 @@ dependencies {
 
     implementation(projects.baseDiagnostics)
     implementation(projects.fileTemp)
+    implementation(projects.logging)
     implementation(projects.modelCore)
 
     implementation(libs.guava)

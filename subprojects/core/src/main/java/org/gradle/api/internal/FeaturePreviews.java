@@ -18,8 +18,6 @@ package org.gradle.api.internal;
 import org.gradle.internal.buildoption.FeatureFlag;
 import org.jspecify.annotations.Nullable;
 
-import java.util.EnumSet;
-
 public class FeaturePreviews {
 
     /**
@@ -52,19 +50,6 @@ public class FeaturePreviews {
                 // Re-wording to exception message to get rid of the fqcn it contains
                 throw new IllegalArgumentException("There is no feature named " + name);
             }
-        }
-
-        /**
-         * Returns the set of active {@linkplain Feature features}.
-         */
-        private static EnumSet<Feature> activeFeatures() {
-            EnumSet<Feature> activeFeatures = EnumSet.noneOf(Feature.class);
-            for (Feature feature : Feature.values()) {
-                if (feature.isActive()) {
-                    activeFeatures.add(feature);
-                }
-            }
-            return activeFeatures;
         }
 
         private final boolean active;

@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DelegatingProviderWithValue;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -39,6 +41,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     // Services
     private final AttributesFactory attributesFactory;
     private final AttributeValueIsolator attributeValueIsolator;
+    private final NamedObjectInstantiator namedObjectInstantiator;
 
     // Mutable State
     private final MapProperty<Attribute<?>, AttributeEntry<?>> state;
@@ -52,10 +55,12 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     public DefaultMutableAttributeContainer(
         AttributesFactory attributesFactory,
         AttributeValueIsolator attributeValueIsolator,
+        NamedObjectInstantiator namedObjectInstantiator,
         PropertyFactory propertyFactory
     ) {
         this.attributesFactory = attributesFactory;
         this.attributeValueIsolator = attributeValueIsolator;
+        this.namedObjectInstantiator = namedObjectInstantiator;
         this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, AttributeEntry.class));
     }
 
@@ -117,7 +122,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
 
     @Override
     public AttributeContainer addAllLater(AttributeContainer other) {
-        state.putAll(((AttributeContainerInternal) other).getEntries());
+        state.putAll(((AttributeContainerInternal) other).getEntriesProvider());
         return this;
     }
 
@@ -184,7 +189,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     }
 
     @Override
-    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntries() {
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
         return state;
     }
 
@@ -193,6 +198,11 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         Map<Attribute<?>, AttributeEntry<?>> realizedState = doRealize(Provider::get);
         assertNoDuplicateNames(realizedState.keySet());
         return attributesFactory.fromEntries(realizedState.values());
+    }
+
+    @Override
+    public <T extends Named> T named(Class<T> type, String name) {
+        return namedObjectInstantiator.named(type, name);
     }
 
     @Override

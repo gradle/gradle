@@ -56,7 +56,7 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
         try {
             Class.forName("org.testng.TestNG");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException("Failed to load TestNG.  Please ensure that TestNG is available on the test runtime classpath.");
+            throw new TestFrameworkNotAvailableException("Failed to load TestNG.  Please ensure that the TestNG library is available on the test's runtime classpath.");
         }
     }
 

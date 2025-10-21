@@ -22,12 +22,12 @@ import org.jspecify.annotations.Nullable;
  * Meta-data about a build operation.
  */
 public final class BuildOperationDescriptor {
-    private final OperationIdentifier id;
-    private final OperationIdentifier parentId;
+    private final @Nullable OperationIdentifier id;
+    private final @Nullable OperationIdentifier parentId;
     private final String displayName;
     private final String name;
-    private final String progressDisplayName;
-    private final Object details;
+    private final @Nullable String progressDisplayName;
+    private final @Nullable Object details;
     private final BuildOperationMetadata metadata;
     private final int totalProgress;
 
@@ -129,9 +129,9 @@ public final class BuildOperationDescriptor {
     public static final class Builder {
         private final String displayName;
         private String name;
-        private String progressDisplayName;
-        private Object details;
-        private BuildOperationRef parent;
+        private @Nullable String progressDisplayName;
+        private @Nullable Object details;
+        private @Nullable BuildOperationRef parent;
         private BuildOperationMetadata metadata = BuildOperationMetadata.NONE;
         private int totalProgress;
 

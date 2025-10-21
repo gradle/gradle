@@ -73,7 +73,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         succeeds('assemble')
 
         then:
-        result.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':assemble')
+        result.assertTasksScheduled(':compileDebugSwift', ':createDebug', ':assemble')
         staticLibrary('build/lib/main/debug/Foo').assertExists()
     }
 
@@ -95,14 +95,14 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         succeeds('assembleDebug')
 
         then:
-        result.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':assembleDebug')
+        result.assertTasksScheduled(':compileDebugSwift', ':createDebug', ':assembleDebug')
         staticLibrary('build/lib/main/debug/Foo').assertExists()
 
         when:
         succeeds('assembleRelease')
 
         then:
-        result.assertTasksExecuted(':compileReleaseSwift', ':createRelease', ':assembleRelease')
+        result.assertTasksScheduled(':compileReleaseSwift', ':createRelease', ':assembleRelease')
         staticLibrary('build/lib/main/release/Foo').assertExists()
     }
 
@@ -127,7 +127,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
 
         expect:
         succeeds "assembleLinkDebug"
-        result.assertTasksExecuted(":compileDebugSwift", ":createDebug", ":assembleLinkDebug")
+        result.assertTasksScheduled(":compileDebugSwift", ":createDebug", ":assembleLinkDebug")
         staticLibrary("build/lib/main/debug/Foo").assertExists()
     }
 
@@ -152,7 +152,7 @@ class SwiftStaticLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
 
         expect:
         succeeds "compileDebug"
-        result.assertTasksExecuted(":compileDebugSwift", ":compileDebug")
+        result.assertTasksScheduled(":compileDebugSwift", ":compileDebug")
         objectFiles(lib)*.assertExists()
         staticLibrary("build/lib/main/debug/Foo").assertDoesNotExist()
     }

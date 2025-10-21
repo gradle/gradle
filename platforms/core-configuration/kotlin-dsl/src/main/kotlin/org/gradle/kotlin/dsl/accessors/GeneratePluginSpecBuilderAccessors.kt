@@ -18,7 +18,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -68,6 +67,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import java.io.BufferedWriter
 import java.io.File
+import kotlin.metadata.jvm.JvmMethodSignature
 
 
 /**

@@ -32,13 +32,16 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public class GradleDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
+
     private final ModuleComponentSelector selector;
     private final List<ExcludeMetadata> excludes;
     private final boolean constraint;
     private final boolean endorsing;
-    private final String reason;
+    private final @Nullable String reason;
     private final boolean force;
     private final List<IvyArtifactName> artifacts;
+
+    private final int hashCode;
 
     public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, @Nullable IvyArtifactName artifact) {
         this(selector, excludes, constraint, endorsing, reason, force, artifact == null ? ImmutableList.of() : ImmutableList.of(artifact));
@@ -47,11 +50,31 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, @Nullable String reason, boolean force, List<IvyArtifactName> artifacts) {
         this.selector = selector;
         this.excludes = excludes;
-        this.reason = reason;
         this.constraint = constraint;
         this.endorsing = endorsing;
+        this.reason = reason;
         this.force = force;
         this.artifacts = artifacts;
+        this.hashCode = computeHashCode(selector, excludes, constraint, endorsing, reason, force, artifacts);
+    }
+
+    private static int computeHashCode(
+        ModuleComponentSelector selector,
+        List<ExcludeMetadata> excludes,
+        boolean constraint,
+        boolean endorsing,
+        @Nullable String reason,
+        boolean force,
+        List<IvyArtifactName> artifacts
+    ) {
+        int result = selector.hashCode();
+        result = 31 * result + excludes.hashCode();
+        result = 31 * result + Boolean.hashCode(constraint);
+        result = 31 * result + Boolean.hashCode(endorsing);
+        result = 31 * result + (reason != null ? reason.hashCode() : 0);
+        result = 31 * result + Boolean.hashCode(force);
+        result = 31 * result + artifacts.hashCode();
+        return result;
     }
 
     @Override
@@ -169,6 +192,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         }
         GradleDependencyMetadata that = (GradleDependencyMetadata) o;
         return constraint == that.constraint &&
+            endorsing == that.endorsing &&
             force == that.force &&
             Objects.equal(selector, that.selector) &&
             Objects.equal(excludes, that.excludes) &&
@@ -178,6 +202,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(selector, excludes, constraint, reason, force, artifacts);
+        return hashCode;
     }
+
 }

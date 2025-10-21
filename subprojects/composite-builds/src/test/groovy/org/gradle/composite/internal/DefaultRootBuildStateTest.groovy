@@ -54,7 +54,7 @@ class DefaultRootBuildStateTest extends Specification {
     DefaultRootBuildState build
 
     def setup() {
-        _ * factory.servicesForBuild(buildDefinition, _, null) >> Mock(BuildModelControllerServices.Supplier)
+        _ * factory.servicesForBuild(buildDefinition, _) >> Mock(BuildModelControllerServices.Supplier)
         _ * listenerManager.getBroadcaster(RootBuildLifecycleListener) >> lifecycleListener
         def services = new DefaultServiceRegistry()
         services.add(buildOperationRunner)
@@ -95,7 +95,7 @@ class DefaultRootBuildStateTest extends Specification {
             '<result>'
         }
 
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(null)
         0 * controller._
         0 * lifecycleListener._
     }
@@ -133,7 +133,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * buildTreeController.scheduleAndRunTasks()
 
         and:
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(null)
         0 * lifecycleListener._
     }
 
@@ -150,7 +150,7 @@ class DefaultRootBuildStateTest extends Specification {
         and:
         1 * action.apply(!null) >> { BuildTreeLifecycleController controller -> throw failure }
         1 * lifecycleListener.afterStart()
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(failure)
         0 * lifecycleListener._
     }
 
@@ -176,7 +176,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * buildTreeController.scheduleAndRunTasks() >> { throw failure }
 
         and:
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(failure)
         0 * lifecycleListener._
     }
 

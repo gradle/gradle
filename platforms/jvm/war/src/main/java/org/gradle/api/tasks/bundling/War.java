@@ -147,7 +147,7 @@ public abstract class War extends Jar {
      * @param classpath The classpath. Must not be null.
      */
     public void setClasspath(Object classpath) {
-        this.classpath = getProject().files(classpath);
+        this.classpath = getObjectFactory().fileCollection().from(classpath);
     }
 
     /**
@@ -156,9 +156,9 @@ public abstract class War extends Jar {
      * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      */
     @SuppressWarnings("rawtypes")
-    public void classpath(Object... classpath) {
+    public void classpath(@Nullable Object... classpath) {
         FileCollection oldClasspath = getClasspath();
-        this.classpath = getProject().files(oldClasspath != null ? oldClasspath : new ArrayList(), classpath);
+        this.classpath = getObjectFactory().fileCollection().from(oldClasspath != null ? oldClasspath : new ArrayList(), classpath);
     }
 
     /**

@@ -121,5 +121,4 @@ public interface ClassLoaderScope {
      */
     void onReuse();
 
-    ClassLoaderScope getOriginalScope();
 }

@@ -135,14 +135,12 @@ configurations.create("localLibsRepositoryElements") {
     }
     isCanBeResolved = false
     isCanBeConsumed = true
-    isVisible = false
     outgoing.artifact(localRepository) {
         builtBy(publishPluginsToTestRepository)
     }
 }
 
 configurations.create("futureVersion") {
-    isVisible = false
     isCanBeResolved = false
     isCanBeConsumed = true
     attributes {

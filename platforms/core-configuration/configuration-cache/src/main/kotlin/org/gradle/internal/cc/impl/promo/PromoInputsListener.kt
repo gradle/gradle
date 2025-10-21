@@ -56,4 +56,6 @@ internal class PromoInputsListener(
     override fun fileSystemEntryObserved(file: File, consumer: String) = Unit
 
     override fun directoryContentObserved(file: File, consumer: String) = Unit
+
+    override fun startParameterProjectPropertiesObserved() = Unit
 }

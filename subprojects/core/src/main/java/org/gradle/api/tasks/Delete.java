@@ -25,6 +25,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -127,7 +128,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * @param targets Any type of object accepted by {@link Project#files(Object...)}
      */
     @Override
-    public Delete delete(Object... targets) {
+    public Delete delete(@Nullable Object... targets) {
         paths.from(targets);
         return this;
     }

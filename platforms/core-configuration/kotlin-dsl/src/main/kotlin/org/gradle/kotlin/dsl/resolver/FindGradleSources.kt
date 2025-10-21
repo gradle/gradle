@@ -24,10 +24,12 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.kotlin.dsl.support.unzipTo
+import org.gradle.internal.file.PathTraversalChecker.safePathName
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
-import java.io.IOException
+import java.io.InputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 
 
 /**
@@ -47,54 +49,111 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
     abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        outputs.withTemporaryDir { unzippedDistroDir ->
-            unzipTo(unzippedDistroDir, input.get().asFile)
-            distroDirFrom(unzippedDistroDir)?.let { distroRootDir ->
-                projectDirectoriesOf(distroRootDir).forEach { projectDir ->
-                    // Use a relative output dir file in order to get a managed directory
-                    val outputSrcDir = outputs.dir(projectDir.name)
-                    subDirsOf(projectDir.resolve("src/main")).forEach { srcDir ->
-                        srcDir.listFiles()?.forEach { srcDirChild ->
-                            srcDirChild.copyRecursively(outputSrcDir.resolve(srcDirChild.name))
-                        }
-                    }
-                }
+        ZipFile(input.get().asFile).use { zip ->
+            val it = zip.entries()
+            if (!it.hasMoreElements()) {
+                // Zip contains no files.
+                return
+            }
+
+            // We assume the zip contains a single root directory
+            val first = it.nextElement()
+            val slashIndex = first.name.indexOf('/')
+            if (slashIndex < 0) {
+                // Zip contains no root directory.
+                return
+            }
+            val rootPrefix = first.name.substring(0, slashIndex + 1)
+
+            val projectOutputs = ProjectSourceOutputs(outputs)
+            processEntry(rootPrefix, projectOutputs, first, zip)
+            while (it.hasMoreElements()) {
+                processEntry(rootPrefix, projectOutputs, it.nextElement(), zip)
             }
         }
     }
 
-    /**
-     * Abuse empty transform output dir as a temporary directory.
-     *
-     * This is necessary because we should not use regular system temporary directories for security reasons and
-     * because no temporary file provider is available in transform actions.
-     *
-     * This adds an empty directory to the transform outputs. In this case it should not create downstream issues
-     * given the consumers of this transform's output are IDEs indexing sources.
-     *
-     * See https://github.com/gradle/gradle/issues/30440
-     */
-    private fun TransformOutputs.withTemporaryDir(block: (File) -> Unit) {
-        val dir = dir("empty")
-        block(dir)
-        if (!dir.deleteRecursively() || !dir.mkdirs()) {
-            throw IOException("Unable to clear artifact transform temporary directory $dir")
+    private fun processEntry(prefix: String, outputs: ProjectSourceOutputs, entry: ZipEntry, zip: ZipFile) {
+        val rootOffset = consume(prefix, 0, entry)
+        if (rootOffset == -1) {
+            // Entry not under root directory.
+            return
+        }
+
+        val subprojectsOffset = consume("subprojects/", rootOffset, entry)
+        if (subprojectsOffset != -1) {
+            processProjectEntry(subprojectsOffset, outputs, entry, zip)
+            return
+        }
+
+        val platformsOffset = consume("platforms/", rootOffset, entry)
+        if (platformsOffset != -1) {
+            val platformDirOffset = consumeDir(platformsOffset, entry)
+            if (platformDirOffset != -1) {
+                processProjectEntry(platformDirOffset, outputs, entry, zip)
+            }
+            return
         }
     }
 
-    private fun distroDirFrom(unzippedDistroDir: File): File? =
-        unzippedDistroDir.listFiles()?.singleOrNull()
+    private fun processProjectEntry(offset: Int, outputs: ProjectSourceOutputs, entry: ZipEntry, zip: ZipFile) {
+        // Offset marks the beginning of the project directory name
+        val projectNameOffset = consumeDir(offset, entry)
+        if (projectNameOffset == -1) {
+            return
+        }
 
-    private
-    fun projectDirectoriesOf(distroDir: File): Collection<File> =
-        subprojectsDirectoriesOf(distroDir) + platformProjectsDirectoriesOf(distroDir)
+        val srcMainOffset = consume("src/main/", projectNameOffset, entry)
+        if (srcMainOffset == -1) {
+            return
+        }
 
-    private
-    fun subprojectsDirectoriesOf(distroDir: File): Collection<File> =
-        subDirsOf(distroDir.resolve("subprojects"))
+        val sourceDirectoryOffset = consumeDir(srcMainOffset, entry)
+        if (sourceDirectoryOffset == -1 || entry.isDirectory) {
+            return
+        }
 
-    private
-    fun platformProjectsDirectoriesOf(distroDir: File): Collection<File> =
-        subDirsOf(distroDir.resolve("platforms"))
-            .flatMap { platform -> subDirsOf(platform) }
+        val projectName = entry.name.substring(offset, projectNameOffset - 1)
+        val projectSrcOutputDir = outputs.dir(projectName)
+        val output = projectSrcOutputDir.resolve(safePathName(entry.name.substring(sourceDirectoryOffset)))
+
+        zip.getInputStream(entry).writeTo(output)
+    }
+
+    private fun InputStream.writeTo(output: File) {
+        output.parentFile.mkdirs()
+        use { input ->
+            output.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+    }
+
+    fun consumeDir(offset: Int, entry: ZipEntry): Int {
+        val dirIndex = entry.name.indexOf('/', offset)
+        if (dirIndex >= 0) {
+            return dirIndex + 1
+        }
+
+        return -1
+    }
+
+    fun consume(toSkip: String, offset: Int, entry: ZipEntry): Int {
+        if (entry.name.startsWith(toSkip, offset)) {
+            return offset + toSkip.length
+        }
+
+        return -1
+    }
+
+    class ProjectSourceOutputs(private val outputs: TransformOutputs, private val dirs: MutableMap<String, File> = mutableMapOf()) {
+        fun dir(name: String): File {
+            val dir = dirs[name]
+            if (dir != null) {
+                return dir
+            }
+            return outputs.dir(name).also { dirs[name] = it }
+        }
+    }
+
 }

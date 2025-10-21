@@ -47,8 +47,8 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
 
         expect:
         fails('customTask')
-        result.assertTaskExecuted(':test')
-        result.assertTaskNotExecuted(':customTask')
+        result.assertTaskScheduled(':test')
+        result.assertTasksNotScheduled(':customTask')
         assertFatalTestExecutionError()
     }
 
@@ -59,8 +59,8 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
 
         expect:
         fails('customTask')
-        result.assertTaskExecuted(':test')
-        result.assertTaskNotExecuted(':customTask')
+        result.assertTaskScheduled(':test')
+        result.assertTasksNotScheduled(':customTask')
         failure.assertTestsFailed()
     }
 
@@ -71,8 +71,8 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
 
         expect:
         fails('customTask', '--continue')
-        result.assertTaskExecuted(':test')
-        result.assertTaskExecuted(':customTask')
+        result.assertTaskScheduled(':test')
+        result.assertTaskScheduled(':customTask')
         failure.assertTestsFailed()
     }
 
@@ -83,8 +83,8 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
 
         expect:
         fails('customTask', '--continue')
-        result.assertTaskExecuted(':test')
-        result.assertTaskNotExecuted(':customTask')
+        result.assertTaskScheduled(':test')
+        result.assertTasksNotScheduled(':customTask')
         failure.assertTestsFailed()
     }
 
@@ -95,8 +95,8 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
 
         expect:
         fails('customTask', '--continue')
-        result.assertTaskExecuted(':test')
-        result.assertTaskNotExecuted(':customTask')
+        result.assertTaskScheduled(':test')
+        result.assertTasksNotScheduled(':customTask')
         failure.assertTestsFailed()
     }
 

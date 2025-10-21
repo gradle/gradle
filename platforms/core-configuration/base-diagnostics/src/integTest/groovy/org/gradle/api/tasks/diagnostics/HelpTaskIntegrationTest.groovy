@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
@@ -275,6 +276,7 @@ Group
 BUILD SUCCESSFUL"""
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "help for tasks same type different descriptions"() {
         setup:
         createDirs("someproj")
@@ -317,6 +319,7 @@ Group
 BUILD SUCCESSFUL"""
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "help for tasks same type different groups"() {
         setup:
         createDirs("someproj1", "someproj2")
@@ -367,6 +370,7 @@ Groups
 BUILD SUCCESSFUL"""
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "matchingTasksOfSameType"() {
         setup:
         createDirs("subproj1")
@@ -421,6 +425,7 @@ BUILD SUCCESSFUL"""
 
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "multipleMatchingTasksOfDifferentType"() {
         setup:
         createDirs("subproj1")
@@ -552,6 +557,7 @@ BUILD SUCCESSFUL"""
         )
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "listsEnumAndBooleanCmdOptionValues"() {
         createDirs("proj1", "proj2")
         when:
@@ -590,6 +596,7 @@ Group
 BUILD SUCCESSFUL"""
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "listsCommonDynamicAvailableValues"() {
         createDirs("sub1", "sub2")
         when:

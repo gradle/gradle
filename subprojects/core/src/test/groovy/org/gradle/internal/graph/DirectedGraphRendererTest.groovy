@@ -23,7 +23,7 @@ import spock.lang.Specification
 class DirectedGraphRendererTest extends Specification {
     final DirectedGraph<String, Void> graph = Mock(DirectedGraph)
     final GraphNodeRenderer<String> nodeRenderer = Stub(GraphNodeRenderer) {
-        renderTo(_, _) >> { String node, StyledTextOutput output -> output.text("[$node]")}
+        renderTo(_, _, _) >> { String node, StyledTextOutput output, boolean seen -> output.text("[$node]${seen ? "(seen)" : ""}")}
     }
     final DirectedGraphRenderer<String> renderer = new DirectedGraphRenderer<String>(nodeRenderer, graph)
     final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -75,7 +75,7 @@ class DirectedGraphRendererTest extends Specification {
 {info}+--- {normal}[2]
 {info}|    \\--- {normal}[4]
 {info}\\--- {normal}[3]
-{info}     \\--- {normal}[2] (*)
+{info}     \\--- {normal}[2](seen) (*)
 
 {info}(*) - details omitted (listed previously){normal}
 """
@@ -94,8 +94,8 @@ class DirectedGraphRendererTest extends Specification {
         output.value == """[1]
 {info}+--- {normal}[2]
 {info}|    \\--- {normal}[3]
-{info}|         \\--- {normal}[2] (*)
-{info}\\--- {normal}[3] (*)
+{info}|         \\--- {normal}[2](seen) (*)
+{info}\\--- {normal}[3](seen) (*)
 
 {info}(*) - details omitted (listed previously){normal}
 """
@@ -110,7 +110,7 @@ class DirectedGraphRendererTest extends Specification {
 
         then:
         output.value == """[1]
-{info}\\--- {normal}[1] (*)
+{info}\\--- {normal}[1](seen) (*)
 
 {info}(*) - details omitted (listed previously){normal}
 """

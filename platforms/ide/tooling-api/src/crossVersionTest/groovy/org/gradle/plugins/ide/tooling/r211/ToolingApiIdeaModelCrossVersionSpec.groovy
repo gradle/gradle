@@ -17,8 +17,13 @@
 package org.gradle.plugins.ide.tooling.r211
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.internal.jvm.Jvm
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.model.idea.IdeaProject
+import org.junit.Assume
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
@@ -85,7 +90,10 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.languageLevel == null // inherited
     }
 
+    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
     def "can query java sdk for idea project"() {
+        Assume.assumeTrue("Target Gradle version supports running with Java " + jvm.javaVersionMajor, targetDist.daemonWorksWith(jvm.javaVersionMajor))
+
         given:
         buildFile << """
 apply plugin: 'java'
@@ -93,16 +101,22 @@ apply plugin: 'java'
 description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 """
         when:
-        def ideaProject = loadIdeaProjectModel()
+        def ideaProject = loadIdeaProjectModel(jvm)
         def gradleProject = ideaProject.modules.find({ it.name == 'root' }).gradleProject
 
         then:
         ideaProject.javaLanguageSettings.jdk != null
-        ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.current()
+        ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.toVersion(jvm.javaVersion.majorVersion)
         ideaProject.javaLanguageSettings.jdk.javaHome.toString() == gradleProject.description
+
+        where:
+        jvm << [AvailableJavaHomes.jdk17, AvailableJavaHomes.jdk21]
     }
 
+    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
     def "module java sdk overwrite always null"() {
+        Assume.assumeTrue("Target Gradle version supports running with Java " + jvm.javaVersionMajor, targetDist.daemonWorksWith(jvm.javaVersionMajor))
+
         given:
         includeProjects("root","child1", "child2", "child3")
         buildFile << """
@@ -115,16 +129,19 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         """
 
         when:
-        def ideaProject = loadIdeaProjectModel()
+        def ideaProject = loadIdeaProjectModel(jvm)
 
         then:
-        ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.current()
+        ideaProject.javaLanguageSettings.jdk.javaVersion == JavaVersion.toVersion(jvm.javaVersion.majorVersion)
         ideaProject.javaLanguageSettings.jdk.javaHome
 
         ideaProject.modules.find { it.name == 'root' }.javaLanguageSettings.jdk == null
         ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.jdk == null
         ideaProject.modules.find { it.name == 'child2' }.javaLanguageSettings.jdk == null
         ideaProject.modules.find { it.name == 'child3' }.javaLanguageSettings.jdk == null
+
+        where:
+        jvm << [AvailableJavaHomes.jdk17, AvailableJavaHomes.jdk21]
     }
 
     def "can query target bytecode version for idea project and modules"() {
@@ -187,19 +204,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
         ideaProject.modules.find { it.name == 'child4' }.javaLanguageSettings == null
     }
 
-    private IdeaProject loadIdeaProjectModel() {
-        withConnection { connection -> connection.getModel(IdeaProject) }
-    }
-
-    private JavaVersion toJavaVersion(ideaLanguageLevel) {
-        JavaVersion.valueOf(ideaLanguageLevel.level.replaceFirst("JDK", "VERSION"));
-    }
-
-    private JavaVersion getDefaultIdeaPluginLanguageLevelForNonJavaProjects() {
-        JavaVersion.VERSION_1_6 // see IdeaPlugin#configureIdeaProject(Project)
-    }
-
-    private JavaVersion getDefaultIdeaPluginLanguageLevelForJavaProjects() {
-        return JavaVersion.current()
+    private IdeaProject loadIdeaProjectModel(Jvm jvm = null) {
+        loadToolingModel(IdeaProject, jvm)
     }
 }

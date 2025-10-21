@@ -25,8 +25,8 @@ import org.gradle.api.attributes.Attribute
 final class DefaultImmutableAttributeContainerTest extends BaseAttributeContainerTest {
     @SuppressWarnings(['GroovyAssignabilityCheck', 'GrReassignedInClosureLocalVar'])
     @Override
-    protected DefaultImmutableAttributesContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        DefaultImmutableAttributesContainer container = new DefaultImmutableAttributesContainer()
+    protected ImmutableAttributes createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
+        ImmutableAttributes container = ImmutableAttributes.EMPTY
         attributes.forEach { key, value ->
             container = attributesFactory.safeConcat(container, attributesFactory.of(key, value))
         }

@@ -1,3 +1,2 @@
 tasks.register('download', Download) {
-    outputDirectory = file("out.zip")
 }

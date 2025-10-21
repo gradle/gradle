@@ -309,7 +309,7 @@ task generateForMain
 task generateForTest
 ''')
         //then
-        result.assertTasksExecuted(':generateForMain', ':generateForTest', ':ideaModule', ':ideaProject', ':ideaWorkspace', ':idea')
+        result.assertTasksScheduled(':generateForMain', ':generateForTest', ':ideaModule', ':ideaProject', ':ideaWorkspace', ':idea')
     }
 
     @Test

@@ -24,6 +24,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.model.internal.core.UnmanagedStruct;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Set;
@@ -67,7 +68,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @param srcPaths The source directories. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
      */
-    SourceDirectorySet srcDirs(Object... srcPaths);
+    SourceDirectorySet srcDirs(@Nullable Object... srcPaths);
 
     /**
      * Returns the source directories that make up this set.

@@ -22,7 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.FileUtils;
+import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -86,7 +86,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             .map(sourceFile);
         File outputDirectory = outputFile.getParentFile();
         GFileUtils.mkdirs(outputDirectory);
-        return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+        return windowsPathLimitation ? SafeFileLocationUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
     }
 
     @Override

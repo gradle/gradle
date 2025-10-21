@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.DefaultProjectModelResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
@@ -43,7 +42,7 @@ public class ComponentModelBaseServices extends AbstractGradleModuleServices {
 
     private static class BuildScopeServices implements ServiceRegistrationProvider {
         @Provides
-        ProjectModelResolver createProjectLocator(final ProjectRegistry<ProjectInternal> projectRegistry) {
+        ProjectModelResolver createProjectLocator(final ProjectRegistry projectRegistry) {
             return new DefaultProjectModelResolver(projectRegistry);
         }
     }

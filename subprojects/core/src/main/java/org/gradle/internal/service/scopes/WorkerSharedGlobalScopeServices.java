@@ -85,9 +85,19 @@ import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManag
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     protected final ClassPath additionalModuleClassPath;
+    private final CurrentGradleInstallation currentGradleInstallation;
 
-    public WorkerSharedGlobalScopeServices(ClassPath additionalModuleClassPath) {
+    public WorkerSharedGlobalScopeServices(
+        ClassPath additionalModuleClassPath,
+        CurrentGradleInstallation currentGradleInstallation
+    ) {
         this.additionalModuleClassPath = additionalModuleClassPath;
+        this.currentGradleInstallation = currentGradleInstallation;
+    }
+
+    @Provides
+    CurrentGradleInstallation createCurrentGradleInstallation() {
+        return currentGradleInstallation;
     }
 
     @Provides
@@ -183,11 +193,6 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     @Provides
     GlobalCache createGlobalCache(GlobalCacheRootsProvider globalCacheRootsProvider) {
         return globalCacheRootsProvider::getGlobalCacheRoots;
-    }
-
-    @Provides
-    CurrentGradleInstallation createCurrentGradleInstallation() {
-        return CurrentGradleInstallation.locate();
     }
 
     @Provides

@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
@@ -30,11 +29,10 @@ import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 class KotlinProjectScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
-    filePathPattern.put(".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts")
+    filePathPattern.put(".*/.+(?<!(/|\\.)(init|settings))\\.gradle\\.kts")
     baseClass(KotlinProjectScriptTemplate::class)
     implicitReceivers(Project::class)
 })
@@ -43,14 +41,15 @@ class KotlinProjectScriptTemplateCompilationConfiguration : KotlinDslStandaloneS
 /**
  * Base class for Gradle Kotlin DSL standalone [Project] scripts IDE support, aka. build scripts.
  *
+ * This class has the [Incubating]-level compatibility guarantees but is not annotated as such to avoid Unstable API warnings caused by the IDE
+ * using this class as the Kotlin DSL script template. When the IDE chooses to use this script template, there is no direct usage of an incubating
+ * API by the build author, but usages of the members, such as [plugins], are still reported as unstable API usages.
+ * See: [issue 34820](https://github.com/gradle/gradle/issues/34820).
+ *
  * @since 8.1
  */
-@Incubating
 @KotlinScript(
     compilationConfiguration = KotlinProjectScriptTemplateCompilationConfiguration::class
-)
-@ScriptTemplateDefinition(
-    resolver = KotlinBuildScriptDependenciesResolver::class,
 )
 @GradleDsl
 abstract class KotlinProjectScriptTemplate(

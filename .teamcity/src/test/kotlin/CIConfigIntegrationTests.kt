@@ -13,6 +13,7 @@ import model.CIBuildModel
 import model.DefaultFunctionalTestBucketProvider
 import model.JsonBasedGradleSubprojectProvider
 import model.QUICK_CROSS_VERSION_BUCKETS
+import model.StageName
 import model.TestCoverage
 import model.TestType
 import model.ignoredSubprojects
@@ -64,7 +65,9 @@ class CIConfigIntegrationTests {
 
             assertEquals(
                 stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + stage.docsTests.size +
-                    (if (prevStage != null) 1 else 0),
+                    (if (prevStage != null) 1 else 0) +
+                    // flakyTestQuarantineTriggers
+                    if (stage.stageName == StageName.READY_FOR_RELEASE) 3 else 0,
                 it.dependencies.items.size,
                 stage.stageName.stageName,
             )

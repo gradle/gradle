@@ -17,6 +17,9 @@
 package org.gradle.api
 
 import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 @SelfType(AbstractDomainObjectContainerIntegrationTest)
@@ -126,5 +129,77 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
         """
         expect:
         succeeds "help"
+    }
+
+    def "can access task by path from containing project"() {
+        buildFile("""
+            task foobar
+            println([
+                tasks.findByPath("unknown"),
+                tasks.findByPath(":unknown"),
+                tasks.getByPath(":foobar").name,
+                tasks.getByPath("foobar").name,
+                tasks.findByPath(":foobar").name,
+                tasks.findByPath("foobar").name
+            ])
+        """)
+
+        when:
+        succeeds("help")
+
+        then:
+        output.contains("[null, null, foobar, foobar, foobar, foobar]")
+    }
+
+    @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "This API is not IP compatible")
+    def "can access task by path from another project with IP disabled"() {
+        settingsFile("""
+            include 'other'
+        """)
+        buildFile("""
+            task foobar
+        """)
+        buildFile("other/build.gradle", """
+            println([
+                tasks.findByPath(":unknown"),
+                tasks.getByPath(":foobar").name,
+                tasks.findByPath(":foobar").name
+            ])
+        """)
+
+        when:
+        succeeds("help")
+
+        then:
+        output.contains("[null, foobar, foobar]")
+    }
+
+    @Requires(value = IntegTestPreconditions.IsolatedProjects, reason = "This API is not IP compatible")
+    def "cannot access task by path from another project with IP enabled"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        settingsFile("""
+            include 'other'
+        """)
+        buildFile("""
+            task foobar
+        """)
+        buildFile("other/build.gradle", """
+            println([
+                tasks.findByPath(":unknown"),
+                tasks.getByPath(":foobar").name,
+                tasks.findByPath(":foobar").name
+            ])
+        """)
+
+        when:
+        fails("help")
+
+        then:
+        configurationCache.problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'other/build.gradle': line 3: Project ':other' cannot access 'Project.tasks' functionality on another project ':'")
+            withProblem("Build file 'other/build.gradle': line 4: Project ':other' cannot access 'Project.tasks' functionality on another project ':'")
+            withProblem("Build file 'other/build.gradle': line 5: Project ':other' cannot access 'Project.tasks' functionality on another project ':'")
+        }
     }
 }

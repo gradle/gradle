@@ -78,7 +78,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         fails()
         failure.assertHasCause("Failed to apply plugin class 'CustomPlugin'")
         failure.assertHasCause("Could not create plugin of type 'CustomPlugin'.")
-        failure.assertHasCause("The constructor for type CustomPlugin should be annotated with @Inject.")
+        failure.assertHasCause("The constructor for type CustomPlugin should be annotated with @Inject (javax.inject.Inject) for dependency injection.")
     }
 
     def "fails when plugin constructor requests unknown service"() {

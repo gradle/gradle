@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 
-import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -462,7 +462,7 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
 
     def "rethrows failure to resolve local dependency when not available in any repository"() {
         given:
-        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), broken)
+        def failure = new ModuleVersionResolveException(Stub(ModuleComponentSelector), broken)
         def repo1 = addRepo1()
         def repo2 = addRepo2()
 
@@ -489,7 +489,7 @@ class RepositoryChainComponentMetaDataResolverTest extends Specification {
 
     def "rethrows failure to resolve remote dependency when not available in any repository"() {
         given:
-        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), broken)
+        def failure = new ModuleVersionResolveException(Stub(ModuleComponentSelector), broken)
         def repo1 = addRepo1()
         def repo2 = addRepo2()
 

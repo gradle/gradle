@@ -28,6 +28,15 @@ interface UndeclaredBuildInputListener {
      */
     fun systemPropertyRead(key: String, value: Any?, consumer: String?)
 
+    /**
+     * System properties mutated in runtime
+     **/
+    fun systemPropertyChanged(key: Any, value: Any?, consumer: String?)
+
+    fun systemPropertyRemoved(key: Any, consumer: String?)
+
+    fun systemPropertiesCleared(consumer: String?)
+
     fun envVariableRead(key: String, value: String?, consumer: String?)
 
     fun fileOpened(file: File, consumer: String?)
@@ -37,4 +46,6 @@ interface UndeclaredBuildInputListener {
     fun fileSystemEntryObserved(file: File, consumer: String?)
 
     fun directoryChildrenObserved(directory: File, consumer: String?)
+
+    fun startParameterProjectPropertiesObserved()
 }

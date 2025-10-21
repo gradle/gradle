@@ -252,7 +252,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                         capability('o:n:e')
                     }
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, "foo"))
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
                     }
                 }
                 consumable("one-preferred") {
@@ -261,7 +261,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                         capability('g:one-preferred:v')
                     }
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, "foo"))
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
                     }
                 }
             }
@@ -272,7 +272,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                 resolvable("classpath") {
                     extendsFrom(implementation)
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, "foo"))
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
                     }
                 }
             }
@@ -367,7 +367,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                     outgoing.capability("org:foo:2.0")
                     outgoing.artifact(file("producer1-foo"))
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
                 }
             }
@@ -378,14 +378,14 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                     outgoing.capability("org:foo:1.0")
                     outgoing.artifact(file("producer2-foo"))
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
                 }
                 consumable("bar") {
                     outgoing.capability("org:bar:1.0")
                     outgoing.artifact(file("producer2-bar"))
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
                 }
             }

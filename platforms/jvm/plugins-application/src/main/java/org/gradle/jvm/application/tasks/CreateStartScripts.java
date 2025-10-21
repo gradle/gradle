@@ -329,8 +329,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      * <p>
      * Defaults to an implementation of {@link TemplateBasedScriptGenerator}.
      */
-    @Internal
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
+    @Nested
     public ScriptGenerator getUnixStartScriptGenerator() {
         return unixStartScriptGenerator;
     }
@@ -344,8 +343,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      * <p>
      * Defaults to an implementation of {@link TemplateBasedScriptGenerator}.
      */
-    @Internal
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
+    @Nested
     public ScriptGenerator getWindowsStartScriptGenerator() {
         return windowsStartScriptGenerator;
     }

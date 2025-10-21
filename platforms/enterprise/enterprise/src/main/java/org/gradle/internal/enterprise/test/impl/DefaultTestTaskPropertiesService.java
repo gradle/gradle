@@ -163,8 +163,8 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     }
 
     private <T> Set<T> getOrEmpty(TestFrameworkOptions options, Function<JUnitPlatformOptions, Set<T>> extractor) {
-        return options instanceof JUnitPlatformOptions
-            ? extractor.apply((JUnitPlatformOptions) options)
+        return options instanceof JUnitPlatformOptions junitPlatformOptions
+            ? extractor.apply(junitPlatformOptions)
             : ImmutableSet.of();
     }
 

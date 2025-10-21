@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, Boole
         this(property, null, commandLineOptionConfigurations);
     }
 
-    public BooleanBuildOption(String property, String deprecatedProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
+    public BooleanBuildOption(@Nullable String property, @Nullable String deprecatedProperty, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
         super(property, deprecatedProperty, commandLineOptionConfigurations);
     }
 
@@ -47,7 +48,7 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, Boole
         OptionValue<String> propertyValue = getFromProperties(properties);
         String value = propertyValue.getValue();
         if (value != null) {
-            applyTo(isTrue(value), settings, propertyValue.getOrigin());
+            applyTo(BooleanOptionUtil.isTrue(value), settings, propertyValue.getOrigin());
         }
     }
 
@@ -78,5 +79,5 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, Boole
         return "no-" + config.getLongOption();
     }
 
-    public abstract void applyTo(boolean value, T settings, Origin origin);
+    public abstract void applyTo(boolean value, T settings, @Nullable Origin origin);
 }

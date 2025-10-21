@@ -10,6 +10,9 @@
             <tr>
                 <td>baseDirectory</td>
             </tr>
+            <tr>
+                <td>reports</td>
+            </tr>
         </table>
     </section>
     <section>

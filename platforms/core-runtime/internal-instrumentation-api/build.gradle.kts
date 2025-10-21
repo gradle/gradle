@@ -31,3 +31,6 @@ dependencies {
     implementation(libs.groovy)
 }
 
+errorprone {
+    nullawayEnabled = true
+}

@@ -240,7 +240,7 @@
   {
     "name": "configuration-cache-base",
     "path": "platforms/core-configuration/configuration-cache-base",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -262,6 +262,13 @@
     "name": "core-api",
     "path": "subprojects/core-api",
     "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "core-flow-services-api",
+    "path": "platforms/core-configuration/core-flow-services-api",
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
@@ -602,6 +609,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-loader",
+    "path": "platforms/core-runtime/groovy-loader",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "guava-serialization-codecs",
     "path": "platforms/core-configuration/guava-serialization-codecs",
     "unitTests": false,
@@ -763,6 +777,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-api-extractor",
+    "path": "platforms/core-configuration/java-api-extractor",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-compiler-plugin",
     "path": "platforms/jvm/java-compiler-plugin",
     "unitTests": true,
@@ -773,6 +794,13 @@
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "javadoc",
+    "path": "platforms/jvm/javadoc",
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
@@ -1082,6 +1110,27 @@
     "path": "platforms/core-runtime/process-services",
     "unitTests": false,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "project-features",
+    "path": "platforms/core-configuration/project-features",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "project-features-api",
+    "path": "platforms/core-configuration/project-features-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "project-features-demos",
+    "path": "platforms/core-configuration/project-features-demos",
+    "unitTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

@@ -79,16 +79,17 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         when:
         fails "checkDeps"
+        operations.debugTree()
 
         then:
         failedResolve.assertFailurePresent(failure)
-        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType) {
+            it.details.projectPath == ":"
+        }
         op.details.configurationName == "compileClasspath"
-        op.details.projectPath == ":"
         op.details.buildPath == ":"
         op.details.scriptConfiguration == false
         op.details.configurationDescription ==~ /Compile classpath for source set 'main'.*/
-        op.details.configurationVisible == false
         op.details.configurationTransitive == true
 
         op.result.resolvedDependenciesCount == 4
@@ -122,7 +123,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.details.scriptConfiguration == false
         op.details.buildPath == ":"
         op.details.configurationDescription == null
-        op.details.configurationVisible == true
         op.details.configurationTransitive == true
 
         op.result.resolvedDependenciesCount == 1
@@ -169,7 +169,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[0].details.buildPath == ":"
         resolveOperations[0].details.scriptConfiguration == false
         resolveOperations[0].details.configurationDescription ==~ /Compile classpath for source set 'main'.*/
-        resolveOperations[0].details.configurationVisible == false
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 2
 
@@ -179,7 +178,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].details.buildPath == ":my-composite-app"
         resolveOperations[1].details.scriptConfiguration == false
         resolveOperations[1].details.configurationDescription == "Compile classpath for source set 'main'."
-        resolveOperations[1].details.configurationVisible == false
         resolveOperations[1].details.configurationTransitive == true
         resolveOperations[1].result.resolvedDependenciesCount == 1
     }
@@ -224,7 +222,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             assert it.details.buildPath == ":"
             assert it.details.scriptConfiguration == true
             assert it.details.configurationDescription == null
-            assert it.details.configurationVisible == false
             assert it.details.configurationTransitive == true
             assert it.result.resolvedDependenciesCount == 2
         }
@@ -234,7 +231,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].details.buildPath == ":my-composite-app"
         resolveOperations[1].details.scriptConfiguration == false
         resolveOperations[1].details.configurationDescription == "Compile classpath for source set 'main'."
-        resolveOperations[1].details.configurationVisible == false
         resolveOperations[1].details.configurationTransitive == true
         resolveOperations[1].result.resolvedDependenciesCount == 1
 
@@ -282,7 +278,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[0].details.projectPath == null
         resolveOperations[0].details.scriptConfiguration == true
         resolveOperations[0].details.configurationDescription == null
-        resolveOperations[0].details.configurationVisible == false
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 1
 

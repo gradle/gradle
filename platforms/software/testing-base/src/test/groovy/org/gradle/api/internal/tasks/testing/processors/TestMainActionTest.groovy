@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.internal.tasks.testing.detection.TestDetector
 import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.internal.time.MockClock
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -29,7 +30,7 @@ class TestMainActionTest extends Specification {
 
     private final TestClassProcessor processor = Mock()
     private final TestResultProcessor resultProcessor = Mock()
-    private final Runnable detector = Mock()
+    private final TestDetector detector = Mock()
     private final def timeProvider = MockClock.createAutoIncrementingAt(CLOCK_START)
     private final WorkerLeaseRegistry.WorkerLease lease = Mock()
     private final WorkerLeaseService workerLeaseService = Mock()
@@ -44,7 +45,7 @@ class TestMainActionTest extends Specification {
         then:
         1 * processor.startProcessing(!null)
         then:
-        1* detector.run()
+        1* detector.detect()
         then:
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop()
@@ -67,7 +68,7 @@ class TestMainActionTest extends Specification {
         then:
         1 * processor.startProcessing(!null)
         then:
-        1 * detector.run() >> { throw failure }
+        1 * detector.detect() >> { throw failure }
         then:
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop()
@@ -113,7 +114,7 @@ class TestMainActionTest extends Specification {
         then:
         1 * processor.startProcessing(!null)
         then:
-        1 * detector.run()
+        1 * detector.detect()
         then:
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop() >> { throw failure }

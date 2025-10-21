@@ -18,7 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.WrapUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.regex.Pattern
@@ -144,9 +144,33 @@ class UnixStartScriptGeneratorTest extends Specification {
         "main module with main class" | new MainModule("com.example", "com.example.Main") | '--module com.example/com.example.Main'
     }
 
-    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath, AppEntryPoint appEntryPoint = new MainClass("")) {
+    @Issue("https://github.com/gradle/gradle/issues/33415")
+    def "Do not set classpath if it is empty"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin', new MainClass(""), classpath)
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        destination.toString().contains(text) == result
+
+        where:
+        classpath             | text                     | result
+        []                    | '-classpath "$CLASSPATH' | false
+        []                    | 'CLASSPATH='             | false
+        ['path\\to\\Jar.jar'] | '-classpath "$CLASSPATH' | true
+        ['path\\to\\Jar.jar'] | 'CLASSPATH='             | true
+    }
+
+    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(
+        List<String> defaultJvmOpts,
+        String scriptRelPath,
+        AppEntryPoint appEntryPoint = new MainClass(""),
+        List<String> classpath = ['path\\to\\Jar.jar']
+    ) {
         final String applicationName = 'TestApp'
-        final List<String> classpath = WrapUtil.toList('path\\to\\Jar.jar')
         return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
     }
 }

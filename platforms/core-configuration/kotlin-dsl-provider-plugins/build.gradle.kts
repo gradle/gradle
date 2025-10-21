@@ -14,6 +14,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.persistentCache)
     api(projects.declarativeDslToolingModels)
+    api(projects.projectFeatures)
 
     api(libs.inject)
     api(libs.kotlinStdlib)
@@ -41,7 +42,6 @@ dependencies {
         isTransitive = false
     }
     implementation(libs.kotlinCompilerEmbeddable)
-    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.kotlinReflect)

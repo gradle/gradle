@@ -28,14 +28,17 @@ import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractConfigurationMetadata implements ModuleConfigurationMetadata {
-    private final ModuleComponentIdentifier componentId;
+
     private final String name;
+    private final VariantIdentifier id;
+    private final ModuleComponentIdentifier componentId;
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
@@ -51,15 +54,22 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
 
     AbstractConfigurationMetadata(
-            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
-            ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-            ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities,
-            boolean externalVariant
+        String name,
+        VariantIdentifier id,
+        ModuleComponentIdentifier componentId,
+        boolean transitive,
+        boolean visible,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+        ImmutableSet<String> hierarchy,
+        ImmutableList<ExcludeMetadata> excludes,
+        ImmutableAttributes attributes,
+        ImmutableList<ModuleDependencyMetadata> configDependencies,
+        ImmutableCapabilities capabilities,
+        boolean externalVariant
     ) {
-
-        this.componentId = componentId;
         this.name = name;
+        this.id = id;
+        this.componentId = componentId;
         this.transitive = transitive;
         this.visible = visible;
         this.artifacts = artifacts;
@@ -72,16 +82,22 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     AbstractConfigurationMetadata(
-            ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
-            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
-            ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-            Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-            ImmutableCapabilities capabilities,
-            boolean externalVariant
+        String name,
+        VariantIdentifier id,
+        ModuleComponentIdentifier componentId,
+        boolean transitive,
+        boolean visible,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+        ImmutableSet<String> hierarchy,
+        ImmutableList<ExcludeMetadata> excludes,
+        ImmutableAttributes attributes,
+        Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+        ImmutableCapabilities capabilities,
+        boolean externalVariant
     ) {
-
-        this.componentId = componentId;
         this.name = name;
+        this.id = id;
+        this.componentId = componentId;
         this.transitive = transitive;
         this.visible = visible;
         this.artifacts = artifacts;
@@ -95,12 +111,17 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
 
     @Override
     public DisplayName asDescribable() {
-        return Describables.of(componentId, "configuration", name);
+        return Describables.of(id.getComponentId(), "configuration", name);
     }
 
     @Override
     public String toString() {
         return asDescribable().getDisplayName();
+    }
+
+    @Override
+    public VariantIdentifier getId() {
+        return id;
     }
 
     @Override
@@ -110,7 +131,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
 
     @Override
     public Identifier getIdentifier() {
-        return new ComponentConfigurationIdentifier(componentId, name);
+        return new ComponentConfigurationIdentifier(id.getComponentId(), name);
     }
 
     @Override

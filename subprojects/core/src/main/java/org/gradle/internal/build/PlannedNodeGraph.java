@@ -145,7 +145,7 @@ public class PlannedNodeGraph {
         private final DetailLevel detailLevel;
 
         private final List<PlannedNodeInternal> plannedNodes = new ArrayList<>();
-        private final Map<Node, NodeIdentity> nodeIdentityCache = new IdentityHashMap<>();
+        private final IdentityHashMap<Node, NodeIdentity> nodeIdentityCache = new IdentityHashMap<>();
 
         public Collector(ToPlannedNodeConverterRegistry converterRegistry) {
             this.converterRegistry = converterRegistry;

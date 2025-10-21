@@ -50,7 +50,6 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         config != null
-        !config.visible
         config.transitive
         config.description == 'The Checkstyle libraries to be used for this project.'
     }

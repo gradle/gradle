@@ -39,5 +39,6 @@ public interface BuildOption<T> extends Option {
 
     void applyFromCommandLine(ParsedCommandLine options, T settings);
 
+    @Nullable
     String getDeprecatedProperty();
 }

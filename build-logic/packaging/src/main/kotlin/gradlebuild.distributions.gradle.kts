@@ -337,7 +337,6 @@ fun bucket() =
     configurations.creating {
         isCanBeResolved = false
         isCanBeConsumed = false
-        isVisible = false
     }
 
 fun libraryResolver(extends: List<Configuration>) =
@@ -349,7 +348,6 @@ fun libraryResolver(extends: List<Configuration>) =
         }
         isCanBeResolved = true
         isCanBeConsumed = false
-        isVisible = false
         extends.forEach { extendsFrom(it) }
     }
 
@@ -360,7 +358,6 @@ fun startScriptResolver(defaultDependency: String) =
         }
         isCanBeResolved = true
         isCanBeConsumed = false
-        isVisible = false
         dependencies.addLater(provider {
             project.dependencies.create(project(defaultDependency))
         })
@@ -375,7 +372,6 @@ fun sourcesResolver(extends: List<Configuration>) =
         }
         isCanBeResolved = true
         isCanBeConsumed = false
-        isVisible = false
         extends.forEach { extendsFrom(it) }
     }
 
@@ -388,7 +384,6 @@ fun docsResolver(defaultDependency: String) =
         }
         isCanBeResolved = true
         isCanBeConsumed = false
-        isVisible = false
         dependencies.addLater(provider {
             project.dependencies.create(project(defaultDependency))
         })
@@ -398,7 +393,6 @@ fun consumableVariant(name: String, extends: List<Configuration>, artifacts: Lis
     configurations.create("${name}Elements") {
         isCanBeResolved = false
         isCanBeConsumed = true
-        isVisible = false
         extends.forEach { extendsFrom(it) }
         artifacts.forEach { outgoing.artifact(it) }
         configure(this)
@@ -413,7 +407,6 @@ fun consumableSourcesVariant(name: String, extends: List<Configuration>, vararg 
         }
         isCanBeResolved = false
         isCanBeConsumed = true
-        isVisible = false
         extends.forEach { extendsFrom(it) }
         artifacts.forEach { outgoing.artifact(it) }
     }
@@ -426,6 +419,5 @@ fun consumablePlatformVariant(name: String, extends: List<Configuration>) =
         }
         isCanBeResolved = false
         isCanBeConsumed = true
-        isVisible = false
         extends.forEach { extendsFrom(it) }
     }

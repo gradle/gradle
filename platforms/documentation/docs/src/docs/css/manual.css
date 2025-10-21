@@ -1669,6 +1669,11 @@ body.dark-theme {
     }
 
     body.light-theme {
+        * {
+          scrollbar-width: auto;
+          scrollbar-color: #686868 #e7e7e9;
+        }
+
         .docs-navigation {
             scrollbar-width: auto;
             scrollbar-color: #686868 #e7e7e9;
@@ -1919,7 +1924,6 @@ details p {
 .listingblock pre:not(.highlight),
 .listingblock pre[class="highlight"],
 .listingblock pre[class^="highlight "],
-.listingblock pre.CodeRay,
 .listingblock pre.prettyprint {
 	background: var(--code-color);
 }
@@ -1928,7 +1932,6 @@ details p {
 .sidebarblock .listingblock pre:not(.highlight),
 .sidebarblock .listingblock pre[class="highlight"],
 .sidebarblock .listingblock pre[class^="highlight "],
-.sidebarblock .listingblock pre.CodeRay,
 .sidebarblock .listingblock pre.prettyprint {
 	background: #f2f1f1;
 }
@@ -4176,6 +4179,10 @@ body.dark-theme {
 		margin: 0;
 	}
 
+    #header {
+    	padding-right: 260px;
+    }
+
 	/* #toc here must be referenced as #header #toc
             since we don't want to change single page #toc */
 	#header #toc {
@@ -4256,6 +4263,7 @@ body.dark-theme {
 
 	#header {
 		margin: 0 auto;
+		padding-right: 0;
 	}
 
 	#content {
@@ -4599,4 +4607,33 @@ input:checked+.slider:before {
 
 .slider:before {
 	border-radius: 50%;
+}
+
+/* Feature Status Labels */
+
+.incubating-label,
+.since-gradle-label {
+    display: inline-block;
+
+    /* better center vertically on the line */
+    position: relative;
+    top: -1px;
+
+    padding: 0 6px;
+    margin-left: 4px;
+    border-radius: 4px;
+    white-space: nowrap;
+    color: var(--code-text-color);
+    font-weight: normal;
+    font-size: 80%;
+    font-style: italic;
+}
+
+.since-gradle-label {
+    background-color: var(--code-color);
+}
+
+.incubating-label {
+    /* use the warning color with 20% opacity */
+    background-color: rgb(from var(--warning-color) r g b / 0.2);
 }

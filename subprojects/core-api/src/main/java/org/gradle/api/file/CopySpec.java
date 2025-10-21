@@ -210,7 +210,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec from(Object... sourcePaths);
+    CopySpec from(@Nullable Object... sourcePaths);
 
     /**
      * {@inheritDoc}

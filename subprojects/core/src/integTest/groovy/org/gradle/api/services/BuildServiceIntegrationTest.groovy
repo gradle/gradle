@@ -825,7 +825,7 @@ service: closed with value 10001
         outputContains("service: closed with value 11")
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached) // already covers CC behavior
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "already covers CC behavior")
     def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
@@ -1612,6 +1612,92 @@ Hello, subproject1
         failure.assertHasFailure("Failed to stop service 'counter2'.") {
             it.assertHasCause("broken")
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    def "can use Property with #valueType value as service parameter"() {
+        buildFile """
+            abstract class PrintService implements BuildService<PrintService.Params> {
+                interface Params extends BuildServiceParameters {
+                    Property<Object> getValue()
+                }
+
+                void printValue() {
+                    println(parameters.value.get())
+                }
+            }
+
+            tasks.register("print") {
+                def serviceProvider = gradle.sharedServices.registerIfAbsent("printService", PrintService) {
+                    parameters.value = $value
+                }
+                usesService(serviceProvider)
+
+                doLast {
+                    serviceProvider.get().printValue()
+                }
+            }
+        """
+
+        when:
+        succeeds("print")
+
+        then:
+        outputContains(expectedOutput)
+
+        where:
+        valueType     | value                                 | expectedOutput
+        "String"      | "'some string'"                       | "some string"
+        "List"        | "['a'] as List<String>"               | "[a]"
+        "Set"         | "['a'] as Set<String>"                | "[a]"
+        "Map"         | "[a: 'b'] as Map<String, String>"     | "[a:b]"
+        "Directory"   | "layout.projectDirectory.dir('foo')"  | File.separator + "foo"
+        "RegularFile" | "layout.projectDirectory.file('foo')" | File.separator + "foo"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    def "can use Property with #valueType value in a managed object as service parameter"() {
+        buildFile """
+            interface MyManagedObject {
+                Property<Object> getValue()
+            }
+
+            abstract class PrintService implements BuildService<PrintService.Params> {
+                interface Params extends BuildServiceParameters {
+                    Property<MyManagedObject> getManagedObject()
+                }
+
+                void printValue() {
+                    println(parameters.managedObject.get().value.get())
+                }
+            }
+
+            tasks.register("print") {
+                def serviceProvider = gradle.sharedServices.registerIfAbsent("printService", PrintService) {
+                    parameters.managedObject = objects.newInstance(MyManagedObject).tap { value = $value }
+                }
+                usesService(serviceProvider)
+
+                doLast {
+                    serviceProvider.get().printValue()
+                }
+            }
+        """
+
+        when:
+        succeeds("print")
+
+        then:
+        outputContains(expectedOutput)
+
+        where:
+        valueType     | value                                 | expectedOutput
+        "String"      | "'some string'"                       | "some string"
+        "List"        | "['a'] as List<String>"               | "[a]"
+        "Set"         | "['a'] as Set<String>"                | "[a]"
+        "Map"         | "[a: 'b'] as Map<String, String>"     | "[a:b]"
+        "Directory"   | "layout.projectDirectory.dir('foo')"  | File.separator + "foo"
+        "RegularFile" | "layout.projectDirectory.file('foo')" | File.separator + "foo"
     }
 
     def "should not resolve providers when computing shared resources"() {

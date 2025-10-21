@@ -172,9 +172,9 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
             // Drop the receiver if present
             .drop(if (extensionCandidate) 1 else 0)
             .withIndex()
-            .all<IndexedValue<CtClass>> {
+            .all {
                 val ktParamType = ktFunction.valueParameters[it.index].typeReference!!
-                it.value.isLikelyEquivalentTo(ktParamType) || (isVarargs && it.value.componentType.isLikelyEquivalentTo(ktParamType))
+                it.value.isLikelyEquivalentTo(ktParamType) || (isVarargs && it.value.componentType?.isLikelyEquivalentTo(ktParamType) == true)
             }
     }
 }

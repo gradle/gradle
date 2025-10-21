@@ -70,4 +70,14 @@ public class DefaultFailure implements Failure {
         DefaultFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
         return new DefaultFailure(t.getMessage(), out.toString(), Collections.singletonList(causeFailure));
     }
+
+    @Override
+    public String toString() {
+        return "DefaultFailure{" +
+            "message='" + message + '\'' +
+            ", description='" + description + '\'' +
+            ", causes=" + causes +
+            ", problems=" + problems +
+            '}';
+    }
 }

@@ -40,7 +40,6 @@ pluginManager.withPlugin("groovy") {
 }
 
 configurations.consumable("apiStubElements") {
-    isVisible = false
     extendsFrom(configurations.named("implementation").get())
     extendsFrom(configurations.named("compileOnly").get())
     attributes {
@@ -53,7 +52,8 @@ pluginManager.withPlugin("gradlebuild.java-library") {
     val extractorClasspathConfig by configurations.creating
 
     dependencies {
-        extractorClasspathConfig("org.gradle:java-api-extractor")
+        extractorClasspathConfig(project(":java-api-extractor"))
+        extractorClasspathConfig(platform(project(":distributions-dependencies")))
     }
 
     val extractJavaAbi by tasks.registering(ExtractJavaAbi::class) {

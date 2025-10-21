@@ -1207,7 +1207,6 @@ Secondary Variants (*)
             version = '1.0'
 
             def sample = configurations.create("sample") {
-                visible = true
                 canBeResolved = false
                 assert canBeConsumed
 

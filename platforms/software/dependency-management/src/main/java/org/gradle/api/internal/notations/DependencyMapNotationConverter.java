@@ -17,6 +17,8 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapKey;
@@ -43,7 +45,32 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
                          @MapKey("version") @Nullable String version,
                          @MapKey("configuration") @Nullable String configuration,
                          @MapKey("ext") @Nullable String ext,
-                         @MapKey("classifier") @Nullable String classifier) {
+                         @MapKey("classifier") @Nullable String classifier
+    ) {
+        DeprecationMessageBuilder.DeprecateAction deprecation =
+            DeprecationLogger.deprecateAction("Declaring dependencies using multi-string notation");
+
+        if (configuration == null) { // TODO #33919: We have no nice shorthand for configuration dependencies
+            String suggestedNotation = (group == null ? "" : group)  + ":" + name + (version == null ? "" : ":" + version);
+            if (classifier != null) {
+                if (version == null) {
+                    suggestedNotation += ":";
+                }
+                suggestedNotation += ":" + classifier;
+            }
+
+            if (ext != null) {
+                suggestedNotation += "@" + ext;
+            }
+
+            deprecation = deprecation
+                .withAdvice("Please use single-string notation instead: \"" + suggestedNotation + "\".");
+        }
+
+        deprecation.willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "dependency_multi_string_notation")
+            .nagUser();
+
         T dependency;
         if (configuration == null) {
             dependency = instantiator.newInstance(resultingType, group, name, version);

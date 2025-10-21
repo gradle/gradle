@@ -138,7 +138,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         execute(buildA, 'task1')
 
         then:
-        result.assertTasksExecuted(':task3', ':buildB:task2', ':task1')
+        result.assertTasksScheduled(':task3', ':buildB:task2', ':task1')
 
         and:
         canRunFromCache(buildA, 'task1')
@@ -169,7 +169,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         execute(buildA, 'task1')
 
         then:
-        result.assertTasksExecuted(':task4', ':buildB:task3', ':buildB:task2', ':task1')
+        result.assertTasksScheduled(':task4', ':buildB:task3', ':buildB:task2', ':task1')
 
         and:
         canRunFromCache(buildA, 'task1')
@@ -202,7 +202,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         execute(rootBuild, ':root1:compileJava')
 
         then:
-        result.assertTasksExecuted(':root2:compileJava', ':buildA:compileJava', ':root1:compileJava')
+        result.assertTasksScheduled(':root2:compileJava', ':buildA:compileJava', ':root1:compileJava')
 
         and:
         canRunFromCache(rootBuild, ':root1:compileJava')
@@ -246,7 +246,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         execute(rootBuild, ':root1:compileJava')
 
         then:
-        result.assertTasksExecuted(':x3:compileJava', ':buildB:compileJava', ':root2:compileJava', ':buildA:compileJava', ':root1:compileJava')
+        result.assertTasksScheduled(':x3:compileJava', ':buildB:compileJava', ':root2:compileJava', ':buildA:compileJava', ':root1:compileJava')
 
         and:
         canRunFromCache(rootBuild, ':root1:compileJava')

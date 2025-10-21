@@ -20,6 +20,7 @@ import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.MemberSelectTree;
+import com.sun.source.tree.MethodInvocationTree;
 import com.sun.source.tree.ModuleTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePathScanner;
@@ -31,9 +32,8 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
+import java.util.Objects;
 import java.util.Set;
-
-import static com.sun.source.tree.Tree.Kind.METHOD_INVOCATION;
 
 public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContext, ConstantsVisitorContext> {
 
@@ -84,7 +84,7 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
 
     @Override
     public ConstantsVisitorContext visitVariable(VariableTree node, ConstantsVisitorContext context) {
-        if (isAccessibleConstantVariableDeclaration(node) && node.getInitializer() != null && node.getInitializer().getKind() != METHOD_INVOCATION) {
+        if (isAccessibleConstantVariableDeclaration(node) && node.getInitializer() != null && !(node.getInitializer() instanceof MethodInvocationTree)) {
             // We now just check, that constant declaration is not `static {}` or `CONSTANT = methodInvocation()`,
             // but it could be further optimized to check if expression is one that can be inlined or not.
             return super.visitVariable(node, new ConstantsVisitorContext(context.getVisitedClass(), consumer::consumeAccessibleDependent));
@@ -102,7 +102,7 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
     public ConstantsVisitorContext visitMemberSelect(MemberSelectTree node, ConstantsVisitorContext context) {
         Element element = trees.getElement(getCurrentPath());
         if (isPrimitiveConstantVariable(element)) {
-            context.addConstantOrigin(getBinaryClassName((TypeElement) element.getEnclosingElement()));
+            context.addConstantOrigin(getBinaryClassName(Objects.requireNonNull((TypeElement) element.getEnclosingElement())));
         }
         return super.visitMemberSelect(node, context);
     }
@@ -112,7 +112,7 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
         Element element = trees.getElement(getCurrentPath());
 
         if (isPrimitiveConstantVariable(element)) {
-            context.addConstantOrigin(getBinaryClassName((TypeElement) element.getEnclosingElement()));
+            context.addConstantOrigin(getBinaryClassName(Objects.requireNonNull((TypeElement) element.getEnclosingElement())));
         }
         return super.visitIdentifier(node, context);
     }

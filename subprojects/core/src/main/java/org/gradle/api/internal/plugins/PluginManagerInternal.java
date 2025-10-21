@@ -27,7 +27,7 @@ import org.gradle.plugin.use.PluginId;
 
 import java.util.Optional;
 
-@ServiceScope({Scope.Gradle.class, Scope.Settings.class, Scope.Project.class})
+@ServiceScope({Scope.Build.class, Scope.Settings.class, Scope.Project.class})
 public interface PluginManagerInternal extends PluginManager {
     void apply(PluginImplementation<?> plugin);
 

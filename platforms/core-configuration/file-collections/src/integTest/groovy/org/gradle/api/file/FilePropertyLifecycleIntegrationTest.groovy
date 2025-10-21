@@ -689,4 +689,56 @@ task thing {
         outputContains("get from task failed cause: Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
         output.count("prop = 123") == 1
     }
+
+    /**
+     * These tests are to verify that when a property is marked as disallowChanges during configuration time,
+     * this setting is properly restored by the CC and honored at task execution time.
+     */
+    static class DisallowChangesIntegrationTests extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
+        def "cannot update file property marked disallowChanges"() {
+            taskTypeWithOutputFileProperty()
+
+            buildFile """
+                tasks.register("producer", FileProducer) {
+                    output = layout.buildDir.file("text.out")
+                    output.disallowChanges()
+                    def other = file('ignore')
+                    doFirst {
+                        try {
+                            output = other
+                        } catch(IllegalStateException e) {
+                            println("set failed: " + e.message)
+                        }
+                    }
+                }
+            """
+
+            expect:
+            succeeds("producer")
+            outputContains("set failed: The value for task ':producer' property 'output' is final and cannot be changed any further.")
+        }
+
+        def "cannot update directory property marked disallowChanges"() {
+            taskTypeWithOutputDirectoryProperty()
+
+            buildFile """
+                tasks.register("producer", DirProducer) {
+                    output = layout.buildDir.dir("dir.out")
+                    output.disallowChanges()
+                    def other = file('ignore')
+                    doFirst {
+                        try {
+                            output = other
+                        } catch(IllegalStateException e) {
+                            println("set failed: " + e.message)
+                        }
+                    }
+                }
+            """
+
+            expect:
+            succeeds("producer")
+            outputContains("set failed: The value for task ':producer' property 'output' is final and cannot be changed any further.")
+        }
+    }
 }

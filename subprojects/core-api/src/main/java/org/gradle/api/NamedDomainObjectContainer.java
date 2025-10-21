@@ -29,9 +29,10 @@ import org.gradle.util.Configurable;
  * <p>Note that a container is an implementation of {@link java.util.SortedSet}, which means that the container is guaranteed
  * to only contain elements with unique names within this container. Furthermore, items are ordered by their name.</p>
  *
- * <p>You can create an instance of this type using the factory method {@link org.gradle.api.model.ObjectFactory#domainObjectContainer(Class)}.</p>
- *
  * @param <T> The type of objects in this container.
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#domainObjectContainer(Class) Create an instance of this manually.
  */
 @ManagedType
 public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, Configurable<NamedDomainObjectContainer<T>> {

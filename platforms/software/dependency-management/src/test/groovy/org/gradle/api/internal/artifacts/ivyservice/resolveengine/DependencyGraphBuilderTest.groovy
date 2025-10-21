@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements
@@ -116,10 +117,15 @@ class DependencyGraphBuilderTest extends Specification {
             args[0].execute(queue)
         }
     }
-    def dependencySubstitutionApplicator = new DefaultDependencySubstitutionApplicator(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), Mock(Action), TestUtil.instantiatorFactory())
+    def dependencySubstitutionApplicator = new DefaultDependencySubstitutionApplicator(
+        DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
+        Mock(Action),
+        TestUtil.instantiatorFactory(),
+        TestUtil.inMemoryCacheFactory()
+    )
     def componentSelectorConverter = Mock(ComponentSelectorConverter) {
-        getModule(_) >> { ComponentSelector selector ->
-            DefaultModuleIdentifier.newId(selector.group, selector.module)
+        getModuleVersionId(_) >> { ComponentSelector selector ->
+            DefaultModuleIdentifier.newId(selector.group, selector.module, selector.version)
         }
     }
 
@@ -170,7 +176,7 @@ class DependencyGraphBuilderTest extends Specification {
             moduleReplacements,
             dependencySubstitutionApplicator,
             conflictResolver,
-            [],
+            ImmutableList.of(),
             ConflictResolution.latest,
             false,
             false,
@@ -1117,12 +1123,13 @@ class DependencyGraphBuilderTest extends Specification {
             )
         )
 
+        def id = new NamedVariantIdentifier(componentId, name)
         def metadata = new DefaultLocalVariantGraphResolveMetadata(
-            name, true, attributes, ImmutableCapabilities.EMPTY, false
+            id, name, true, attributes, ImmutableCapabilities.EMPTY, false
         )
 
         return resolveStateFactory.realizedVariantStateFor(
-            componentId, metadata, dependencyMetadata, artifactSets
+            metadata, dependencyMetadata, artifactSets
         )
     }
 

@@ -26,12 +26,11 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.IdentityHashMap;
-import java.util.Map;
 import java.util.Set;
 
 @ServiceScope(Scope.BuildTree.class)
 public class AttributeDesugaring {
-    private final Map<ImmutableAttributes, ImmutableAttributes> desugared = new IdentityHashMap<>();
+    private final IdentityHashMap<ImmutableAttributes, ImmutableAttributes> desugared = new IdentityHashMap<>();
     private final AttributesFactory attributesFactory;
 
     public AttributeDesugaring(AttributesFactory attributesFactory) {

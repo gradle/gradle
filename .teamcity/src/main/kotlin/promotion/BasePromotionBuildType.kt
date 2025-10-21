@@ -46,7 +46,10 @@ abstract class BasePromotionBuildType(
         paramsForBuildToolBuild(BuildToolBuildJvm, Os.LINUX)
 
         params {
-            password("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%;%develocity.grdev.net.access.key%")
+            password(
+                "env.DEVELOCITY_ACCESS_KEY",
+                "%ge.gradle.org.access.key%;%develocity.grdev.net.access.key%;%develocity-ext-hetzner.grdev.net.access.key%",
+            )
             password("env.ORG_GRADLE_PROJECT_botGradleGitHubToken", "%github.bot-gradle.token%")
         }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.file;
 
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A specification for deleting files from the filesystem.
@@ -29,7 +30,7 @@ public interface DeleteSpec {
      * @param files the list of files which should be deleted. Any type of object
      * accepted by {@link org.gradle.api.Project#files(Object...)}
      */
-    DeleteSpec delete(Object... files);
+    DeleteSpec delete(@Nullable Object... files);
 
     /**
      * Specifies whether or not symbolic links should be followed during deletion.

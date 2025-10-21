@@ -31,6 +31,9 @@ import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.lang.System.getProperty;
+import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
+
 /**
  * Reuses the services for the most recent Gradle user home dir. Could instead cache several most recent and clean these up on memory pressure, however in practise there is only a single user home dir associated with a given build process.
  */
@@ -75,7 +78,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                     Services otherServices = servicesForHomeDir.values().iterator().next();
                     if (otherServices.count == 0) {
                         // Other home dir cached and not in use, clean it up
-                        CompositeStoppable.stoppable(otherServices.registry).stop();
+                        stoppable(otherServices.registry).stop();
                         servicesForHomeDir.clear();
                     }
                 }
@@ -117,25 +120,22 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
     public void release(ServiceRegistry registry) {
         lock.lock();
         try {
-            for (Map.Entry<File, Services> entry : servicesForHomeDir.entrySet()) {
-                Services services = entry.getValue();
-                if (services.registry == registry) {
-                    if (services.count <= 0) {
-                        break;
-                    }
-                    services.count--;
-                    if (services.count == 0 && (servicesForHomeDir.size() > 1 || System.getProperty(REUSE_USER_HOME_SERVICES, "true").equals("false"))) {
-                        // Other home dir in use, close these. Otherwise, keep the services for next time
-                        CompositeStoppable.stoppable(services.registry).stop();
-                        servicesForHomeDir.remove(entry.getKey());
-                    }
-                    return;
-                }
+            Map.Entry<File, Services> activeService = servicesForHomeDir
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().registry == registry && entry.getValue().count > 0)
+                .findFirst()
+                .orElseThrow(() ->
+                    new IllegalStateException("Gradle user home directory scoped services have already been released.")
+                );
+
+            if (--activeService.getValue().count == 0 && (servicesForHomeDir.size() > 1 || !getProperty(REUSE_USER_HOME_SERVICES, "true").equals("true"))) {
+                stoppable(activeService.getValue().registry).stop();
+                servicesForHomeDir.remove(activeService.getKey());
             }
         } finally {
             lock.unlock();
         }
-        throw new IllegalStateException("Gradle user home directory scoped services have already been released.");
     }
 
     private static class Services {
