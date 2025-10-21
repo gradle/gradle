@@ -39,7 +39,7 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
     private
     val implicitImports: ImplicitImports
 
-) : DefaultTask(), SharedAccessorsPackageAware {
+) : DefaultTask(), ClassPathAware {
 
     @get:Internal
     abstract val metadataDir: DirectoryProperty

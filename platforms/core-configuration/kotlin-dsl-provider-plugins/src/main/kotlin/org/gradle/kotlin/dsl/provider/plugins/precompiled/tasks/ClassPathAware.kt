@@ -16,18 +16,15 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
-import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.accessors.PluginTree
 import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import javax.inject.Inject
 
 
 interface ClassPathAware {
@@ -36,20 +33,6 @@ interface ClassPathAware {
     @get:Classpath
     val classPathFiles: ConfigurableFileCollection
 }
-
-
-interface SharedAccessorsPackageAware : ClassPathAware {
-
-    @get:Inject
-    val classPathFingerprinter: ClasspathFingerprinter
-}
-
-
-internal
-fun <T> T.implicitImportsForPrecompiledScriptPlugins(
-    implicitImports: ImplicitImports
-): List<String> where T : Task, T : SharedAccessorsPackageAware =
-    implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFiles)
 
 
 internal
