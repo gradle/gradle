@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import com.google.common.base.Utf8
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -43,6 +44,40 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
                 test.${configureTestFramework}
             }
         """
+    }
+
+    def "test task can write report for long class names"() {
+        given:
+        // Remove .class so we can have the longest class name possible
+        def name = "A" * (255 - Utf8.encodedLength(".class"))
+        file("src/test/java/${name}.java") << """
+            ${testFrameworkImports}
+
+            public class ${name} {
+                @Test
+                public void test() {
+                    assertEquals(1, 1);
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'test'
+
+        then:
+        noExceptionThrown()
+
+        and:
+        // 255 is the filesystem limit on many systems, so we limit to that.
+        def htmlReportName = "_cut_" +
+            ("A" * (255 - ("_cut_" + "-GF6HOQ7STNL92.html").length())) +
+            "-GF6HOQ7STNL92.html"
+        def xmlReportName = "_cut_TEST-" +
+            ("A" * (255 - ("_cut_TEST-" + "-1VTVAN1369SJ8.xml").length())) +
+            "-1VTVAN1369SJ8.xml"
+        file("build/reports/tests/test/index.html").text.contains(name)
+        file("build/reports/tests/test/classes/$htmlReportName").exists()
+        file("build/test-results/test/$xmlReportName").exists()
     }
 
     @Issue("GRADLE-2702")

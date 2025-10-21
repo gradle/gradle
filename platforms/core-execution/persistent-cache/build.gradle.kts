@@ -17,6 +17,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.baseServices)
     implementation(projects.io)
     implementation(projects.time)
 

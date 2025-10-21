@@ -99,8 +99,8 @@ public class Binary2JUnitXmlReportGenerator {
         LOG.info("Finished generating test XML results ({}) into: {}", clock.getElapsed(), testResultsDir);
     }
 
-    private String getReportFileName(TestClassResult result) {
-        return REPORT_FILE_PREFIX + SafeFileLocationUtils.toSafeFileName(result.getClassName()) + REPORT_FILE_EXTENSION;
+    private static String getReportFileName(TestClassResult result) {
+        return SafeFileLocationUtils.toSafeFileName(REPORT_FILE_PREFIX + result.getClassName() + REPORT_FILE_EXTENSION);
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {

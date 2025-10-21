@@ -32,6 +32,7 @@ import org.gradle.cache.internal.filelock.LockStateAccess;
 import org.gradle.cache.internal.filelock.LockStateSerializer;
 import org.gradle.cache.internal.filelock.Version1LockStateSerializer;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
+import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -130,10 +131,11 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     static File determineLockTargetFile(File target) {
+        String safeFileName = SafeFileLocationUtils.toSafeFileName(target.getName() + ".lock");
         if (target.isDirectory()) {
-            return new File(target, target.getName() + ".lock");
+            return new File(target, safeFileName);
         } else {
-            return new File(target.getParentFile(), target.getName() + ".lock");
+            return new File(target.getParentFile(), safeFileName);
         }
     }
 

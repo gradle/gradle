@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceFactory;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -78,7 +79,9 @@ public class SecureFileDownloader {
     }
 
     private void downloadResource(URI source, File targetFile, ExternalResource resource) {
-        final File downloadFile = new File(targetFile.getAbsoluteFile() + ".part");
+        File absoluteFile = targetFile.getAbsoluteFile();
+        String safeFileName = SafeFileLocationUtils.toSafeFileName(absoluteFile.getName() + ".part");
+        final File downloadFile = new File(absoluteFile.getParentFile(), safeFileName);
         try {
             resource.withContent(inputStream -> {
                 LOGGER.info("Downloading {} to {}", resource.getDisplayName(), targetFile);
