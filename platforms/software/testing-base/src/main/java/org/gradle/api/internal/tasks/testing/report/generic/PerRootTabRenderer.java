@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
+import org.apache.commons.lang3.stream.Streams;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
@@ -37,8 +38,10 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
 
@@ -228,7 +231,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.endElement();
             htmlWriter.endElement();
 
-            for (TestTreeModel child : getCurrentModel().getChildrenOf(rootIndex)) {
+            List<TestTreeModel> sortedByName = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
+                .sorted(Comparator.comparing(TestTreeModel::getPath))
+                .collect(Collectors.toList());
+
+            for (TestTreeModel child : sortedByName) {
                 for (TestTreeModel.PerRootInfo perRootInfo : child.getPerRootInfo().get(rootIndex)) {
                     SerializableTestResult result = perRootInfo.getResult();
                     String statusClass = getStatusClass(result.getResultType());

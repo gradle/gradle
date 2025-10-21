@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.util.internal.GUtil
 
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.equalTo
@@ -287,6 +288,72 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             .root("TheSameName (2)")
             .assertChildCount(1, 0)
             .assertOnlyChildrenExecuted("theSameName2 test")
+    }
+
+    def "child results are sorted lexicographically ignoring case"() {
+        given:
+        def identifyingString = "the test is: "
+        def theResults = [
+            "b", "z", "[", "4", "*", "!", "Θ", "Δ", "a", ":", "foo", "Foo", "bar", "Bar"
+        ]
+
+        def resultProducers = ""
+        for (def result : theResults) {
+            resultProducers += """
+                try (def myTest = reporter.reportTest("${identifyingString}${result}", "${identifyingString}${result}")) {
+                     myTest.started(Instant.now())
+                     Thread.sleep(10)
+                     myTest.succeeded(Instant.now())
+                }
+            """
+        }
+
+        buildFile <<
+            """
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "MyTest",
+                        getLayout().getBuildDirectory().dir("test-results/\${name}").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/\${name}").get()
+                    )) {
+                        reporter.started(Instant.now())
+                        ${resultProducers}
+                        reporter.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("myTest", CustomTestTask)
+            """
+
+        when:
+        succeeds("myTest")
+
+
+        then:
+        def content = file("build/reports/tests/myTest/index.html").text
+        def expectedResults = theResults.toSorted(GUtil.caseInsensitive())
+        def actualResults = []
+        def startIndex = 0
+        while (true) {
+            def nextTestIndex = content.indexOf(identifyingString, startIndex)
+            if (nextTestIndex == -1) {
+                break
+            }
+            def endOfTestIndex = content.indexOf("</a>", nextTestIndex)
+            assert endOfTestIndex != -1 : "Could not find end of test link in HTML report"
+            actualResults << content.substring(nextTestIndex + identifyingString.length(), endOfTestIndex)
+            startIndex = endOfTestIndex
+        }
+        assert actualResults == expectedResults
     }
 
     def passingTask(String name, boolean print = false) {
