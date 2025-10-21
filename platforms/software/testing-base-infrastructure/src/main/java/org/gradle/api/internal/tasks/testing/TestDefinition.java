@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Describable;
+import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 
 /**
  * Represents a container of tests to be executed, for instance, a test class or a directory
@@ -32,4 +33,12 @@ public interface TestDefinition extends Describable {
      * @return unique id for this test definition
      */
     String getId();
+
+    /**
+     * Should this test definition be processed according to the given matcher.
+     *
+     * @param matcher the matcher to check
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    boolean matches(TestSelectionMatcher matcher);
 }

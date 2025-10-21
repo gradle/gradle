@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -40,15 +38,8 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestDefinition(TestDefinition testDefinition) {
-        // TODO: Rework this - have the matcher work with TestDefinition directly and remove need for instanceof?
-        if (testDefinition instanceof ClassTestDefinition) {
-            if (testClassSelectionMatcher.mayIncludeClass(testDefinition.getId())) {
-                delegate.processTestDefinition(testDefinition);
-            }
-        } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
+        if (testDefinition.matches(testClassSelectionMatcher)) {
             delegate.processTestDefinition(testDefinition);
-        } else {
-            throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
         }
     }
 

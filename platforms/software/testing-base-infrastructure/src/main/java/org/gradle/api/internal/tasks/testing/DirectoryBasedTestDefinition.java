@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
@@ -48,6 +49,12 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
     public String getDisplayName() {
         // TODO: Use the relative path from the build's root - make field a RelativeFile?
         return "tests in directory '" + resourceFile.getAbsolutePath() + "'";
+    }
+
+    @Override
+    public boolean matches(TestSelectionMatcher matcher) {
+        // TODO: Implement filtering
+        return true;
     }
 
     @Override
