@@ -18,6 +18,7 @@ package org.gradle.process;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Represents the result of running an external process.
@@ -28,6 +29,7 @@ import org.gradle.api.Incubating;
  * @since 9.0
  */
 @Incubating
+@NullMarked
 public interface ExecHandle extends Describable {
 
     /**

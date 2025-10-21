@@ -21,7 +21,6 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ProcessForkOptions;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,9 +29,8 @@ import java.util.Map;
 
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
- *
- * TODO: We should remove setters and have abstract getters in Gradle 10 and configure builder in execute() method.
  */
+// TODO: We should remove setters and have abstract getters in Gradle 10 and configure builder in execute() method.
 public class DefaultExecAction implements ExecAction {
 
     private final ClientExecHandleBuilder execHandleBuilder;
@@ -53,7 +51,6 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    @Nonnull
     public org.gradle.process.ExecHandle executeAsync() {
         final ExecHandle execHandle = execHandleBuilder.build();
         execHandle.start();
