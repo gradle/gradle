@@ -29,9 +29,15 @@ import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.Matcher
+import org.jspecify.annotations.NonNull
 
 import javax.annotation.Nullable
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.regex.Pattern
 
 import static org.hamcrest.CoreMatchers.allOf
@@ -53,13 +59,14 @@ class ConfigurationCacheProblemsFixture {
     ConfigurationCacheProblemsFixture(File rootDir) {
         this.rootDir = rootDir
     }
-    HasConfigurationCacheProblemsSpec newProblemsSpec(
+
+    static HasConfigurationCacheProblemsSpec newProblemsSpec(
         @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         return newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
     }
 
-    protected HasConfigurationCacheProblemsSpec newProblemsSpec(
+    protected static HasConfigurationCacheProblemsSpec newProblemsSpec(
         Action<HasConfigurationCacheProblemsSpec> specAction = {}
     ) {
         def spec = new HasConfigurationCacheProblemsSpec()
@@ -67,14 +74,28 @@ class ConfigurationCacheProblemsFixture {
         return spec
     }
 
-    HasConfigurationCacheErrorSpec newErrorSpec(
+    static HasConfigurationCacheProblemsSpec newNoProblemSpec(
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        return newNoProblemSpec(ConfigureUtil.configureUsing(specClosure))
+    }
+
+    protected static HasConfigurationCacheProblemsSpec newNoProblemSpec(
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        def spec = new HasConfigurationCacheProblemsSpec(totalProblemsCount: 0)
+        specAction.execute(spec)
+        return spec
+    }
+
+    static HasConfigurationCacheErrorSpec newErrorSpec(
         String error,
         @DelegatesTo(value = HasConfigurationCacheErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         return newErrorSpec(error, ConfigureUtil.configureUsing(specClosure))
     }
 
-    HasConfigurationCacheErrorSpec newErrorSpec(
+    static HasConfigurationCacheErrorSpec newErrorSpec(
         String error,
         Action<HasConfigurationCacheErrorSpec> specAction = {}
     ) {
@@ -87,10 +108,10 @@ class ConfigurationCacheProblemsFixture {
         spec.validateSpec()
 
         if (spec.hasProblems()) {
-            assertHasConsoleSummary(failure.output, spec)
-            assertProblemsHtmlReport(failure.output, rootDir, spec)
+            assertHasConsoleSummary(output, spec)
+            assertProblemsHtmlReport(output, rootDir, spec)
         } else {
-            assertNoProblemsSummary(failure.output)
+            assertNoProblemsSummary(output)
         }
     }
 
@@ -98,9 +119,35 @@ class ConfigurationCacheProblemsFixture {
         String output,
         HasConfigurationCacheProblemsSpec spec
     ) {
-        assertProblemsHtmlReport(output, rootDir, spec)
-        assertInputs(output, rootDir, spec)
-        assertIncompatibleTasks(output, rootDir, spec)
+        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
+        doAssertHtmlReportHasProblems(reportDir, spec)
+    }
+
+    void assertHtmlReportHasProblems(
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        def reportDir = findReportDir()
+        doAssertHtmlReportHasProblems(reportDir, spec)
+    }
+
+    void assertHtmlReportHasNoProblems(String output) {
+        assertHtmlReportHasProblems(output, newProblemsSpec {
+            totalProblemsCount = 0
+            shouldHaveReport = true
+        })
+    }
+
+    void assertHtmlReportHasNoProblems() {
+        assertHtmlReportHasProblems(newProblemsSpec {
+            totalProblemsCount = 0
+            shouldHaveReport = true
+        })
+    }
+
+    protected void doAssertHtmlReportHasProblems(File reportDir, HasConfigurationCacheProblemsSpec spec) {
+        assertProblemsHtmlReport(reportDir, spec)
+        assertInputs(reportDir, spec)
+        assertIncompatibleTasks(reportDir, spec)
     }
 
     protected static Matcher<String> failureDescriptionMatcherForError(HasConfigurationCacheErrorSpec spec) {
@@ -173,14 +220,23 @@ class ConfigurationCacheProblemsFixture {
         File rootDir,
         HasConfigurationCacheProblemsSpec spec
     ) {
-        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
         assertProblemsHtmlReport(
-            rootDir,
-            output,
+            resolveConfigurationCacheReportDirectory(rootDir, output),
+            spec
+        )
+    }
+
+    protected static void assertProblemsHtmlReport(
+        File reportDir,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
+        doAssertProblemsHtmlReport(
+            reportDir,
             totalProblemCount,
             spec.uniqueProblems,
             spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount,
-            spec.incompatibleTasks instanceof ItemSpec.ExpectingSome,
+            spec.shouldHaveReport ?: (spec.shouldHaveReport == null & spec.incompatibleTasks instanceof ItemSpec.ExpectingSome),
             spec.checkReportProblems
         )
     }
@@ -193,6 +249,13 @@ class ConfigurationCacheProblemsFixture {
         assertItems('input', output, rootDir, spec.inputs)
     }
 
+    protected static void assertInputs(
+        File reportDir,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        assertItems('input', reportDir, spec.inputs)
+    }
+
     protected static void assertIncompatibleTasks(
         String output,
         File rootDir,
@@ -201,12 +264,29 @@ class ConfigurationCacheProblemsFixture {
         assertItems('incompatibleTask', output, rootDir, spec.incompatibleTasks)
     }
 
+    protected static void assertIncompatibleTasks(
+        File reportDir,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        assertItems('incompatibleTask', reportDir, spec.incompatibleTasks)
+    }
+
     private static void assertItems(
         String kind,
         String output,
         File rootDir,
         ItemSpec spec
     ) {
+        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
+        assertItems(kind, reportDir, spec)
+    }
+
+    private static void assertItems(
+            String kind,
+            File reportDir,
+            ItemSpec spec
+        ) {
+
         if (spec == ItemSpec.IGNORING) {
             return
         }
@@ -215,7 +295,6 @@ class ConfigurationCacheProblemsFixture {
             ? spec.itemMatchers.collect()
             : []
 
-        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (reportDir == null) {
             assertThat(
                 "Expecting '$kind' items but no report was found",
@@ -282,9 +361,20 @@ class ConfigurationCacheProblemsFixture {
         boolean expectIncompatibleTasks,
         boolean checkReportProblems
     ) {
-        def uniqueProblemCount = uniqueProblems.size()
-        def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0 || expectIncompatibleTasks
         def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
+        doAssertProblemsHtmlReport(reportDir, totalProblemCount, uniqueProblems, problemsWithStackTraceCount, expectIncompatibleTasks, checkReportProblems)
+    }
+
+    private static void doAssertProblemsHtmlReport(
+        File reportDir,
+        int totalProblemCount,
+        List<Matcher> uniqueProblems,
+        int problemsWithStackTraceCount,
+        boolean shouldHaveReport,
+        boolean checkReportProblems
+    ) {
+        def uniqueProblemCount = uniqueProblems.size()
+        def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0 || shouldHaveReport
         if (expectReport) {
             Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
             assertThat(
@@ -309,7 +399,7 @@ class ConfigurationCacheProblemsFixture {
         }
     }
 
-    private static Map<String, Object> readJsModelFromReportDir(TestFile reportDir) {
+    private static Map<String, Object> readJsModelFromReportDir(File reportDir) {
         assertThat("HTML report URI not found", reportDir, notNullValue())
         assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
         def htmlFile = reportDir.file(PROBLEMS_REPORT_HTML_FILE_NAME)
@@ -335,6 +425,29 @@ class ConfigurationCacheProblemsFixture {
                 .collect()
                 .join('\n')
         }
+    }
+
+    @NonNull
+    File findReportDir() {
+        return resolveSingleConfigurationCacheReportDir(rootDir)
+    }
+
+    private static TestFile resolveSingleConfigurationCacheReportDir(TestFile rootDir) {
+        TestFile reportsDir = rootDir.file("build/reports/configuration-cache")
+        assert reportsDir.exists() : "Configuration cache report directory not found at $reportsDir"
+        List<TestFile> reportDirs = []
+        Files.walkFileTree(reportsDir.toPath(), new SimpleFileVisitor<Path>() {
+            @Override
+            FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (file.getFileName().toString() == "configuration-cache-report.html") {
+                    reportDirs += new TestFile(file.parent.toString())
+                }
+                return FileVisitResult.CONTINUE
+            }
+        })
+
+        assert reportDirs.size() == 1
+        return reportDirs[0]
     }
 
     @Nullable
@@ -543,6 +656,9 @@ abstract class ItemSpec {
 }
 
 class HasConfigurationCacheProblemsSpec {
+
+    @Nullable
+    Boolean shouldHaveReport
 
     @PackageScope
     final List<Matcher<String>> uniqueProblems = []

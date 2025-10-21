@@ -155,18 +155,13 @@ final class ConfigurationCacheExecutionResultProblemsFixture extends Configurati
         assertResultHtmlReportHasProblems(result, ConfigureUtil.configureUsing(specClosure))
     }
 
-    /**
-     * Asserts a report generated for non-fatal
-     * @param result
-     * @param specAction
-     */
     void assertResultHtmlReportHasProblems(
         ExecutionResult result,
         Action<HasConfigurationCacheProblemsSpec> specAction = {}
     ) {
-        assertHtmlReportHasProblems(result.output, newProblemsSpec { HasConfigurationCacheProblemsSpec it ->
-            it.checkReportProblems = true
-            specAction.execute(it)
+        assertHtmlReportHasProblems(result.output, newProblemsSpec {
+            checkReportProblems = true
+            specAction.execute(this)
         })
     }
 

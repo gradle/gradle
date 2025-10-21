@@ -16,7 +16,7 @@
 
 package org.gradle.ide.sync
 
-import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
@@ -24,7 +24,7 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
     // https://developer.android.com/build/releases/gradle-plugin
     private final static String AGP_VERSION = new AndroidGradlePluginVersions().getLatestStable()
 
-    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
+    private ConfigurationCacheProblemsFixture fixture = new ConfigurationCacheProblemsFixture(testDirectory)
 
     def "can sync simple Android build without problems"() {
         given:
