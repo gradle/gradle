@@ -83,7 +83,7 @@ public interface TestFramework extends Closeable, Describable {
      *
      * @return {@code true} if resource-based test definitions are supported; otherwise {@code false}
      */
-    default boolean supportsResourceBasedTesting() {
+    default boolean supportsNonClassBasedTesting() {
         return false;
     }
 
