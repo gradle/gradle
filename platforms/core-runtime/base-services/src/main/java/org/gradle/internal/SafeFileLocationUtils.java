@@ -18,6 +18,7 @@ package org.gradle.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Utf8;
+import com.google.common.collect.Streams;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
@@ -29,9 +30,11 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 /**
  * Sibling class to {@link FileUtils}, focused on obtaining safe file locations and names.
@@ -76,7 +79,51 @@ public final class SafeFileLocationUtils {
     /**
      * The character used to replace illegal characters in file names.
      */
-    private static final char ILLEGAL_CHAR_REPLACEMENT = '-';
+    private static final CharBuffer ILLEGAL_CHAR_REPLACEMENT = CharBuffer.wrap("-");
+
+    /**
+     * Set of code points that are considered illegal in file names.
+     * Stored as a sorted array to use binary search.
+     * There is no int hash set and boxing every code point would likely be too inefficient.
+     */
+    private static final int[] INVALID_CODE_POINTS;
+    static {
+        INVALID_CODE_POINTS = Streams.concat(
+            // Consider filesystem-illegal characters from all common OSes
+            // Currently Windows is a superset of the others, but we include all for future-proofing
+            IntStream.of(FileSystem.GENERIC.getIllegalFileNameCodePoints()),
+            IntStream.of(FileSystem.LINUX.getIllegalFileNameCodePoints()),
+            IntStream.of(FileSystem.MAC_OSX.getIllegalFileNameCodePoints()),
+            IntStream.of(FileSystem.WINDOWS.getIllegalFileNameCodePoints()),
+            // Drop whitespace characters that may cause problems in scripts or URLs
+            // We should consider excluding all Unicode whitespace, but it's likely not as problematic
+            IntStream.of(' ', '\t', '\n', '\r')
+        ).distinct().sorted().toArray();
+    }
+
+    private static boolean isInvalidCodePoint(int codePoint) {
+        int type = Character.getType(codePoint);
+        // Reject invalid, not visible, or non-portable characters
+        if (
+            type == Character.CONTROL ||
+                type == Character.PRIVATE_USE ||
+                type == Character.SURROGATE ||
+                type == Character.UNASSIGNED
+        ) {
+            return true;
+        }
+        // Check against our set of known invalid code points
+        return Arrays.binarySearch(INVALID_CODE_POINTS, codePoint) >= 0;
+    }
+
+    // CharsetEncoder is not thread-safe, so use ThreadLocal to hold one per thread
+    // These are not very expensive memory-wise, so this should be OK
+    private static final ThreadLocal<CharsetEncoder> REPORTING_UTF_8_ENCODER =
+        ThreadLocal.withInitial(() ->
+            StandardCharsets.UTF_8.newEncoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+        );
 
     /**
      * Converts a string into a string that is safe to use as a file name.
@@ -88,53 +135,111 @@ public final class SafeFileLocationUtils {
      * </p>
      */
     public static String toSafeFileName(String name) {
-        String shortenedName = cleanAndShortenName(name);
-
-        // Use Windows filesystem rules for cross-platform compatibility
-        String result = FileSystem.WINDOWS.toLegalFileName(shortenedName, ILLEGAL_CHAR_REPLACEMENT);
-
-        // Replace additional characters that may cause issues in web/HTML contexts
-        return result.replace(' ', ILLEGAL_CHAR_REPLACEMENT)
-            .replace('\t', ILLEGAL_CHAR_REPLACEMENT)
-            .replace('\n', ILLEGAL_CHAR_REPLACEMENT)
-            .replace('\r', ILLEGAL_CHAR_REPLACEMENT);
-    }
-
-    // CharsetEncoder is not thread-safe, so use ThreadLocal to hold one per thread
-    // These are not very expensive memory-wise, so this should be OK
-    private static final ThreadLocal<CharsetEncoder> UTF_8_ENCODER_WITH_ILLEGAL_CHAR_REPLACEMENT =
-        ThreadLocal.withInitial(() ->
-            StandardCharsets.UTF_8.newEncoder()
-                .onMalformedInput(CodingErrorAction.REPLACE)
-                .onUnmappableCharacter(CodingErrorAction.REPLACE)
-                .replaceWith(String.valueOf(ILLEGAL_CHAR_REPLACEMENT).getBytes(StandardCharsets.UTF_8))
-        );
-
-    /**
-     * Remove malformed or un-mappable characters and shorten the name if necessary.
-     *
-     * @param name the original name
-     * @return the cleaned and potentially shortened name
-     */
-    private static String cleanAndShortenName(String name) {
-        byte[] rawName;
+        Utf8EncodingResult nameResult;
         try {
-            ByteBuffer buffer = UTF_8_ENCODER_WITH_ILLEGAL_CHAR_REPLACEMENT.get().encode(CharBuffer.wrap(name));
-            rawName = new byte[buffer.remaining()];
-            buffer.get(rawName);
+            nameResult = encodeIntoUtf8WithReplacement(name);
         } catch (CharacterCodingException e) {
-            // We use the REPLACE action, so this should never happen
-            throw new AssertionError("should never encounter an encoding error", e);
+            throw new AssertionError("Unexpected encoding error, should have filtered invalid input", e);
         }
-        if (rawName.length <= MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES) {
-            return name;
+        if (nameResult.cleanBytes.length <= MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES) {
+            return nameResult.getCleanString();
         }
 
-
-        byte[] hashBytes = HASHER.hashBytes(rawName).asBytes();
+        // We use hashUnencodedChars to ensure we hash the original name without any replacements
+        // This ensures that different original names that map to the same cleaned name still get different hashes
+        byte[] hashBytes = HASHER.hashUnencodedChars(name).asBytes();
         String encoded = BASE_ENCODING.encode(hashBytes);
 
-        return shortenNameAndAddHash(rawName, encoded);
+        return shortenNameAndAddHash(nameResult.cleanBytes, encoded);
+    }
+
+    private static final class Utf8EncodingResult {
+        private final String original;
+        private final boolean hadIllegalChars;
+        private final byte[] cleanBytes;
+
+        public Utf8EncodingResult(String original, boolean hadIllegalChars, byte[] cleanBytes) {
+            this.original = original;
+            this.hadIllegalChars = hadIllegalChars;
+            this.cleanBytes = cleanBytes;
+        }
+
+        public String getCleanString() {
+            // Decode new string if we had to replace characters, otherwise return original name
+            return hadIllegalChars ? new String(cleanBytes, StandardCharsets.UTF_8) : original;
+        }
+    }
+
+    private static Utf8EncodingResult encodeIntoUtf8WithReplacement(String original) throws CharacterCodingException {
+        // We use a reporting encoder for this operation to double-check that we do not have any malformed input
+        // As we filter out invalid code points ourselves, we should never see an error from it.
+        CharsetEncoder encoder = REPORTING_UTF_8_ENCODER.get().reset();
+        ByteBuffer result = ByteBuffer.allocate((int) (original.length() * encoder.averageBytesPerChar()));
+        boolean hadIllegalChars = false;
+        int i = 0;
+        while (i < original.length()) {
+            int codePoint = original.codePointAt(i);
+            int charCount = Character.charCount(codePoint);
+            boolean endOfInput = (i + charCount) >= original.length();
+
+            if (isInvalidCodePoint(codePoint)) {
+                hadIllegalChars = true;
+                // Replace with illegal char replacement
+                result = doEncode(encoder, ILLEGAL_CHAR_REPLACEMENT.duplicate(), result, endOfInput);
+            } else {
+                // Encode the single valid code point
+                result = doEncode(encoder, CharBuffer.wrap(original, i, i + charCount), result, endOfInput);
+            }
+
+            i += charCount;
+        }
+        byte[] cleanBytes = Arrays.copyOf(result.array(), result.position());
+        return new Utf8EncodingResult(original, hadIllegalChars, cleanBytes);
+    }
+
+    /**
+     * Run one encoding step with the given encoder, char buffer and result byte buffer.
+     * If the result buffer is too small, a larger one is allocated, encoded into, and returned.
+     *
+     * @param encoder the charset encoder
+     * @param source the char buffer to encode from
+     * @param result the byte buffer to encode into
+     * @return the (possibly new) byte buffer containing the encoded bytes
+     */
+    private static ByteBuffer doEncode(CharsetEncoder encoder, CharBuffer source, ByteBuffer result, boolean endOfInput) throws CharacterCodingException {
+        while (source.hasRemaining()) {
+            CoderResult encodeResult = encoder.encode(source, result, endOfInput);
+            if (encodeResult.isOverflow()) {
+                result = reallocateBuffer(result);
+            } else if (encodeResult.isUnderflow()) {
+                // Done encoding
+                break;
+            } else {
+                encodeResult.throwException();
+            }
+        }
+        if (endOfInput) {
+            // Flush the encoder
+            while (true) {
+                CoderResult flushResult = encoder.flush(result);
+                if (flushResult.isOverflow()) {
+                    result = reallocateBuffer(result);
+                } else if (flushResult.isUnderflow()) {
+                    // Done flushing
+                    break;
+                } else {
+                    flushResult.throwException();
+                }
+            }
+        }
+        return result;
+    }
+
+    private static ByteBuffer reallocateBuffer(ByteBuffer result) {
+        ByteBuffer newResult = ByteBuffer.allocate(result.capacity() * 2);
+        result.flip();
+        newResult.put(result);
+        return newResult;
     }
 
     /**

@@ -68,12 +68,12 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     private void assertHtmlReportForTestClassExists(String... classNames) {
         classNames.each {
-            assert new File(htmlReportDirectory, "classes/${SafeFileLocationUtils.toSafeFileName(it)}.html").file
+            assert new File(htmlReportDirectory, "classes/${SafeFileLocationUtils.toSafeFileName("${it}.html")}").file
         }
     }
 
     boolean testClassExists(String testClass) {
-        return new File(htmlReportDirectory, "classes/${SafeFileLocationUtils.toSafeFileName(testClass)}.html").exists()
+        return new File(htmlReportDirectory, "classes/${SafeFileLocationUtils.toSafeFileName("${testClass}.html")}").exists()
     }
 
     boolean testClassDoesNotExist(String testClass) {
@@ -81,7 +81,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${SafeFileLocationUtils.toSafeFileName(testClass)}.html"))
+        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${SafeFileLocationUtils.toSafeFileName("${testClass}.html")}"))
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {

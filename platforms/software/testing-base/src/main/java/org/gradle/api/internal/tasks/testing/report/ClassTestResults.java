@@ -26,7 +26,7 @@ import java.util.TreeSet;
  * Test results for a given class.
  */
 public class ClassTestResults extends CompositeTestResults {
-    private static final String HTML_REPORT_PREFIX = "classes/";
+    private static final String HTML_REPORT_DIR = "classes";
     private static final String HTML_EXTENSION = ".html";
 
     private final long id;
@@ -46,7 +46,7 @@ public class ClassTestResults extends CompositeTestResults {
         this.name = name;
         this.displayName = displayName;
         this.packageResults = packageResults;
-        baseUrl = HTML_REPORT_PREFIX + SafeFileLocationUtils.toSafeFileName(name) + HTML_EXTENSION;
+        baseUrl = HTML_REPORT_DIR + "/" + SafeFileLocationUtils.toSafeFileName(name + HTML_EXTENSION);
     }
 
     public long getId() {
