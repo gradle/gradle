@@ -58,7 +58,7 @@ See the table below for the Java version supported by a specific Gradle release:
 | 23| 8.10 | 8.10 and after
 | 24| 8.14 | 8.14 and after
 | 25| 9.1.0 | 9.1.0 and after
-| 26| N/A | N/A
+| 26| 9.3.0 | N/A
 |===
 
 NOTE: We only list versions in the table above once we have tested that they work without any warnings.
@@ -108,7 +108,7 @@ Beta and RC versions may or may not work.
 
 == Groovy
 
-Gradle is tested with Groovy 1.5.8 through 5.0.1.
+Gradle is tested with Groovy 1.5.8 through 5.0.2.
 
 Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 
