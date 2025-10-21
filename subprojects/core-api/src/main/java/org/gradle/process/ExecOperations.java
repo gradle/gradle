@@ -46,7 +46,7 @@ public interface ExecOperations {
      *
      * @param action Action to configure the ExecSpec
      * @return {@link ExecHandle} that can be used to wait for the process to finish, or to abort it
-     * @since 9.0
+     * @since 9.3.0
      */
     @Incubating
     ExecHandle execAsync(Action<? super ExecSpec> action);

@@ -26,7 +26,7 @@ import org.jspecify.annotations.NullMarked;
  * The process will be started immediately.
  *
  * @see org.gradle.process.ExecOperations#execAsync
- * @since 9.0
+ * @since 9.3.0
  */
 @Incubating
 @NullMarked
@@ -37,14 +37,14 @@ public interface ExecHandle extends Describable {
      *
      * Does nothing if the process has already completed.
      *
-     * @since 9.0
+     * @since 9.3.0
      */
     ExecResult waitForFinish();
 
     /**
      * Aborts the process, blocking until the process has exited. Does nothing if the process has already completed.
      *
-     * @since 9.0
+     * @since 9.3.0
      */
     void abort();
 }
