@@ -18,13 +18,14 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "API for discovery of build settings and build-relevant locations"
+description = "Discovery of build settings and build-relevant locations"
 
 dependencies {
+    api(projects.coreBuildDiscoveryApi)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.inject)
     api(libs.jspecify)
 
     implementation(projects.baseServices)
-    implementation(projects.buildProcessServices)
 }

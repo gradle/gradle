@@ -93,6 +93,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.cli)
     implementation(projects.clientServices)
+    implementation(projects.coreBuildDiscovery)
     implementation(projects.coreBuildDiscoveryApi)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)

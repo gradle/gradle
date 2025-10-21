@@ -27,7 +27,7 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
-    implementation(projects.coreApi)
+    implementation(projects.coreBuildDiscoveryApi)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.launcher)
     implementation(projects.logging)

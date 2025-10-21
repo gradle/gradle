@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.coreApi)
+    implementation(projects.coreBuildDiscovery)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)

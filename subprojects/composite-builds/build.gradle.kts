@@ -29,6 +29,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.classloaders)
+    implementation(projects.coreBuildDiscovery)
     implementation(projects.time)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)

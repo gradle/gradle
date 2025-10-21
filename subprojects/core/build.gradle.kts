@@ -71,6 +71,7 @@ dependencies {
     api(projects.cli)
     api(projects.concurrent)
     api(projects.coreApi)
+    api(projects.coreBuildDiscovery)
     api(projects.coreBuildDiscoveryApi)
     api(projects.declarativeDslApi)
     api(projects.enterpriseLogging)

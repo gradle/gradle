@@ -25,6 +25,8 @@ dependencies {
     api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.concurrent)
+    api(projects.coreBuildDiscovery)
+    api(projects.coreBuildDiscoveryApi)
     api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.functional)
@@ -49,7 +51,6 @@ dependencies {
     // The client should not depend on core or core-api or projects that depend on these.
     // However, these project still contains some types that are shared between the client and daemon.
     api(projects.core)
-    api(projects.coreApi)
     api(projects.fileCollections)
     api(projects.fileTemp)
 
@@ -60,6 +61,7 @@ dependencies {
     implementation(projects.buildConfiguration)
     implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
+    implementation(projects.coreApi)
     implementation(projects.fileOperations)
     implementation(projects.files)
     implementation(projects.hashing)

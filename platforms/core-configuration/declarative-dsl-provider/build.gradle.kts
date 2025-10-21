@@ -33,6 +33,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.concurrent)
+    implementation(projects.coreBuildDiscovery)
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
     implementation(projects.modelCore)

@@ -21,6 +21,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.concurrent)
+    implementation(projects.coreBuildDiscoveryApi)
     implementation(projects.functional)
     implementation(projects.fileCollections)
     implementation(projects.hashing)

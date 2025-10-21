@@ -66,6 +66,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "configuration-problems-base",
         "core",
         "core-api",
+        "core-build-discovery",
         "core-build-discovery-api",
         "core-flow-services-api",
         "core-kotlin-extensions",
