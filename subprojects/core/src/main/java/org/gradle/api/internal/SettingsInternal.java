@@ -31,6 +31,7 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.FinalizableValue;
+import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -39,7 +40,7 @@ import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal, FinalizableValue {
 
-    String BUILD_SRC = "buildSrc";
+    String BUILD_SRC = BuildLogicFiles.BUILD_SOURCE_DIRECTORY;
 
     @Override
     StartParameter getStartParameter();
