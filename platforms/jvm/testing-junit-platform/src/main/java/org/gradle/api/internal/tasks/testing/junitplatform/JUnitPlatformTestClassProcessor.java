@@ -50,7 +50,6 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 import javax.annotation.WillCloseWhenClosed;
-import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -147,7 +146,7 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
 
 
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
-            selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getDirectory(new File(""))));
+            selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getDirectory()));
         }
 
         private void processAllTestClasses() {

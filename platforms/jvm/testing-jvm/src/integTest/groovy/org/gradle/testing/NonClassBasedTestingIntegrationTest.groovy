@@ -94,7 +94,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         writeTestDefinitions() // Written to default dir, not badPath
 
         when:
-        fails("test")
+        fails("test", "-S")
 
         then:
         failureCauseContains("Test definitions directory does not exist: " + testDirectory.file(badPath))

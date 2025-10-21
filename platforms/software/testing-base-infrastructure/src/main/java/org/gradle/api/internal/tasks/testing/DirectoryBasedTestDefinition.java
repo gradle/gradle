@@ -33,8 +33,8 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
         this.pathSegments = pathSegments;
     }
 
-    public File getDirectory(File projectDir) {
-        return projectDir.toPath().resolve(getId()).toFile();
+    public File getDirectory() {
+        return new File("").toPath().resolve(getId()).toFile();
     }
 
     /**
