@@ -38,7 +38,6 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.commonsLang)
-    implementation(libs.commonsIo)
     implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
     implementation(libs.julToSlf4j)

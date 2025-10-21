@@ -1539,7 +1539,6 @@ Class <org.gradle.internal.logging.services.LoggingServiceRegistry$NestedLogging
 Class <org.gradle.internal.logging.services.LoggingServiceRegistry> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (LoggingServiceRegistry.java:0)
 Class <org.gradle.internal.logging.services.ProgressLoggingBridge> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ProgressLoggingBridge.java:0)
 Class <org.gradle.internal.logging.services.TextStreamOutputEventListener> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TextStreamOutputEventListener.java:0)
-Class <org.gradle.internal.logging.sink.AnsiConsoleUtil> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (AnsiConsoleUtil.java:0)
 Class <org.gradle.internal.logging.sink.ConsoleConfigureAction> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ConsoleConfigureAction.java:0)
 Class <org.gradle.internal.logging.sink.ErrorOutputDispatchingListener> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ErrorOutputDispatchingListener.java:0)
 Class <org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator$OperationGroup> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GroupingProgressLogEventGenerator.java:0)
