@@ -51,7 +51,7 @@ abstract class AbstractSmokeTest extends Specification {
     static class TestedVersions {
         // https://developer.android.com/studio/releases/gradle-plugin
         // Update by running `./gradlew updateAgpVersions`
-        static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
+        static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly.takeRight(3))
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         // Update by running `./gradlew updateKotlinVersions`

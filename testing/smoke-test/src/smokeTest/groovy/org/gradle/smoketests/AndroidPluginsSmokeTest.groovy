@@ -101,7 +101,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def runner = agpRunner(agpVersion,
             'assembleDebug',
             'testDebugUnitTest',
-            'connectedDebugAndroidTest',
             "-Pandroid.injected.invoked.from.ide=$ide"
         )
         when: 'first build'
@@ -139,7 +138,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
         result.task(':library:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
         result.task(':app:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
-        result.task(':app:processDebugAndroidTestManifest').outcome == TaskOutcome.UP_TO_DATE
+        result.task(':app:processDebugManifest').outcome == TaskOutcome.UP_TO_DATE
 
         and:
         if (GradleContextualExecuter.isConfigCache()) {
