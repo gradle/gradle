@@ -455,12 +455,12 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
-     * Locate Java installations based on environment variables such as "JDK8", "JDK11", "JDK14", etc.
-     * This is a convention from https://docs.gradle.com/enterprise/test-distribution-agent/#capabilities
+     * Locate Java installations based on environment variables matching such as "JDK8", "JDK11", "JDK14", etc.
+     * This is a convention from https://docs.gradle.com/develocity/test-distribution-agent/#capabilities
      */
     private static class EnvVariableJvmLocator implements InstallationSupplier {
 
-        private static final Pattern JDK_PATTERN = Pattern.compile("JDK\\d\\d?");
+        private static final Pattern JDK_PATTERN = Pattern.compile("JDK\\d+");
 
         @Override
         public String getSourceName() {
