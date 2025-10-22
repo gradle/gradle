@@ -41,12 +41,13 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
             .withRunner(buildOperationRunner)
             .build()
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(
-            temp.testDirectory,
-            resultsProvider,
-            new JUnitXmlResultOptions(false, false, true, true),
             buildOperationRunner,
             buildOperationExecutor,
-            "localhost")
+            { "localhost" },
+            temp.testDirectory,
+            resultsProvider,
+            new JUnitXmlResultOptions(false, false, true, true)
+        )
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
     }
