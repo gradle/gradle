@@ -18,11 +18,9 @@ package org.gradle.testing.testengine.engine;
 
 import org.gradle.testing.testengine.descriptor.ResourceBasedTestDescriptor;
 import org.gradle.testing.testengine.util.DirectoryScanner;
-import org.gradle.testing.testengine.util.Inputs;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.engine.DiscoverySelector;
-import org.junit.platform.engine.discovery.ClassSelector;
 import org.junit.platform.engine.discovery.DirectorySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.FileSelector;
@@ -30,7 +28,6 @@ import org.junit.platform.engine.support.discovery.SelectorResolver;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -41,15 +38,6 @@ public class ResourceBasedSelectorResolver implements SelectorResolver {
     public static final Logger LOGGER = LoggerFactory.getLogger(ResourceBasedSelectorResolver.class);
 
     private final DirectoryScanner directoryScanner = new DirectoryScanner();
-
-    @Override
-    public Resolution resolve(ClassSelector selector, Context context) {
-        if (ResourceBasedTestEngine.ENGINE_DUMMY_CLASS_NAME.equals(selector.getClassName())) {
-            return Resolution.selectors(Collections.singleton(DiscoverySelectors.selectDirectory(Inputs.getTestResourcesRootDir())));
-        } else {
-            return Resolution.unresolved();
-        }
-    }
 
     @Override
     public Resolution resolve(DirectorySelector selector, Context context) {
