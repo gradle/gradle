@@ -53,7 +53,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions
+        agpVersion << agpVersionsForSantaTracker
     }
 }
 
@@ -100,7 +100,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         md5After != md5Before
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions
+        agpVersion << agpVersionsForSantaTracker
     }
 }
 
@@ -155,7 +155,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions
+        agpVersion << agpVersionsForSantaTracker
     }
 }
 
