@@ -60,9 +60,13 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 <a name="windows-arm-support"></a>
 ### Windows on ARM support
 
-Gradle now supports [running builds on Windows ARM (ARM64) devices](userguide/compatibility.html#target_platforms).
+Gradle now supports [running builds on Windows ARM (ARM64, AArch64) devices](userguide/compatibility.html#target_platforms).
 
 This makes it possible to run Gradle on Windows virtual machines hosted on ARM-based systems.
+
+Due to compatibility issues on Windows AArch64, Gradle cannot display rich console output on this platform. Both the default behavior and the `--console=rich` option will use plain console output instead.
+
+Limitations see [Known issues](userguide/compatibility.html#known_issues)
 
 <a name="publishing-improvements"></a>
 ### Publishing improvements
