@@ -16,6 +16,7 @@
 package org.gradle.api.initialization.dsl;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -79,7 +80,17 @@ public interface ScriptHandler {
      *
      * @param configureClosure the closure to use to configure the repositories.
      */
-    void repositories(Closure configureClosure);
+    void repositories(@DelegatesTo(value=RepositoryHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
+
+    /**
+     * Configures the repositories for the script dependencies. Executes the given action against the {@link
+     * RepositoryHandler} for this handler.
+     *
+     * @param action the action to use to configure the repositories.
+     * @since 9.3.0
+     */
+    @Incubating
+    void repositories(Action<? super RepositoryHandler> action);
 
     /**
      * Returns the dependencies of the script. The returned dependency handler instance can be used for adding new
@@ -96,7 +107,17 @@ public interface ScriptHandler {
      *
      * @param configureClosure the closure to use to configure the dependencies.
      */
-    void dependencies(Closure configureClosure);
+    void dependencies(@DelegatesTo(value=DependencyHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
+
+    /**
+     * Configures the dependencies for the script. Executes the given action against the {@link DependencyHandler} for
+     * this handler.
+     *
+     * @param action the action to use to configure the dependencies.
+     * @since 9.3.0
+     */
+    @Incubating
+    void dependencies(Action<? super DependencyHandler> action);
 
     /**
      * Returns the configurations of this handler. This usually contains a single configuration, called {@value
@@ -110,20 +131,12 @@ public interface ScriptHandler {
      * Configures the configurations for the script. Executes the given action against the {@link ConfigurationContainer} for
      * this handler.
      *
-     * @param configureClosure The action used to configure the script configurations.
+     * @param action The action used to configure the script configurations.
      *
      * @since 8.4
      */
     @Incubating
-    void configurations(Action<? super ConfigurationContainer> configureClosure);
-
-    /**
-     * Configures dependency locking
-     *
-     * @param configureClosure the configuration action
-     * @since 6.1
-     */
-    void dependencyLocking(Closure configureClosure);
+    void configurations(Action<? super ConfigurationContainer> action);
 
     /**
      * Provides access to configuring dependency locking
@@ -133,6 +146,25 @@ public interface ScriptHandler {
      * @since 6.1
      */
     DependencyLockingHandler getDependencyLocking();
+
+    /**
+     * Configures dependency locking for the script. Executes the given closure against the {@link DependencyLockingHandler} for
+     * this handler. The {@link DependencyLockingHandler} is passed to the closure as the closure's delegate.
+     *
+     * @param configureClosure the closure to use to configure dependency locking.
+     * @since 6.1
+     */
+    void dependencyLocking(@DelegatesTo(value=DependencyLockingHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
+
+    /**
+     * Configures dependency locking for the script. Executes the given action against the {@link DependencyLockingHandler} for
+     * this handler.
+     *
+     * @param action the action to use to configure dependency locking.
+     * @since 9.3.0
+     */
+    @Incubating
+    void dependencyLocking(Action<? super DependencyLockingHandler> action);
 
     /**
      * Returns the {@code ClassLoader} which contains the classpath for this script.
