@@ -133,7 +133,7 @@ public class TestEventSerializer {
 
         @Override
         public void write(Encoder encoder, DirectoryBasedTestDefinition value) throws Exception {
-            encoder.writeString(value.getTestDefintionFile().getAbsolutePath()); // TODO: Absolute path won't work, need a relative path from the build dir? resource path from root of the test classpath? something that will work remotely
+            encoder.writeString(value.getTestDefintionFile().getAbsolutePath());
         }
     }
 

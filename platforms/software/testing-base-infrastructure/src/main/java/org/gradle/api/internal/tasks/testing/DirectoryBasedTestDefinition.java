@@ -42,12 +42,11 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
      */
     @Override
     public String getId() {
-        return resourceFile.getAbsolutePath(); // TODO: Relative path here too
+        return resourceFile.getAbsolutePath();
     }
 
     @Override
     public String getDisplayName() {
-        // TODO: Use the relative path from the build's root - make field a RelativeFile?
         return "tests in directory '" + resourceFile.getAbsolutePath() + "'";
     }
 
