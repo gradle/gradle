@@ -89,13 +89,14 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        writeTestDefinitions() // Written to default dir, not badPath, needed to avoid "no sources" skip
+        // Write test defs to default dir (which is still scanned), not badPath, needed to avoid "no sources" skip
+        writeTestDefinitions()
 
         when:
         fails("test")
 
         then:
-        failureCauseContains("Test definitions directory does not exist: " + testDirectory.file(badPath))
+        failureCauseContains("Test definitions directory does not exist: " + TextUtil.normaliseFileSeparators(testDirectory.file(badPath).absolutePath))
     }
 
     def "non-directory test definitions directory fails"() {
@@ -126,7 +127,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
-        failureCauseContains("Test definitions directory is not a directory: " + testDirectory.file(badPath))
+        failureCauseContains("Test definitions directory is not a directory: " + TextUtil.normaliseFileSeparators(testDirectory.file(badPath).absolutePath))
     }
 
     def "non-readable test definitions directory fails"() {
@@ -165,7 +166,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains("Cannot access input property 'candidateDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
-        failureCauseContains("java.nio.file.AccessDeniedException: ${dir.absolutePath}")
+        failureCauseContains("java.nio.file.AccessDeniedException: ${TextUtil.normaliseFileSeparators(dir.absolutePath)}")
 
         cleanup:
         // restore read permission for cleanup
@@ -445,7 +446,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
                 useJUnitJupiter()
 
                 dependencies {
-                    implementation files("${engineJarLibPath}")
+                    implementation files("${TextUtil.normaliseFileSeparators(engineJarLibPath)}")
                 }
         """
     }
