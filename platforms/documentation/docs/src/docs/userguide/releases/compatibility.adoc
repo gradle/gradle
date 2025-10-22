@@ -146,6 +146,6 @@ Platforms not listed above may work with Gradle but are not actively tested.
 [[known_issues]]
 === Known issues
 
-* Due to compatibility issues on Windows AArch64, Gradle cannot display rich console output on this platform.
+* **Windows AArch64**: Rich console output is not available.
 Both the default behavior and the `--console=rich` option will use plain console output instead.
 
