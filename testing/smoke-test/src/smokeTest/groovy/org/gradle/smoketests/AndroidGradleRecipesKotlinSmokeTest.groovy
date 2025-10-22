@@ -130,7 +130,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             </manifest>'''.stripIndent()
 
         and:
-        def runner = mixedRunner(false, agpVersion, kotlinVersionNumber, taskName)
+        def runner = mixedRunner(agpVersion, kotlinVersionNumber, taskName)
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
                 maybeExpectIsPropertyDeprecationWarnings(agpVersion)

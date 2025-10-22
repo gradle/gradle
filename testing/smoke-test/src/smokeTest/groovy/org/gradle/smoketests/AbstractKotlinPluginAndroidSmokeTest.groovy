@@ -35,7 +35,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
 
     VersionNumber kotlinPluginVersion
 
-    def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#parallel)"(String kotlinPluginVersion, String androidPluginVersion, boolean parallel) {
+    def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion)"(String kotlinPluginVersion, String androidPluginVersion) {
         given:
         AndroidHome.assertIsSet()
         AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
@@ -53,7 +53,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
 
         when:
-        def result = mixedRunner(parallel, androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
+        def result = mixedRunner(androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(androidPluginVersion)
                 expectIsPropertyDeprecationWarnings(androidPluginVersion)
@@ -68,12 +68,10 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
 //  and comment out the lines coming after
 //        kotlinPluginVersion = TestedVersions.kotlin.versions.last()
 //        androidPluginVersion = TestedVersions.androidGradle.versions.last()
-//        parallelTasksInProject = ParallelTasksInProject.FALSE
 
-        [kotlinPluginVersion, androidPluginVersion, parallel] << [
+        [kotlinPluginVersion, androidPluginVersion] << [
                 TestedVersions.kotlin.versions,
                 TestedVersions.androidGradle.versions,
-                [true, false]
         ].combinations()
 
         dsl = getDSL().name()
