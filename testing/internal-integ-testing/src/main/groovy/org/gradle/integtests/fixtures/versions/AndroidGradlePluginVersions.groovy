@@ -38,6 +38,7 @@ class AndroidGradlePluginVersions {
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
+    public static final VersionNumber AGP_9_0 = VersionNumber.parse('9.0.0')
     private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
 
     private static Factory<Properties> propertiesFactory
