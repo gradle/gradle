@@ -16,12 +16,12 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import org.gradle.api.GradleException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -32,6 +32,7 @@ import org.gradle.internal.problems.failure.Failure;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.jspecify.annotations.NullMarked;
 
@@ -48,16 +49,13 @@ import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.addProj
 public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
     private final BuildStateRegistry buildStateRegistry;
     private final BuildIncludeListener failedIncludedBuildsRegistry;
-    private final ResilientIssuesRecorder resilientIssuesRecorder;
 
     public ResilientGradleBuildBuilder(
         BuildStateRegistry buildStateRegistry,
-        BuildIncludeListener failedIncludedBuildsRegistry,
-        ResilientIssuesRecorder resilientIssuesRecorder
+        BuildIncludeListener failedIncludedBuildsRegistry
     ) {
         this.buildStateRegistry = buildStateRegistry;
         this.failedIncludedBuildsRegistry = failedIncludedBuildsRegistry;
-        this.resilientIssuesRecorder = resilientIssuesRecorder;
     }
 
     @Override
@@ -65,9 +63,8 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
         return GRADLE_BUILD_MODEL_NAME.equals(modelName);
     }
 
-
     @Override
-    public DefaultGradleBuild create(BuildState target) {
+    public ToolingModelBuilderResultInternal create(BuildState target) {
         return new ResilientGradleBuildCreator(target).create();
     }
 
@@ -82,12 +79,12 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             this.target = target;
         }
 
-        DefaultGradleBuild create() {
+        ToolingModelBuilderResultInternal create() {
             ensureProjectsLoaded(target);
             DefaultGradleBuild gradleBuild = convert(target);
-            Streams.concat(brokenBuilds.values().stream(), brokenSettings.values().stream())
-                .forEach(resilientIssuesRecorder::recordResilientIssue);
-            return gradleBuild;
+            List<Failure> failures = Streams.concat(brokenBuilds.values().stream(), brokenSettings.values().stream())
+                .collect(ImmutableList.toImmutableList());
+            return ToolingModelBuilderResultInternal.of(gradleBuild, failures);
         }
 
         protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model) {
@@ -178,6 +175,5 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
                 }
             }
         }
-
     }
 }

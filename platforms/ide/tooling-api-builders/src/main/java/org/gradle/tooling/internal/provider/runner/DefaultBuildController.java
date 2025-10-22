@@ -18,13 +18,13 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
@@ -43,14 +43,13 @@ import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
@@ -69,7 +68,6 @@ class DefaultBuildController implements
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
-    private final ResilientIssuesRecorder resilientIssuesRecorder;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
@@ -77,8 +75,7 @@ class DefaultBuildController implements
         BuildCancellationToken cancellationToken,
         BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer,
-        ResilientIssuesRecorder resilientIssuesRecorder
+        PayloadSerializer payloadSerializer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
@@ -86,7 +83,6 @@ class DefaultBuildController implements
         this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
-        this.resilientIssuesRecorder = resilientIssuesRecorder;
     }
 
     /**
@@ -114,6 +110,12 @@ class DefaultBuildController implements
     @Override
     public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
+        ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter);
+        return new ProviderBuildResult<>(model.getModel());
+    }
+
+    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
+        throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
@@ -122,7 +124,11 @@ class DefaultBuildController implements
         BuildTreeModelTarget scopedTarget = resolveTarget(target);
         try {
             Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter);
-            return new ProviderBuildResult<>(model);
+            if (model instanceof ToolingModelBuilderResultInternal) {
+                return (ToolingModelBuilderResultInternal) model;
+            } else {
+                return ToolingModelBuilderResultInternal.of(model);
+            }
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
@@ -170,23 +176,19 @@ class DefaultBuildController implements
     @Override
     public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
-            Object model = getModel(target, modelIdentifier, parameter).getModel();
-            Collection<InternalFailure> failures = getRecordedFailures().collect(toImmutableList());
-            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(model), failures);
+            ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter);
+            List<InternalFailure> failures = toInternalFailures(model.getFailures());
+            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(model.getModel()), failures);
         } catch (Exception e) {
-            ImmutableList.Builder<InternalFailure> builder = ImmutableList.builder();
-            getRecordedFailures().forEach(builder::add);
-            builder.add(DefaultFailure.fromThrowable(e));
-            return new DefaultInternalFetchModelResult<>(null, builder.build());
-        } finally {
-            resilientIssuesRecorder.clear();
+            List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
+            return new DefaultInternalFetchModelResult<>(null, failures);
         }
     }
 
-    private Stream<InternalFailure> getRecordedFailures() {
-        return resilientIssuesRecorder.getFailures()
+    private static List<InternalFailure> toInternalFailures(List<Failure> failures) {
+        return failures
             .stream()
-            .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null));
+            .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null))
+            .collect(toImmutableList());
     }
-
 }
