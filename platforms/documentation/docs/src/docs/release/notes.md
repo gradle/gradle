@@ -64,7 +64,7 @@ Gradle now supports running builds on [Windows on ARM (ARM64/AArch64) devices](u
 
 This makes it possible to run Gradle on Windows virtual machines hosted on ARM-based systems.
 
-Due to compatibility issues on Windows AArch64, Gradle cannot display rich console output on this platform. Both the default behavior and the `--console=rich` option will use plain console output instead.
+**NOTE:** Due to compatibility issues on Windows AArch64, the rich console is not available. Both the default behavior and `--console=rich` fall back to plain console output.
 
 Limitations see [Known issues](userguide/compatibility.html#known_issues)
 
