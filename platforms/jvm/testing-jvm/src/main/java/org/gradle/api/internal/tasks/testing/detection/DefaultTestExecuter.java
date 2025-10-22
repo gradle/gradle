@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -43,6 +44,8 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * The default test class scanner factory.
@@ -84,43 +87,30 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             testExecutionSpec.getModulePath()
         );
 
-        final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
-            @Override
-            public TestClassProcessor create() {
-                return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, testFramework.getWorkerConfigurationAction());
-            }
-        };
-        final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
-            @Override
-            public TestClassProcessor create() {
-                return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
-            }
-        };
+        final Factory<TestClassProcessor> forkingProcessorFactory = () -> new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(), classpath, testFramework.getWorkerConfigurationAction());
+        final Factory<TestClassProcessor> reforkingProcessorFactory = () -> new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
         processor =
             new PatternMatchTestClassProcessor(testFilter,
-                new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(),
+                new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
                     new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
-        final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
+        final FileTree testClassFiles = testExecutionSpec.isScanForTestClasses() ? testExecutionSpec.getCandidateClassFiles() : FileCollectionFactory.emptyTree();
+        final Set<File> testDefinitionDirs = testExecutionSpec.isScanForTestDefinitions() ? testExecutionSpec.getCandidateTestDefinitionDirs() : Collections.emptySet();
 
-        // TODO: this logic is incorrect - need to handle the ONLY test resources case properly
-        TestDetector detector;
-        if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
+        if (testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
-            testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
+            testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
-            detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
-        } else {
-            detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
+
+        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testFramework.getDetector(), processor);
 
         // What is this?
         // In some versions of the Gradle retry plugin, it would retry any test that had any kind of failure associated with it.
         // We attempt to capture assumption violations as failures for skipped tests.
         //
         // This would cause any test that had been skipped to be executed multiple times. This could sometimes cause real failures.
-        // To workaround this, we shield the test retry result processor from seeing test assumption failures.
+        // To work around this, we shield the test retry result processor from seeing test assumption failures.
         if (testResultProcessor != null) {
             // KMP calls this code with a delegating test result processor that does not return sensible Class objects
             String canonicalName = testResultProcessor.getClass().getCanonicalName();

@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.Cast;
@@ -53,7 +53,7 @@ import java.util.concurrent.BlockingQueue;
  * methods willed be called sequentially in the following order:
  *
  * - {@link RemoteTestClassProcessor#startProcessing()}
- * - 0 or more calls to {@link RemoteTestClassProcessor#processTestClass(TestClassRunInfo)}
+ * - 0 or more calls to {@link RemoteTestClassProcessor#processTestDefinition(TestDefinition)}
  * - {@link RemoteTestClassProcessor#stop()}
  *
  * Commands are received on communication threads and then processed sequentially on the main thread.  Although concurrent calls to
@@ -166,7 +166,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     @Override
-    public void processTestClass(final TestClassRunInfo testClass) {
+    public void processTestDefinition(final TestDefinition testDefinition) {
         submitToRun(new Runnable() {
             @Override
             public void run() {
@@ -174,7 +174,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                     throw new IllegalStateException("Test classes cannot be processed until a command to start processing has been received");
                 }
                 try {
-                    processor.processTestClass(testClass);
+                    processor.processTestDefinition(testDefinition);
                 } catch (AccessControlException e) {
                     throw e;
                 } finally {
