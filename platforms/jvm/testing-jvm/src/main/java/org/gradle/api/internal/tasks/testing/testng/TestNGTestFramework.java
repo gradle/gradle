@@ -114,4 +114,8 @@ public abstract class TestNGTestFramework implements TestFramework {
         detector = null;
     }
 
+    @Override
+    public String getDisplayName() {
+        return "Test NG";
+    }
 }

@@ -49,11 +49,11 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestDefinition testDefinition) {
         try {
-            processor.processTestClass(testClass);
+            processor.processTestDefinition(testDefinition);
         } catch (Throwable t) {
-            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not execute test class '%s'.", testClass.getTestClassName()), t);
+            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not execute %s.", testDefinition.getDisplayName()), t);
             resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         }
     }
