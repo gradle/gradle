@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-import org.fusesource.jansi.WindowsAnsiPrintStream;
+import org.fusesource.jansi.io.WindowsAnsiProcessor;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,7 +27,7 @@ public class WindowsConsoleDetector implements ConsoleDetector {
     public ConsoleMetaData getConsole() {
         // Use Jansi's detection mechanism
         try {
-            new WindowsAnsiPrintStream(new PrintStream(new ByteArrayOutputStream()));
+            new WindowsAnsiProcessor(new PrintStream(new ByteArrayOutputStream()), true);
             return FallbackConsoleMetaData.ATTACHED;
         } catch (IOException ignore) {
             // Not attached to a console

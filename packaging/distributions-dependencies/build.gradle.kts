@@ -123,7 +123,7 @@ dependencies {
         api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
         api(libs.jakartaActivation)     { version { strictly("2.0.1") }}
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
-        api(libs.jansi)                 { version { strictly("1.18"); because("2.x changes the API") }}
+        api(libs.jansi)                 { version { strictly("2.4.2") }}
         api(libs.jatl)                  { version { strictly("0.2.3") }}
         api(libs.javaPoet)              { version { strictly("1.13.0") } }
         api(libs.jaxbCore)              { version { strictly(jaxbVersion) }}
