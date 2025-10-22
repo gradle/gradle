@@ -75,9 +75,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         if (impl != ScopedServiceRegistry.class && impl != DefaultServiceRegistry.class) {
             throw new IllegalArgumentException(
                 String.format(
-                    "Inheriting from %s is not allowed. Use %s instead.",
-                    DefaultServiceRegistry.class.getSimpleName(),
-                    ScopedServiceRegistry.class.getSimpleName()));
+                    "Inheriting from %s is not allowed. Use ServiceRegistryBuilder instead.",
+                    DefaultServiceRegistry.class.getSimpleName()));
         }
     }
 
