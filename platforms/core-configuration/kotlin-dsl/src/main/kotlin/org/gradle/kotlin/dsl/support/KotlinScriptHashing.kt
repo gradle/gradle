@@ -21,9 +21,9 @@ import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 
 object KotlinScriptHashing {
 
-    fun hashOf(charSequence: CharSequence) =
-        hashOfNormalisedString(convertLineSeparatorsToUnix(charSequence.toString()))
+    fun hashOf(scriptText: CharSequence) =
+        hashOfNormalisedString(convertLineSeparatorsToUnix(scriptText.toString()))
 
-    fun hashOfNormalisedString(charSequence: CharSequence) =
-        Hashing.hashString(charSequence).toString()
+    fun hashOfNormalisedString(scriptText: CharSequence) =
+        Hashing.hashString(scriptText).toString()
 }
