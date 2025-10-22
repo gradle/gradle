@@ -39,8 +39,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
-                id 'jvm-test-suite'
+                id 'java-library'
             }
 
             ${mavenCentralRepository()}
@@ -73,8 +72,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
-                id 'jvm-test-suite'
+                id 'java-library'
             }
 
             ${mavenCentralRepository()}
@@ -91,7 +89,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        writeTestDefinitions() // Written to default dir, not badPath
+        writeTestDefinitions() // Written to default dir, not badPath, needed to avoid "no sources" skip
 
         when:
         fails("test")
@@ -100,12 +98,127 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("Test definitions directory does not exist: " + testDirectory.file(badPath))
     }
 
+    def "non-directory test definitions directory fails"() {
+        def badPath = "src/test/i-dont-exist.txt"
+        file(badPath).createFile()
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${setupSuiteWithEngineFixture()}
+
+                targets.all {
+                    testTask.configure {
+                        scanForTestDefinitions = true
+                        testDefinitionDirs.setFrom(project.layout.projectDirectory.file("$badPath"))
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        failureCauseContains("Test definitions directory is not a directory: " + testDirectory.file(badPath))
+    }
+
+    def "non-readable test definitions directory fails"() {
+        def badPath = "src/test/i-cant-be-read"
+        // create the directory and make it non-readable at the filesystem level
+        def dir = file(badPath).createDir()
+
+        // try to remove read permission for everyone (owner=false, ownerOnly=false)
+        // fall back to single-arg version if the two-arg form isn't supported/has no effect
+        if (!dir.setReadable(false, false)) {
+            dir.setReadable(false)
+        }
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${setupSuiteWithEngineFixture()}
+
+                targets.all {
+                    testTask.configure {
+                        scanForTestDefinitions = true
+                        testDefinitionDirs.setFrom(project.layout.projectDirectory.file("$badPath"))
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        failureCauseContains("Cannot access input property 'candidateDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
+        failureCauseContains("java.nio.file.AccessDeniedException: ${dir.absolutePath}")
+
+        cleanup:
+        // restore read permission for cleanup
+        dir.setReadable(true, false)
+    }
+
+    def "non-readable files in test definitions directory fails"() {
+        def badPath = "src/test/definitions/i-cant-be-read.txt"
+        // create the file and make it non-readable at the filesystem level
+        def badFile = file(badPath).createFile()
+
+        // try to remove read permission for everyone (owner=false, ownerOnly=false)
+        // fall back to single-arg version if the two-arg form isn't supported/has no effect
+        if (!badFile.setReadable(false, false)) {
+            badFile.setReadable(false)
+        }
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${setupSuiteWithEngineFixture()}
+
+                targets.all {
+                    testTask.configure {
+                        scanForTestDefinitions = true
+                    }
+                }
+            }
+        """
+
+        when:
+        fails("test", "-S")
+
+        then:
+        failureCauseContains("Cannot access input property 'candidateDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
+        failureCauseContains("Failed to create MD5 hash for file: ${badFile.absolutePath} (Permission denied)")
+
+        cleanup:
+        // restore read permission for cleanup
+        badFile.setReadable(true, false)
+    }
+
     def "resource-based test engine detects and executes test definitions (excluding jupiter engine = #excludingJupiter)"() {
         given:
         buildFile << """
             plugins {
-                id 'java'
-                id 'jvm-test-suite'
+                id 'java-library'
             }
 
             ${mavenCentralRepository()}
@@ -146,8 +259,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
-                id 'jvm-test-suite'
+                id 'java-library'
             }
 
             ${mavenCentralRepository()}
@@ -183,8 +295,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
-                id 'jvm-test-suite'
+                id 'java-library'
             }
 
             ${mavenCentralRepository()}
@@ -216,8 +327,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                id 'java'
-                id 'jvm-test-suite'
+                id 'java-library'
             }
 
             ${mavenCentralRepository()}
@@ -254,8 +364,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
     def "missing test classes and/or definitions is skipped or fails when appropriate (scan for test classes = #scanForTestClasses, has test classes = #hasTestClasses, scan for test defs = #scanForTestDefs, has test defs = #hasTestDefs )"() {
         buildFile << """
             plugins {
-                id 'java'
-                id 'jvm-test-suite'
+                id 'java-library'
             }
 
             ${mavenCentralRepository()}
