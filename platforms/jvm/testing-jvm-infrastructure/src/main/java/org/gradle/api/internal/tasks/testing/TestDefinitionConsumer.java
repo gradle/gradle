@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing;
 
-public interface TestClassRunInfo {
-    String getTestClassName();
+import org.jspecify.annotations.NullMarked;
+
+import java.util.function.Consumer;
+
+/**
+ * Something that consumes tests (such as by running them).
+ * <p>
+ * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests.
+ */
+@NullMarked
+public interface TestDefinitionConsumer extends Consumer<TestDefinition> {
 }

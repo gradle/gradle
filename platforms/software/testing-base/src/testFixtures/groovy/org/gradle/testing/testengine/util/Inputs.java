@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.testing.testengine.util;
 
-import org.jspecify.annotations.NullMarked;
+import java.io.File;
 
-/**
- * A type that consumes tests.
- * <p>
- * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests by class name.
- */
-@NullMarked
-public interface TestClassConsumer {
-    /**
-     * Consumes a class-based test given the class's name.
-     *
-     * @param testClassInfo Specifies the test class to consume
-     */
-    void consumeClass(TestClassRunInfo testClassInfo);
+public interface Inputs {
+    String PROPERTY_PREFIX = "org.gradle.testing.fixture.testengine.";
+
+    String TEST_RESOURCES_ROOT_DIR_PROP = PROPERTY_PREFIX + "testResourcesRootDir";
+
+    static File getTestResourcesRootDir() {
+        String testResourcesRootDir = System.getProperty(TEST_RESOURCES_ROOT_DIR_PROP);
+        return new File(testResourcesRootDir);
+    }
 }

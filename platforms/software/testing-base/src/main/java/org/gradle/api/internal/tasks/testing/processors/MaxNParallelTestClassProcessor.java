@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -59,7 +59,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestDefinition testDefinition) {
         if (stoppedNow) {
             return;
         }
@@ -77,7 +77,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
             processor = processors.get(pos);
             pos = (pos + 1) % processors.size();
         }
-        processor.processTestClass(testClass);
+        processor.processTestDefinition(testDefinition);
     }
 
     @Override

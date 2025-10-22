@@ -30,12 +30,12 @@ public interface TestClassProcessor extends Stoppable {
     void startProcessing(TestResultProcessor resultProcessor);
 
     /**
-     * Accepts the given test class for processing. May execute synchronously, asynchronously, or defer execution for
+     * Accepts the given test definition for processing. May execute synchronously, asynchronously, or defer execution for
      * later.
      *
-     * @param testClass The test class.
+     * @param testDefinition The test definition.
      */
-    void processTestClass(TestClassRunInfo testClass);
+    void processTestDefinition(TestDefinition testDefinition);
 
     /**
      * Completes any pending or asynchronous processing. Blocks until all processing is complete. The processor should
