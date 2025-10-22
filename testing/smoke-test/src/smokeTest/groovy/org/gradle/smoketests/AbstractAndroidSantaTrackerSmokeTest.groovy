@@ -48,7 +48,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
 
     String kotlinVersion = KOTLIN_VERSIONS.latestStable
 
-    static List<String> agpVersionsForSantaTracker = AndroidGradlePluginVersions.latestsPlusNightly.findAll { v ->
+    static List<String> agpVersionsForSantaTracker = AGP_VERSIONS.latestsPlusNightly.findAll { v ->
         VersionNumber.parse(v).baseVersion < AndroidGradlePluginVersions.AGP_9_0
     }.tap { versions ->
         // This assertion will fail when we stop testing 8.x, time to remove these tests
