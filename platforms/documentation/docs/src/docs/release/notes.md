@@ -60,7 +60,7 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 <a name="windows-arm-support"></a>
 ### Windows on ARM support
 
-Gradle now supports [running builds on Windows ARM (ARM64, AArch64) devices](userguide/compatibility.html#target_platforms).
+Gradle now supports running builds on [Windows on ARM (ARM64/AArch64) devices](userguide/compatibility.html#target_platforms).
 
 This makes it possible to run Gradle on Windows virtual machines hosted on ARM-based systems.
 
