@@ -39,7 +39,7 @@ class PaparazziPluginSmokeTest extends AbstractSmokeTest implements RunnerFactor
         """
 
         // We are not testing AGP here, just pararazzi. So the AGP version does not really matter.
-        def agpVersion = TestedVersions.androidGradle.last()
+        def agpVersion = AGP_VERSIONS.latestStable
 
         buildFile << """
             plugins {
