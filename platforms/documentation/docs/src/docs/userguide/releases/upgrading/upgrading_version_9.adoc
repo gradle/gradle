@@ -41,6 +41,11 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== TestNG output may be different when using a version before 6.9.13.3
+As a part of the `AbstractTestTask` refactoring, the integration with TestNG has been updated.
+Gradle now relies on a correctly functioning `IClassListener` integration to report the correct hierarchy of test classes and methods.
+This may lead to different output when using TestNG versions before 6.9.13.3.
+
 ==== Upgrade to Kotlin 2.2.21
 
 The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[Kotlin 2.2.21].
