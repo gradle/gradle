@@ -38,7 +38,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Inheriting from DefaultServiceRegistry is not allowed. Use ScopedServiceRegistry instead."
+        e.message == "Inheriting from DefaultServiceRegistry is not allowed. Use ServiceRegistryBuilder instead."
     }
 
     def throwsExceptionForUnknownService() {
