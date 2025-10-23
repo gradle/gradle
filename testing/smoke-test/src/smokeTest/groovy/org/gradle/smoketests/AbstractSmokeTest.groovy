@@ -270,6 +270,7 @@ abstract class AbstractSmokeTest extends Specification {
 class SmokeTestedVersionsSanityCheck extends Specification {
     def specialPlugins = [
         AbstractSmokeTest.TestedVersions.androidGradle,
+        AbstractSmokeTest.TestedVersions.androidGradleBefore9,
         AbstractSmokeTest.TestedVersions.kotlin,
     ].size()
 
