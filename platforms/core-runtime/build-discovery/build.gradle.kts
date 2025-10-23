@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,13 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "The Tooling API provider implementation (the version-specific part that is loaded into the client)"
+description = "Internal API for discovery of build settings and build-relevant locations"
 
 dependencies {
-    api(projects.toolingApi)
+    api(projects.stdlibJavaExtensions)
+
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
-    implementation(projects.buildDiscovery)
     implementation(projects.buildProcessServices)
-    implementation(projects.buildState)
-    implementation(projects.classloaders)
-    implementation(projects.instrumentationAgentServices)
-    implementation(projects.launcher)
-    implementation(projects.logging)
-    implementation(projects.native)
-    implementation(projects.serviceLookup)
-    implementation(projects.serviceProvider)
-    implementation(projects.serviceRegistryBuilder)
-    implementation(projects.stdlibJavaExtensions)
-
-    implementation(libs.slf4jApi)
-
-    compileOnly(libs.jspecify)
 }
