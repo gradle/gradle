@@ -105,8 +105,8 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
     protected TestDefinitionConsumer<TestDefinition> createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
-        junitClassLoader = Thread.currentThread().getContextClassLoader();
-        testClassExecutor = new CollectThenExecuteTestDefinitionConsumer(threadSafeResultProcessor);
+        ClassLoader junitClassLoader = Thread.currentThread().getContextClassLoader();
+        testClassExecutor = new CollectThenExecuteTestDefinitionConsumer(threadSafeResultProcessor, launcherSession, junitClassLoader, spec, idGenerator, clock);
         return testClassExecutor;
     }
 
@@ -120,12 +120,23 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
     }
 
     @NullMarked
-    private final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer<TestDefinition> {
+    private static final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer<TestDefinition> {
         private final List<DiscoverySelector> selectors = new ArrayList<>();
-        private final TestResultProcessor resultProcessor;
 
-        CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor) {
+        private final TestResultProcessor resultProcessor;
+        private final BackwardsCompatibleLauncherSession launcherSession;
+        private final ClassLoader junitClassLoader;
+        private final JUnitPlatformSpec spec;
+        private final IdGenerator<?> idGenerator;
+        private final Clock clock;
+
+        CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor, BackwardsCompatibleLauncherSession launcherSession, ClassLoader junitClassLoader, JUnitPlatformSpec spec, IdGenerator<?> idGenerator, Clock clock) {
             this.resultProcessor = resultProcessor;
+            this.launcherSession = launcherSession;
+            this.junitClassLoader = junitClassLoader;
+            this.spec = spec;
+            this.idGenerator = idGenerator;
+            this.clock = clock;
         }
 
         @Override
@@ -149,7 +160,7 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
 
 
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
-            selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefintionFile()));
+            selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionFile()));
         }
 
         private void processAllTestClasses() {
@@ -201,108 +212,69 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
 
             return requestBuilder.build();
         }
-    }
 
-    private void executeDryRun(TestPlan testPlan, TestExecutionListener listener) {
-        listener.testPlanExecutionStarted(testPlan);
-
-        for (TestIdentifier root : testPlan.getRoots()) {
-            dryRun(root, testPlan, listener);
-        }
-
-        listener.testPlanExecutionFinished(testPlan);
-    }
-
-    private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
-        if (testIdentifier.isTest()) {
-            listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
-        } else {
-            listener.executionStarted(testIdentifier);
-
-            for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
-                dryRun(child, testPlan, listener);
+        private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
+            TestFilterSpec filter = spec.getFilter();
+            if (isNotEmpty(filter)) {
+                TestSelectionMatcher matcher = new TestSelectionMatcher(filter);
+                requestBuilder.filters(new ClassMethodNameFilter(matcher));
             }
-            listener.executionFinished(testIdentifier, TestExecutionResult.successful());
+        }
+
+        private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
+            List<String> includeEngines = spec.getIncludeEngines();
+            if (!includeEngines.isEmpty()) {
+                requestBuilder.filters(includeEngines(includeEngines));
+            }
+            List<String> excludeEngines = spec.getExcludeEngines();
+            if (!excludeEngines.isEmpty()) {
+                requestBuilder.filters(excludeEngines(excludeEngines));
+            }
+        }
+
+        private void addTagsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
+            List<String> includeTags = spec.getIncludeTags();
+            if (!includeTags.isEmpty()) {
+                requestBuilder.filters(includeTags(includeTags));
+            }
+            List<String> excludeTags = spec.getExcludeTags();
+            if (!excludeTags.isEmpty()) {
+                requestBuilder.filters(excludeTags(excludeTags));
+            }
+        }
+
+        private void executeDryRun(TestPlan testPlan, TestExecutionListener listener) {
+            listener.testPlanExecutionStarted(testPlan);
+
+            for (TestIdentifier root : testPlan.getRoots()) {
+                dryRun(root, testPlan, listener);
+            }
+
+            listener.testPlanExecutionFinished(testPlan);
+        }
+
+        private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
+            if (testIdentifier.isTest()) {
+                listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
+            } else {
+                listener.executionStarted(testIdentifier);
+
+                for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
+                    dryRun(child, testPlan, listener);
+                }
+                listener.executionFinished(testIdentifier, TestExecutionResult.successful());
+            }
+        }
+
+        private boolean isNotEmpty(TestFilterSpec filter) {
+            return !filter.getIncludedTests().isEmpty()
+                || !filter.getIncludedTestsCommandLine().isEmpty()
+                || !filter.getExcludedTests().isEmpty();
         }
     }
 
-    /**
-     * Test whether {@code org.junit.vintage:junit-vintage-engine} and {@code junit:junit} are
-     * available on the classpath. This allows us to enable or disable certain behavior
-     * which may attempt to load classes from these modules.
-     */
-    private boolean supportsVintageTests() {
-        try {
-            Class.forName("org.junit.vintage.engine.VintageTestEngine", false, junitClassLoader);
-            Class.forName("org.junit.runner.Request", false, junitClassLoader);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    private boolean isInnerClass(Class<?> klass) {
-        return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
-    }
-
-    private Class<?> loadClass(String className) {
-        try {
-            return Class.forName(className, false, junitClassLoader);
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
-        List<DiscoverySelector> classSelectors = testClasses.stream()
-            .map(DiscoverySelectors::selectClass)
-            .collect(Collectors.toList());
-
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(classSelectors);
-
-        addTestNameFilters(requestBuilder);
-        addEnginesFilter(requestBuilder);
-        addTagsFilter(requestBuilder);
-
-        return requestBuilder.build();
-    }
-
-    private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
-        List<String> includeEngines = spec.getIncludeEngines();
-        if (!includeEngines.isEmpty()) {
-            requestBuilder.filters(includeEngines(includeEngines));
-        }
-        List<String> excludeEngines = spec.getExcludeEngines();
-        if (!excludeEngines.isEmpty()) {
-            requestBuilder.filters(excludeEngines(excludeEngines));
-        }
-    }
-
-    private void addTagsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
-        List<String> includeTags = spec.getIncludeTags();
-        if (!includeTags.isEmpty()) {
-            requestBuilder.filters(includeTags(includeTags));
-        }
-        List<String> excludeTags = spec.getExcludeTags();
-        if (!excludeTags.isEmpty()) {
-            requestBuilder.filters(excludeTags(excludeTags));
-        }
-    }
-
-    private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
-        TestFilterSpec filter = spec.getFilter();
-        if (isNotEmpty(filter)) {
-            requestBuilder.filters(new ClassMethodNameFilter(matcher));
-        }
-    }
-
-    private static boolean isNotEmpty(TestFilterSpec filter) {
-        return !filter.getIncludedTests().isEmpty()
-            || !filter.getIncludedTestsCommandLine().isEmpty()
-            || !filter.getExcludedTests().isEmpty();
-    }
-
-    private static class ClassMethodNameFilter implements PostDiscoveryFilter {
+    @NullMarked
+    private static final class ClassMethodNameFilter implements PostDiscoveryFilter {
         private final TestSelectionMatcher matcher;
 
         private ClassMethodNameFilter(TestSelectionMatcher matcher) {
@@ -412,7 +384,8 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
         }
     }
 
-    private static class BackwardsCompatibleLauncherSession implements AutoCloseable {
+    @NullMarked
+    private static final class BackwardsCompatibleLauncherSession implements AutoCloseable {
 
         static BackwardsCompatibleLauncherSession open() {
             try {
@@ -445,5 +418,4 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
             onClose.run();
         }
     }
-
 }
