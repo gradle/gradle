@@ -16,12 +16,19 @@
 
 package org.gradle.kotlin.dsl.services
 
+import org.gradle.execution.BatchScriptCompiler
+import org.gradle.internal.extensions.core.add
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
+import org.gradle.kotlin.dsl.execution.KotlinDslBatchScriptCompiler
 
 
 internal
 class KotlinScriptServices : AbstractGradleModuleServices() {
+
+    override fun registerBuildTreeServices(registration: ServiceRegistration) {
+        registration.add<BatchScriptCompiler, KotlinDslBatchScriptCompiler>()
+    }
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(org.gradle.kotlin.dsl.accessors.BuildScopeServices)
