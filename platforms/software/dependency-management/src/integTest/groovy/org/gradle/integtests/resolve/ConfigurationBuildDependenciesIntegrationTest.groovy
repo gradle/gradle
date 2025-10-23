@@ -40,7 +40,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             task lib
             dependencies {
                 compile project(':child')
-                compile files('main-lib.jar') { builtBy lib }
+                compile files('main-lib.jar') { builtBy tasks.lib }
             }
             task direct { inputs.files configurations.compile }
             task artifactView { inputs.files configurations.compile.incoming.artifactView { }.files }
@@ -61,10 +61,10 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 create('default').extendsFrom compile
             }
             artifacts {
-                compile file: file('child.jar'), builtBy: jar
+                compile file: file('child.jar'), builtBy: tasks.jar
             }
             dependencies {
-                compile files('child-lib.jar') { builtBy lib }
+                compile files('child-lib.jar') { builtBy tasks.lib }
             }
         """
 
@@ -96,10 +96,10 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             task jar
             task lib
             artifacts {
-                compile file: file("\${project.name}.jar"), builtBy: jar
+                compile file: file("\${project.name}.jar"), builtBy: tasks.jar
             }
             dependencies {
-                compile files("\${project.name}-lib.jar") { builtBy lib }
+                compile files("\${project.name}-lib.jar") { builtBy tasks.lib }
             }
         """
 
@@ -143,10 +143,10 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 conf
             }
             artifacts {
-                conf file: file("\${project.name}.jar"), builtBy: jar
+                conf file: file("\${project.name}.jar"), builtBy: tasks.jar
             }
             dependencies {
-                conf files("\${project.name}-lib.jar") { builtBy lib }
+                conf files("\${project.name}-lib.jar") { builtBy tasks.lib }
             }
         """
 
@@ -384,7 +384,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 create('default').extendsFrom compile
             }
             artifacts {
-                compile file: jar.outputs.files.singleFile, builtBy: jar
+                compile file: tasks.jar.outputs.files.singleFile, builtBy: tasks.jar
             }
             dependencies {
                 compile 'test:test:1.0'
@@ -435,7 +435,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 create('default').extendsFrom compile
             }
             artifacts {
-                compile file: jar.outputs.files.singleFile, builtBy: jar
+                compile file: tasks.jar.outputs.files.singleFile, builtBy: tasks.jar
             }
             dependencies {
                 compile 'test:test:1.0'

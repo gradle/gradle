@@ -122,9 +122,9 @@ task block2 {
     }
 }
 
-block1.mustRunAfter redThings
-blueThings.mustRunAfter block1
-block2.mustRunAfter blueThings
+tasks.block1.mustRunAfter tasks.redThings
+tasks.blueThings.mustRunAfter tasks.block1
+tasks.block2.mustRunAfter tasks.blueThings
 """
         // Ensure build scripts compiled
         run("help")
@@ -179,9 +179,9 @@ task block2 {
     }
 }
 
-redThings.mustRunAfter block1
-redThings.mustRunAfter block2
-blueThings.mustRunAfter redThings
+tasks.redThings.mustRunAfter tasks.block1
+tasks.redThings.mustRunAfter tasks.block2
+tasks.blueThings.mustRunAfter tasks.redThings
 """
         // Ensure build scripts compiled
         run("help")
@@ -236,9 +236,9 @@ task block2 {
     }
 }
 
-redThings.mustRunAfter block1
-redThings.mustRunAfter block2
-blueThings.mustRunAfter redThings
+tasks.redThings.mustRunAfter tasks.block1
+tasks.redThings.mustRunAfter tasks.block2
+tasks.blueThings.mustRunAfter tasks.redThings
 """
         // Ensure build scripts compiled
         run("help")

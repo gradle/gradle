@@ -154,7 +154,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -398,7 +398,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar2
+                    compile tasks.jar2
                 }
             }
 
@@ -460,7 +460,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         }.artifacts
                         inputs.files(artifacts.artifactFiles)
 
-                        dependsOn(beforeResolve)
+                        dependsOn(tasks.beforeResolve)
 
                         def projectName = project.name
                         doLast {

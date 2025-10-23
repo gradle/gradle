@@ -81,7 +81,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 assert extraRuleCandidates == ['1.1']
             }
 """
@@ -252,7 +252,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 assert rule1candidates == ['2.0']
                 assert rule2candidates == ['2.0']
             }
@@ -309,7 +309,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         buildFile.text = """
             $commonBuildFile
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 assert status11 == 'milestone'
                 assert branch11 == 'test'
             }
@@ -349,7 +349,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         buildFile.text = """
             $commonBuildFile
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 assert status11 == 'release'
                 assert branch11 == 'master'
             }
@@ -455,7 +455,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 assert candidates == ['1.2', '1.2', '1.2', '1.2']
             }
         """
@@ -491,7 +491,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 def artifacts = configurations.conf.incoming.artifacts.artifacts
                 assert artifacts.size() == 1
                 assert artifacts[0].id.componentIdentifier.version == '1.1'
@@ -544,7 +544,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
                 }
             }
 
-            checkDeps.doLast {
+            tasks.checkDeps.doLast {
                 def artifacts = configurations.conf.incoming.artifacts.artifacts
                 assert artifacts.size() == 1
                 assert artifacts[0].id.componentIdentifier.version == '1.1'

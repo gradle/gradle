@@ -165,13 +165,13 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 output.set(file("out"))
             }
             task longRunning {
-                dependsOn producer
+                dependsOn tasks.producer
                 doLast {
                     ${blockingServer.callFromBuild("longRunning")}
                 }
             }
             artifacts {
-                "default"(producer.output)
+                "default"(tasks.producer.output)
             }
         """
 
@@ -186,7 +186,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
             task consumer {
                 inputs.files configurations.default
                 outputs.file file("out")
-                dependsOn guard
+                dependsOn tasks.guard
                 doLast {
                     ${blockingServer.callFromBuild("consumer")}
                 }

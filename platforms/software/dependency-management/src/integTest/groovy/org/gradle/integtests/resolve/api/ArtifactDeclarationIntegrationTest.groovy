@@ -385,7 +385,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 outputFile.set(layout.buildDirectory.file("a.jar"))
             }
             artifacts {
-                compile classes.outputFile
+                compile tasks.classes.outputFile
             }
         """
 
@@ -424,7 +424,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 outputDir.set(layout.buildDirectory.dir("classes"))
             }
             artifacts {
-                compile classes.outputDir
+                compile tasks.classes.outputDir
             }
         """
 
@@ -538,7 +538,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 task jar
                 compile(artifact) {
                     name = "thing"
-                    builtBy jar
+                    builtBy tasks.jar
                 }
             }
             assert configurations.compile.artifacts.collect { it.file.name }  == ["lib1.jar"]

@@ -248,7 +248,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         fails ':lib1:checkDeps'
 
         then:
-        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'lib1${File.separator}build.gradle'")
+        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
 
     }
 
