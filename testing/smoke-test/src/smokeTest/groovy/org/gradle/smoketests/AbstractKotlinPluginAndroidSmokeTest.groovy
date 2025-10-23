@@ -27,6 +27,9 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  * Abstract base class for testing the Kotlin plugin with Android projects.
  *
  * This test exists to avoid duplicating test logic for Groovy and Kotlin DSLs.
+ *
+ * This test uses AGP + KGP-android plugins.
+ * This is not supported with AGP >= 9.0 that comes with built-in Kotlin support.
  */
 @LocalOnly(because = "Needs Android environment")
 abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest implements RunnerFactory {
@@ -35,7 +38,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
 
     VersionNumber kotlinPluginVersion
 
-    def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#parallel)"(String kotlinPluginVersion, String androidPluginVersion, boolean parallel) {
+    def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion)"(String kotlinPluginVersion, String androidPluginVersion) {
         given:
         AndroidHome.assertIsSet()
         AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
@@ -48,12 +51,12 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     file(sampleBuildFileName),
                     kotlinVersion: kotlinPluginVersion,
                     androidPluginVersion: androidPluginVersion,
-                    androidBuildToolsVersion: AGP_VERSIONS.buildToolsVersion())
+                    androidBuildToolsVersion: AGP_VERSIONS.getBuildToolsVersionFor(androidPluginVersion))
         }
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
 
         when:
-        def result = mixedRunner(parallel, androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
+        def result = mixedRunner(androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(androidPluginVersion)
                 expectIsPropertyDeprecationWarnings(androidPluginVersion)
@@ -68,12 +71,10 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
 //  and comment out the lines coming after
 //        kotlinPluginVersion = TestedVersions.kotlin.versions.last()
 //        androidPluginVersion = TestedVersions.androidGradle.versions.last()
-//        parallelTasksInProject = ParallelTasksInProject.FALSE
 
-        [kotlinPluginVersion, androidPluginVersion, parallel] << [
+        [kotlinPluginVersion, androidPluginVersion] << [
                 TestedVersions.kotlin.versions,
-                TestedVersions.androidGradle.versions,
-                [true, false]
+                TestedVersions.androidGradleBefore9.versions,
         ].combinations()
 
         dsl = getDSL().name()

@@ -81,7 +81,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             android {
                 namespace = "org.gradle.smoketests.androidrecipes"
                 compileSdk = 29
-                buildToolsVersion("${AGP_VERSIONS.buildToolsVersion()}")
+                buildToolsVersion("${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}")
                 buildFeatures { buildConfig = true }
                 kotlinOptions { jvmTarget = "1.8" }
             }
@@ -130,7 +130,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             </manifest>'''.stripIndent()
 
         and:
-        def runner = mixedRunner(false, agpVersion, kotlinVersionNumber, taskName)
+        def runner = mixedRunner(agpVersion, kotlinVersionNumber, taskName)
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
                 maybeExpectIsPropertyDeprecationWarnings(agpVersion)
