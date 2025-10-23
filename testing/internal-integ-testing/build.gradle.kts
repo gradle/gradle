@@ -33,7 +33,6 @@ dependencies {
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.dependencyManagement)
     api(projects.hashing)
     api(projects.internalTesting) {
         because("Part of the public API")
@@ -96,6 +95,7 @@ dependencies {
     implementation(projects.cli)
     implementation(projects.clientServices)
     implementation(projects.daemonServices)
+    implementation(projects.dependencyManagement)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
     implementation(projects.fileCollections)
