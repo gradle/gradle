@@ -182,17 +182,22 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
-    public void finalizeIfNotAlready() {
-        finalizeIfNotAlready(null);
+    public boolean finalizeIfNotAlready() {
+        return finalizeIfNotAlready(null);
     }
 
-    private void finalizeIfNotAlready(@Nullable NodeExecutionContext context) {
+    /**
+     * Calculates the value, if not already calculated.
+     *
+     * @return true if this call executed the calculation, false if the calculation was already completed.
+     */
+    private boolean finalizeIfNotAlready(@Nullable NodeExecutionContext context) {
         CalculationState<T, S> calculationState = this.calculationState;
         if (calculationState == null) {
             // Already calculated
-            return;
+            return false;
         }
-        calculationState.attachValue(this, context);
+        return calculationState.attachValue(this, context);
     }
 
     private static class CalculationState<T, S extends ValueCalculator<? extends T>> {
@@ -208,13 +213,20 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
             this.defaultContext = defaultContext;
         }
 
-        // Can be called multiple times
-        void attachValue(CalculatedValueContainer<T, ?> owner, @Nullable NodeExecutionContext context) {
+        /**
+         * Executes the calculation if not already completed, attaching the result to {@code owner}.
+         * This method may be called concurrently from multiple threads, but the calculation will only be executed once.
+         * If multiple threads call this method concurrently, they will block until the calculation is completed.
+         *
+         * @return true if this call executed the calculation, false if the calculation was already completed
+         * before this call or if this call blocked waiting for another thread to complete the calculation.
+         */
+        boolean attachValue(CalculatedValueContainer<T, ?> owner, @Nullable NodeExecutionContext context) {
             acquireLock();
             try {
                 if (done) {
                     // Already calculated
-                    return;
+                    return false;
                 }
                 done = true;
 
@@ -227,6 +239,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                     return supplier.calculateValue(effectiveContext);
                 });
                 owner.calculationState = null;
+                return true;
             } finally {
                 releaseLock();
             }
