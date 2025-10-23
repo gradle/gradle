@@ -16,6 +16,7 @@
 
 package org.gradle.execution;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
@@ -34,6 +35,7 @@ import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerLimits;
 
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
@@ -53,17 +55,20 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final WorkerLimits workerLimits;
     private final InternalOptions internalOptions;
+    private final BatchScriptCompiler batchScriptCompiler;
 
     public TaskPathProjectEvaluator(
         BuildCancellationToken cancellationToken,
         BuildOperationExecutor buildOperationExecutor,
         WorkerLimits workerLimits,
-        InternalOptions internalOptions
+        InternalOptions internalOptions,
+        BatchScriptCompiler batchScriptCompiler
     ) {
         this.cancellationToken = cancellationToken;
         this.buildOperationExecutor = buildOperationExecutor;
         this.workerLimits = workerLimits;
         this.internalOptions = internalOptions;
+        this.batchScriptCompiler = batchScriptCompiler;
     }
 
     @Override
@@ -134,14 +139,18 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
             int pending = root.hasChildren() ? 1 : 0;
             while (pending > 0) {
-                ProjectState next;
+                ProjectState currentParent;
                 try {
-                    next = readyQueue.take();
+                    currentParent = readyQueue.take();
                     --pending;
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                for (final ProjectState child : next.getUnorderedChildProjects()) {
+
+                List<ProjectState> children = ImmutableList.copyOf(currentParent.getUnorderedChildProjects());
+                batchScriptCompiler.compile(currentParent, children);
+
+                for (final ProjectState child : children) {
                     queue.add(traverseProject(child, readyQueue));
                     if (child.hasChildren()) {
                         // Only wait for projects that have children to be configured
