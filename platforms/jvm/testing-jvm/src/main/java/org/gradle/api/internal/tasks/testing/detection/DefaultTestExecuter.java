@@ -21,6 +21,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.time.Clock;
@@ -61,7 +63,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final int maxWorkerCount;
     private final Clock clock;
     private final DefaultTestFilter testFilter;
-    private TestClassProcessor processor;
+    private TestClassProcessor<TestDefinition> processor;
 
     public DefaultTestExecuter(
         WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
@@ -80,19 +82,24 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     @Override
     public void execute(final JvmTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testExecutionSpec.getTestFramework();
-        final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
+        // Cast away from ? so we don't need to propagate the wildcard everywhere
+        // This is safe because the frameworks that don't accept all TestDefinitions will have the dir selection filtered out earlier
+        // If a TestFramework begins to reject ClassTestDefinitions, this needs rethinking.
+        final WorkerTestClassProcessorFactory<TestDefinition> testInstanceFactory = Cast.uncheckedNonnullCast(
+            testFramework.getProcessorFactory()
+        );
 
         ForkedTestClasspath classpath = testClasspathFactory.create(
             testExecutionSpec.getClasspath(),
             testExecutionSpec.getModulePath()
         );
 
-        final Factory<TestClassProcessor> forkingProcessorFactory = () -> new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(), classpath, testFramework.getWorkerConfigurationAction());
-        final Factory<TestClassProcessor> reforkingProcessorFactory = () -> new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
+        final Factory<TestClassProcessor<TestDefinition>> forkingProcessorFactory = () -> new ForkingTestClassProcessor<>(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(), classpath, testFramework.getWorkerConfigurationAction());
+        final Factory<TestClassProcessor<TestDefinition>> reforkingProcessorFactory = () -> new RestartEveryNTestClassProcessor<>(forkingProcessorFactory, testExecutionSpec.getForkEvery());
         processor =
-            new PatternMatchTestClassProcessor(testFilter,
-                new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
-                    new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
+            new PatternMatchTestClassProcessor<>(testFilter,
+                new RunPreviousFailedFirstTestClassProcessor<>(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
+                    new MaxNParallelTestClassProcessor<>(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
         final FileTree testClassFiles = testExecutionSpec.isScanForTestClasses() ? testExecutionSpec.getCandidateClassFiles() : FileCollectionFactory.emptyTree();
         final Set<File> testDefinitionDirs = testExecutionSpec.isScanForTestDefinitions() ? testExecutionSpec.getCandidateTestDefinitionDirs() : Collections.emptySet();

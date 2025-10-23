@@ -30,14 +30,14 @@ import java.util.Set;
  * In order to speed up the development feedback cycle, this class guarantee previous failed test classes
  * to be passed to its delegate first.
  */
-public class RunPreviousFailedFirstTestClassProcessor implements TestClassProcessor {
+public class RunPreviousFailedFirstTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
     private final Set<String> previousFailedTestClasses;
     private final Set<File> previousFailedTestDefinitionDirectories;
-    private final TestClassProcessor delegate;
-    private final LinkedHashSet<TestDefinition> prioritizedTestDefinitions = new LinkedHashSet<>();
-    private final LinkedHashSet<TestDefinition> otherTestDefinitions = new LinkedHashSet<>();
+    private final TestClassProcessor<D> delegate;
+    private final LinkedHashSet<D> prioritizedTestDefinitions = new LinkedHashSet<>();
+    private final LinkedHashSet<D> otherTestDefinitions = new LinkedHashSet<>();
 
-    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor delegate) {
+    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor<D> delegate) {
         this.previousFailedTestClasses = previousFailedTestClasses;
         this.previousFailedTestDefinitionDirectories = previousFailedTestDefinitionDirectories;
         this.delegate = delegate;
@@ -49,7 +49,7 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     }
 
     @Override
-    public void processTestDefinition(TestDefinition testDefinition) {
+    public void processTestDefinition(D testDefinition) {
         if (wasPreviouslyRun(testDefinition)) {
             prioritizedTestDefinitions.add(testDefinition);
         } else {
@@ -59,10 +59,10 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
 
     @Override
     public void stop() {
-        for (TestDefinition test : prioritizedTestDefinitions) {
+        for (D test : prioritizedTestDefinitions) {
             delegate.processTestDefinition(test);
         }
-        for (TestDefinition test : otherTestDefinitions) {
+        for (D test : otherTestDefinitions) {
             delegate.processTestDefinition(test);
         }
         delegate.stop();

@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
@@ -45,7 +44,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class JUnitTestExecutor implements TestDefinitionConsumer {
+@NullMarked
+public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefinition> {
     private final ClassLoader applicationClassLoader;
     private final JUnitSpec spec;
     private final JUnitTestEventAdapter listener;
@@ -70,12 +70,8 @@ public class JUnitTestExecutor implements TestDefinitionConsumer {
     }
 
     @Override
-    public void accept(TestDefinition testDefinition) {
-        if (!(testDefinition instanceof ClassTestDefinition)) {
-            throw new IllegalArgumentException(JUnitTestExecutor.class.getSimpleName() + " only supports class-based testing.");
-        }
-
-        String testClassName = ((ClassTestDefinition) testDefinition).getTestClassName();
+    public void accept(ClassTestDefinition testDefinition) {
+        String testClassName = testDefinition.getTestClassName();
         boolean started = false;
         try {
             Request request = shouldRunTestClass(testClassName);
@@ -93,7 +89,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer {
             }
 
             if (started) {
-                listener.testExecutionFailure((ClassTestDefinition) testDefinition, TestFailure.fromTestFrameworkFailure(throwable));
+                listener.testExecutionFailure(testDefinition, TestFailure.fromTestFrameworkFailure(throwable));
             } else {
                 // If we haven't even started to run the request, this is a Gradle problem, so propagate it
                 throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
@@ -150,7 +146,6 @@ public class JUnitTestExecutor implements TestDefinitionConsumer {
         return new FilteredGradleRequest(runner);
     }
 
-    @Nullable
     private List<Filter> buildFilters(String testClassName, Runner filteredRunner) {
         List<Filter> filters = new ArrayList<>();
         if (categoryFilter != null) {
