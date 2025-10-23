@@ -74,13 +74,18 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         loadClassesFrom(kotlinModel.scriptTemplatesClassPath, ["org.gradle.api.HasImplicitReceiver"])
         loadClassesFrom(kotlinModel.scriptTemplatesClassPath, kotlinModel.templateClassNames)
 
+        and: "legacy Kotlin DSL script templates and resolver until 10.0"
         def legacyScriptTemplateAndResolverClassNames = Arrays.asList(
                 "org.gradle.kotlin.dsl.KotlinInitScript",
                 "org.gradle.kotlin.dsl.KotlinSettingsScript",
                 "org.gradle.kotlin.dsl.KotlinBuildScript",
                 "org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver"
         )
-        loadClassesFrom(kotlinModel.scriptTemplatesClassPath, legacyScriptTemplateAndResolverClassNames)
+        if (targetHasLegacyScriptTemplates()) {
+            loadClassesFrom(kotlinModel.scriptTemplatesClassPath, legacyScriptTemplateAndResolverClassNames)
+        } else {
+            assertClassesAbsentFrom(kotlinModel.scriptTemplatesClassPath, legacyScriptTemplateAndResolverClassNames)
+        }
 
         and: "Kotlin DSL script compile classpath"
         !kotlinModel.compileClassPath.isEmpty()
@@ -234,6 +239,19 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         }
     }
 
+    private static void assertClassesAbsentFrom(List<File> classPath, List<String> classNames) {
+        classLoaderFor(classPath).withCloseable { loader ->
+            classNames.each {
+                try {
+                    loader.loadClass(it)
+                    throw new AssertionError("Unexpected class on the classpath: $it")
+                } catch (ClassNotFoundException ignored) {
+                    // expected
+                }
+            }
+        }
+    }
+
     private static URLClassLoader classLoaderFor(List<File> classPath) {
         new URLClassLoader(
                 classPath.collect { it.toURI().toURL() } as URL[],
@@ -248,5 +266,9 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
     private boolean targetEmbedsPublicApiAbiJar() {
         GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("9.7")
+    }
+
+    private boolean targetHasLegacyScriptTemplates() {
+        GradleVersion.version(targetDist.version.baseVersion.version) < GradleVersion.version("10.0")
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
 import org.gradle.util.GradleVersion
 
 
-@TargetGradleVersion(">=4.1")
+@TargetGradleVersion(">=4.1 <10.0")
 class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can load script template using classpath model"() {
@@ -48,15 +48,23 @@ class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScrip
             "org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver")
     }
 
-    private static void loadClassesFrom(List<File> classPath, String... classNames) {
-        classLoaderFor(classPath).withCloseable { loader ->
+    private void loadClassesFrom(List<File> classPath, String... classNames) {
+        classLoaderFor(targetKotlinDslJars() + classPath).withCloseable { loader ->
             classNames.each {
                 loader.loadClass(it)
             }
         }
     }
 
+    // The model class path does not hold the Kotlin DSL jars
+    private List<File> targetKotlinDslJars() {
+        targetDist.gradleHomeDir.file("lib").listFiles().findAll {
+            it.name.startsWith("gradle-kotlin-dsl-") || it.name.startsWith("kotlin-")
+        } as List<File>
+    }
+
+    // Isolated from the test class path, which holds the Kotlin DSL classes of the current version
     private static URLClassLoader classLoaderFor(List<File> classPath) {
-        new URLClassLoader(classPath.collect { it.toURI().toURL() } as URL[])
+        new URLClassLoader(classPath.collect { it.toURI().toURL() } as URL[], ClassLoader.platformClassLoader)
     }
 }
