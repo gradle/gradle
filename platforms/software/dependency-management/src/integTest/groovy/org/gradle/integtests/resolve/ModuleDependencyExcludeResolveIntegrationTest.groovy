@@ -77,7 +77,7 @@ task check(type: Sync) {
         """
 
         when:
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
@@ -194,7 +194,7 @@ task check(type: Sync) {
         """
 
         when:
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
@@ -291,7 +291,7 @@ task check(type: Sync) {
         """
 
         when:
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
@@ -476,7 +476,7 @@ task check(type: Sync) {
         """
 
         when:
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {

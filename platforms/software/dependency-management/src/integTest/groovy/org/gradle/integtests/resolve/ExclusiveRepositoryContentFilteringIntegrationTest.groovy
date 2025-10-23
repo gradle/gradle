@@ -24,17 +24,19 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 
 class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    ResolveTestFixture resolve
+
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        settingsFile << "rootProject.name = 'test'"
+        settingsFile << """
+            rootProject.name = 'test'
+        """
         buildFile << """
             configurations {
                 conf
             }
+            ${resolve.configureProject("conf")}
         """
-        resolve = new ResolveTestFixture(buildFile, 'conf')
-        resolve.prepare()
     }
 
     def "can include a module from a repository using #notation (Maven 1st)"() {

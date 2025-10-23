@@ -24,10 +24,9 @@ class MultiProjectDerivationStrategyIntegTest extends AbstractPolyglotIntegratio
     def "different projects can use different variant derivation strategies without leaking to each other"() {
         mavenRepo.module("org", "foo", '1.1').publish()
 
-        def resolveA = new ResolveTestFixture(testDirectory.file("resolve-a.gradle"), "conf")
-            .expectDefaultConfiguration("runtime")
-        def resolveB = new ResolveTestFixture(testDirectory.file("resolve-b.gradle"), "other")
-            .expectDefaultConfiguration("runtime")
+        def resolve = new ResolveTestFixture(testDirectory)
+        def resolveScript = testDirectory.file("resolve.gradle")
+        resolveScript << resolve.configureProject("conf")
 
         writeSpec {
             settings {
@@ -45,32 +44,30 @@ class MultiProjectDerivationStrategyIntegTest extends AbstractPolyglotIntegratio
                 dependencies {
                     conf('org:foo:1.1')
                 }
-                applyFrom("../resolve-a")
+                applyFrom(resolveScript)
             }
             project("b") {
+                plugin("jvm-ecosystem")
                 group = 'org'
                 version = '1.0'
                 repositories {
                     maven(mavenRepo.uri)
                 }
                 configurations {
-                    other
+                    conf
                 }
                 dependencies {
-                    other('org:foo:1.1')
+                    conf('org:foo:1.1')
                 }
-                applyFrom("../resolve-b")
+                applyFrom(resolveScript)
             }
         }
-        resolveA.prepare()
-        resolveB.addDefaultVariantDerivationStrategy()
-        resolveB.prepare()
 
         when:
         run 'a:checkDeps'
 
         then:
-        resolveA.expectGraph {
+        resolve.expectGraph(":a") {
             root(":a", "org:a:1.0") {
                 module("org:foo:1.1") {
                     variant "default", ['org.gradle.status': 'release']
@@ -82,7 +79,7 @@ class MultiProjectDerivationStrategyIntegTest extends AbstractPolyglotIntegratio
         run ':b:checkDeps'
 
         then:
-        resolveB.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "org:b:1.0") {
                 module("org:foo:1.1") {
                     variant "runtime", [

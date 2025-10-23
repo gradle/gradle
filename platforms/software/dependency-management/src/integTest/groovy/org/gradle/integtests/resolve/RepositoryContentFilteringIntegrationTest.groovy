@@ -22,17 +22,17 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
 class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    ResolveTestFixture resolve
-
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
     def setup() {
-        settingsFile << "rootProject.name = 'test'"
+        settingsFile << """
+            rootProject.name = 'test'
+        """
         buildFile << """
             configurations {
                 conf
             }
+            ${resolve.configureProject("conf")}
         """
-        resolve = new ResolveTestFixture(buildFile, 'conf')
-        resolve.prepare()
     }
 
     def "can exclude a module from a repository using #notation"() {

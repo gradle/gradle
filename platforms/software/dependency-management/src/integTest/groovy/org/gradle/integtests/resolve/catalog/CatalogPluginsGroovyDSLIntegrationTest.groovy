@@ -16,13 +16,11 @@
 
 package org.gradle.integtests.resolve.catalog
 
-
-import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
-class CatalogPluginsGroovyDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
+class CatalogPluginsGroovyDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest {
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
@@ -44,7 +42,12 @@ dependencyResolutionManagement {
         }
     }
 }"""
-        withPluginAlias "libs.plugins.${alias.replace('-', '.')}"
+
+        buildFile << """
+            plugins {
+                alias(libs.plugins.${alias.replace('-', '.')})
+            }
+        """
 
         when:
         plugin.allowAll()
@@ -70,7 +73,12 @@ dependencyResolutionManagement {
             [plugins]
             ${alias.replace('.', '-')} = "$pluginId:${pluginVersion}"
         """
-        withPluginAlias "libs.plugins.${alias.replace('-', '.')}"
+
+        buildFile << """
+            plugins {
+                alias(libs.plugins.${alias.replace('-', '.')})
+            }
+        """
 
         when:
         plugin.allowAll()
@@ -100,7 +108,12 @@ dependencyResolutionManagement {
         }
     }
 }"""
-        withPlugins([:], ["libs.plugins.greeter": '1.5'])
+
+        buildFile << """
+            plugins {
+                alias(libs.plugins.greeter).version("1.5")
+            }
+        """
 
         when:
         plugin.allowAll()
@@ -127,9 +140,12 @@ dependencyResolutionManagement {
         }
     }
 }"""
-        withPluginsBlockContents(
-            'id \'com.acme.greeter\' version libs.versions.greeter'
-        )
+
+        buildFile << """
+            plugins {
+                id("com.acme.greeter").version(libs.versions.greeter)
+            }
+        """
 
         when:
         plugin.allowAll()
@@ -160,7 +176,13 @@ dependencyResolutionManagement {
         }
     }
 }"""
-        withPluginAliases(["libs.plugins.greeter", "libs.plugins.greeter.second"])
+
+        buildFile << """
+            plugins {
+                alias(libs.plugins.greeter)
+                alias(libs.plugins.greeter.second)
+            }
+        """
 
         when:
         succeeds(firstLevelTask, secondLevelPluginTask)
@@ -192,7 +214,7 @@ dependencyResolutionManagement {
         }
     }
 }"""
-        buildFile.text = """
+        buildFile << """
             buildscript {
                 repositories {
                     maven {
@@ -204,9 +226,7 @@ dependencyResolutionManagement {
                     classpath(libs.${alias.replace('-', '.')}.second)
                 }
             }
-        """ + buildFile.text
 
-        buildFile << """
             apply plugin: org.gradle.test.FirstPlugin
             apply plugin: org.gradle.test.SecondPlugin
         """
