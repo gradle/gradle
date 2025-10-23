@@ -30,17 +30,17 @@ internal
 class DefaultBuildToolingModelControllerFactory(
     private val modelParameters: BuildModelParameters
 ) : BuildToolingModelControllerFactory {
-    override fun createController(owner: BuildState, controller: BuildLifecycleController): BuildToolingModelController {
-        val modelBuilderLookup = controller.gradle.services.get(ToolingModelBuilderLookup::class.java)
-        val defaultController = if (modelParameters.isResilientModelBuilding) {
-            ResilientBuildToolingModelController(owner, controller, modelBuilderLookup)
+    override fun createController(owner: BuildState, lifecycleController: BuildLifecycleController): BuildToolingModelController {
+        val modelBuilderLookup = lifecycleController.gradle.services.get(ToolingModelBuilderLookup::class.java)
+        val toolingModelController = if (modelParameters.isResilientModelBuilding) {
+            ResilientBuildToolingModelController(owner, lifecycleController, modelBuilderLookup)
         } else {
-            DefaultBuildToolingModelController(owner, controller, modelBuilderLookup)
+            DefaultBuildToolingModelController(owner, lifecycleController, modelBuilderLookup)
         }
         return if (modelParameters.isIntermediateModelCache) {
-            ConfigurationCacheAwareBuildToolingModelController(defaultController, controller.gradle.services.get(BuildTreeConfigurationCache::class.java))
+            ConfigurationCacheAwareBuildToolingModelController(toolingModelController, lifecycleController.gradle.services.get(BuildTreeConfigurationCache::class.java))
         } else {
-            defaultController
+            toolingModelController
         }
     }
 }
