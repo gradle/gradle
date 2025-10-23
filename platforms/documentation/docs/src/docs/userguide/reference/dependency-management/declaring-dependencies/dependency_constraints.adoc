@@ -18,6 +18,8 @@
 Version declarations (including ranges) only affect the dependencies you declare *directly*.
 To control versions of *transitive* dependencies, use *dependency constraints*.
 
+image::dependency-management-constraints.png[]
+
 A dependency constraint sets version requirements for a module without adding that module as a dependency.
 When the module is pulled in, the constraint participates in version conflict resolution just like a declared dependency version:
 
