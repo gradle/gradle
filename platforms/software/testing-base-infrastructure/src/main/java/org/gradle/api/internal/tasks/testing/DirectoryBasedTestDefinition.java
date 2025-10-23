@@ -29,7 +29,7 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
     private final File resourceFile;
 
     public DirectoryBasedTestDefinition(File resourceFile) {
-        this.resourceFile = resourceFile;
+        this.resourceFile = resourceFile.getAbsoluteFile();
     }
 
     public File getTestDefinitionFile() {

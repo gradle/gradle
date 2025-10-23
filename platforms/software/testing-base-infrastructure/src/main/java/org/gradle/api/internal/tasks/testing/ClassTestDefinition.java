@@ -25,7 +25,7 @@ import org.jspecify.annotations.NullMarked;
  * @implNote Kept non-{@code final} to enable mocking.
  */
 @NullMarked
-public class ClassTestDefinition implements TestDefinition {
+public final class ClassTestDefinition implements TestDefinition {
     private final String testClassName;
 
     public ClassTestDefinition(String testClassName) {
