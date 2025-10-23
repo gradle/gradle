@@ -103,18 +103,12 @@ abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
             compatibilityDocFile,
             "Gradle is tested with Android Gradle Plugin",
             latestAgpVersions.firstBaseVersion,
-            latestAgpVersions.lastBaseVersion
+            latestAgpVersions.last()
         )
 
     private
     val List<String>.firstBaseVersion: String
         get() = VersionNumber.parse(first()).minorBaseVersion
-
-    private
-    val List<String>.lastBaseVersion: String
-        get() = map { VersionNumber.parse(it) }
-            .last { it.isStableOrRc }
-            .minorBaseVersion
 
     private
     val VersionNumber.minorBaseVersion: String
@@ -200,10 +194,6 @@ abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
         private
         val VersionNumber.isStable: Boolean
             get() = qualifier == null
-
-        private
-        val VersionNumber.isStableOrRc: Boolean
-            get() = isStable || qualifier?.startsWith("rc") == true
 
         private
         fun List<VersionNumber>.applyMinimumSupported(minimumSupported: VersionNumber?): List<VersionNumber> =
