@@ -16,6 +16,7 @@
 
 package org.gradle.internal.hash
 
+import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 final class DefaultFileHasherTest extends Specification {
@@ -31,7 +32,7 @@ final class DefaultFileHasherTest extends Specification {
 
         then:
         def e = thrown(UncheckedIOException)
-        e.message == "Failed to create MD5 hash for file: ${file.absolutePath} (No such file or directory)"
+        e.message == "Failed to create MD5 hash for file: ${TextUtil.normaliseFileSeparators(file.absolutePath)} (No such file or directory)"
     }
 
     def "can't hash unreadable file"() {
@@ -45,6 +46,6 @@ final class DefaultFileHasherTest extends Specification {
 
         then:
         def e = thrown(UncheckedIOException)
-        e.message == "Failed to create MD5 hash for file: ${file.absolutePath} (Permission denied)"
+        e.message == "Failed to create MD5 hash for file: ${TextUtil.normaliseFileSeparators(file.absolutePath)} (Permission denied)"
     }
 }
