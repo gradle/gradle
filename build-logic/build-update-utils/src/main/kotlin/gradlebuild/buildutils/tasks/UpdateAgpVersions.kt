@@ -21,6 +21,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.jetbrains.annotations.VisibleForTesting
 import org.jsoup.Jsoup
@@ -28,9 +29,18 @@ import org.jsoup.Jsoup
 /**
  * Fetch the latest AGP versions and write a properties file.
  * Never up-to-date, non-cacheable.
+ *
+ * AGP major versions are aligned with Gradle major versions.
+ * IOW, AGP X.y officially only supports Gradle X.z.
+ *
+ * This task leverages that alignment to automatically select which
+ * versions of AGP we should test.
  */
 @UntrackedTask(because = "Not worth tracking")
 abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
+
+    @get:Internal
+    abstract val currentGradleVersion: Property<GradleVersion>
 
     @get:Internal
     abstract val minimumSupported: Property<String>
@@ -57,7 +67,8 @@ abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
     private
     fun fetchLatestAgpVersions(): FetchedVersions {
         val latests = fetchLatests(
-            minimumSupported.get(),
+            currentGradleVersion.get(),
+            minimumSupported.orNull,
             "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml"
         )
         val nightlyBuildId = fetchNightlyBuildId(
@@ -102,7 +113,7 @@ abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
     private
     val List<String>.lastBaseVersion: String
         get() = map { VersionNumber.parse(it) }
-            .last { it.qualifier == null || it.qualifier?.startsWith("rc") == true }
+            .last { it.isStableOrRc }
             .minorBaseVersion
 
     private
@@ -110,8 +121,8 @@ abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
         get() = "$major.$minor"
 
     private
-    fun fetchLatests(minimumSupported: String, mavenMetadataUrl: String): List<String> {
-        return selectVersionsFrom(minimumSupported, fetchVersionsFromMavenMetadata(mavenMetadataUrl))
+    fun fetchLatests(currentGradleVersion: GradleVersion, minimumSupported: String?, mavenMetadataUrl: String): List<String> {
+        return selectVersionsFrom(currentGradleVersion, minimumSupported?.let { VersionNumber.parse(it) }, fetchVersionsFromMavenMetadata(mavenMetadataUrl))
     }
 
     private
@@ -151,7 +162,7 @@ abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
 
         @VisibleForTesting
         @JvmStatic
-        fun selectVersionsFrom(minimumSupported: String, allVersions: List<String>): List<String> {
+        fun selectVersionsFrom(currentGradleVersion: GradleVersion, minimumSupported: VersionNumber?, allVersions: List<String>): List<String> {
             val allMinorLatests = allVersions.map { version ->
                 VersionNumber.parse(version)
             }.sorted().groupBy { version ->
@@ -159,9 +170,46 @@ abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
             }.map { (_, versions) ->
                 versions.last()
             }
-            val minimumSupportedNumber = VersionNumber.parse(minimumSupported)
-            val selected = (allMinorLatests + minimumSupportedNumber).filter { it.baseVersion >= minimumSupportedNumber.baseVersion }.distinct().sorted()
-            return selected.map { it.toString() }
+            val gradleMajor = VersionNumber.version(currentGradleVersion.majorVersion)
+            val minimumFallback = when {
+
+                allMinorLatests.any { it.major >= gradleMajor.major && it.isStable } -> {
+                    validateMinimumSupported(minimumSupported, gradleMajor)
+                    gradleMajor
+                }
+
+                else -> {
+                    val gradlePreviousMajor = VersionNumber.version(gradleMajor.major - 1)
+                    validateMinimumSupported(minimumSupported, gradlePreviousMajor)
+                    allMinorLatests.last { it.major == gradlePreviousMajor.major && it.isStable }
+                }
+            }
+            return allMinorLatests
+                .applyMinimumSupported(minimumSupported ?: minimumFallback)
+                .map { it.toString() }
         }
+
+        private fun validateMinimumSupported(minimumSupported: VersionNumber?, minimumMinimum: VersionNumber) {
+            if (minimumSupported != null) {
+                require(minimumSupported >= minimumMinimum) {
+                    "minimumSupported must be at least $minimumMinimum, was $minimumSupported"
+                }
+            }
+        }
+
+        private
+        val VersionNumber.isStable: Boolean
+            get() = qualifier == null
+
+        private
+        val VersionNumber.isStableOrRc: Boolean
+            get() = isStable || qualifier?.startsWith("rc") == true
+
+        private
+        fun List<VersionNumber>.applyMinimumSupported(minimumSupported: VersionNumber?): List<VersionNumber> =
+            when (minimumSupported) {
+                null -> this
+                else -> filter { it.baseVersion >= minimumSupported }
+            }
     }
 }
