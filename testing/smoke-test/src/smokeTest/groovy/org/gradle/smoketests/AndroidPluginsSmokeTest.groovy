@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
@@ -391,12 +390,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             'com.android.application': TestedVersions.androidGradle,
             'com.android.library': TestedVersions.androidGradle,
             'com.android.test': TestedVersions.androidGradle,
-            'com.android.reporting': Versions.of(
-                *TestedVersions.androidGradle.versions
-                    .findAll { VersionNumber.parse(it).baseVersion < AndroidGradlePluginVersions.AGP_9_0 }
-                // Fail the day we don't test 8.x anymore, remove 'com.android.reporting' to fix
-                    .tap { assert !it.isEmpty() }
-            ),
+            'com.android.reporting': TestedVersions.androidGradleBefore9,
             'com.android.dynamic-feature': TestedVersions.androidGradle,
         ]
     }

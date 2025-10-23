@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.android.AndroidHome
-import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.util.internal.VersionNumber
@@ -72,10 +71,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
 
         [kotlinPluginVersion, androidPluginVersion] << [
                 TestedVersions.kotlin.versions,
-                TestedVersions.androidGradle.versions
-                    .findAll { VersionNumber.parse(it).baseVersion < AndroidGradlePluginVersions.AGP_9_0 }
-                // Fail the day we don't test 8.x anymore, remove this test to fix
-                    .tap { assert !it.isEmpty() },
+                TestedVersions.androidGradleBefore9.versions,
         ].combinations()
 
         dsl = getDSL().name()

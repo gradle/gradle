@@ -19,7 +19,6 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,7 +26,6 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 
 /**
@@ -47,13 +45,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
     TestFile homeDir
 
     String kotlinVersion = KOTLIN_VERSIONS.latestStable
-
-    static List<String> agpVersionsForSantaTracker = AGP_VERSIONS.latestsPlusNightly.findAll { v ->
-        VersionNumber.parse(v).baseVersion < AndroidGradlePluginVersions.AGP_9_0
-    }.tap { versions ->
-        // This assertion will fail when we stop testing 8.x, time to remove these tests
-        assert !versions.isEmpty()
-    }
 
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")
