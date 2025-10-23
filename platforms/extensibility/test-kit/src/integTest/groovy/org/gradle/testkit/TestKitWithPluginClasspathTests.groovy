@@ -2,8 +2,10 @@ package org.gradle.testkit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
+@ToBeImplemented
 @Issue("https://github.com/gradle/gradle/issues/22466")
 class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
 
