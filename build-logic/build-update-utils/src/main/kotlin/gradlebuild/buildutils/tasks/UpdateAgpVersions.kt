@@ -160,7 +160,7 @@ abstract class UpdateAgpVersions : AbstractVersionsUpdateTask() {
                 versions.last()
             }
             val minimumSupportedNumber = VersionNumber.parse(minimumSupported)
-            val selected = (allMinorLatests + minimumSupportedNumber).filter { it.baseVersion > minimumSupportedNumber.baseVersion }.sorted()
+            val selected = (allMinorLatests + minimumSupportedNumber).filter { it.baseVersion >= minimumSupportedNumber.baseVersion }.distinct().sorted()
             return selected.map { it.toString() }
         }
     }

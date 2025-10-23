@@ -22,7 +22,7 @@ class UpdateAgpVersionsTest extends Specification {
 
     def "selects the right versions"() {
         given:
-        def minimumSupported = "8.8.0"
+        def minimumSupported = "8.8"
         def allVersions = [
             "8.7.0-alpha01", "8.7.0-beta01", "8.7.0-rc01", "8.7.0", "8.7.1",
             "8.8.0-alpha01", "8.8.0-beta01", "8.8.0-rc01", "8.8.0", "8.8.1",
@@ -37,6 +37,6 @@ class UpdateAgpVersionsTest extends Specification {
         def selected = UpdateAgpVersions.selectVersionsFrom(minimumSupported, allVersions)
 
         then:
-        selected == ["8.8.1", "8.9.1", "8.10.1", "8.11.0-rc01", "8.12.0-beta01", "8.13.0-alpha01"]
+        selected == ["8.8.0", "8.8.1", "8.9.1", "8.10.1", "8.11.0-rc01", "8.12.0-beta01", "8.13.0-alpha01"]
     }
 }
