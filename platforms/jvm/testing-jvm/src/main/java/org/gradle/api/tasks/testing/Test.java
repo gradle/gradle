@@ -1262,9 +1262,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
-     * Returns the classes files to scan for test classes.
+     * Returns directories to scan for non-class-based test definition files.
      *
-     * @return The candidate class files.
+     * @return The candidate directories holding non-class-based test definition files.
      * @since 9.3.0
      */
     @Incubating

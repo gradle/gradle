@@ -32,7 +32,7 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
         this.resourceFile = resourceFile;
     }
 
-    public File getTestDefintionFile() {
+    public File getTestDefinitionFile() {
         return resourceFile;
     }
 

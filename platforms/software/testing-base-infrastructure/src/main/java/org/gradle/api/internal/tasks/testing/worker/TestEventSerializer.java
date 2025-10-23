@@ -133,7 +133,7 @@ public class TestEventSerializer {
 
         @Override
         public void write(Encoder encoder, DirectoryBasedTestDefinition value) throws Exception {
-            encoder.writeString(value.getTestDefintionFile().getAbsolutePath());
+            encoder.writeString(value.getTestDefinitionFile().getAbsolutePath());
         }
     }
 
