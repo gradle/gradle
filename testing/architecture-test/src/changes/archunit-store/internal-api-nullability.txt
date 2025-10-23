@@ -882,7 +882,6 @@ Class <org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublicatio
 Class <org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPublicationCoordinates.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.MavenPublisher> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPublisher.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.MavenPublishers> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPublishers.java:0)
-Class <org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (StaticLockingMavenPublisher.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher$MavenFieldValidator> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ValidatingMavenPublisher.java:0)
 Class <org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ValidatingMavenPublisher.java:0)
 Class <org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator$MavenPomSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MavenPomFileGenerator.java:0)
