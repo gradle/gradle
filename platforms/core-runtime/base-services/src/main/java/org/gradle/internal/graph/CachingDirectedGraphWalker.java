@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -146,7 +147,7 @@ public class CachingDirectedGraphWalker<N, T> {
                 }
 
                 for (N connectedNode : details.successors) {
-                    NodeDetails<N, T> connectedNodeDetails = seenNodes.get(connectedNode);
+                    NodeDetails<N, T> connectedNodeDetails = Objects.requireNonNull(seenNodes.get(connectedNode));
                     if (!connectedNodeDetails.finished) {
                         // part of a cycle : use the 'minimum' component as the root of the cycle
                         int minSeen = Math.min(details.minSeen, connectedNodeDetails.minSeen);
@@ -161,7 +162,7 @@ public class CachingDirectedGraphWalker<N, T> {
                 if (details.minSeen != details.component) {
                     // Part of a strongly connected component (ie cycle) - move values to root of the component
                     // The root is the first node of the component we encountered
-                    NodeDetails<N, T> rootDetails = components.get(details.minSeen);
+                    NodeDetails<N, T> rootDetails = Objects.requireNonNull(components.get(details.minSeen));
                     rootDetails.values.addAll(details.values);
                     details.values.clear();
                     rootDetails.componentMembers.addAll(details.componentMembers);

@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -99,7 +100,8 @@ public class TextUtil {
     /**
      * Converts all line separators in the specified string to the platform's line separator.
      */
-    public static String toPlatformLineSeparators(String str) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toPlatformLineSeparators(@Nullable String str) {
         return str == null ? null : replaceLineSeparatorsOf(str, getPlatformLineSeparator());
     }
 
@@ -108,6 +110,7 @@ public class TextUtil {
      *
      * @return null if the given string is null
      */
+    @Contract("null -> null; !null -> !null")
     @Nullable
     public static String normaliseLineSeparators(@Nullable String str) {
         return str == null ? null : convertLineSeparatorsToUnix(str);
@@ -127,7 +130,7 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    public static boolean isBlank(String str) {
+    public static boolean isBlank(@Nullable String str) {
         int strLen;
         if (str == null || (strLen = str.length()) == 0) {
             return true;
@@ -148,7 +151,8 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    public static String capitalize(String str) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String capitalize(@Nullable String str) {
         if (str == null || str.length() == 0) {
             return str;
         }
@@ -159,7 +163,8 @@ public class TextUtil {
      * Escapes the toString() representation of {@code obj} for use in a literal string.
      * This is useful for interpolating variables into script strings, as well as in other situations.
      */
-    public static String escapeString(Object obj) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String escapeString(@Nullable Object obj) {
         return obj == null ? null : escapeJavaStyleString(obj.toString(), false, false);
     }
 
@@ -168,7 +173,8 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    private static String escapeJavaStyleString(String str, boolean escapeSingleQuotes, boolean escapeForwardSlash) {
+    @Contract("null, _, _ -> null; !null, _, _ -> !null")
+    private static @Nullable String escapeJavaStyleString(@Nullable String str, boolean escapeSingleQuotes, boolean escapeForwardSlash) {
         if (str == null) {
             return null;
         }
