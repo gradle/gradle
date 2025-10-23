@@ -268,7 +268,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """
-        appBuildFile << androidPluginConfiguration(appPackage)
+        appBuildFile << androidPluginConfiguration(appPackage, agpVersion)
         appBuildFile << activityDependency()
         appBuildFile << """
             dependencies {
@@ -282,7 +282,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         libraryBuildFile << """
             apply plugin: 'com.android.library'
         """
-        libraryBuildFile << androidPluginConfiguration(libPackage)
+        libraryBuildFile << androidPluginConfiguration(libPackage, agpVersion)
         libraryBuildFile << activityDependency()
 
         return {
@@ -356,14 +356,14 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             </LinearLayout>'''.stripIndent()
     }
 
-    def androidPluginConfiguration(String appPackage) {
+    def androidPluginConfiguration(String appPackage, String agpVersion) {
 
         JavaVersion targetJvm = JavaVersion.current()
 
         """
             android {
                 compileSdk = 30
-                buildToolsVersion = "${AGP_VERSIONS.buildToolsVersion()}"
+                buildToolsVersion = "${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}"
 
                 namespace = "${appPackage}"
                 defaultConfig {
@@ -418,7 +418,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 android {
                     namespace = "org.gradle.android.example.app"
                     compileSdk = 24
-                    buildToolsVersion = '${AGP_VERSIONS.buildToolsVersion()}'
+                    buildToolsVersion = '${AGP_VERSIONS.getBuildToolsVersionFor(version)}'
                 }
             """
         }

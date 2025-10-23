@@ -31,7 +31,7 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
                     android {
                         namespace = "org.gradle.smoke.test"
                         compileSdk = 24
-                        buildToolsVersion = '${AGP_VERSIONS.buildToolsVersion()}'
+                        buildToolsVersion = '${AGP_VERSIONS.getBuildToolsVersionFor(AGP_VERSIONS.latestStable)}'
                     }
                 """
             }

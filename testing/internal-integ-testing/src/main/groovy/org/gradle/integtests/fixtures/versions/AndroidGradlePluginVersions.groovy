@@ -127,7 +127,7 @@ class AndroidGradlePluginVersions {
         return version
     }
 
-    static String buildToolsVersion() {
+    private static String buildToolsVersion() {
         return loadedProperties().getProperty("buildToolsVersion")
     }
 
