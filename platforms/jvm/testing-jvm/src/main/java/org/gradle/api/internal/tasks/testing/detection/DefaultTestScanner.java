@@ -40,12 +40,12 @@ public class DefaultTestScanner implements TestDetector {
     private final FileTree candidateClassFiles;
     private final Set<File> candidateDefinitionDirs;
     private final TestFrameworkDetector testFrameworkDetector;
-    private final TestClassProcessor testClassProcessor;
+    private final TestClassProcessor<TestDefinition> testClassProcessor;
 
     public DefaultTestScanner(FileTree candidateClassFiles,
                               Set<File> candidateDefinitionDirs,
                               TestFrameworkDetector testFrameworkDetector,
-                              TestClassProcessor testClassProcessor) {
+                              TestClassProcessor<TestDefinition> testClassProcessor) {
         this.candidateClassFiles = candidateClassFiles;
         this.candidateDefinitionDirs = candidateDefinitionDirs;
         this.testFrameworkDetector = testFrameworkDetector;

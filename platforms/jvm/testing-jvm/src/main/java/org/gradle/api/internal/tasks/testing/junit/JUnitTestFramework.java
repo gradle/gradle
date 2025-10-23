@@ -73,7 +73,7 @@ public abstract class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory<?> getProcessorFactory() {
         validateOptions();
         return new JUnitTestClassProcessorFactory(new JUnitSpec(
             filter.toSpec(), getOptions().getIncludeCategories(), getOptions().getExcludeCategories(), dryRun.get()));

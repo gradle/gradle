@@ -47,7 +47,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private List<File> testClassDirectories;
     private final ClassFileExtractionManager classFileExtractionManager;
     private final Map<File, Boolean> superClasses;
-    private TestClassProcessor testClassProcessor;
+    private TestClassProcessor<? super ClassTestDefinition> testClassProcessor;
 
     private List<File> testClassesDirectories;
     private List<File> testClasspath;
@@ -203,7 +203,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     }
 
     @Override
-    public void startDetection(TestClassProcessor testClassProcessor) {
+    public void startDetection(TestClassProcessor<? super ClassTestDefinition> testClassProcessor) {
         this.testClassProcessor = testClassProcessor;
     }
 

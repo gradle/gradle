@@ -31,6 +31,7 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
@@ -53,6 +54,7 @@ import javax.annotation.WillCloseWhenClosed;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -68,14 +70,18 @@ import static org.junit.platform.launcher.TagFilter.includeTags;
  * This class is instantiated by reflection from {@link JUnitPlatformTestClassProcessorFactory}.
  */
 @SuppressWarnings("unused")
-public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor {
+@NullMarked
+public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<TestDefinition> {
     private final JUnitPlatformSpec spec;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
     private final TestSelectionMatcher matcher;
 
+    @Nullable
     private CollectThenExecuteTestDefinitionConsumer testClassExecutor;
+    @Nullable
     private BackwardsCompatibleLauncherSession launcherSession;
+    @Nullable
     private ClassLoader junitClassLoader;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -96,7 +102,7 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
     }
 
     @Override
-    protected TestDefinitionConsumer createTestExecutor(Actor resultProcessorActor) {
+    protected TestDefinitionConsumer<TestDefinition> createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         junitClassLoader = Thread.currentThread().getContextClassLoader();
@@ -105,21 +111,16 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
     }
 
     @Override
-    public void processTestDefinition(TestDefinition testDefinition) {
-        doProcessTestDefinition(testDefinition);
-    }
-
-    @Override
     public void stop() {
         if (startedProcessing) {
-            testClassExecutor.processAllTestClasses();
-            launcherSession.close();
+            Objects.requireNonNull(testClassExecutor).processAllTestClasses();
+            Objects.requireNonNull(launcherSession).close();
             super.stop();
         }
     }
 
     @NullMarked
-    private final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer {
+    private final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer<TestDefinition> {
         private final List<DiscoverySelector> selectors = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
@@ -154,7 +155,7 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
         private void processAllTestClasses() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
-            Launcher launcher = launcherSession.getLauncher();
+            Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
             if (spec.isDryRun()) {
                 TestPlan testPlan = launcher.discover(discoveryRequest);
                 executeDryRun(testPlan, executionListener);

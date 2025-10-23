@@ -18,19 +18,22 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.OnlyClassBasedTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassProcessor, OnlyClassBasedTestClassProcessor {
+@NullMarked
+public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassProcessor<ClassTestDefinition> {
     private final List<Class<?>> testClasses = new ArrayList<>();
     private final File testReportDir;
     private final TestNGSpec spec;
@@ -38,8 +41,11 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
     private final ActorFactory actorFactory;
+    @Nullable
     private ClassLoader applicationClassLoader;
+    @Nullable
     private Actor resultProcessorActor;
+    @Nullable
     private TestResultProcessor resultProcessor;
     private boolean startedProcessing;
 
@@ -77,11 +83,11 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
     }
 
     @Override
-    public void processClassTestDefinition(ClassTestDefinition testDefinition) {
+    public void processTestDefinition(ClassTestDefinition testDefinition) {
         if (startedProcessing) {
             // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
             try {
-                testClasses.add(applicationClassLoader.loadClass(testDefinition.getTestClassName()));
+                testClasses.add(Objects.requireNonNull(applicationClassLoader).loadClass(testDefinition.getTestClassName()));
             } catch (Throwable e) {
                 throw new GradleException(String.format("Could not load %s.", testDefinition.getDisplayName()), e);
             }
@@ -103,7 +109,10 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
                     testClasses
                 ).runTests();
             } finally {
-                resultProcessorActor.stop();
+                Actor actor = resultProcessorActor;
+                if (actor != null) {
+                    actor.stop();
+                }
             }
         }
     }

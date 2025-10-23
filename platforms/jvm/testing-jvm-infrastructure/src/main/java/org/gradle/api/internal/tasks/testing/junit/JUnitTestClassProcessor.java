@@ -17,15 +17,16 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.OnlyClassBasedTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NullMarked;
 
-public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor implements OnlyClassBasedTestClassProcessor {
+@NullMarked
+public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<ClassTestDefinition> {
     private final IdGenerator<?> idGenerator;
     private final JUnitSpec spec;
     private final Clock clock;
@@ -47,7 +48,7 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor imp
     }
 
     @Override
-    protected TestDefinitionConsumer createTestExecutor(Actor resultProcessorActor) {
+    protected TestDefinitionConsumer<ClassTestDefinition> createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
 
         return new JUnitTestExecutor(
@@ -57,10 +58,5 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor imp
             idGenerator,
             threadSafeResultProcessor
         );
-    }
-
-    @Override
-    public void processClassTestDefinition(ClassTestDefinition testDefinition) {
-        doProcessTestDefinition(testDefinition);
     }
 }
