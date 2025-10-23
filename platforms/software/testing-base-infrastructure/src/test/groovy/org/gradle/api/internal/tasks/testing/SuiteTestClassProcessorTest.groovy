@@ -25,7 +25,7 @@ class SuiteTestClassProcessorTest extends Specification {
     private final TestResultProcessor resultProcessor = Mock()
     private final TestClassProcessor targetProcessor = Mock()
     private final TestDescriptorInternal suiteDescriptor = Mock()
-    private final ClassTestDefinition testDefinition = Mock()
+    private final ClassTestDefinition testDefinition = new ClassTestDefinition("<class-name>")
     private final Clock timeProvider = FixedClock.create()
     private final SuiteTestClassProcessor processor = new SuiteTestClassProcessor(suiteDescriptor, targetProcessor, timeProvider)
 

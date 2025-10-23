@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
  */
 public interface TestDefinition extends Describable {
     /**
-     * A stable identifier for this test class run info. Used for tracking test classes across test runs.
+     * A stable identifier for this test definition. Used for tracking test cases across test runs.
      * <p>
      * Should uniquely identify this test definition within this build, and be stable across multiple builds.
      * For example, a fully qualified class name for a test class, or the relative path from the build root
