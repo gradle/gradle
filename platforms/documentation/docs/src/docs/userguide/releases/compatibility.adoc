@@ -142,3 +142,10 @@ The following table lists the officially supported platforms for Gradle:
 NOTE: Currently, all Gradle tests run with the default file-systems of the platform, i.e. `ext4` for Ubuntu, Amazon Linux and CentOS, `NTFS` for Windows, and `APFS` for macOS.
 
 Platforms not listed above may work with Gradle but are not actively tested.
+
+[[known_issues]]
+=== Known issues
+
+* **Windows AArch64**: Rich console output is not available.
+Both the default behavior and `--console=rich` fall back to plain console output.
+
