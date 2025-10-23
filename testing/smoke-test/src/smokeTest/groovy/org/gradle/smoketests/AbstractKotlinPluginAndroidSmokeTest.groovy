@@ -49,7 +49,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
                     file(sampleBuildFileName),
                     kotlinVersion: kotlinPluginVersion,
                     androidPluginVersion: androidPluginVersion,
-                    androidBuildToolsVersion: TestedVersions.androidTools)
+                    androidBuildToolsVersion: AGP_VERSIONS.getBuildToolsVersionFor(androidPluginVersion))
         }
         def kotlinPluginVersionNumber = VersionNumber.parse(kotlinPluginVersion)
 
