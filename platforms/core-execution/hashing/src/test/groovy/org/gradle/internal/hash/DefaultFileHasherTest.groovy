@@ -16,6 +16,9 @@
 
 package org.gradle.internal.hash
 
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
@@ -24,6 +27,8 @@ final class DefaultFileHasherTest extends Specification {
     private hasher = new DefaultFileHasher(new DefaultStreamHasher())
 
     def "can't hash non-existent file"() {
+        def explanation = OperatingSystem.current().isWindows() ? "The system cannot find the file specified" : "No such file or directory"
+
         given:
         def file = new File(tempDir, "doesnt-exist.txt")
 
@@ -32,9 +37,10 @@ final class DefaultFileHasherTest extends Specification {
 
         then:
         def e = thrown(UncheckedIOException)
-        e.message == "Failed to create MD5 hash for file: ${TextUtil.normaliseFileSeparators(file.absolutePath)} (No such file or directory)"
+        TextUtil.normaliseFileSeparators(e.message) == "Failed to create MD5 hash for file: ${TextUtil.normaliseFileSeparators(file.absolutePath)} ($explanation)"
     }
 
+    @Requires(UnitTestPreconditions.NotWindows)
     def "can't hash unreadable file"() {
         given:
         def file = new File(tempDir, "unreadable.txt")
@@ -46,6 +52,6 @@ final class DefaultFileHasherTest extends Specification {
 
         then:
         def e = thrown(UncheckedIOException)
-        e.message == "Failed to create MD5 hash for file: ${TextUtil.normaliseFileSeparators(file.absolutePath)} (Permission denied)"
+        TextUtil.normaliseFileSeparators(e.message) == "Failed to create MD5 hash for file: ${TextUtil.normaliseFileSeparators(file.absolutePath)} (Permission denied)"
     }
 }
