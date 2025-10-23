@@ -22,13 +22,13 @@ import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProce
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.time.Clock;
 
-public class SuiteTestClassProcessor implements TestClassProcessor {
-    private final TestClassProcessor processor;
+public class SuiteTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
+    private final TestClassProcessor<D> processor;
     private final Clock clock;
     private final TestDescriptorInternal suiteDescriptor;
     private TestResultProcessor resultProcessor;
 
-    public SuiteTestClassProcessor(TestDescriptorInternal suiteDescriptor, TestClassProcessor processor,
+    public SuiteTestClassProcessor(TestDescriptorInternal suiteDescriptor, TestClassProcessor<D> processor,
                                    Clock clock) {
         this.suiteDescriptor = suiteDescriptor;
         this.processor = processor;
@@ -49,7 +49,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestDefinition(TestDefinition testDefinition) {
+    public void processTestDefinition(D testDefinition) {
         try {
             processor.processTestDefinition(testDefinition);
         } catch (Throwable t) {

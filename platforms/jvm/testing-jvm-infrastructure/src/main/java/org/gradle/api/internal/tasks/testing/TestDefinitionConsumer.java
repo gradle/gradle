@@ -26,5 +26,5 @@ import java.util.function.Consumer;
  * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests.
  */
 @NullMarked
-public interface TestDefinitionConsumer extends Consumer<TestDefinition> {
+public interface TestDefinitionConsumer<D extends TestDefinition> extends Consumer<D> {
 }

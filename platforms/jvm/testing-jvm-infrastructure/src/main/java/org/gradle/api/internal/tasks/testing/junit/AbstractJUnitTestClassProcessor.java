@@ -22,15 +22,22 @@ import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFrameworkTestClassProcessor {
+import java.util.Objects;
+
+@NullMarked
+public abstract class AbstractJUnitTestClassProcessor<D extends TestDefinition> implements RequiresTestFrameworkTestClassProcessor<D> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
 
     private final ActorFactory actorFactory;
+    @Nullable
     private Actor resultProcessorActor;
-    private TestDefinitionConsumer executor;
+    @Nullable
+    private TestDefinitionConsumer<D> executor;
 
     protected boolean startedProcessing;
 
@@ -49,12 +56,13 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
         startedProcessing = true;
     }
 
-    protected abstract TestDefinitionConsumer createTestExecutor(Actor resultProcessorActor);
+    protected abstract TestDefinitionConsumer<D> createTestExecutor(Actor resultProcessorActor);
 
-    public void doProcessTestDefinition(TestDefinition testDefinition) {
+    @Override
+    public final void processTestDefinition(D testDefinition) {
         if (startedProcessing) {
             LOGGER.debug("Executing {}", testDefinition.getDisplayName());
-            executor.accept(testDefinition);
+            Objects.requireNonNull(executor).accept(testDefinition);
         }
     }
 
