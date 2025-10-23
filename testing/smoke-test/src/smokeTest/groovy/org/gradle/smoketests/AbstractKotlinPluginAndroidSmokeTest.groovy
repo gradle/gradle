@@ -28,7 +28,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  *
  * This test exists to avoid duplicating test logic for Groovy and Kotlin DSLs.
  *
- * This test exercise AGP + KGP-android plugins.
+ * This test uses AGP + KGP-android plugins.
  * This is not supported with AGP >= 9.0 that comes with built-in Kotlin support.
  */
 @LocalOnly(because = "Needs Android environment")
