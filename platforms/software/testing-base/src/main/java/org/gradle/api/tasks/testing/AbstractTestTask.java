@@ -546,10 +546,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 testListenerInternalBroadcaster.removeAll();
             }
 
-            // Throw an exception with rendered test results, if necessary
-            TestEventReporterFactoryInternal.TestReportResult testReportResults = handleCollectedResults(testCountLogger);
-            if (testReportResults.shouldFailTask()) {
-                throw new MarkedVerificationException(testReportResults.getFailureMessage().orElseThrow(() -> new IllegalStateException("Failure must supply a failure message")));
+            String failureMessage = mapCollectedResultsToError(testCountLogger);
+            if (failureMessage != null) {
+                throw new MarkedVerificationException(failureMessage);
             }
         }
     }
@@ -592,7 +591,19 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
     }
 
-    private TestEventReporterFactoryInternal.TestReportResult handleCollectedResults(TestCountLogger testCountLogger) {
+    /**
+     * Maps the collected test results to an error message if the task should fail, or {@code null} if the task should succeed.
+     *
+     * <p>
+     * Note that this may return a non-{@code null} value even if no test fails, e.g. if no tests were discovered.
+     * The task should still fail in that case.
+     * </p>
+     *
+     * @param testCountLogger the collected test result counts
+     * @return the error message, or {@code null} if the task should not fail
+     */
+    @Nullable
+    private String mapCollectedResultsToError(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
             if (testCountLogger.hasWorkerFailures()) {
                 return testCountLogger.handleWorkerFailures();
@@ -606,13 +617,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
                 if (testCountLogger.getTotalDiscoveredItems() == 0 && getFailOnNoDiscoveredTests().get()) {
-                    return TestEventReporterFactoryInternal.TestReportResult.noTestsRun("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.");
+                    return "There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.";
                 }
             } else if (shouldFailOnNoMatchingTests()) {
-                return TestEventReporterFactoryInternal.TestReportResult.noTestsRun(createNoMatchingTestErrorMessage());
+                return createNoMatchingTestErrorMessage();
             }
         }
-        return TestEventReporterFactoryInternal.TestReportResult.noAction();
+        return null;
     }
 
     private boolean shouldFailOnNoMatchingTests() {
@@ -729,16 +740,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     /**
      * Handles test failures based on the {@link #getIgnoreFailures()} property.
      *
-     * @return the result of handling test failures
+     * @return the error message to throw, or {@code null} if failures are ignored
      */
-    private TestEventReporterFactoryInternal.TestReportResult handleTestFailures() {
+    @Nullable
+    private String handleTestFailures() {
         String message = buildFailureResultsMessage("There were failing tests.");
 
         if (getIgnoreFailures()) {
             getLogger().warn(message);
-            return TestEventReporterFactoryInternal.TestReportResult.failuresIgnored();
+            return null;
         } else {
-            return TestEventReporterFactoryInternal.TestReportResult.testFailureDetected(message);
+            return message;
         }
     }
 
