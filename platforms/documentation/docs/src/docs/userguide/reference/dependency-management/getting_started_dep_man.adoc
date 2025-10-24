@@ -33,9 +33,11 @@ include::sample[dir="snippets/dependencyManagement/introductionDependencies/groo
 
 Within the `dependencies` block, there are three things to notice when a dependency is declared:
 
-1. The configuration: `implementation` also known as the scope the dependency is applied to
-2. The module ID: `com.google.guava:guava` is made up of a `group` and an artifact `name` which are uniquely identifiable
-3. The version: `32.1.2-jre` which is not always required
+1. The bucket:
+** The configuration: `implementation` is the scope the dependency is applied to
+2. The dependency:
+** The module ID: `com.google.guava:guava` is made up of a `group` and an artifact `name` which are uniquely identifiable
+** The version: `32.1.2-jre` which is not always required
 
 Dependencies can be local or external.
 To let Gradle know where to find external dependencies, use the `repositories{}` block in the <<build_file_basics.adoc#build_file_basics,Build File>>.

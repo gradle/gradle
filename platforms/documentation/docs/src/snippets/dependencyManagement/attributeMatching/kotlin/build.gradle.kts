@@ -29,7 +29,6 @@ configurations {
         isCanBeDeclared = false
         extendsFrom(implementation)
     }
-
     // Using eager & older API: realized immediately - avoid
     create("compileClasspath-eager") {
         isCanBeConsumed = false
@@ -63,7 +62,6 @@ configurations {
         isCanBeDeclared = false
         extendsFrom(implementation)
     }
-
     // Using eager & older API: realized immediately - avoid
     create("exposedApi-eager") {
         isCanBeResolved = false

@@ -8,17 +8,30 @@ repositories {
 
 // tag::dependency-constraints[]
 dependencies {
-    implementation 'org.apache.httpcomponents:httpclient'
+    implementation('org.apache.httpcomponents:httpclient')
     constraints {
         implementation('org.apache.httpcomponents:httpclient:4.5.3') {
-            because 'previous versions have a bug impacting this application'
+            because('previous versions have a bug impacting this application')
         }
         implementation('commons-codec:commons-codec:1.11') {
-            because 'version 1.9 pulled from httpclient has bugs affecting this application'
+            because('version 1.9 pulled from httpclient has bugs affecting this application')
         }
     }
 }
 // end::dependency-constraints[]
+
+// tag::dependency-strictly[]
+dependencies {
+    constraints {
+        implementation("com.google.guava:guava") {
+            version {
+                strictly("33.1.0-jre")
+            }
+            because("avoid older versions with known issues")
+        }
+    }
+}
+// end::dependency-strictly[]
 
 tasks.register('copyLibs', Copy) {
     from configurations.compileClasspath

@@ -2,6 +2,7 @@
 plugins {
     id 'java-library'
 }
+
 // end::configurations[]
 
 repositories {
