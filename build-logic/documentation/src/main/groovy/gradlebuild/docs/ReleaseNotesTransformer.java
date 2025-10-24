@@ -39,7 +39,12 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
- * Deeply opinionated file filter that adds elements to the release notes HTML page.
+ * HTML post-processor for the generated Release Notes page.
+ *
+ * This is a {@link java.io.FilterReader} that lazily reads the original HTML,
+ * parses it with Jsoup, and emits a transformed HTML document. It injects
+ * styles/scripts, restructures headings into sections, builds a table of contents,
+ * normalizes links, and expands inline video placeholders.
  */
 public class ReleaseNotesTransformer extends FilterReader {
     private File baseCss;
