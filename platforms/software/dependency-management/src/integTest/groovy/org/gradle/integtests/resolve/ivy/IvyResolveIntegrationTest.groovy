@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile """
@@ -41,15 +41,24 @@ class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
         and:
 
         buildFile << """
-group = 'org.gradle'
-version = '1.0'
-repositories { ivy { url = "${ivyRepo.uri}" } }
-configurations { compile }
-dependencies {
-    compile "org.gradle:test:1.45"
-}
-"""
-        resolve.prepare()
+            group = 'org.gradle'
+            version = '1.0'
+            repositories {
+                ivy {
+                    url = "${ivyRepo.uri}"
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile "org.gradle:test:1.45"
+            }
+        """
 
         when:
         succeeds "checkDeps"
@@ -83,13 +92,22 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url = "${ivyHttpRepo.uri}" } }
-configurations { compile }
-dependencies {
-    compile "org.gradle:test:1.45"
-}
-"""
-        resolve.prepare()
+            repositories {
+                ivy {
+                    url = "${ivyHttpRepo.uri}"
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile "org.gradle:test:1.45"
+            }
+        """
 
         expect:
         dep.ivy.expectGet()
@@ -128,13 +146,22 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url = "${ivyRepo.uri}" } }
-configurations { compile }
-dependencies {
-    compile "org.gradle:test:1.45:classifier"
-}
-"""
-        resolve.prepare()
+            repositories {
+                ivy {
+                    url = "${ivyRepo.uri}"
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile "org.gradle:test:1.45:classifier"
+            }
+        """
 
         expect:
         succeeds "checkDeps"
@@ -154,21 +181,26 @@ dependencies {
 
         and:
         buildFile << """
-repositories {
-    ivy {
-        url = "${ivyRepo.uri}"
-        metadataSources {
-            ivyDescriptor()
-            artifact()
-        }
-    }
-}
-configurations { compile }
-dependencies {
-    compile "org.gradle:test:1.45:classifier"
-}
-"""
-        resolve.prepare()
+            repositories {
+                ivy {
+                    url = "${ivyRepo.uri}"
+                    metadataSources {
+                        ivyDescriptor()
+                        artifact()
+                    }
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile "org.gradle:test:1.45:classifier"
+            }
+        """
 
         expect:
         succeeds "checkDeps"
@@ -192,18 +224,27 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url = "${ivyHttpRepo.uri}" } }
-configurations { compile }
-dependencies {
-    compile ("org.gradle:test:1.45") {
-        artifact {
-            name = 'test-extra'
-            type = 'jar'
-        }
-    }
-}
-"""
-        resolve.prepare()
+            repositories {
+                ivy {
+                    url = "${ivyHttpRepo.uri}"
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile ("org.gradle:test:1.45") {
+                    artifact {
+                        name = 'test-extra'
+                        type = 'jar'
+                    }
+                }
+            }
+        """
 
         when:
         dep.ivy.expectGet()
@@ -232,27 +273,32 @@ dependencies {
 
         and:
         buildFile << """
-repositories {
-    ivy {
-        url = "${ivyHttpRepo.uri}"
-        metadataSources {
-            ivyDescriptor()
-            artifact()
-        }
-    }
-}
-configurations { compile }
-dependencies {
-    compile ("org.gradle:test:1.45") {
-        artifact {
-            name = 'my-test-artifact'
-            extension = 'jar'
-            type = 'jar'
-        }
-    }
-}
-"""
-        resolve.prepare()
+            repositories {
+                ivy {
+                    url = "${ivyHttpRepo.uri}"
+                    metadataSources {
+                        ivyDescriptor()
+                        artifact()
+                    }
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile ("org.gradle:test:1.45") {
+                    artifact {
+                        name = 'my-test-artifact'
+                        extension = 'jar'
+                        type = 'jar'
+                    }
+                }
+            }
+        """
 
         when:
         dep.ivy.expectGetMissing()
@@ -281,20 +327,24 @@ dependencies {
 
         and:
         buildFile << """
-repositories { ivy { url = "${ivyRepo.uri}" } }
-configurations {
-    compile
-    runtime.extendsFrom compile
-}
-dependencies {
-    compile "org.gradle:test:1.45"
-    runtime "org.gradle:other:preview-1"
-}
-"""
-        resolve.prepare {
-            config("compile")
-            config("runtime")
-        }
+            repositories {
+                ivy {
+                    url = "${ivyRepo.uri}"
+                }
+            }
+
+            configurations {
+                compile
+                runtime.extendsFrom compile
+            }
+
+            ${resolve.configureProject("compile", "runtime")}
+
+            dependencies {
+                compile "org.gradle:test:1.45"
+                runtime "org.gradle:other:preview-1"
+            }
+        """
 
         when:
         succeeds "checkCompile"
@@ -345,6 +395,8 @@ dependencies {
             group = 'com.acme'
             version = '1.9'
 
+            ${resolve.configureProject("compileClasspath")}
+
             repositories { ivy { url = "${ivyRepo.uri}" } }
 
             apply plugin: 'java-library'
@@ -369,7 +421,6 @@ dependencies {
                 }
             }
         """
-        resolve.prepare("compileClasspath")
 
         when:
         run ':checkDeps'

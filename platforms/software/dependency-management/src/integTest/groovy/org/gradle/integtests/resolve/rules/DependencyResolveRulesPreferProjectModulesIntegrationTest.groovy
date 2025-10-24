@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class DependencyResolveRulesPreferProjectModulesIntegrationTest extends AbstractIntegrationSpec {
-    def resolve = new ResolveTestFixture(buildFile, "conf")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         mavenRepo.module("myorg", "ModuleC", "2.0").publish()
@@ -30,7 +30,6 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         settingsFile << """
             rootProject.name = 'test'
         """
-        resolve.prepare()
     }
 
     def "preferProjectModules() only influence dependency declarations in the subproject it is used in"() {
@@ -58,6 +57,8 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                 preferProjectModules()
             }
 
+            ${resolve.configureProject("conf")}
+
             dependencies {
                 conf "myorg:ModuleB:1.0"
                 conf project(":ModuleC")
@@ -70,6 +71,8 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
             configurations { conf }
             configurations.create("default").extendsFrom(configurations.conf)
 
+            ${resolve.configureProject("conf")}
+
             dependencies {
                 conf project(":Subproject_with_preferProjectModules")
                 conf "myorg:ModuleB:1.0"
@@ -81,7 +84,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         succeeds('Subproject_with_preferProjectModules:checkDeps')
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":Subproject_with_preferProjectModules") {
             root(":Subproject_with_preferProjectModules", "test:Subproject_with_preferProjectModules:") {
                 module("myorg:ModuleB:1.0") {
                     // Prefers project, regardless of version
@@ -99,7 +102,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         succeeds('Subproject_without_preferProjectModules:checkDeps')
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":Subproject_without_preferProjectModules") {
             root(":Subproject_without_preferProjectModules", "test:Subproject_without_preferProjectModules:") {
                 project(":Subproject_with_preferProjectModules", "test:Subproject_with_preferProjectModules:") {
                     noArtifacts()
@@ -144,6 +147,8 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
             }
             configurations.create("default").extendsFrom(configurations.baseConf)
 
+            ${resolve.configureProject("baseConf", "conf")}
+
             configurations.baseConf.resolutionStrategy {
                 preferProjectModules()
             }
@@ -158,10 +163,10 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         """
 
         when:
-        succeeds('ProjectA:checkDeps')
+        succeeds('ProjectA:checkConf')
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":ProjectA") {
             root(":ProjectA", "test:ProjectA:") {
                 module("myorg:ModuleB:1.0") {
                     module("myorg:ModuleC:2.0") {
@@ -175,11 +180,10 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         }
 
         when:
-        resolve.prepare('baseConf')
-        succeeds('ProjectA:checkDeps')
+        succeeds('ProjectA:checkBaseConf')
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":ProjectA") {
             root(":ProjectA", "test:ProjectA:") {
                 module("myorg:ModuleB:1.0") {
                     edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0") {

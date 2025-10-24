@@ -98,7 +98,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -160,7 +160,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -218,7 +218,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -273,7 +273,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -324,7 +324,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -385,7 +385,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -442,7 +442,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         def versionConstraint = keyword == 'require' ? '1.0' : "{${keyword} 1.0}"
         resolve.expectGraph {
@@ -499,7 +499,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -542,7 +542,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -582,7 +582,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -641,7 +641,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -741,7 +741,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -864,7 +864,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        fails 'checkDep'
+        fails 'checkDeps'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints:
    Dependency path: 'root project :' ($variantToTest) --> 'org.test:moduleB:1.1'
    ${defineAsConstraint? 'Constraint' : 'Dependency'} path: 'root project :' ($variantToTest) --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{strictly 1.0}'"""
@@ -939,7 +939,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        fails 'checkDep'
+        fails 'checkDeps'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints:
    Dependency path: 'root project :' ($variantToTest) --> 'org.test:moduleB:1.1'
    ${defineAsConstraint? 'Constraint' : 'Dependency'} path: 'root project :' ($variantToTest) --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{require 1.+; reject 1.1 & 1.2}'"""
@@ -991,7 +991,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -1073,7 +1073,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         if (constraintsUnsupported) {
             resolve.expectGraph {

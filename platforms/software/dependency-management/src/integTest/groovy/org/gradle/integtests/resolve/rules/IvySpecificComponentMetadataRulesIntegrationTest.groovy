@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.encoding.Identifier
 
@@ -28,18 +27,23 @@ import org.gradle.test.fixtures.encoding.Identifier
 class IvySpecificComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
-        buildFile <<
-            """
-dependencies {
-    conf 'org.test:projectA:1.0'
-}
+        def buildFileText = buildFile.text
+        buildFile.text = """
+            plugins {
+                id("jvm-ecosystem")
+            }
 
-task resolve(type: Sync) {
-    from configurations.conf
-    into 'libs'
-}
-"""
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+            ${buildFileText}
+
+            dependencies {
+                conf 'org.test:projectA:1.0'
+            }
+
+            task resolve(type: Sync) {
+                from configurations.conf
+                into 'libs'
+            }
+        """
     }
 
     def "can access Ivy metadata"() {
