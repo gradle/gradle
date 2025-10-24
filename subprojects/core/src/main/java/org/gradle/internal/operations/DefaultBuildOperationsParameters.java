@@ -30,11 +30,15 @@ public class DefaultBuildOperationsParameters implements BuildOperationsParamete
      */
     public static final InternalOption<Boolean> VERBOSE_LOCKING_OPERATIONS_OPTION = new InternalFlag("org.gradle.internal.operations.verbose.locking", false);
 
+    public static final InternalOption<Boolean> COLLECTION_CALLBACK_OPERATIONS_OPTION = new InternalFlag("org.gradle.internal.operations.callbacks.collections", true);
+
     private final boolean emitLockingOperations;
+    private final boolean emitCollectionCallbackOperations;
 
     public DefaultBuildOperationsParameters(CrossBuildSessionParameters crossBuildSessionParameters) {
         InternalOptions internalOptions = new DefaultInternalOptions(crossBuildSessionParameters.getStartParameter().getSystemPropertiesArgs());
         this.emitLockingOperations = internalOptions.getOption(VERBOSE_LOCKING_OPERATIONS_OPTION).get();
+        this.emitCollectionCallbackOperations = internalOptions.getOption(COLLECTION_CALLBACK_OPERATIONS_OPTION).get();
     }
 
     @Override
@@ -42,4 +46,8 @@ public class DefaultBuildOperationsParameters implements BuildOperationsParamete
         return emitLockingOperations;
     }
 
+    @Override
+    public boolean emitCollectionCallbackOperations() {
+        return emitCollectionCallbackOperations;
+    }
 }
