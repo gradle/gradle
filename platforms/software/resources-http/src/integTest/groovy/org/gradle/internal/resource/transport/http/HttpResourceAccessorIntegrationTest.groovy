@@ -35,7 +35,7 @@ class HttpResourceAccessorIntegrationTest extends ConcurrentSpecification {
         10.times {
             concurrent.start {
                 100.times {
-                    httpResourceAccessor.openResource(name, false).close()
+                    httpResourceAccessor.openResource(name, false, null).close()
                 }
             }
         }
