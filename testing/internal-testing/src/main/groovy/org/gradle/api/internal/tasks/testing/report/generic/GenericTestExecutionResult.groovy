@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic
 
+import java.util.regex.Pattern
+
 interface GenericTestExecutionResult {
     /**
      * Asserts that the given test paths (and only the given test paths) were executed.
@@ -75,6 +77,8 @@ interface GenericTestExecutionResult {
         CUSTOM,
         ;
 
+        private static final Pattern BASIC_PARAMS_PATTERN = Pattern.compile("\\(.*\\)");
+
         /**
          * Given the name of a test method, returns the name of the test case that would be reported by this test
          * framework.
@@ -89,7 +93,14 @@ interface GenericTestExecutionResult {
          */
         String getTestCaseName(String testMethodName) {
             return switch (this) {
-                case JUNIT_JUPITER, KOTLIN_TEST -> testMethodName + "()"
+                case JUNIT_JUPITER, KOTLIN_TEST -> {
+                    // Don't add "()" if the method name already appears to have parameters
+                    if (testMethodName =~ BASIC_PARAMS_PATTERN) {
+                        yield testMethodName
+                    } else {
+                        yield testMethodName + "()"
+                    }
+                }
                 default -> testMethodName;
             };
         }

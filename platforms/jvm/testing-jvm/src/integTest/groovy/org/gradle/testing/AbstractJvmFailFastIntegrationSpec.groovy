@@ -62,12 +62,12 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         gradleHandle.waitForFailure()
 
         and:
-        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
+        GenericTestExecutionResult testResults = resultsFor()
+        testResults.assertTestPathsExecuted(":pkg.FailedTest:failTest", ":pkg.OtherTest:passingTest")
 
         TestPathExecutionResult gradleTest = testResults.testPath("")
         gradleTest.rootNames == ['Gradle Test Run :test']
         gradleTest.onlyRoot().assertChildCount(2, 1)
-        gradleTest.onlyRoot().assertOnlyChildrenExecuted("pkg.FailedTest", "pkg.OtherTest")
 
         TestPathExecutionResult failedTest = testResults.testPath("pkg.FailedTest")
         failedTest.onlyRoot().assertChildCount(1, 1)

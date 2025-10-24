@@ -28,11 +28,6 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
     String singularCategoryOrTagName = "tag"
     String pluralCategoryOrTagName = "tags"
 
-    @Override
-    String[] normalizeTestMethodNames(String... methodNames) {
-        return methodNames.collect { it +'()' }.toArray(new String[0])
-    }
-
     def "can specify include and exclude tags"() {
         given:
         testSources.with {
@@ -135,14 +130,14 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         results.assertAtLeastTestPathsExecuted('TagATests', 'TagADTests', 'MixedTests')
         results.testPath("TagATests").onlyRoot()
             .assertChildCount(4, 0)
-            .assertChildrenExecuted('tagAOk1()', 'tagAOk2()', 'tagAOk3()', 'tagAOk4()')
+            .assertChildrenExecuted('tagAOk1', 'tagAOk2', 'tagAOk3', 'tagAOk4')
         results.testPath("TagADTests").onlyRoot()
             .assertChildCount(3, 0)
-            .assertChildrenExecuted('tagAOk1()', 'tagAOk2()', 'tagDOk4()')
+            .assertChildrenExecuted('tagAOk1', 'tagAOk2', 'tagDOk4')
         results.testPath("MixedTests").onlyRoot()
             .assertChildCount(2, 0)
-            .assertChildrenExecuted('tagAOk1()')
-            .assertChildrenSkipped('ignoredWithTagA()')
+            .assertChildrenExecuted('tagAOk1')
+            .assertChildrenSkipped('ignoredWithTagA')
     }
 
     def "can combine tags with custom extension"() {

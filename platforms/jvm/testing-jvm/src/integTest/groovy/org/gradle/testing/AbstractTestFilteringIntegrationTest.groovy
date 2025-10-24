@@ -246,7 +246,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
 
         then:
         GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
-        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("Foo1Test", "Foo2Test")
+        testResult.assertTestPathsExecuted(":Foo1Test:pass1", ":Foo2Test:pass2")
         testResult.testPath("Foo1Test", "pass1").onlyRoot().assertHasResult(passedTestOutcome)
         testResult.testPath("Foo2Test", "pass2").onlyRoot().assertHasResult(passedTestOutcome)
     }
@@ -365,7 +365,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         when:
-        succeedsWithTestTaskArguments(stringArrayOf(command))
+        succeedsWithTestTaskArguments(command.toArray(String[]::new))
 
         then:
         GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
@@ -418,8 +418,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments('test', '--tests', '*ATest*', '--tests', '*BTest*', '--info')
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
-        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("ATest")
+        GenericTestExecutionResult testResult = resultsFor()
+        testResult.assertTestPathsExecuted(":ATest:test")
 
         where:
         includeType                   | includeConfig
@@ -444,8 +444,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments('test', '--info')
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
-        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("BTest")
+        GenericTestExecutionResult testResult = resultsFor()
+        testResult.assertTestPathsExecuted(":BTest:test")
     }
 
     def "invoking filter.includePatterns not disable include/exclude filter"() {
@@ -464,8 +464,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments('test', '--info')
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
-        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("BTest")
+        GenericTestExecutionResult testResult = resultsFor()
+        testResult.assertTestPathsExecuted(":BTest:test")
     }
 
     def "can exclude tests"() {
@@ -485,8 +485,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         executedAndNotSkipped(":test")
 
         and:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
-        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("ATest", "CTest")
+        GenericTestExecutionResult testResult = resultsFor()
+        testResult.assertTestPathsExecuted(":ATest:test", ":CTest:test")
         testResult.testPath("ATest", "test").onlyRoot().assertHasResult(passedTestOutcome)
         testResult.testPath("CTest", "test").onlyRoot().assertHasResult(passedTestOutcome)
     }
@@ -512,7 +512,4 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
     }
 
-    private String[] stringArrayOf(List<String> strings) {
-        return strings.toArray()
-    }
 }
