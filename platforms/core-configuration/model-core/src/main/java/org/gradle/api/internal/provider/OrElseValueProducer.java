@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.evaluation.EvaluationOwner;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
@@ -56,18 +55,19 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
+    public TaskDependencyContainer getDependencies() {
         try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
-                    leftProducer.visitProducerTasks(visitor);
+                    return leftProducer.getDependencies();
                 }
-                return;
+                return TaskDependencyContainer.EMPTY;
             }
             if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
-                rightProducer.visitProducerTasks(visitor);
+                return rightProducer.getDependencies();
             }
         }
+        return TaskDependencyContainer.EMPTY;
     }
 
     private boolean mayHaveValue(ProviderInternal<?> provider) {
