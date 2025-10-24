@@ -12,13 +12,13 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release introduces support for [running Gradle on Windows ARM (ARM64) devices](#windows-arm-support), making it easier to build on ARM-based systems.
+This release introduces support for [running Gradle on Windows ARM (ARM64) devices](#windows-on-arm-support), making it easier to build on ARM-based systems.
 
 It also [improves the publishing API](#publishing-improvements) with new ways to define and publish custom software components.
 
-Additionally, there are [error and warning reporting improvements](#error), including better suggestions when dependency verification fails, and [new task grouping for Antlr](#antlr-task-group).
+Additionally, there are [error and warning reporting improvements](#error-and-warning-reporting-improvements), including better suggestions when dependency verification fails, and [new task grouping for Antlr](#antlr-task-grouping-improvements).
 
-The [Daemon toolchain feature has been promoted](#daemon-promo) to stable.
+The [Daemon toolchain feature has been promoted](#daemon-toolchain-is-now-stable) to stable.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Adam](https://github.com/aSemy),
@@ -69,7 +69,6 @@ This makes it possible to run Gradle on Windows virtual machines hosted on ARM-b
 
 Limitations are listed in [Known issues](userguide/compatibility.html#known_issues)
 
-<a id="publishing-improvements"></a>
 ### Publishing improvements
 
 Gradle provides APIs for plugin authors and build engineers to define and customize the software [components](userguide/glossary.html#sub:terminology_component) their project produces when [publishing](userguide/publishing_customization.html) them.
@@ -154,7 +153,6 @@ publishing {
 
 With this approach, `myNewVariant` is only realized if the `myPublication` publication is actually published.
 
-<a id="error"></a>
 ### Error and warning reporting improvements
 
 Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
@@ -167,7 +165,6 @@ When you disable key servers in `gradle/verification-metadata.xml` using `<key-s
 
 ![Dependency Verification Fails Suggestion](release-notes-assets/dependency-verification-suggestion.png)
 
-<a id="antlr-task-group"></a>
 ### Antlr task grouping improvements
 
 [Antlr-related tasks](userguide/antlr_plugin.html) such as `generateGrammarSource` and `generateTestGrammarSource` are now grouped under `Antlr` in Gradle’s task listings.
@@ -191,7 +188,6 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-<a id="daemon-promo"></a>
 ### Daemon toolchain is now stable
 
 The [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria), introduced as an incubating feature in Gradle 8.8, has been improved and is now stable.
