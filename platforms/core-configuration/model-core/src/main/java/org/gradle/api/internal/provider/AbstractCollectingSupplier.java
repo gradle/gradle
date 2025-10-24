@@ -17,9 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -45,23 +43,22 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
     public ValueProducer getProducer() {
         return new ValueProducer() {
             @Override
-            public void visitProducerTasks(Action<? super Task> visitor) {
-                getProducers().forEach(c -> c.visitProducerTasks(visitor));
-            }
-
-            @Override
             public boolean isKnown() {
                 return getProducers().anyMatch(ValueProducer::isKnown);
             }
 
             @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                getProducers().forEach(c -> c.visitDependencies(context));
+            public TaskDependencyContainer getDependencies() {
+                return context -> {
+                    getProducers().forEach(p -> p.getDependencies().visitDependencies(context));
+                };
             }
 
             @Override
-            public void visitContentProducerTasks(Action<? super Task> visitor) {
-                getProducers().forEach(c -> c.visitContentProducerTasks(visitor));
+            public TaskDependencyContainer getContentDependencies() {
+                return context -> {
+                    getProducers().forEach(p -> p.getContentDependencies().visitDependencies(context));
+                };
             }
         };
     }

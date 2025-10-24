@@ -103,7 +103,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 ProviderInternal<?> provider = (ProviderInternal<?>) dependency;
                 ValueSupplier.ValueProducer producer = provider.getProducer();
                 if (producer.isKnown()) {
-                    producer.visitDependencies(context);
+                    producer.getDependencies().visitDependencies(context);
                 } else {
                     // The provider does not know how to produce the value, so use the value instead
                     queue.addFirst(provider.get());
