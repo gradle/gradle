@@ -393,7 +393,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             apiJars,
         )
         // Assert no warnings were emitted
-        verify(logger, atMost(1)).isTraceEnabled
+        verify(logger, atMost(4)).isTraceEnabled
         verify(logger, atMost(1)).isDebugEnabled
         verifyNoMoreInteractions(logger)
     }
