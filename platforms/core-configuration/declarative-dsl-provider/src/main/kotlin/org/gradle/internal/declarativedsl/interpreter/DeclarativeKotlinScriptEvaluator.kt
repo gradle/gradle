@@ -42,7 +42,7 @@ import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 
 @ServiceScope(Scope.Build::class)
@@ -58,13 +58,13 @@ interface DeclarativeKotlinScriptEvaluator {
 internal
 fun defaultDeclarativeScriptEvaluator(
     schemaBuilder: InterpretationSchemaBuilder,
-    projectFeatureRegistry: ProjectFeatureRegistry
+    projectFeatureDeclarations: ProjectFeatureDeclarations
 ): DeclarativeKotlinScriptEvaluator = DefaultDeclarativeKotlinScriptEvaluator(
     schemaBuilder,
     documentChecks = setOf(SettingsBlocksCheck, AccessOnCurrentReceiverCheck, UnsupportedSyntaxFeatureCheck),
     resolutionResultHandlers = setOf(
         ApplyModelDefaultsHandler.DO_NOTHING,
-        ModelDefaultsDefinitionCollector(projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureRegistry))
+        ModelDefaultsDefinitionCollector(projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureDeclarations))
     )
 )
 

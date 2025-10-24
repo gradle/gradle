@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 public class GradleBuildBuilder implements BuildScopeModelBuilder {
+    public static final String GRADLE_BUILD_MODEL_NAME = "org.gradle.tooling.model.gradle.GradleBuild";
     private final BuildStateRegistry buildStateRegistry;
 
     public GradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
@@ -43,7 +44,7 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
 
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.gradle.GradleBuild");
+        return GRADLE_BUILD_MODEL_NAME.equals(modelName);
     }
 
     @Override
@@ -122,8 +123,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             .setProjectIdentifier(id)
             .setBuildTreePath(project.getIdentityPath().asString())
             .setProjectDirectory(project.getProjectDir());
-        if (project.getBuildParent() != null) {
-            converted.setParent(convertedProjects.get(project.getBuildParent()));
+        if (project.getParent() != null) {
+            converted.setParent(convertedProjects.get(project.getParent()));
         }
         convertedProjects.put(project, converted);
         for (ProjectState child : project.getChildProjects()) {

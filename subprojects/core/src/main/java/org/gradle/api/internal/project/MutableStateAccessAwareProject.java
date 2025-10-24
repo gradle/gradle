@@ -75,7 +75,6 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -835,12 +834,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public ServiceRegistry getServices() {
         onMutableStateAccess("services");
         return delegate.getServices();
-    }
-
-    @Override
-    public ServiceRegistryFactory getServiceRegistryFactory() {
-        onMutableStateAccess("serviceRegistryFactory");
-        return delegate.getServiceRegistryFactory();
     }
 
     @Override

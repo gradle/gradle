@@ -66,7 +66,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * it.getLocalClassLoader() >> getClass().classLoader
     }
     def objectFactory = Mock(ObjectFactory)
-    def projectFeatureRegistry = Mock(ProjectFeatureRegistry)
+    def projectFeatureRegistry = Mock(ProjectFeatureDeclarations)
     def applicator = new DefaultProjectFeatureApplicator(projectFeatureRegistry, modelDefaultsApplicator, inspectionScheme, problems, pluginManager, classLoaderScope, objectFactory)
     def plugin = Mock(Plugin)
     def plugins = Mock(PluginContainer)

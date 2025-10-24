@@ -24,12 +24,14 @@ import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
@@ -41,20 +43,20 @@ import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 @NullMarked
-@SuppressWarnings("deprecation")
-class DefaultBuildController
-    implements org.gradle.tooling.internal.protocol.InternalBuildController,
+class DefaultBuildController implements
+    InternalBuildController,
     InternalBuildControllerVersion2,
     InternalActionAwareBuildController,
     InternalStreamedValueRelay,
@@ -108,6 +110,12 @@ class DefaultBuildController
     @Override
     public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
+        ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter);
+        return new ProviderBuildResult<>(model.getModel());
+    }
+
+    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
+        throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
@@ -116,7 +124,11 @@ class DefaultBuildController
         BuildTreeModelTarget scopedTarget = resolveTarget(target);
         try {
             Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter);
-            return new ProviderBuildResult<>(model);
+            if (model instanceof ToolingModelBuilderResultInternal) {
+                return (ToolingModelBuilderResultInternal) model;
+            } else {
+                return ToolingModelBuilderResultInternal.of(model);
+            }
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
@@ -164,29 +176,19 @@ class DefaultBuildController
     @Override
     public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
-            Object model = getModel(target, modelIdentifier, parameter).getModel();
-            return createDefaultFetchModelResult(target, uncheckedNonnullCast(model), ImmutableList.of());
+            ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter);
+            List<InternalFailure> failures = toInternalFailures(model.getFailures());
+            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(model.getModel()), failures);
         } catch (Exception e) {
-            return createDefaultFetchModelResult(target, null, ImmutableList.of(DefaultFailure.fromThrowable(e)));
+            List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
+            return new DefaultInternalFetchModelResult<>(null, failures);
         }
     }
 
-    private static <M> InternalFetchModelResult<M> createDefaultFetchModelResult(@Nullable Object target, @Nullable M model, Collection<InternalFailure> failures) {
-        return new InternalFetchModelResult<M>() {
-            @Override
-            public @Nullable Object getTarget() {
-                return target;
-            }
-
-            @Override
-            public @Nullable M getModel() {
-                return model;
-            }
-
-            @Override
-            public Collection<InternalFailure> getFailures() {
-                return failures;
-            }
-        };
+    private static List<InternalFailure> toInternalFailures(List<Failure> failures) {
+        return failures
+            .stream()
+            .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null))
+            .collect(toImmutableList());
     }
 }

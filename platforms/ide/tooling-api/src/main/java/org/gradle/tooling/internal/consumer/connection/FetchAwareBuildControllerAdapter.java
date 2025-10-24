@@ -32,6 +32,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -45,8 +46,8 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
     }
 
     @Override
-    public <T extends Model, M, P> FetchModelResult<T, M> fetch(
-        @Nullable T target,
+    public <M, P> FetchModelResult<M> fetch(
+        @Nullable Model target,
         Class<M> modelType,
         @Nullable Class<P> parameterType,
         @Nullable Action<? super P> parameterInitializer
@@ -58,30 +59,35 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
         return adaptResult(target, modelType, result);
     }
 
-    private <T extends Model, M> FetchModelResult<T, M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
+    private <T extends Model, M> FetchModelResult<M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
         Object model = result.getModel();
         M adaptedModel = model != null ? adaptModel(target, modelType, model) : null;
-        return new FetchModelResult<T, M>() {
-            @Nullable
-            List<Failure> failures = null;
+        return new ModelFetchModelResult<>(result, adaptedModel);
+    }
 
-            @Override
-            public T getTarget() {
-                return target;
-            }
+    private static class ModelFetchModelResult<M> implements FetchModelResult<M>, Serializable {
+        private final InternalFetchModelResult<Object> result;
+        private final M adaptedModel;
+        @Nullable
+        List<Failure> failures;
 
-            @Override
-            public M getModel() {
-                return adaptedModel;
-            }
+        public ModelFetchModelResult(InternalFetchModelResult<Object> result, M adaptedModel) {
+            this.result = result;
+            this.adaptedModel = adaptedModel;
+            failures = null;
+        }
 
-            @Override
-            public Collection<? extends Failure> getFailures() {
-                if (failures == null) {
-                    failures = BuildProgressListenerAdapter.toFailures(result.getFailures());
-                }
-                return failures;
+        @Override
+        public M getModel() {
+            return adaptedModel;
+        }
+
+        @Override
+        public Collection<? extends Failure> getFailures() {
+            if (failures == null) {
+                failures = BuildProgressListenerAdapter.toFailures(result.getFailures());
             }
-        };
+            return failures;
+        }
     }
 }

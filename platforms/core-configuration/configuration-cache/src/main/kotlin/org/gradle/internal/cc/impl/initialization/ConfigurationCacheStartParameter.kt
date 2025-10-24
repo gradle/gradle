@@ -20,14 +20,14 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.extensions.core.getInternalFlag
-import org.gradle.internal.extensions.core.getInternalString
+import org.gradle.internal.extensions.core.getStringOrNull
 import org.gradle.internal.extensions.stdlib.unsafeLazy
+import org.gradle.internal.initialization.layout.BuildTreeLocations
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.IncubationLogger
@@ -67,7 +67,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * The default (when null) is to write the report under `<root build buildDir>/reports/configuration-cache`.
      */
     val customReportOutputDirectory: File? by lazy {
-        options.getInternalString(Options.REPORT_OUTPUT_DIR, null)?.let {
+        options.getStringOrNull(Options.REPORT_OUTPUT_DIR)?.let {
             buildTreeLocations.buildTreeRootDirectory.resolve(it)
         }
     }

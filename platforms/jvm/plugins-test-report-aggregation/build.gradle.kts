@@ -35,6 +35,8 @@ dependencies {
     implementation(projects.testingJvm)
     implementation(projects.testSuitesBase)
 
+    integTestImplementation(testFixtures(projects.testingBase))
+
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 tasks.isolatedProjectsIntegTest {

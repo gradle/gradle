@@ -51,7 +51,8 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
         this.incomingConnector = new TcpIncomingConnector(
                 executorFactory,
                 inetAddressFactory,
-                new UUIDGenerator()
+                new UUIDGenerator(),
+                10
         );
     }
 

@@ -36,9 +36,8 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
@@ -66,6 +65,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -92,6 +92,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -678,17 +679,21 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private Set<String> getPreviousFailedTestClasses() {
-        TestResultSerializer serializer = new TestResultSerializer(getBinaryResultsDirectory().getAsFile().get());
-        if (serializer.isHasResults()) {
-            final Set<String> previousFailedTestClasses = new HashSet<String>();
-            serializer.read(new Action<TestClassResult>() {
-                @Override
-                public void execute(TestClassResult testClassResult) {
-                    if (testClassResult.getFailuresCount() > 0) {
-                        previousFailedTestClasses.add(testClassResult.getClassName());
+        SerializableTestResultStore store = new SerializableTestResultStore(getBinaryResultsDirectory().getAsFile().get().toPath());
+        if (store.hasResults()) {
+            final Set<String> previousFailedTestClasses = new HashSet<>();
+            try {
+                store.forEachResult(result -> {
+                    // Test class descriptors set both name and class name to the test class name
+                    if (result.getInnerResult().getName().equals(result.getInnerResult().getClassName())) {
+                        if (result.getInnerResult().getResultType() == TestResult.ResultType.FAILURE) {
+                            previousFailedTestClasses.add(result.getInnerResult().getClassName());
+                        }
                     }
-                }
-            });
+                });
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
             return previousFailedTestClasses;
         } else {
             return Collections.emptySet();
@@ -741,6 +746,12 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         }
         reasons.addAll(super.getNoMatchingTestErrorReasons());
         return reasons;
+    }
+
+    @Override
+    protected int getReportEntrySkipLevels() {
+        // Add 1 for the workers, plus any additional levels required by the test framework
+        return super.getReportEntrySkipLevels() + 1 + getTestFramework().getAdditionalReportEntrySkipLevels();
     }
 
     /**
