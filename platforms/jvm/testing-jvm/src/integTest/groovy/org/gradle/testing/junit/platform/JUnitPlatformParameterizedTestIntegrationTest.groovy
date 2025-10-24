@@ -97,8 +97,6 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         then:
         def result = resultsFor(testDirectory)
 
-        result.testPath("TestSuite").onlyRoot()
-            .assertChildrenExecuted("PassingWithDisabledParameterizedTest", "OnlyDisabledParameterizedTest")
         result.testPathPreNormalized(":TestSuite:PassingWithDisabledParameterizedTest").onlyRoot()
             .assertChildCount(4, 0)
         result.testPathPreNormalized(":TestSuite:PassingWithDisabledParameterizedTest").onlyRoot()

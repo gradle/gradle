@@ -32,11 +32,6 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
 
     abstract boolean supportsCategoryOnNestedClass()
 
-    @Override
-    String[] normalizeTestMethodNames(String... methodNames) {
-        return methodNames
-    }
-
     def "can specify both includes and excludes for categories"() {
         given:
         testSources.with {

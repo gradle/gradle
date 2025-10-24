@@ -17,6 +17,7 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -79,7 +80,7 @@ class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
         when:
         succeeds("test")
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.TEST_NG)
         result.testClass("FooTest").assertTestsExecuted("foo")
     }
 

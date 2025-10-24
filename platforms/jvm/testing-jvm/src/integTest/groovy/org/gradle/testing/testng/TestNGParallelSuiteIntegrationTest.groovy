@@ -78,7 +78,7 @@ class TestNGParallelSuiteIntegrationTest extends MultiVersionIntegrationSpec imp
         run("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.testClass("Foo0Test").assertTestsExecuted("test")
         result.testClass("Foo199Test").assertTestsExecuted("test")
     }
