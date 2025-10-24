@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[declaring-dependency-configurations]]
-= Declaring Dependency Configurations
+= Creating Dependency Configurations
 :keywords: configuration
 
 [[sec:what-are-dependency-configurations]]

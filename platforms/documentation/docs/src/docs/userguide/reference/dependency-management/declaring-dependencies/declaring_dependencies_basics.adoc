@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[declaring-dependencies-basics]]
-= Declaring Dependencies Basics
+= Declaring Dependencies
 
 [[sec:dependency-types]]
 == Types of dependencies
@@ -39,7 +39,9 @@ include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="buil
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
 ====
 
-WARNING: The map notation is deprecated and will be removed in Gradle 10. Prefer the single-string form.
+WARNING: The map notation is deprecated and will be removed in Gradle 10. Prefer the single-string form. +
+For example: `runtimeOnly(group: 'org.springframework', name: 'spring-core', version: '2.5')`. +
+Should be: `runtimeOnly('org.springframework:spring-core:2.5')`.
 
 Module dependencies use the link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html[`ExternalModuleDependency`] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] APIs.
 These APIs provide expose properties and configuration methods for defining dependencies such a `transitive`, `because`, and a `version {}` block for `strictly`, `prefer`, and `reject`.
