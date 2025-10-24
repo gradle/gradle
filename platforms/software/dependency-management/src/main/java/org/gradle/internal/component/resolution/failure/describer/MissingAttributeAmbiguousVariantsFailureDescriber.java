@@ -102,9 +102,9 @@ public abstract class MissingAttributeAmbiguousVariantsFailureDescriber extends 
     }
 
     private void buildSpecificAttributeSuggestionMsg(AmbiguousVariantsFailure failure, String distinguishingAttribute, TreeFormatter formatter) {
-        formatter.node("The only attribute distinguishing these variants is '" + distinguishingAttribute + "'. Add this attribute to the consumer's configuration to resolve the ambiguity:");
+        formatter.node("Only one attribute is distinct between the available variants. Add this attribute to the resolution context to resolve the ambiguity:");
         formatter.startChildren();
-        failure.getCandidates().forEach(candidate -> formatter.node("Value: '" + attributeValueForCandidate(candidate, distinguishingAttribute) + "' selects variant: '" + candidate.getDisplayName() + "'"));
+        failure.getCandidates().forEach(candidate -> formatter.node(distinguishingAttribute + "=\"" + attributeValueForCandidate(candidate, distinguishingAttribute) + "\" will select variant '" + candidate.getDisplayName() + "'"));
         formatter.endChildren();
     }
 
