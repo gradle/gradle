@@ -39,6 +39,13 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
+=== Potential breaking changes
+
+==== TestNG output may be different when using a version before 6.9.13.3
+As a part of the `AbstractTestTask` refactoring, the integration with TestNG has been updated.
+Gradle now relies on a correctly functioning `IClassListener` integration to report the correct hierarchy of test classes and methods.
+This may lead to different output when using TestNG versions before 6.9.13.3.
+
 === Deprecations
 
 [[deprecated_wrapper_get_available_distribution_types]]

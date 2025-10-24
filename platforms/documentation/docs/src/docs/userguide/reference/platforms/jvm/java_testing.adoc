@@ -605,6 +605,8 @@ This can be caused by a variety of issues, such as:
 When using a JUnit 4 version below 4.13, output from `@BeforeClass` and `@AfterClass` methods may be incorrectly assigned to a test earlier or later in the test execution order.
 This is due to a lack of events for when a class is started or finished, which were added in JUnit 4.13.
 
+This also applies to TestNG versions below 6.9.13.3 and its `@BeforeClass` and `@AfterClass` methods.
+
 [[sec:java_testing_modular]]
 == Testing Java Modules
 
