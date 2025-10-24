@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -367,20 +367,20 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     /**
-     * This is not a JUnit 4 callback, but is used by {@link JUnitTestClassExecutor} to report an exception
+     * This is not a JUnit 4 callback, but is used by {@link JUnitTestExecutor} to report an exception
      * thrown from JUnit itself.
      *
-     * @param testClassInfo information about the test class being executed when the failure occurred
+     * @param testClassDefinition information about the test class being executed when the failure occurred
      * @param failure the failure
      */
-    public void testExecutionFailure(TestClassRunInfo testClassInfo, TestFailure failure) {
+    public void testExecutionFailure(ClassTestDefinition testClassDefinition, TestFailure failure) {
         try {
             long now = clock.getCurrentTime();
             if (executing.isEmpty()) {
                 String testName = testsStarted ? "executionError" : "initializationError";
 
-                withPotentiallyMissingParent(testClassInfo.getTestClassName(), now, parentId -> {
-                    DefaultTestDescriptor initializationError = new DefaultTestDescriptor(idGenerator.generateId(), testClassInfo.getTestClassName(), testName);
+                withPotentiallyMissingParent(testClassDefinition.getTestClassName(), now, parentId -> {
+                    DefaultTestDescriptor initializationError = new DefaultTestDescriptor(idGenerator.generateId(), testClassDefinition.getTestClassName(), testName);
                     resultProcessor.started(initializationError, new TestStartEvent(now, parentId));
                     resultProcessor.failure(initializationError.getId(), failure);
                     resultProcessor.completed(initializationError.getId(), new TestCompleteEvent(now));

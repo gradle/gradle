@@ -17,16 +17,16 @@
 package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 
-public class PatternMatchTestClassProcessor implements TestClassProcessor {
+public class PatternMatchTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
     private final TestSelectionMatcher testClassSelectionMatcher;
-    private final TestClassProcessor delegate;
+    private final TestClassProcessor<D> delegate;
 
-    public PatternMatchTestClassProcessor(DefaultTestFilter testFilter, TestClassProcessor delegate) {
+    public PatternMatchTestClassProcessor(DefaultTestFilter testFilter, TestClassProcessor<D> delegate) {
         this.testClassSelectionMatcher = new TestSelectionMatcher(testFilter.toSpec());
         this.delegate = delegate;
     }
@@ -37,9 +37,9 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
-        if (testClassSelectionMatcher.mayIncludeClass(testClass.getTestClassName())) {
-            delegate.processTestClass(testClass);
+    public void processTestDefinition(D testDefinition) {
+        if (testDefinition.matches(testClassSelectionMatcher)) {
+            delegate.processTestDefinition(testDefinition);
         }
     }
 

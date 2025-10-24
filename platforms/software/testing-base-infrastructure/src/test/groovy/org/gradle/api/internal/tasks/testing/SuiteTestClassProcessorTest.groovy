@@ -25,7 +25,7 @@ class SuiteTestClassProcessorTest extends Specification {
     private final TestResultProcessor resultProcessor = Mock()
     private final TestClassProcessor targetProcessor = Mock()
     private final TestDescriptorInternal suiteDescriptor = Mock()
-    private final TestClassRunInfo testClass = Mock()
+    private final ClassTestDefinition testDefinition = new ClassTestDefinition("<class-name>")
     private final Clock timeProvider = FixedClock.create()
     private final SuiteTestClassProcessor processor = new SuiteTestClassProcessor(suiteDescriptor, targetProcessor, timeProvider)
 
@@ -33,7 +33,7 @@ class SuiteTestClassProcessorTest extends Specification {
         _ * suiteDescriptor.getId() >> 'id'
         _ * suiteDescriptor.toString() >> '<suite>'
         _ * suiteDescriptor.isComposite() >> true
-        _ * testClass.getTestClassName() >> '<class-name>'
+        _ * testDefinition.getDisplayName() >> "test class '<class-name>'"
     }
 
     def firesSuiteStartEventOnStartProcessing() {
@@ -84,10 +84,10 @@ class SuiteTestClassProcessorTest extends Specification {
         processor.startProcessing(resultProcessor)
 
         when:
-        processor.processTestClass(testClass)
+        processor.processTestDefinition(testDefinition)
 
         then:
-        1 * targetProcessor.processTestClass(testClass) >> { throw failure }
+        1 * targetProcessor.processTestDefinition(testDefinition) >> { throw failure }
         1 * resultProcessor.failure('id', !null) >> { args ->
             def e = args[1]
             assert e instanceof DefaultTestFailure

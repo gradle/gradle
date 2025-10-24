@@ -20,6 +20,6 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
-public interface WorkerTestClassProcessorFactory {
-    TestClassProcessor create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock);
+public interface WorkerTestClassProcessorFactory<D extends TestDefinition> {
+    TestClassProcessor<D> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock);
 }

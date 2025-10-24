@@ -29,14 +29,14 @@ import org.gradle.internal.work.WorkerLeaseService;
 
 public class TestMainAction implements Runnable {
     private final TestDetector detector;
-    private final TestClassProcessor processor;
+    private final TestClassProcessor<?> processor;
     private final TestResultProcessor resultProcessor;
     private final WorkerLeaseService workerLeaseService;
     private final Clock clock;
     private final Object rootTestSuiteId;
     private final String displayName;
 
-    public TestMainAction(TestDetector detector, TestClassProcessor processor, TestResultProcessor resultProcessor, WorkerLeaseService workerLeaseService, Clock clock, Object rootTestSuiteId, String displayName) {
+    public TestMainAction(TestDetector detector, TestClassProcessor<?> processor, TestResultProcessor resultProcessor, WorkerLeaseService workerLeaseService, Clock clock, Object rootTestSuiteId, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);

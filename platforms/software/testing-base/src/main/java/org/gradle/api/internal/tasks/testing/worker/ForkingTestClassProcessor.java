@@ -18,9 +18,10 @@ package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.ObjectConnection;
@@ -37,17 +38,17 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ForkingTestClassProcessor implements TestClassProcessor {
+public class ForkingTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
     public static final String GRADLE_TEST_WORKER_NAME = "Gradle Test Executor";
 
     private final WorkerProcessFactory workerFactory;
-    private final WorkerTestClassProcessorFactory processorFactory;
+    private final WorkerTestClassProcessorFactory<D> processorFactory;
     private final JavaForkOptions options;
     private final ForkedTestClasspath classpath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final Lock lock = new ReentrantLock();
     private final WorkerThreadRegistry workerThreadRegistry;
-    private RemoteTestClassProcessor remoteProcessor;
+    private RemoteTestClassProcessor<D> remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
@@ -58,7 +59,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     public ForkingTestClassProcessor(
         WorkerThreadRegistry workerThreadRegistry,
         WorkerProcessFactory workerFactory,
-        WorkerTestClassProcessorFactory processorFactory,
+        WorkerTestClassProcessorFactory<D> processorFactory,
         JavaForkOptions options,
         ForkedTestClasspath classpath,
         Action<WorkerProcessBuilder> buildConfigAction
@@ -77,7 +78,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(D testDefinition) {
         lock.lock();
         try {
             if (stoppedNow) {
@@ -95,14 +96,14 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 }
             }
 
-            remoteProcessor.processTestClass(testClass);
+            remoteProcessor.processTestDefinition(testDefinition);
         } finally {
             lock.unlock();
         }
     }
 
-    RemoteTestClassProcessor forkProcess() {
-        WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
+    RemoteTestClassProcessor<D> forkProcess() {
+        WorkerProcessBuilder builder = workerFactory.create(new TestWorker<>(processorFactory));
         builder.setBaseName(GRADLE_TEST_WORKER_NAME);
         builder.setImplementationClasspath(classpath.getImplementationClasspath());
         builder.applicationClasspath(classpath.getApplicationClasspath());
@@ -133,7 +134,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             }
         });
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
-        RemoteTestClassProcessor remoteProcessor = connection.addOutgoing(RemoteTestClassProcessor.class);
+        RemoteTestClassProcessor<D> remoteProcessor = Cast.uncheckedNonnullCast(
+            connection.addOutgoing(RemoteTestClassProcessor.class)
+        );
         connection.connect();
         remoteProcessor.startProcessing();
         return remoteProcessor;

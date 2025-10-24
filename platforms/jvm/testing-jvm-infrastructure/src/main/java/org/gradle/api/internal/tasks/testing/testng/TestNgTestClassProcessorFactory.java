@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.actor.ActorFactory;
@@ -30,7 +31,7 @@ import java.util.List;
  * Implementation of {@link WorkerTestClassProcessorFactory} which instantiates a {@link TestNGTestClassProcessor}.
  * This class is loaded on test workers themselves and acts as the entry-point to running TestNG tests on a test worker.
  */
-class TestNgTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
+class TestNgTestClassProcessorFactory implements WorkerTestClassProcessorFactory<ClassTestDefinition>, Serializable {
     private final File testReportDir;
     private final TestNGSpec options;
     private final List<File> suiteFiles;
@@ -42,7 +43,7 @@ class TestNgTestClassProcessorFactory implements WorkerTestClassProcessorFactory
     }
 
     @Override
-    public TestClassProcessor create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public TestClassProcessor<ClassTestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, idGenerator, clock, actorFactory);
     }
 }

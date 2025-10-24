@@ -16,14 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.internal.tasks.testing.TestClassConsumer;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NullMarked;
 
-public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
+@NullMarked
+public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<ClassTestDefinition> {
     private final IdGenerator<?> idGenerator;
     private final JUnitSpec spec;
     private final Clock clock;
@@ -45,10 +48,10 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
     }
 
     @Override
-    protected TestClassConsumer createTestExecutor(Actor resultProcessorActor) {
+    protected TestDefinitionConsumer<ClassTestDefinition> createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
 
-        return new JUnitTestClassExecutor(
+        return new JUnitTestExecutor(
             Thread.currentThread().getContextClassLoader(),
             spec,
             clock,

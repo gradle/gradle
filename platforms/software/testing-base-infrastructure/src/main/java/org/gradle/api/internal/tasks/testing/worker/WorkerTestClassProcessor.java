@@ -19,11 +19,12 @@ package org.gradle.api.internal.tasks.testing.worker;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.internal.time.Clock;
 
-public class WorkerTestClassProcessor extends SuiteTestClassProcessor {
+public class WorkerTestClassProcessor<D extends TestDefinition> extends SuiteTestClassProcessor<D> {
 
-    public WorkerTestClassProcessor(TestClassProcessor processor, Object workerSuiteId, String workerDisplayName,
+    public WorkerTestClassProcessor(TestClassProcessor<D> processor, Object workerSuiteId, String workerDisplayName,
                                     Clock clock) {
         super(new WorkerTestSuiteDescriptor(workerSuiteId, workerDisplayName), processor, clock);
     }

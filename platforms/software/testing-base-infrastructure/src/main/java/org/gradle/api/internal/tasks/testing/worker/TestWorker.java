@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.Cast;
@@ -53,14 +53,14 @@ import java.util.concurrent.BlockingQueue;
  * methods willed be called sequentially in the following order:
  *
  * - {@link RemoteTestClassProcessor#startProcessing()}
- * - 0 or more calls to {@link RemoteTestClassProcessor#processTestClass(TestClassRunInfo)}
+ * - 0 or more calls to {@link RemoteTestClassProcessor#processTestDefinition(TestDefinition)}
  * - {@link RemoteTestClassProcessor#stop()}
  *
  * Commands are received on communication threads and then processed sequentially on the main thread.  Although concurrent calls to
  * any of the methods from {@link RemoteTestClassProcessor} are supported, the commands will still be executed sequentially in the
  * main thread in order of arrival.
  */
-public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable, Stoppable {
+public class TestWorker<D extends TestDefinition> implements Action<WorkerProcessContext>, RemoteTestClassProcessor<D>, Serializable, Stoppable {
     private enum State {INITIALIZING, STARTED, STOPPED}
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
@@ -68,9 +68,9 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     public static final String WORKER_TMPDIR_SYS_PROPERTY = "org.gradle.internal.worker.tmpdir";
     private static final String WORK_THREAD_NAME = "Test worker";
 
-    private final WorkerTestClassProcessorFactory factory;
+    private final WorkerTestClassProcessorFactory<D> factory;
     private final BlockingQueue<Runnable> runQueue = new ArrayBlockingQueue<Runnable>(1);
-    private TestClassProcessor processor;
+    private TestClassProcessor<D> processor;
     private TestResultProcessor resultProcessor;
 
     /**
@@ -80,7 +80,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
      */
     private volatile State state = State.INITIALIZING;
 
-    public TestWorker(WorkerTestClassProcessorFactory factory) {
+    public TestWorker(WorkerTestClassProcessorFactory<D> factory) {
         this.factory = factory;
     }
 
@@ -131,17 +131,18 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     private void startReceivingTests(WorkerProcessContext workerProcessContext, ServiceRegistry testServices) {
-        TestClassProcessor targetProcessor = factory.create(
+        TestClassProcessor<D> targetProcessor = factory.create(
             testServices.get(IdGenerator.class),
             testServices.get(ActorFactory.class),
             testServices.get(Clock.class)
         );
         IdGenerator<Object> idGenerator = Cast.uncheckedNonnullCast(testServices.get(IdGenerator.class));
 
-        targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
+        targetProcessor = new WorkerTestClassProcessor<>(targetProcessor, idGenerator.generateId(),
             workerProcessContext.getDisplayName(), testServices.get(Clock.class));
-        ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(
-            TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
+        ContextClassLoaderProxy<TestClassProcessor<D>> proxy = new ContextClassLoaderProxy<>(
+            Cast.uncheckedNonnullCast(TestClassProcessor.class), targetProcessor, workerProcessContext.getApplicationClassLoader()
+        );
         processor = proxy.getSource();
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
@@ -166,7 +167,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     @Override
-    public void processTestClass(final TestClassRunInfo testClass) {
+    public void processTestDefinition(final D testDefinition) {
         submitToRun(new Runnable() {
             @Override
             public void run() {
@@ -174,7 +175,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                     throw new IllegalStateException("Test classes cannot be processed until a command to start processing has been received");
                 }
                 try {
-                    processor.processTestClass(testClass);
+                    processor.processTestDefinition(testDefinition);
                 } catch (AccessControlException e) {
                     throw e;
                 } finally {

@@ -65,7 +65,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     protected abstract ObjectFactory getObjectFactory();
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory<?> getProcessorFactory() {
         validateOptions();
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
@@ -107,5 +107,15 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
                     "Please either include or exclude the tags but not both.");
             }
         }
+    }
+
+    @Override
+    public boolean supportsNonClassBasedTesting() {
+        return true;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "JUnit Platform";
     }
 }
