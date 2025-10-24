@@ -17,7 +17,7 @@
 :keywords: daemon, status, jps, no-daemon, stop, org.gradle.daemon, updateDaemonJvm, gradle-daemon-jvm.properties, jvm-version, jvm-vendor
 
 The Gradle Daemon is a long-lived, persistent process that runs in the background and hosts Gradle's execution engine.
-Its primary benefit is dramatically reducing build times by eliminating the significant overhead associated with JVM startup and initialization on every command execution.
+It dramatically reduces build times using caching, runtime optimizations, and eliminating JVM startup overhead.
 
 == The Gradle Client vs. the Gradle Daemon
 
