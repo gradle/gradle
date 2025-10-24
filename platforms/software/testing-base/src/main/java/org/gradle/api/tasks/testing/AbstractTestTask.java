@@ -491,13 +491,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
-
         TestExecutionSpec executionSpec = createTestExecutionSpec();
-
         final File binaryResultsDir = getBinaryResultsDirectory().getAsFile().get();
         FileSystemOperations fs = getFileSystemOperations();
         fs.delete(spec -> spec.delete(binaryResultsDir));
-
         try {
             Files.createDirectories(binaryResultsDir.toPath());
         } catch (IOException e) {

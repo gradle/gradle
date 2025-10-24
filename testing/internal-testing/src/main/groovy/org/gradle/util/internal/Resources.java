@@ -63,6 +63,12 @@ public class Resources implements MethodRule {
         this.testDirectoryProvider = testDirectoryProvider;
     }
 
+    public Resources(TestDirectoryProvider testDirectoryProvider, Class<?> declaringTestClass, Class<?> runningTestClass) {
+        this.testDirectoryProvider = testDirectoryProvider;
+        this.declaringTestClass = declaringTestClass;
+        this.runningTestClass = runningTestClass;
+    }
+
     /**
      * Locates the resource with the given name, relative to the current class that declared the current test method.
      *

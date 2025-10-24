@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class DefaultImportsReaderTest extends Specification {
     @Rule
-    public Resources resources = new Resources()
+    public Resources resources = new Resources(null)
     DefaultImportsReader reader = new DefaultImportsReader(new RuntimeApiInfo(DefaultImportsReaderTest.class.getClassLoader()))
 
     def "default import packages contain org.gradle.api"() {
