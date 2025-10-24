@@ -633,6 +633,12 @@ enum class SpecificBuild {
             flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default")
     },
+    GradleceptionGroovy5 {
+        override fun create(
+            model: CIBuildModel,
+            stage: Stage,
+        ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default", 5)
+    },
     GradleceptionWithMaxLtsJdk {
         override fun create(
             model: CIBuildModel,
