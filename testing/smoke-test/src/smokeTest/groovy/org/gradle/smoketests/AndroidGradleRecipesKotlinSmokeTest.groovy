@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.testdistribution.LocalOnly
@@ -133,14 +132,10 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         def runner = mixedRunner(agpVersion, kotlinVersionNumber, taskName)
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
-                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
 
         when: 'running the build for the 1st time'
-        beforeAndroidBuild(runner)
-        def result = runner.deprecations(AndroidDeprecations) {
-            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
-        }.build()
+        def result = runner.build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.SUCCESS
@@ -153,7 +148,6 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         when: 'running the build for the 2nd time'
         result = runner.deprecations(AndroidDeprecations) {
             expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
-            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
         }.build()
 
         then:
@@ -194,12 +188,5 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                 ${mavenCentralRepository(GradleDsl.KOTLIN)}
             }
         """
-    }
-
-    private beforeAndroidBuild(SmokeTestGradleRunner runner) {
-        SantaTrackerConfigurationCacheWorkaround.beforeBuild(
-            runner.projectDir,
-            IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir
-        )
     }
 }

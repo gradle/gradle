@@ -41,7 +41,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
     def "kotlin android on android-kotlin-example using #dsl DSL (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion)"(String kotlinPluginVersion, String androidPluginVersion) {
         given:
         AndroidHome.assertIsSet()
-        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(androidPluginVersion, kotlinPluginVersion)
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidPluginVersion)
         this.kotlinPluginVersion = VersionNumber.parse(kotlinPluginVersion)
         useSample(getSampleName())
 
@@ -59,7 +59,6 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         def result = mixedRunner(androidPluginVersion, kotlinPluginVersionNumber, 'clean', ":app:testDebugUnitTestCoverage")
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(androidPluginVersion)
-                expectIsPropertyDeprecationWarnings(androidPluginVersion)
             }
             .build()
 
