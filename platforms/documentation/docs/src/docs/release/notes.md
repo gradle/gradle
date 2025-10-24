@@ -58,7 +58,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-<a id="windows-arm-support"></a>
 ### Windows on ARM support
 
 Gradle now supports running builds on [Windows on ARM (ARM64/AArch64) devices](userguide/compatibility.html#target_platforms).
