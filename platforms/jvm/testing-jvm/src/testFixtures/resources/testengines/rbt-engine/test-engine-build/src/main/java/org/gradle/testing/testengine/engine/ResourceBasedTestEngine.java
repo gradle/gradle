@@ -38,8 +38,6 @@ public class ResourceBasedTestEngine implements TestEngine {
     public static final String ENGINE_ID = "rbt-engine";
     public static final String ENGINE_NAME = "Resource Based Test Engine";
 
-    public static final String ENGINE_DUMMY_CLASS_NAME = "EngineEntryPoint";
-
     @Override
     public String getId() {
         return ENGINE_ID;
@@ -50,7 +48,7 @@ public class ResourceBasedTestEngine implements TestEngine {
         LOGGER.info(() -> {
             String selectorsMsg = discoveryRequest.getSelectorsByType(DiscoverySelector.class).stream()
                 .map(Object::toString)
-                .collect(Collectors.joining("\n", "\t", ""));
+                .collect(Collectors.joining("\t\n", "\t", ""));
             return "Discovering tests with engine: " + uniqueId + " using selectors:\n" + selectorsMsg;
         });
 
@@ -72,7 +70,7 @@ public class ResourceBasedTestEngine implements TestEngine {
         executionRequest.getRootTestDescriptor().getChildren().forEach(test -> {
             if (test instanceof ResourceBasedTestDescriptor) {
                 listener.executionStarted(test);
-                LOGGER.info(() -> "Executing test: " + test);
+                LOGGER.info(() -> "Executing resource-based test: " + test);
                 listener.executionFinished(test, TestExecutionResult.successful());
             } else {
                 throw new IllegalStateException("Cannot execute test: " + test + " of type: " + test.getClass().getName());
