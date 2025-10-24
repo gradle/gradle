@@ -21,17 +21,19 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
+import org.gradle.internal.resources.ResourceLock;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Produces a value, potentially based on values produced by tasks or other work nodes.
  */
 public interface ValueCalculator<T> extends TaskDependencyContainer {
+
     /**
-     * See {@link WorkNodeAction#usesMutableProjectState()}.
+     * See {@link WorkNodeAction#getAccessLock()}.
      */
-    default boolean usesMutableProjectState() {
-        return false;
+    default @Nullable ResourceLock getAccessLock() {
+        return null;
     }
 
     /**
