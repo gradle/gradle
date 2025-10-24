@@ -43,6 +43,7 @@ import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -78,6 +79,30 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     );
 
     private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER = new DefaultThrowableToTestFailureMapper(MAPPERS);
+
+    /**
+     * Tracks if {@code getUniqueIdObject()} method exists in the current classloader.
+     *
+     * The method was added in JUnit Platform 1.8, so won't exist in earlier versions that might be the ones we're
+     * using at runtime here.
+     */
+    private static final boolean HAS_GET_UNIQUE_ID_OBJECT_METHOD = Arrays.stream(TestIdentifier.class.getMethods())
+        .anyMatch(method -> method.getName().equals("getUniqueIdObject"));
+
+    /**
+     * Determines if the given TestIdentifier represents the test engine.
+     *
+     * @param testIdentifier the identifier to check
+     * @return {@code true} if the TestIdentifier represents the test engine; {@code false} otherwise
+     */
+    private static boolean isEngineNode(TestIdentifier testIdentifier) {
+        UniqueId uniqueIdObject = HAS_GET_UNIQUE_ID_OBJECT_METHOD
+            ? testIdentifier.getUniqueIdObject()
+            : UniqueId.parse(testIdentifier.getUniqueId());
+        List<UniqueId.Segment> segments = uniqueIdObject.getSegments();
+        // No need to check, guaranteed to have at least one segment
+        return "engine".equals(segments.get(segments.size() - 1).getType());
+    }
 
     private final ConcurrentMap<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
     private final TestResultProcessor resultProcessor;
@@ -121,25 +146,6 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
         if (testIdentifier.getParentId().isPresent() && !isEngineNode(testIdentifier)) {
             reportStartedUnlessAlreadyStarted(testIdentifier);
-        }
-    }
-
-    /**
-     * Determines if the given TestIdentifier represents the test engine.
-     *
-     * @param testIdentifier the identifier to check
-     * @return {@code true} if the TestIdentifier represents the test engine; {@code false} otherwise
-     */
-    private boolean isEngineNode(TestIdentifier testIdentifier) {
-        // The method getUniqueIdObject() was added in JUnit Platform 1.8, so won't exist in earlier versions that
-        // might be the ones we're using at runtime here.
-        boolean hasUniqueIdObjectMethod = Arrays.stream(testIdentifier.getClass().getMethods()).anyMatch(method -> method.getName().equals("getUniqueIdObject"));
-        if (hasUniqueIdObjectMethod) {
-            return "engine".equals(testIdentifier.getUniqueIdObject().getLastSegment().getType());
-        } else {
-            String[] idSegments = testIdentifier.getUniqueId().split("/");
-            String lastSegment = idSegments[idSegments.length - 1];
-            return lastSegment.startsWith("[engine");
         }
     }
 
