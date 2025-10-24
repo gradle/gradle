@@ -16,15 +16,23 @@
 
 package org.gradle.api.internal.file
 
-import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.internal.provider.PropertyInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.internal.Cast
 import org.gradle.internal.state.ModelObject
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import static org.gradle.api.internal.provider.Providers.internal
 
 class DefaultFilePropertyFactoryTest extends Specification {
     @Rule
@@ -76,7 +84,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def otherDir = tmpDir.file("other-dir")
 
         expect:
-        def dirVar = factory.newDirectoryProperty()
+        def dirVar = newDirectoryProperty()
         def fileProvider = dirVar.asFile
         !dirVar.present
         dirVar.getOrNull() == null
@@ -103,7 +111,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def otherFile = tmpDir.file("some-file")
 
         expect:
-        def fileVar = factory.newFileProperty()
+        def fileVar = newFileProperty()
         def fileProvider = fileVar.asFile
         !fileVar.present
         fileVar.getOrNull() == null
@@ -127,7 +135,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def otherDir = projectDir.file("sub-dir")
 
         expect:
-        def dirVar = factory.newDirectoryProperty()
+        def dirVar = newDirectoryProperty()
         def fileProvider = dirVar.asFile
 
         dirVar.set(new File("sub-dir"))
@@ -141,7 +149,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def otherFile = projectDir.file("some-file")
 
         expect:
-        def fileVar = factory.newFileProperty()
+        def fileVar = newFileProperty()
         def fileProvider = fileVar.asFile
 
         fileVar.set(new File("some-file"))
@@ -155,7 +163,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def otherDir = projectDir.file("sub-dir")
 
         expect:
-        def dirVar = factory.newDirectoryProperty()
+        def dirVar = newDirectoryProperty()
 
         dirVar.setFromAnyValue(new File("sub-dir"))
         dirVar.present
@@ -166,7 +174,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def otherFile = projectDir.file("some-file")
 
         expect:
-        def fileVar = factory.newFileProperty()
+        def fileVar = newFileProperty()
 
         fileVar.setFromAnyValue(new File("some-file"))
         fileVar.present
@@ -182,7 +190,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def dir3 = projectDir.file("missing")
 
         expect:
-        def dirVar = factory.newDirectoryProperty()
+        def dirVar = newDirectoryProperty()
         def tree = dirVar.asFileTree
 
         dirVar.set(dir1)
@@ -205,7 +213,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
     }
 
     def "cannot query the views of a directory property when the property has no value"() {
-        def dirVar = factory.newDirectoryProperty()
+        def dirVar = newDirectoryProperty()
         def tree = dirVar.asFileTree
         def fileProvider = dirVar.asFile
         def dir = dirVar.dir("dir")
@@ -249,7 +257,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     def "cannot set the value of a directory property using incompatible type"() {
-        def var = factory.newDirectoryProperty()
+        def var = newDirectoryProperty()
 
         when:
         var.set(123)
@@ -264,7 +272,7 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
     @SuppressWarnings("GroovyAssignabilityCheck")
     def "cannot set the value of a regular file property using incompatible type"() {
-        def var = factory.newFileProperty()
+        def var = newFileProperty()
 
         when:
         var.set(123)
@@ -278,11 +286,11 @@ class DefaultFilePropertyFactoryTest extends Specification {
     }
 
     def "can specify the producer task for a directory"() {
-        def var = factory.newDirectoryProperty()
+        def var = newDirectoryProperty()
         def task = Stub(Task)
         def owner = Stub(ModelObject)
         owner.taskThatOwnsThisObject >> task
-        def action = Mock(Action)
+        def context = Mock(TaskDependencyResolveContext)
 
         when:
         var.attachProducer(owner)
@@ -292,40 +300,40 @@ class DefaultFilePropertyFactoryTest extends Specification {
         producer.known
 
         when:
-        producer.visitProducerTasks(action)
+        producer.dependencies.visitDependencies(context)
 
         then:
-        1 * action.execute(task)
-        0 * action._
+        1 * context.add(task)
+        0 * context._
     }
 
     def "can discard the producer task for a directory"() {
-        def var = factory.newDirectoryProperty()
+        def var = newDirectoryProperty()
         def task = Stub(Task)
         def owner = Stub(ModelObject)
         owner.taskThatOwnsThisObject >> task
-        def action = Mock(Action)
+        def context = Mock(TaskDependencyResolveContext)
 
         when:
         var.attachProducer(owner)
-        def producer = var.locationOnly.producer
+        def producer = internal(var.locationOnly).producer
 
         then:
         !producer.known
 
         when:
-        producer.visitProducerTasks(action)
+        producer.dependencies.visitDependencies(context)
 
         then:
-        0 * action._
+        0 * context._
     }
 
     def "can specify the producer task for a regular file"() {
-        def var = factory.newFileProperty()
+        def var = newFileProperty()
         def task = Stub(Task)
         def owner = Stub(ModelObject)
         owner.taskThatOwnsThisObject >> task
-        def action = Mock(Action)
+        def context = Mock(TaskDependencyResolveContext)
 
         when:
         var.attachProducer(owner)
@@ -335,31 +343,40 @@ class DefaultFilePropertyFactoryTest extends Specification {
         producer.known
 
         when:
-        producer.visitProducerTasks(action)
+        producer.dependencies.visitDependencies(context)
 
         then:
-        1 * action.execute(task)
-        0 * action._
+        1 * context.execute(task)
+        0 * context._
     }
 
     def "can discard the producer task for a regular file"() {
-        def var = factory.newFileProperty()
+        def var = newFileProperty()
         def task = Stub(Task)
         def owner = Stub(ModelObject)
         owner.taskThatOwnsThisObject >> task
-        def action = Mock(Action)
+        def context = Mock(TaskDependencyResolveContext)
 
         when:
         var.attachProducer(owner)
-        def producer = var.locationOnly.producer
+        def producer = internal(var.locationOnly).producer
 
         then:
         !producer.known
 
         when:
-        producer.visitProducerTasks(action)
+        producer.dependencies.visitDependencies(context)
 
         then:
-        0 * action._
+        0 * context._
     }
+
+    private <T extends PropertyInternal<Directory> & DirectoryProperty> T newDirectoryProperty() {
+        return Cast.uncheckedCast(factory.newDirectoryProperty())
+    }
+
+    private <T extends PropertyInternal<RegularFile> & RegularFileProperty> T newFileProperty() {
+        Cast.uncheckedCast(factory.newFileProperty())
+    }
+
 }

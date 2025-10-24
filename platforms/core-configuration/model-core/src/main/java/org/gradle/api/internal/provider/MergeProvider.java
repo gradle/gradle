@@ -17,8 +17,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
@@ -132,10 +131,12 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            for (ValueProducer item : items) {
-                item.visitProducerTasks(visitor);
-            }
+        public TaskDependencyContainer getDependencies() {
+            return context -> {
+                for (ValueProducer item : items) {
+                    item.getDependencies().visitDependencies(context);
+                }
+            };
         }
     }
 }

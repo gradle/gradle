@@ -68,10 +68,10 @@ public abstract class AbstractTaskDependency implements TaskDependencyContainerI
 
     @Override
     public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
-        return getTaskDependencies(this, task);
+        return getDependencyTasks(this, task);
     }
 
-    public static Set<Task> getTaskDependencies(TaskDependencyContainer dependencies, @Nullable Task task) {
+    public static Set<Task> getDependencyTasks(TaskDependencyContainer dependencies, @Nullable Task task) {
         CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<>(
             asList(TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER)
         );

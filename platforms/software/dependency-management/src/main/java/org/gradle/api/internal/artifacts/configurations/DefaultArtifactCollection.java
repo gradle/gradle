@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.provider.BuildableBackedProvider;
+import org.gradle.api.internal.provider.ProviderWithDependencies;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -98,7 +98,7 @@ public class DefaultArtifactCollection implements ArtifactCollectionInternal {
 
     @Override
     public Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts() {
-        return new BuildableBackedProvider<>(getArtifactFiles(), Cast.uncheckedCast(Set.class), new ArtifactCollectionResolvedArtifactsFactory(this));
+        return new ProviderWithDependencies<>(getArtifactFiles(), Cast.uncheckedCast(Set.class), new ArtifactCollectionResolvedArtifactsFactory(this));
     }
 
     @Override
