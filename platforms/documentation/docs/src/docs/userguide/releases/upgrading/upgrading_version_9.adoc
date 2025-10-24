@@ -75,20 +75,18 @@ With this change, the `Configuring apiElements` line is no longer printed during
 See <<declaring_configurations.adoc#declaring-dependency-configurations,Declaring Configurations>> for more guidance.
 
 [[validate_plugins_java_version]]
-==== The `ValidatePlugins` task now has stricter Java version requirements
+==== `ValidatePlugins` now has stricter Java version requirements
 
-The `ValidatePlugins` task now requires running with a Java version that is supported by the Gradle daemon.
+The `ValidatePlugins` task must now run on a Java version that is supported by the Gradle daemon.
+This change was made because the task depends on several core Gradle services, which may now be compiled to the same bytecode version supported by the daemon.
 
-This change was made because the task depends on several core Gradle services,
-which may now be compiled to the same bytecode version supported by the daemon.
+By default, the task’s convention has been updated:
 
-The convention on the `ValidatePlugins` task has been updated to account for this change.
-If the project toolchain is compatible, it will use it.
-Otherwise, it will use the Java version used to run Gradle.
+* If your project’s toolchain is compatible, `ValidatePlugins` will use it.
+* Otherwise, it will fall back to the Java version used to run Gradle.
 
-If you were configuring the `ValidatePlugins` task to run with a specific toolchain as follows:
+If you explicitly set a toolchain like this:
 
-====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -117,15 +115,13 @@ tasks.withType(ValidatePlugins).configureEach {
 }
 ----
 =====
-====
 
-
-If the Java version defined in this configuration is not compatible with the Gradle daemon, you will have to update the launcher configuration to a <<compatibility.adoc#java_runtime,compatible version>>.
+If the specified Java version is **not** compatible with the Gradle daemon, you must update it to a <<compatibility.adoc#java_runtime,compatible version>>.
 
 === Deprecations
 
 [[project_container_methods]]
-==== Deprecated `Project.container(...)` methods
+==== Deprecation of `Project.container(...)` methods
 
 The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10.
 These methods manually create named domain object containers.
@@ -135,7 +131,7 @@ If a managed property isn’t possible, use `ObjectFactory.domainObjectContainer
 Unlike `Project.container(Class)`, the `ObjectFactory` version decorates container elements and makes them extension aware.
 
 [[dependency_management_rules]]
-==== Deprecated ruleSource-based dependency management APIs
+==== Deprecation of ruleSource-based dependency management APIs
 
 The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
 
@@ -149,7 +145,7 @@ Deprecated APIs include:
 Use the alternative methods that accept a `ComponentMetadataRule` class or an `Action`.
 
 [[deprecate_register_feature_no_java_plugin]]
-==== Deprecated calling `registerFeature` without applying the Java plugin
+==== Deprecation of calling `registerFeature` without applying the Java plugin
 
 Creating a JVM feature with link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[`JavaPluginExtension#registerFeature`] before applying the Java plugin has been deprecated and will become an error in Gradle 10.0.0.
 
