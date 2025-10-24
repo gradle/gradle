@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.testengine.util;
 
-import java.io.File;
+plugins {
+    `java-library`
+}
 
-public interface Inputs {
-    String PROPERTY_PREFIX = "org.gradle.testing.fixture.testengine.";
+repositories {
+    mavenCentral()
+}
 
-    String TEST_RESOURCES_ROOT_DIR_PROP = PROPERTY_PREFIX + "testResourcesRootDir";
-
-    static File getTestResourcesRootDir() {
-        String testResourcesRootDir = System.getProperty(TEST_RESOURCES_ROOT_DIR_PROP);
-        return new File(testResourcesRootDir);
-    }
+dependencies {
+    api("org.junit.jupiter:junit-jupiter-engine:5.13.4")
 }

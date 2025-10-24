@@ -59,4 +59,15 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
         testDirectoryProvider.init(method.getName());
         return testDirectoryProvider;
     }
+
+    public static class ParentDirectoryProvider extends TestNameTestDirectoryProvider {
+        public ParentDirectoryProvider(Class<?> klass) {
+            super(klass);
+        }
+
+        @Override
+        public TestFile getTestDirectory() {
+            return super.getTestDirectory().getParentFile();
+        }
+    }
 }
