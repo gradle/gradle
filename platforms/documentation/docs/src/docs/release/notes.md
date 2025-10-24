@@ -45,7 +45,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ================== TEMPLATE ==============================
 
-<a name="FILL-IN-KEY-AREA"></a>
 ### FILL-IN-KEY-AREA improvements
 
 <<<FILL IN CONTEXT FOR KEY AREA>>>
@@ -73,7 +72,6 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="build-authoring"></a>
 ### Build authoring improvements
 
 #### New `AttributeContainer.named()` method
@@ -94,7 +92,6 @@ configurations.resolvable("foo") {
 }
 ```
 
-<a name="stream-testkit-output"></a>
 ### Stream TestKit output
 
 Gradle TestKit's `BuildResult` now offers a new method for accessing the build console output efficiently, especially for builds that produce a large volume of logs.
