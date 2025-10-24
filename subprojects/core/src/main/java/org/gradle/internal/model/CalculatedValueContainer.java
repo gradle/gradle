@@ -17,13 +17,13 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceLookupException;
 import org.jspecify.annotations.Nullable;
 
@@ -119,21 +119,10 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
-    public boolean usesMutableProjectState() {
+    public @Nullable ResourceLock getAccessLock() {
         CalculationState<T, S> calculationState = this.calculationState;
         if (calculationState != null) {
-            return calculationState.supplier.usesMutableProjectState();
-        } else {
-            // Value has already been calculated, so no longer needs project state
-            return false;
-        }
-    }
-
-    @Override
-    public Project getOwningProject() {
-        CalculationState<T, S> calculationState = this.calculationState;
-        if (calculationState != null) {
-            return calculationState.supplier.getOwningProject();
+            return calculationState.supplier.getAccessLock();
         } else {
             // Value has already been calculated, so no longer needs project state
             return null;
@@ -141,13 +130,13 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
-    public ModelContainer<?> getResourceToLock() {
+    public @Nullable Project getOwningProject() {
         CalculationState<T, S> calculationState = this.calculationState;
-        if (calculationState != null && calculationState.supplier.usesMutableProjectState()) {
-            return calculationState.supplier.getOwningProject().getOwner();
+        if (calculationState != null) {
+            return calculationState.supplier.getOwningProject();
         } else {
-            // TODO: The supplier should be able to give us a better answer than this.
-            return StandaloneDomainObjectContext.ANONYMOUS.getModel();
+            // Value has already been calculated, so no longer needs project state
+            return null;
         }
     }
 

@@ -17,6 +17,8 @@
 package org.gradle.internal.model;
 
 import org.gradle.internal.Try;
+import org.gradle.internal.resources.ResourceLock;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -61,5 +63,6 @@ public interface CalculatedValue<T> {
     /**
      * Returns the resource that will be required to calculate this value.
      */
-    ModelContainer<?> getResourceToLock();
+    @Nullable ResourceLock getAccessLock();
+
 }
