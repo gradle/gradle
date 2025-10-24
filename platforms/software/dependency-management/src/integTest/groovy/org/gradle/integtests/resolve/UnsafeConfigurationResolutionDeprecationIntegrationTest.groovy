@@ -393,7 +393,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":help")
     }
 
-    def "fails when configuration is resolved while evaluating lifecycle.beforeProject block"() {
+    def "no deprecation warning when configuration is resolved while evaluating lifecycle.beforeProject block"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -420,8 +420,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         expect:
         executer.withArguments("--parallel", "-I", "init-script.gradle")
-        fails(":help")
-        failureDescriptionContains("Resolution of the configuration ':foo' was attempted without an exclusive lock. This is unsafe and not allowed.")
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        succeeds(":help")
     }
 }

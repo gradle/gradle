@@ -26,15 +26,17 @@ dependencies {
     api(projects.declarativeDslEvaluator)
     api(projects.declarativeDslToolingModels)
     api(projects.serviceProvider)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
 
     api(libs.kotlinStdlib)
     api(libs.inject)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.concurrent)
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
+    implementation(projects.modelCore)
     implementation(projects.messaging)
     implementation(projects.resources)
     implementation(projects.serviceLookup)

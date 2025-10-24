@@ -20,6 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -100,7 +101,8 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public IncludedBuildInternal getModel() {
-        return new IncludedRootBuild(this);
+        TaskDependencyFactory taskDependencyFactory = getBuildServices().get(TaskDependencyFactory.class);
+        return new IncludedRootBuild(this, taskDependencyFactory);
     }
 
     @Override

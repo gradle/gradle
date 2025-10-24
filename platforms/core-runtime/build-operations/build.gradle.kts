@@ -25,3 +25,6 @@ dependencies {
     testImplementation(testFixtures(projects.time))
 }
 
+errorprone {
+    nullawayEnabled = true
+}

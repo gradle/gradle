@@ -52,6 +52,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
     def relocatedJarCreator
     def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
+    def jarType = RuntimeShadedJarType.API
 
     def setup() {
         relocatedJarCreator = new RuntimeShadedJarCreator(
@@ -68,7 +69,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
         writeClass(inputFilesDir, "org/gradle/MyClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [inputFilesDir])
+        relocatedJarCreator.create(jarType, outputJar, [inputFilesDir])
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -86,7 +87,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
         createJarFileWithClassFiles(jarFile2, [className])
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2])
+        relocatedJarCreator.create(jarType, outputJar, [jarFile1, jarFile2])
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -124,7 +125,7 @@ org.gradle.api.internal.tasks.CompileServices
         writeClass(inputDirectory, "org/gradle/MyBClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6, inputDirectory])
+        relocatedJarCreator.create(jarType, outputJar, [jarFile1, jarFile2, jarFile3, jarFile4, jarFile5, jarFile6, inputDirectory])
 
         then:
 
@@ -175,7 +176,7 @@ org.gradle.api.internal.tasks.CompileServices
         writeClass(inputDirectory, "org/gradle/MyFirstClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, inputDirectory])
+        relocatedJarCreator.create(jarType, outputJar, [jarFile1, jarFile2, inputDirectory])
 
         then:
 
@@ -215,7 +216,7 @@ org.gradle.api.internal.tasks.CompileServices
 # Too many comments""")
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3])
+        relocatedJarCreator.create(jarType, outputJar, [jarFile1, jarFile2, jarFile3])
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -260,7 +261,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         createJarFileWithClassFiles(jarFile, classNames)
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile])
+        relocatedJarCreator.create(jarType, outputJar, [jarFile])
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -352,7 +353,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         createJarFileWithClassFiles(jarFile, ["org.slf4j.impl.StaticLoggerBinder"])
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile])
+        relocatedJarCreator.create(jarType, outputJar, [jarFile])
 
         then:
         handleAsJarFile(outputJar) {
@@ -386,7 +387,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         createJarFileWithResources(jarFile, resources)
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile])
+        relocatedJarCreator.create(jarType, outputJar, [jarFile])
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
@@ -422,7 +423,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         createJarFileWithProviderConfigurationFile(jarFile, serviceType, multiLineProviders)
 
         when:
-        relocatedJarCreator.create(outputJar, [jarFile])
+        relocatedJarCreator.create(jarType, outputJar, [jarFile])
 
         then:
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }

@@ -34,6 +34,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 
+/**
+ * Serializes test results.
+ *
+ * @deprecated only retained for use by {@code TestFilesCleanupService} in the GBT build. To be removed when we no longer need it.
+ */
+@Deprecated
 public class TestResultSerializer {
     private static final int RESULT_VERSION = 3;
 

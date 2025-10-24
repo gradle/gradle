@@ -15,17 +15,22 @@
  */
 package org.gradle.scala.test
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
-class ScalaTestIntegrationTest extends AbstractIntegrationSpec {
+class ScalaTestIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     @Rule TestResources resources = new TestResources(temporaryFolder)
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
+
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.SCALA_TEST
+    }
 
     @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for ScalaTest 2.x, which is not compatible with running on JDK 24.")
     def executesTestsWithMultiLineDescriptions() {
@@ -60,8 +65,9 @@ class MultiLineSuite extends FunSuite {
         then:
         succeeds("test")
 
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("org.gradle.MultiLineSuite")
-	    result.testClass("org.gradle.MultiLineSuite").assertTestPassed("This test method name\nspans many\nlines")
+        // New lines are stripped when reporting results
+        def results = resultsFor()
+        results.testPath('org.gradle.MultiLineSuite', 'This test method name spans many lines').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

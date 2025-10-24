@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classloader;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,13 +28,13 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class ClassLoaderVisitor {
     private static final String JAVA_CLASS_PATH = "java.class.path";
-    private final ClassLoader stopAt;
+    private final @Nullable ClassLoader stopAt;
 
     public ClassLoaderVisitor() {
         this(getSystemClassLoader() == null ? null : getSystemClassLoader().getParent());
     }
 
-    public ClassLoaderVisitor(ClassLoader stopAt) {
+    public ClassLoaderVisitor(@Nullable ClassLoader stopAt) {
         this.stopAt = stopAt;
     }
 

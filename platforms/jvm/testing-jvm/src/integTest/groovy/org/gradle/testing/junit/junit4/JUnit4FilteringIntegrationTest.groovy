@@ -22,6 +22,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_LARGE_COVERAGE
 
 @TargetCoverage({ JUNIT4_LARGE_COVERAGE })
 class JUnit4FilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnit4MultiVersionTest {
+
     def 'filter as many classes as possible before sending to worker process'() {
         given:
         // We can know which class is sent to TestClassProcessor via afterSuite() hook method
@@ -40,6 +41,7 @@ class JUnit4FilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationT
             ${testFrameworkImports}
             public class FooTest {
                 @Test public void test() {}
+                @Test public void otherTest() {}
             }
         """
         file('src/test/java/org/gradle/BarTest.java') << """
@@ -72,11 +74,12 @@ class JUnit4FilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationT
         excludedClasses.every { !output.contains(it) }
 
         where:
-        pattern             | includedClasses                                                    | excludedClasses        | successful
-        'FooTest'           | ['org.gradle.FooTest', 'com.gradle.FooTest']                       | ['org.gradle.BarTest'] | true
-        'FooTest.anyMethod' | ['org.gradle.FooTest', 'com.gradle.FooTest']                       | ['org.gradle.BarTest'] | false
-        'org.gradle.*'      | ['org.gradle.FooTest', 'org.gradle.BarTest']                       | ['com.gradle.FooTest'] | true
-        '*FooTest'          | ['org.gradle.FooTest', 'com.gradle.FooTest', 'org.gradle.BarTest'] | []                     | true
-        'org*'              | ['org.gradle.FooTest', 'org.gradle.BarTest']                       | ['com.gradle.FooTest'] | true
+        pattern             | includedClasses                               | excludedClasses                                                      | successful
+        'FooTest'           | ['org.gradle.FooTest', 'com.gradle.FooTest']  | ['org.gradle.BarTest']                                               | true
+        'FooTest.notATest'  | []                                            | ['org.gradle.FooTest', 'com.gradle.FooTest', 'org.gradle.BarTest']   | false
+        'FooTest.otherTest' | ['com.gradle.FooTest']                        | ['org.gradle.FooTest', 'org.gradle.BarTest']                         | true
+        'org.gradle.*'      | ['org.gradle.FooTest', 'org.gradle.BarTest']  | ['com.gradle.FooTest']                                               | true
+        '*FooTest'          | ['org.gradle.FooTest', 'com.gradle.FooTest']  | ['org.gradle.BarTest']                                               | true
+        'org*'              | ['org.gradle.FooTest', 'org.gradle.BarTest']  | ['com.gradle.FooTest']                                               | true
     }
 }

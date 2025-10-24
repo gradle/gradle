@@ -17,7 +17,7 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractJUnitClassLevelFilteringIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
@@ -58,10 +58,8 @@ abstract class AbstractJUnitClassLevelFilteringIntegrationTest extends AbstractT
         succeeds('test', '--tests', 'SubClass.superTest')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('SubClass')
-            .testClass('SubClass')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('superTest')
+        def result = resultsFor()
+        result.assertTestPathsExecuted(':SubClass:superTest')
+        result.testPath(':SubClass:superTest').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

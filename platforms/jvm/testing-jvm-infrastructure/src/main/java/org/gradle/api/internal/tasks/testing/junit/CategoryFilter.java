@@ -39,6 +39,21 @@ class CategoryFilter extends Filter {
         this.applicationClassLoader = applicationClassLoader;
     }
 
+    /**
+     * Checks that any include or exclude category classes can be loaded by the given classloader.
+     *
+     * @param classLoader The classloader to use to load the category classes.
+     * @throws InvalidUserDataException if any of the category classes cannot be loaded.
+     */
+    public void verifyCategories(ClassLoader classLoader) throws InvalidUserDataException{
+        for (String cls : inclusions) {
+            loadClass(classLoader, cls);
+        }
+        for (String cls : exclusions) {
+            loadClass(classLoader, cls);
+        }
+    }
+
     @Override
     public boolean shouldRun(final Description description) {
         Class<?> testClass = description.getTestClass();
@@ -51,12 +66,7 @@ class CategoryFilter extends Filter {
         if (testClass == null) {
             return;
         }
-        for (String cls : inclusions) {
-            loadClass(testClass.getClassLoader(), cls);
-        }
-        for (String cls : exclusions) {
-            loadClass(testClass.getClassLoader(), cls);
-        }
+        verifyCategories(testClass.getClassLoader());
     }
 
     private boolean shouldRun(final Description description, final Description parent) {

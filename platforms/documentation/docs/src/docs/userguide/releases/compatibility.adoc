@@ -18,6 +18,7 @@
 The sections below describe Gradle's compatibility with several integrations.
 Versions not listed here may or may not work.
 
+[[java_runtime]]
 == Java Runtime
 
 Gradle runs on the Java Virtual Machine (JVM), which is often provided by either a JDK or JRE.
@@ -67,7 +68,7 @@ We encourage users to try it out and let us know.
 [[kotlin]]
 == Kotlin
 
-Gradle is tested with Kotlin 2.0.0 through 2.2.20-RC2.
+Gradle is tested with Kotlin 2.0.0 through 2.3.0-Beta1.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -102,17 +103,18 @@ Beta and RC versions may or may not work.
 | 2.0.20 | 8.11 | 1.8
 | 2.0.21 | 8.12 | 1.8
 | 2.2.0  | 9.0.0 | 2.2
+| 2.2.20 | 9.2.0 | 2.2
 |===
 
 == Groovy
 
-Gradle is tested with Groovy 1.5.8 through 4.0.28.
+Gradle is tested with Groovy 1.5.8 through 5.0.1.
 
 Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 
 == Android
 
-Gradle is tested with Android Gradle Plugin 8.4 through 8.12.
+Gradle is tested with Android Gradle Plugin 8.4 through 8.13.
 Alpha and beta versions may or may not work.
 
 == Target Platforms
@@ -129,16 +131,21 @@ The following table lists the officially supported platforms for Gradle:
 |===
 | OS | Architecture
 
-| Ubuntu 22 | `amd64`
-| Windows 10 | `amd64`
-| macOS 12 | `amd64`
-|  | `aarch64`
-| Ubuntu 16 | `amd64`
-|  | `aarch64`
-| Alpine 3.20 | `amd64`
-| CentOS 9 | `amd64`
+| link:https://en.wikipedia.org/wiki/Windows_10[Windows 10] | `AMD64`
+| link:https://en.wikipedia.org/wiki/Windows_11[Windows 11] | `AMD64`, `AArch64`
+| link:https://ubuntu.com/[Ubuntu 22] | `AMD64`, `AArch64`
+| link:https://en.wikipedia.org/wiki/MacOS_version_history#Overview[macOS 13+] | `AMD64`, `AArch64`
+| link:https://alpinelinux.org/releases/[Alpine 3.20] | `AMD64`
+| link:https://en.wikipedia.org/wiki/CentOS_Stream[CentOS Stream 9] | `AMD64`
 |===
 
 NOTE: Currently, all Gradle tests run with the default file-systems of the platform, i.e. `ext4` for Ubuntu, Amazon Linux and CentOS, `NTFS` for Windows, and `APFS` for macOS.
 
 Platforms not listed above may work with Gradle but are not actively tested.
+
+[[known_issues]]
+=== Known issues
+
+* **Windows AArch64**: Rich console output is not available.
+Both the default behavior and `--console=rich` fall back to plain console output.
+

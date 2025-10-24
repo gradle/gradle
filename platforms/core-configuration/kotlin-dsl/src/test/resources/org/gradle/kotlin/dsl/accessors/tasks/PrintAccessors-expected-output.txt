@@ -376,8 +376,8 @@
 
 
     /**
-     * Adds model defaults for the [softwareType][AccessorNameSpec(original=softwareType)] software type.
+     * Adds model defaults for the [projectType][AccessorNameSpec(original=projectType)] project type.
      */
-    fun SharedModelDefaults.`softwareType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType>): Unit =
-        add("softwareType", org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestSoftwareType, configure)
+    fun SharedModelDefaults.`projectType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestProjectType>): Unit =
+        add("projectType", org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestProjectType, configure)
 

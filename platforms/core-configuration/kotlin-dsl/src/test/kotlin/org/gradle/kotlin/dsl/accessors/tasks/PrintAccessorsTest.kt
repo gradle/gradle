@@ -37,7 +37,7 @@ import org.junit.Test
 
 class PrintAccessorsTest {
 
-    abstract class TestSoftwareType
+    abstract class TestProjectType
 
     @Test
     fun `prints accessors for all schema entries`() {
@@ -57,9 +57,9 @@ class PrintAccessorsTest {
                     entry<SourceSetContainer, SourceSet>("main")
                 ),
                 modelDefaults = listOf(
-                    entry<SharedModelDefaults, TestSoftwareType>("softwareType")
+                    entry<SharedModelDefaults, TestProjectType>("projectType")
                 ),
-                softwareFeatureEntries = emptyList(),
+                projectFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             ),
             ::accessible
@@ -83,7 +83,7 @@ class PrintAccessorsTest {
                     ),
                     containerElements = listOf(),
                     modelDefaults = listOf(),
-                    softwareFeatureEntries = emptyList(),
+                    projectFeatureEntries = emptyList(),
                     containerElementFactories = listOf()
                 ),
                 ::accessible

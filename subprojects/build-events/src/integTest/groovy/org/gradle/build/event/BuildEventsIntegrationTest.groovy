@@ -16,9 +16,11 @@
 
 package org.gradle.build.event
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -33,7 +35,12 @@ import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 
-class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
+class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT4
+    }
+
     def "listener can subscribe to task completion events"() {
         loggingListener()
         registeringPlugin()
@@ -361,9 +368,9 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':test')
 
         // ensure the test has been executed
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('my.MyTest')
-        result.testClass('my.MyTest').assertTestCount(1, 0, 0)
+        def results = resultsFor()
+        results.testPath('my.MyTest').onlyRoot()
+            .assertChildCount(1, 0)
     }
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Cannot run TestKit in embedded mode")
@@ -417,10 +424,12 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':test')
 
         // ensure the test has been executed
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('my.MyTest')
-        result.testClass('my.MyTest').assertTestCount(1, 0, 0)
-        result.testClass('my.MyTest').assertStdout(containsString("listener registered"))
+        def results = resultsFor()
+        results.testPath('my.MyTest').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPath('my.MyTest', 'test').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(containsString("listener registered"))
     }
 
     void loggingListener(TestFile file = buildFile) {

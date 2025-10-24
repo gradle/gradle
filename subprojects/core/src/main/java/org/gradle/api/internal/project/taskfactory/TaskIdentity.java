@@ -48,6 +48,7 @@ public final class TaskIdentity<T extends Task> {
      * @deprecated Use {@link #getPath()} instead.
      */
     @Deprecated
+    @UsedByScanPlugin("ImportJUnitXmlReports")
     public final Path projectPath;
 
     /**
@@ -64,6 +65,7 @@ public final class TaskIdentity<T extends Task> {
      * @deprecated Use {@link #getProjectIdentity()} instead.
      */
     @Deprecated
+    @UsedByScanPlugin("ImportJUnitXmlReports")
     public final Path buildPath;
 
     /**
@@ -167,6 +169,7 @@ public final class TaskIdentity<T extends Task> {
     public String getIdentityPath() {
         return getBuildTreePath().asString();
     }
+
     /**
      * @deprecated Use {@link #getProjectIdentity()} instead.
      */

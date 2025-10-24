@@ -27,7 +27,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.softwareFeaturesApi)
+    api(projects.projectFeaturesApi)
     api(projects.stdlibJavaExtensions)
 
     api(libs.asm)

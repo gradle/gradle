@@ -16,7 +16,7 @@ dependencies {
     compileOnly(libs.groovy)
     compileOnly(projects.codeQuality)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     // Instrumentation dependencies
     compileOnly(projects.internalInstrumentationApi)

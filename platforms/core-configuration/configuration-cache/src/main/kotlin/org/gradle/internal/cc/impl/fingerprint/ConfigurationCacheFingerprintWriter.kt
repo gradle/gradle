@@ -87,6 +87,7 @@ import java.io.File
 import java.net.URI
 import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 
 @Suppress("LargeClass")
@@ -187,9 +188,14 @@ class ConfigurationCacheFingerprintWriter(
     private
     val propertyTracking: PropertyTracking
 
+    // set to null, once the snapshot has been written, if ever
+    private
+    val startParameterProjectProperties: AtomicReference<Map<String, Any?>?>
+
     init {
+        val isFineGrainedPropertyTracking = host.isFineGrainedPropertyTracking
         propertyTracking = when {
-            host.isFineGrainedPropertyTracking -> FineGrainedPropertyTracking()
+            isFineGrainedPropertyTracking -> FineGrainedPropertyTracking()
             else -> {
                 logger.info("Configuration Cache fine-grained property tracking is disabled.")
                 NoPropertyTracking
@@ -200,12 +206,20 @@ class ConfigurationCacheFingerprintWriter(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
-                if (host.isFineGrainedPropertyTracking) null else host.startParameterProperties,
                 host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
                 host.ignoredFileSystemCheckInputs
             )
         )
+
+        // defensive copy, since the original state is mutable
+        val startParameterPropertiesSnapshot = host.startParameterProperties.toMap()
+        startParameterProjectProperties = if (isFineGrainedPropertyTracking) {
+            AtomicReference(startParameterPropertiesSnapshot)
+        } else {
+            addStartParameterProjectPropertiesToFingerprint(startParameterPropertiesSnapshot)
+            AtomicReference(null)
+        }
     }
 
     private
@@ -275,6 +289,11 @@ class ConfigurationCacheFingerprintWriter(
                 buildScopedSink.write(ConfigurationCacheFingerprint.MissingBuildSrcDir(candidateBuildSrc))
             }
         }
+    }
+
+    private
+    fun addStartParameterProjectPropertiesToFingerprint(startParameterPropertiesSnapshot: Map<String, Any?>) {
+        buildScopedSink.write(ConfigurationCacheFingerprint.StartParameterProjectProperties(startParameterPropertiesSnapshot))
     }
 
     override fun scriptSourceObserved(scriptSource: ScriptSource) {
@@ -375,6 +394,12 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         addSystemPropertyToFingerprint(key, value, consumer)
+    }
+
+    override fun startParameterProjectPropertiesObserved() {
+        startParameterProjectProperties.getAndSet(null)?.let {
+            addStartParameterProjectPropertiesToFingerprint(it)
+        }
     }
 
     private

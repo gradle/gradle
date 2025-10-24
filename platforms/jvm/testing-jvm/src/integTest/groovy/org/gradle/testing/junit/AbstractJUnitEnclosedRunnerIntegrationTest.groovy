@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
@@ -54,8 +54,9 @@ abstract class AbstractJUnitEnclosedRunnerIntegrationTest extends AbstractTestin
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass('EnclosedTest$InnerClass').assertTestCount(1, 0, 0)
+        def results = resultsFor()
+        results.assertTestPathsExecuted(':EnclosedTest:EnclosedTest$InnerClass:aTest')
+        results.testPath(':EnclosedTest:EnclosedTest$InnerClass:aTest').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     @Issue('https://github.com/gradle/gradle/issues/2320')
@@ -86,8 +87,9 @@ abstract class AbstractJUnitEnclosedRunnerIntegrationTest extends AbstractTestin
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass('EnclosedTest$InnerClass').assertTestCount(1, 0, 0)
+        def results = resultsFor()
+        results.assertTestPathsExecuted(':EnclosedTest:EnclosedTest$InnerClass:aTest')
+        results.testPath(':EnclosedTest:EnclosedTest$InnerClass:aTest').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     @Issue('https://github.com/junit-team/junit4/issues/1354')
@@ -136,7 +138,8 @@ abstract class AbstractJUnitEnclosedRunnerIntegrationTest extends AbstractTestin
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass('EnclosedTest$InnerClass').assertTestCount(1, 0, 0)
+        def results = resultsFor()
+        results.assertTestPathsExecuted(':EnclosedTest:EnclosedTest$InnerClass:test')
+        results.testPath(':EnclosedTest:EnclosedTest$InnerClass:test').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

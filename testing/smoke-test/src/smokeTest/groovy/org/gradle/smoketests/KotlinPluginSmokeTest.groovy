@@ -38,30 +38,27 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinPluginVersion = VersionNumber.parse(version)
     }
 
-    def 'kotlin jvm (kotlin=#version, workers=#parallelTasksInProject)'() {
+    def 'kotlin jvm (kotlin=#version)'() {
         given:
         setupForKotlinVersion(version)
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
         when:
-        def result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'run').build()
+        def result = kgpRunner(kotlinPluginVersion, 'run').build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
         assert result.output.contains("Hello world!")
 
         when:
-        result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'run').build()
+        result = kgpRunner(kotlinPluginVersion, 'run').build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
         assert result.output.contains("Hello world!")
 
         where:
-        [version, parallelTasksInProject] << [
-            TestedVersions.kotlin.versions,
-            [true, false]
-        ].combinations()
+        version << TestedVersions.kotlin.versions
     }
 
     def 'kotlin jvm and test suites (kotlin=#version)'() {
@@ -108,7 +105,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         }
 
         when:
-        def result = kgpRunner(false, kotlinPluginVersion, 'test', 'integTest')
+        def result = kgpRunner(kotlinPluginVersion, 'test', 'integTest')
             .deprecations(KotlinDeprecations) {
                 runner.expectLegacyDeprecationWarningIf(
                     kotlinPluginVersion.baseVersion == KotlinGradlePluginVersions.KOTLIN_2_0_0,
@@ -158,7 +155,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
 
         when:
-        def result = kgpRunner(false, kotlinPluginVersion, 'compileJava').build()
+        def result = kgpRunner(kotlinPluginVersion, 'compileJava').build()
 
         then:
         result.task(':compileJava').outcome == SUCCESS
@@ -200,13 +197,13 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         """
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
         when:
-        def result = kgpRunner(false, kotlinPluginVersion, 'build').build()
+        def result = kgpRunner(kotlinPluginVersion, 'build').build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = kgpRunner(false, kotlinPluginVersion, 'build').build()
+        result = kgpRunner(kotlinPluginVersion, 'build').build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE

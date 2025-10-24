@@ -23,6 +23,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.process.ExecOperations
+import org.gradle.util.internal.ToBeImplemented
 
 class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     def "instantiated Named does not interfere with instantiating other objects"() {
@@ -32,6 +33,7 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
             c.create("foo")
         """
         then:
+        // executer.expectDocumentedDeprecationWarning("The Project.container(Class) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the objects.domainObjectContainer(Class) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#project_container_methods")
         succeeds()
         when:
         buildFile """
@@ -43,17 +45,17 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
             cc.create("foo")
         """
         then:
+        // executer.expectDocumentedDeprecationWarning("The Project.container(Class) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the objects.domainObjectContainer(Class) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#project_container_methods")
         succeeds()
     }
 
     // Document current behaviour
-    def "container element can receive services through constructor and is not annotated with @Inject"() {
+    def "container element does not require @Inject when created by project.container"() {
         buildFile  """
             class Bean {
                 String name
 
-                Bean(String name, ObjectFactory factory) {
-                    println(factory != null ? "got it" : "NOT IT")
+                Bean(String name) {
                     this.name = name
 
                     // is not generated
@@ -68,8 +70,55 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
         """
 
         expect:
+        // https://github.com/gradle/gradle/issues/34693
+        // executer.expectDocumentedDeprecationWarning("The Project.container(Class) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the objects.domainObjectContainer(Class) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#project_container_methods")
         succeeds()
-        outputContains("got it")
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/34693")
+    def "project.container(Class) is deprecated"() {
+        buildFile  """
+            def container = project.container(Named)
+            container.create("one") {
+                assert name == "one"
+            }
+        """
+
+        expect:
+        // executer.expectDocumentedDeprecationWarning("The Project.container(Class) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the objects.domainObjectContainer(Class) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#project_container_methods")
+        succeeds()
+    }
+
+    def "project.container(Class,Closure) is deprecated"() {
+        buildFile  """
+            def container = project.container(Named, { name -> objects.named(Named, name) })
+            container.create("one") {
+                assert name == "one"
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The Project.container(Class, Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the objects.domainObjectContainer(Class, NamedDomainObjectFactory) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#project_container_methods")
+        succeeds()
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/34693")
+    def "project.container(Class,NamedDomainObjectFactory) is deprecated"() {
+        buildFile  """
+            def container = project.container(Named, new NamedDomainObjectFactory<Named>() {
+                @Override
+                Named create(String name) {
+                    return objects.named(Named, name)
+                }
+            })
+            container.create("one") {
+                assert name == "one"
+            }
+        """
+
+        expect:
+        // executer.expectDocumentedDeprecationWarning("The Project.container(Class, NamedDomainObjectFactory) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the objects.domainObjectContainer(Class, NamedDomainObjectFactory) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#project_container_methods")
+        succeeds()
     }
 
     def "fails when container element requests unknown service"() {
@@ -79,11 +128,12 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
             class Bean {
                 String name
 
+                @Inject
                 Bean(String name, Unknown thing) {
                 }
             }
 
-            def container = project.container(Bean)
+            def container = project.objects.domainObjectContainer(Bean)
             container.create("one") {
                 assert name == "one"
             }
@@ -100,21 +150,20 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
             class Bean {
                 String name
 
+                @Inject
                 Bean(String name) {
                     println(factory != null ? "got it" : "NOT IT")
                     this.name = name
 
-                    // is generated but not extensible
                     assert getClass() != Bean
                     assert (this instanceof org.gradle.api.internal.GeneratedSubclass)
-                    assert !(this instanceof org.gradle.api.plugins.ExtensionAware)
                 }
 
-                @javax.inject.Inject
+                @Inject
                 ObjectFactory getFactory() { null }
             }
 
-            def container = project.container(Bean)
+            def container = project.objects.domainObjectContainer(Bean)
             container.create("one") {
                 assert name == "one"
             }
@@ -130,21 +179,20 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
             abstract class Bean {
                 String name
 
+                @Inject
                 Bean(String name) {
                     println(factory != null ? "got it" : "NOT IT")
                     this.name = name
 
-                    // is generated but not extensible
                     assert getClass() != Bean
                     assert (this instanceof org.gradle.api.internal.GeneratedSubclass)
-                    assert !(this instanceof org.gradle.api.plugins.ExtensionAware)
                 }
 
-                @javax.inject.Inject
+                @Inject
                 abstract ObjectFactory getFactory()
             }
 
-            def container = project.container(Bean)
+            def container = project.objects.domainObjectContainer(Bean)
             container.create("one") {
                 assert name == "one"
             }
@@ -156,18 +204,19 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
     }
 
     def "service of type #serviceType is available for injection into project container element"() {
-        buildFile << """
+        buildFile """
             class Bean {
                 String name
                 ${serviceType} service
 
+                @Inject
                 Bean(String name, ${serviceType} service) {
                     this.name = name
                     this.service = service
                 }
             }
 
-            def container = project.container(Bean)
+            def container = project.objects.domainObjectContainer(Bean)
             container.create("one") {
                 assert service != null
             }

@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestClassConsumer;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -64,7 +65,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
 
-    private CollectAllTestClassesExecutor testClassExecutor;
+    private CollectThenExecuteTestClassConsumer testClassExecutor;
     private BackwardsCompatibleLauncherSession launcherSession;
     private ClassLoader junitClassLoader;
 
@@ -73,11 +74,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         this.spec = spec;
         this.idGenerator = idGenerator;
         this.clock = clock;
-    }
-
-    @Override
-    protected TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor) {
-        return resultProcessor;
     }
 
     @Override
@@ -90,11 +86,11 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    protected TestClassConsumer createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         junitClassLoader = Thread.currentThread().getContextClassLoader();
-        testClassExecutor = new CollectAllTestClassesExecutor(threadSafeResultProcessor);
+        testClassExecutor = new CollectThenExecuteTestClassConsumer(threadSafeResultProcessor);
         return testClassExecutor;
     }
 
@@ -107,17 +103,17 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private class CollectAllTestClassesExecutor implements Action<String> {
+    private class CollectThenExecuteTestClassConsumer implements TestClassConsumer {
         private final List<Class<?>> testClasses = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
-        CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
+        CollectThenExecuteTestClassConsumer(TestResultProcessor resultProcessor) {
             this.resultProcessor = resultProcessor;
         }
 
         @Override
-        public void execute(@NonNull String testClassName) {
-            Class<?> klass = loadClass(testClassName);
+        public void consumeClass(@NonNull TestClassRunInfo testClassInfo) {
+            Class<?> klass = loadClass(testClassInfo.getTestClassName());
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }

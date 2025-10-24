@@ -23,15 +23,16 @@ dependencies {
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
+    api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.groovy)
     api(libs.guava)
+    api(libs.kotlinCompilerEmbeddable)
     api(libs.kotlinStdlib)
     api(libs.inject)
-    api(libs.slf4jApi)
 
     implementation(projects.baseAsm)
     implementation(projects.instrumentationReporting)
@@ -39,7 +40,6 @@ dependencies {
     implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
-    implementation(projects.declarativeDslInternalUtils)
     implementation(projects.declarativeDslProvider)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
@@ -51,23 +51,24 @@ dependencies {
     implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.messaging)
-    implementation(projects.modelCore)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
-    implementation(projects.softwareFeatures)
+    implementation(projects.projectFeatures)
 
     implementation(projects.javaApiExtractor)
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.asm)
-    implementation(libs.jspecify)
+    implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinReflect)
+    implementation(libs.slf4jApi)
 
-    implementation(libs.kotlinCompilerEmbeddable)
+    compileOnly(libs.jspecify)
+
     api(libs.futureKotlin("script-runtime"))
 
     api(libs.futureKotlin("scripting-common")) {

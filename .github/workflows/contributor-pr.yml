@@ -38,7 +38,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - id: determine-sys-prop-args
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
@@ -47,7 +47,7 @@ jobs:
                 core.setOutput('sys-prop-args', '')
             }
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew compileAll -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
@@ -79,7 +79,7 @@ jobs:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
@@ -113,7 +113,34 @@ jobs:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew ${{ matrix.bucket.tasks }} -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+
+  unit-test-windows-arm:
+    name: "Unit Test Windows ARM"
+    permissions:
+      contents: read
+    runs-on: windows-11-arm
+    needs: build
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: git clone
+        uses: actions/checkout@v5
+      - name: setup java
+        uses: actions/setup-java@v5
+        with:
+          distribution: microsoft #because that's what is available on ARM windows. zulu would also be an option.
+          java-version: 17
+      - uses: actions/download-artifact@v5
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      - run: ./gradlew :native:test --% -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}

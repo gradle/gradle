@@ -80,6 +80,9 @@ trait WithAndroidDeprecations {
     }
 
     void expectMultiStringNotationDeprecation(String agpVersion) {
+        if (VersionNumber.parse(agpVersion).baseVersion >= AndroidGradlePluginVersions.AGP_9_0) {
+            return
+        }
         String lintVersion = agpVersion.replaceAll("^8.", "31.")
         String aapt2Version = AndroidGradlePluginVersions.aapt2Version(agpVersion)
         String platform

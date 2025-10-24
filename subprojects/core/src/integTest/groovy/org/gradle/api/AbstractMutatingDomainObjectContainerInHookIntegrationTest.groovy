@@ -95,14 +95,10 @@ abstract class AbstractMutatingDomainObjectContainerInHookIntegrationTest extend
 
     def "can mutate other containers"() {
         buildFile << """
-            class SomeOtherType implements Named {
-                final String name
-                SomeOtherType(String name) {
-                    this.name = name
-                }
+            interface SomeOtherType extends Named {
             }
 
-            def otherContainer = project.container(SomeOtherType)
+            def otherContainer = project.objects.domainObjectContainer(SomeOtherType)
             testContainer.configureEach {
                 if (it.name != "verify") {
                     otherContainer.create(it.name)

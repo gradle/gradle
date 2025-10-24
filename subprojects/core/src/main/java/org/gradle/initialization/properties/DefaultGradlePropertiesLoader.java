@@ -72,7 +72,7 @@ public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
 
     @Override
     public Map<String, String> loadFromStartParameterProjectProperties() {
-        return startParameter.getProjectProperties();
+        return startParameter.getProjectPropertiesUntracked();
     }
 
     private static Map<String, String> byPrefix(String prefix, Environment.Properties properties) {

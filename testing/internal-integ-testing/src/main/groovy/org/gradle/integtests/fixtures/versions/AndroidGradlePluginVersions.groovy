@@ -38,6 +38,7 @@ class AndroidGradlePluginVersions {
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
+    public static final VersionNumber AGP_9_0 = VersionNumber.parse('9.0.0')
     private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
 
     private static Factory<Properties> propertiesFactory
@@ -126,6 +127,10 @@ class AndroidGradlePluginVersions {
         return version
     }
 
+    private static String buildToolsVersion() {
+        return loadedProperties().getProperty("buildToolsVersion")
+    }
+
     private String getAgpNightlyRepositoryInitScript() {
         return """
             beforeSettings { settings ->
@@ -189,7 +194,7 @@ class AndroidGradlePluginVersions {
     }
 
     static String getBuildToolsVersionFor(String agpVersion) {
-        VersionNumber version = VersionNumber.parse(agpVersion)
+        VersionNumber version = VersionNumber.parse(agpVersion).baseVersion
 
         if (version < VersionNumber.parse("8.1")) {
             return "30.0.3"
@@ -197,9 +202,11 @@ class AndroidGradlePluginVersions {
             return "33.0.1"
         } else if (version < VersionNumber.parse("8.8")) {
             return "34.0.0"
+        } else if (version < VersionNumber.parse("9.0")) {
+            return "35.0.0"
         }
 
-        return "35.0.0"
+        return buildToolsVersion()
     }
 
     static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {

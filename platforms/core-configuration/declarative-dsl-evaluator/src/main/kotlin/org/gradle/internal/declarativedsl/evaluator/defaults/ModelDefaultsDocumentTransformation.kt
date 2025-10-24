@@ -28,14 +28,14 @@ object ModelDefaultsDocumentTransformation {
     fun extractDefaults(
         document: DeclarativeDocument,
         resolutionContainer: DocumentResolutionContainer,
-        usedSoftwareTypes: Set<String>
+        usedProjectTypes: Set<String>
     ): DeclarativeDocument = object : DeclarativeDocument {
         override val content: List<DeclarativeDocument.DocumentNode>
             get() = document.content
                 .filter { node -> isTopLevelDefaultsCall(node, resolutionContainer) }
                 .flatMap { (it as? ElementNode)?.content.orEmpty() }
                 .filterIsInstance<ElementNode>()
-                .filter { it.name in usedSoftwareTypes }
+                .filter { it.name in usedProjectTypes }
 
         override val sourceData: SourceData
             get() = document.sourceData

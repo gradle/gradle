@@ -50,7 +50,6 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.jspecify.annotations.Nullable;
@@ -394,8 +393,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return A map from child project name to child project. Returns an empty map if this project does not have
      * any children.
      */
-    @ForExternalUse
-    // See ProjectInternal#getChildProjects
     Map<String, Project> getChildProjects();
 
     /**
@@ -1732,7 +1729,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param type The type of objects for the container to contain.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type);
 
     /**
@@ -1744,7 +1744,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param factory The factory to use to create object instances.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class, NamedDomainObjectFactory)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory);
 
     /**
@@ -1757,7 +1760,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param factoryClosure The closure to use to create object instances.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class, NamedDomainObjectFactory)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
 
     /**

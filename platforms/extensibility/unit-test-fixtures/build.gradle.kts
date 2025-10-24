@@ -47,6 +47,7 @@ dependencies {
     implementation(projects.native)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.problemsApi)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
@@ -56,6 +57,8 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.testingBase))
+    integTestCompileOnly(libs.jetbrainsAnnotations)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

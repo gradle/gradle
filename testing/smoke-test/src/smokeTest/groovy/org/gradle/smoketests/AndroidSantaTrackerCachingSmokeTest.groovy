@@ -106,7 +106,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions
+        agpVersion << TestedVersions.androidGradleBefore9.versions
     }
 }
 

@@ -66,18 +66,18 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return assertTestsExecuted(testCases.collect { it.displayName } as String[])
     }
 
-    TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
+    TestClassExecutionResult assertTestCount(int tests, int failures) {
         assert testClassNode.@tests == tests
         assert testClassNode.@failures == failures
-        assert testClassNode.@errors == errors
+        assert testClassNode.@errors == 0
         this
     }
 
-    TestClassExecutionResult assertTestCount(int tests, int skipped, int failures, int errors) {
+    TestClassExecutionResult assertTestCount(int tests, int skipped, int failures) {
         assert testClassNode.@tests == tests
         assert testClassNode.@skipped == skipped
         assert testClassNode.@failures == failures
-        assert testClassNode.@errors == errors
+        assert testClassNode.@errors == 0
         this
     }
 

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestClassConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -30,7 +30,7 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
 
     private final ActorFactory actorFactory;
     private Actor resultProcessorActor;
-    private Action<String> executor;
+    private TestClassConsumer executor;
 
     protected boolean startedProcessing;
 
@@ -42,23 +42,20 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     public void startProcessing(TestResultProcessor resultProcessor) {
         assertTestFrameworkAvailable();
 
-        TestResultProcessor resultProcessorChain = createResultProcessorChain(resultProcessor);
         // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe
-        resultProcessorActor = actorFactory.createBlockingActor(resultProcessorChain);
+        resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
         executor = createTestExecutor(resultProcessorActor);
 
         startedProcessing = true;
     }
 
-    protected abstract TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor);
-
-    protected abstract Action<String> createTestExecutor(Actor resultProcessorActor);
+    protected abstract TestClassConsumer createTestExecutor(Actor resultProcessorActor);
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (startedProcessing) {
             LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-            executor.execute(testClass.getTestClassName());
+            executor.consumeClass(testClass);
         }
     }
 
