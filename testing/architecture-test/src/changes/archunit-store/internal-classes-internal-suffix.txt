@@ -26,6 +26,7 @@ Class <org.gradle.internal.InternalBuildListener> does not have simple name endi
 Class <org.gradle.internal.InternalBuildListener> has simple name starting with 'Internal' in (InternalBuildListener.java:0)
 Class <org.gradle.internal.InternalListener> does not have simple name ending with 'Internal' in (InternalListener.java:0)
 Class <org.gradle.internal.InternalListener> has simple name starting with 'Internal' in (InternalListener.java:0)
+Class <org.gradle.internal.buildoption.AbstractInternalOption> does not have simple name ending with 'Internal' in (AbstractInternalOption.java:0)
 Class <org.gradle.internal.buildoption.DefaultInternalOptions> does not have simple name ending with 'Internal' in (DefaultInternalOptions.java:0)
 Class <org.gradle.internal.buildoption.IntegerInternalOption> does not have simple name ending with 'Internal' in (IntegerInternalOption.java:0)
 Class <org.gradle.internal.buildoption.InternalFlag> does not have simple name ending with 'Internal' in (InternalFlag.java:0)
