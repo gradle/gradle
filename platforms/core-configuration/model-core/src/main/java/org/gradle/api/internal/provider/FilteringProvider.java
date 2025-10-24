@@ -17,6 +17,9 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
@@ -91,13 +94,14 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     protected void beforeRead(EvaluationScopeContext ignored) {
-        provider.getProducer().visitContentProducerTasks(producer -> {
-            if (!producer.getState().getExecuted()) {
+        TaskDependencyContainer dependencies = provider.getProducer().getContentDependencies();
+        for (Task task : AbstractTaskDependency.getDependencyTasks(dependencies, null)) {
+            if (!task.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
-                    String.format("Querying the filtered value of %s before %s has completed is not supported", provider, producer)
+                    String.format("Querying the filtered value of %s before %s has completed is not supported", provider, task)
                 );
             }
-        });
+        }
     }
 
     @Override

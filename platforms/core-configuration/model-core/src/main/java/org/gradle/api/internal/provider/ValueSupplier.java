@@ -17,11 +17,9 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.jspecify.annotations.Nullable;
@@ -54,7 +52,7 @@ public interface ValueSupplier {
      * Carries information about the producer of a value.
      */
     @SuppressWarnings("ClassInitializationDeadlock")
-    interface ValueProducer extends TaskDependencyContainer {
+    interface ValueProducer {
         NoProducer NO_PRODUCER = new NoProducer();
         UnknownProducer UNKNOWN_PRODUCER = new UnknownProducer();
 
@@ -62,15 +60,10 @@ public interface ValueSupplier {
             return true;
         }
 
-        @Override
-        default void visitDependencies(TaskDependencyResolveContext context) {
-            visitProducerTasks(context);
-        }
+        TaskDependencyContainer getDependencies();
 
-        void visitProducerTasks(Action<? super Task> visitor);
-
-        default void visitContentProducerTasks(Action<? super Task> visitor) {
-            visitProducerTasks(visitor);
+        default TaskDependencyContainer getContentDependencies() {
+            return getDependencies();
         }
 
         default ValueProducer plus(ValueProducer producer) {
@@ -124,15 +117,16 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            visitor.execute(task);
+        public TaskDependencyContainer getDependencies() {
+            return TaskDependencyContainer.of(task);
         }
 
         @Override
-        public void visitContentProducerTasks(Action<? super Task> visitor) {
+        public TaskDependencyContainer getContentDependencies() {
             if (content) {
-                visitor.execute(task);
+                return getDependencies();
             }
+            return TaskDependencyContainer.EMPTY;
         }
     }
 
@@ -151,9 +145,11 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            left.visitProducerTasks(visitor);
-            right.visitProducerTasks(visitor);
+        public TaskDependencyContainer getDependencies() {
+            return context -> {
+                left.getDependencies().visitDependencies(context);
+                right.getDependencies().visitDependencies(context);
+            };
         }
     }
 
@@ -164,13 +160,15 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
+        public TaskDependencyContainer getDependencies() {
+            return TaskDependencyContainer.EMPTY;
         }
     }
 
     class NoProducer implements ValueProducer {
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
+        public TaskDependencyContainer getDependencies() {
+            return TaskDependencyContainer.EMPTY;
         }
     }
 
