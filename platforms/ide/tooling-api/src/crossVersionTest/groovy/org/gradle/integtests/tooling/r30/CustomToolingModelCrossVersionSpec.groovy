@@ -21,6 +21,33 @@ import org.gradle.integtests.tooling.r16.CustomModel
 
 class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
+        file("buildSrc/src/main/java/CustomModel.java").java("""
+import java.io.Serializable;
+import java.util.*;
+public class CustomModel implements Serializable {
+    static final CustomThing INSTANCE = new CustomThing();
+    public String getValue() { return "greetings"; }
+    public CustomThing getThing() { return INSTANCE; }
+    public Set<CustomThing> getThings() {
+        Set<CustomThing> customThings = new HashSet<>();
+        customThings.add(INSTANCE);
+        return customThings;
+    }
+    public Map<String, CustomThing> getThingsByName() {
+        Map<String, CustomThing> customThings = new HashMap<>();
+        customThings.put("child", INSTANCE);
+        return customThings;
+    }
+    public CustomThing findThing(String name) { return INSTANCE; }
+}
+""")
+
+        file("buildSrc/src/main/java/CustomThing.java").java("""
+import java.io.Serializable;
+class CustomThing implements Serializable {
+}
+""")
+
         file('build.gradle') << """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -28,18 +55,6 @@ import javax.inject.Inject
 
 allprojects {
     apply plugin: CustomPlugin
-}
-
-class CustomModel implements Serializable {
-    static final INSTANCE = new CustomThing()
-    String getValue() { 'greetings' }
-    CustomThing getThing() { return INSTANCE }
-    Set<CustomThing> getThings() { return [INSTANCE] }
-    Map<String, CustomThing> getThingsByName() { return [child: INSTANCE] }
-    CustomThing findThing(String name) { return INSTANCE }
-}
-
-class CustomThing implements Serializable {
 }
 
 class CustomBuilder implements ToolingModelBuilder {
