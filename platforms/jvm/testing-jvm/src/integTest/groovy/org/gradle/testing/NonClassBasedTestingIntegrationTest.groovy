@@ -18,6 +18,9 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.TestNGCoverage
 import org.gradle.util.internal.TextUtil
 
@@ -96,7 +99,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
-        failureCauseContains("Test definitions directory does not exist: " + TextUtil.normaliseFileSeparators(testDirectory.file(badPath).absolutePath))
+        failureCauseContains("Test definitions directory does not exist: " + testDirectory.file(badPath).absolutePath)
     }
 
     def "non-directory test definitions directory fails"() {
@@ -127,9 +130,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
-        failureCauseContains("Test definitions directory is not a directory: " + TextUtil.normaliseFileSeparators(testDirectory.file(badPath).absolutePath))
+        failureCauseContains("Test definitions directory is not a directory: " + testDirectory.file(badPath).absolutePath)
     }
 
+    @Requires(UnitTestPreconditions.NotWindows)
     def "non-readable test definitions directory fails"() {
         def badPath = "src/test/i-cant-be-read"
         // create the directory and make it non-readable at the filesystem level
@@ -166,7 +170,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains("Cannot access input property 'candidateDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
-        failureCauseContains("java.nio.file.AccessDeniedException: ${TextUtil.normaliseFileSeparators(dir.absolutePath)}")
+        failureCauseContains("java.nio.file.AccessDeniedException: ${dir.absolutePath}")
 
         cleanup:
         // restore read permission for cleanup
@@ -207,8 +211,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         fails("test", "-S")
 
         then:
-        failureCauseContains("Cannot access input property 'candidateDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
-        failureCauseContains("Failed to create MD5 hash for file: ${badFile.absolutePath} (Permission denied)")
+        if (OperatingSystem.current().isWindows()) {
+            sourcesPresentAndNoTestsFound()
+        } else {
+            failureCauseContains("Cannot access input property 'candidateDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
+            failureCauseContains("Failed to create MD5 hash for file: ${badFile.absolutePath} (Permission denied)")
+        }
 
         cleanup:
         // restore read permission for cleanup
