@@ -1,5 +1,3 @@
-import gradlebuild.shade.tasks.ShadedJar
-
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
@@ -39,18 +37,10 @@ shadedJar {
     ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
-configurations.consumable("shadedTapi") {
-    outgoing.artifact(tasks.named<ShadedJar>("toolingApiShadedJar"))
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
-    }
-}
-
 errorprone {
     disabledChecks.addAll(
         "EqualsUnsafeCast", // 1 occurrences
         "FutureReturnValueIgnored", // 1 occurrences
-        "LockNotBeforeTry", // 1 occurrences
         "ThreadLocalUsage", // 2 occurrences
     )
 }
@@ -68,8 +58,9 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.core)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildProcessServices)
+    implementation(projects.core)
     implementation(projects.logging)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)

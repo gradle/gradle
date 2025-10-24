@@ -36,6 +36,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     private final AttributeValueIsolator attributeValueIsolator;
     private final PropertyFactory propertyFactory;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
+    private final NamedObjectInstantiator instantiator;
 
     /**
      * A map from parent attribute containers to the set of containers that have
@@ -54,16 +55,17 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
 
         this.concatCache = new ConcurrentHashMap<>();
+        this.instantiator = instantiator;
     }
 
     @Override
     public AttributeContainerInternal mutable() {
-        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory);
+        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, instantiator, propertyFactory);
     }
 
     @Override
     public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
-        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory));
+        return join(fallback, mutable());
     }
 
     @Override

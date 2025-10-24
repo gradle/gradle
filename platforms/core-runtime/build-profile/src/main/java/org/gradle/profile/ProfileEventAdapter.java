@@ -97,17 +97,17 @@ public class ProfileEventAdapter implements ProfileService, InternalBuildListene
     @Override
     public void beforeExecute(TaskIdentity<?> taskIdentity) {
         long now = clock.getCurrentTime();
-        String projectPath = taskIdentity.getProjectIdentity().getProjectPath().getPath();
+        String projectPath = taskIdentity.getProjectIdentity().getProjectPath().asString();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(projectPath);
-        projectProfile.getTaskProfile(taskIdentity.getPath().getPath()).setStart(now);
+        projectProfile.getTaskProfile(taskIdentity.getPath().asString()).setStart(now);
     }
 
     @Override
     public void afterExecute(TaskIdentity<?> taskIdentity, TaskState state) {
         long now = clock.getCurrentTime();
-        String projectPath = taskIdentity.getProjectIdentity().getProjectPath().getPath();
+        String projectPath = taskIdentity.getProjectIdentity().getProjectPath().asString();
         ProjectProfile projectProfile = buildProfile.getProjectProfile(projectPath);
-        TaskExecution taskExecution = projectProfile.getTaskProfile(taskIdentity.getPath().getPath());
+        TaskExecution taskExecution = projectProfile.getTaskProfile(taskIdentity.getPath().asString());
         taskExecution.setFinish(now);
         taskExecution.completed(state);
     }

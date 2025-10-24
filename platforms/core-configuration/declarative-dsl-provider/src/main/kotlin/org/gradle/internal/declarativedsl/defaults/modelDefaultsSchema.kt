@@ -33,20 +33,20 @@ import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiv
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
 import org.gradle.internal.declarativedsl.evaluator.defaults.DEFAULTS_BLOCK_NAME
-import org.gradle.internal.declarativedsl.software.softwareTypesComponent
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.internal.declarativedsl.software.projectFeaturesComponent
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 
 internal
-fun defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
+fun defineModelDefaultsInterpretationSequenceStep(projectFeatureDeclarations: ProjectFeatureDeclarations) = SimpleInterpretationSequenceStep(
     "settingsDefaults",
     features = setOf(DefineModelDefaults(), UnsupportedSyntaxFeatureCheck.feature, AccessOnCurrentReceiverCheck.feature),
-    buildEvaluationAndConversionSchema = { defaultsEvaluationSchema(softwareTypeRegistry) }
+    buildEvaluationAndConversionSchema = { defaultsEvaluationSchema(projectFeatureDeclarations) }
 )
 
 
 private
-fun defaultsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema =
+fun defaultsEvaluationSchema(projectFeatureDeclarations: ProjectFeatureDeclarations): EvaluationSchema =
     buildEvaluationSchema(
         DefaultsTopLevelReceiver::class,
         isTopLevelElement.implies(isDefaultsConfiguringCall),
@@ -54,9 +54,9 @@ fun defaultsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): Evalua
     ) {
         gradleDslGeneralSchema()
         dependencyCollectors()
-        softwareTypesComponent(
+        projectFeaturesComponent(
             DefaultsConfiguringBlock::class,
-            softwareTypeRegistry,
+            projectFeatureDeclarations,
             // This is the schema for collecting defaults, so it should not apply defaults:
             withDefaultsApplication = false
         )

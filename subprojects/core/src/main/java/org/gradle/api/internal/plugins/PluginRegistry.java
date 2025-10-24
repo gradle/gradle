@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Optional;
 
-@ServiceScope({Scope.Build.class, Scope.Gradle.class, Scope.Settings.class, Scope.Project.class})
+@ServiceScope({Scope.Build.class, Scope.Settings.class, Scope.Project.class})
 @ThreadSafe
 public interface PluginRegistry {
     <T> PluginImplementation<T> inspect(Class<T> clazz);

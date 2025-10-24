@@ -1,0 +1,18 @@
+plugins {
+    id 'java-library'
+}
+
+// tag::do-this[]
+dependencies {
+    implementation("org.apache.commons:commons-pool2:2.12.1") { // <1>
+        exclude(group: "cglib", module: "cglib") // <2>
+        exclude(group: "org.ow2.asm", module: "asm-util")
+
+    }
+    implementation("org.hibernate:hibernate-core:3.6.10.Final") {
+        exclude(group: "cglib", module: "cglib")
+        exclude(group: "javassist", module: "javassist") // <3>
+    }
+    // ... other dependencies ...
+}
+// end::do-this[]

@@ -16,13 +16,22 @@
 
 package org.gradle.internal.serialize
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 
+import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.containsString
 
-class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
+class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/1618")
     def "internal exception should not be thrown"() {
@@ -108,17 +117,13 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         fails "test"
 
         then:
-        def result = new HtmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("example.Issue9487Test")
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("oh noes (2 failures)"))
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("java.lang.AssertionError: error 1"))
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("java.lang.RuntimeException: error 2"))
+        def testResult = resultsFor()
+        testResult.assertAtLeastTestPathsExecuted("example.Issue9487Test")
+        testResult.testPath("example.Issue9487Test", "allCausesShouldBeCaptured").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsText("oh noes (2 failures)"))
+            .assertFailureMessages(containsText("java.lang.AssertionError: error 1"))
+            .assertFailureMessages(containsText("java.lang.RuntimeException: error 2"))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9487")
@@ -177,14 +182,13 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         fails "test"
 
         then:
-        def result = new HtmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("example.Issue9487Test")
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("Cause 1: java.lang.AssertionError: error 1"))
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("Cause 2: java.lang.RuntimeException: error 2"))
+        def testResult = resultsFor()
+        testResult.assertAtLeastTestPathsExecuted("example.Issue9487Test")
+        testResult.testPath("example.Issue9487Test", "allCausesShouldBeCaptured").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsText("example.AdhocError"))
+            .assertFailureMessages(containsText("Cause 1: java.lang.AssertionError: error 1"))
+            .assertFailureMessages(containsText("Cause 2: java.lang.RuntimeException: error 2"))
 
         where:
         methodName << [
@@ -250,5 +254,59 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains('Boom!')
         failure.assertHasErrorOutput('Suppressed:')
         failure.assertHasErrorOutput('CIRCULAR REFERENCE:')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34738")
+    def 'shows test-classpath-only cause of GradleConnectionException from test worker'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                testImplementation gradleTestKit()
+                testImplementation 'org.junit.jupiter:junit-jupiter:5.12.2'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+            }
+
+            test {
+                useJUnitPlatform()
+            }
+        """
+
+        file('src/test/java/example/Issue34738Test.java') << """
+            package example;
+
+            import org.junit.jupiter.api.Test;
+
+            public class Issue34738Test {
+                static class ExceptionNotPresentOnTestRunnerClasspath extends Exception {
+                    ExceptionNotPresentOnTestRunnerClasspath(String message) {
+                        super(message);
+                    }
+                }
+
+                @Test
+                public void throwGCE() {
+                    // We use GradleConnectionException because it has a getFailures which doesn't return List<Throwable>
+                    // and therefore doesn't have causes listed in it.
+                    throw new ${GradleConnectionException.name}(
+                        "An irrelevant message",
+                        new ExceptionNotPresentOnTestRunnerClasspath("The real cause")
+                    );
+                }
+            }
+        """
+
+        when:
+        fails 'test'
+
+        then:
+        def testResults = resultsFor(testDirectory, 'tests/test', GenericTestExecutionResult.TestFramework.JUNIT_JUPITER)
+        testResults.testPath("example.Issue34738Test", "throwGCE").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("The real cause"))
     }
 }

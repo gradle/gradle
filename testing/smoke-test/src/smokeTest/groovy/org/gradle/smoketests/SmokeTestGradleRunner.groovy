@@ -407,6 +407,11 @@ class SmokeTestGradleRunner extends GradleRunner {
         }
 
         @Override
+        BufferedReader getOutputReader() {
+            return delegate.outputReader
+        }
+
+        @Override
         List<BuildTask> getTasks() {
             return delegate.tasks
         }
@@ -434,6 +439,11 @@ class SmokeTestGradleRunner extends GradleRunner {
         void assertConfigurationCacheStateLoaded() {
             assertBuildOperationTracePresent()
             new ConfigurationCacheBuildOperationsFixture(operations).assertStateLoaded()
+        }
+
+        void assertConfigurationCacheStateStoreDiscarded() {
+            assertBuildOperationTracePresent()
+            new ConfigurationCacheBuildOperationsFixture(operations).assertStateStoreDiscarded()
         }
 
         private void assertBuildOperationTracePresent() {

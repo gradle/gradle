@@ -81,7 +81,7 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         model.build()
 
         then:
-        model.getTasksForGroup('group')*.path*.path as Set == ['task', 'other'] as Set
+        model.getTasksForGroup('group')*.path*.asString() as Set == ['task', 'other'] as Set
     }
 
     def "shows tasks from specific group(s)"() {

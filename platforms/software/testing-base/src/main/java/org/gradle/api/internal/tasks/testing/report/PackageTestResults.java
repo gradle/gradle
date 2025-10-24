@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,10 @@ import java.util.TreeMap;
 
 /**
  * The test results for a given package.
+ *
+ * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
  */
+@Deprecated
 public class PackageTestResults extends CompositeTestResults {
     private static final String DEFAULT_PACKAGE = "default-package";
     private final String name;

@@ -4,12 +4,6 @@ plugins {
 
 description = "Gradle plugin development plugins"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
@@ -30,6 +24,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
@@ -40,6 +35,7 @@ dependencies {
     implementation(projects.fileOperations)
     implementation(projects.hashing)
     implementation(projects.ivy)
+    implementation(projects.jvmServices)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
     implementation(projects.loggingApi)

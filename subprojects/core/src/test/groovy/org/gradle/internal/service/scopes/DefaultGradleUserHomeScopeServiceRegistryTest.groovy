@@ -169,6 +169,116 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         homeDirService.closed
     }
 
+    def "getCurrentServices returns empty when no services created"() {
+        expect:
+        !homeDirServices.getCurrentServices().present
+    }
+
+    def "getCurrentServices returns current service registry when available"() {
+        def dir = new File("home-dir")
+
+        when:
+        def services = homeDirServices.getServicesFor(dir)
+
+        then:
+        homeDirServices.getCurrentServices().get().is(services)
+    }
+
+    def "releases services when reuse system property is false"() {
+        def dir = new File("home-dir")
+        System.setProperty(DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES, "false")
+
+        given:
+        def services = homeDirServices.getServicesFor(dir)
+        def homeDirService = services.get(SomeHomeDirService)
+
+        when: "release is called"
+        homeDirServices.release(services)
+
+        then: "service should be closed and removed"
+        homeDirService.closed
+        !homeDirServices.@servicesForHomeDir.containsKey(dir)
+
+        cleanup:
+        System.clearProperty(DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES)
+    }
+
+    def "closes and removes old home dir when switching to a new one"() {
+        def dir1 = new File("home-dir-1")
+        def dir2 = new File("home-dir-2")
+
+        given:
+        def services1 = homeDirServices.getServicesFor(dir1)
+        def homeDirService1 = services1.get(SomeHomeDirService)
+        homeDirServices.release(services1)
+
+        when:
+        def services2 = homeDirServices.getServicesFor(dir2)
+        def homeDirService2 = services2.get(SomeHomeDirService)
+
+        then:
+        homeDirService1.closed
+        homeDirServices.@servicesForHomeDir.containsKey(dir2)
+        !homeDirService2.closed
+    }
+
+    def "close clears all cached services"() {
+        def dir1 = new File("home-dir-1")
+        def dir2 = new File("home-dir-2")
+
+        given:
+        def services1 = homeDirServices.getServicesFor(dir1)
+        def services2 = homeDirServices.getServicesFor(dir2)
+        homeDirServices.release(services1)
+        homeDirServices.release(services2)
+
+        when:
+        homeDirServices.close()
+
+        then:
+        homeDirServices.@servicesForHomeDir.isEmpty()
+    }
+
+    def "multiple acquires and releases leave services cached when count is zero"() {
+        def dir = new File("home-dir")
+
+        when:
+        def s1 = homeDirServices.getServicesFor(dir)
+        def s2 = homeDirServices.getServicesFor(dir)
+        homeDirServices.release(s1)
+        homeDirServices.release(s2)
+
+        then: "services remain cached with count 0"
+        homeDirServices.@servicesForHomeDir[dir].count == 0
+    }
+
+    def "count gets decreased when attempting to release already released services"() {
+        def dir = new File("home-dir")
+
+        given:
+        def services = homeDirServices.getServicesFor(dir)
+        def initialCount = homeDirServices.@servicesForHomeDir[dir].count
+
+        when: "services are released for the first time"
+        homeDirServices.release(services)
+        def countAfterFirstRelease = homeDirServices.@servicesForHomeDir[dir].count
+
+        and: "attempting to release the same services again"
+        try {
+            homeDirServices.release(services)
+        } catch (IllegalStateException e) {
+            assert e.message == 'Gradle user home directory scoped services have already been released.'
+        }
+
+        then:
+        def countAfterSecondRelease = homeDirServices.@servicesForHomeDir[dir].count
+
+        and: "count keeps decrementing despite the exception"
+        initialCount == 1
+        countAfterFirstRelease == 0
+        countAfterSecondRelease == 0
+    }
+
     def "fails when services already released"() {
         def dir = new File("home-dir")
 
@@ -196,6 +306,70 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == "Services for Gradle user home directory 'home-dir' have not been released."
+    }
+
+    def "increments and decrements service usage count explicitly"() {
+        def dir = new File("home-dir")
+
+        when: "first time services are requested"
+        def services1 = homeDirServices.getServicesFor(dir)
+
+        then: "count is incremented to 1"
+        def internalServices = homeDirServices.@servicesForHomeDir[dir]
+        internalServices.count == 1
+
+        when: "same home dir is requested again"
+        def services2 = homeDirServices.getServicesFor(dir)
+
+        then: "count is incremented to 2"
+        homeDirServices.@servicesForHomeDir[dir].count == 2
+
+        when: "one release happens"
+        homeDirServices.release(services1)
+
+        then: "count is decremented to 1"
+        homeDirServices.@servicesForHomeDir[dir].count == 1
+
+        when: "second release happens"
+        homeDirServices.release(services2)
+
+        then: "count is decremented to 0 and services remain cached"
+        !homeDirServices.@servicesForHomeDir.isEmpty()
+        homeDirServices.@servicesForHomeDir[dir].count == 0
+    }
+
+    def "count is properly incremented and decremented when services are acquired and released"() {
+        def dir = new File("home-dir")
+
+        when: "services are first acquired"
+        def services1 = homeDirServices.getServicesFor(dir)
+
+        then: "count should be 1"
+        // Access internal state through reflection to verify count
+        def servicesField = homeDirServices.getClass().getDeclaredField("servicesForHomeDir")
+        servicesField.setAccessible(true)
+        def servicesMap = servicesField.get(homeDirServices) as Map<File, DefaultGradleUserHomeScopeServiceRegistry.Services>
+        servicesMap.size() == 1
+        servicesMap.get(dir).count == 1
+
+        when: "same services are acquired again"
+        def services2 = homeDirServices.getServicesFor(dir)
+
+        then: "count should be 2"
+        servicesMap.get(dir).count == 2
+
+        when: "first instance is released"
+        homeDirServices.release(services1)
+
+        then: "count should be 1"
+        servicesMap.get(dir).count == 1
+
+        when: "second instance is released"
+        homeDirServices.release(services2)
+
+        then: "count should be 0 but services are still cached"
+        servicesMap.get(dir).count == 0
+        servicesMap.size() == 1 // Services still cached for reuse
     }
 
     class SomeGlobalService {

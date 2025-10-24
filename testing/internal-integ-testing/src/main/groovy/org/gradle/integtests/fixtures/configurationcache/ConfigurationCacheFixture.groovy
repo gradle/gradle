@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.configurationcache
 
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -26,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 class ConfigurationCacheFixture {
     static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
     static final String CONFIGURE_ON_DEMAND_MESSAGE = "Configuration on demand is an incubating feature."
+    static final String LENIENT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
     private final AbstractIntegrationSpec spec
     final BuildOperationsFixture buildOperations
@@ -342,22 +344,29 @@ class ConfigurationCacheFixture {
         invalidationDetails.changedFiles.each { file ->
             reasons.add("file '${file.replace('/', File.separator)}'")
         }
+        if (invalidationDetails.changedStartParameterProjectProperties != null) {
+            reasons.add("the set of Gradle properties has changed: $invalidationDetails.changedStartParameterProjectProperties")
+        }
         if (invalidationDetails.changedGradleProperty != null) {
-            reasons.add("Gradle property '$invalidationDetails.changedGradleProperty'")
+            reasons.add("Gradle property '$invalidationDetails.changedGradleProperty' has changed")
         }
         if (invalidationDetails.changedSystemProperty != null) {
-            reasons.add("system property '$invalidationDetails.changedSystemProperty'")
+            reasons.add("system property '$invalidationDetails.changedSystemProperty' has changed")
         }
         if (invalidationDetails.changedTask != null) {
-            reasons.add("an input to task '${invalidationDetails.changedTask}'")
+            reasons.add("an input to task '${invalidationDetails.changedTask}' has changed")
+        }
+
+        if (invalidationDetails.changedPlugin != null) {
+            reasons.add("an input to plugin '${invalidationDetails.changedPlugin}' has changed")
         }
 
         assert details.createsModels || details.runsTasks
         def messages = reasons.collect { reason ->
             if (details.createsModels) {
-                "Creating tooling model as configuration cache cannot be reused because $reason has changed"
+                "Creating tooling model as configuration cache cannot be reused because $reason"
             } else if (details.runsTasks) {
-                "Calculating task graph as configuration cache cannot be reused because $reason has changed"
+                "Calculating task graph as configuration cache cannot be reused because $reason"
             } else {
                 throw new IllegalStateException("Expected creating models and/or running tasks")
             }
@@ -457,9 +466,11 @@ class ConfigurationCacheFixture {
 
     trait HasInvalidationReason {
         List<String> changedFiles = []
+        String changedStartParameterProjectProperties
         String changedGradleProperty
         String changedSystemProperty
         String changedTask
+        String changedPlugin
 
         void fileChanged(String name) {
             changedFiles.add(name)
@@ -467,6 +478,14 @@ class ConfigurationCacheFixture {
 
         void taskInputChanged(String name) {
             changedTask = name
+        }
+
+        void pluginInputChanged(String name) {
+            changedPlugin = name
+        }
+
+        void startParameterProjectPropertiesChanged(String message) {
+            changedStartParameterProjectProperties = message
         }
 
         void gradlePropertyChanged(String name) {

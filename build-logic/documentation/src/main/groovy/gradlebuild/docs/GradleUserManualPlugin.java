@@ -59,6 +59,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateUserManual(project, tasks, layout, extension);
 
         checkXrefLinksInUserManualAreValid(layout, tasks, extension);
+        checkMultiLangSnippetsAreValid(layout, tasks, extension);
         checkLinksInUserManualAreNotMissing(layout, tasks, extension);
     }
 
@@ -339,6 +340,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
+    }
+
+    private void checkMultiLangSnippetsAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        TaskProvider<FindBadMultiLangSnippets> checkMultiLangSnippets = tasks.register("checkMultiLangSnippets", FindBadMultiLangSnippets.class, task -> {
+            task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation()); // working/usermanual/raw/
+        });
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkMultiLangSnippets));
     }
 
     private void checkLinksInUserManualAreNotMissing(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {

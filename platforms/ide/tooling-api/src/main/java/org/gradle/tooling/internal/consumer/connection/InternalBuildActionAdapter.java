@@ -26,6 +26,7 @@ import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
+import org.gradle.tooling.internal.protocol.resiliency.InternalFetchAwareBuildController;
 
 import java.io.File;
 
@@ -65,9 +66,16 @@ public class InternalBuildActionAdapter<T> implements org.gradle.tooling.interna
         return action.execute(buildControllerAdapter);
     }
 
+    /**
+     * Creates an appropriate BuildController adapter based on the capabilities of the build controller implementation.
+     * <p>
+     * Newer Gradle versions add new features to BuildController. Therefore, to support different Gradle versions, we create the appropriate adapter that is aware of the build controller's capabilities.
+     */
     private BuildController wrapBuildController(final InternalBuildControllerVersion2 buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
-        if (buildController instanceof InternalStreamedValueRelay) {
+        if (buildController instanceof InternalFetchAwareBuildController) {
+            return new FetchAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
+        } else if (buildController instanceof InternalStreamedValueRelay) {
             return new StreamingAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);
         } else if (buildController instanceof InternalActionAwareBuildController) {
             return new NestedActionAwareBuildControllerAdapter(buildController, protocolToModelAdapter, new ModelMapping(), versionDetails, rootDir);

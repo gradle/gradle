@@ -57,6 +57,10 @@ sealed class ConfigurationCacheFingerprint : ValueObject {
         val fingerprints: List<InputFile>
     ) : ConfigurationCacheFingerprint()
 
+    data class StartParameterProjectProperties(
+        val snapshot: Map<String, Any?>
+    ) : ConfigurationCacheFingerprint()
+
     data class MissingBuildSrcDir(
         val buildSrcDir: File,
     ) : ConfigurationCacheFingerprint()

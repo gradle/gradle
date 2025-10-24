@@ -23,24 +23,27 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Mediates access across project boundaries.
+ * Mediates access to other projects, across project boundaries, within a single build.
  */
 @ServiceScope(Scope.Build.class)
 public interface CrossProjectModelAccess {
+
     /**
-     * Locates the given project relative to some project.
+     * Locates the project with the given path.
      *
      * @param referrer The project from which the return value will be used.
-     * @param path absolute path
+     * @param path An absolute path to the requested project, relative to the current build.
+     *
+     * @throws IllegalArgumentException If {@code path} is not absolute.
      */
-    @Nullable
-    ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path);
+    @Nullable ProjectInternal findProject(ProjectInternal referrer, Path path);
 
     /**
      * @param referrer The project from which the return value will be used.
@@ -49,18 +52,21 @@ public interface CrossProjectModelAccess {
 
     /**
      * @param referrer The project from which the return value will be used.
+     * @param target The project to get the children of.
      */
-    Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal relativeTo);
+    Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal target);
 
     /**
      * @param referrer The project from which the return value will be used.
+     * @param target The project to get the subprojects of.
      */
-    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo);
+    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal target);
 
     /**
      * @param referrer The project from which the return value will be used.
+     * @param target The project to get all projects of.
      */
-    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo);
+    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal target);
 
     /**
      * Given the request from the referrerProject to access the specified Gradle instance, returns

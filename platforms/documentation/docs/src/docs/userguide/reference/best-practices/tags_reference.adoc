@@ -36,7 +36,7 @@ Here you can find a brief explanation of all the tags used in the best practices
 `#inputs-and-outputs`:: Items that are related to Gradle <<writing_tasks_intermediate.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
 
 [[tag:plugins]]
-`#plugins` :: Items that explain the proper way to <<custom_plugins.adoc#custom_plugins,write plugins>> in Gradle, and common footguns involved in plugin authoring.
+`#plugins` :: Items that explain the proper way to <<plugins.adoc#custom_plugins,write plugins>> in Gradle, and common footguns involved in plugin authoring.
 
 [[tag:properties]]
 `#properties` :: Items that explain the proper way to use <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>, and the appropriate usage of using particular properties.

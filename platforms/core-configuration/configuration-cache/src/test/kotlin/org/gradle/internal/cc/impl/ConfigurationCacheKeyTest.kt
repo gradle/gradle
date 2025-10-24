@@ -19,15 +19,15 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.RunTasksRequirements
+import org.gradle.internal.cc.buildtree.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.initialization.layout.BuildTreeLocations
 import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.EncryptionAlgorithm
@@ -136,6 +136,7 @@ class ConfigurationCacheKeyTest {
     private
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
         val startParameter = StartParameterInternal().apply(configure)
+        val isolatedProjects = startParameter.isolatedProjects.get()
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
                 BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
@@ -146,7 +147,10 @@ class ConfigurationCacheKeyTest {
                     parallelProjectExecution = false,
                     configureOnDemand = false,
                     configurationCache = true,
-                    isolatedProjects = startParameter.isolatedProjects.get(),
+                    configurationCacheParallelStore = isolatedProjects,
+                    configurationCacheParallelLoad = isolatedProjects,
+                    isolatedProjects = isolatedProjects,
+                    parallelProjectConfiguration = isolatedProjects,
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,

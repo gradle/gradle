@@ -38,6 +38,10 @@ abstract public class AbstractIsolatedMap<T extends Map<Object, Object>> extends
         return new MapValueSnapshot(builder.build());
     }
 
+    // Suppresses IDEA nullability warning.
+    @Override
+    public abstract T create();
+
     @Override
     public T isolate() {
         T map = create();

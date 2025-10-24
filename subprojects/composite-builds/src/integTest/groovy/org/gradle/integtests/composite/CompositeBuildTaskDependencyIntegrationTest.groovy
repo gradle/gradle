@@ -227,7 +227,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
-        failure.assertHasCause("Task with path ':does-not-exist' not found in project ':buildB'.")
+        failure.assertHasCause("Task with name 'does-not-exist' not found in project ':buildB'.")
     }
 
     def "reports failure when task path is not qualified for included build"() {
@@ -262,14 +262,14 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
-        failure.assertHasCause("Task with path ':logP' not found in project ':buildB'.")
+        failure.assertHasCause("Task with name 'logP' not found in project ':buildB'.")
 
         when:
         fails(buildA, ":subDelegate")
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':subDelegate'.")
-        failure.assertHasCause("Task with path ':b1:logP' not found in project ':buildB'.")
+        failure.assertHasCause("Task with name 'logP' not found in project ':buildB:b1'.")
     }
 
     def "reports failure when attempting to access included build when build is not a composite"() {

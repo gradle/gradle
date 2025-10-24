@@ -54,7 +54,7 @@ class DefaultProjectDependencyTest extends Specification {
 
     def "exposes local project path"() {
         expect:
-        projectDependency.path == projectState.identity.projectPath.path
+        projectDependency.path == projectState.identity.projectPath.asString()
     }
 
     void "provides dependency information"() {

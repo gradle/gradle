@@ -95,7 +95,7 @@ public class DefaultBuildCacheControllerFactory extends AbstractBuildCacheContro
         boolean localPush = local != null && local.config.isPush();
         boolean remotePush = remote != null && remote.config.isPush();
         return new BuildCacheServicesConfiguration(
-            buildPath.getPath(),
+            buildPath.asString(),
             local != null ? local.service : null, localPush,
             remote != null ? remote.service : null, remotePush);
     }

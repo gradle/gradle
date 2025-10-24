@@ -64,6 +64,7 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
 [TIP]
 ====
 To make the Wrapper files available to other developers and execution environments, you need to check them into version control.
+
 Wrapper files, including the JAR file, are small.
 Adding the JAR file to version control is expected.
 Some organizations do not allow projects to submit binary files to version control, and there is no workaround available.
@@ -79,10 +80,18 @@ The generated Wrapper properties file, `gradle/wrapper/gradle-wrapper.properties
 
 The following is an example of the generated distribution URL in `gradle/wrapper/gradle-wrapper.properties`:
 
-[source,text]
+[source,properties,subs="attributes"]
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion}-bin.zip
 ----
+
+[TIP]
+====
+Use the `-bin` distribution for most builds.
+
+The `-bin` distribution contains only the runtime needed to build and run Gradle.
+It’s smaller to download and faster to cache on CI systems compared to the `-all` distribution, which also includes Gradle’s full source code and documentation.
+====
 
 All of those aspects are configurable at the time of generating the Wrapper files with the help of the following command line options:
 
@@ -132,7 +141,7 @@ You would like to generate the Wrapper with version {gradleVersion} and use the 
 
 The following command-line execution captures those requirements:
 
-[source,bash]
+[source,bash,subs="attributes"]
 ----
 $ gradle wrapper --gradle-version {gradleVersion} --distribution-type all
 ----
@@ -143,7 +152,7 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
 
 As a result, you can find the desired information (the generated distribution URL) in the Wrapper properties file:
 
-[source,text]
+[source,properties,subs="attributes"]
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion}-all.zip
 ----
@@ -230,9 +239,7 @@ NOTE: The Wrapper shell script and batch file reside in the root directory of a 
 
 Projects typically want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements.
 
-One way to upgrade the Gradle version is by manually changing the `distributionUrl` property in the Wrapper's `gradle-wrapper.properties` file.
-
-The better and recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<#sec:adding_wrapper,Adding the Gradle Wrapper>>.
+The recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<#sec:adding_wrapper,Adding the Gradle Wrapper>>.
 Using the `wrapper` task ensures that any optimizations made to the Wrapper shell script or batch file with that specific Gradle version are applied to the project.
 
 As usual, you should commit the changes to the Wrapper files to version control.
@@ -253,30 +260,33 @@ $ ./gradlew wrapper --gradle-version latest   // MacOs, Linux
 ----
 $ gradlew.bat wrapper --gradle-version latest // Windows
 ----
-
 ----
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
 
 The following command upgrades the Wrapper to a specific version:
 
-[source, bash]
+[source,bash,subs="attributes"]
 ----
 $ ./gradlew wrapper --gradle-version {gradleVersion} // MacOs, Linux
 ----
-
-[source,bash]
+[source,bash,subs="attributes"]
 ----
 $ gradlew.bat wrapper --gradle-version {gradleVersion} // Windows
 ----
-
 ----
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
 
 Once you have upgraded the wrapper, you can check that it's the version you expected by executing `./gradlew --version`.
 
-Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradlew.bat` files.
+TIP: Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradlew.bat` files.
+
+Another way to upgrade the Gradle version is by manually changing the `distributionUrl` property in the Wrapper's `gradle-wrapper.properties` file.
+The tip above also applies in this case.
+
+NOTE: Since Gradle 9.0.0, the version _always_ uses the `X.Y.Z` format.
+Using only the major or minor version is not supported in `gradle-wrapper.properties`.
 
 [[customizing_wrapper]]
 == Customizing the Gradle Wrapper
@@ -297,7 +307,7 @@ include::sample[dir="snippets/wrapper/customized-task/groovy",files="build.gradl
 
 With the configuration in place, running `./gradlew wrapper --gradle-version {gradleVersion}` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution:
 
-[source,text]
+[source,properties,subs="attributes"]
 ----
 distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion}-all.zip
 ----
@@ -336,7 +346,7 @@ TIP: Shared credentials embedded in `distributionUrl` should only be used in a c
 
 To specify the HTTP Basic Authentication credentials in `distributionUrl`, add the following line:
 
-[source,text]
+[source,properties]
 ----
 distributionUrl=https://username:password@somehost/path/to/gradle-distribution.zip
 ----
@@ -363,7 +373,7 @@ You can also reference the link:https://gradle.org/release-checksums/[list of Gr
 
 Add the downloaded (SHA-256 checksum) hash sum to `gradle-wrapper.properties` using the `distributionSha256Sum` property or use `--gradle-distribution-sha256-sum` on the command-line:
 
-[source,text]
+[source,properties]
 ----
 distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b82368bcf10
 ----
@@ -400,16 +410,20 @@ Manually verifying the checksum of the Wrapper JAR on Linux:
 ----
 $ cd gradle/wrapper
 ----
+[source,bash,subs="attributes"]
 ----
 $ curl --location --output gradle-wrapper.jar.sha256 \
        https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
 ----
+[source,bash]
 ----
 $ echo " gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
 ----
+[source,bash]
 ----
 $ sha256sum --check gradle-wrapper.jar.sha256
 ----
+[source,text]
 ----
 gradle-wrapper.jar: OK
 ----
@@ -420,6 +434,7 @@ Manually verifying the checksum of the Wrapper JAR on macOS:
 ----
 $ cd gradle/wrapper
 ----
+[source,bash,subs="attributes"]
 ----
 $ curl --location --output gradle-wrapper.jar.sha256 \
        https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
@@ -436,7 +451,7 @@ gradle-wrapper.jar: OK
 
 Manually verifying the checksum of the Wrapper JAR on Windows (using PowerShell):
 
-[source,powershell]
+[source,powershell,subs="attributes"]
 ----
 > $expected = Invoke-RestMethod -Uri https://services.gradle.org/distributions/gradle-{gradleVersion}-wrapper.jar.sha256
 ----
