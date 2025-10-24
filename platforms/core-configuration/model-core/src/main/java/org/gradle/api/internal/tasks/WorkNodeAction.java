@@ -36,10 +36,9 @@ public interface WorkNodeAction {
     /**
      * Returns the project which the action belongs to.
      * <p>
-     * This is used to determine the services to expose to {@link #run(NodeExecutionContext)} via the context, among other things.
-     * Returning non-null ideally does not imply any kind of exclusive access to the project, however in some cases this property
-     * may be used to acquire project-level locks. In general, {@link #getAccessLock()} should be preferred for determining exclusive
-     * access requirements.
+     * This is used to determine the services to expose to {@link #run(NodeExecutionContext)} via the context,
+     * among other things. Returning non-null does not imply any kind of exclusive access to the project.
+     * {@link #getAccessLock()} should be preferred for determining exclusive access requirements.
      * <p>
      * TODO: The execution engine should know nothing about `Project`s. We should work to remove this method.
      *

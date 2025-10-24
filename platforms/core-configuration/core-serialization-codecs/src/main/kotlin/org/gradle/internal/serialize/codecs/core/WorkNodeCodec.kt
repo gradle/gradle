@@ -23,7 +23,6 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
@@ -45,6 +44,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.MultipleBuildOperationFailures
 import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.Codec
@@ -61,6 +61,7 @@ import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.writeCollection
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 import java.util.concurrent.atomic.AtomicReference
 
@@ -82,6 +83,7 @@ class WorkNodeCodec(
     private val owner: GradleInternal,
     private val internalTypesCodec: Codec<Any?>,
     private val contextSource: IsolateContextSource,
+    private val workerLeaseService: WorkerLeaseService,
     /** Should we store work nodes in parallel? */
     private val parallelStore: Boolean,
     /** Should we load work nodes in parallel? */
@@ -230,25 +232,33 @@ class WorkNodeCodec(
         nodes: List<Node>,
         idForNode: IdForNode
     ): PersistentList<Iterable<PostExecutionNodes>> {
+        // The path used for nodes without a declared access lock
+        // or nodes where the lock path cannot be determined.
+        val buildLockPath = Path.path("build").append(owner.identityPath)
 
-        val groupedNodes = nodes.groupBy(NodeOwner::of)
-        writeCollection(groupedNodes.keys) { nodeOwner ->
-            val groupPath = nodeOwner.path()
-            writeString(groupPath.asString())
+        val nodesByLock = nodes.groupBy { it.accessLock }
+        val locksByPath = nodesByLock.keys.groupBy {
+            it?.let { workerLeaseService.getProjectLockPath(it) } ?: buildLockPath
+        }
+
+        writeCollection(locksByPath.keys) { lockPath ->
+            writeString(lockPath.asString())
         }
 
         val batchedActionNodeSuccessors =
             AtomicReference<PersistentList<Iterable<PostExecutionNodes>>>(PersistentList.of())
 
         runBuildOperations(parallelStore, "saving task graph") {
-            groupedNodes.entries.map { (nodeOwner, groupNodes) ->
-                val groupPath = nodeOwner.path()
+            locksByPath.entries.map { (groupPath, locks) ->
                 OperationInfo(displayName = "Storing configuration for $groupPath", context = groupPath) {
                     contextSource.writeContextFor(this, groupPath).useToRun {
-                        val postExecutionSuccessors = writeGroupedNodes(nodeOwner, groupNodes, idForNode)
-                        if (postExecutionSuccessors.isNotEmpty()) {
-                            batchedActionNodeSuccessors.updateAndGet {
-                                it.plus(postExecutionSuccessors)
+                        locks.forEach { lock ->
+                            val lockNodes = nodesByLock[lock] ?: error("Nodes for $lock in path $groupPath not found")
+                            val postExecutionSuccessors = writeGroupedNodes(lock, lockNodes, idForNode)
+                            if (postExecutionSuccessors.isNotEmpty()) {
+                                batchedActionNodeSuccessors.updateAndGet {
+                                    it.plus(postExecutionSuccessors)
+                                }
                             }
                         }
                     }
@@ -305,24 +315,13 @@ class WorkNodeCodec(
         val id: Int
     )
 
-    /**
-     * Returns a path that uniquely identifies this node owner.
-     */
-    private
-    fun NodeOwner.path(): Path {
-        return when (this) {
-            NodeOwner.None -> Path.path("build").append(owner.identityPath)
-            is NodeOwner.Project -> project.identityPath
-        }
-    }
-
     private
     fun WriteContext.writeGroupedNodes(
-        nodeOwner: NodeOwner,
+        lock: ResourceLock?,
         nodes: List<Node>,
         idForNode: IdForNode
     ): List<PostExecutionNodes> {
-        val safeRun = safeRunnerFor(nodeOwner)
+        val safeRun = safeRunnerFor(lock)
         val actionNodeSuccessors = mutableListOf<PostExecutionNodes>()
         runWriteOperation {
             writeCollection(nodes) { node ->
@@ -388,17 +387,14 @@ class WorkNodeCodec(
     )
 
     private
-    fun safeRunnerFor(owner: NodeOwner): suspend WriteContext.(suspend WriteContext.() -> Unit) -> Unit {
-        return when (owner) {
-            is NodeOwner.None -> { f -> f() }
-
-            is NodeOwner.Project -> {
-                val stateOwner = owner.project.owner
-                { f ->
-                    stateOwner.applyToMutableState {
-                        runWriteOperation {
-                            f()
-                        }
+    fun safeRunnerFor(lock: ResourceLock?): suspend WriteContext.(suspend WriteContext.() -> Unit) -> Unit {
+        if (lock == null) {
+            return { f -> f() }
+        } else {
+            return { f ->
+                workerLeaseService.withLocks(listOf(lock)) {
+                    runWriteOperation {
+                        f()
                     }
                 }
             }
@@ -597,23 +593,6 @@ class WorkNodeCodec(
                         operations().forEach { it.action() }
                     })
                 }
-            }
-        }
-    }
-}
-
-
-sealed class NodeOwner {
-
-    object None : NodeOwner()
-
-    data class Project(val project: ProjectInternal) : NodeOwner()
-
-    companion object {
-        fun of(node: Node): NodeOwner {
-            return when (val project = node.owningProject) {
-                null -> None
-                else -> Project(project)
             }
         }
     }

@@ -144,6 +144,7 @@ import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.internal.work.WorkerLeaseService
 
 
 @ServiceScope(Scope.Build::class)
@@ -194,7 +195,8 @@ class DefaultConfigurationCacheCodecs(
     taskDependencyFactory: TaskDependencyFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
-    problems: InternalProblems
+    problems: InternalProblems,
+    val workerLeaseService: WorkerLeaseService
 ) : ConfigurationCacheCodecs {
 
     private
@@ -411,5 +413,5 @@ class DefaultConfigurationCacheCodecs(
     }
 
     override fun workNodeCodecFor(gradle: GradleInternal, contextSource: IsolateContextSource) =
-        WorkNodeCodec(gradle, internalTypesCodec(), contextSource, parallelStore, parallelLoad)
+        WorkNodeCodec(gradle, internalTypesCodec(), contextSource, workerLeaseService, parallelStore, parallelLoad)
 }

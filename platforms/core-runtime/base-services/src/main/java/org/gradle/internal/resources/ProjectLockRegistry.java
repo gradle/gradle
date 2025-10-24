@@ -17,6 +17,7 @@
 package org.gradle.internal.resources;
 
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, ProjectLock> {
     private final boolean parallelEnabled;
@@ -55,4 +56,17 @@ public class ProjectLockRegistry extends AbstractResourceLockRegistry<Path, Proj
             }
         });
     }
+
+    /**
+     * Get the path of the specified project lock, or null if the given lock is
+     * not a project lock or the lock path cannot be determined.
+     */
+    public @Nullable Path getLockPath(ResourceLock resourceLock) {
+        if (!(resourceLock instanceof ProjectLock)) {
+            return null;
+        }
+        ProjectLock projectLock = (ProjectLock) resourceLock;
+        return getLockKey(projectLock);
+    }
+
 }

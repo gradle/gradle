@@ -20,6 +20,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -34,6 +35,12 @@ public interface ProjectLeaseRegistry {
      * Get a lock for access to the specified project's state.
      */
     ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath);
+
+    /**
+     * Get the path of the specified project lock, or null if the given lock is
+     * not a project lock or the lock path cannot be determined.
+     */
+    @Nullable Path getProjectLockPath(ResourceLock projectLock);
 
     /**
      * Get a lock for non-isolated tasks for the specified project.
