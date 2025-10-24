@@ -36,7 +36,7 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
-[[changes_9.2]]
+[[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 
 === Potential breaking changes
