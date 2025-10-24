@@ -68,6 +68,9 @@ dependencies {
         api("com.fasterxml.woodstox:woodstox-core:6.4.0") {
             because("CVE-2022-40152 on lower versions")
         }
+        api("com.fasterxml.jackson:jackson-bom:2.16.1") {
+            because("CVE-2025-52999 on lower versions")
+        }
         api("com.beust:jcommander:1.78")
         api("$groovyGroup:groovy:$groovyVersion")
         api("org.codenarc:CodeNarc:$codenarcVersion")
