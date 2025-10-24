@@ -67,7 +67,7 @@ public class LocalTaskNode extends TaskNode {
 
     @Nullable
     @Override
-    public ResourceLock getProjectToLock() {
+    public ResourceLock getAccessLock() {
         if (isolated) {
             return null;
         } else {
