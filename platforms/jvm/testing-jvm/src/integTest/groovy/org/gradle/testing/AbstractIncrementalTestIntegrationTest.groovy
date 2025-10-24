@@ -149,8 +149,8 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         succeeds('test')
 
         then:
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('JUnitTest')
+        def xmlResult = new JUnitXmlTestExecutionResult(testDirectory)
+        xmlResult.assertTestClassesExecuted('JUnitTest')
 
         when:
         // Switch test framework
@@ -158,17 +158,17 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         succeeds('test')
 
         then:
-        getResult().assertTasksExecuted(':test')
+        result.assertTasksExecuted(':test')
 
         // When we switch test frameworks and rerun a test task, the old results should NOT still be present in the dir
-        result.assertTestClassesExecuted('TestNGTest')
-        result.assertTestClassesNotExecuted('JUnitTest')
+        xmlResult.assertTestClassesExecuted('TestNGTest')
+        xmlResult.assertTestClassesNotExecuted('JUnitTest')
 
         when:
         succeeds('test')
 
         then:
-        getResult().assertAllTasksSkipped()
+        result.assertAllTasksSkipped()
     }
 
     def "test up-to-date status respects test name patterns"() {

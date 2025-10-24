@@ -110,9 +110,9 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
             def testReport = tasks.register('testReport', TestReport) {
                 destinationDirectory = reporting.baseDirectory.dir('allTests')
                 testResults.from([
-                    testing.suites.test.targets.test.testTask.map { it.getBinaryResultsDirectory() },
-                    testing.suites.superTest.targets.superTest.testTask.map { it.getBinaryResultsDirectory() },
-                    testing.suites.subTest.targets.subTest.testTask.map { it.getBinaryResultsDirectory() }
+                    testing.suites.test.targets.test.testTask,
+                    testing.suites.superTest.targets.superTest.testTask,
+                    testing.suites.subTest.targets.subTest.testTask
                 ])
             }
 
@@ -261,7 +261,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
             $junitSetup
 
             tasks.register('testReport', TestReport) {
-                testResults.from(tasks.named('test', Test).map { it.binaryResultsDirectory } )
+                testResults.from(tasks.named('test', Test))
                 destinationDirectory = reporting.baseDirectory.dir("tr")
             }
         """

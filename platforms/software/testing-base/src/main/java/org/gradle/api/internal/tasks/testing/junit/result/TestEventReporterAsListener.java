@@ -36,6 +36,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Converts from events received via the {@link TestListenerInternal} interface to calls on {@link TestEventReporter}s,
+ * in the proper hierarchy. This class manages the lifecycle of the reporters, creating them when tests start and
+ * closing them when tests complete.
+ */
 @NullMarked
 public final class TestEventReporterAsListener implements TestListenerInternal, AutoCloseable {
     private final Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootTestReporterCreator;
