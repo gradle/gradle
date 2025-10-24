@@ -50,6 +50,20 @@ jdks:
     version: "jdk-25+36"
     sha256: "ee04de95ab9da7287d40bd2173076ecc2a6dd662f007bedfc6eb0380c0ef90e8"
   - params:
+      - "env.JDK26"
+    os: "linux"
+    arch: "aarch64"
+    vendor: "temurin"
+    version: "jdk-26+20-ea-beta"
+    sha256: "33345f7b5af81ffc3850964e0c36d521c35c0c31cbf6d58dd5db075700492049"
+  - params:
+      - "env.JDK26"
+    os: "linux"
+    arch: "amd64"
+    vendor: "temurin"
+    version: "jdk-26+20-ea-beta"
+    sha256: "033cbdabfeccbd4e0d0ac63d41a26c54f06a2d817464015b60564bd55a9ca62c"
+  - params:
       - "linux.java8.openjdk.aarch64"
       - "linux.java8.oracle.aarch64"
     os: "linux"
@@ -116,6 +130,13 @@ jdks:
     vendor: "temurin"
     version: "jdk-25+36"
     sha256: "ff76428a600a0925abbfb1dc55da30828b500f8038a13679a8c75b37892a96c3"
+  - params:
+      - "env.JDK26"
+    os: "windows"
+    arch: "amd64"
+    vendor: "temurin"
+    version: "jdk-26+20-ea-beta"
+    sha256: "c736596b4fab7e40cc741b81629ea9a7bdc7ddeadd7bd34afcbbac43aa4b914e"
   - params:
       - "macos.java8.openjdk.64bit"
     os: "macos"
@@ -187,3 +208,17 @@ jdks:
     vendor: "temurin"
     version: "jdk-25+36"
     sha256: "6630ea0f19db61843a8fa84a84b2c71cd120c4155bb5a0e42a74593b0d70fee4"
+  - params:
+      - "env.JDK26"
+    os: "macos"
+    arch: "amd64"
+    vendor: "temurin"
+    version: "jdk-26+20-ea-beta"
+    sha256: "cc6dd7e3f19c8e640e33356b487e95ce4cbc2ddaea21fd6b0b463b4664e1fef1"
+  - params:
+      - "env.JDK26"
+    os: "macos"
+    arch: "aarch64"
+    vendor: "temurin"
+    version: "jdk-26+20-ea-beta"
+    sha256: "4e496da8e482a44cca0fff41be3d451411df551e5e25e11cf9520837e8b847da"

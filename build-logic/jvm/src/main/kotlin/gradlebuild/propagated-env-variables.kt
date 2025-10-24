@@ -16,6 +16,7 @@
 
 package gradlebuild
 
+import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
 
@@ -76,10 +77,6 @@ val propagatedEnvironmentVariables = listOf(
     "LC_ALL",
     "LC_CTYPE",
 
-    "JDK8",
-    "JDK11",
-    "JDK17",
-
     "JDK_HOME",
     "JRE_HOME",
     "CommonProgramFiles",
@@ -95,6 +92,9 @@ val propagatedEnvironmentVariables = listOf(
     "CHROME_BIN"
 )
 
+val propagatedEnvironmentVariablePrefixes = listOf(
+    "JDK"
+)
 
 val credentialsKeywords = listOf(
     "api_key",
@@ -109,7 +109,7 @@ val credentialsKeywords = listOf(
 
 
 fun Test.filterEnvironmentVariables(inheritDevelocityAccessToken: Boolean) {
-    environment = makePropagatedEnvironment()
+    environment = project.makePropagatedEnvironment()
     environment.forEach { (key, _) ->
         require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
     }
@@ -123,12 +123,17 @@ fun Test.filterEnvironmentVariables(inheritDevelocityAccessToken: Boolean) {
 
 
 private
-fun makePropagatedEnvironment(): MutableMap<String, String> {
+fun Project.makePropagatedEnvironment(): MutableMap<String, String> {
     val result = HashMap<String, String>()
     for (key in propagatedEnvironmentVariables) {
         val value = System.getenv(key)
         if (value != null) {
             result[key] = value
+        }
+    }
+    for (prefix in propagatedEnvironmentVariablePrefixes) {
+        for (environmentVariable in providers.environmentVariablesPrefixedBy(prefix).get()) {
+            result[environmentVariable.key] = environmentVariable.value
         }
     }
     return result
