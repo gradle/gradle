@@ -25,6 +25,7 @@ import org.gradle.jvm.toolchain.JdkRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
+import org.junit.Assume
 
 import java.nio.file.Files
 import java.nio.file.Path
@@ -54,7 +55,13 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
 
     def setup() {
         // Use a JVM that will force a provisioning
-        Jvm differentVersion = AvailableJavaHomes.differentVersion
+        Jvm differentVersion = AvailableJavaHomes.getDifferentVersion {
+            // Require <= 24 as this test runs on previous Gradle versions that both do not have the fix for
+            // not using JavaVersion from the target distribution, and also do not support Java 24 in their JavaVersion.
+            // 7.6 only has up to 24, 8.4 to 25, and 8.7 to 26. This test doesn't run any later than 8.8.
+            it.javaMajorVersion <= 24
+        }
+        Assume.assumeNotNull(differentVersion)
 
         jdkRepository = new JdkRepository(differentVersion, "not_current_jdk.zip")
         uri = jdkRepository.start()
