@@ -348,7 +348,7 @@ Each scope controls different aspects of the build lifecycle and represents an i
 | Affects all builds on a machine. Commonly used to configure enterprise build tooling, inject repositories, or enforce conventions across builds.
 |===
 
-When writing *precompiled script plugins*, Gradle determines the intended plugin target (`Project`, `Settings`, or `Init`) based on the file name of the plugin source file:
+When writing *precompiled script plugins*, Gradle determines the intended plugin target (`Project`, `Settings`, or `Gradle`) based on the file name of the plugin source file:
 
 |===
 | Plugin | Filename Suffix | Applies To | Scope
