@@ -36,8 +36,10 @@ import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Map;
@@ -107,8 +109,8 @@ public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectSt
         }
 
         @Override
-        public boolean usesMutableProjectState() {
-            return true;
+        public @Nullable ResourceLock getAccessLock() {
+            return projectState.getAccessLock();
         }
 
         @Override
