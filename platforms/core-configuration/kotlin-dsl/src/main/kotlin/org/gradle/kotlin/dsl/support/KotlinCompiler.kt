@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
 import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
-import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
@@ -35,8 +34,6 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
-import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
 import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
 import org.jetbrains.kotlin.codegen.CompilationException
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
@@ -216,37 +213,6 @@ private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(sc
 }
 
 
-@VisibleForTesting
-fun compileToDirectory(
-    outputDirectory: File,
-    compilerOptions: KotlinCompilerOptions,
-    moduleName: String,
-    sourceFiles: Iterable<File>,
-    logger: Logger,
-    classPath: Iterable<File>,
-): Boolean {
-
-    withRootDisposable {
-        withMessageCollectorFor(logger, EmbeddedKotlinCompilerWarning.WARN) { messageCollector ->
-            val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
-                addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
-                put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName(moduleName)
-                classPath.forEach { addJvmClasspathRoot(it) }
-                addJvmClasspathRoot(kotlinStdlibJar)
-            }
-            val environment = kotlinCoreEnvironmentFor(configuration)
-            return compileBunchOfSources(environment)
-        }
-    }
-}
-
-
-private
-val kotlinStdlibJar: File
-    get() = PathUtil.getResourcePathForClass(Unit::class.java)
-
-
 private
 inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
     val rootDisposable = newDisposable()
@@ -254,15 +220,6 @@ inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
         return action(rootDisposable)
     } finally {
         dispose(rootDisposable)
-    }
-}
-
-
-private
-inline fun <T> withMessageCollectorFor(log: Logger, onCompilerWarning: EmbeddedKotlinCompilerWarning, action: (MessageCollector) -> T): T {
-    val messageCollector = messageCollectorFor(log, onCompilerWarning)
-    withCompilationExceptionHandler(messageCollector) {
-        return action(messageCollector)
     }
 }
 
