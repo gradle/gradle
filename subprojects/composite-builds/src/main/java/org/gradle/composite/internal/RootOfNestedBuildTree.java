@@ -27,7 +27,6 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildLifecycleController;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
@@ -60,10 +59,9 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     public RootOfNestedBuildTree(
         BuildDefinition buildDefinition,
         Path identityPath,
-        BuildState owner,
         BuildTreeState buildTree
     ) {
-        super(buildTree, buildDefinition, owner);
+        super(buildTree, buildDefinition, null);
         this.identityPath = identityPath;
 
         CloseableServiceRegistry buildServices = getBuildServices();
