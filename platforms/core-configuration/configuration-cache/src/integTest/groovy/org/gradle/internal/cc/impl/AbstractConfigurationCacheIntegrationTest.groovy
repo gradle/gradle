@@ -32,7 +32,7 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
     static final String DISABLE_GRADLE_PROP = "${ConfigurationCacheOption.PROPERTY_NAME}=false"
     static final String DISABLE_SYS_PROP = "-D$DISABLE_GRADLE_PROP"
     // Should be provided if a link to the report is expected even if no errors were found
-    static final String LOG_REPORT_LINK_AS_WARNING = "-Dorg.gradle.configuration-cache.internal.report-link-as-warning=true"
+    static final String LOG_REPORT_LINK_AS_WARNING = "-Dorg.gradle.internal.configuration-cache.report-link-as-warning=true"
     static final String ENABLE_READ_ONLY_CACHE = "-D${ConfigurationCacheReadOnlyOption.PROPERTY_NAME}=true"
 
     static final String MAX_PROBLEMS_GRADLE_PROP = "${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
