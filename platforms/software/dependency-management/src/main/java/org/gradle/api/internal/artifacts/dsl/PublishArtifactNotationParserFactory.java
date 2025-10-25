@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
@@ -33,7 +32,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
@@ -59,15 +57,14 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
     @Override
     public NotationParser<Object, ConfigurablePublishArtifact> create() {
-        FileNotationConverter fileConverter = new FileNotationConverter();
         return NotationParserBuilder
                 .toType(ConfigurablePublishArtifact.class)
                 .converter(new DecoratingConverter())
                 .converter(new ArchiveTaskNotationConverter())
                 .converter(new FileProviderNotationConverter())
                 .converter(new FileSystemLocationNotationConverter())
-                .converter(fileConverter)
-                .converter(new FileMapNotationConverter(fileConverter))
+                .converter(new FileNotationConverter())
+                .converter(new FileMapNotationConverter())
                 .toComposite();
     }
 
@@ -99,19 +96,9 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     }
 
     private static class FileMapNotationConverter extends MapNotationConverter<ConfigurablePublishArtifact> {
-        private final FileNotationConverter fileConverter;
-
-        private FileMapNotationConverter(FileNotationConverter fileConverter) {
-            this.fileConverter = fileConverter;
-        }
-
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Maps with 'file' key");
-        }
-
-        protected PublishArtifact parseMap(@MapKey("file") File file) {
-            return fileConverter.parseType(file);
         }
     }
 
@@ -130,8 +117,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(Provider<?> notation) {
-            Module module = metaDataProvider.getModule();
-            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new LazyPublishArtifact(notation, module.getVersion(), fileResolver, taskDependencyFactory));
+            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new LazyPublishArtifact(notation, metaDataProvider.getModule().getVersion(), fileResolver, taskDependencyFactory));
         }
     }
 
@@ -148,8 +134,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(FileSystemLocation notation) {
-            Module module = metaDataProvider.getModule();
-            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new FileSystemPublishArtifact(notation, module.getVersion()));
+            return objectFactory.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new FileSystemPublishArtifact(notation, metaDataProvider.getModule().getVersion()));
         }
     }
 
@@ -160,8 +145,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(File file) {
-            Module module = metaDataProvider.getModule();
-            ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
+            ArtifactFile artifactFile = new ArtifactFile(file, metaDataProvider.getModule().getVersion());
             DefaultPublishArtifact defaultPublishArtifact = objectFactory.newInstance(DefaultPublishArtifact.class, taskDependencyFactory);
             defaultPublishArtifact.setName(artifactFile.getName());
             defaultPublishArtifact.setExtension(artifactFile.getExtension());

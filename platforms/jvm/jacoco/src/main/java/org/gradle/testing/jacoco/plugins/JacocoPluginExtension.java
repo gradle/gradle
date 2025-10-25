@@ -171,6 +171,7 @@ public abstract class JacocoPluginExtension {
         @Nullable
         @Optional
         @Nested
+        @SuppressWarnings("unused") // assuming it might not break early, but on customer side.
         public JacocoTaskExtension getJacoco() {
             return jacoco.isEnabled() ? jacoco : null;
         }

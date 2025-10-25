@@ -25,7 +25,6 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ConcurrentModificationException;
@@ -48,7 +47,9 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
+    @Nullable
     private ModelObject producer;
+    @Nullable
     private DisplayName displayName;
     private ValueState<S> state;
     private S value;
@@ -142,7 +143,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    protected final S getSupplier(@SuppressWarnings("unused") EvaluationScopeContext context) {
+    protected final S getSupplier(EvaluationScopeContext ignored) {
         // context serves as a token here to ensure that the scope is opened.
         return value;
     }
@@ -170,7 +171,6 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    @NonNull
     private Value<? extends T> doCalculateValue(EvaluationScopeContext context, ValueConsumer consumer) {
         try {
             return calculateValueFrom(context, value, consumer);

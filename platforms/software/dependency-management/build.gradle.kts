@@ -26,7 +26,6 @@ errorprone {
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
-        "UnusedMethod", // 34 occurrences
     )
 }
 
@@ -91,6 +90,7 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.gson)
     implementation(libs.httpcore)
+    implementation("org.apache.commons:commons-text:1.14.0")
 
     testImplementation(projects.buildCachePackaging)
     testImplementation(projects.softwareDiagnostics)
