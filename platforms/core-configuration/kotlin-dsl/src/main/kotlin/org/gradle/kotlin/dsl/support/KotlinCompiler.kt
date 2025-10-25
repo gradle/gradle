@@ -225,15 +225,6 @@ inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
 
 
 private
-inline fun <T> withMessageCollectorFor(log: Logger, onCompilerWarning: EmbeddedKotlinCompilerWarning, action: (MessageCollector) -> T): T {
-    val messageCollector = messageCollectorFor(log, onCompilerWarning)
-    withCompilationExceptionHandler(messageCollector) {
-        return action(messageCollector)
-    }
-}
-
-
-private
 inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
     try {
         val log = messageCollector.log
