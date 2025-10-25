@@ -127,7 +127,7 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
     protected
     fun configureProject(vararg tasks: String): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
-        val output = executer.withTasks(*tasks).run().normalizedOutput
+        val output = executer.withTasks(*tasks).withArgument("--stacktrace").run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output)
     }
 

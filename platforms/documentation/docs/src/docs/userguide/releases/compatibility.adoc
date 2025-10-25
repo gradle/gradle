@@ -106,6 +106,8 @@ Beta and RC versions may or may not work.
 | 2.2.20 | 9.2.0 | 2.2
 |===
 
+// TODO: 2.3.0-Beta1
+
 == Groovy
 
 Gradle is tested with Groovy 1.5.8 through 5.0.1.
