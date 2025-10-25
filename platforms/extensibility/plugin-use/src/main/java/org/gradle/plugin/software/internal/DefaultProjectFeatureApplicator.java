@@ -23,8 +23,8 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.Definition;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
 import org.gradle.api.internal.plugins.software.SoftwareType;
@@ -33,7 +33,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.PropertyValue;
@@ -58,12 +58,12 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final ModelDefaultsApplicator modelDefaultsApplicator;
     private final InspectionScheme inspectionScheme;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
     private final PluginManagerInternal pluginManager;
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory objectFactory;
 
-    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
+    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, ProblemsInternal problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
         this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
