@@ -115,6 +115,18 @@ include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/kotl
 include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/groovy",files="build.gradle[tags=automatic-classpath]"]
 ====
 
+[WARNING]
+====
+The automatic classpath injection provided by `GradleRunner.withPluginClasspath()` is **incompatible** with plugins that use `compileOnly` to depend on another plugin's API.
+
+* **Symptom:** Your tests will fail with a `ClassNotFoundException` because the required base plugin classes are not included in the isolated test classpath.
+* **Reason:** The recommended practice of using `compileOnly` prevents plugin API classes from being packaged with your plugin, but `withPluginClasspath` fails to correctly resolve those missing classes from the build environment.
+
+If your plugin uses `compileOnly`, you must use a testing setup that involves:
+
+1.  Publishing your plugin to a local Maven repository.
+2.  Configuring the test project's `settings.gradle` file to pull your plugin from that local repository.
+====
 
 === Example: Automatically injecting the code under test classes into test builds
 
