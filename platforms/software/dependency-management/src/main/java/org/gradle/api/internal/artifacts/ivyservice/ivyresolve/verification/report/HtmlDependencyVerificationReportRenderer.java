@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static org.apache.commons.text.StringEscapeUtils.escapeHtml4;
+
 /**
  * Generates an HTML report for verification. This report, unlike the text report,
  * is cumulative, meaning that it keeps state and will be incrementally feeded with
@@ -383,29 +385,23 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                 } else {
                     sb.append("(not found)");
                 }
-                @SuppressWarnings("deprecation")
-                String keyDetails = org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(sb.toString());
-                String keyInfo = "<b>" + keyId + " " + keyDetails + "</b>";
+                String keyInfo = "<b>" + keyId + " " + escapeHtml4(sb.toString()) + "</b>";
                 switch (error.getKind()) {
                     case PASSED_NOT_TRUSTED:
-                        String reason = warning("Artifact was signed with key " + keyInfo + " but this key is not in your trusted key list");
-                        reportItem(reason, "verified-not-trusted", "question");
+                        reportItem(warning("Artifact was signed with key " + keyInfo + " but this key is not in your trusted key list"), "verified-not-trusted", "question");
                         break;
                     case FAILED:
-                        reason = actual("Artifact was signed with key " + keyInfo + " but signature didn't match");
-                        reportItem(reason, "signature-didnt-match", "warning");
+                        reportItem(actual("Artifact was signed with key " + keyInfo + " but signature didn't match"), "signature-didnt-match", "warning");
                         break;
                     case IGNORED_KEY:
-                        reason = grey("Artifact was signed with an ignored key: " + keyInfo);
-                        reportItem(reason, "ignored-key", "info");
+                        reportItem(grey("Artifact was signed with an ignored key: " + keyInfo), "ignored-key", "info");
                         break;
                     case MISSING_KEY:
                         if (useKeyServers) {
-                            reason = warning("Key " + keyInfo + " couldn't be found in local key file or remote key servers so verification couldn't be performed.");
+                            reportItem(warning("Key " + keyInfo + " couldn't be found in local key file or remote key servers so verification couldn't be performed."), "missing-key", "warning");
                         } else {
-                            reason = warning("Key " + keyInfo + " couldn't be found in local key file so verification couldn't be performed. Enable key resolution with --export-keys.");
+                            reportItem(warning("Key " + keyInfo + " couldn't be found in local key file so verification couldn't be performed. Enable key resolution with --export-keys."), "missing-key", "warning");
                         }
-                        reportItem(reason, "missing-key", "warning");
                         hasMissingKeys = true;
                         break;
                 }
@@ -435,10 +431,6 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         public void newArtifact(ArtifactErrors artifactErrors) {
             errors.add(artifactErrors);
             currentArtifact = artifactErrors;
-        }
-
-        public String getTitle() {
-            return title;
         }
 
     }

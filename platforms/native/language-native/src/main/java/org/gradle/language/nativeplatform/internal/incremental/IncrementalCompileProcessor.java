@@ -20,6 +20,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.jspecify.annotations.NonNull;
 
 import java.io.File;
 import java.util.Collection;
@@ -38,9 +39,8 @@ public class IncrementalCompileProcessor {
     public IncrementalCompilation processSourceFiles(final Collection<File> sourceFiles) {
         return buildOperationExecutor.call(new CallableBuildOperation<IncrementalCompilation>() {
             @Override
-            public IncrementalCompilation call(BuildOperationContext context) {
-                CompilationState previousCompileState = previousCompileStateCache.get();
-                IncrementalCompileSourceProcessor processor = incrementalCompileFilesFactory.files(previousCompileState);
+            public IncrementalCompilation call(@NonNull BuildOperationContext context) {
+                IncrementalCompileSourceProcessor processor = incrementalCompileFilesFactory.files(previousCompileStateCache.get());
                 for (File sourceFile : sourceFiles) {
                     processor.processSource(sourceFile);
                 }
@@ -48,23 +48,8 @@ public class IncrementalCompileProcessor {
             }
 
             @Override
-            public BuildOperationDescriptor.Builder description() {
-                ProcessSourceFilesDetails operationDetails = new ProcessSourceFilesDetails(sourceFiles.size());
-                return BuildOperationDescriptor
-                    .displayName("Processing source files")
-                    .details(operationDetails);
-            }
-
-            class ProcessSourceFilesDetails {
-                private final int sourceFileCount;
-
-                ProcessSourceFilesDetails(int sourceFileCount) {
-                    this.sourceFileCount = sourceFileCount;
-                }
-
-                public int getSourceFileCount() {
-                    return sourceFileCount;
-                }
+            public BuildOperationDescriptor.@NonNull Builder description() {
+                return BuildOperationDescriptor.displayName("Processing source files");
             }
         });
     }
