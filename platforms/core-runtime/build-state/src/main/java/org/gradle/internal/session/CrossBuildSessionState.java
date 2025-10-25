@@ -16,12 +16,10 @@
 
 package org.gradle.internal.session;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.initialization.SettingsLocation;
+import org.gradle.api.internal.options.InternalOptionsFactory;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.Cast;
-import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationsParameters;
@@ -36,14 +34,9 @@ import org.gradle.internal.service.scopes.CrossBuildSessionParameters;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.internal.GUtil;
 
 import java.io.Closeable;
-import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * Services to be shared across build sessions.
@@ -98,15 +91,8 @@ public class CrossBuildSessionState implements Closeable {
 
         @Provides
         InternalOptions createInternalOptions(BuildLayoutFactory buildLayoutFactory) {
-            Map<String, String> properties = new LinkedHashMap<>();
-            SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
-            File propertiesFile = new File(settingsLocation.getSettingsDir(), Project.GRADLE_PROPERTIES);
-            if (propertiesFile.isFile()) {
-                Properties rootBuildProps = GUtil.loadProperties(propertiesFile);
-                properties.putAll(Cast.uncheckedCast(rootBuildProps));
-            }
-            properties.putAll(startParameter.getSystemPropertiesArgs());
-            return new DefaultInternalOptions(properties);
+            BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
+            return InternalOptionsFactory.createInternalOptions(startParameter, buildLayout.getRootDirectory());
         }
     }
 }
