@@ -30,7 +30,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
     private static final Set<String> RESILIENT_MODELS = ImmutableSet.of(
         // TODO: Is there a better way to identify resilient models?
-        "org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel"
+        "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
     );
 
     public ResilientBuildToolingModelController(
