@@ -19,6 +19,7 @@ package org.gradle.internal.resources;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,14 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
 
     protected T getOrRegisterResourceLock(final K key, final ResourceLockProducer<K, T> producer) {
         return resourceLocks.getOrRegisterResourceLock(key, producer);
+    }
+
+    /**
+     * Attempts to find the key for the given resource lock, or null if the lock
+     * is not present in this registry.
+     */
+    protected @Nullable K getLockKey(T resourceLock) {
+        return resourceLocks.getLockKey(resourceLock);
     }
 
     @Override

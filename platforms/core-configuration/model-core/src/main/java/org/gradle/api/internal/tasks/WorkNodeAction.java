@@ -17,22 +17,32 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Project;
+import org.gradle.internal.resources.ResourceLock;
 import org.jspecify.annotations.Nullable;
 
 /**
  * A self-contained action to run as a node in the work graph. Can be included in the dependencies of a {@link TaskDependencyContainer}.
  */
 public interface WorkNodeAction {
+
     /**
-     * Does this action require exclusive access to the mutable state of its owning project?
+     * Returns the exclusive access lock for the mutable state that this action
+     * operates on, or null if the action does not require exclusive access.
      */
-    default boolean usesMutableProjectState() {
-        return false;
+    default @Nullable ResourceLock getAccessLock() {
+        return null;
     }
 
     /**
-     * Returns the project which the action belongs to. This is used to determine the services to expose to {@link #run(NodeExecutionContext)} via the context.
-     * Returning non-null here does not imply any kind of exclusive access to the project, unless {@link #usesMutableProjectState()} returns true.
+     * Returns the project which the action belongs to.
+     * <p>
+     * This is used to determine the services to expose to {@link #run(NodeExecutionContext)} via the context,
+     * among other things. Returning non-null does not imply any kind of exclusive access to the project.
+     * {@link #getAccessLock()} should be preferred for determining exclusive access requirements.
+     * <p>
+     * TODO: The execution engine should know nothing about `Project`s. We should work to remove this method.
+     *
+     * @see org.gradle.execution.plan.Node#getOwningProject()
      */
     @Nullable
     default Project getOwningProject() {
