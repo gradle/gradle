@@ -1386,7 +1386,6 @@ Class <org.gradle.internal.dispatch.ReflectionDispatch> is not annotated (direct
 Class <org.gradle.internal.dispatch.StreamCompletion> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (StreamCompletion.java:0)
 Class <org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GradleEnterprisePluginAdapter.java:0)
 Class <org.gradle.internal.enterprise.core.GradleEnterprisePluginManager> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GradleEnterprisePluginManager.java:0)
-Class <org.gradle.internal.environment.GradleBuildEnvironment> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GradleBuildEnvironment.java:0)
 Class <org.gradle.internal.exception.ExceptionAnalyser> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ExceptionAnalyser.java:0)
 Class <org.gradle.internal.exceptions.CompilationFailedIndicator> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (CompilationFailedIndicator.java:0)
 Class <org.gradle.internal.exceptions.ContextAwareException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ContextAwareException.java:0)
