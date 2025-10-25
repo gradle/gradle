@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -102,6 +103,7 @@ public class IdeaDependenciesProvider {
 
     private IdeaDependenciesVisitor visitDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         ProjectInternal projectInternal = (ProjectInternal) ideaModule.getProject();
+        final ObjectFactory objects = projectInternal.getObjects();
         final DependencyHandler handler = projectInternal.getDependencies();
         final Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         final Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
@@ -109,7 +111,7 @@ public class IdeaDependenciesProvider {
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
         return projectInternal.getOwner().fromMutableState(p -> {
-            new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
+            new IdeDependencySet(objects, handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
             return visitor;
         });
     }
