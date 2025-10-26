@@ -16,13 +16,12 @@
 
 package org.gradle.internal.classloader;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -33,17 +32,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     static {
         try {
-            //noinspection Since15
-            ClassLoader.registerAsParallelCapable();
+            registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
         }
     }
 
-    private final Map<Object, Object> userData = new HashMap<Object, Object>();
+    private final Map<Object, Object> userData = new HashMap<>();
+    private volatile boolean closed = false;
 
     /**
      * This method can be used to store user data that should live among with this classloader
@@ -54,8 +56,11 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
      * @return user data
      */
     public synchronized <T> T getUserData(Object consumerId, Factory<T> onMiss) {
+        if (closed) {
+            throw new IllegalStateException("ClassLoader is closed");
+        }
         if (userData.containsKey(consumerId)) {
-            return Cast.uncheckedNonnullCast(userData.get(consumerId));
+            return uncheckedNonnullCast(userData.get(consumerId));
         }
         T value = onMiss.create();
         userData.put(consumerId, value);
@@ -104,6 +109,34 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         visitor.visitParent(getParent());
     }
 
+    @Override
+    public void close() throws IOException {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        // Clear user data to prevent memory leaks
+        synchronized (this) {
+            userData.clear();
+        }
+        // Close resources in proper order
+        super.close();
+    }
+
+    /**
+     * Additional cleanup method that can be called explicitly
+     * when the classloader is no longer needed but not yet garbage collected.
+     */
+    public void cleanup() {
+        if (!closed) {
+            try {
+                close();
+            } catch (IOException ignore) {
+                // Not supported on Java 6
+            }
+        }
+    }
+
     public static class Spec extends ClassLoaderSpec {
         final String name;
         final List<URL> classpath;
@@ -134,8 +167,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
             if (obj == null || obj.getClass() != getClass()) {
                 return false;
             }
-            Spec other = (Spec) obj;
-            return classpath.equals(other.classpath);
+            return classpath.equals(((Spec) obj).classpath);
         }
 
         @Override
@@ -155,8 +187,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         static {
             try {
                 // Not supported on Java 6, hence the try-catch
-                //noinspection Since15
-                ClassLoader.registerAsParallelCapable();
+                registerAsParallelCapable();
             } catch (NoSuchMethodError ignore) {
                 // ignore in Java 6
             }
@@ -184,20 +215,36 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
             errorHandler.enterClassLoadingScope(name);
-            Class<?> loadedClass;
             try {
-                loadedClass = super.findClass(name);
+                return super.findClass(name);
             } catch (Throwable e) {
                 throw errorHandler.exitClassLoadingScopeWithException(e);
+            } finally {
+                errorHandler.exitClassLoadingScope();
             }
-            errorHandler.exitClassLoadingScope();
-            return loadedClass;
         }
 
         @Override
         public void close() throws IOException {
-            IOUtils.closeQuietly(replacer);
+            if (isClosed()) {
+                return;
+            }
+
+            // Close resources in proper order
+            closeQuietly(replacer);
+            if (errorHandler instanceof AutoCloseable) {
+                closeQuietly((Closeable) errorHandler);
+            }
+
             super.close();
+        }
+
+        private boolean isClosed() {
+            try {
+                return (Boolean) getClass().getSuperclass().getDeclaredField("closed").get(this);
+            } catch (Exception e) {
+                return false;
+            }
         }
     }
 }
