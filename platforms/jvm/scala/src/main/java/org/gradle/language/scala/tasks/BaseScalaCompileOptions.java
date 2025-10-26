@@ -63,12 +63,6 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     private List<String> loggingPhases;
 
-    private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
-
-    private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
-
-    private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
-
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
@@ -242,9 +236,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Options for running the Scala compiler in a separate process.
      */
     @Nested
-    public ScalaForkOptions getForkOptions() {
-        return forkOptions;
-    }
+    public abstract ScalaForkOptions getForkOptions();
 
     /**
      * Configure options for running the Scala compiler in a separate process.
@@ -252,16 +244,14 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * @since 8.11
      */
     public void forkOptions(Action<? super ScalaForkOptions> action) {
-        action.execute(forkOptions);
+        action.execute(getForkOptions());
     }
 
     /**
      * Options for incremental compilation of Scala code.
      */
     @Nested
-    public IncrementalCompileOptions getIncrementalOptions() {
-        return incrementalOptions;
-    }
+    public abstract IncrementalCompileOptions getIncrementalOptions();
 
     /**
      * Configure options for incremental compilation of Scala code.
@@ -269,7 +259,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * @since 8.11
      */
     public void incrementalOptions(Action<? super IncrementalCompileOptions> action) {
-        action.execute(incrementalOptions);
+        action.execute(getIncrementalOptions());
     }
 
     /**
@@ -279,7 +269,5 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      */
     @Incubating
     @Input
-    public Property<KeepAliveMode> getKeepAliveMode() {
-        return this.keepAliveMode;
-    }
+    public abstract Property<KeepAliveMode> getKeepAliveMode();
 }
