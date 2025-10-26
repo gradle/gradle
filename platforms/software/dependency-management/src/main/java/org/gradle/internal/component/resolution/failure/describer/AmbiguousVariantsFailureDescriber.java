@@ -80,15 +80,16 @@ public abstract class AmbiguousVariantsFailureDescriber extends AbstractResoluti
         if (failure.getRequestedAttributes().isEmpty()) {
             formatter.node("Cannot choose between the available variants of ");
         } else {
-            String node = "The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap());
+            String node;
             if (listAvailableVariants) {
-                node = node + ". However we cannot choose between the following variants of ";
+                node = "The consumer was configured to find " + describer.describeAttributeSet(failure.getRequestedAttributes().asMap()) + "; however, we cannot choose between the following variants of ";
             } else {
-                node = node + ". There are several available matching variants of ";
+                node = "There are several available matching variants of ";
             }
             formatter.node(node);
         }
         formatter.append(style(StyledTextOutput.Style.Info, failure.describeRequestTarget()));
+        formatter.append(".");
         if (listAvailableVariants) {
             formatter.startChildren();
             for (String configuration : ambiguousVariants.keySet()) {
