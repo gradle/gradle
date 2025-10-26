@@ -52,6 +52,7 @@ import org.gradle.util.TestClassLoader;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -80,6 +81,8 @@ import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicate
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static java.util.stream.Collectors.toSet;
 
 @NullMarked
@@ -321,6 +324,14 @@ public interface ArchUnitFixture {
 
     static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
         return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
+    }
+
+    static ArchCondition<JavaClass> beNullMarkedClass() {
+        return beAnnotatedOrInPackageAnnotatedWith(NullMarked.class).and(not(beAnnotatedWith(NullUnmarked.class)));
+    }
+
+    static ArchCondition<JavaMethod> beNullUnmarkedMethod() {
+        return beAnnotatedWith(NullUnmarked.class);
     }
 
     /**
