@@ -1,6 +1,7 @@
 package configurations
 
 import common.Os
+import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.toCapitalized
 import common.uuidPrefix
@@ -9,6 +10,7 @@ import jetbrains.buildServer.configs.kotlin.DslContext
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.SnapshotDependency
+import jetbrains.buildServer.configs.kotlin.Triggers
 import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.VcsTrigger
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
@@ -60,6 +62,19 @@ const val DEPENDABOT_BRANCH_PATTERN = "dependabot/*"
 fun determineBranchFilter(branches: List<String>): String =
     listOf(DEPENDABOT_BRANCH_PATTERN).joinToString("\n") { "-:$it" } + "\n" + branches.joinToString("\n") { "+:$it" }
 
+fun Triggers.vcsTrigger(
+    branchPatterns: List<String>,
+    enable: Boolean = true,
+) {
+    vcs {
+        quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
+        quietPeriod = 90
+        triggerRules = triggerExcludes
+        branchFilter = determineBranchFilter(branchPatterns)
+        enabled = enable
+    }
+}
+
 class StageTrigger(
     model: CIBuildModel,
     stage: Stage,
@@ -79,6 +94,12 @@ class StageTrigger(
             publishBuildStatusToGithub(model)
         }
 
+        // 2025-10-24: we are dogfooding DV Artifact Cache by triggering
+        // a QuickFeedbackLinux build in Xperimental pipeline upon push events of all branches
+        if (VersionedSettingsBranch.fromDslContext().isExperimental && stage.stageName == StageName.QUICK_FEEDBACK_LINUX_ONLY) {
+            triggers.vcsTrigger(listOf("*"))
+        }
+
         if (generateTriggers) {
             val enableTriggers = model.branch.enableVcsTriggers
             if (stage.trigger == Trigger.EACH_COMMIT) {
@@ -89,13 +110,7 @@ class StageTrigger(
                     effectiveTriggerBranches.add(BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
                 }
 
-                triggers.vcs {
-                    quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-                    quietPeriod = 90
-                    triggerRules = triggerExcludes
-                    branchFilter = determineBranchFilter(effectiveTriggerBranches)
-                    enabled = enableTriggers
-                }
+                triggers.vcsTrigger(effectiveTriggerBranches, enableTriggers)
             } else if (stage.trigger != Trigger.NEVER) {
                 val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
 
