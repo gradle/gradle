@@ -7,4 +7,3 @@ pluginManagement {
 }
 
 rootProject.name = "android-app-hello-world"
-include(":app")

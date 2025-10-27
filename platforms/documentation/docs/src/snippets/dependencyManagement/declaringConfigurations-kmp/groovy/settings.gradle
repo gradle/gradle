@@ -25,5 +25,4 @@ dependencyResolutionManagement {
     }
 }
 
-include(":app")
 rootProject.name = "kmp-app-hello-world"

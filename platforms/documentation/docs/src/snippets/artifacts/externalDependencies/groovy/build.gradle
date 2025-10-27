@@ -1,5 +1,6 @@
 repositories {
     mavenCentral()
+    google()
 }
 
 configurations {
@@ -30,7 +31,7 @@ dependencies {
 
     // 2) Regular module dependency with a config block
     runtimeOnly("org.hibernate:hibernate:3.0.5") {
-        isTransitive = true
+        transitive = true
     }
 
     // 3) Classifier + extension (:resources@zip) — fetches a ZIP artifact instead of a JAR

@@ -1,5 +1,6 @@
 repositories {
     mavenCentral()
+    google()
 }
 
 val implementation by configurations.creating
