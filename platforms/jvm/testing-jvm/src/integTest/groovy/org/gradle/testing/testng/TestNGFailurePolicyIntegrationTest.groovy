@@ -19,6 +19,8 @@ package org.gradle.testing.testng
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.testing.fixture.TestNGCoverage
+import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -31,6 +33,14 @@ class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegratio
 
     GenericTestExecutionResult getTestResults() {
         resultsFor(testDirectory)
+    }
+
+    def testPath() {
+        if (versionNumber < VersionNumber.parse(TestNGCoverage.FIXED_ICLASS_LISTENER)) {
+            return ":someTest"
+        } else {
+            return ":org.gradle.failurepolicy.TestWithFailureInConfigMethod:someTest"
+        }
     }
 
     def setup() {
@@ -50,7 +60,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegratio
         fails "test"
 
         and:
-        testResults.testPath("someTest").onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
+        testResults.testPath(testPath()).onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
     }
 
     def "can be configured to continue executing tests after a config method failure"() {
@@ -79,7 +89,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegratio
         fails "test"
 
         and:
-        testResults.testPath("someTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(testPath()).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "informative error is shown when trying to use config failure policy and a version that does not support it"() {
