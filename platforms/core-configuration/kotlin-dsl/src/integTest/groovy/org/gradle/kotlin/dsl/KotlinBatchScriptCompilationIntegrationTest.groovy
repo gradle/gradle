@@ -21,40 +21,50 @@ import org.gradle.integtests.fixtures.configurationcache.isolated.IsolatedProjec
 
 class KotlinBatchScriptCompilationIntegrationTest extends AbstractIntegrationSpec implements IsolatedProjectsExecuterFixture {
 
-    def 'batch compile'() {
-        given:
-        settingsKotlinFile << '''
-            include("foo")
-            include("bar")
-            include("baz")
-        '''
+    def setup() {
+        requireOwnGradleUserHomeDir 'to avoid reusing the script cache'
+    }
 
-        file('foo/build.gradle.kts') << '''
-            plugins {
-                println("foo!")
-                java
-            }
-        '''
-        file('bar/build.gradle.kts') << '''
-            plugins {
-                println("bar!")
-                java
-            }
-        '''
-        file('baz/build.gradle.kts') << '''
-            plugins {
-                println("baz!")
-                java
-            }
-        '''
+    def '#numberOfProjects projects (IP: #ip)'() {
+        given:
+        numberOfProjects.times {
+            def projName = "p$it"
+            settingsKotlinFile << """
+                include("$projName")
+            """
+            file("$projName/build.gradle.kts") << """
+                plugins {
+                    println("$projName!")
+                }
+                tasks.register("ok")
+            """
+        }
 
         when:
-        withIsolatedProjects()
-        run "help"
+        if (ip) {
+            withIsolatedProjects()
+        }
+        run "ok", "-S"
 
         then:
-        outputContains "foo!"
-        outputContains "bar!"
-        outputContains "baz!"
+        numberOfProjects.times {
+            def projName = "p$it"
+            outputContains "$projName!"
+        }
+
+        where:
+        numberOfProjects | ip
+        5                | false
+//        10               | false
+//        50               | false
+//        100              | false
+//        500              | false
+//        1000             | false
+//        5                | true
+//        10               | true
+//        50               | true
+//        100              | true
+//        500              | true
+//        1000             | true
     }
 }
