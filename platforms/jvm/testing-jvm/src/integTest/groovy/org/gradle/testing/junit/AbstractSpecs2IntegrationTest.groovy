@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
@@ -57,9 +57,8 @@ abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersion
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass("BasicSpec").assertTestCount(1, 0, 0)
-            .assertTestPassed('Basic Math')
+        def results = resultsFor(testDirectory)
+        results.testPath("BasicSpec").onlyRoot().assertChildCount(1, 0)
+        results.testPath("BasicSpec", "Basic Math").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
-
 }

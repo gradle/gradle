@@ -63,6 +63,8 @@ dependencies {
     api(projects.buildCacheLocal)
     api(projects.buildCachePackaging)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscovery)
+    api(projects.buildDiscoveryImpl)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)

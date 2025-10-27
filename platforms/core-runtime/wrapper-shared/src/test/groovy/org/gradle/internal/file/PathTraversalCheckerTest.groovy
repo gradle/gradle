@@ -50,6 +50,28 @@ class PathTraversalCheckerTest extends Specification {
         "foo\\..\\bar" | "foo\\..bar"
     }
 
+    def "does not reject safe zip entry names with similar patterns"() {
+        expect:
+        !isUnsafePathName(safePath)
+
+        where:
+        safePath << [
+            ".hidden",
+            "foo../bar",
+            "foo..\\bar",
+            "foo/..bar",
+            "foo\\..bar",
+            ".../bar",
+            "...\\bar",
+            "./..foo",
+            ".\\..foo",
+            "foo...//",
+            "foo...\\\\",
+            "foo...//bar",
+            "foo...\\\\bar"
+        ]
+    }
+
     private static boolean isWindows() {
         OperatingSystem.current().isWindows()
     }

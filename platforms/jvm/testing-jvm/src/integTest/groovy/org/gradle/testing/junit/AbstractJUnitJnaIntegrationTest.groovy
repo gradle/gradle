@@ -52,7 +52,7 @@ abstract class AbstractJUnitJnaIntegrationTest extends AbstractTestingMultiVersi
         executer.withTasks('build').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted('OkTest')
         result.testClass('OkTest').assertTestPassed('ok')
     }

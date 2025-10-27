@@ -20,29 +20,22 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
+    implementation(projects.buildDiscovery)
     implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.fileCollections)
     implementation(projects.hashing)
-    implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.pluginDevelopment)
-    implementation(projects.pluginsJavaBase)
     implementation(projects.platformJvm)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
     implementation(projects.toolingApi)
-    implementation(projects.toolchainsJvm)
-    implementation(projects.toolchainsJvmShared)
     implementation(projects.declarativeDslEvaluator)
     implementation(projects.declarativeDslProvider)
     implementation(projects.declarativeDslCore)
 
-    implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
-        isTransitive = false
-    }
     implementation(libs.kotlinCompilerEmbeddable)
-    implementation(libs.slf4jApi)
 
     compileOnly(libs.kotlinReflect)
 

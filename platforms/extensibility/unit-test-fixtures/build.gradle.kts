@@ -57,6 +57,7 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.testingBase))
     integTestCompileOnly(libs.jetbrainsAnnotations)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)

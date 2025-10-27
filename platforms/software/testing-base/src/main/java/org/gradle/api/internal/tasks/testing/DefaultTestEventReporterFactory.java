@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
-import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -37,9 +36,10 @@ import org.jspecify.annotations.NullMarked;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.LongFunction;
 
 @NullMarked
-public final class DefaultTestEventReporterFactory implements TestEventReporterFactory {
+public final class DefaultTestEventReporterFactory implements TestEventReporterFactoryInternal {
 
     private final ListenerManager listenerManager;
     private final StyledTextOutputFactory textOutputFactory;
@@ -60,11 +60,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     }
 
     @Override
-    public GroupTestEventReporter createTestEventReporter(
-        String rootName,
-        Directory binaryResultsDirectory,
-        Directory htmlReportDirectory
-    ) {
+    public GroupTestEventReporter createTestEventReporter(String rootName, Directory binaryResultsDirectory, Directory htmlReportDirectory, boolean closeThrowsOnTestFailures) {
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
         // Renders console output for the task
@@ -73,29 +69,48 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         // Emits progress logger events
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
-        // Record all emitted results to disk
-        Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
-        SerializableTestResultStore.Writer resultsSerializingListener = newResultsSerializingListener(binaryResultsDir);
-        testListenerInternalBroadcaster.add(resultsSerializingListener);
-
-        GenericHtmlTestReportGenerator htmlReportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
-
-        return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
-            rootName,
-            testListenerInternalBroadcaster.getSource(),
-            new LongIdGenerator(),
-            binaryResultsDir,
-            resultsSerializingListener,
-            htmlReportGenerator,
-            listenerManager.getBroadcaster(TestExecutionResultsListener.class)
-        ));
+        GenericHtmlTestReportGenerator reportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
+        return createInternalTestEventReporter(
+            id -> new DefaultTestSuiteDescriptor(id, rootName),
+            binaryResultsDirectory,
+            reportGenerator,
+            testListenerInternalBroadcaster,
+            0,
+            closeThrowsOnTestFailures
+        );
     }
 
-    private SerializableTestResultStore.Writer newResultsSerializingListener(Path binaryResultsDir) {
+    @Override
+    public GroupTestEventReporterInternal createInternalTestEventReporter(
+        LongFunction<TestDescriptorInternal> rootDescriptorFactory,
+        Directory binaryResultsDirectory,
+        TestReportGenerator reportGenerator,
+        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
+        int diskSkipLevels,
+        boolean closeThrowsOnTestFailures
+    ) {
+        // Record all emitted results to disk
+        Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
+        SerializableTestResultStore.Writer resultsSerializingListener;
         try {
-            return new SerializableTestResultStore(binaryResultsDir).openWriter();
+            resultsSerializingListener = new SerializableTestResultStore(binaryResultsDir).openWriter(diskSkipLevels);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+        testListenerInternalBroadcaster.add(resultsSerializingListener);
+
+        TestListenerInternal testListenerBroadcaster = testListenerInternalBroadcaster.getSource();
+        TestExecutionResultsListener executionResultsListenerBroadcaster = listenerManager.getBroadcaster(TestExecutionResultsListener.class);
+
+        return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
+            rootDescriptorFactory,
+            testListenerBroadcaster,
+            new LongIdGenerator(),
+            binaryResultsDir,
+            resultsSerializingListener,
+            reportGenerator,
+            executionResultsListenerBroadcaster,
+            closeThrowsOnTestFailures
+        ));
     }
 }

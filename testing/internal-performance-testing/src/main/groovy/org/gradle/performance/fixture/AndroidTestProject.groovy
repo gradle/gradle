@@ -39,7 +39,6 @@ class AndroidTestProject implements TestProject {
     public static final List<AndroidTestProject> ANDROID_TEST_PROJECTS = [
         LARGE_ANDROID_BUILD,
         LARGE_ANDROID_BUILD_2,
-        IncrementalAndroidTestProject.SANTA_TRACKER,
         IncrementalAndroidTestProject.NOW_IN_ANDROID,
         IncrementalAndroidTestProject.UBER_MOBILE_APP
     ]

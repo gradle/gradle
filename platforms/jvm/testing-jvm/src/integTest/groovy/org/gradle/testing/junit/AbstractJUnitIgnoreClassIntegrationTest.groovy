@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractJUnitIgnoreClassIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
@@ -49,8 +49,10 @@ abstract class AbstractJUnitIgnoreClassIntegrationTest extends AbstractTestingMu
         run('check')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.IgnoredTest')
-        result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.IgnoredTest').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPath('org.gradle.IgnoredTest', 'testIgnored').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SKIPPED)
     }
 }

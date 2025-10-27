@@ -67,14 +67,6 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         }
     }
 
-    boolean isHasResults() {
-        !testClasses.isEmpty()
-    }
-
-    boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
-        testClasses[classId]?.outputEvents?.find { it.testOutputEvent.destination == destination }
-    }
-
     @Override
     boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
         testClasses[classId]?.outputEvents?.find { it.testId == testId && it.testOutputEvent.destination == destination }

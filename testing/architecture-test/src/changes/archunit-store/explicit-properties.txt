@@ -91,8 +91,6 @@ Method <org.gradle.internal.deployment.RunApplication.getClasspath()> is not abs
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getClasspath()> is not abstract
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()> is not abstract
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()> is not abstract
-Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins.getCompilerOptions()> is not abstract
-Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins.getSourceFiles()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins.getScriptFiles$kotlin_dsl_provider_plugins()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders.getPluginEntries()> is not abstract
 Method <org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors.getAccessorsGenerationClassPathFiles()> is not abstract

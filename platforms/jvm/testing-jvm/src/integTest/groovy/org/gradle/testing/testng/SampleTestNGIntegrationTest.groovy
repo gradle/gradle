@@ -15,8 +15,11 @@
  */
 package org.gradle.testing.testng
 
+
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.UsesSample
@@ -40,10 +43,8 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         def testDir = sample.dir.file('groovy')
         executer.inDirectory(testDir).withTasks('clean', 'test').run()
 
-        def result = new DefaultTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.testng.UserImplTest')
-        result.testClass('org.gradle.testng.UserImplTest').assertTestsExecuted('testOkFirstName')
-        result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
+        def result = resultsFor(testDir)
+        result.testPathPreNormalized(':org.gradle.testng.UserImplTest:testOkFirstName').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     @Test
@@ -52,17 +53,21 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         def testDir = sample.dir.file('groovy')
         executer.inDirectory(testDir).withTasks('clean', 'test').run()
 
-        def result = new TestNGExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.ConcreteTest', 'org.gradle.SuiteSetup', 'org.gradle.SuiteCleanup', 'org.gradle.TestSetup', 'org.gradle.TestCleanup')
-        result.testClass('org.gradle.OkTest').assertTestsExecuted('passingTest', 'expectedFailTest')
-        result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
-        result.testClass('org.gradle.OkTest').assertTestPassed('expectedFailTest')
-        result.testClass('org.gradle.ConcreteTest').assertTestsExecuted('ok', 'alsoOk')
-        result.testClass('org.gradle.ConcreteTest').assertTestPassed('ok')
-        result.testClass('org.gradle.ConcreteTest').assertTestPassed('alsoOk')
-        result.testClass('org.gradle.SuiteSetup').assertConfigMethodPassed('setupSuite')
-        result.testClass('org.gradle.SuiteCleanup').assertConfigMethodPassed('cleanupSuite')
-        result.testClass('org.gradle.TestSetup').assertConfigMethodPassed('setupTest')
-        result.testClass('org.gradle.TestCleanup').assertConfigMethodPassed('cleanupTest')
+        def result = resultsFor(testDir)
+        result.assertAtLeastTestPathsExecuted('org.gradle.OkTest', 'org.gradle.ConcreteTest')
+        result.testPath('org.gradle.OkTest', 'passingTest').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath('org.gradle.OkTest', 'expectedFailTest').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath('org.gradle.ConcreteTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath('org.gradle.ConcreteTest', 'alsoOk').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+
+        def testNgResult = new TestNGExecutionResult(testDir)
+        testNgResult.testClass('org.gradle.SuiteSetup').assertConfigMethodPassed('setupSuite')
+        testNgResult.testClass('org.gradle.SuiteCleanup').assertConfigMethodPassed('cleanupSuite')
+        testNgResult.testClass('org.gradle.TestSetup').assertConfigMethodPassed('setupTest')
+        testNgResult.testClass('org.gradle.TestCleanup').assertConfigMethodPassed('cleanupTest')
+    }
+
+    private GenericHtmlTestExecutionResult resultsFor(File rootDir) {
+        return new GenericHtmlTestExecutionResult(rootDir, "build/reports/tests/test", GenericTestExecutionResult.TestFramework.TEST_NG)
     }
 }

@@ -44,9 +44,5 @@ public interface TestResultsProvider extends Closeable {
      */
     void visitClasses(Action<? super TestClassResult> visitor);
 
-    boolean hasOutput(long classId, TestOutputEvent.Destination destination);
-
     boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination);
-
-    boolean isHasResults();
 }

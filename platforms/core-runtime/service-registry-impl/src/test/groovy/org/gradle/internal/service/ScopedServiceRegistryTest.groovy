@@ -74,15 +74,6 @@ class ScopedServiceRegistryTest extends Specification {
         registry.get(BuildTreeScopedService) === service
     }
 
-    def "fails to create an inherited registry providing a service in the wrong scope"() {
-        when:
-        new BrokenScopedServiceRegistry()
-
-        then:
-        def exception = thrown(IllegalArgumentException)
-        exception.message.contains("The service '${BuildTreeScopedService.name}' declares service scope 'BuildTree' but is registered in the 'Build' scope. Either update the '@ServiceScope()' annotation on '${BuildTreeScopedService.simpleName}' to include the 'Build' scope or move the service registration to one of the declared scopes.")
-    }
-
     def "succeeds when registering an unscoped service"() {
         given:
         def registry = scopedRegistry(Scope.BuildTree)
@@ -229,17 +220,6 @@ class ScopedServiceRegistryTest extends Specification {
         @Provides
         GlobalAndBuildScopedService createScopedService() {
             return new GlobalAndBuildScopedService()
-        }
-    }
-
-    static class BrokenScopedServiceRegistry extends ScopedServiceRegistry {
-        BrokenScopedServiceRegistry() {
-            super(Scope.Build, false, "broken service registry")
-        }
-
-        @Provides
-        BuildTreeScopedService createScopedService() {
-            return new BuildTreeScopedService()
         }
     }
 }

@@ -18,11 +18,12 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassConsumer;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.tasks.testing.TestFailure;
-import org.gradle.internal.concurrent.ThreadSafe;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
@@ -36,6 +37,7 @@ import org.junit.runner.Runner;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.Filterable;
 import org.junit.runner.manipulation.NoTestsRemainException;
+import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 
 import java.util.ArrayList;
@@ -45,8 +47,7 @@ import java.util.List;
 public class JUnitTestClassExecutor implements TestClassConsumer {
     private final ClassLoader applicationClassLoader;
     private final JUnitSpec spec;
-    private final TestClassExecutionListener executionListener;
-    private final RunListener listener;
+    private final JUnitTestEventAdapter listener;
     private @Nullable CategoryFilter categoryFilter;
 
     public JUnitTestClassExecutor(
@@ -54,13 +55,10 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
         JUnitSpec spec,
         Clock clock,
         IdGenerator<?> idGenerator,
-        TestClassExecutionListener executionListener,
         TestResultProcessor threadSafeResultProcessor
     ) {
-        assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
         this.spec = spec;
-        this.executionListener = executionListener;
         this.listener = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
 
         if (spec.hasCategoryConfiguration()) {
@@ -71,7 +69,8 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
     }
 
     @Override
-    public void consumeClass(String testClassName) {
+    public void consumeClass(TestClassRunInfo testClassInfo) {
+        String testClassName = testClassInfo.getTestClassName();
         boolean started = false;
         try {
             Request request = shouldRunTestClass(testClassName);
@@ -79,22 +78,20 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
                 return;
             }
 
-            executionListener.testClassStarted(testClassName);
+            listener.setRootName(testClassName);
             started = true;
             runRequest(request);
-            started = false;
-            executionListener.testClassFinished(null);
         } catch (Throwable throwable) {
-            if (started) {
-                executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
-            } else {
-                // If we haven't even started to run the request, this is a Gradle problem, so propagate it
-                throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
-            }
-
             // Don't ever swallow Errors, as they likely indicate JVM problems that should always propagate
             if (throwable instanceof Error) {
                 throw (Error) throwable;
+            }
+
+            if (started) {
+                listener.testExecutionFailure(testClassInfo, TestFailure.fromTestFrameworkFailure(throwable));
+            } else {
+                // If we haven't even started to run the request, this is a Gradle problem, so propagate it
+                throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
             }
         }
     }
@@ -173,7 +170,33 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
     private void runRequest(Request request) {
         JUnitCore junit = new JUnitCore();
         junit.addListener(listener);
+        ErrorCollectingListener errorCollectingListener = new ErrorCollectingListener();
+        junit.addListener(errorCollectingListener);
         junit.run(request);
+        errorCollectingListener.rethrowErrors();
+    }
+
+    @NullMarked
+    private static class ErrorCollectingListener extends RunListener {
+        private final List<Throwable> errors = new ArrayList<>();
+
+        @Override
+        public void testFailure(Failure failure) {
+            if (failure.getDescription().equals(Description.TEST_MECHANISM)) {
+                errors.add(failure.getException());
+            }
+        }
+
+        void rethrowErrors() {
+            if (!errors.isEmpty()) {
+                Throwable first = errors.get(0);
+                if (errors.size() == 1) {
+                    throw new GradleException("There was a problem while executing the tests.", first);
+                } else {
+                    throw new DefaultMultiCauseException("There were multiple problems while executing the tests.", errors);
+                }
+            }
+        }
     }
 
     // https://github.com/gradle/gradle/issues/2319

@@ -16,6 +16,8 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
@@ -26,23 +28,28 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
+
+    @Override
     void createPassingFailingTest() {
         file('src/test/java/AppException.java') << 'public class AppException extends Exception {}'
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
                 @org.testng.annotations.Test
-                public void ${failingTestCaseName}() {
+                public void ${failingTestMethodName}() {
                     System.err.println("some error output");
                     assert false : "test failure message";
                 }
                 @org.testng.annotations.Test
-                public void ${passingTestCaseName}() {}
+                public void ${passingTestMethodName}() {}
             }
         """
         file('src/test/java/SomeOtherTest.java') << """
             public class SomeOtherTest {
                 @org.testng.annotations.Test
-                public void ${passingTestCaseName}() {}
+                public void ${passingTestMethodName}() {}
             }
         """
     }
@@ -67,12 +74,12 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
-    String getPassingTestCaseName() {
+    String getPassingTestMethodName() {
         return "pass"
     }
 
     @Override
-    String getFailingTestCaseName() {
+    String getFailingTestMethodName() {
         return "fail"
     }
 
@@ -91,7 +98,7 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         succeeds "test"
 
         then:
-        testResult.assertNoTestClassesExecuted()
+        testResult.assertTestPathsNotExecuted("DisabledTest:testOne", "DisabledTest:testTwo")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3545")
@@ -132,9 +139,9 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         fails'test'
 
         then:
-        testResult.assertTestClassesExecuted("TestNG18566")
-        testResult.testClass('TestNG18566')
-            .assertTestCount(1, 1, 0)
-            .testFailed("testTimeout",  containsNormalizedString("Method TestNG18566.testTimeout() didn't finish within the time-out 10"))
+        testResult.assertAtLeastTestPathsExecuted("TestNG18566")
+        testResult.testPath('TestNG18566:testTimeout').onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsNormalizedString("Method TestNG18566.testTimeout() didn't finish within the time-out 10"))
     }
 }

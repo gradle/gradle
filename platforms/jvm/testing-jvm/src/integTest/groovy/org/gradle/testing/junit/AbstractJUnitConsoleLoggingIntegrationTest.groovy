@@ -16,12 +16,13 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.startsWith
 
 abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     TestFile testFile = file('src/test/java/org/gradle/SomeTest.java')
@@ -201,16 +202,18 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
         fails("test")
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-                .testClass("EncodingTest")
-                .assertTestPassed("encodesCdata")
-                .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]>'))
-                .assertStdout(containsString(
-                    "< html allowed, cdata closing token ]]> encoded!\n" +
+        def results = resultsFor()
+        results.testPath(":EncodingTest:encodesCdata").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(containsString(
+                "< html allowed, cdata closing token ]]> encoded!\n" +
                     "no EOL, non-asci char: ż\n" +
                     "xml entity: &amp;"
-                ))
-                .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+            ))
+            .assertStderr(equalTo("< html allowed, cdata closing token ]]> encoded!\n"))
+        results.testPath(":EncodingTest:encodesAttributeValues").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(startsWith('java.lang.RuntimeException: html: <> cdata: ]]>'))
     }
 
     String lineNumberOf(String text) {

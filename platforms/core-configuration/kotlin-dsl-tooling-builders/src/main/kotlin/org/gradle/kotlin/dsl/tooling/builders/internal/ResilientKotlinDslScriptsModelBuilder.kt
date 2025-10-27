@@ -18,15 +18,16 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuilder
-import org.gradle.tooling.Failure
-import org.gradle.tooling.internal.consumer.DefaultFailure
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
-import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 
 internal
-class ResilientKotlinDslScriptsModelBuilder(val delegate: AbstractKotlinDslScriptsModelBuilder) : ToolingModelBuilder {
+class ResilientKotlinDslScriptsModelBuilder(
+    val delegate: AbstractKotlinDslScriptsModelBuilder,
+    val failureFactory: FailureFactory
+) : ToolingModelBuilder {
 
     override fun buildAll(modelName: String, project: Project): Any? {
         val buildState = (project.gradle as GradleInternal).owner
@@ -38,13 +39,11 @@ class ResilientKotlinDslScriptsModelBuilder(val delegate: AbstractKotlinDslScrip
             exception = e
         }
         val model = delegate.buildAll(modelName, project)
-        return object : ResilientKotlinDslScriptsModel {
-            override fun getModel(): KotlinDslScriptsModel = model
-            override fun getFailure(): Failure? = if (exception == null) { exception } else { DefaultFailure.fromThrowable(exception) }
-        }
+        val failures = listOfNotNull(exception?.let { failureFactory.create(exception) })
+        return ToolingModelBuilderResultInternal.of(model, failures)
     }
 
     override fun canBuild(modelName: String): Boolean {
-        return modelName == "org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel"
+        return modelName == "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
     }
 }

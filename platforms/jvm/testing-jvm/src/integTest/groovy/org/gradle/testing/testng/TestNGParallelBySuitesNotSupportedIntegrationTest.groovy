@@ -16,12 +16,19 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.Matchers.containsString
 
-class TestNGParallelBySuitesNotSupportedIntegrationTest extends AbstractIntegrationSpec {
+class TestNGParallelBySuitesNotSupportedIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     def "run tests using TestNG version not supporting suiteThreadPoolSize changing"() {
         given:
@@ -46,8 +53,12 @@ class TestNGParallelBySuitesNotSupportedIntegrationTest extends AbstractIntegrat
         fails "test"
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClassStartsWith('Gradle Test Executor').assertExecutionFailedWithCause(
-            containsString("The version of TestNG used does not support setting thread pool size."))
+        def result = resultsFor()
+        result.assertTestPathsExecuted(":")
+        result.testPath(':').onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString(
+                "The version of TestNG used does not support setting thread pool size."
+            ))
     }
 }

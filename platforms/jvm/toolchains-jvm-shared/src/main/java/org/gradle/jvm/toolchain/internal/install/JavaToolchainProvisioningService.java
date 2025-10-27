@@ -65,7 +65,8 @@ public interface JavaToolchainProvisioningService {
 
     default String buildFileNameWithDetails(URI uri, ExternalResource resource, JavaToolchainSpec spec) {
         String originalFileName = getFileName(uri, resource);
-        String id = SafeFileLocationUtils.toSafeFileName("-" + spec.getVendor().get() + '-' + spec.getLanguageVersion().get().asInt());
-        return FileUtils.addSuffixToName(originalFileName, id);
+        String id = "-" + spec.getVendor().get() + '-' + spec.getLanguageVersion().get().asInt();
+        String nameWithIdUnsafe = FileUtils.addSuffixToName(originalFileName, id);
+        return SafeFileLocationUtils.toSafeFileName(nameWithIdUnsafe);
     }
 }

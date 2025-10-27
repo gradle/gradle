@@ -17,11 +17,16 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     void theUsualFiles() {
         buildFile << """
@@ -73,13 +78,10 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         run("test", "--tests", "*AwesomeSuite*")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
-        result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
-        result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
+        def testResult = resultsFor()
+        testResult.assertTestPathsExecuted(":FooTest:pass", ":BarTest:pass",)
+        testResult.testPath(":FooTest:pass").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResult.testPath(":BarTest:pass").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     @Issue("GRADLE-3112")
@@ -99,12 +101,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         run("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
-        result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
-        result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
+        def testResult = resultsFor()
+        testResult.assertTestPathsExecuted(":FooTest:pass", ":BarTest:pass")
+        testResult.testPath(":FooTest:pass").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResult.testPath(":BarTest:pass").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
@@ -37,6 +38,11 @@ class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkInte
     }
 
     @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
+    }
+
+    @Override
     void createPassingFailingTest() {
         file('src/main/java/AppException.java').writelns(
             "public class AppException extends Exception { }"
@@ -45,18 +51,18 @@ class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkInte
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
                 @org.junit.jupiter.api.Test
-                public void ${failingTestCaseName} {
+                public void ${failingTestMethodName}() {
                     System.err.println("some error output");
                     org.junit.jupiter.api.Assertions.fail(\"test failure message\");
                 }
                 @org.junit.jupiter.api.Test
-                public void ${passingTestCaseName} { }
+                public void ${passingTestMethodName}() { }
             }
         """
         file('src/test/java/SomeOtherTest.java') << """
             public class SomeOtherTest {
                 @org.junit.jupiter.api.Test
-                public void ${passingTestCaseName} { }
+                public void ${passingTestMethodName}() { }
             }
         """
     }
@@ -81,12 +87,12 @@ class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkInte
     }
 
     @Override
-    String getPassingTestCaseName() {
-        return "pass()"
+    String getPassingTestMethodName() {
+        return "pass"
     }
 
     @Override
-    String getFailingTestCaseName() {
-        return "fail()"
+    String getFailingTestMethodName() {
+        return "fail"
     }
 }

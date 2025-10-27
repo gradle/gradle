@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.ant)
     implementation(libs.groovy)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)

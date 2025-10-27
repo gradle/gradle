@@ -45,7 +45,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ================== TEMPLATE ==============================
 
-<a name="FILL-IN-KEY-AREA"></a>
 ### FILL-IN-KEY-AREA improvements
 
 <<<FILL IN CONTEXT FOR KEY AREA>>>

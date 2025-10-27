@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin.Companion.shadowRuntimeElements
-import com.gradle.scan.agent.serialization.scan.serializer.kryo.it
 import gradlebuild.basics.PublicKotlinDslApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
@@ -34,7 +33,6 @@ dependencies {
     api(libs.kotlinCompilerEmbeddable)
     api(libs.kotlinStdlib)
     api(libs.inject)
-    api(libs.slf4jApi)
 
     implementation(projects.baseAsm)
     implementation(projects.instrumentationReporting)
@@ -67,6 +65,7 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinReflect)
+    implementation(libs.slf4jApi)
 
     compileOnly(libs.jspecify)
 

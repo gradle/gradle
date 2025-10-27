@@ -112,6 +112,22 @@ fun Requirements.requiresNotSharedHost() {
  */
 const val HIDDEN_ARTIFACT_DESTINATION = ".teamcity/gradle-logs"
 
+fun BuildType.addEc2PostBuild(os: Os = Os.LINUX) {
+    if (os !in listOf(Os.WINDOWS, Os.MACOS)) {
+        steps {
+            exec {
+                name = "EC2_POST_BUILD"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                path = ".teamcity/scripts/post_build_on_ec2.sh"
+
+                conditions {
+                    requiresEc2Agent()
+                }
+            }
+        }
+    }
+}
+
 fun BuildType.applyDefaultSettings(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -126,6 +142,8 @@ fun BuildType.applyDefaultSettings(
         build/report-* => $HIDDEN_ARTIFACT_DESTINATION
         build/tmp/teŝt files/** => $HIDDEN_ARTIFACT_DESTINATION/teŝt-files
         build/errorLogs/** => $HIDDEN_ARTIFACT_DESTINATION/errorLogs
+        artifact-cache-metrics => artifact-cache-metrics
+        artifact-cache-report => artifact-cache-report
         build/reports/configuration-cache/**/configuration-cache-report.html
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         testing/architecture-test/build/reports/binary-compatibility/report.html => binary-compatibility-reports

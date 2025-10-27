@@ -32,6 +32,7 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -52,6 +53,12 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/gradle-plugin
         // Update by running `./gradlew updateAgpVersions`
         static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
+        static androidGradleBefore9 = Versions.of(*AGP_VERSIONS.latestsPlusNightly.findAll { v ->
+            VersionNumber.parse(v).baseVersion < AndroidGradlePluginVersions.AGP_9_0
+        }.tap { versions ->
+            // This assertion will fail when we stop testing AGP 8.x, time to remove these tests
+            assert !versions.isEmpty()
+        })
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         // Update by running `./gradlew updateKotlinVersions`
@@ -263,6 +270,7 @@ abstract class AbstractSmokeTest extends Specification {
 class SmokeTestedVersionsSanityCheck extends Specification {
     def specialPlugins = [
         AbstractSmokeTest.TestedVersions.androidGradle,
+        AbstractSmokeTest.TestedVersions.androidGradleBefore9,
         AbstractSmokeTest.TestedVersions.kotlin,
     ].size()
 

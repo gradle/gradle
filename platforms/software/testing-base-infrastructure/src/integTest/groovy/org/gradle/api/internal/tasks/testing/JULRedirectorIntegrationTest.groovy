@@ -16,24 +16,33 @@
 
 package org.gradle.api.internal.tasks.testing
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 
-class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest {
-    def static final LYRICS = [
+final class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
+    static final LYRICS = [
         "I'm a lumberjack, and I'm okay.",
         "I sleep all night and I work all day.",
         "He's a lumberjack, and He's okay.",
         "He sleeps all night and he works all day."
     ]
-    @Rule TestResources testResources = new TestResources(temporaryFolder)
 
-    /* Relies on the resources directory:
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT4
+    }
+
+    @Rule
+    TestResources testResources = new TestResources(temporaryFolder)
+
+    /**
+     * Relies on the resources directory:
      * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfig
      */
     def defaultLoggingConfigNoFineLevel() {
@@ -44,13 +53,14 @@ class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest {
         run("test")
 
         then:
-        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory);
+        def testResult = resultsFor()
         LYRICS.each {
-            testResult.testClass("com.example.LumberJackTest").assertStderr(not(containsString(it)));
+            testResult.testPath("com.example.LumberJackTest", "singsTheSong").onlyRoot().assertStderr(not(containsString(it)))
         }
     }
 
-    /* Relies on the resources directory:
+    /**
+     * Relies on the resources directory:
      * integTest/resources/org/gradle/api/internal/tasks/testing/loggingConfig
      */
     def loggingConfigRespected() {
@@ -66,9 +76,9 @@ class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest {
         run("test")
 
         then:
-        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory);
+        def testResult = resultsFor()
         LYRICS.each {
-            testResult.testClass("com.example.LumberJackTest").assertStderr(containsString(it));
+            testResult.testPath("com.example.LumberJackTest", "singsTheSong").onlyRoot().assertStderr(containsString(it))
         }
     }
 }

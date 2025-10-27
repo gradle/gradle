@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import com.google.common.base.Utf8
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -43,6 +44,48 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
                 test.${configureTestFramework}
             }
         """
+    }
+
+    def "test task can write report for long class names"() {
+        given:
+        // Remove .class so we can have the longest class name possible
+        def name = "A" * (255 - Utf8.encodedLength(".class"))
+        file("src/test/java/${name}.java") << """
+            ${testFrameworkImports}
+
+            public class ${name} {
+                @Test
+                public void test() {
+                    assertEquals(1, 1);
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'test'
+
+        then:
+        noExceptionThrown()
+
+        and:
+        // 255 is the filesystem limit on many systems, so we limit to that.
+        def htmlReportDirName = buildSafeFileName("_cut_", "-39OAC63KMJT6O")
+        def xmlReportName = buildSafeFileName("_cut_TEST-", "-VDVVE6CE3E5C8.xml")
+        file("build/reports/tests/test/index.html").text.contains(name)
+        // These do an `any` check to give a better error message on failure
+        file("build/reports/tests/test/").listFiles().any {
+            it.name == htmlReportDirName
+        }
+        file("build/test-results/test/").listFiles().any {
+            it.name == xmlReportName
+        }
+    }
+
+    private static String buildSafeFileName(String prefix, String suffix) {
+        def maxFileNameLength = 255
+        def safeLength = maxFileNameLength - (Utf8.encodedLength(prefix) + Utf8.encodedLength(suffix))
+        def safeName = "A" * safeLength
+        return "${prefix}${safeName}${suffix}"
     }
 
     @Issue("GRADLE-2702")

@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.platform
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.testing.fixture.JUnitPlatformTestFixture
@@ -54,17 +54,17 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         run "test"
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("PassingWithDisabledParameterizedTest", "OnlyDisabledParameterizedTest")
-        result.testClassByHtml("PassingWithDisabledParameterizedTest")
-            .assertTestCount(5, 0, 0)
-            .assertTestsSkipped("disabledTest", "disabledParameterizedTest(String)")
-            .assertTestPassed("passingTest")
-            .assertTestPassed("enabledParameterizedTest(String)[1]", "[1] first")
-            .assertTestPassed("enabledParameterizedTest(String)[2]", "[2] second")
-        result.testClassByHtml("OnlyDisabledParameterizedTest")
-            .assertTestCount(2, 0, 0)
-            .assertTestsSkipped("disabledParameterizedTest1(String)", "disabledParameterizedTest2(String)")
+        def result = resultsFor(testDirectory)
+        result.assertAtLeastTestPathsExecuted("PassingWithDisabledParameterizedTest", "OnlyDisabledParameterizedTest")
+        result.testPath("PassingWithDisabledParameterizedTest").onlyRoot()
+            .assertChildCount(4, 0)
+            .assertChildrenSkipped("disabledTest()", "disabledParameterizedTest(String)")
+            .assertChildrenExecuted("passingTest()", "enabledParameterizedTest(String)")
+        result.testPathPreNormalized(":PassingWithDisabledParameterizedTest:enabledParameterizedTest(String):enabledParameterizedTest(String)[1]").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPathPreNormalized(":PassingWithDisabledParameterizedTest:enabledParameterizedTest(String):enabledParameterizedTest(String)[2]").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath("OnlyDisabledParameterizedTest").onlyRoot()
+            .assertChildCount(2, 0)
+            .assertChildrenSkipped("disabledParameterizedTest1(String)", "disabledParameterizedTest2(String)")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20081")
@@ -95,18 +95,18 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         run("test", "--tests", "TestSuite")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = resultsFor(testDirectory)
 
-        result.assertTestClassesExecuted("PassingWithDisabledParameterizedTest", "OnlyDisabledParameterizedTest")
-        result.testClassByHtml("PassingWithDisabledParameterizedTest")
-            .assertTestCount(5, 0, 0)
-            .assertTestsSkipped("disabledTest", "disabledParameterizedTest(String)")
-            .assertTestPassed("passingTest")
-            .assertTestPassed("enabledParameterizedTest(String)[1]", "[1] first")
-            .assertTestPassed("enabledParameterizedTest(String)[2]", "[2] second")
-        result.testClassByHtml("OnlyDisabledParameterizedTest")
-            .assertTestCount(2, 0, 0)
-            .assertTestsSkipped("disabledParameterizedTest1(String)", "disabledParameterizedTest2(String)")
+        result.testPathPreNormalized(":TestSuite:PassingWithDisabledParameterizedTest").onlyRoot()
+            .assertChildCount(4, 0)
+        result.testPathPreNormalized(":TestSuite:PassingWithDisabledParameterizedTest").onlyRoot()
+            .assertChildrenExecuted("passingTest()", "enabledParameterizedTest(String)")
+            .assertChildrenSkipped("disabledTest()", "disabledParameterizedTest(String)")
+        result.testPathPreNormalized(":TestSuite:PassingWithDisabledParameterizedTest:enabledParameterizedTest(String)").onlyRoot()
+            .assertChildrenExecuted("enabledParameterizedTest(String)[1]", "enabledParameterizedTest(String)[2]")
+        result.testPathPreNormalized(":TestSuite:OnlyDisabledParameterizedTest").onlyRoot()
+            .assertChildCount(2, 0)
+            .assertChildrenSkipped("disabledParameterizedTest1(String)", "disabledParameterizedTest2(String)")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20081")
@@ -140,11 +140,12 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         gradle.waitForFailure()
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("FailingTest", "WithParameterizedTest")
-        result.testClassByHtml("FailingTest")
-            .assertTestFailed("failingTest", CoreMatchers.anything())
-        result.testClassByHtml("WithParameterizedTest")
-            .assertTestSkipped("enabledParameterizedTest(String)", "enabledParameterizedTest(String)")
+        def result = resultsFor(testDirectory)
+        result.assertAtLeastTestPathsExecuted("FailingTest", "WithParameterizedTest")
+        result.testPathPreNormalized(":FailingTest:failingTest()").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(CoreMatchers.anything())
+        result.testPathPreNormalized(":WithParameterizedTest:enabledParameterizedTest(String):enabledParameterizedTest(String)[1]").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SKIPPED)
     }
 }

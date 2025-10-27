@@ -30,21 +30,11 @@
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
       }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
     } ]
   }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change with configuration caching",
     "groups" : [ {
       "testProject" : "nowInAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
       }
@@ -56,21 +46,11 @@
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
       }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
     } ]
   }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change with configuration caching",
     "groups" : [ {
       "testProject" : "nowInAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux", "windows", "macOs" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux", "windows", "macOs" ]
       }
@@ -95,11 +75,6 @@
       "coverage" : {
         "per_day" : [ "linux" ]
       }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_day" : [ "linux" ]
-      }
     } ]
   }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean phthalic:assembleDebug with clean transforms cache",
@@ -118,11 +93,6 @@
       }
     }, {
       "testProject" : "nowInAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }
@@ -152,11 +122,6 @@
       }
     }, {
       "testProject" : "nowInAndroidBuild",
-      "coverage" : {
-        "per_commit" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "santaTrackerAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }

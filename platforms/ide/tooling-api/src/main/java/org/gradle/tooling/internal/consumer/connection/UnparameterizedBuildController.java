@@ -197,22 +197,22 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <M> FetchModelResult<Model, M> fetch(Class<M> modelType) {
+    public <M> FetchModelResult<M> fetch(Class<M> modelType) {
         return fetch(null, modelType, null, null);
     }
 
     @Override
-    public <T extends Model, M> FetchModelResult<T, M> fetch(T target, Class<M> modelType) {
+    public <M> FetchModelResult<M> fetch(Model target, Class<M> modelType) {
         return fetch(target, modelType, null, null);
     }
 
     @Override
-    public <M, P> FetchModelResult<Model, M> fetch(Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+    public <M, P> FetchModelResult<M> fetch(Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
         return fetch(null, modelType, parameterType, parameterInitializer);
     }
 
     @Override
-    public <T extends Model, M, P> FetchModelResult<T, M> fetch(@Nullable T target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+    public <M, P> FetchModelResult<M> fetch(@Nullable Model target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
         throw new UnsupportedVersionException(String.format("Gradle version %s does not support resilient model fetching.", gradleVersion.getVersion()));
     }
 }

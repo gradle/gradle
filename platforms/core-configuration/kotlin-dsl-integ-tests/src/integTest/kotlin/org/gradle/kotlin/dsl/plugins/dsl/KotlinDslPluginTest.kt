@@ -16,6 +16,9 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -141,9 +144,10 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         build("test")
 
-        val results = DefaultTestExecutionResult(testDirectory)
-        results.assertTestClassesExecuted("MyTest")
-        results.testClass("MyTest").assertStdout(containsString("Plugin Using Embedded Kotlin "))
+        val results = GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/test", GenericTestExecutionResult.TestFramework.JUNIT4)
+        results.testPath("MyTest", "my test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(containsString("Plugin Using Embedded Kotlin "))
     }
 
     @Test
@@ -248,9 +252,10 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         build("test")
 
-        val results = DefaultTestExecutionResult(testDirectory)
-        results.assertTestClassesExecuted("MyTest")
-        results.testClass("MyTest").assertStdout(containsString("Plugin Using Embedded Kotlin "))
+        val results = GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/test", GenericTestExecutionResult.TestFramework.JUNIT4)
+        results.testPath("MyTest", "my test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(containsString("Plugin Using Embedded Kotlin "))
     }
 
     @Test

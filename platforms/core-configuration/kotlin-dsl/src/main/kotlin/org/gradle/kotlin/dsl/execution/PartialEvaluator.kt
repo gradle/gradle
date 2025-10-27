@@ -22,18 +22,26 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultP
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequests
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
-import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CollectProjectScriptDependencies
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 
+/**
+ * Whether Gradle is compiling a [top level script][TopLevel]
+ * or an [applied script plugin][ScriptPlugin].
+ */
 enum class ProgramKind {
     TopLevel,
     ScriptPlugin
 }
 
 
+/**
+ * The type of object the script is applied to. It can be a [`Project` object][Project],
+ * the [`Settings` object][Settings] or the [`Gradle` object][Gradle].
+ */
 enum class ProgramTarget {
     Project,
     Settings,

@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.junit.AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec
@@ -134,15 +135,15 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
         run('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted('CategoryATests', 'CategoryBTests', 'CategoryADTests', 'MixedTests')
-        result.testClass("CategoryATests").assertTestCount(4, 0, 0)
+        result.testClass("CategoryATests").assertTestCount(4, 0)
         result.testClass("CategoryATests").assertTestsExecuted('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4')
-        result.testClass("CategoryBTests").assertTestCount(4, 0, 0)
+        result.testClass("CategoryBTests").assertTestCount(4, 0)
         result.testClass("CategoryBTests").assertTestsExecuted('catBOk1', 'catBOk2', 'catBOk3', 'catBOk4')
-        result.testClass("CategoryADTests").assertTestCount(2, 0, 0)
+        result.testClass("CategoryADTests").assertTestCount(2, 0)
         result.testClass("CategoryADTests").assertTestsExecuted('catAOk1', 'catAOk2')
-        result.testClass("MixedTests").assertTestCount(3, 0, 0)
+        result.testClass("MixedTests").assertTestCount(3, 0)
         result.testClass("MixedTests").assertTestsExecuted('catAOk1', 'catBOk2')
         result.testClass("MixedTests").assertTestsSkipped('ignoredWithCategoryA')
     }
@@ -284,10 +285,12 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
         run('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('SomeLocaleTests')
-        result.testClass("SomeLocaleTests").assertTestCount(3, 0, 0)
-        result.testClass("SomeLocaleTests").assertTestsExecuted('ok1 [de]', 'ok1 [en]', 'ok1 [fr]')
+        GenericHtmlTestExecutionResult result = resultsFor()
+        result.assertTestPathsExecuted(
+            ':SomeLocaleTests:SomeLocaleTests [de]:ok1 [de]',
+            ':SomeLocaleTests:SomeLocaleTests [en]:ok1 [en]',
+            ':SomeLocaleTests:SomeLocaleTests [fr]:ok1 [fr]'
+        )
     }
 
     def "can run parameterized tests with categories"() {
@@ -409,10 +412,10 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
         if (supportsCategoryOnNestedClass()) {
             expectedTestClasses << 'NestedTestsWithCategories$TagOnClass'
         }
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted(expectedTestClasses as String[])
         expectedTestClasses.each {
-            result.testClass(it).assertTestCount(1, 0, 0)
+            result.testClass(it).assertTestCount(1, 0)
         }
     }
 

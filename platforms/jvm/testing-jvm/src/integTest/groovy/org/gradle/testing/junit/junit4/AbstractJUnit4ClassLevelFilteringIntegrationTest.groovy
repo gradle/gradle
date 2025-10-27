@@ -59,7 +59,7 @@ abstract class AbstractJUnit4ClassLevelFilteringIntegrationTest extends Abstract
         run("test", "--tests", "FooTest.pass")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted("FooTest")
         result.testClass("FooTest").assertTestsExecuted("other", "pass")
 

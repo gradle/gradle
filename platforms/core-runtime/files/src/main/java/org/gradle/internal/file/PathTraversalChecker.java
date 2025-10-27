@@ -53,11 +53,13 @@ public class PathTraversalChecker {
         if (!name.contains("..")) {
             return false;
         }
-        // We have a .. but if not before a file separator or at the end, it is OK
+        // We have a .. but if not in-between a file separator, at the start, or at the end, it is OK
         return name.endsWith("\\..")
-            || name.contains("..\\")
+            || name.startsWith("..\\")
+            || name.contains("\\..\\")
             || name.endsWith("/..")
-            || name.contains("../");
+            || name.startsWith("../")
+            || name.contains("/../");
     }
 
     private static boolean isWindows() {

@@ -16,8 +16,9 @@
 
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -25,7 +26,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.JvmBlockingTestClassGenerator
-import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS
@@ -36,6 +36,8 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     JvmBlockingTestClassGenerator generator
+
+    abstract GenericTestExecutionResult.TestFramework getTestFramework()
 
     def setup() {
         server.start()
@@ -58,9 +60,20 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         testExecution.release(FAILED_RESOURCE)
         testExecution.release(OTHER_RESOURCE)
         gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
-        result.testClass('pkg.OtherTest').assertTestPassed('passingTest')
+
+        and:
+        GenericTestExecutionResult testResults = resultsFor()
+        testResults.assertTestPathsExecuted(":pkg.FailedTest:failTest", ":pkg.OtherTest:passingTest")
+
+        TestPathExecutionResult gradleTest = testResults.testPath("")
+        gradleTest.rootNames == ['Gradle Test Run :test']
+        gradleTest.onlyRoot().assertChildCount(2, 1)
+
+        TestPathExecutionResult failedTest = testResults.testPath("pkg.FailedTest")
+        failedTest.onlyRoot().assertChildCount(1, 1)
+
+        TestPathExecutionResult otherTest = testResults.testPath("pkg.OtherTest")
+        otherTest.onlyRoot().assertChildCount(1, 0)
 
         where:
         description        | taskList                   | buildConfig
@@ -83,9 +96,13 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         then:
         testExecution.release(FAILED_RESOURCE)
         gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
-        result.testClass('pkg.OtherTest').assertTestSkipped('passingTest')
+
+        and:
+        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
+        TestPathExecutionResult failedTest = testResults.testPath("pkg.FailedTest")
+        failedTest.onlyRoot().getFailedChildCount() == 1
+        TestPathExecutionResult otherTest = testResults.testPath("pkg.OtherTest")
+        otherTest.onlyRoot().getSkippedChildCount() == 1
 
         where:
         description       | taskList                   | buildConfig
@@ -106,12 +123,29 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         then:
         testExecution.release(1)
         gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', CoreMatchers.anything()) }
-        assert testOmitted == resourceForTest.keySet().with {
-            count { !result.testClassExists(it) } +
-                count { result.testClassExists(it) && result.testClass(it).testCount == 0 } +
-                count { result.testClassExists(it) && result.testClass(it).testSkippedCount == 1 }
+
+        and:
+        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
+        assert 1 == resourceForTest.keySet().sum {path ->
+            if (testResults.testPathExists(path)) {
+                TestPathExecutionResult test = testResults.testPath(path)
+                test.onlyRoot().getFailedChildCount()
+            } else {
+                0
+            }
+        }
+        resourceForTest.keySet().with {
+            def doesntExist = count { path ->
+                !testResults.testPathExists(path)
+            }
+            def zeroChildren = count {
+                def path = it
+                testResults.testPathExists(path) && testResults.testPath(path).rootNames.size() == 0
+            }
+            def skipped = count { path ->
+                testResults.testPathExists(path) && testResults.testPath(path).onlyRoot().getSkippedChildCount()
+            }
+            assert testOmitted == (doesntExist + zeroChildren + skipped)
         }
 
         where:

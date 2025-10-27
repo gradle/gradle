@@ -46,8 +46,8 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
     }
 
     @Override
-    public <T extends Model, M, P> FetchModelResult<T, M> fetch(
-        @Nullable T target,
+    public <M, P> FetchModelResult<M> fetch(
+        @Nullable Model target,
         Class<M> modelType,
         @Nullable Class<P> parameterType,
         @Nullable Action<? super P> parameterInitializer
@@ -59,29 +59,22 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
         return adaptResult(target, modelType, result);
     }
 
-    private <T extends Model, M> FetchModelResult<T, M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
+    private <T extends Model, M> FetchModelResult<M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
         Object model = result.getModel();
         M adaptedModel = model != null ? adaptModel(target, modelType, model) : null;
-        return new ModelFetchModelResult<>(result, adaptedModel, target);
+        return new ModelFetchModelResult<>(result, adaptedModel);
     }
 
-    private static class ModelFetchModelResult<T extends Model, M> implements FetchModelResult<T, M>, Serializable {
+    private static class ModelFetchModelResult<M> implements FetchModelResult<M>, Serializable {
         private final InternalFetchModelResult<Object> result;
         private final M adaptedModel;
-        private final T target;
         @Nullable
         List<Failure> failures;
 
-        public ModelFetchModelResult(InternalFetchModelResult<Object> result, M adaptedModel, T target) {
+        public ModelFetchModelResult(InternalFetchModelResult<Object> result, M adaptedModel) {
             this.result = result;
             this.adaptedModel = adaptedModel;
-            this.target = target;
             failures = null;
-        }
-
-        @Override
-        public T getTarget() {
-            return target;
         }
 
         @Override

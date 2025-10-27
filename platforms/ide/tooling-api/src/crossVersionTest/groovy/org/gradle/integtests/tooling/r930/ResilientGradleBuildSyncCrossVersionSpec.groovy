@@ -21,10 +21,12 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.FetchModelResult
-import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
+
+import java.util.function.Consumer
 
 @ToolingApiVersion('>=9.3')
 @TargetGradleVersion('>=9.3')
@@ -35,11 +37,12 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
     }
 
-    def runFetchModelAction() {
+    FetchModelResult<GradleBuild> runFetchModelAction(Consumer<BuildActionExecuter<FetchModelResult<GradleBuild>>> configurer = {}) {
         succeeds {
-            action(new FetchModelAction())
+            def action = action(new FetchModelAction())
                 .withArguments(RESILIENT_MODEL_TRUE)
-                .run()
+            configurer.accept(action)
+            action.run()
         }
     }
 
@@ -136,6 +139,42 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         !model.model.includedBuilds.isEmpty()
     }
 
+    def "should return failure when caching models with isolated projects"() {
+        given:
+        def intermediateCaching = [
+            "-Dorg.gradle.internal.isolated-projects.tooling=true",
+            "-Dorg.gradle.unsafe.isolated-projects=true"
+        ]
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = file("included")
+        included.file("settings.gradle.kts") << """
+            settings boom !!!
+        """
+        blowUpBuildGradleKts(included)
+
+        when:
+        def model = runFetchModelAction(){
+            it.addArguments(intermediateCaching)
+        }
+
+        then:
+        model.failures.toString().contains("Script compilation error")
+        !model.model.includedBuilds.isEmpty()
+
+        when:
+        model = runFetchModelAction {
+            it.addArguments(intermediateCaching)
+        }
+
+        then:
+        model.failures.toString().contains("Script compilation error")
+        !model.model.includedBuilds.isEmpty()
+    }
+
     TestFile blowUpBuildGradleKts(TestFile included = null) {
         def blowUpString = """
                 blow up !!!
@@ -147,10 +186,10 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    static class FetchModelAction implements BuildAction<FetchModelResult<Model, GradleBuild>>, Serializable {
+    static class FetchModelAction implements BuildAction<FetchModelResult<GradleBuild>>, Serializable {
         @Override
-        FetchModelResult<Model, GradleBuild> execute(BuildController controller) {
-            return controller.fetch(null, GradleBuild, null, null)
+        FetchModelResult<GradleBuild> execute(BuildController controller) {
+            return controller.fetch(GradleBuild, null, null)
         }
     }
 }

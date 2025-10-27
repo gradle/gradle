@@ -25,8 +25,8 @@ import org.gradle.util.internal.VersionNumber
 @SelfType(AbstractSmokeTest)
 trait RunnerFactory {
 
-    SmokeTestGradleRunner mixedRunner(boolean parallel, String agpVersion, VersionNumber kgpVersion, String... tasks) {
-        def runner = kgpRunner(parallel, kgpVersion, tasks)
+    SmokeTestGradleRunner mixedRunner(String agpVersion, VersionNumber kgpVersion, String... tasks) {
+        def runner = kgpRunner(kgpVersion, tasks)
         return newAgpRunner(agpVersion, runner)
     }
 
@@ -34,8 +34,8 @@ trait RunnerFactory {
         return newAgpRunner(agpVersion, runner(tasks))
     }
 
-    SmokeTestGradleRunner kgpRunner(boolean parallel, VersionNumber kotlinVersion, String... tasks) {
-        newKotlinRunner(parallel, kotlinVersion, tasks.toList())
+    SmokeTestGradleRunner kgpRunner(VersionNumber kotlinVersion, String... tasks) {
+        newKotlinRunner(kotlinVersion, tasks.toList())
     }
 
     private SmokeTestGradleRunner newAgpRunner(String agpVersion, SmokeTestGradleRunner runner) {
@@ -48,15 +48,8 @@ trait RunnerFactory {
             .ignoreDeprecationWarningsIf(AGP_VERSIONS.isOld(agpVersion), "Old AGP version")
     }
 
-    private SmokeTestGradleRunner newKotlinRunner(boolean parallel, VersionNumber kotlinVersion, List<String> tasks) {
+    private SmokeTestGradleRunner newKotlinRunner(VersionNumber kotlinVersion, List<String> tasks) {
         List<String> args = []
-
-        // Parallel workers in Kotlin is enabled by Gradle's --parallel flag. See https://youtrack.jetbrains.com/issue/KT-46401/
-        // For context on why we test with parallel workers see https://github.com/gradle/gradle/pull/10404
-        if (parallel) {
-            args = ["--parallel"]
-        }
-
         runner(*(tasks + args))
             .ignoreDeprecationWarningsIf(KOTLIN_VERSIONS.isOld(kotlinVersion), "Old KGP version")
     }

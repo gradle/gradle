@@ -16,7 +16,8 @@
 
 package org.gradle.testing.junit.jupiter
 
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestReportIntegrationTest
@@ -27,6 +28,11 @@ import static org.hamcrest.CoreMatchers.is
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegrationTest implements JUnitJupiterMultiVersionTest {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
+    }
+
     def "outputs over lifecycle"() {
         when:
         buildFile """
@@ -122,9 +128,10 @@ class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegratio
         fails "test"
 
         then:
-        new HtmlTestExecutionResult(testDirectory)
-            .testClassStartsWith("Gradle Test Executor")
-            .assertTestFailed("failed to execute tests", containsString("Could not complete execution"))
+        def results = resultsFor(testDirectory)
+        results.testPath(":").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("Could not complete execution"))
             .assertStdout(containsString("System.out from ThrowingListener"))
             .assertStderr(containsString("System.err from ThrowingListener"))
     }

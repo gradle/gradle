@@ -30,6 +30,8 @@ import org.gradlebuild.Interface;
 import org.gradlebuild.WrongNullable;
 import org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType;
 import org.gradlebuild.nonnullapi.notinpackage.NullMarkedApiType;
+import org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiMethod;
+import org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiType;
 import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -43,9 +45,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @NullMarked
@@ -146,6 +150,28 @@ public class ArchUnitFixtureTest {
         assertTrue(event.isViolation());
         assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
         // Cannot test on-package (not on the class) annotation, due to `ClasFileImporter` limitations
+    }
+
+    @Test
+    public void check_for_jspecify_annotations() {
+        ArchCondition<JavaClass> condition = ArchUnitFixture.beNullMarkedClass();
+
+        assertNoViolation(checkClassCondition(condition, NullMarkedApiType.class));
+
+        ConditionEvent notMarkedEvent = checkClassCondition(condition, NotNullMarkedApiType.class);
+        assertTrue(notMarkedEvent.isViolation());
+        assertThat(eventDescription(notMarkedEvent))
+            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
+
+        ConditionEvent unmarkedEvent = checkClassCondition(condition, NullUnmarkedApiType.class);
+        assertTrue(unmarkedEvent.isViolation());
+        assertThat(eventDescription(unmarkedEvent))
+            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiType> is annotated with @NullUnmarked");
+
+        ConditionEvents unmarkedMethodEvents = checkMethodCondition(not(ArchUnitFixture.beNullUnmarkedMethod()), NullUnmarkedApiMethod.class);
+        assertEquals(1, unmarkedMethodEvents.getViolating().size());
+        assertThat(eventDescription(unmarkedMethodEvents.getViolating().iterator().next()))
+            .startsWith("Method <org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiMethod.calculateSomeString()> is annotated with @NullUnmarked");
     }
 
     private static String eventDescription(ConditionEvent event) {

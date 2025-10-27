@@ -235,7 +235,7 @@ public interface BuildController {
      * @since 9.3.0
      */
     @Incubating
-    <M> FetchModelResult<Model, M> fetch(Class<M> modelType);
+    <M> FetchModelResult<M> fetch(Class<M> modelType);
 
     /**
      * Fetches a snapshot of the model of the given type for the given element using resilient model fetching.
@@ -243,13 +243,12 @@ public interface BuildController {
      *
      * @param target The target element, usually a project.
      * @param modelType The model type.
-     * @param <T> The target type.
      * @param <M> The model type.
      * @return The fetch result.
      * @since 9.3.0
      */
     @Incubating
-    <T extends Model, M> FetchModelResult<T, M> fetch(T target, Class<M> modelType);
+    <M> FetchModelResult<M> fetch(Model target, Class<M> modelType);
 
     /**
      * Fetches a snapshot of the model of the given type using the given parameter using resilient model fetching.
@@ -264,7 +263,7 @@ public interface BuildController {
      * @since 9.3.0
      */
     @Incubating
-    <M, P> FetchModelResult<Model, M> fetch(
+    <M, P> FetchModelResult<M> fetch(
         Class<M> modelType,
         @Nullable Class<P> parameterType,
         @Nullable Action<? super P> parameterInitializer
@@ -285,7 +284,6 @@ public interface BuildController {
      * @param modelType The model type to fetch.
      * @param parameterType The parameter type used to configure the model fetch. Pass {@code null} if no parameter is needed.
      * @param parameterInitializer Action to configure the parameter. Pass {@code null} if no parameter initialization is needed.
-     * @param <T> The target type.
      * @param <M> The model type.
      * @param <P> The parameter type.
      * @return A {@link FetchModelResult} containing the target, the fetched model (if successful), and any failures that occurred.
@@ -293,8 +291,8 @@ public interface BuildController {
      * @since 9.3.0
      */
     @Incubating
-    <T extends Model, M, P> FetchModelResult<T, M> fetch(
-        @Nullable T target,
+    <M, P> FetchModelResult<M> fetch(
+        @Nullable Model target,
         Class<M> modelType,
         @Nullable Class<P> parameterType,
         @Nullable Action<? super P> parameterInitializer

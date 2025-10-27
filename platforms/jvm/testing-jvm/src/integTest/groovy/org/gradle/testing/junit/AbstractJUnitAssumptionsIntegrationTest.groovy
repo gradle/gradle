@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
@@ -53,12 +53,12 @@ abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractTestingMu
         run('check')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.TestWithAssumptions')
-        result.testClass('org.gradle.TestWithAssumptions')
-                .assertTestCount(2, 0, 0)
-                .assertTestsExecuted('assumptionSucceeded')
-                .assertTestPassed('assumptionSucceeded')
-                .assertTestsSkipped('assumptionFailed')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.TestWithAssumptions').onlyRoot()
+            .assertChildCount(2, 0)
+        results.testPath('org.gradle.TestWithAssumptions', 'assumptionSucceeded').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath('org.gradle.TestWithAssumptions', 'assumptionFailed').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SKIPPED)
     }
 }

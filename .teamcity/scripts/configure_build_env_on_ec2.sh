@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #
 # Copyright 2024 the original author or authors.
 #
@@ -15,18 +16,20 @@
 # limitations under the License.
 #
 
-# This scripts detects builds running on EC2 by accessing the special ip 169.254.169.254 exposed by AWS instances.
-# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
+# Source common functions
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # In case of running on EC2
 # - we add a TeamCity tag to the build with an instance type of the EC2 instance.
 # - we set GRADLE_RO_DEP_CACHE to '/opt/gradle-cache' if the folder exists.
 
-curl -m 1 -s "http://169.254.169.254/latest/meta-data/instance-id"
-IS_EC2_INSTANCE=$?
-if [ $IS_EC2_INSTANCE -ne 0 ]; then
-  echo "Not running on an EC2 instance, skipping the configuration"
-  exit 0
+exit_if_not_on_ec2_instance
+
+# Execute pre-build script based on BUILD_TYPE_ID
+if [[ "${BUILD_TYPE_ID:-}" == Gradle_Xperimental* ]]; then
+  execute_build_script_from_env "${XPERIMENTAL_EC2_PRE_BUILD_SCRIPT:-}"
+elif [[ "${BUILD_TYPE_ID:-}" == Gradle_Master* ]]; then
+  execute_build_script_from_env "${MASTER_EC2_PRE_BUILD_SCRIPT:-}"
 fi
 
 # TAG

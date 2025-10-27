@@ -52,7 +52,7 @@ class StaticReleaseNotesTest extends Specification {
         def brokenAnchorLinks = []
         def links = renderedDocument.select("a")
         def ids = renderedDocument.allElements.findAll { it.id() }*.id()
-        def anchors = links.findAll { it.attr("name") }*.attr("name")
+        def anchors = links.findAll { it.attr("id") }*.attr("id")
 
         links.each {
             def href = it.attr("href")
@@ -66,6 +66,15 @@ class StaticReleaseNotesTest extends Specification {
 
         then:
         brokenAnchorLinks.empty
+    }
+
+    def "does not use <a> name attribute"() {
+        when:
+        def links = renderedDocument.select("a")
+        def nameUsages = links.findAll { it.attr("name") }*.attr("name")
+
+        then:
+        assert nameUsages.empty : "all <a> elements used as targets should use id or be removed if possible"
     }
 
     def "no absolute links to docs.gradle.org"() {

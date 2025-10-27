@@ -84,6 +84,8 @@ import java.util.Arrays;
 public interface Settings extends PluginAware, ExtensionAware {
     /**
      * <p>The default name for the settings file.</p>
+     *
+     * @implNote For internal purposes, prefer constants from {@code BuildLogicFiles}.
      */
     String DEFAULT_SETTINGS_FILE = "settings.gradle";
 
