@@ -52,7 +52,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"], iterationMatcher = "run assembleDebug"),
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "nowInAndroidBuild"], iterationMatcher = "run assembleDebug"),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*"),
         // @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild2", iterationMatcher = ".*module21.*"),
     ])
@@ -82,7 +82,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     @RunFor([
-        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"], iterationMatcher = "clean assemble.*"),
+        @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "nowInAndroidBuild"], iterationMatcher = "clean assemble.*"),
         @Scenario(type = PER_DAY, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "clean phthalic.*")
     ])
     def "clean #tasks with clean transforms cache"() {
@@ -141,8 +141,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     private void configureBuildForProject(AndroidTestProject testProject) {
         if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
             configureRunnerSpecificallyForNowInAndroid()
-        } else if (IncrementalAndroidTestProject.SANTA_TRACKER == testProject) {
-            configureRunnerSpecificallyForSantaTracker()
         }
     }
 
@@ -165,10 +163,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         }
         runner.addBuildMutator { is -> new SupplementaryRepositoriesMutator(is) }
         runner.addBuildMutator { is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
-    }
-
-    private void configureRunnerSpecificallyForSantaTracker() {
-        runner.args.add("-DkotlinVersion=$kgpVersion")
     }
 
     private class TestFinalizerMutator implements BuildMutator {
