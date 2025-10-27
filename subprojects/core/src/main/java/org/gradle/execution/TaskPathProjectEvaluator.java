@@ -88,6 +88,11 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     @Override
     public void configureHierarchy(ProjectInternal project) {
         configure(project);
+
+        ProjectState parent = project.getOwner();
+        List<ProjectState> children = ImmutableList.copyOf(parent.getUnorderedChildProjects());
+        batchScriptCompiler.compile(parent, children);
+
         for (Project sub : project.getSubprojects()) {
             configure((ProjectInternal) sub);
         }
