@@ -104,19 +104,19 @@ Configurations aren't used just for declaring dependencies, they serve various r
 
 | 1
 | Bucket Role
-| Declarable configurations
+| Declarable configuration
 | Define a set of dependencies.
 | `implementation`
 
 | 2
 | Consumer Role
-| Resolvable configurations
+| Resolvable configuration
 | Resolve dependencies into concrete artifacts/files.
 | `runtimeClasspath`
 
 | 3
 | Producer Role
-| Consumable configurations
+| Consumable configuration
 | Expose built artifacts for other projects to consume.
 | `runtimeElements`
 |===

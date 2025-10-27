@@ -57,6 +57,7 @@ In the example above:
 - `api` is used for dependencies that should be exposed to consumers of your library.
 
 When you apply certain plugins, Gradle **automatically creates the right configurations** for your project and makes them available to use.
+
 For example, applying `java` or `java-library` adds configurations like `implementation`, `api`, `compileOnly`, `runtimeOnly`, and `testImplementation` so you can declare dependencies in the right place without extra setup.
 
 The Android Gradle Plugin (AGP) adds **variant-aware** configs like `debugImplementation`, `releaseImplementation`, `androidTestImplementation`, and even per–build-type/flavor ones like `freeDebugImplementation`.
