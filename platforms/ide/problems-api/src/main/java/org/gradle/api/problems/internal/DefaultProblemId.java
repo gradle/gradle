@@ -19,25 +19,39 @@ package org.gradle.api.problems.internal;
 import com.google.common.base.Objects;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
 public class DefaultProblemId extends ProblemId implements Serializable {
 
-    private final String id;
+    private final String name;
     private final String displayName;
     private final ProblemGroup parent;
 
-    public DefaultProblemId(String id, String displayName, ProblemGroup parent) {
-        this.id = id;
-        this.displayName = displayName;
+    public DefaultProblemId(String name, String displayName, ProblemGroup parent) {
+        validateFields(name, displayName, parent);
+        this.name = TextUtil.replaceLineSeparatorsOf(name, "");
+        this.displayName = TextUtil.replaceLineSeparatorsOf(displayName, "");
         this.parent = parent;
+    }
+
+    private static void validateFields(String name, String displayName, ProblemGroup parent) {
+        if (TextUtil.isBlank(name)) {
+            throw new IllegalArgumentException("Problem id name must not be blank");
+        }
+        if (TextUtil.isBlank(displayName)) {
+            throw new IllegalArgumentException("Problem id displayName must not be blank");
+        }
+        if (parent == null) {
+            throw new IllegalArgumentException("Problem id parent must not be null");
+        }
     }
 
     @Override
     public String getName() {
-        return id;
+        return name;
     }
 
     @Override
@@ -74,7 +88,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
 
         ProblemId that = (ProblemId) o;
 
-        if (!id.equals(that.getName())) {
+        if (!name.equals(that.getName())) {
             return false;
         }
         return parent.equals(that.getGroup());
@@ -82,6 +96,6 @@ public class DefaultProblemId extends ProblemId implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, parent);
+        return Objects.hashCode(name, parent);
     }
 }
