@@ -140,4 +140,19 @@ class DefaultProblemBuilderTest extends Specification {
         problem.contextualLocations.every { it instanceof TaskLocation }
         problem.contextualLocations.collect { (it as TaskLocation).buildTreePath } == [':taskPath']
     }
+
+    def "newlines from contextual labels are removed"() {
+        given:
+        def problemBuilder = createProblemBuilder()
+
+        when:
+        //noinspection GroovyAssignabilityCheck
+        def problem = problemBuilder
+            .id(problemId)
+            .contextualLabel("line1\nline2\r\nline3")
+            .build()
+
+        then:
+        problem.contextualLabel == "line1 line2 line3"
+    }
 }
