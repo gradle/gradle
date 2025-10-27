@@ -65,8 +65,8 @@ You’ll see *per-test-type* and *per-variant* buckets.
 ** KSP: `ksp`, `kspTest`, `kspAndroidTest`, `ksp<Variant>`
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringConfigurations-android/kotlin",files="app/build.gradle.kts[tags=configurations]"]
-include::sample[dir="snippets/dependencyManagement/declaringConfigurations-android/groovy",files="app/build.gradle[tags=configurations]"]
+include::sample[dir="snippets/dependencyManagement/declaringConfigurations-android/kotlin",files="build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/dependencyManagement/declaringConfigurations-android/groovy",files="build.gradle[tags=configurations]"]
 ====
 
 === Kotlin Multiplatform Plugin
@@ -82,8 +82,8 @@ Kotlin Multiplatform (KMP) defines buckets per source set, so you attach depende
 ** `iosMain`, `iosTest` (or more granular like `iosArm64Main`, etc.)
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringConfigurations-kmp/kotlin",files="app/build.gradle.kts[tags=configurations]"]
-include::sample[dir="snippets/dependencyManagement/declaringConfigurations-kmp/groovy",files="app/build.gradle[tags=configurations]"]
+include::sample[dir="snippets/dependencyManagement/declaringConfigurations-kmp/kotlin",files="build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/dependencyManagement/declaringConfigurations-kmp/groovy",files="build.gradle[tags=configurations]"]
 ====
 
 Under-the-hood, you’re actually adding dependencies to **Gradle configurations** that the Kotlin plugin wires up for each source set:
