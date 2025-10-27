@@ -126,6 +126,14 @@ void testProject() {
 }
 ```
 
+### Simple console rendering for Problem Reports
+The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
+
+Previously, a limitation was that problem reports were not displayed in the console output.
+In this release, we've taken a first step toward full console integration.
+All problem reports are now rendered in the console output when you configure `--warning-mode=all`.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
