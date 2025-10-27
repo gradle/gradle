@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
@@ -33,7 +34,6 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -121,7 +121,7 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             }
 
             @Override
-            public void settingsScriptFailed(SettingsInternal settingsScript, LocationAwareException e) {
+            public void settingsScriptFailed(SettingsInternal settingsScript, GradleException e) {
                 // No-op in non-resilient model building
             }
 

@@ -58,12 +58,42 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.failures.toString().contains("Script compilation error")
     }
 
+    def "receive root project with throwing settings file"() {
+        given:
+        settingsKotlinFile << """
+            throw GradleException("Gradle exception boom !!!")
+        """
+
+        when:
+        def model = runFetchModelAction()
+
+        then:
+        model.failures.toString().contains("Gradle exception boom !!!")
+    }
+
     def "receive root project with broken root build file"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
         """
         blowUpBuildGradleKts()
+
+        when:
+        def model = runFetchModelAction()
+
+        then:
+        model.failures.isEmpty()  // it did not fail
+        model.model.includedBuilds.isEmpty()
+    }
+
+    def "receive root project with throwing root build file"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+        buildFileKts << """
+            throw GradleException("Gradle exception boom !!!")
+        """
 
         when:
         def model = runFetchModelAction()

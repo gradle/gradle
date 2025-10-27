@@ -16,9 +16,9 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -33,7 +33,7 @@ public interface BuildIncludeListener {
 
     Map<BuildState, Failure> getBrokenBuilds();
 
-    void settingsScriptFailed(SettingsInternal settingsScript, LocationAwareException e);
+    void settingsScriptFailed(SettingsInternal settingsScript, GradleException e);
 
     Map<SettingsInternal, Failure> getBrokenSettings();
 }

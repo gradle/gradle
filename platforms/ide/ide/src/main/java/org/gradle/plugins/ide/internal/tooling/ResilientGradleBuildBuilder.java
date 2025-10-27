@@ -32,8 +32,8 @@ import org.gradle.internal.problems.failure.Failure;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
@@ -115,12 +115,8 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             try {
                 target.ensureProjectsLoaded();
             } catch (GradleException e) {
-                if (e.getCause() instanceof org.gradle.kotlin.dsl.support.ScriptCompilationException) {
-                    this.brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
-                    this.brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
-                    return;
-                }
-                throw e;
+                this.brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
+                this.brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
             }
         }
 

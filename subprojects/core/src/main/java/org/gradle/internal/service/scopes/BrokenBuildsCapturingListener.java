@@ -16,10 +16,10 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.composite.BuildIncludeListener;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.jspecify.annotations.Nullable;
@@ -51,7 +51,7 @@ public class BrokenBuildsCapturingListener implements BuildIncludeListener {
     }
 
     @Override
-    public void settingsScriptFailed(SettingsInternal settingsScript, LocationAwareException e) {
+    public void settingsScriptFailed(SettingsInternal settingsScript, GradleException e) {
         getBrokenSettings().put(settingsScript, failureFactory.create(e));
     }
 
