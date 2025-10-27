@@ -64,6 +64,7 @@ import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
+import org.gradle.kotlin.dsl.provider.StandardKotlinScriptEvaluator.ScopeBackedCompiledScript
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
@@ -321,13 +322,13 @@ class StandardKotlinScriptEvaluator(
             className: String,
             accessorsClassPath: ClassPath
         ): CompiledScript {
-            val classpath = DefaultClassPath.of(location).plus(accessorsClassPath)
-            return ScopeBackedCompiledScript(classLoaderScope, childScopeId, origin, classpath, className)
+            return compiledScriptOf(location, accessorsClassPath, classLoaderScope, childScopeId, origin, className)
         }
 
         override val implicitImports: List<String>
             get() = this@StandardKotlinScriptEvaluator.implicitImports.list
     }
+
 
     private
     fun executionEngineFor(scriptHost: KotlinScriptHost<*>): ExecutionEngine {
@@ -337,7 +338,7 @@ class StandardKotlinScriptEvaluator(
             ?: executionEngine
     }
 
-    private
+    internal
     class ScopeBackedCompiledScript(
         private val classLoaderScope: ClassLoaderScope,
         private val childScopeId: String,
@@ -445,4 +446,17 @@ class StandardKotlinScriptEvaluator(
             return File(workspace, "instrumented/classes")
         }
     }
+}
+
+
+internal fun compiledScriptOf(
+    location: File,
+    accessorsClassPath: ClassPath,
+    classLoaderScope: ClassLoaderScope,
+    childScopeId: String,
+    origin: ClassLoaderScopeOrigin,
+    className: String
+): ScopeBackedCompiledScript {
+    val classpath = DefaultClassPath.of(location).plus(accessorsClassPath)
+    return ScopeBackedCompiledScript(classLoaderScope, childScopeId, origin, classpath, className)
 }

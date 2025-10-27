@@ -551,7 +551,7 @@ fun templateIdFor(programTarget: ProgramTarget, programKind: ProgramKind, stage:
     programTarget.name + "/" + programKind.name + "/" + stage
 
 
-private
+internal
 fun classLoaderScopeIdFor(scriptPath: String, stage: String) =
     "kotlin-dsl:$scriptPath:$stage"
 
