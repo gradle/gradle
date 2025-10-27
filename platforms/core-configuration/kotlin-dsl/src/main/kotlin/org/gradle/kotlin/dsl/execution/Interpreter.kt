@@ -195,6 +195,10 @@ class Interpreter(val host: Host) {
             return
         }
 
+        if (programTarget == ProgramTarget.Project && (target as Project).parent != null) {
+            error("Expecting cache hit for $target ($programId)")
+        }
+
         val specializedProgram =
             emitSpecializedProgramFor(
                 scriptHost,
