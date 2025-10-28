@@ -16,10 +16,14 @@
 
 package org.gradle.internal.declarativedsl
 
+import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
+import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
+import kotlin.reflect.full.isSubclassOf
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -62,5 +66,16 @@ object Workarounds {
 
     private val descriptorMethod by lazy {
         Class.forName("kotlin.reflect.jvm.internal.KTypeParameterImpl").methods.single { it.name == "getDescriptor" }
+    }
+
+    /**
+     * Workaround for [KT-81967](https://youtrack.jetbrains.com/issue/KT-81967/):
+     * [isSubtypeOf] throws an exception in a corner case. We first check the classifiers, so
+     * the corner case is not reached in most cases.
+     */
+    internal fun KType.isSubtypeOfWithKt81967Workaround(other: KType): Boolean {
+        val otherClass = other.classifier as? KClass<*> ?: return false
+        return (classifier as? KClass<*>)?.isSubclassOf(otherClass) == true &&
+            isSubtypeOf(other)
     }
 }
