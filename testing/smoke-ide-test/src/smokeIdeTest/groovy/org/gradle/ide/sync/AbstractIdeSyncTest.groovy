@@ -50,7 +50,7 @@ import java.util.concurrent.Executors
 abstract class AbstractIdeSyncTest extends Specification {
 
     // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
-    final static String IDEA_COMMUNITY_VERSION = "2025.2.3"
+    final static String IDEA_COMMUNITY_VERSION = "2025.2.4"
     // https://developer.android.com/studio/archive
     final static String ANDROID_STUDIO_VERSION = "2025.1.3.7"
 
