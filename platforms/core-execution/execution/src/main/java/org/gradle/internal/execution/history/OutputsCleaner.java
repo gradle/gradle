@@ -137,7 +137,7 @@ public class OutputsCleaner {
         }
     }
 
-    private boolean existsAndIsEmpty(File parentDir) throws IOException {
+    private static boolean existsAndIsEmpty(File parentDir) throws IOException {
         if (!parentDir.exists()) {
             return false;
         }
