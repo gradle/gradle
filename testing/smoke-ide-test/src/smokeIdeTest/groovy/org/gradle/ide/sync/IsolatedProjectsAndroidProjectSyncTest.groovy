@@ -18,7 +18,12 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.starter.IdeScenarioBuilder
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
+// `intellij-ide-starter` can't kill the AS process properly on Linux,
+// what is leading to failing these tests by a timeout
+@Requires(UnitTestPreconditions.MacOs)
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     // https://developer.android.com/build/releases/gradle-plugin
