@@ -26,6 +26,7 @@ import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
     private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep;
@@ -39,7 +40,9 @@ public class DefaultExecutionEngine implements ExecutionEngine {
     @Override
     public Request createRequest(UnitOfWork work) {
         return new Request() {
+            @Nullable
             private String nonIncrementalReason;
+            @Nullable
             private WorkValidationContext validationContext;
 
             private ExecutionRequestContext createExecutionRequestContext() {

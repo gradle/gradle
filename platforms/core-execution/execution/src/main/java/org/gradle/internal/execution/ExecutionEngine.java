@@ -114,7 +114,7 @@ public interface ExecutionEngine {
 
         /**
          * Get the object representing the produced output.
-         * The type of value returned here depends on the {@link UnitOfWork} implmenetation.
+         * The type of value returned here depends on the {@link UnitOfWork} implementation.
          */
         // TODO Parametrize UnitOfWork with this generated result
         @Nullable

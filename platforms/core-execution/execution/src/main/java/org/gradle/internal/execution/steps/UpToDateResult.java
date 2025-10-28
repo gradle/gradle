@@ -28,6 +28,8 @@ import java.util.Optional;
 
 public class UpToDateResult extends AfterExecutionResult {
     private final ImmutableList<String> executionReasons;
+
+    @Nullable
     private final OriginMetadata reusedOutputOriginMetadata;
 
     public UpToDateResult(AfterExecutionResult parent, ImmutableList<String> executionReasons) {

@@ -24,6 +24,7 @@ import java.util.Optional;
 
 public class InputChangesContext extends ValidationFinishedContext implements CachingContext {
 
+    @Nullable
     private final InputChangesInternal inputChanges;
     private final CachingState cachingState;
 

@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 public class ExecutionRequestContext implements Context {
+    @Nullable
     private final String nonIncrementalReason;
     private final WorkValidationContext validationContext;
 

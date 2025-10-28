@@ -294,6 +294,7 @@ public class TaskExecution implements MutableUnitOfWork {
         return new MutableWorkspaceProvider() {
             @Override
             public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
+                // TODO Use a better way to handle a no workspace situation for tasks
                 return action.executeInWorkspace(null, context.getTaskExecutionMode().isTaskHistoryMaintained()
                     ? executionHistoryStore
                     : null);

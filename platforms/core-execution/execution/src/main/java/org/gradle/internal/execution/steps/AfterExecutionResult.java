@@ -25,6 +25,7 @@ import java.time.Duration;
 import java.util.Optional;
 
 public class AfterExecutionResult extends Result {
+    @Nullable
     private final ExecutionOutputState afterExecutionOutputState;
 
     public AfterExecutionResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable ExecutionOutputState afterExecutionOutputState) {

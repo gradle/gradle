@@ -34,7 +34,6 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -113,7 +112,6 @@ public interface UnitOfWork extends Describable {
         /**
          * Implementation-specific output of executing the user code.
          */
-        @Nullable
         Object getOutput(File workspace);
 
         /**
@@ -245,6 +243,7 @@ public interface UnitOfWork extends Describable {
     }
 
     class InputFileValueSupplier implements FileValueSupplier {
+        @Nullable
         private final Object value;
         private final FileNormalizer normalizer;
         private final DirectorySensitivity directorySensitivity;
@@ -298,7 +297,6 @@ public interface UnitOfWork extends Describable {
 
         public static OutputFileValueSupplier fromStatic(File root, FileCollection fileCollection) {
             return new OutputFileValueSupplier(fileCollection) {
-                @NonNull
                 @Override
                 public File getValue() {
                     return root;
@@ -308,7 +306,6 @@ public interface UnitOfWork extends Describable {
 
         public static OutputFileValueSupplier fromSupplier(Supplier<File> root, FileCollection fileCollection) {
             return new OutputFileValueSupplier(fileCollection) {
-                @NonNull
                 @Override
                 public File getValue() {
                     return root.get();
@@ -316,7 +313,6 @@ public interface UnitOfWork extends Describable {
             };
         }
 
-        @NonNull
         @Override
         abstract public File getValue();
 
@@ -384,7 +380,7 @@ public interface UnitOfWork extends Describable {
     default void checkOutputDependencies(WorkValidationContext validationContext) {}
 
     /**
-     * Retuns a visitor that checks if inputs have declared dependencies on any consumed outputs.
+     * Returns a visitor that checks if inputs have declared dependencies on any consumed outputs.
      */
     default FileCollectionStructureVisitor getInputDependencyChecker(WorkValidationContext validationContext) {
         return FileCollectionStructureVisitor.NO_OP;
