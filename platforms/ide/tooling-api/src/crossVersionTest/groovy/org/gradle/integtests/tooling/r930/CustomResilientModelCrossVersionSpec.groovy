@@ -24,7 +24,6 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.util.internal.ToBeImplemented
 
 @ToolingApiVersion('>=9.3')
 @TargetGradleVersion('>=9.3')
@@ -75,7 +74,6 @@ class CustomPlugin implements Plugin<Project> {
 """
     }
 
-    @ToBeImplemented
     def "can query custom model for included build without build configuration errors, even if main project configuration fails"() {
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -135,11 +133,8 @@ class CustomPlugin implements Plugin<Project> {
         }
 
         then:
-        // Should be
-        // result.successfullyQueriedProjects == ['build-logic']
-        // result.failedToQueriedProjects == ['root', 'a', 'b', 'c']
-        result.successfullyQueriedProjects == []
-        result.failedToQueryProjects == ['root', 'a', 'b', 'c', 'build-logic']
+        result.successfullyQueriedProjects == ['build-logic']
+        result.failedToQueryProjects == ['root', 'a', 'b', 'c']
     }
 
     static class ModelAction implements BuildAction<ModelResult>, Serializable {
@@ -153,7 +148,7 @@ class CustomPlugin implements Plugin<Project> {
             for (BasicGradleProject project : gradleBuild.projects) {
                 queryModelForProject(controller, project, successfulQueriedProjects, failedQueriedProjects)
             }
-            for (GradleBuild includedBuild : gradleBuild.includedBuilds) {
+            for (GradleBuild includedBuild : gradleBuild.editableBuilds) {
                 for (BasicGradleProject project : includedBuild.projects) {
                     queryModelForProject(controller, project, successfulQueriedProjects, failedQueriedProjects)
                 }

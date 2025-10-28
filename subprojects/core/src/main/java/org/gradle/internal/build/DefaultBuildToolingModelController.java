@@ -66,11 +66,11 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             throw new IllegalArgumentException("Project has unexpected owner.");
         }
         // Force configuration of the containing build and then locate the builder for target project
-        configureProjectsForModel(modelName);
+        configureProjectsForModel(target, modelName);
         return doLocate(target, modelName, param);
     }
 
-    protected void configureProjectsForModel(String modelName) {
+    protected void configureProjectsForModel(ProjectState target, String modelName) {
         buildController.configureProjects();
     }
 

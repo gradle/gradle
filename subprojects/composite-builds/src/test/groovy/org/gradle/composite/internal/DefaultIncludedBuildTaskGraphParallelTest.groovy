@@ -394,6 +394,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
+        boolean isProjectsConfigured() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
         <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
             throw new UnsupportedOperationException()
         }
