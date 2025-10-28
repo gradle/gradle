@@ -152,7 +152,7 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
         }
 
         @Nullable
-        private <T> T nextEntry(Iterator<T> iterator) {
+        private static <T> T nextEntry(Iterator<T> iterator) {
             return iterator.hasNext() ? iterator.next() : null;
         }
 
