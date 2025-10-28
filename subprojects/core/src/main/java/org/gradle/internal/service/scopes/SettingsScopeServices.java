@@ -35,7 +35,7 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.ProjectFeatureDeclarationPluginTarget;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -104,12 +104,12 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        ProjectFeatureDeclarations projectFeatureDeclarations,
-        InternalProblems problems
+        ProjectFeatureDeclarations projectFeatureRegistry,
+        ProblemsInternal problems
     ) {
         PluginTarget target = new ProjectFeatureDeclarationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
-            projectFeatureDeclarations,
+            projectFeatureRegistry,
             pluginScheme.getInspectionScheme(),
             problems
         );
