@@ -16,18 +16,11 @@
 
 package org.gradle.ide.sync
 
-
 import org.gradle.ide.starter.IdeScenarioBuilder
-import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/4661")
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
-
-    private TestFile gradleCheckout = testDirectory.createDir("gradle-checkout")
-    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(gradleCheckout)
 
     def "can sync gradle/gradle build without problems"() {
         given:
@@ -37,10 +30,16 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         ideXmxMb = 4096
 
         when:
-        ideaSync(IDEA_COMMUNITY_VERSION, gradleCheckout)
+        ideaSync(IDEA_COMMUNITY_VERSION)
 
         then:
-        fixture.assertHtmlReportHasNoProblems()
+        report.assertHtmlReportHasProblems {
+            totalProblemsCount = 12
+            withLocatedProblem("Gradle runtime", "Project ':declarative-dsl-core' cannot dynamically look up a property in the parent project ':'")
+            withLocatedProblem("Gradle runtime", "Project ':declarative-dsl-evaluator' cannot dynamically look up a property in the parent project ':'")
+            withLocatedProblem("Gradle runtime", "Project ':declarative-dsl-tooling-models' cannot dynamically look up a property in the parent project ':'")
+            withLocatedProblem("Gradle runtime", "Project ':kotlin-dsl-plugins' cannot dynamically look up a property in the parent project ':'")
+        }
     }
 
     def "can sync gradle/gradle incrementally without error"() {
@@ -53,7 +52,6 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         expect:
         ideaSync(
             IDEA_COMMUNITY_VERSION,
-            gradleCheckout,
             IdeScenarioBuilder
                 .initialImportProject()
                 .appendTextToFile("subprojects/core-api/build.gradle.kts", "dependencies {}")
@@ -63,9 +61,9 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
     }
 
     private void gradle() {
-        new TestFile("build/gradleSources").copyTo(gradleCheckout)
-
-        gradleCheckout.file("gradle.properties") << """
+        new TestFile("build/gradleSources").copyTo(projectDirectory)
+        projectFile("gradle.properties") << """
+            org.gradle.configuration-cache.problems=warn
             org.gradle.unsafe.isolated-projects=true
 
             # gradle/gradle build contains gradle/gradle-daemon-jvm.properties, which requires daemon to be run with Java 17.
