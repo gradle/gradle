@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+package org.gradle.problems.internal.rendering;
 
-description = "Problems API rendering infrastructure"
+import org.gradle.api.problems.ProblemId;
 
-dependencies {
-    api(projects.problemsApi)
+/**
+ * Renders a complete problem report.
+ */
+interface SelectiveProblemWriter extends PartialProblemWriter {
 
-    compileOnly(libs.jspecify)
-
-    implementation(libs.guava)
-    implementation(projects.baseServices)
-
-    integTestImplementation(projects.internalTesting)
-    integTestImplementation(testFixtures(projects.logging))
-    integTestDistributionRuntimeOnly(projects.distributionsFull)
+    /**
+     * Returns true if this writer can write the given problem id.
+     *
+     * @param problemId the problem id
+     * @return true if this writer can write the given problem id
+     */
+    boolean accepts(ProblemId problemId);
 }
