@@ -115,8 +115,12 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             try {
                 target.ensureProjectsLoaded();
             } catch (GradleException e) {
-                this.brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
-                this.brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
+                if (failedIncludedBuildsRegistry.isHandled(e)) {
+                    this.brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
+                    this.brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
+                    return;
+                }
+                throw e;
             }
         }
 

@@ -129,6 +129,11 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             public Map<SettingsInternal, Failure> getBrokenSettings() {
                 throw new UnsupportedOperationException("getBrokenSettings() should not be called in non-resilient model building");
             }
+
+            @Override
+            public boolean isHandled(GradleException e) {
+                return false;
+            }
         }
     }
 }

@@ -36,4 +36,6 @@ public interface BuildIncludeListener {
     void settingsScriptFailed(SettingsInternal settingsScript, GradleException e);
 
     Map<SettingsInternal, Failure> getBrokenSettings();
+
+    boolean isHandled(GradleException e);
 }
