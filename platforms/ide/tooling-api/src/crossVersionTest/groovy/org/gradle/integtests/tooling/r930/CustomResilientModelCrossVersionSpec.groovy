@@ -21,9 +21,11 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.internal.ToBeImplemented
 
 @ToolingApiVersion('>=9.3')
 @TargetGradleVersion('>=9.3')
@@ -135,6 +137,81 @@ class CustomPlugin implements Plugin<Project> {
         then:
         result.successfullyQueriedProjects == ['build-logic']
         result.failedToQueryProjects == ['root', 'a', 'b', 'c']
+    }
+
+    /**
+     * Requires GradleBuild model to run on runtime failures
+     */
+    @ToBeImplemented
+    def "can query custom model for included build without build configuration errors, even if main settings fail"() {
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            plugins {
+                id("build-logic")
+            }
+            include("a")
+        """
+
+        def included = file("build-logic")
+        included.file("settings.gradle.kts") << """
+            rootProject.name = "build-logic"
+
+            pluginManagement {
+                repositories {
+                    mavenCentral()
+                    gradlePluginPortal()
+                }
+            }
+        """
+        included.file("build.gradle.kts") << """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            repositories {
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        """
+        included.file("src/main/kotlin/build-logic.gradle.kts") << """
+            broken !!!
+        """
+        file("a/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+
+        """
+
+        when:
+        fails {
+            action(new ModelAction())
+                .withArguments(
+                    "--init-script=${file('init.gradle').absolutePath}",
+                    "-Dorg.gradle.internal.resilient-model-building=true",
+                )
+                .run()
+        }
+
+        then:
+        def e = thrown(BuildActionFailureException)
+        e.cause.message.contains("Execution failed for task ':build-logic:compileKotlin'")
+
+        // Should be:
+        // def result = succeeds {
+        //            action(new ModelAction())
+        //                .withArguments(
+        //                    "--init-script=${file('init.gradle').absolutePath}",
+        //                    "-Dorg.gradle.internal.resilient-model-building=true",
+        //                )
+        //                .run()
+        //        }
+        // result.successfullyQueriedProjects == ['build-logic']
+        // Since the settings file fails to configure, no other projects is seen, so we cannot query them
+        // result.failedToQueryProjects == []
     }
 
     static class ModelAction implements BuildAction<ModelResult>, Serializable {
