@@ -92,6 +92,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
 
     private static class DefaultIdentityCacheResult<T> implements IdentityCacheResult<T> {
         private final Try<T> result;
+        @Nullable
         private final OriginMetadata originMetadata;
 
         public DefaultIdentityCacheResult(Try<T> result, @Nullable OriginMetadata originMetadata) {
@@ -111,6 +112,7 @@ public class IdentityCacheStep<C extends IdentityContext, R extends WorkspaceRes
     }
 
     private static class DefaultExecuteDeferredWorkProgressDetails implements ExecuteDeferredWorkProgressDetails {
+        @Nullable
         private final String workType;
         private final Identity identity;
         private final OriginMetadata originMetadata;

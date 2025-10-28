@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Compares two {@link FileCollectionFingerprint}s representing classpaths.
@@ -72,8 +73,8 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
     }
 
     private static class ChangeState {
-        private Map.Entry<String, FileSystemLocationFingerprint> current;
-        private Map.Entry<String, FileSystemLocationFingerprint> previous;
+        private Map.@Nullable Entry<String, FileSystemLocationFingerprint> current;
+        private Map.@Nullable Entry<String, FileSystemLocationFingerprint> previous;
         private final ChangeVisitor changeConsumer;
         private final Iterator<Map.Entry<String, FileSystemLocationFingerprint>> currentEntries;
         private final Map<String, FileSystemLocationFingerprint> currentSnapshots;
@@ -132,19 +133,19 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
         }
 
         void added() {
-            DefaultFileChange added = DefaultFileChange.added(current.getKey(), propertyTitle, current.getValue().getType(), current.getValue().getNormalizedPath());
+            DefaultFileChange added = DefaultFileChange.added(Objects.requireNonNull(current).getKey(), propertyTitle, current.getValue().getType(), current.getValue().getNormalizedPath());
             changeConsumer.visitChange(added);
             current = nextEntry(currentEntries);
         }
 
         void removed() {
-            DefaultFileChange removed = DefaultFileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType(), previous.getValue().getNormalizedPath());
+            DefaultFileChange removed = DefaultFileChange.removed(Objects.requireNonNull(previous).getKey(), propertyTitle, previous.getValue().getType(), previous.getValue().getNormalizedPath());
             changeConsumer.visitChange(removed);
             previous = nextEntry(previousEntries);
         }
 
         void modified() {
-            DefaultFileChange modified = DefaultFileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType(), current.getValue().getNormalizedPath());
+            DefaultFileChange modified = DefaultFileChange.modified(Objects.requireNonNull(current).getKey(), propertyTitle, Objects.requireNonNull(previous).getValue().getType(), current.getValue().getType(), current.getValue().getNormalizedPath());
             changeConsumer.visitChange(modified);
             previous = nextEntry(previousEntries);
             current = nextEntry(currentEntries);

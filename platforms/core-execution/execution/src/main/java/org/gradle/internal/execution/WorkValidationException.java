@@ -104,7 +104,7 @@ public class WorkValidationException extends GradleException {
     /**
      * A builder for a {@code WorkValidationException} that has a summary attached.
      *
-     * The {@link WorkValidationException#Builder} class is a Stepwise builder, this is step 2.
+     * The {@link WorkValidationException.Builder} class is a Stepwise builder, this is step 2.
      */
     public final static class BuilderWithSummary {
         private final List<String> problems;

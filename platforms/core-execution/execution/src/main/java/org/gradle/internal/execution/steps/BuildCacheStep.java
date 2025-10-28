@@ -78,6 +78,8 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
 
     private AfterExecutionResult executeWithCache(UnitOfWork work, C context, BuildCacheKey cacheKey) {
         CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
+        // TODO Remove once IntelliJ stops complaining about possible NPE
+        //noinspection DataFlowIssue
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? tryLoadingFromCache(cacheKey, cacheableWork)
                 : Optional.<BuildCacheLoadResult>empty()
