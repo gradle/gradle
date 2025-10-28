@@ -51,7 +51,6 @@ import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
 import org.gradle.internal.declarativedsl.schemaBuilder.parameterTypeToRefOrError
 import kotlin.reflect.KFunction
-import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.kotlinFunction
 
@@ -75,7 +74,8 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
         }
     )
 
-    private val kotlinTo: KFunction<Pair<Any, Any>> = ::to
+    private val kotlinTo: KFunction<*> =
+        Class.forName("kotlin.TuplesKt").methods.single { it.name == "to" }.kotlinFunction!!
 
     private val kotlinCollectionsMapOf =
         Class.forName("kotlin.collections.MapsKt").methods.single { it.name == "mapOf" && it.parameters.singleOrNull()?.isVarArgs == true }.kotlinFunction!!
@@ -92,8 +92,8 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
                 preIndex: DataSchemaBuilder.PreIndex
             ): DataTopLevelFunction? = when (function) {
                 kotlinTo -> host.inContextOfModelMember(kotlinTo) {
-                    val typeA = host.modelTypeRef(kotlinTo.typeParameters.first().createType())
-                    val typeB = host.modelTypeRef(kotlinTo.parameters.single().type)
+                    val typeA = host.modelTypeRef(kotlinTo.parameters[0].type)
+                    val typeB = host.modelTypeRef(kotlinTo.parameters[1].type)
                     val returnType = host.modelTypeRef(kotlinTo.returnType)
 
                     DefaultDataTopLevelFunction(
