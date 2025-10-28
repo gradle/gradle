@@ -31,7 +31,6 @@ import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabsRenderer;
-import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -111,10 +110,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private List<Pair<String, ChildTableRenderer>> getChildTableRenderers() {
-            List<Pair<Path, TestTreeModel.PerRootInfo>> children = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
+            List<ChildEntry> children = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
                 .flatMap(t ->
                     t.getPerRootInfo().get(rootIndex).stream()
-                        .map(p -> Pair.of(t.getPath(), p))
+                        .map(p -> new ChildEntry(t, p))
                 )
                 .collect(Collectors.toList());
             ImmutableList.Builder<Pair<String, ChildTableRenderer>> childTableRenderers = ImmutableList.builder();
@@ -127,11 +126,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         private static void addResultTabIfNeeded(
             String name,
             TestResult.ResultType resultType,
-            List<Pair<Path, TestTreeModel.PerRootInfo>> children,
+            List<ChildEntry> children,
             ImmutableList.Builder<Pair<String, ChildTableRenderer>> childListRenderers
         ) {
-            List<Pair<Path, TestTreeModel.PerRootInfo>> matchedChildren = children.stream()
-                .filter(p -> p.right.getResult().getResultType() == resultType)
+            List<ChildEntry> matchedChildren = children.stream()
+                .filter(e -> e.perRootInfo.getResult().getResultType() == resultType)
                 .collect(Collectors.toList());
             if (!matchedChildren.isEmpty()) {
                 childListRenderers.add(Pair.of(name, new ChildTableRenderer(matchedChildren)));
@@ -250,10 +249,22 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             }
         }
 
-        private static final class ChildTableRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
-            private final List<Pair<Path, TestTreeModel.PerRootInfo>> children;
+        private static final class ChildEntry {
+            private final TestTreeModel model;
+            private final TestTreeModel.PerRootInfo perRootInfo;
 
-            public ChildTableRenderer(List<Pair<Path, TestTreeModel.PerRootInfo>> children) {
+            private ChildEntry(TestTreeModel model, TestTreeModel.PerRootInfo perRootInfo) {
+                this.model = model;
+                this.perRootInfo = perRootInfo;
+            }
+        }
+
+        private static final class ChildTableRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
+            private static final Comparator<ChildEntry> CHILD_PATH_COMPARATOR = Comparator.comparing(e -> e.model.getPath());
+
+            private final List<ChildEntry> children;
+
+            public ChildTableRenderer(List<ChildEntry> children) {
                 this.children = children;
             }
 
@@ -266,7 +277,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 boolean anyNameAndDisplayNameDiffer = Iterables.any(
                     children,
                     child -> {
-                        SerializableTestResult childResult = child.right.getResult();
+                        SerializableTestResult childResult = child.perRootInfo.getResult();
                         return !childResult.getName().equals(childResult.getDisplayName());
                     }
                 );
@@ -284,18 +295,21 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 htmlWriter.endElement();
                 htmlWriter.endElement();
 
-                List<Pair<Path, TestTreeModel.PerRootInfo>> sortedByName = new ArrayList<>(children);
-                sortedByName.sort(Comparator.comparing(Pair::left));
+                List<ChildEntry> sortedByName = new ArrayList<>(children);
+                sortedByName.sort(CHILD_PATH_COMPARATOR);
 
-                for (Pair<Path, TestTreeModel.PerRootInfo> pair : sortedByName) {
-                    TestTreeModel.PerRootInfo perRootInfo = pair.right;
+                for (ChildEntry pair : sortedByName) {
+                    TestTreeModel.PerRootInfo perRootInfo = pair.perRootInfo;
                     SerializableTestResult result = perRootInfo.getResult();
                     String statusClass = getStatusClass(result.getResultType());
                     htmlWriter.startElement("tr");
 
                     htmlWriter.startElement("td").attribute("class", statusClass);
                     htmlWriter.startElement("a")
-                        .attribute("href", GenericPageRenderer.getUrlTo(model.getPath(), pair.left))
+                        .attribute("href", GenericPageRenderer.getUrlTo(
+                            model.getPath(), false,
+                            pair.model.getPath(), pair.model.getChildren().isEmpty()
+                        ))
                         .characters(result.getDisplayName()).endElement();
                     htmlWriter.endElement();
 

@@ -51,6 +51,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,10 +65,18 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
     private static final Logger LOG = Logging.getLogger(GenericHtmlTestReportGenerator.class);
 
-    public static String getFilePath(org.gradle.util.Path path) {
+    public static String getFilePath(org.gradle.util.Path path, boolean isLeaf) {
         String filePath;
         if (path.segmentCount() == 0) {
             filePath = "index.html";
+        } else if (isLeaf && !Objects.equals(path.getName(), "index")) {
+            // Avoid using a directory for each leaf node unless its name clashes (i.e. "index")
+            // This reduces VFS overhead from many directories for large test suites
+            String prefix = String.join("/", Iterables.transform(
+                path.getParent().segments(),
+                name -> SafeFileLocationUtils.toSafeFileName(name, true)
+            ));
+            filePath = prefix + (prefix.isEmpty() ? "" : "/") + SafeFileLocationUtils.toSafeFileName(path.getName() + ".html", false);
         } else {
             filePath = String.join("/", Iterables.transform(
                 path.segments(),
@@ -171,7 +180,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                 }
 
                 private void queueTree(BuildOperationQueue<RunnableBuildOperation> queue, TestTreeModel tree, HtmlReportBuilder output) {
-                    String filePath = getFilePath(tree.getPath());
+                    String filePath = getFilePath(tree.getPath(), tree.getChildren().isEmpty());
                     queue.add(new HtmlReportFileGenerator(
                         filePath,
                         tree,
