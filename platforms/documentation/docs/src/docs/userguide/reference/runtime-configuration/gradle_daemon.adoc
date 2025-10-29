@@ -30,21 +30,20 @@ Understanding their distinct roles and how their respective JVM versions are det
 | Process | Role | JVM Version Source
 
 | *Gradle Client JVM*
-| Process that starts when you run `./gradlew` and stays alive for the *entire build invocation*. +
+| Process that starts when you run `gradle` or `./gradlew` and stays alive for the *entire build invocation*. +
 It connects to (or starts) a Daemon, sends the build request, and streams output back to the console.
 | Uses the JVM that launches the wrapper script (e.g. `JAVA_HOME`, `java` on `PATH`, or your IDE).
 
 | *Gradle Daemon JVM*
 | Long-lived process that executes the build and caches state between runs.
-| Uses the JVM set by (in order): +
-1) `--java-home` (CLI) +
-2) `org.gradle.java.home` (properties) +
-3) <<tooling_api.adoc#tooling_api,Tooling API>> requests (e.g., IDE) +
-4) <<#sec:configuring_daemon_jvm,Daemon JVM toolchains>> +
-5) Falls back to the JVM that launched the Gradle Client or reuses an existing Daemon if conditions are right*
+| Uses the JVM set by: +
+- `org.gradle.java.home` (properties) +
+- <<tooling_api.adoc#tooling_api,Tooling API>> requests (e.g., IDE) +
+- <<#sec:configuring_daemon_jvm,Daemon JVM toolchains>> +
+By default, the Gradle Client will look for compatible daemons* or start a new one if none are available.
 |===
-*Gradle reuses an existing Daemon only if its Java home/version and JVM args (e.g., `org.gradle.jvmargs`, `GRADLE_OPTS`) are identical.
-Changing JVM args (like increasing memory) will spawn a new Daemon.
+*Gradle reuses an existing daemon only if its Java home/version and JVM args (e.g., `org.gradle.jvmargs`, `GRADLE_OPTS`) are identical.
+Changing JVM args (like increasing memory) will spawn a new daemon. In the rare case where the daemon has been disabled (`--no-daemon` or `-Dorg.gradle.daemon=false`) and the Client process is compatible, the Gradle Daemon uses the JVM that launched the Gradle Client.
 
 [[understanding_daemon]]
 == Understanding the Daemon
