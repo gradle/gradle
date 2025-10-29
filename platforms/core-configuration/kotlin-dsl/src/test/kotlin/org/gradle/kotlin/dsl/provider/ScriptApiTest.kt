@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Action
-import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
@@ -9,7 +8,6 @@ import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
-import org.gradle.kotlin.dsl.support.CompiledKotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.hamcrest.CoreMatchers.equalTo
@@ -48,55 +46,6 @@ class ScriptApiTest {
         assertScriptApiOf<KotlinGradleScriptTemplate>()
 
     @Test
-    fun `legacy IDE build script template implements script api`() =
-        @Suppress("deprecation")
-        assertScriptApiOf<KotlinBuildScript>()
-
-    @Test
-    fun `legacy IDE settings script template implements script api`() =
-        @Suppress("deprecation")
-        assertScriptApiOf<KotlinSettingsScript>()
-
-    @Test
-    fun `legacy IDE init script template implements script api`() =
-        @Suppress("deprecation")
-        assertScriptApiOf<KotlinInitScript>()
-
-    @Test
-    fun `IDE build script template is backwards compatible`() {
-        @Suppress("deprecation")
-        assertThat(
-            KotlinBuildScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
-                KotlinProjectScriptTemplate::class
-            ),
-            equalTo(emptyList())
-        )
-    }
-
-
-    @Test
-    fun `IDE settings script template is backwards compatible`() {
-        @Suppress("deprecation")
-        assertThat(
-            KotlinSettingsScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
-                KotlinSettingsScriptTemplate::class
-            ),
-            equalTo(emptyList())
-        )
-    }
-
-    @Test
-    fun `IDE init script template is backwards compatible`() {
-        @Suppress("deprecation")
-        assertThat(
-            KotlinInitScript::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
-                KotlinGradleScriptTemplate::class
-            ),
-            equalTo(emptyList())
-        )
-    }
-
-    @Test
     fun `compiled init script template implements script api`() =
         assertScriptApiOf<CompiledKotlinInitScript>()
 
@@ -127,30 +76,6 @@ class ScriptApiTest {
     @Test
     fun `precompiled init script template implements script api`() =
         assertScriptApiOf<PrecompiledInitScript>()
-
-    @Test
-    fun `init script template is backward compatible`() {
-        @Suppress("deprecation")
-        assertThat(
-            InitScriptApi::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
-                CompiledKotlinInitscriptBlock::class
-            ),
-            equalTo(emptyList())
-        )
-    }
-
-    @Test
-    fun `settings script template is backward compatible`() {
-        @Suppress("deprecation")
-        assertThat(
-            SettingsScriptApi::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
-                CompiledKotlinSettingsPluginManagementBlock::class
-            ).missingMembersFrom(
-                Settings::class
-            ),
-            equalTo(emptyList())
-        )
-    }
 }
 
 
