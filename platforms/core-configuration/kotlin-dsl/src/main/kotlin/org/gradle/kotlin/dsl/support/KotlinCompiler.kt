@@ -27,7 +27,6 @@ import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
 import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
-import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -70,7 +69,6 @@ import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigura
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingK2CompilerPluginRegistrar
 import org.jetbrains.kotlin.scripting.compiler.plugin.impl.ScriptJvmCompilerFromEnvironment
 import org.jetbrains.kotlin.scripting.compiler.plugin.toCompilerMessageSeverity
-import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.SCRIPT_DEFINITIONS
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.utils.PathUtil
 import org.slf4j.Logger
@@ -99,59 +97,6 @@ import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvmhost.BasicJvmScriptClassFilesGenerator
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.JvmScriptCompiler
-
-
-@Suppress("LongParameterList")
-fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
-    outputDirectory: File,
-    compilerOptions: KotlinCompilerOptions,
-    moduleName: String,
-    scriptFiles: Collection<String>,
-    scriptDef: ScriptDefinition,
-    classPath: Iterable<File>,
-    logger: Logger,
-    pathTranslation: (String) -> String
-) = compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
-    outputDirectory,
-    compilerOptions,
-    moduleName,
-    scriptFiles,
-    scriptDef,
-    classPath,
-    LoggingMessageCollector(logger, onCompilerWarningsFor(compilerOptions.allWarningsAsErrors), pathTranslation)
-)
-
-
-/**
- * Still uses internal K1 API until the consuming task is replaced with a regular KotlinCompile.
- */
-private
-fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
-    outputDirectory: File,
-    compilerOptions: KotlinCompilerOptions,
-    moduleName: String,
-    scriptFiles: Collection<String>,
-    scriptDef: ScriptDefinition,
-    classPath: Iterable<File>,
-    messageCollector: LoggingMessageCollector
-) {
-    withRootDisposable {
-        withCompilationExceptionHandler(messageCollector) {
-            val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
-                put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName(moduleName)
-                addScriptingCompilerComponents()
-                addScriptDefinition(scriptDef)
-                scriptFiles.forEach { addKotlinSourceRoot(it) }
-                classPath.forEach { addJvmClasspathRoot(it) }
-            }
-
-            compileBunchOfSources(kotlinCoreEnvironmentFor(configuration))
-                || throw ScriptCompilationException(messageCollector.errors)
-        }
-    }
-}
-
 
 fun scriptDefinitionFromTemplate(
     template: KClass<out Any>,
@@ -423,7 +368,6 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
 
 
 @VisibleForTesting
-internal
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
     // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 24
     return JvmTarget.fromString(majorVersion)
@@ -475,12 +419,6 @@ fun CompilerConfiguration.addScriptingCompilerComponents() {
         org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar.COMPILER_PLUGIN_REGISTRARS,
         AssignmentComponentRegistrar()
     )
-}
-
-
-private
-fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
-    add(SCRIPT_DEFINITIONS, scriptDef)
 }
 
 

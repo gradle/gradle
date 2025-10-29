@@ -23,7 +23,7 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaultsH
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsRepository
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolutionResults
-import org.gradle.internal.declarativedsl.evaluator.defaults.defaultsForAllUsedSoftwareFeatures
+import org.gradle.internal.declarativedsl.evaluator.defaults.defaultsForAllUsedProjectFeatures
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
@@ -66,7 +66,7 @@ class SimpleAnalysisEvaluator(
             // Note that for this evaluator, which only analyzes the script (but does not apply conversion), we add the model defaults
             // to the resolution result so that they are visible to clients after analysis.  We instead do this application as part
             // of the conversion step runner (during plugin application) for normal script evaluation.
-            AllSoftwareTypesApplyModelDefaultsHandler(modelDefaultsStorage)
+            AllProjectTypesApplyModelDefaultsHandler(modelDefaultsStorage)
         )
     )
 
@@ -95,7 +95,7 @@ class SimpleAnalysisEvaluator(
 
 
 private
-class AllSoftwareTypesApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository) : ApplyModelDefaultsHandler {
+class AllProjectTypesApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository) : ApplyModelDefaultsHandler {
     override fun getDefaultsResolutionResults(resolutionResult: ResolutionResult): List<ModelDefaultsResolutionResults> =
-        defaultsForAllUsedSoftwareFeatures(modelDefaultsRepository, resolutionResult)
+        defaultsForAllUsedProjectFeatures(modelDefaultsRepository, resolutionResult)
 }

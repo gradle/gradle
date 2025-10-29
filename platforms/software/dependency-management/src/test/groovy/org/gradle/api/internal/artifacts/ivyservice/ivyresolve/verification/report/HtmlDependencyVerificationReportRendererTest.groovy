@@ -61,20 +61,28 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     File currentReportDir
     File currentReportFile
     Document report
-    boolean useKeyServers = false
 
     @Subject
-    HtmlDependencyVerificationReportRenderer renderer = new HtmlDependencyVerificationReportRenderer(
+    HtmlDependencyVerificationReportRenderer noKeyServerRenderer = new HtmlDependencyVerificationReportRenderer(
         Mock(DocumentationRegistry),
         verificationFile,
         ["pgp", "sha512"],
         reportsDir,
-        useKeyServers
+        false
+    )
+
+    @Subject
+    HtmlDependencyVerificationReportRenderer useKeyServerRenderer = new HtmlDependencyVerificationReportRenderer(
+        Mock(DocumentationRegistry),
+        verificationFile,
+        ["pgp", "sha512"],
+        reportsDir,
+        true
     )
 
     def "copies required resources"() {
         when:
-        generateReport()
+        generateReport(noKeyServerRenderer)
 
         then:
         ['css': ['uikit.min.css'],
@@ -89,18 +97,18 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     def "can add different sections"() {
         given:
-        renderer.startNewSection("First section")
+        noKeyServerRenderer.startNewSection("First section")
 
         when:
-        generateReport()
+        generateReport(noKeyServerRenderer)
 
         then:
         bodyContains("First section")
         bodyContainsExact("First section 0 error")
 
         when:
-        renderer.startNewSection("Second section")
-        generateReport()
+        noKeyServerRenderer.startNewSection("Second section")
+        generateReport(noKeyServerRenderer)
 
         then:
         bodyContains("First section")
@@ -113,20 +121,13 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     @Unroll("reports sticky tip for (#failure) using a key server")
     def "reports sticky tip for (#failure) using a key server"() {
         given:
-        HtmlDependencyVerificationReportRenderer keyServerRenderer = new HtmlDependencyVerificationReportRenderer(
-            Mock(DocumentationRegistry),
-            verificationFile,
-            ["pgp", "sha512"],
-            reportsDir,
-            true
-        )
-        keyServerRenderer.startNewSection(":someConfiguration")
-        keyServerRenderer.startNewArtifact(artifact()) {
-            keyServerRenderer.reportFailure(failure)
+        useKeyServerRenderer.startNewSection(":someConfiguration")
+        useKeyServerRenderer.startNewArtifact(artifact()) {
+            useKeyServerRenderer.reportFailure(failure)
         }
 
         when:
-        generateReport()
+        generateReport(useKeyServerRenderer)
 
         then:
         bodyContains(stickyTipMessage)
@@ -149,13 +150,13 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     @Unroll("reports sticky tip for (#failure) without using a key server")
     def "reports sticky tip for (#failure) without using a key server"() {
         given:
-        renderer.startNewSection(":someConfiguration")
-        renderer.startNewArtifact(artifact()) {
-            renderer.reportFailure(failure)
+        noKeyServerRenderer.startNewSection(":someConfiguration")
+        noKeyServerRenderer.startNewArtifact(artifact()) {
+            noKeyServerRenderer.reportFailure(failure)
         }
 
         when:
-        generateReport()
+        generateReport(noKeyServerRenderer)
 
         then:
         bodyContains(stickyTipMessage)
@@ -174,16 +175,16 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
     }
 
-    @Unroll("reports verification errors (#failure)")
-    def "reports verification errors"() {
+    @Unroll("reports verification errors without key server (#failure)")
+    def "reports verification errors without key server"() {
         given:
-        renderer.startNewSection(":someConfiguration")
-        renderer.startNewArtifact(artifact()) {
-            renderer.reportFailure(failure)
+        noKeyServerRenderer.startNewSection(":someConfiguration")
+        noKeyServerRenderer.startNewArtifact(artifact()) {
+            noKeyServerRenderer.reportFailure(failure)
         }
 
         when:
-        generateReport()
+        generateReport(noKeyServerRenderer)
 
         def errors = errorsFor(":someConfiguration")
         then:
@@ -202,7 +203,41 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         deletedArtifact()                                                       | 'Artifact has been deleted from dependency cache'
         missingSignature()                                                      | 'Signature file is missing'
         onlyIgnoredKeys()                                                       | 'All public keys have been ignored'
-        signatureFailure()                                                      | "Key abcd123 (not found) couldn't be found in any key server so verification couldn't be performed"
+        signatureFailure()                                                      | 'Key abcd123 (not found) couldn\'t be found in local key file so verification couldn\'t be performed. Enable key resolution with --export-keys.'
+        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | 'Artifact was signed with key abcd (not found) but signature didn\'t match'
+        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | 'Artifact was signed with an ignored key: abcd (not found)'
+        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | 'Artifact was signed with key abcd (not found) but this key is not in your trusted key list'
+    }
+
+    @Unroll("reports verification errors with key server (#failure)")
+    def "reports verification errors with key server"() {
+        given:
+        useKeyServerRenderer.startNewSection(":someConfiguration")
+        useKeyServerRenderer.startNewArtifact(artifact()) {
+            useKeyServerRenderer.reportFailure(failure)
+        }
+
+        when:
+        generateReport(useKeyServerRenderer)
+
+        def errors = errorsFor(":someConfiguration")
+        then:
+        bodyContains("./gradlew --write-verification-metadata")
+        verifyAll(errors[0]) {
+            module == 'org:foo:1.0'
+            artifact == 'foo-1.0.jar'
+            artifactTooltip == "From repository 'Maven'"
+            problem == expectedProblem
+        }
+
+        where:
+        failure                                                                 | expectedProblem
+        checksumFailure()                                                       | 'Expected a sha256 checksum of 0abcd but was 0000'
+        missingChecksums()                                                      | 'Checksums are missing from verification metadata'
+        deletedArtifact()                                                       | 'Artifact has been deleted from dependency cache'
+        missingSignature()                                                      | 'Signature file is missing'
+        onlyIgnoredKeys()                                                       | 'All public keys have been ignored'
+        signatureFailure()                                                      | 'Key abcd123 (not found) couldn\'t be found in local key file or remote key servers so verification couldn\'t be performed.'
         signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | 'Artifact was signed with key abcd (not found) but signature didn\'t match'
         signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | 'Artifact was signed with an ignored key: abcd (not found)'
         signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | 'Artifact was signed with key abcd (not found) but this key is not in your trusted key list'
@@ -210,17 +245,17 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     def "reports multiple verification errors on single configuration"() {
         given:
-        renderer.startNewSection(":someConfiguration")
-        renderer.startNewArtifact(artifact()) {
-            renderer.reportFailure(checksumFailure())
-            renderer.reportFailure(missingSignature())
+        noKeyServerRenderer.startNewSection(":someConfiguration")
+        noKeyServerRenderer.startNewArtifact(artifact()) {
+            noKeyServerRenderer.reportFailure(checksumFailure())
+            noKeyServerRenderer.reportFailure(missingSignature())
         }
-        renderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
-            renderer.reportFailure(onlyIgnoredKeys("Ivy"))
+        noKeyServerRenderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
+            noKeyServerRenderer.reportFailure(onlyIgnoredKeys("Ivy"))
         }
 
         when:
-        generateReport()
+        generateReport(noKeyServerRenderer)
 
         def errors = errorsFor(":someConfiguration")
 
@@ -241,18 +276,18 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     def "reports multiple verification errors on different configurations"() {
         given:
-        renderer.startNewSection(":someConfiguration")
-        renderer.startNewArtifact(artifact()) {
-            renderer.reportFailure(checksumFailure())
-            renderer.reportFailure(missingSignature())
+        noKeyServerRenderer.startNewSection(":someConfiguration")
+        noKeyServerRenderer.startNewArtifact(artifact()) {
+            noKeyServerRenderer.reportFailure(checksumFailure())
+            noKeyServerRenderer.reportFailure(missingSignature())
         }
-        renderer.startNewSection(":other:configuration")
-        renderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
-            renderer.reportFailure(onlyIgnoredKeys("Ivy"))
+        noKeyServerRenderer.startNewSection(":other:configuration")
+        noKeyServerRenderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
+            noKeyServerRenderer.reportFailure(onlyIgnoredKeys("Ivy"))
         }
 
         when:
-        generateReport()
+        generateReport(noKeyServerRenderer)
 
         def errors1 = errorsFor(":someConfiguration")
         def errors2 = errorsFor(":other:configuration")
@@ -274,21 +309,21 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
     def "aggregates errors on the same configurations"() {
         given:
-        renderer.startNewSection(":someConfiguration")
-        renderer.startNewArtifact(artifact()) {
-            renderer.reportFailure(checksumFailure())
+        noKeyServerRenderer.startNewSection(":someConfiguration")
+        noKeyServerRenderer.startNewArtifact(artifact()) {
+            noKeyServerRenderer.reportFailure(checksumFailure())
         }
-        renderer.startNewSection(":other:configuration")
-        renderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
-            renderer.reportFailure(onlyIgnoredKeys("Ivy"))
+        noKeyServerRenderer.startNewSection(":other:configuration")
+        noKeyServerRenderer.startNewArtifact(artifact("com", "acme", "2.0", "acme-2.0.pom")) {
+            noKeyServerRenderer.reportFailure(onlyIgnoredKeys("Ivy"))
         }
-        renderer.startNewSection(":someConfiguration")
-        renderer.startNewArtifact(artifact()) {
-            renderer.reportFailure(missingSignature())
+        noKeyServerRenderer.startNewSection(":someConfiguration")
+        noKeyServerRenderer.startNewArtifact(artifact()) {
+            noKeyServerRenderer.reportFailure(missingSignature())
         }
 
         when:
-        generateReport()
+        generateReport(noKeyServerRenderer)
 
         def errors1 = errorsFor(":someConfiguration")
         def errors2 = errorsFor(":other:configuration")
@@ -353,7 +388,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         )
     }
 
-    private void generateReport() {
+    private void generateReport(HtmlDependencyVerificationReportRenderer renderer) {
         currentReportFile = renderer.writeReport()
         currentReportDir = currentReportFile.parentFile
         Jsoup.parse(currentReportFile, UTF_8.name())

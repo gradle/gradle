@@ -23,24 +23,24 @@ import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretation
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
-import org.gradle.internal.declarativedsl.software.softwareFeaturesComponent
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.gradle.internal.declarativedsl.software.projectFeaturesComponent
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 
 internal
 fun projectInterpretationSequence(
-    softwareFeatureRegistry: SoftwareFeatureRegistry
-) = DefaultInterpretationSequence(listOf(projectInterpretationSequenceStep(softwareFeatureRegistry)))
+    projectFeatureDeclarations: ProjectFeatureDeclarations
+) = DefaultInterpretationSequence(listOf(projectInterpretationSequenceStep(projectFeatureDeclarations)))
 
 
 fun projectEvaluationSchema(
-    softwareFeatureRegistry: SoftwareFeatureRegistry,
+    projectFeatureDeclarations: ProjectFeatureDeclarations,
 ): EvaluationAndConversionSchema {
     return buildEvaluationAndConversionSchema(ProjectTopLevelReceiver::class, analyzeEverything) {
         gradleDslGeneralSchema()
         dependencyCollectors()
         ifConversionSupported {
-            softwareFeaturesComponent(ProjectTopLevelReceiver::class, softwareFeatureRegistry, withDefaultsApplication = true)
+            projectFeaturesComponent(ProjectTopLevelReceiver::class, projectFeatureDeclarations, withDefaultsApplication = true)
         }
     }
 }

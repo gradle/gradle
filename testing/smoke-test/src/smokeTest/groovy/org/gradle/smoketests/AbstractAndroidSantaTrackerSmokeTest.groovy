@@ -92,6 +92,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
             "-DkotlinVersion=$kotlinVersion",
             "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
             "-DbuildToolsVersion=${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}",
+            "-Dscan.tag.SantaTrackerSmokeTest",
             "--stacktrace"
         ] + tasks.toList()
 
@@ -112,9 +113,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
             )
-        }
-        runner.deprecations(SantaTrackerDeprecations) {
-            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
         }
         1.times {
             runner.maybeExpectLegacyDeprecationWarning(

@@ -53,7 +53,7 @@ class ResourceLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArguments("--parallel", "-D${DefaultBuildOperationsParameters.VERBOSE_LOCKING_OPERATIONS_OPTION.systemPropertyName}")
+        executer.withArguments("--parallel", "-D${DefaultBuildOperationsParameters.VERBOSE_LOCKING_OPERATIONS_OPTION.systemPropertyName}=true")
         succeeds(":wait", ":child:blocked")
 
         then:

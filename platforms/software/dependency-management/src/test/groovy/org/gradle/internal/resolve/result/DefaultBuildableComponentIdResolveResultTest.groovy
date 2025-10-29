@@ -17,8 +17,8 @@
 package org.gradle.internal.resolve.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
@@ -70,7 +70,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
 
     def "can mark as failed"() {
         org.gradle.internal.Factory<String> broken = { "too bad" }
-        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), broken)
+        def failure = new ModuleVersionResolveException(Stub(ModuleComponentSelector), broken)
 
         when:
         result.failed(failure)

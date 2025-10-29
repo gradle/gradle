@@ -61,6 +61,8 @@ val core = platform("core") {
         subproject("base-asm")
         subproject("base-services")
         subproject("build-configuration")
+        subproject("build-discovery")
+        subproject("build-discovery-impl")
         subproject("build-operations")
         subproject("build-operations-trace")
         subproject("build-option")
@@ -151,9 +153,9 @@ val core = platform("core") {
         subproject("model-core")
         subproject("model-reflect")
         subproject("model-groovy")
-        subproject("software-features")
-        subproject("software-features-api")
-        subproject("software-features-demos")
+        subproject("project-features")
+        subproject("project-features-api")
+        subproject("project-features-demos")
     }
 
     // Core Execution Module

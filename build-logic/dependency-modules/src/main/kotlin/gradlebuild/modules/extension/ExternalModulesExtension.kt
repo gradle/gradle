@@ -27,7 +27,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     }
 
     val configurationCacheReportVersion = "1.27"
-    val gradleIdeStarterVersion = "0.8.1"
+    val gradleIdeStarterVersion = "0.8.2"
     val kotlinVersion = "2.2.20"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -113,6 +113,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val jgitSshAgent = "org.eclipse.jgit:org.eclipse.jgit.ssh.apache.agent"
     val jna = "net.java.dev.jna:jna"
     val jnaPlatform = "net.java.dev.jna:jna-platform"
+    val jnrConstants = "com.github.jnr:jnr-constants"
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
@@ -285,6 +286,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         jcommander to License.Apache2,
         jetbrainsAnnotations to License.Apache2,
         jgit to License.EDL,
+        jnrConstants to License.Apache2,
         joda to License.Apache2,
         jsch to License.BSDStyle,
         jsr305 to License.BSD3,

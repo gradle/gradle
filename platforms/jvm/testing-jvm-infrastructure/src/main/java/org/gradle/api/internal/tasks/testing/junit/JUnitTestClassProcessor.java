@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestClassConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -37,12 +36,6 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
     }
 
     @Override
-    protected TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor) {
-        TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(resultProcessor);
-        return new TestClassExecutionEventGenerator(resultProcessorChain, idGenerator, clock);
-    }
-
-    @Override
     public void assertTestFrameworkAvailable() {
         try {
             Class.forName("org.junit.runner.notification.RunListener");
@@ -52,16 +45,14 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    protected TestClassConsumer createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
-        TestClassExecutionListener threadSafeTestClassListener = resultProcessorActor.getProxy(TestClassExecutionListener.class);
 
         return new JUnitTestClassExecutor(
             Thread.currentThread().getContextClassLoader(),
             spec,
             clock,
             idGenerator,
-            threadSafeTestClassListener,
             threadSafeResultProcessor
         );
     }

@@ -467,7 +467,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             "Syncing to a directory which contains unreadable content is not supported. " +
             "Use a Copy task with Task.doNotTrackState() instead. " +
             documentationRegistry.getDocumentationRecommendationFor("information", "incremental_build", "sec:disable-state-tracking"))
-        failureHasCause("Failed to create MD5 hash for file '${unreadableOutput}' as it does not exist.")
+        failureHasCause("Failed to create MD5 hash for file: ${unreadableOutput} (Permission denied)")
 
         cleanup:
         unreadableOutput.makeReadable()

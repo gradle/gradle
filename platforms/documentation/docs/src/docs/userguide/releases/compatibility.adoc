@@ -68,7 +68,7 @@ We encourage users to try it out and let us know.
 [[kotlin]]
 == Kotlin
 
-Gradle is tested with Kotlin 2.0.0 through 2.2.20.
+Gradle is tested with Kotlin 2.0.0 through 2.3.0-Beta2.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -114,7 +114,7 @@ Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Grad
 
 == Android
 
-Gradle is tested with Android Gradle Plugin 8.4 through 8.13.
+Gradle is tested with Android Gradle Plugin 8.13 through 9.0.0-alpha11.
 Alpha and beta versions may or may not work.
 
 == Target Platforms
@@ -142,3 +142,10 @@ The following table lists the officially supported platforms for Gradle:
 NOTE: Currently, all Gradle tests run with the default file-systems of the platform, i.e. `ext4` for Ubuntu, Amazon Linux and CentOS, `NTFS` for Windows, and `APFS` for macOS.
 
 Platforms not listed above may work with Gradle but are not actively tested.
+
+[[known_issues]]
+=== Known issues
+
+* **Windows AArch64**: Rich console output is not available.
+Both the default behavior and `--console=rich` fall back to plain console output.
+

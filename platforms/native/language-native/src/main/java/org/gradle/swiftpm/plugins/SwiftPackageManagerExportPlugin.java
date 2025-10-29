@@ -209,7 +209,7 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
                     target.getRequiredTargets().add(identifier.getTargetName());
                 } else if (dependency instanceof ExternalModuleDependency) {
                     ExternalModuleDependency externalDependency = (ExternalModuleDependency) dependency;
-                    ModuleComponentSelector depSelector = DefaultModuleComponentSelector.newSelector(externalDependency);
+                    ModuleComponentSelector depSelector = DefaultModuleComponentSelector.newSelector(externalDependency.getModule(), externalDependency.getVersionConstraint());
                     VersionControlSpec vcsSpec = vcsResolver.locateVcsFor(depSelector);
                     if (vcsSpec == null || !(vcsSpec instanceof GitVersionControlSpec)) {
                         throw new InvalidUserDataException(String.format("Cannot determine the Git URL for dependency on %s:%s.", dependency.getGroup(), dependency.getName()));

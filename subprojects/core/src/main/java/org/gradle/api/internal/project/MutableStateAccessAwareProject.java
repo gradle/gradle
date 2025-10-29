@@ -75,7 +75,6 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -90,7 +89,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
@@ -110,11 +109,9 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
         ProjectInternal target,
         ProjectInternal referrer,
-        Function<ProjectInternal, T> wrapper
+        Supplier<T> wrapperSupplier
     ) {
-        return target == referrer
-            ? target
-            : wrapper.apply(target);
+        return target == referrer ? target : wrapperSupplier.get();
     }
 
     protected final ProjectInternal delegate;
@@ -837,12 +834,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public ServiceRegistry getServices() {
         onMutableStateAccess("services");
         return delegate.getServices();
-    }
-
-    @Override
-    public ServiceRegistryFactory getServiceRegistryFactory() {
-        onMutableStateAccess("serviceRegistryFactory");
-        return delegate.getServiceRegistryFactory();
     }
 
     @Override

@@ -35,7 +35,7 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:3.0.1")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:3.4.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
@@ -67,6 +67,9 @@ dependencies {
         api("org.jetbrains.dokka:dokka-gradle-plugin:2.0.0")
         api("com.fasterxml.woodstox:woodstox-core:6.4.0") {
             because("CVE-2022-40152 on lower versions")
+        }
+        api("com.fasterxml.jackson:jackson-bom:2.16.1") {
+            because("CVE-2025-52999 on lower versions")
         }
         api("com.beust:jcommander:1.78")
         api("$groovyGroup:groovy:$groovyVersion")

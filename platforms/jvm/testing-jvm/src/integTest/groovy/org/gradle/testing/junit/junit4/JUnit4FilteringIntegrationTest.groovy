@@ -22,6 +22,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_LARGE_COVERAGE
 
 @TargetCoverage({ JUNIT4_LARGE_COVERAGE })
 class JUnit4FilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnit4MultiVersionTest {
+
     def 'filter as many classes as possible before sending to worker process'() {
         given:
         // We can know which class is sent to TestClassProcessor via afterSuite() hook method

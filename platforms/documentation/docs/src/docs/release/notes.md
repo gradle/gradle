@@ -12,34 +12,16 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release introduces support for [running Gradle on Windows ARM (ARM64) devices](#windows-arm-support), making it easier to build on ARM-based systems.
+This release features [1](), [2](), ... [n](), and more.
 
-It also [improves the publishing API](#publishing-improvements) with new ways to define and publish custom software components.
+<!-- 
+Include only their name, impactful features should be called out separately below.
+ [Some person](https://github.com/some-person)
 
-Additionally, there are [error and warning reporting improvements](#error), including better suggestions when dependency verification fails, and [new task grouping for Antlr](#antlr-task-group).
-
-The [Daemon toolchain feature has been promoted](#daemon-promo) to stable.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+-->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Adam](https://github.com/aSemy),
-[Björn Kautler](https://github.com/Vampire),
-[hasunzo](https://github.com/hasunzo),
-[HYEON](https://github.com/iohyeon),
-[Hyunjoon Park](https://github.com/academey),
-[HYUNJUN SON](https://github.com/guswns1659),
-[Jendrik Johannes](https://github.com/jjohannes),
-[Kirill Gavrilov](https://github.com/gavvvr),
-[Madalin Valceleanu](https://github.com/vmadalin),
-[Martin Bonnin](https://github.com/martinbonnin),
-[Mikhail Polivakha](https://github.com/mipo256),
-[Na Minhyeok](https://github.com/NaMinhyeok),
-[Philip Wedemann](https://github.com/hfhbd),
-[Philipp Schneider](https://github.com/p-schneider),
-[Róbert Papp](https://github.com/TWiStErRob),
-[Simon Marquis](https://github.com/SimonMarquis),
-[TheGoesen](https://github.com/TheGoesen),
-[Vincent Potucek](https://github.com/Pankraz76),
-[Xin Wang](https://github.com/scaventz).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -57,127 +39,103 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-<a name="windows-arm-support"></a>
-### Windows on ARM support
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-Gradle now supports [running builds on Windows ARM (ARM64) devices](userguide/compatibility.html#target_platforms).
+<!--
 
-This makes it possible to run Gradle on Windows virtual machines hosted on ARM-based systems.
+================== TEMPLATE ==============================
 
-<a name="publishing-improvements"></a>
-### Publishing improvements
+### FILL-IN-KEY-AREA improvements
 
-Gradle provides APIs for plugin authors and build engineers to define and customize the software [components](userguide/glossary.html#sub:terminology_component) their project produces when [publishing](userguide/publishing_customization.html) them.
+<<<FILL IN CONTEXT FOR KEY AREA>>>
+Example:
+> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
+> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
+> nothing that affects the build configuration has changed.
 
-#### New `PublishingExtension.getSoftwareComponentFactory()` method
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves
+> EXPLAIN how the new release addresses that problem or use case
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
+> LINK to the full documentation for more details
 
-Gradle now exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service directly through the `publishing` extension.
-This makes it easier to create and publish [custom components](userguide/publishing_customization.html#sec:publishing-custom-components).
+To embed videos, use the macros below. 
+You can extract the URL from YouTube by clicking the "Share" button. 
+For Wistia, contact Gradle's Video Team.
+@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
+@wistia(Summary,a5izazvgit)@
 
-In most builds, a publishable component is already available.
-For example, the Java plugins automatically provide a `java` component.
-But if you’re authoring a plugin and want to publish something custom without depending on the Java plugins, this new method provides a straightforward way to do so:
+================== END TEMPLATE ==========================
 
-```kotlin
-plugins {
-    id("maven-publish")
-}
 
-val consumableConfiguration: Configuration = getAConfiguration()
+==========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-publishing {
-    val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
-    myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
+### Build authoring improvements
 
-    publications {
-        create<MavenPublication>("maven") {
-            from(myCustomComponent)
-        }
-    }
-}
-```
+#### New `AttributeContainer.named()` method
 
-#### New provider-based methods for publishing configurations
+This release introduces a new convenience method on `AttributeContainer`, [`named()`](javadoc/org/gradle/api/attributes/AttributeContainer.html#named(java.lang.Class,java.lang.String)), which can create attribute values directly from the container without requiring a separate `ObjectFactory` instance.
 
-Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) that accept providers of [consumable configurations](userguide/declaring_configurations.html#sec:resolvable-consumable-configs):
-
-- [`void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#addVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
-- [`void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#withVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
-
-These complement the existing overloads that require an already realized configuration.
-
-By accepting providers, configurations can now stay lazy and are only realized when needed for publishing:
+This method makes attribute assignment more concise while preserving the same semantics as creating a named value via `ObjectFactory`:
 
 ```kotlin
-plugins {
-    id("base")
-    id("maven-publish")
-}
-
-group = "org.example"
-version = "1.0"
-
-val myTask = tasks.register<Jar>("myTask")
-val variantDependencies = configurations.dependencyScope("variantDependencies")
-val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configurations.consumable("myNewVariant") {
-    extendsFrom(variantDependencies.get())
-    outgoing {
-        artifact(myTask)
-    }
+configurations.resolvable("foo") {
     attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
-    }
-}
-
-publishing {
-    val component = softwareComponentFactory.adhoc("component")
-    // New overload accepts a provider instead of a realized configuration
-    component.addVariantsFromConfiguration(myNewVariant) {}
-
-    repositories {
-        maven {
-            url = uri("<your repo url>")
-        }
-    }
-    publications {
-        create<MavenPublication>("myPublication") {
-            from(component)
-        }
+        // Before: 
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "red"))
+        
+        // After:
+        attribute(Usage.USAGE_ATTRIBUTE, named(Usage::class.java, "red"))
     }
 }
 ```
 
-With this approach, `myNewVariant` is only realized if the `myPublication` publication is actually published.
+### Stream TestKit output
 
-<a name="error"></a>
-### Error and warning reporting improvements
+Gradle TestKit's `BuildResult` now offers a new method for accessing the build console output efficiently, especially for builds that produce a large volume of logs.
 
-Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
+[`BuildResult.getOutput()`](javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+returns a `String` with the full build console output.
+This can use large amounts of memory for builds with extensive logs.
 
-#### Improved suggestion when dependency verification fails
+A new 
+[`BuildResult.getOutputReader()`](javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+method is available, returning a `BufferedReader` for streaming the build output incrementally.
+This can help reduce memory pressure in TestKit tests.
 
-Gradle’s [dependency verification](userguide/dependency_verification.html) helps you mitigate security risks by ensuring downloaded artifacts match expected checksums or are signed with trusted keys.
+Please ensure you close the `BufferedReader` after use; we recommend the standard Java try-with-resources pattern for this:
 
-When you disable key servers in `gradle/verification-metadata.xml` using `<key-servers enabled="false"/>` and a verification failure occurs due to missing keys, Gradle now adds the `--export-keys` parameter to suggested commands:
+```java
+void testProject() {
+    BuildResult buildResult = GradleRunner.create()
+        .withProjectDir(File("test-project"))
+        .withArguments(":build", "--info")
+        .build();
 
-![Dependency Verification Fails Suggestion](release-notes-assets/dependency-verification-suggestion.png)
-
-<a name="antlr-task-group"></a>
-### Antlr task grouping improvements
-
-[Antlr-related tasks](userguide/antlr_plugin.html) such as `generateGrammarSource` and `generateTestGrammarSource` are now grouped under `Antlr` in Gradle’s task listings.
-
-Previously, these tasks appeared in the default `Other tasks` group, which only shows when running `./gradlew tasks --all`.  
-By assigning them to the `Antlr` group, they are easier to discover:
-
-```bash
-$ ./gradlew tasks
-
-Antlr tasks
------------
-plugin:generateGrammarSource - Processes the main Antlr grammars.
-plugin:generateTestGrammarSource - Processes the test Antlr grammars.
+    try (BufferedReader outputReader = buildResult.getOutputReader()) {
+        List<String> logLines = outputReader.lines()
+            .filter(line -> line.contains("example build message"))
+            .collect(Collectors.toList());
+        // do something with the log lines...
+    }
+}
 ```
+
+### Simple console rendering for Problem Reports
+The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
+
+Previously, a limitation was that problem reports were not displayed in the console output.
+In this release, we've taken a first step toward full console integration.
+All problem reports are now rendered in the console output when you configure `--warning-mode=all`.
+
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
 
 ## Promoted features
 
@@ -186,11 +144,9 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-<a name="daemon-promo"></a>
-### Daemon toolchain is now stable
-
-The [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria), introduced as an incubating feature in Gradle 8.8, has been improved and is now stable.
-It no longer prints an incubation warning when used.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 

@@ -49,7 +49,7 @@ abstract class AbstractVersionsUpdateTask : DefaultTask() {
             docFile.readLines().joinToString(separator = "\n", postfix = "\n") { line ->
                 if (line.startsWith(linePrefix)) {
                     lineFound = true
-                    "$linePrefix ${firstVersion} through ${latestVersion}."
+                    "$linePrefix ${firstVersion}${if(firstVersion == latestVersion) "" else " through $latestVersion"}."
                 } else {
                     line
                 }

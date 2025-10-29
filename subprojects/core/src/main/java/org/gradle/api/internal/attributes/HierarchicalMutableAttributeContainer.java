@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
@@ -101,6 +102,11 @@ import java.util.TreeMap;
             return primary.asImmutable();
         }
         return attributesFactory.concat(fallback.asImmutable(), primary.asImmutable());
+    }
+
+    @Override
+    public <T extends Named> T named(Class<T> type, String name) {
+        return primary.named(type, name);
     }
 
     @Override

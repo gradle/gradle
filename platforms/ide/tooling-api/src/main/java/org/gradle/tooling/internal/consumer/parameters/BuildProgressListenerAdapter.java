@@ -246,6 +246,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -1229,11 +1230,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static List<Failure> toFailures(@Nullable List<? extends InternalFailure> causes) {
+    public static List<Failure> toFailures(@Nullable Collection<? extends InternalFailure> causes) {
         if (causes == null) {
             return null;
         }
-        List<Failure> failures = new ArrayList<>();
+        List<Failure> failures = new ArrayList<>(causes.size());
         for (InternalFailure cause : causes) {
             Failure f = toFailure(cause);
             if (f != null) {

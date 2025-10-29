@@ -16,16 +16,24 @@
 
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
+import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.startsWith
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec {
+class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
+    }
+
     def setup() {
         executer.withRepositoryMirrors()
     }
@@ -77,11 +85,12 @@ class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec 
         fails 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("TestCaseWithThrowingBeforeAllAndAfterAllCallbacks")
-            .testFailed("initializationError", equalTo('java.lang.IllegalStateException: beforeAll callback'))
-        result.testClass("TestCaseWithThrowingBeforeAllAndAfterAllCallbacks")
-            .testFailed("initializationError", containsString('Suppressed: CustomException: afterAll callback'))
+        def result = resultsFor()
+        result.testPathPreNormalized(":TestCaseWithThrowingBeforeAllAndAfterAllCallbacks:initializationError").onlyRoot()
+            .assertFailureMessages(allOf(
+                startsWith('java.lang.IllegalStateException: beforeAll callback'),
+                containsString('Suppressed: CustomException: afterAll callback')
+            ))
     }
 
     def "suppressed exceptions are transported even for custom exception types"() {
@@ -134,14 +143,18 @@ class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec 
         fails 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("SuppressedExceptionsAccidentallyThrownNotShownByGradleTest")
-            .testFailed("failingWithSuppressedExceptionTest", equalTo('java.lang.RuntimeException: This is an exception with suppressed one.'))
-        result.testClass("SuppressedExceptionsAccidentallyThrownNotShownByGradleTest")
-            .testFailed("failingWithSuppressedExceptionTest", containsString('I am suppressed'))
-        result.testClass("SuppressedExceptionsAccidentallyThrownNotShownByGradleTest")
-            .testFailed("failingWithCustomSuppressedExceptionTest", equalTo('SuppressedExceptionsAccidentallyThrownNotShownByGradleTest$CustomException: This is a CUSTOM exception with suppressed one'))
-        result.testClass("SuppressedExceptionsAccidentallyThrownNotShownByGradleTest")
-            .testFailed("failingWithCustomSuppressedExceptionTest", containsString('I AM SUPPRESSED AND CUSTOM'))
+        def result = resultsFor()
+        result.testPath(":SuppressedExceptionsAccidentallyThrownNotShownByGradleTest:failingWithSuppressedExceptionTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(allOf(
+                startsWith('java.lang.RuntimeException: This is an exception with suppressed one.'),
+                containsString('Suppressed: java.lang.RuntimeException: I am suppressed')
+            ))
+        result.testPath(":SuppressedExceptionsAccidentallyThrownNotShownByGradleTest:failingWithCustomSuppressedExceptionTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(allOf(
+                startsWith('SuppressedExceptionsAccidentallyThrownNotShownByGradleTest$CustomException: This is a CUSTOM exception with suppressed one'),
+                containsString('Suppressed: java.lang.RuntimeException: I AM SUPPRESSED AND CUSTOM')
+            ))
     }
 }

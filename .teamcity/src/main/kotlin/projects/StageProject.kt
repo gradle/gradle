@@ -1,5 +1,6 @@
 package projects
 
+import common.FlakyTestStrategy
 import common.HIDDEN_ARTIFACT_DESTINATION
 import common.Os
 import common.uuidPrefix
@@ -73,7 +74,7 @@ class StageProject(
 
         specificBuildTypes =
             stage.specificBuilds.map {
-                it.create(model, stage)
+                it.create(model, stage, FlakyTestStrategy.EXCLUDE)
             }
         specificBuildTypes.forEach(this::buildType)
 
@@ -181,7 +182,7 @@ class StageProject(
 
         flakyTestQuarantineTriggers = mutableListOf()
         if (stage.stageName == StageName.READY_FOR_RELEASE) {
-            listOf(Os.LINUX, Os.WINDOWS).forEach {
+            listOf(Os.LINUX, Os.WINDOWS, Os.MACOS).forEach {
                 val flakyTestQuarantineProject = FlakyTestQuarantineProject(model, stage, it)
                 val flakyTestQuarantineProjectTrigger = FlakyTestQuarantineTrigger(model, flakyTestQuarantineProject)
                 flakyTestQuarantineTriggers.add(flakyTestQuarantineProjectTrigger)

@@ -25,7 +25,7 @@ import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.transformation.OriginReplacement.replaceReceivers
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
-import org.gradle.internal.declarativedsl.evaluator.softwareTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
+import org.gradle.internal.declarativedsl.evaluator.projectTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
 import java.io.Serializable
 
 
@@ -43,7 +43,7 @@ interface ApplyModelDefaultsHandler : ResolutionResultHandler {
     override fun processResolutionResult(resolutionResult: ResolutionResult): ResolutionResult {
         with(DefaultsTransformer(resolutionResult.topLevelReceiver)) {
             val defaultsResolutionResultsToApply = getDefaultsResolutionResults(resolutionResult)
-            // For the referenced software types, add their model defaults as operations mapped onto the top-level receiver
+            // For the referenced project types, add their model defaults as operations mapped onto the top-level receiver
             val assignmentsFromDefaults = applyAssignmentDefaults(defaultsResolutionResultsToApply)
             val additionsFromDefaults = applyAdditionDefaults(defaultsResolutionResultsToApply)
             val nestedObjectAccessFromDefaults = applyNestedObjectAccessDefaults(defaultsResolutionResultsToApply)
@@ -61,7 +61,7 @@ interface ApplyModelDefaultsHandler : ResolutionResultHandler {
         /**
          * A handler that does not apply any model defaults.  We use this during the main script processing step so that the interpretation
          * step will positively handle the {@link ApplyModelDefaults} feature.  However, most model defaults are applied by
-         * the {@link DeclarativeModelDefaultsHandler} during application of the software type plugin.
+         * the {@link DeclarativeModelDefaultsHandler} during application of the project type plugin.
          */
         val DO_NOTHING = object : ApplyModelDefaultsHandler {
             override fun getDefaultsResolutionResults(resolutionResult: ResolutionResult): List<ModelDefaultsResolutionResults> = emptyList()
@@ -72,15 +72,15 @@ interface ApplyModelDefaultsHandler : ResolutionResultHandler {
 
 
 internal
-fun findUsedSoftwareFeatureNames(resolutionResult: ResolutionResult): Set<String> {
-    fun ConfigureAccessor.softwareFeatureNameOrNull(): String? =
+fun findUsedProjectFeatureNames(resolutionResult: ResolutionResult): Set<String> {
+    fun ConfigureAccessor.projectFeatureNameOrNull(): String? =
         if (this is ConfigureAccessor.Custom)
             customAccessorIdentifier.removePrefix("$SOFTWARE_TYPE_ACCESSOR_PREFIX:").takeIf { it != customAccessorIdentifier }
         else null
 
     return resolutionResult.nestedObjectAccess
         .mapNotNullTo(mutableSetOf()) {
-            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.softwareFeatureNameOrNull()
+            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.projectFeatureNameOrNull()
         }
 }
 
@@ -89,8 +89,8 @@ interface ModelDefaultsRepository {
     fun findDefaults(featureName: String): ModelDefaultsResolutionResults?
 }
 
-fun defaultsForAllUsedSoftwareFeatures(modelDefaultsRepository: ModelDefaultsRepository, resolutionResult: ResolutionResult) =
-    findUsedSoftwareFeatureNames(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
+fun defaultsForAllUsedProjectFeatures(modelDefaultsRepository: ModelDefaultsRepository, resolutionResult: ResolutionResult) =
+    findUsedProjectFeatureNames(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
 
 
 

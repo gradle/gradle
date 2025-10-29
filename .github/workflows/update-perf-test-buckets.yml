@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
       - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
           aws-region: "eu-central-1"
@@ -37,7 +37,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
       - name: Update performance-test-durations.json
         run: |
           ./gradlew performance:writePerformanceTimes -Porg.gradle.performance.db.url=${{ env.PERFORMANCE_DB_URL }} -Porg.gradle.performance.db.username=${{ env.PERFORMANCE_DB_USERNAME }}
