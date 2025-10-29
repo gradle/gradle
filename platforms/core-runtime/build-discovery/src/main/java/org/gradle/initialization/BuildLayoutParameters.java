@@ -32,9 +32,9 @@ public class BuildLayoutParameters {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
 
-    private File gradleInstallationHomeDir;
+    private @Nullable File gradleInstallationHomeDir;
     private File gradleUserHomeDir;
-    private File projectDir;
+    private @Nullable File projectDir;
     private File currentDir;
 
     public BuildLayoutParameters() {
