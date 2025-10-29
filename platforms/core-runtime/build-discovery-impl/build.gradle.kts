@@ -29,3 +29,7 @@ dependencies {
 
     implementation(projects.baseServices)
 }
+
+errorprone {
+    nullawayEnabled = true
+}
