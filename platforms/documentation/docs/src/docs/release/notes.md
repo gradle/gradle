@@ -84,16 +84,12 @@ Our experiments have shown up to *40% shorter times to first task execution in l
 
 
 Here are the numbers for different scenarios we have measured, with charts comparing 10 `--dry-run` executions against Gradle 9.1.0:
-
-
 - *34%* on the `gradle/gradle` build running `codeQuality`, a work graph with 10868 tasks across 217 projects
-![codeQuality-speedup.png](release-notes-assets/codeQuality-speedup.png)
-
+    ![codeQuality-speedup.png](release-notes-assets/codeQuality-speedup.png)
 - *42%* on a synthetic large Java build running `compileJava`, a work graph with 8190 tasks across 8190 projects
-![compileJava-speedup.png](release-notes-assets/compileJava-speedup.png)
-
+    ![compileJava-speedup.png](release-notes-assets/compileJava-speedup.png)
 - *11%* on a synthetic Android build running `assembleDebug`, a work graph with 21499 tasks across 526 projects
-![assembleDebug-speedup.png](release-notes-assets/assembleDebug-speedup.png)
+    ![assembleDebug-speedup.png](release-notes-assets/assembleDebug-speedup.png)
 
 #### Lower memory usage
 
