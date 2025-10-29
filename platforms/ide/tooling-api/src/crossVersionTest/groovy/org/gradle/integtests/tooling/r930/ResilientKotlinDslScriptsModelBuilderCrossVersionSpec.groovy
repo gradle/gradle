@@ -634,8 +634,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 gradlePluginPortal()
             }
         """
-        def settingsPlugin = included.file("src/main/kotlin/build-logic.settings.gradle.kts") << """
-        """
+        def settingsPlugin = included.file("src/main/kotlin/build-logic.settings.gradle.kts") << ""
 
         when:
         def original = succeeds {
@@ -647,13 +646,15 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         settingsPlugin << """ broken !!! """
-        def mod = succeeds {
+        def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST)).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
         }
 
         then:
-        mod.failures.size() == 2
-        mod.scriptModels.size() == 3
+
+        assertHasScriptModelForFiles(model, "build-logic/settings.gradle.kts", "build-logic/build.gradle.kts", "build-logic/src/main/kotlin/build-logic.settings.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"),
+                Pair.of("build-logic", ".*Execution failed for task ':build-logic:compileKotlin.*"))
     }
 
     @ToBeImplemented // TODO
