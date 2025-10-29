@@ -257,7 +257,7 @@ abstract class AddOpensArgumentProvider : CommandLineArgumentProvider {
 
     override fun asArguments(): Iterable<String> {
         return if (unitTest.get() || embedded.get()) {
-            JpmsConfiguration.forDaemonProcesses(jvmVersion.get().toInt(), true) +
+            JpmsConfiguration.forDaemonProcesses(jvmVersion.get(), true) +
                 // https://github.com/gradle/gradle-private/issues/4756
                 "--add-opens=java.base/java.time=ALL-UNNAMED"
         } else {
