@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepository
+import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
@@ -95,6 +96,10 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
         withK2BuildLogic()
 
         withK2BuildLogicConsumingBuild()
+
+        // erroneously treats a part of the Kotlin language version mismatch message as a stack trace
+        executer.withStackTraceChecksDisabled()
+        executer.expectDeprecationWarning(ExpectedDeprecationWarning.withMessage("w: Language version 2.0 is deprecated and its support will be removed in a future version of Kotlin"))
 
         assertCanConsumeK2BuildLogic()
     }
