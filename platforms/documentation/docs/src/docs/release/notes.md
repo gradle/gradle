@@ -68,6 +68,33 @@ This makes it possible to run Gradle on Windows virtual machines hosted on ARM-b
 
 Limitations are listed in [Known issues](userguide/compatibility.html#known_issues)
 
+### Performance Improvements
+
+#### Shorter time to first task execution
+
+Gradle 9.2.0 is more efficient at building its internal work graph.
+This means tasks, like running a test, for example, will start executing sooner compared to previous Gradle versions.
+
+
+The effect is more apparent when there's a Configuration Cache hit since (re)building the work graph is a very significant part of the work leading to task execution.
+
+
+The observed improvement will vary depending on the size, complexity and inputs associated with the work graph.
+Our experiments have shown up to *40% shorter times to first task execution in large builds* with thousands of modules and complex dependency graphs.
+
+
+Here are the numbers for different scenarios we have measured, with charts comparing 10 `--dry-run` executions against Gradle 9.1.0:
+- *34%* on the `gradle/gradle` build running `codeQuality`, a work graph with 10868 tasks across 217 projects
+    ![codeQuality-speedup.png](release-notes-assets/codeQuality-speedup.png)
+- *42%* on a synthetic large Java build running `compileJava`, a work graph with 8190 tasks across 8190 projects
+    ![compileJava-speedup.png](release-notes-assets/compileJava-speedup.png)
+- *11%* on a synthetic Android build running `assembleDebug`, a work graph with 21499 tasks across 526 projects
+    ![assembleDebug-speedup.png](release-notes-assets/assembleDebug-speedup.png)
+
+#### Lower memory usage
+
+Due to optimized data structures, Gradle 9.2.0 uses less memory compared to Gradle 9.1.0. In our experiments, the improvements vary from 7% to 12% less memory required for the same workloads.
+
 ### Publishing improvements
 
 Gradle provides APIs for plugin authors and build engineers to define and customize the software [components](userguide/glossary.html#sub:terminology_component) their project produces when [publishing](userguide/publishing_customization.html) them.
