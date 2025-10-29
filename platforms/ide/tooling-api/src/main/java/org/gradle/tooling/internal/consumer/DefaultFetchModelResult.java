@@ -49,7 +49,7 @@ public class DefaultFetchModelResult<M> implements FetchModelResult<M> {
         return failures.get();
     }
 
-    public static <M> DefaultFetchModelResult<M> of(M model, Collection<? extends InternalFailure> failures) {
+    public static <M> DefaultFetchModelResult<M> of(@Nullable M model, Collection<? extends InternalFailure> failures) {
         return new DefaultFetchModelResult<>(model, () -> BuildProgressListenerAdapter.toFailures(failures));
     }
 
