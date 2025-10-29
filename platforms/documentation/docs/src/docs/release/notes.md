@@ -45,6 +45,21 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
 
+## Plugin development
+
+### Stricter validation for published plugins
+
+For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
+
+In order not to break your builds, this does not apply to local plugins (in `buildSrc` or a `build-logic` included build).
+We encourage you to enable stricter validation anyway:
+
+```kotlin
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+```
+
 <!--
 
 ================== TEMPLATE ==============================
