@@ -22,6 +22,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.TestPrecondition
+import org.jetbrains.kotlin.config.JvmTarget
 import org.testcontainers.DockerClientFactory
 
 @CompileStatic
@@ -372,7 +373,9 @@ class UnitTestPreconditions {
     static final class KotlinSupportedJdk implements TestPrecondition {
 
         private static final JavaVersion MAX_SUPPORTED_JAVA_VERSION =
-            JavaVersion.VERSION_24
+            JavaVersion.forClassVersion(
+                JvmTarget.values().max { it.majorVersion }.majorVersion
+            )
 
         @Override
         boolean isSatisfied() throws Exception {
