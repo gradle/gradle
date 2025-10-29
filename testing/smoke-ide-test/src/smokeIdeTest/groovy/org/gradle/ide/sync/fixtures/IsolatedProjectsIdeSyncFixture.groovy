@@ -57,7 +57,7 @@ class IsolatedProjectsIdeSyncFixture {
             def problem = diagnostic['problem']
             assert problem instanceof List && problem.every { it instanceof Map }
             def message = configurationCacheProblemsFixture.formatStructuredMessage(problem)
-            def trace = diagnostic['trace']
+            def trace = diagnostic['trace'][0] // See ConfigurationCacheProblemsFixture
             assert trace instanceof Map
             def location = configurationCacheProblemsFixture.formatTrace(trace)
             Pair.of(location, message)

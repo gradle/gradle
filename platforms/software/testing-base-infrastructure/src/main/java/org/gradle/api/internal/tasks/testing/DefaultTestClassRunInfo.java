@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.apache.commons.lang3.StringUtils;
 
 public class DefaultTestClassRunInfo implements TestClassRunInfo {
-    private String testClassName;
+    private final String testClassName;
 
     public DefaultTestClassRunInfo(String testClassName) {
         if (StringUtils.isEmpty(testClassName)) {

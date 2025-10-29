@@ -25,6 +25,7 @@ import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
@@ -52,9 +53,13 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.DefaultSharedModelDefaults;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
-import org.gradle.api.internal.plugins.PluginInspector;
+import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
@@ -159,7 +164,6 @@ import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
-import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
@@ -250,9 +254,8 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginHandler;
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -706,13 +709,26 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
-        return new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope());
+    protected PluginRegistry createPluginRegistry(CorePluginRegistryProvider corePluginRegistryProvider, GradleInternal gradle) {
+        PluginRegistry corePluginRegistry = corePluginRegistryProvider.getCorePluginRegistry();
+        return corePluginRegistry.createChild(gradle.getClassLoaderScope());
     }
 
     @Provides
-    protected BuildScopeServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        return new BuildScopeServiceRegistryFactory(services);
+    PluginManagerInternal createPluginManager(
+        ServiceRegistry buildScopeServices,
+        Instantiator instantiator,
+        GradleInternal gradleInternal,
+        PluginRegistry pluginRegistry,
+        InstantiatorFactory instantiatorFactory,
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator decorator,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        InternalProblems problems
+    ) {
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal, problems);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(buildScopeServices), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     @Provides
@@ -723,11 +739,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected ComponentTypeRegistry createComponentTypeRegistry() {
         return new DefaultComponentTypeRegistry();
-    }
-
-    @Provides
-    protected PluginInspector createPluginInspector(ModelRuleSourceDetector modelRuleSourceDetector) {
-        return new PluginInspector(modelRuleSourceDetector);
     }
 
     @Provides
@@ -824,8 +835,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, ProjectFeatureRegistry projectFeatureRegistry) {
-        return instantiator.newInstance(DefaultSharedModelDefaults.class, projectFeatureRegistry);
+    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, ProjectFeatureDeclarations projectFeatureDeclarations) {
+        return instantiator.newInstance(DefaultSharedModelDefaults.class, projectFeatureDeclarations);
     }
 
     @Provides

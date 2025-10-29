@@ -114,9 +114,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
             )
         }
-        runner.deprecations(SantaTrackerDeprecations) {
-            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
-        }
         1.times {
             runner.maybeExpectLegacyDeprecationWarning(
                 "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +

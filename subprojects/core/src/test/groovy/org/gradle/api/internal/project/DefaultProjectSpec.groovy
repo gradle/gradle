@@ -54,7 +54,7 @@ import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator
 import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -265,7 +265,7 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(FileResolver, Stub(FileResolver))
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
         serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
-        serviceRegistry.add(ProjectFeatureRegistry, Stub(ProjectFeatureRegistry))
+        serviceRegistry.add(ProjectFeatureDeclarations, Stub(ProjectFeatureDeclarations))
         serviceRegistry.add(ProjectFeatureApplicator, Stub(ProjectFeatureApplicator))
 
         def antBuilder = Mock(AntBuilder)

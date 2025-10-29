@@ -55,7 +55,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
  * combination.
  */
 public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator {
-    private final ProjectFeatureRegistry projectFeatureRegistry;
+    private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final ModelDefaultsApplicator modelDefaultsApplicator;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
@@ -63,8 +63,8 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory objectFactory;
 
-    public DefaultProjectFeatureApplicator(ProjectFeatureRegistry projectFeatureRegistry, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
-        this.projectFeatureRegistry = projectFeatureRegistry;
+    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
+        this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
@@ -120,7 +120,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, BoundProjectFeatureImplementation<T, V> projectFeature) {
         T definition = createDefinitionObject(parentDefinition, projectFeature);
         V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, definition, projectFeature);
-        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureRegistry, objectFactory);
+        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
 
         ProjectFeatureApplicationContext applyActionContext =
             objectFactory.newInstance(ProjectFeatureApplicationContextInternal.class);
@@ -148,7 +148,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     private <T, V> void applyAndMaybeRegisterExtension(Object target, ProjectFeatureImplementation<T, V> projectFeature, Plugin<?> plugin) {
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(projectFeature.getPluginClass(), false, problems);
 
-        ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>((ExtensionAware) target, typeValidationContext, projectFeatureRegistry, this, objectFactory);
+        ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>((ExtensionAware) target, typeValidationContext, projectFeatureDeclarations, this, objectFactory);
         inspectionScheme.getPropertyWalker().visitProperties(
             plugin,
             typeValidationContext,
@@ -179,19 +179,19 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         private final ExtensionAware target;
         private final DefaultTypeValidationContext validationContext;
         private final ProjectFeatureApplicator applicator;
-        private final ProjectFeatureRegistry projectFeatureRegistry;
+        private final ProjectFeatureDeclarations projectFeatureDeclarations;
         private final ObjectFactory objectFactory;
 
         public ExtensionAddingVisitor(
             ExtensionAware target,
             DefaultTypeValidationContext validationContext,
-            ProjectFeatureRegistry projectFeatureRegistry,
+            ProjectFeatureDeclarations projectFeatureDeclarations,
             ProjectFeatureApplicator applicator,
             ObjectFactory objectFactory
         ) {
             this.target = target;
             this.validationContext = validationContext;
-            this.projectFeatureRegistry = projectFeatureRegistry;
+            this.projectFeatureDeclarations = projectFeatureDeclarations;
             this.applicator = applicator;
             this.objectFactory = objectFactory;
         }
@@ -205,7 +205,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
             T publicModelObject = Cast.uncheckedNonnullCast(Objects.requireNonNull(value.call()));
 
-            ProjectFeatureSupportInternal.attachLegacyDefinitionContext(publicModelObject, applicator, projectFeatureRegistry, objectFactory);
+            ProjectFeatureSupportInternal.attachLegacyDefinitionContext(publicModelObject, applicator, projectFeatureDeclarations, objectFactory);
 
             if (softwareType.disableModelManagement()) {
                 Object extension = target.getExtensions().findByName(softwareType.name());

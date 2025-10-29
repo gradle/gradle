@@ -15,14 +15,20 @@
  */
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
 
 @Issue("GRADLE-1682")
-class TestNGJdkNavigationIntegrationTest extends AbstractSampleIntegrationTest {
+class TestNGJdkNavigationIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
@@ -32,8 +38,9 @@ class TestNGJdkNavigationIntegrationTest extends AbstractSampleIntegrationTest {
         succeeds('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('org.gradle.Test1').assertTestPassed('shouldPass')
+        def result = resultsFor()
+        result.assertTestPathsExecuted(':org.gradle.Test1:shouldPass')
+        result.testPath(':org.gradle.Test1:shouldPass').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
 }

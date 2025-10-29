@@ -45,7 +45,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ================== TEMPLATE ==============================
 
-<a name="FILL-IN-KEY-AREA"></a>
 ### FILL-IN-KEY-AREA improvements
 
 <<<FILL IN CONTEXT FOR KEY AREA>>>
@@ -73,7 +72,6 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="build-authoring"></a>
 ### Build authoring improvements
 
 #### New `AttributeContainer.named()` method
@@ -93,6 +91,45 @@ configurations.resolvable("foo") {
     }
 }
 ```
+
+### Stream TestKit output
+
+Gradle TestKit's `BuildResult` now offers a new method for accessing the build console output efficiently, especially for builds that produce a large volume of logs.
+
+[`BuildResult.getOutput()`](javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+returns a `String` with the full build console output.
+This can use large amounts of memory for builds with extensive logs.
+
+A new 
+[`BuildResult.getOutputReader()`](javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+method is available, returning a `BufferedReader` for streaming the build output incrementally.
+This can help reduce memory pressure in TestKit tests.
+
+Please ensure you close the `BufferedReader` after use; we recommend the standard Java try-with-resources pattern for this:
+
+```java
+void testProject() {
+    BuildResult buildResult = GradleRunner.create()
+        .withProjectDir(File("test-project"))
+        .withArguments(":build", "--info")
+        .build();
+
+    try (BufferedReader outputReader = buildResult.getOutputReader()) {
+        List<String> logLines = outputReader.lines()
+            .filter(line -> line.contains("example build message"))
+            .collect(Collectors.toList());
+        // do something with the log lines...
+    }
+}
+```
+
+### Simple console rendering for Problem Reports
+The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
+
+Previously, a limitation was that problem reports were not displayed in the console output.
+In this release, we've taken a first step toward full console integration.
+All problem reports are now rendered in the console output when you configure `--warning-mode=all`.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

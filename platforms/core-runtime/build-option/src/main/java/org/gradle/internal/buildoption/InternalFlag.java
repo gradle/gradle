@@ -44,6 +44,6 @@ public class InternalFlag implements InternalOption<Boolean> {
 
     @Override
     public Boolean convert(String value) {
-        return !value.equalsIgnoreCase("false");
+        return BooleanOptionUtil.isTrue(value);
     }
 }

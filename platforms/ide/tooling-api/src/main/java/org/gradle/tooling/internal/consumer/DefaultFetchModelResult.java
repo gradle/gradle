@@ -22,7 +22,6 @@ import org.gradle.tooling.Failure;
 import org.gradle.tooling.FetchModelResult;
 import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
 import org.gradle.tooling.internal.protocol.InternalFailure;
-import org.gradle.tooling.model.Model;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -30,22 +29,14 @@ import java.util.Collection;
 import java.util.function.Supplier;
 
 @NullMarked
-public class DefaultFetchModelResult<T extends Model, M> implements FetchModelResult<T, M> {
-    @Nullable
-    private final T target;
+public class DefaultFetchModelResult<M> implements FetchModelResult<M> {
     @Nullable
     private final M model;
     private final Lazy<Collection<? extends Failure>> failures;
 
-    private DefaultFetchModelResult(@Nullable T target, @Nullable M model, Supplier<Collection<? extends Failure>> failures) {
-        this.target = target;
+    private DefaultFetchModelResult(@Nullable M model, Supplier<Collection<? extends Failure>> failures) {
         this.model = model;
         this.failures = Lazy.locking().of(failures);
-    }
-
-    @Override
-    public @Nullable T getTarget() {
-        return target;
     }
 
     @Override
@@ -58,15 +49,15 @@ public class DefaultFetchModelResult<T extends Model, M> implements FetchModelRe
         return failures.get();
     }
 
-    public static <T extends Model, M> DefaultFetchModelResult<T, M> of(T target, M model, Collection<? extends InternalFailure> failures) {
-        return new DefaultFetchModelResult<>(target, model, () -> BuildProgressListenerAdapter.toFailures(failures));
+    public static <M> DefaultFetchModelResult<M> of(M model, Collection<? extends InternalFailure> failures) {
+        return new DefaultFetchModelResult<>(model, () -> BuildProgressListenerAdapter.toFailures(failures));
     }
 
-    public static <T extends Model, M> DefaultFetchModelResult<T, M> success(T target, M model) {
-        return new DefaultFetchModelResult<>(target, model, ImmutableList::of);
+    public static <M> DefaultFetchModelResult<M> success(M model) {
+        return new DefaultFetchModelResult<>(model, ImmutableList::of);
     }
 
-    public static <T extends Model, M> DefaultFetchModelResult<T, M> failure(Exception exception) {
-        return new DefaultFetchModelResult<>(null, null, () -> ImmutableList.of(DefaultFailure.fromThrowable(exception)));
+    public static <M> DefaultFetchModelResult<M> failure(Exception exception) {
+        return new DefaultFetchModelResult<>(null, () -> ImmutableList.of(DefaultFailure.fromThrowable(exception)));
     }
 }

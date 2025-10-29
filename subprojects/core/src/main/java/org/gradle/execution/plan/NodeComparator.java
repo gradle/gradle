@@ -21,12 +21,12 @@ import java.util.Comparator;
 /**
  * Sorts {@link Node}s to execute in the following order:
  * <ol>
- *    <li>{@link OrdinalNode} and {@link ResolveMutationsNode}</li>
+ *    <li>{@link OrdinalNode}</li>
+ *    <li>{@link ResolveMutationsNode}</li>
  *    <li>{@link CreationOrderedNode} (a.k.a. transform nodes)</li>
  *    <li>{@link LocalTaskNode}</li>
  *    <li>{@link ActionNode}</li>
  *    <li>{@link TaskInAnotherBuild}</li>
- *    <li>remaining nodes are ordered by class name</li>
  * </ol>
  */
 public class NodeComparator implements Comparator<Node> {
@@ -37,57 +37,100 @@ public class NodeComparator implements Comparator<Node> {
     }
 
     @Override
-    public int compare(Node o1, Node o2) {
-
-        if (o1 instanceof OrdinalNode || o1 instanceof ResolveMutationsNode) {
-            if (o1.equals(o2)) {
-                return 0;
-            } else {
-                return -1;
-            }
-        }
-        if (o2 instanceof OrdinalNode || o2 instanceof ResolveMutationsNode) {
-            return 1;
+    public int compare(Node n1, Node n2) {
+        if (n1 == n2) {
+            return 0;
         }
 
-        if (o1 instanceof CreationOrderedNode) {
-            if (o2 instanceof CreationOrderedNode) {
-                return ((CreationOrderedNode) o1).getOrder() - ((CreationOrderedNode) o2).getOrder();
+        if (n1 instanceof OrdinalNode) {
+            if (n2 instanceof OrdinalNode) {
+                OrdinalNode o1 = (OrdinalNode) n1;
+                OrdinalNode o2 = (OrdinalNode) n2;
+                int ordinalDiff = Integer.compare(
+                    o1.getOrdinalGroup().getOrdinal(),
+                    o2.getOrdinalGroup().getOrdinal()
+                );
+                if (ordinalDiff == 0) {
+                    return o1.getType().compareTo(o2.getType());
+                }
+                return ordinalDiff;
             }
             return -1;
         }
-        if (o2 instanceof CreationOrderedNode) {
+        if (n2 instanceof OrdinalNode) {
             return 1;
         }
 
-        if (o1 instanceof LocalTaskNode) {
-            if (o2 instanceof LocalTaskNode) {
-                return ((LocalTaskNode) o1).getTask().compareTo(
-                    ((LocalTaskNode) o2).getTask()
+        if (n1 instanceof ResolveMutationsNode) {
+            if (n2 instanceof ResolveMutationsNode) {
+                return compareTaskNodes(
+                    ((ResolveMutationsNode) n1).getNode(),
+                    ((ResolveMutationsNode) n2).getNode()
                 );
             }
             return -1;
         }
-        if (o2 instanceof LocalTaskNode) {
+        if (n2 instanceof ResolveMutationsNode) {
             return 1;
         }
 
-        if (o1 instanceof ActionNode) {
+        if (n1 instanceof CreationOrderedNode) {
+            if (n2 instanceof CreationOrderedNode) {
+                return Integer.compare(
+                    ((CreationOrderedNode) n1).getOrder(),
+                    ((CreationOrderedNode) n2).getOrder()
+                );
+            }
             return -1;
         }
-        if (o2 instanceof ActionNode) {
+        if (n2 instanceof CreationOrderedNode) {
             return 1;
         }
 
-        if (o1 instanceof TaskInAnotherBuild && o2 instanceof TaskInAnotherBuild) {
-            return ((TaskInAnotherBuild) o1).getTaskIdentityPath().compareTo(
-                ((TaskInAnotherBuild) o2).getTaskIdentityPath()
+        if (n1 instanceof LocalTaskNode) {
+            if (n2 instanceof LocalTaskNode) {
+                return compareTaskNodes((LocalTaskNode) n1, (LocalTaskNode) n2);
+            }
+            return -1;
+        }
+        if (n2 instanceof LocalTaskNode) {
+            return 1;
+        }
+
+        if (n1 instanceof ActionNode) {
+            if (n2 instanceof ActionNode) {
+                return Integer.compare(
+                    System.identityHashCode(n1),
+                    System.identityHashCode(n2)
+                );
+            }
+            return -1;
+        }
+        if (n2 instanceof ActionNode) {
+            return 1;
+        }
+
+        if (n1 instanceof TaskInAnotherBuild && n2 instanceof TaskInAnotherBuild) {
+            return ((TaskInAnotherBuild) n1).getTaskIdentityPath().compareTo(
+                ((TaskInAnotherBuild) n2).getTaskIdentityPath()
             );
         }
-        int diff = o1.getClass().getName().compareTo(o2.getClass().getName());
-        if (diff != 0) {
-            return diff;
+
+        // For testing only.
+        if (n1 instanceof ComparableNode && n2 instanceof ComparableNode) {
+            return ((ComparableNode) n1).compareTo((ComparableNode) n2);
         }
-        return -1;
+
+        throw new IllegalArgumentException(String.format("Cannot compare nodes of type %s and %s", n1.getClass(), n2.getClass()));
     }
+
+    /**
+     * For testing only.
+     */
+    public static abstract class ComparableNode extends Node implements Comparable<ComparableNode> {}
+
+    private static int compareTaskNodes(LocalTaskNode n1, LocalTaskNode n2) {
+        return n1.getTask().compareTo(n2.getTask());
+    }
+
 }

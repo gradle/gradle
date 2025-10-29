@@ -19,8 +19,10 @@ package org.gradle.integtests.tooling.r930
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.tooling.model.gradle.ResilientGradleBuild
 
 @TargetGradleVersion(">=9.3.0")
 @ToolingApiVersion(">=9.3.0")
@@ -42,7 +44,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
 
         when:
 
-        def rootBuild = loadGradleBuildModel(buildClassType)
+        def rootBuild = loadGradleBuildModel(resilient)
 
         then:
         rootBuild.buildIdentifier.rootDir == rootDir
@@ -62,15 +64,26 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildC.includedBuilds.empty
 
         where:
-        buildClassType << [GradleBuild, ResilientGradleBuild]
+        resilient << [true, false]
     }
 
-    def loadGradleBuildModel(Class buildClassType) {
-        def model = loadToolingModel(buildClassType)
-        if(model instanceof GradleBuild) {
-            return model
+    static class FetchModelAction implements BuildAction<FetchModelResult<GradleBuild>>, Serializable {
+        @Override
+        FetchModelResult<GradleBuild> execute(BuildController controller) {
+            return controller.fetch(GradleBuild, null, null)
         }
-        return model.gradleBuild
+    }
+
+    def loadGradleBuildModel(boolean resilient) {
+        if (resilient) {
+            return succeeds {
+                it.action(new FetchModelAction())
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
+            }.model
+        } else {
+            return loadToolingModel(GradleBuild)
+        }
     }
 
     def "root build model exposes all builds that participate in the composite when nested included builds are present"() {
@@ -89,7 +102,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         def buildCDir = singleProjectBuildInSubfolder("buildC")
 
         when:
-        def rootBuild = loadGradleBuildModel(buildClassType)
+        def rootBuild = loadGradleBuildModel(resilient)
 
         then:
         rootBuild.editableBuilds.size() == 2
@@ -105,7 +118,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildC.editableBuilds.empty
 
         where:
-        buildClassType << [GradleBuild, ResilientGradleBuild]
+        resilient << [true, false]
     }
 
     def "root build model exposes all builds that participate in the composite"() {
@@ -124,7 +137,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         def buildCDir = singleProjectBuildInSubfolder("buildC")
 
         when:
-        def rootBuild = loadGradleBuildModel(buildClassType)
+        def rootBuild = loadGradleBuildModel(resilient)
 
         then:
         rootBuild.editableBuilds.size() == 2
@@ -140,6 +153,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildC.editableBuilds.empty
 
         where:
-        buildClassType << [GradleBuild, ResilientGradleBuild]
+        resilient << [true, false]
     }
 }

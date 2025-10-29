@@ -65,4 +65,13 @@ public interface TestFramework extends Closeable {
     @Internal
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 
+    /**
+     * Returns additional levels to skip for {@code AbstractTestTask.getReportEntrySkipLevels()}.
+     * Default implementation returns 0.
+     */
+    @Internal
+    default int getAdditionalReportEntrySkipLevels() {
+        return 0;
+    }
+
 }

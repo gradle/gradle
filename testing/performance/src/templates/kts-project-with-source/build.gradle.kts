@@ -45,7 +45,7 @@ dependencies {
     jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
 }
 
-task<DependencyReportTask>("dependencyReport") {
+tasks.register<DependencyReportTask>("dependencyReport") {
     outputs.upToDateWhen { false }
     outputFile = File(buildDir, "dependencies.txt")
 }

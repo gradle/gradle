@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.testing.AbstractTestListenerBuildOperationAdapterIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
@@ -25,17 +24,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterTestListenerBuildOperationAdapterIntegrationTest extends AbstractTestListenerBuildOperationAdapterIntegrationTest implements JUnitJupiterMultiVersionTest {
-    boolean emitsTestClassOperations = true
-
-    @Override
-    void checkForSuiteOperations(Iterator<BuildOperationRecord> iterator, String suiteName) {
-        super.checkForSuiteOperations(iterator, suiteName)
-        with(iterator.next()) {
-            details.testDescriptor.name == "JUnit Jupiter"
-            details.testDescriptor.composite == true
-        }
-    }
-
     @Override
     void writeTestSources() {
         buildFile << """

@@ -15,44 +15,28 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.Describable;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
 
-import java.util.Collection;
-
-public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, ConflictResolutionResult> {
+public interface CapabilitiesConflictHandler {
 
     /**
-     * Has the given capability been seen as a non-default capability on a node?
-     * This is needed to determine if default capabilities need to enter conflict detection.
+     * Detect and register capability conflicts for the given node, deselecting the given node
+     * and any conflicting nodes if a conflict is detected.
+     *
+     * @return true iff a conflict was detected.
      */
-    boolean hasSeenNonDefaultCapabilityExplicitly(CapabilityInternal capability);
+    boolean registerCandidate(NodeState node);
 
-    interface Candidate {
-        NodeState getNode();
-        CapabilityInternal getCapability();
-        Collection<NodeState> getImplicitCapabilityProviders();
-    }
+    /**
+     * Informs whether there is any conflict at present
+     */
+    boolean hasConflicts();
 
-    interface ResolutionDetails extends ConflictResolutionResult {
-        Collection<? extends Capability> getCapabilityVersions();
-        Collection<? extends CandidateDetails> getCandidates(Capability capability);
-        boolean hasResult();
-    }
+    /**
+     * Resolves next conflict.
+     *
+     * Must be called only if {@link #hasConflicts()} returns true.
+     */
+    void resolveNextConflict();
 
-    interface CandidateDetails {
-        ComponentIdentifier getId();
-        String getVariantName();
-        void evict();
-        void select();
-        void reject();
-        void byReason(Describable description);
-    }
-
-    interface Resolver {
-        void resolve(ResolutionDetails details);
-    }
 }

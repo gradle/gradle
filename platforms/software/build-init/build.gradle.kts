@@ -99,6 +99,7 @@ dependencies {
     testImplementation(projects.wrapperMain)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformNative))
+    testImplementation(testFixtures(projects.testingBase))
 
     testRuntimeOnly(libs.maven3Compat)
     testRuntimeOnly(libs.maven3PluginApi)

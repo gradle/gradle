@@ -21,7 +21,7 @@ import org.gradle.testing.junit.AbstractJUnitTestFailureIntegrationTest
 import org.hamcrest.Matcher
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
-import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterJUnitTestFailureIntegrationTest extends AbstractJUnitTestFailureIntegrationTest implements JUnitJupiterMultiVersionTest {
@@ -59,8 +59,8 @@ class JUnitJupiterJUnitTestFailureIntegrationTest extends AbstractJUnitTestFailu
     }
 
     @Override
-    String getInitializationErrorTestName() {
-        return 'ok()'
+    String getInitializationErrorTestPath() {
+        return ':org.gradle.ClassWithBrokenRunnerOrExtension:ok()'
     }
 
     @Override
@@ -80,7 +80,7 @@ class JUnitJupiterJUnitTestFailureIntegrationTest extends AbstractJUnitTestFailu
 
     @Override
     Matcher<? super String>[] getBrokenBeforeAndAfterMatchers() {
-        return [equalTo(failureAssertionError('before failed'))]
+        return [startsWith(failureAssertionError('before failed'))]
     }
 
     @Override
