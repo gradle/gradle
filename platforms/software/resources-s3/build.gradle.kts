@@ -19,6 +19,12 @@ dependencies {
     api(libs.awsS3Sts) {
         because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
     }
+    api(libs.awsS3Sso) {
+        because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/34049")
+    }
+    api(libs.awsS3SsoOidc) {
+        because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/34049")
+    }
     api(libs.guava)
 
     implementation(projects.baseServices)
@@ -48,6 +54,8 @@ dependencyAnalysis {
             // This need to exist to be loaded reflectively
             exclude(libs.awsS3Kms)
             exclude(libs.awsS3Sts)
+            exclude(libs.awsS3Sso)
+            exclude(libs.awsS3SsoOidc)
         }
     }
 }
