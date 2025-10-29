@@ -294,7 +294,6 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 .toList()
             def causes = result.failures.stream()
                 .flatMap { it.causes.stream() }
-                .filter { it != null}
                 .map { it.message }
                 .toList()
             return new Result(result.model?.value, failures, causes)
@@ -350,7 +349,6 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
                     .toList()
                 causes += result.failures.stream()
                     .flatMap { it.causes.stream() }
-                    .filter { it != null }
                     .map { it.message }
                     .toList()
             }
