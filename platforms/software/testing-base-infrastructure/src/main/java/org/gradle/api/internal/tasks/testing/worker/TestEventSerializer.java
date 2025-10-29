@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails;
+import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
@@ -37,11 +38,13 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.Cast;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.jspecify.annotations.NullMarked;
@@ -49,6 +52,7 @@ import org.jspecify.annotations.NullMarked;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class TestEventSerializer {
     public static SerializerRegistry create() {
@@ -66,9 +70,11 @@ public class TestEventSerializer {
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
         registry.register(DefaultTestOutputEvent.class, DefaultTestOutputEventSerializer.INSTANCE);
+        registry.register(DefaultTestMetadataEvent.class, new TestMetadataEventSerializer());
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
         registry.register(TestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
+
         return registry;
     }
 
@@ -136,6 +142,24 @@ public class TestEventSerializer {
         public void write(Encoder encoder, TestStartEvent value) throws Exception {
             encoder.writeLong(value.getStartTime());
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getParentId());
+        }
+    }
+
+    private static class TestMetadataEventSerializer implements Serializer<DefaultTestMetadataEvent> {
+        private final MapSerializer<String, String> mapSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, BaseSerializerFactory.STRING_SERIALIZER);
+
+        @Override
+        public DefaultTestMetadataEvent read(Decoder decoder) throws Exception {
+            long logTime = decoder.readLong();
+            // TODO: Change signature of TestMetadataEvent to use String values
+            Map<String, String> keyValues = mapSerializer.read(decoder);
+            return new DefaultTestMetadataEvent(logTime, Cast.uncheckedNonnullCast(keyValues));
+        }
+
+        @Override
+        public void write(Encoder encoder, DefaultTestMetadataEvent value) throws Exception {
+            encoder.writeLong(value.getLogTime());
+            mapSerializer.write(encoder, Cast.uncheckedNonnullCast(value.getValues()));
         }
     }
 

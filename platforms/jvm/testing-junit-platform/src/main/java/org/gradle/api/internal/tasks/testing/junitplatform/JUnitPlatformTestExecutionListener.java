@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
+import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFai
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
+import org.gradle.internal.Cast;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -44,6 +46,8 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.UniqueId;
+import org.junit.platform.engine.reporting.FileEntry;
+import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
@@ -51,8 +55,10 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -114,6 +120,26 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
+    }
+
+    @Override
+    public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
+        // TODO: Why are some test ids missing?
+        if (descriptorsByUniqueId.containsKey(testIdentifier.getUniqueId())) {
+            resultProcessor.report(getId(testIdentifier), new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+        }
+    }
+
+    @Override
+    public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry file) {
+        // TODO: Why are some test ids missing?
+        if (descriptorsByUniqueId.containsKey(testIdentifier.getUniqueId())) {
+            Map<String, String> map = new LinkedHashMap<>();
+            // JUnit Jupiter suggests to use application/octet-stream if media type is unknown
+            map.put(file.getPath().getFileName() + ":mediaType", file.getMediaType().orElse("application/octet-stream"));
+            map.put(file.getPath().getFileName() + ":path", file.getPath().getFileName().toString());
+            resultProcessor.report(getId(testIdentifier), new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(map)));
+        }
     }
 
     @Override
