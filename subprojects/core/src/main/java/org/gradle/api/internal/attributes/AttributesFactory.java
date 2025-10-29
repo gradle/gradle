@@ -66,12 +66,20 @@ public interface AttributesFactory {
 
     /**
      * Same as {@link #concat(ImmutableAttributes, Attribute, Isolatable)} but with special handling for legacy Usage values.
+     * <p>
+     * This method implements legacy behavior where we would automatically convert legacy values of
+     * the {@link org.gradle.api.attributes.Usage} attribute to corresponding modern values of the Usage and
+     * {@link org.gradle.api.attributes.LibraryElements} attributes.
+     * <p>
+     * In practice, the attribute containers should be agnostic of the actual attribute keys and values they contain.
+     * Therefore, this method should be avoided and the standard transparent
+     * {@link #concat(ImmutableAttributes, Attribute, Isolatable)} should be used instead.
      *
      * @deprecated In Gradle 10, we should no longer handle legacy Usage values specially,
      * and calls to this method should be replaced with the standard concat method.
      */
     @Deprecated
-    <T> ImmutableAttributes concatPotentiallyLegacyUsage(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
+    <T> ImmutableAttributes concatUsageAttribute(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
 
     /**
      * Merges the primary container into the fallback container and returns the result. Values in the primary container win.

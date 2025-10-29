@@ -627,6 +627,8 @@ public class GradleModuleMetadataParser {
                 if (Usage.USAGE_ATTRIBUTE.getName().equals(attrName)) {
                     // Handle potentially legacy Usage values. Unfortunately, "published metadata is forever",
                     // so we need to handle this legacy value for the rest of time.
+                    // In the future, it might make sense to handle this in another place, like in a JVM-specific
+                    // ecosystem plugin.
                     String legacyUsage = UsageCompatibilityHandler.getReplacementUsage(attrValue);
                     if (legacyUsage != null) {
                         libraryElementsValue = UsageCompatibilityHandler.getLibraryElements(attrValue);

@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 
 import spock.lang.Unroll
 
-class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest { //
+class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
 
     def "can publish java-library with a feature"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()

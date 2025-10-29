@@ -97,8 +97,8 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
                 configurations.apiElements.outgoing.variants {
                     classes {
                         attributes {
-                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
+                            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_API))
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.CLASSES))
                         }
                         artifact file: ${language.compileTaskName}.destinationDirectory.asFile.get(), builtBy: ${language.compileTaskName}
                         artifact file: emptyDirs.destinationDir, builtBy: emptyDirs

@@ -88,7 +88,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     @Deprecated
-    public <T> ImmutableAttributes concatPotentiallyLegacyUsage(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+    public <T> ImmutableAttributes concatUsageAttribute(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
         return usageCompatibilityHandler.doConcat(this, node, key, value);
     }
 

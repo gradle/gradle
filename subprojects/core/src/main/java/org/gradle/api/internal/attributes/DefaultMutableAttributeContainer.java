@@ -184,18 +184,30 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         }
     }
 
-    @SuppressWarnings("deprecation")
     private static <T> void maybeWarnOnLegacyUsageValue(Attribute<T> key, T value) {
-        String legacyUsageValue = UsageCompatibilityHandler.maybeGetLegacyUsageValue(key, value);
-        if (legacyUsageValue != null) {
-            // In Gradle 10, we can remove deprecation entirely instead of making it an error.
-            DeprecationLogger.deprecateAction("Declaring a Usage attribute with a legacy value")
-                .withContext("A Usage attribute was declared with value '" + legacyUsageValue + "'.")
-                .withAdvice("Declare a Usage attribute with value '" + UsageCompatibilityHandler.getReplacementUsage(legacyUsageValue) + "' and a LibraryElements attribute with value '" + UsageCompatibilityHandler.getLibraryElements(legacyUsageValue) + "' instead.")
-                .willBecomeAnErrorInGradle10()
-                .withUpgradeGuideSection(9, "deprecate_legacy_usage_values")
-                .nagUser();
+        if (key.equals(Usage.USAGE_ATTRIBUTE)) {
+            String name = ((Usage) value).getName();
+            String replacementUsage = UsageCompatibilityHandler.getReplacementUsage(name);
+            if (replacementUsage != null) {
+                warnOnLegacyUsageValue(name, replacementUsage);
+            }
+        } else if (key.getName().equals(Usage.USAGE_ATTRIBUTE.getName())) {
+            String name = value.toString();
+            String replacementUsage = UsageCompatibilityHandler.getReplacementUsage(name);
+            if (replacementUsage != null) {
+                warnOnLegacyUsageValue(name, replacementUsage);
+            }
         }
+    }
+
+    private static void warnOnLegacyUsageValue(String legacyUsageValue, String replacementUsage) {
+        // In Gradle 10, we can remove deprecation entirely instead of making it an error.
+        DeprecationLogger.deprecateAction("Declaring a Usage attribute with a legacy value")
+            .withContext("A Usage attribute was declared with value '" + legacyUsageValue + "'.")
+            .withAdvice("Declare a Usage attribute with value '" + replacementUsage + "' and a LibraryElements attribute with value '" + UsageCompatibilityHandler.getLibraryElements(legacyUsageValue) + "' instead.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_legacy_usage_values")
+            .nagUser();
     }
 
     @Override
@@ -233,7 +245,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     private <T> ImmutableAttributes concatEntry(ImmutableAttributes attributes, AttributeEntry<T> entry) {
         Attribute<T> key = entry.getKey();
         if (key.equals(Usage.USAGE_ATTRIBUTE) || key.getName().equals(Usage.USAGE_ATTRIBUTE.getName())) {
-            return attributesFactory.concatPotentiallyLegacyUsage(attributes, key, entry.getValue());
+            return attributesFactory.concatUsageAttribute(attributes, key, entry.getValue());
         } else {
             return attributesFactory.concat(attributes, key, entry.getValue());
         }

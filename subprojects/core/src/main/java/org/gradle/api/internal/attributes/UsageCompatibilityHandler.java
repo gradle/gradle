@@ -76,25 +76,6 @@ public class UsageCompatibilityHandler {
         return (Attribute<T>) key;
     }
 
-    @Deprecated
-    public static <T> @Nullable String maybeGetLegacyUsageValue(Attribute<T> key, T value) {
-        String usageValue;
-        if (key.equals(Usage.USAGE_ATTRIBUTE)) {
-            Usage usage = (Usage) value;
-            usageValue = usage.getName();
-        } else if (key.getName().equals(Usage.USAGE_ATTRIBUTE.getName())) {
-            usageValue = value.toString();
-        } else {
-            return null;
-        }
-
-        if (getReplacementUsage(usageValue) != null) {
-            return usageValue;
-        }
-
-        return null;
-    }
-
     public static @Nullable String getReplacementUsage(String usage) {
         if (usage.endsWith("-jars")) {
             return usage.substring(0, usage.length() - "-jars".length());
