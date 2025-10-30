@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.junit.Rule
@@ -84,17 +82,5 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
         where:
         dsl << ['groovy', 'kotlin']
-    }
-
-    @Requires([UnitTestPreconditions.Online, UnitTestPreconditions.Jdk11OrEarlier])
-    // Uses Gradle 5.0 which does not support Java versions >11
-    @UsesSample("testKit/gradleVersion")
-    def gradleVersion() {
-        expect:
-        RetryUtil.retry { //This test is also affected by gradle/gradle#1111 on Windows
-            executer.inDirectory(sample.dir.file('groovy'))
-            succeeds "check"
-
-        }
     }
 }
