@@ -78,6 +78,7 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
                 }
                 @Test
                 public void test(TestReporter testReporter) {
+                    System.out.println("Hello");
                     testReporter.publishEntry("test", "value");
                 }
             }
@@ -88,10 +89,12 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
         then:
         testEvents {
             task(":test") {
-                root("Gradle Test Run :test") {
-                    composite("Gradle Test Executor") {
-                        composite("com.example.ReportEntryTest") {
-                            test("test(TestReporter)") {
+                nested("Gradle Test Run :test") {
+                    nested("Gradle Test Executor") {
+                        nested("Test class com.example.ReportEntryTest") {
+                            metadata("constructor", "value")
+                            test("Test test(TestReporter)(com.example.ReportEntryTest)") {
+                                output("Hello")
                                 metadata("beforeEach", "value")
                                 metadata("test", "value")
                                 metadata("afterEach", "value")
@@ -104,7 +107,7 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
     }
 
 
-    def "receives test metadata from JUnit platform tests"() {
+    def "receives file entry test metadata from JUnit platform tests"() {
         file("src/test/java/com/example/ReportEntryTest.java").java """
             package com.example;
 
@@ -157,13 +160,21 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
         then:
         testEvents {
             task(":test") {
-                root("Gradle Test Run :test") {
-                    composite("Gradle Test Executor") {
-                        composite("com.example.ReportEntryTest") {
-                            test("test(TestReporter)") {
-                                metadata("beforeEach", "value")
-                                metadata("test", "value")
-                                metadata("afterEach", "value")
+                nested("Gradle Test Run :test") {
+                    nested("Gradle Test Executor") {
+                        nested("Test class com.example.ReportEntryTest") {
+//                            metadata("constructor.json:mediaType", "application/json")
+//                            metadata("constructor.json:path", "constructor.json")
+                            ignoreMetadata()
+
+                            test("Test test(TestReporter)(com.example.ReportEntryTest)") {
+                                ignoreMetadata()
+//                                metadata("beforeEach.json:mediaType", "application/json")
+//                                metadata("beforeEach.json:path", "beforeEach.json")
+//                                metadata("test.json:mediaType", "application/json")
+//                                metadata("test.json:path", "test.json")
+//                                metadata("afterEach.json:mediaType", "application/json")
+//                                metadata("afterEach.json:path", "afterEach.json")
                             }
                         }
                     }
