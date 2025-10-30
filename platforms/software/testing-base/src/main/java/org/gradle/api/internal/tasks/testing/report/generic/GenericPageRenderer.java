@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.Multimaps;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputReader;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
@@ -54,12 +54,12 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         return url.substring(0, url.length() - 1);
     }
 
-    private final List<SerializableTestResultStore.OutputReader> outputReaders;
+    private final List<OutputReader> outputReaders;
     private final List<String> rootDisplayNames;
     private final MetadataRendererRegistry metadataRendererRegistry;
 
     GenericPageRenderer(
-        List<SerializableTestResultStore.OutputReader> outputReaders,
+        List<OutputReader> outputReaders,
         List<String> rootDisplayNames,
         MetadataRendererRegistry metadataRendererRegistry
     ) {
@@ -133,11 +133,11 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
                 final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
                 perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex));
-                SerializableTestResultStore.OutputReader outputReader = outputReaders.get(rootIndex);
-                if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdOut)) {
+                OutputReader outputReader = outputReaders.get(rootIndex);
+                if (outputReader.hasOutput(info.getOutputEntry(), TestOutputEvent.Destination.StdOut)) {
                     perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
                 }
-                if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdErr)) {
+                if (outputReader.hasOutput(info.getOutputEntry(), TestOutputEvent.Destination.StdErr)) {
                     perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
                 }
                 if (!info.getMetadatas().isEmpty()) {

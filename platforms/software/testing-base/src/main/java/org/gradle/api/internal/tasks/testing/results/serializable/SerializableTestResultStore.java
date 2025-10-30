@@ -19,12 +19,12 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 import com.google.common.base.Throwables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.commons.io.input.NullReader;
-import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -34,39 +34,26 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.ExceptionSerializationUtil;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
 
 /**
  * An object that can store test results and their outputs.
  */
-@NullMarked
 public final class SerializableTestResultStore {
 
     /**
@@ -79,18 +66,17 @@ public final class SerializableTestResultStore {
     private static final int STORE_VERSION = 1;
 
     private final Path serializedResultsFile;
-    private final Path outputZipFile;
+    private final Path outputEventsFile;
 
     public SerializableTestResultStore(Path resultsDir) {
         this.serializedResultsFile = resultsDir.resolve("results-generic.bin");
-        this.outputZipFile = resultsDir.resolve("output-generic.zip");
+        this.outputEventsFile = resultsDir.resolve("output-events.bin");
     }
 
     public Writer openWriter(int diskSkipLevels) throws IOException {
-        return new Writer(serializedResultsFile, outputZipFile, diskSkipLevels);
+        return new Writer(serializedResultsFile, outputEventsFile, diskSkipLevels);
     }
 
-    @NullMarked
     public static final class Writer implements Closeable, TestListenerInternal {
         private static boolean isRoot(TestDescriptorInternal descriptor) {
             return descriptor.getParent() == null;
@@ -107,6 +93,11 @@ public final class SerializableTestResultStore {
 
         private static final long ROOT_ID = 1;
 
+        private static final class OutputStarts {
+            private long startStdout = OutputEntry.NO_OUTPUT;
+            private long startStderr = OutputEntry.NO_OUTPUT;
+        }
+
         private final Map<Object, Long> assignedIds = new HashMap<>();
         private final Set<Object> flatteningIds;
         private final List<TestDescriptorInternal> extraFlattenedDescriptors;
@@ -114,14 +105,21 @@ public final class SerializableTestResultStore {
         private final Path serializedResultsFile;
         private final int diskSkipLevels;
         private final Path temporaryResultsFile;
+        /**
+         * Encoder storing the serialized test results.
+         */
         private final KryoBackedEncoder resultsEncoder;
-        private final FileSystem outputZipFileSystem;
+        /**
+         * Encoder storing all output events.
+         */
+        private final KryoBackedEncoder outputEventsEncoder;
+        private final Map<Long, OutputStarts> outputEntryRangeStarts = new HashMap<>();
         private long nextId = 1;
 
         // Map from testDescriptor -> Serialized metadata associated with that descriptor
         private final Multimap<TestDescriptorInternal, SerializedMetadata> metadatas = LinkedHashMultimap.create();
 
-        private Writer(Path serializedResultsFile, Path outputZipFile, int diskSkipLevels) throws IOException {
+        private Writer(Path serializedResultsFile, Path outputEventsFile, int diskSkipLevels) throws IOException {
             this.serializedResultsFile = serializedResultsFile;
             this.diskSkipLevels = diskSkipLevels;
             // Use constants to avoid allocating empty collections if flattening is not enabled
@@ -131,17 +129,12 @@ public final class SerializableTestResultStore {
             Files.createDirectories(serializedResultsFile.getParent());
             temporaryResultsFile = Files.createTempFile(serializedResultsFile.getParent(), "in-progress-results-generic", ".bin");
             resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
-            resultsEncoder.writeSmallInt(STORE_VERSION);
             try {
-                // Truncate existing output zip file
-                new ZipOutputStream(Files.newOutputStream(outputZipFile)).close();
-                try {
-                    outputZipFileSystem = FileSystems.newFileSystem(URI.create("jar:" + outputZipFile.toUri()), Collections.emptyMap());
-                } catch (FileSystemAlreadyExistsException e) {
-                    throw new InvalidUserCodeException("A previous file system exists for " + outputZipFile + ", which likely means that a previous test reporter was not closed", e);
-                }
+                resultsEncoder.writeSmallInt(STORE_VERSION);
+                Files.deleteIfExists(outputEventsFile);
+                outputEventsEncoder = new KryoBackedEncoder(Files.newOutputStream(outputEventsFile));
             } catch (Throwable t) {
-                // Ensure we don't leak the encoder if we fail to open the output zip file
+                // Ensure we don't leak the encoder if we fail to do operations in the constructor
                 try {
                     resultsEncoder.close();
                 } catch (Throwable t2) {
@@ -231,8 +224,14 @@ public final class SerializableTestResultStore {
 
             // We remove the id here since no further events should come for this test, and it won't be needed as a parent id anymore
             long id = assignedIds.remove(testDescriptor.getId());
-            resultsEncoder.writeSmallLong(id);
+            OutputStarts outputStarts = outputEntryRangeStarts.remove(id);
             try {
+                OutputEntry.Ser.INSTANCE.write(resultsEncoder, new OutputEntry(
+                    id,
+                    outputStarts != null ? outputStarts.startStdout : OutputEntry.NO_OUTPUT,
+                    outputStarts != null ? outputStarts.startStderr : OutputEntry.NO_OUTPUT,
+                    outputStarts != null ? outputEventsEncoder.getWritePosition() : OutputEntry.NO_OUTPUT
+                ));
                 SerializableTestResult.Serializer.serialize(testNodeBuilder.build(), resultsEncoder);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -295,12 +294,29 @@ public final class SerializableTestResultStore {
             } else {
                 outputId = assignedIds.get(testDescriptor.getId());
             }
-            Path file = outputZipFileSystem.getPath(Long.toString(outputId), event.getDestination().name());
+            // Assign the start of the output entry range if this is the first time we see this output id
+            OutputStarts ranges = outputEntryRangeStarts.computeIfAbsent(outputId, id -> new OutputStarts());
+            switch (event.getDestination()) {
+                case StdOut:
+                    if (ranges.startStdout == OutputEntry.NO_OUTPUT) {
+                        ranges.startStdout = outputEventsEncoder.getWritePosition();
+                    }
+                    break;
+                case StdErr:
+                    if (ranges.startStderr == OutputEntry.NO_OUTPUT) {
+                        ranges.startStderr = outputEventsEncoder.getWritePosition();
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown destination: " + event.getDestination());
+            }
             try {
-                Files.createDirectories(file.getParent());
-                Files.write(file, event.getMessage().getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-            } catch (IOException e) {
-                throw new RuntimeException("Could not write output file '" + file + "'", e);
+                outputEventsEncoder.writeLong(outputId);
+                TestEventSerializer.DefaultTestOutputEventSerializer.INSTANCE.write(
+                    outputEventsEncoder, (DefaultTestOutputEvent) event
+                );
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -313,17 +329,17 @@ public final class SerializableTestResultStore {
         public void close() throws IOException {
             try {
                 // Write a 0 id to terminate the file
-                resultsEncoder.writeSmallLong(0);
+                OutputEntry.Ser.INSTANCE.write(resultsEncoder, new OutputEntry(0, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT));
             } finally {
-                CompositeStoppable.stoppable(resultsEncoder, outputZipFileSystem).stop();
-                // Move the temporary results file to the final location
-                Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
+                CompositeStoppable.stoppable(resultsEncoder, outputEventsEncoder).stop();
             }
+            // Move the temporary results file to the final location, if successful
+            Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
     public boolean hasResults() {
-        if (Files.exists(serializedResultsFile) && Files.exists(outputZipFile)) {
+        if (Files.exists(serializedResultsFile) && Files.exists(outputEventsFile)) {
             // Inspect the results file, read first ID to see if there are any results
             try (KryoBackedDecoder decoder = openAndInitializeDecoder()) {
                 return decoder.readSmallLong() != 0;
@@ -332,35 +348,6 @@ public final class SerializableTestResultStore {
             }
         } else {
             return false;
-        }
-    }
-
-    @NullMarked
-    public static final class OutputTrackedResult {
-        private final long id;
-        private final SerializableTestResult testResult;
-        private final long parentId;
-
-        private OutputTrackedResult(long id, SerializableTestResult testResult, long parentId) {
-            this.id = id;
-            this.testResult = testResult;
-            this.parentId = parentId;
-        }
-
-        public SerializableTestResult getInnerResult() {
-            return testResult;
-        }
-
-        public long getOutputId() {
-            return id;
-        }
-
-        public OptionalLong getParentOutputId() {
-            return parentId == 0 ? OptionalLong.empty() : OptionalLong.of(parentId);
-        }
-
-        public OutputTrackedResult withInnerResult(SerializableTestResult newInnerResult) {
-            return new OutputTrackedResult(id, newInnerResult, parentId);
         }
     }
 
@@ -374,19 +361,16 @@ public final class SerializableTestResultStore {
     public void forEachResult(Consumer<? super OutputTrackedResult> action) throws IOException {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
             while (true) {
-                long id = resultsDecoder.readSmallLong();
-                if (id == 0) {
+                OutputEntry entry = OutputEntry.Ser.INSTANCE.read(resultsDecoder);
+                if (entry.id == 0) {
                     break;
-                }
-                if (id < 0) {
-                    throw new IllegalStateException("Invalid id: " + id);
                 }
                 SerializableTestResult testResult = SerializableTestResult.Serializer.deserialize(resultsDecoder);
                 long parentId = resultsDecoder.readSmallLong();
                 if (parentId < 0) {
                     throw new IllegalStateException("Invalid parent id: " + parentId);
                 }
-                action.accept(new OutputTrackedResult(id, testResult, parentId));
+                action.accept(new OutputTrackedResult(entry, testResult, parentId));
             }
         }
     }
@@ -410,43 +394,7 @@ public final class SerializableTestResultStore {
         return decoder;
     }
 
-    public OutputReader openOutputReader() throws IOException {
-        return new OutputReader(outputZipFile);
-    }
-
-    @NullMarked
-    public static final class OutputReader implements Closeable {
-        private final ZipFile outputZipFile;
-
-        private OutputReader(Path outputZipFile) throws IOException {
-            this.outputZipFile = new ZipFile(outputZipFile.toFile());
-        }
-
-        @Nullable
-        private ZipEntry getEntry(long id, TestOutputEvent.Destination destination) {
-            return outputZipFile.getEntry(id + "/" + destination.name());
-        }
-
-        public boolean hasOutput(long id, TestOutputEvent.Destination destination) {
-            return getEntry(id, destination) != null;
-        }
-
-        public java.io.Reader getOutput(long id, TestOutputEvent.Destination destination) {
-            ZipEntry entry = getEntry(id, destination);
-            if (entry == null) {
-                // Map no entry to no output
-                return new NullReader();
-            }
-            try {
-                return new InputStreamReader(outputZipFile.getInputStream(entry), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new RuntimeException("Could not read output entry '" + entry.getName() + "'", e);
-            }
-        }
-
-        @Override
-        public void close() throws IOException {
-            outputZipFile.close();
-        }
+    public OutputReader createOutputReader() {
+        return new OutputReader(outputEventsFile);
     }
 }

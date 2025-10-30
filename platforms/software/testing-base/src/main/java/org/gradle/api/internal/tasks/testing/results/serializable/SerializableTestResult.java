@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMeta
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -37,13 +36,11 @@ import java.util.Objects;
  * Specifically, this class does not contain exception objects.
  * </p>
  */
-@NullMarked
 public final class SerializableTestResult {
     public static Builder builder() {
         return new Builder();
     }
 
-    @NullMarked
     public static final class Builder {
         @Nullable
         private String name;
@@ -135,7 +132,6 @@ public final class SerializableTestResult {
         }
     }
 
-    @NullMarked
     public static final class Serializer {
         private Serializer() { /* static util class is not instantiable */ }
 
