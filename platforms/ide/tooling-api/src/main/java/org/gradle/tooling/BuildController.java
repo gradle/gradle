@@ -287,7 +287,7 @@ public interface BuildController {
      * @param <M> The model type.
      * @param <P> The parameter type.
      * @return A {@link FetchModelResult} containing the target, the fetched model (if successful), and any failures that occurred.
-     *         Check {@link FetchModelResult#getFailures()} to determine if the fetch was successful.
+     * Check {@link FetchModelResult#getFailures()} to determine if the fetch was successful.
      * @since 9.3.0
      */
     @Incubating
