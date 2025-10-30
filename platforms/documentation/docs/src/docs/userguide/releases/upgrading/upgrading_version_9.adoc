@@ -39,6 +39,12 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.2.21
+
+The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[Kotlin 2.2.21].
+
 === Deprecations
 
 [[deprecated_wrapper_get_available_distribution_types]]
