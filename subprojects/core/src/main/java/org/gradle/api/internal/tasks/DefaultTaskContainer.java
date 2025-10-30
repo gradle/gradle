@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
@@ -69,7 +70,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 @NullMarked
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
@@ -92,7 +92,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
 
-    private MutableModelNode modelNode;
+    private @Nullable MutableModelNode modelNode;
 
     public DefaultTaskContainer(
         ProjectInternal project,
@@ -496,7 +496,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
      *
      * @param projectPath The absolute path to the target project, relative to the current build.
      * @param taskName The name of the task to find.
-     *
      * @return The requested task, or null if the target project or task within that project does not exist.
      */
     private @Nullable Task findTaskInProject(Path projectPath, String taskName) {
@@ -548,9 +547,10 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (modelNode == null) {
             return names;
         } else {
-            TreeSet<String> allNames = new TreeSet<>(names);
-            allNames.addAll(modelNode.getLinkNames());
-            return allNames;
+            return ImmutableSortedSet.<String>naturalOrder()
+                .addAll(names)
+                .addAll(modelNode.getLinkNames())
+                .build();
         }
     }
 
