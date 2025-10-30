@@ -90,7 +90,6 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
         pluginLeafBuilder.prepareToExecute()
 
         // PLUGIN-OTHER PROJECT
-
         def pluginOtherBuilder = new PluginBuilder(pluginOtherDir)
         pluginOtherBuilder.packageName = "com.example"
         pluginOtherBuilder.addPluginId('com.example.other-plugin', 'OtherPlugin')
@@ -126,36 +125,10 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
         pluginOtherBuilder.prepareToExecute()
 
         // PLUGIN-TESTED PROJECT
-        pluginTestedDir.file("build.gradle") << """
-            plugins {
-                id 'java-gradle-plugin'
-            }
-
-            group = 'com.example'
-            version = '1.0-SNAPSHOT'
-
-            gradlePlugin {
-                plugins {
-                    testedPlugin {
-                        id = 'com.example.tested-plugin'
-                        implementationClass = 'com.example.RootPlugin'
-                    }
-                }
-            }
-
-            dependencies {
-                implementation(project(":plugin-leaf"))
-                testImplementation(gradleTestKit())
-                testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-                testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-            }
-
-            tasks.named('test') {
-                useJUnitPlatform()
-            }
-        """
-
-        pluginTestedDir.file("src/main/java/com/example/RootPlugin.java") << """
+        def pluginTestedBuilder = new PluginBuilder(pluginTestedDir)
+        pluginTestedBuilder.packageName = "com.example"
+        pluginTestedBuilder.addPluginId('com.example.tested-plugin', 'RootPlugin')
+        pluginTestedBuilder.java("RootPlugin.java") << """
             package com.example;
 
             import org.gradle.api.Plugin;
@@ -168,8 +141,7 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
                 }
             }
         """
-
-        pluginTestedDir.file("src/test/java/com/example/RootPluginTest.java") << """
+        pluginTestedBuilder.testJava("RootPluginTest.java") << """
             package com.example;
 
             import org.gradle.testkit.runner.BuildResult;
@@ -208,6 +180,19 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
 
             }
         """
+        pluginTestedBuilder.addBuildScriptContent("""
+            dependencies {
+                implementation(project(":plugin-leaf"))
+                testImplementation(gradleTestKit())
+                testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+                testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+            }
+
+            tasks.named('test') {
+                useJUnitPlatform()
+            }
+        """)
+        pluginTestedBuilder.prepareToExecute()
 
         // TEST-KIT PROJECT
         // Note: build.gradle will be filled in depending the test scenario.
@@ -216,13 +201,6 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
                 repositories {
                     maven {
                         url = uri('${localRepoDir.absolutePath}')
-                    }
-                }
-                resolutionStrategy {
-                    eachPlugin {
-                        if (requested.id.id.startsWith('com.example.')) {
-                            useVersion('1.0')
-                        }
                     }
                 }
             }
@@ -235,7 +213,7 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
         testKitProjectDir.file("build.gradle") << """
             plugins {
                 // com.example.other-plugin applies com.example.leaf-plugin
-                id 'com.example.other-plugin'
+                id 'com.example.other-plugin' version '1.0'
             }
 
             project.getPluginManager().withPlugin('com.example.leaf-plugin') {
@@ -256,9 +234,9 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
         testKitProjectDir.file("build.gradle") << """
             plugins {
                 // com.example.other-plugin applies com.example.leaf-plugin
-                id 'com.example.other-plugin'
+                id 'com.example.other-plugin' version '1.0'
                 // com.example.testedPlugin depends on com.example.leaf-plugin
-                id 'com.example.tested-plugin'
+                id 'com.example.tested-plugin' version '1.0'
             }
 
             project.getPluginManager().withPlugin('com.example.leaf-plugin') {
