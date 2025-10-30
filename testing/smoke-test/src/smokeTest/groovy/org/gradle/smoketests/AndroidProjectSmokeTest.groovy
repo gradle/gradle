@@ -20,98 +20,86 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-abstract class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
+abstract class AndroidProjectSmokeTest extends AbstractAndroidProjectSmokeTest {
 }
 
-class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTest {
-    def "check deprecation warnings produced by building Santa Tracker (agp=#agpVersion)"() {
+class AndroidProjectDeprecationSmokeTest extends AndroidProjectSmokeTest {
+    def "check deprecation warnings produced by building android project (agp=#agpVersion)"() {
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")
-        setupCopyOfSantaTracker(checkoutDir)
-
-        when:
-        def result = runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
-            .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
-            }
-            .build()
-
-        then:
-        if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateStored()
-        }
-
-        where:
-        agpVersion << TestedVersions.androidGradleBefore9.versions
-    }
-}
-
-class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTrackerSmokeTest {
-    def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
-
-        given:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
-
-        and:
-        def checkoutDir = temporaryFolder.createDir("checkout")
-        setupCopyOfSantaTracker(checkoutDir)
-
-        and:
-        def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
-        def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
-        def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/${pathToClass}.class")
+        setupCopyOfAndroidProject(checkoutDir)
 
         when:
         def result = buildLocation(checkoutDir, agpVersion)
-        def md5Before = compiledClassFile.md5Hash
 
         then:
-        result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
         if (GradleContextualExecuter.isConfigCache()) {
             result.assertConfigurationCacheStateStored()
         }
-
-        when:
-        fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
-        result = buildCachedLocation(checkoutDir, agpVersion)
-
-        def md5After = compiledClassFile.md5Hash
-
-        then:
-        result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
-        if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateLoaded()
-        }
-        md5After != md5Before
 
         where:
         agpVersion << TestedVersions.androidGradleBefore9.versions
     }
 }
 
-class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
-    def "can lint Santa-Tracker (agp=#agpVersion)"() {
+class AndroidProjectIncrementalCompilationSmokeTest extends AndroidProjectSmokeTest {
+    def "incremental compilation works for android project (agp=#agpVersion)"() {
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
 
         and:
         def checkoutDir = temporaryFolder.createDir("checkout")
-        setupCopyOfSantaTracker(checkoutDir)
+        setupCopyOfAndroidProject(checkoutDir)
+
+        and:
+        def fileToChange = checkoutDir.file("core/ui/src/main/kotlin/com/google/samples/apps/nowinandroid/core/ui/NewsFeed.kt")
+
+        when:
+        def result = buildLocation(checkoutDir, agpVersion)
+
+        then:
+        result.task(":core:ui:compileProdDebugKotlin").outcome == SUCCESS
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateStored()
+        }
+
+        when:
+        fileToChange.replace("StaggeredGridCells.Adaptive(300.dp)", "StaggeredGridCells.Adaptive(600.dp)")
+        result = buildCachedLocation(checkoutDir, agpVersion)
+
+        then:
+        result.task(":core:ui:compileProdDebugKotlin").outcome == SUCCESS
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
+        }
+
+        where:
+        agpVersion << TestedVersions.androidGradleBefore9.versions
+    }
+}
+
+class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
+    def "can lint android project (agp=#agpVersion)"() {
+        given:
+        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+
+        and:
+        def checkoutDir = temporaryFolder.createDir("checkout")
+        setupCopyOfAndroidProject(checkoutDir)
 
         when:
         def runner = runnerForLocation(
-            checkoutDir, agpVersion,
-            "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
+            checkoutDir, agpVersion, "app:lint", "-Dandroid.lintWarningsAsErrors=true"
         )
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner
-            .deprecations(SantaTrackerDeprecations) {
+            .deprecations(AndroidProjectDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
             }
             .buildAndFail()
@@ -124,14 +112,11 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
 
         when:
         runner = runnerForLocation(
-            checkoutDir, agpVersion,
-            "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
+            checkoutDir, agpVersion, "app:lint", "-Dandroid.lintWarningsAsErrors=true"
         )
         result = runner.withArguments(runner.arguments + "--continue")
-            .deprecations(SantaTrackerDeprecations) {
-                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
-            }
-            .buildAndFail()
+                .deprecations(AndroidProjectDeprecations) {}
+                .buildAndFail()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {

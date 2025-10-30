@@ -143,7 +143,7 @@ data class CIBuildModel(
                         SpecificBuild.CheckLinks,
                         SpecificBuild.CheckTeamCityKotlinDSL,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
-                        SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
+                        SpecificBuild.ConfigCacheAndroidProjectSmokeTests,
                         SpecificBuild.GradleBuildSmokeTests,
                         SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
                         SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
@@ -216,7 +216,7 @@ data class CIBuildModel(
                 specificBuilds =
                     listOf(
                         SpecificBuild.TestPerformanceTest,
-                        SpecificBuild.SantaTrackerSmokeTests,
+                        SpecificBuild.AndroidProjectSmokeTests,
                     ),
                 functionalTests =
                     listOf(
@@ -677,15 +677,15 @@ enum class SpecificBuild {
         ): OsAwareBaseGradleBuildType =
             SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, splitNumber = 4, flakyTestStrategy = flakyTestStrategy)
     },
-    SantaTrackerSmokeTests {
+    AndroidProjectSmokeTests {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
             flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType =
-            SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, name, "santaTrackerSmokeTest", 4, flakyTestStrategy)
+            SmokeTests(model, stage, JvmCategory.ANDROID_PROJECT_SMOKE_TEST_VERSION, name, "androidProjectSmokeTest", 4, flakyTestStrategy)
     },
-    ConfigCacheSantaTrackerSmokeTests {
+    ConfigCacheAndroidProjectSmokeTests {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
@@ -694,9 +694,9 @@ enum class SpecificBuild {
             SmokeTests(
                 model,
                 stage,
-                JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION,
+                JvmCategory.ANDROID_PROJECT_SMOKE_TEST_VERSION,
                 name,
-                "configCacheSantaTrackerSmokeTest",
+                "configCacheAndroidProjectSmokeTest",
                 4,
                 flakyTestStrategy,
             )

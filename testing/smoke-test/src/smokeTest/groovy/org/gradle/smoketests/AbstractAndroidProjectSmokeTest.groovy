@@ -19,7 +19,9 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
+import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
@@ -38,7 +40,9 @@ import org.junit.Rule
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
  * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
-class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements RunnerFactory {
+// Caused by https://github.com/gradle/gradle/issues/35572
+@DoesNotSupportNonAsciiPaths
+class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements RunnerFactory {
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -55,44 +59,40 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
         DaemonLogsAnalyzer.newAnalyzer(homeDir.file(ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
     }
 
-    protected void setupCopyOfSantaTracker(TestFile targetDir) {
-        copyRemoteProject("santaTracker", targetDir)
-        ApplyDevelocityPluginFixture.applyDevelocityPlugin(targetDir.file("settings.gradle"))
+    protected void setupCopyOfAndroidProject(TestFile targetDir) {
+        copyRemoteProject("androidProject", targetDir)
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(targetDir.file("settings.gradle.kts"))
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
-            .deprecations(AndroidDeprecations) {
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug", *excludingCCIncompatibleTasks())
+            .deprecations(AndroidProjectDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
             }
             .build()
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
-            .deprecations(AndroidDeprecations) {
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug", *excludingCCIncompatibleTasks())
+            .deprecations(AndroidProjectDeprecations) {
                 expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
             }
             .build()
     }
 
-    static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
-        SantaTrackerDeprecations(SmokeTestGradleRunner runner) {
+    static class AndroidProjectDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+        AndroidProjectDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
         }
     }
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
         List<String> runnerArgs = [
-            // TODO: the versions of KGP we use still access Task.project from a cacheIf predicate
-            // A workaround for this has been added to TaskExecutionAccessCheckers;
-            // TODO once we remove it, uncomment the flag below or upgrade AGP
-            // "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
             "-DagpVersion=$agpVersion",
             "-DkotlinVersion=$kotlinVersion",
             "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
             "-DbuildToolsVersion=${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}",
-            "-Dscan.tag.SantaTrackerSmokeTest",
+            "-Dscan.tag.NowInAndroidSmokeTest",
             "--stacktrace"
         ] + tasks.toList()
 
@@ -114,23 +114,31 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
             )
         }
-        1.times {
-            runner.maybeExpectLegacyDeprecationWarning(
-                "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 10. " +
-                    "Use assignment ('url = <value>') instead. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
-            )
+
+        String protobufClassifier
+        if (OperatingSystem.current().isWindows()) {
+            protobufClassifier = "windows-x86_64"
+        } else if (OperatingSystem.current().isLinux()) {
+            protobufClassifier = "linux-x86_64"
+        } else if (OperatingSystem.current().isMacOsX()) {
+            protobufClassifier = "osx-aarch_64"
+        } else {
+            throw new UnsupportedOperationException("Unsupported operating system: ${OperatingSystem.current().name}")
         }
-        15.times {
-            runner.maybeExpectLegacyDeprecationWarning(
-                "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 10. " +
-                    "Use assignment ('namespace = <value>') instead. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
-            )
-        }
+        runner.maybeExpectLegacyDeprecationWarning(
+            "Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"com.google.protobuf:protoc:4.29.2:${protobufClassifier}@exe\". Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation"
+        )
+
         runner
+    }
+
+    // license plugin is not compatible with CC: https://github.com/google/play-services-plugins/issues/246
+    protected List<String> excludingCCIncompatibleTasks() {
+        if (GradleContextualExecuter.isConfigCache()) {
+            return ["-x", ":app:prodDebugOssLicensesTask", "-x", ":app:demoDebugOssLicensesTask"]
+        } else {
+            return []
+        }
     }
 
     protected static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {

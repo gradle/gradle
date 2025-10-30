@@ -62,17 +62,18 @@ dependencies {
 tasks {
 
     /**
-     * Santa Tracker git URI.
+     * Anroid project git URI.
+     * Currently points to a clone of Now in Android.
      *
-     * Note that you can change it to `file:///path/to/your/santa-tracker-clone/.git`
-     * if you need to iterate quickly on changes to Santa Tracker.
+     * Note that you can change it to `file:///path/to/your/nowinandroid-clone/.git`
+     * if you need to iterate quickly on changes to it.
      */
-    val santaGitUri = "https://github.com/gradle/santa-tracker-android.git"
+    val androidProjectGitUri = "https://github.com/gradle/nowinandroid.git"
 
-    val santaTracker by registering(RemoteProject::class) {
-        remoteUri = santaGitUri
-        // Pinned from branch main
-        ref = "3f5f79b06da263670c77a734ec2db6220dcf311c"
+    val androidProject by registering(RemoteProject::class) {
+        remoteUri = androidProjectGitUri
+        // latest https://github.com/gradle/nowinandroid/tree/smoke-tests-main as of 2025-11-05
+        ref = "da342a6162b300e7d2cb15887d9cec3bb927c83e"
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
@@ -80,7 +81,7 @@ tasks {
         ref = buildCommitId
     }
 
-    val remoteProjects = arrayOf(santaTracker, gradleBuildCurrent)
+    val remoteProjects = arrayOf(androidProject, gradleBuildCurrent)
 
     if (BuildEnvironment.isCiServer) {
         remoteProjects.forEach { remoteProject ->
@@ -124,17 +125,17 @@ tasks {
 
     val gradleBuildTestPattern = "org.gradle.smoketests.GradleBuild*SmokeTest"
 
-    val santaTrackerTestPattern = "org.gradle.smoketests.AndroidSantaTracker*SmokeTest"
+    val androidProjectTestPattern = "org.gradle.smoketests.AndroidProject*SmokeTest"
 
     register<SmokeTest>("smokeTest") {
         description = "Runs Smoke tests"
-        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, santaTrackerTestPattern))
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
     }
 
     register<SmokeTest>("configCacheSmokeTest") {
         description = "Runs Smoke tests with the configuration cache"
         systemProperty("org.gradle.integtest.executer", "configCache")
-        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, santaTrackerTestPattern))
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
     }
 
     register<SmokeTest>("gradleBuildSmokeTest") {
@@ -150,15 +151,15 @@ tasks {
         }, includes = listOf(gradleBuildTestPattern))
     }
 
-    register<SmokeTest>("santaTrackerSmokeTest") {
-        description = "Runs Santa Tracker Smoke tests"
-        configureForSmokeTest(santaTracker, includes = listOf(santaTrackerTestPattern))
+    register<SmokeTest>("androidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
     }
 
-    register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
-        description = "Runs Santa Tracker Smoke tests with the configuration cache"
-        configureForSmokeTest(santaTracker, includes = listOf(santaTrackerTestPattern))
+    register<SmokeTest>("configCacheAndroidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests with the configuration cache"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
