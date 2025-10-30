@@ -18,6 +18,7 @@ package org.gradle.testkit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -59,36 +60,11 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
         """
 
         // PLUGIN-LEAF PROJECT
-
-        pluginLeafDir.file("build.gradle") << """
-            plugins {
-                id 'java-gradle-plugin'
-                id 'maven-publish'
-            }
-
-            group = 'com.example'
-            version = '1.0'
-
-            gradlePlugin {
-                plugins {
-                    leafPlugin {
-                        id = 'com.example.leaf-plugin'
-                        implementationClass = 'com.example.LeafPlugin'
-                    }
-                }
-            }
-
-            publishing {
-                repositories {
-                    maven {
-                        name = 'localRepo'
-                        url = uri('${localRepoDir.absolutePath}')
-                    }
-                }
-            }
-        """
-
-        pluginLeafDir.file("src/main/java/com/example/LeafPlugin.java") << """
+        def pluginLeafBuilder = new PluginBuilder(pluginLeafDir)
+        pluginLeafBuilder.packageName = "com.example"
+        pluginLeafBuilder.addPluginId('com.example.leaf-plugin', 'LeafPlugin')
+        pluginLeafBuilder.applyBuildScriptPlugin('maven-publish')
+        pluginLeafBuilder.java("LeafPlugin.java") << """
             package com.example;
 
             import org.gradle.api.Plugin;
@@ -101,31 +77,7 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
                 }
             }
         """
-
-        // PLUGIN-OTHER PROJECT
-
-        pluginOtherDir.file("build.gradle") << """
-            plugins {
-                id 'java-gradle-plugin'
-                id 'maven-publish'
-            }
-
-            group = 'com.example'
-            version = '1.0'
-
-            gradlePlugin {
-                plugins {
-                    otherPlugin {
-                        id = 'com.example.other-plugin'
-                        implementationClass = 'com.example.OtherPlugin'
-                    }
-                }
-            }
-
-            dependencies {
-                implementation(project(":plugin-leaf"))
-            }
-
+        pluginLeafBuilder.addBuildScriptContent("""
             publishing {
                 repositories {
                     maven {
@@ -134,9 +86,16 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
                     }
                 }
             }
-        """
+        """)
+        pluginLeafBuilder.prepareToExecute()
 
-        pluginOtherDir.file("src/main/java/com/example/OtherPlugin.java") << """
+        // PLUGIN-OTHER PROJECT
+
+        def pluginOtherBuilder = new PluginBuilder(pluginOtherDir)
+        pluginOtherBuilder.packageName = "com.example"
+        pluginOtherBuilder.addPluginId('com.example.other-plugin', 'OtherPlugin')
+        pluginOtherBuilder.applyBuildScriptPlugin('maven-publish')
+        pluginOtherBuilder.java("OtherPlugin.java") << """
             package com.example;
 
             import org.gradle.api.Plugin;
@@ -150,9 +109,23 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
                 }
             }
         """
+        pluginOtherBuilder.addBuildScriptContent("""
+            dependencies {
+                implementation(project(":plugin-leaf"))
+            }
+
+            publishing {
+                repositories {
+                    maven {
+                        name = 'localRepo'
+                        url = uri('${localRepoDir.absolutePath}')
+                    }
+                }
+            }
+        """)
+        pluginOtherBuilder.prepareToExecute()
 
         // PLUGIN-TESTED PROJECT
-
         pluginTestedDir.file("build.gradle") << """
             plugins {
                 id 'java-gradle-plugin'
