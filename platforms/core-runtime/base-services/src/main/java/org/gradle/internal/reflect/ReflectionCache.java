@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.WeakHashMap;
 
 /**
@@ -70,8 +72,8 @@ public abstract class ReflectionCache<T extends CachedInvokable<?>> {
     }
 
     private class CacheEntry {
-        private WeaklyClassReferencingCache table = new WeaklyClassReferencingCache();
-        private T value;
+        private final WeaklyClassReferencingCache table = new WeaklyClassReferencingCache();
+        private @Nullable T value;
     }
 
 }
