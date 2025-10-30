@@ -61,7 +61,6 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon.\n more infos"
     }
 
-    @Requires(value = UnitTestPreconditions.IsKnownWindowsSocketDisappearanceIssue, reason = "https://github.com/gradle/gradle/issues/1111")
     def "retries if expected exception occurs"() {
         given:
         iteration++
@@ -76,7 +75,6 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         true
     }
 
-    @Requires(value = UnitTestPreconditions.IsNotKnownWindowsSocketDisappearanceIssue, reason = "https://github.com/gradle/gradle/issues/1111")
     def "does not retry on non-windows and non-java7 environments"() {
         given:
         iteration++
@@ -90,7 +88,6 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(value = UnitTestPreconditions.IsKnownWindowsSocketDisappearanceIssue, reason = "https://github.com/gradle/gradle/issues/1111")
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -104,7 +101,6 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(value = UnitTestPreconditions.IsKnownWindowsSocketDisappearanceIssue, reason = "https://github.com/gradle/gradle/issues/1111")
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++

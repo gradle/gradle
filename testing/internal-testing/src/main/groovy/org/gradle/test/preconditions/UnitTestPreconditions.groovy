@@ -119,28 +119,6 @@ class UnitTestPreconditions {
         }
     }
 
-    /**
-     * @see <a href="https://github.com/gradle/gradle/issues/1111">Link</a>
-     */
-    static final class IsKnownWindowsSocketDisappearanceIssue implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return Jvm.current().javaVersionMajor >= 7 &&
-                Jvm.current().javaVersionMajor <= 8 &&
-                OperatingSystem.current().isWindows()
-        }
-    }
-
-    /**
-     * @see <a href="https://github.com/gradle/gradle/issues/1111">Link</a>
-     */
-    static final class IsNotKnownWindowsSocketDisappearanceIssue implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return TestPrecondition.notSatisfied(IsKnownWindowsSocketDisappearanceIssue)
-        }
-    }
-
     static final class MacOs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
