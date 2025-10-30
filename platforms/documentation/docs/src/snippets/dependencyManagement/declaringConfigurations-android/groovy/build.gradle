@@ -38,6 +38,10 @@ android {
     }
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 // tag::configurations[]
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")

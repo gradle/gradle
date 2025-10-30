@@ -678,7 +678,7 @@ tasks.named<Test>("docsTest") {
             // Umbrella build project also contains Android projects
             excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample")
             // AGP AND KMP are tested on Java 17 only
-            excludeTestsMatching("org.gradle.docs.samples.*.*snippet-dependency-management-declaring-configurations*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-*.sample")
             // Spring Boot requires Java 17+
             excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
         }
