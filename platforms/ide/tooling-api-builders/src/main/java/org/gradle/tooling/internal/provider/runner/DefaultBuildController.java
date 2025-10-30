@@ -150,7 +150,7 @@ class DefaultBuildController implements
 
     @Override
     public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
-        return controller.queryModelActionsRunInParallel();
+        return controller.isParallelActionsCapable();
     }
 
     @Override

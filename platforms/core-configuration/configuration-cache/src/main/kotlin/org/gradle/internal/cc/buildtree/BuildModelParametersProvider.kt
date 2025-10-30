@@ -106,7 +106,7 @@ object BuildModelParametersProvider {
 
         validateIsolatedProjectsCachingOption(options)
 
-        val parallelToolingActions = parallelProjectExecution && options[parallelBuilding]
+        val parallelToolingActionsCapable = parallelProjectExecution && options[parallelBuilding]
         val invalidateCoupledProjects = isolatedProjects && options[invalidateCoupledProjects]
         val modelAsProjectDependency = isolatedProjects && options[modelProjectDependencies]
         val resilientModelBuilding = options[resilientModelBuilding]
@@ -122,7 +122,7 @@ object BuildModelParametersProvider {
                 isolatedProjects = isolatedProjects,
                 parallelProjectConfiguration = parallelProjectConfiguration,
                 intermediateModelCache = isolatedProjects && options[isolatedProjectsCaching].buildingModels,
-                parallelToolingApiActions = parallelToolingActions,
+                parallelToolingActionsCapable = parallelToolingActionsCapable,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = modelAsProjectDependency,
                 resilientModelBuilding = resilientModelBuilding
@@ -142,7 +142,7 @@ object BuildModelParametersProvider {
                     isolatedProjects = false,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
-                    parallelToolingApiActions = parallelToolingActions,
+                    parallelToolingActionsCapable = parallelToolingActionsCapable,
                     invalidateCoupledProjects = invalidateCoupledProjects,
                     modelAsProjectDependency = modelAsProjectDependency,
                     resilientModelBuilding = resilientModelBuilding
@@ -164,7 +164,7 @@ object BuildModelParametersProvider {
                     isolatedProjects = isolatedProjects,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
-                    parallelToolingApiActions = parallelToolingActions,
+                    parallelToolingActionsCapable = parallelToolingActionsCapable,
                     invalidateCoupledProjects = invalidateCoupledProjects,
                     modelAsProjectDependency = modelAsProjectDependency,
                     resilientModelBuilding = resilientModelBuilding
@@ -215,7 +215,7 @@ object BuildModelParametersProvider {
             isolatedProjects = false,
             parallelProjectConfiguration = false,
             intermediateModelCache = false,
-            parallelToolingApiActions = false,
+            parallelToolingActionsCapable = false,
             invalidateCoupledProjects = false,
             modelAsProjectDependency = false,
             resilientModelBuilding = false

@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * Executor for batches of intermediate build actions that can be initiated
  * from the top-level build action or from model builders.
  * <p>
- * All actions are always executed, and <b>may run in {@link #isParallel() parallel}</b>.
+ * All actions are always executed, and <b>may run in {@link #isParallelCapable() parallel}</b>.
  * An action failure does not prevent the execution of the rest of the actions.
  * <p>
  * Action failures (if any) are aggregated into {@link MultipleBuildOperationFailures}.
@@ -56,8 +56,8 @@ public class IntermediateBuildActionRunner {
         this.buildOperationDescription = buildOperationDescription;
     }
 
-    public boolean isParallel() {
-        return buildModelParameters.isParallelToolingApiActions();
+    public boolean isParallelCapable() {
+        return buildModelParameters.isParallelToolingActionsCapable();
     }
 
     public <T> List<T> run(List<Supplier<T>> actions) {
@@ -84,7 +84,7 @@ public class IntermediateBuildActionRunner {
     }
 
     private <T> void runActions(Collection<NestedAction<T>> actions) {
-        if (isParallel()) {
+        if (isParallelCapable()) {
             buildOperationExecutor.runAllWithAccessToProjectState(buildOperationQueue -> {
                 for (RunnableBuildOperation action : actions) {
                     buildOperationQueue.add(action);

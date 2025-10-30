@@ -95,8 +95,8 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
-        public boolean queryModelActionsRunInParallel() {
-            return actionRunner.isParallel();
+        public boolean isParallelActionsCapable() {
+            return actionRunner.isParallelCapable();
         }
 
         @Override

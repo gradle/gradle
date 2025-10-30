@@ -40,12 +40,12 @@ public interface BuildTreeModelController {
     @Nullable
     Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException;
 
-    boolean queryModelActionsRunInParallel();
+    boolean isParallelActionsCapable();
 
     /**
      * Runs the given actions, possibly in parallel.
      *
-     * @see #queryModelActionsRunInParallel()
+     * @see #isParallelActionsCapable()
      */
     @Nullable
     <T> List<T> runQueryModelActions(List<Supplier<T>> actions);

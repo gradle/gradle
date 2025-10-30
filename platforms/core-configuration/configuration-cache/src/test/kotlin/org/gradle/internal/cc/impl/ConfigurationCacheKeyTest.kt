@@ -152,7 +152,7 @@ class ConfigurationCacheKeyTest {
                     isolatedProjects = isolatedProjects,
                     parallelProjectConfiguration = isolatedProjects,
                     intermediateModelCache = false,
-                    parallelToolingApiActions = false,
+                    parallelToolingActionsCapable = false,
                     invalidateCoupledProjects = false,
                     modelAsProjectDependency = false,
                     resilientModelBuilding = false,
