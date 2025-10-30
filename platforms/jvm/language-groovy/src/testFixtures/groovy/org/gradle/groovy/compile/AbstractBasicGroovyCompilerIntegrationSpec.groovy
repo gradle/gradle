@@ -440,19 +440,6 @@ abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIn
         failure.assertHasCause("Could not execute Groovy compiler configuration script: ${file('groovycompilerconfig.groovy')}")
     }
 
-    // JavaFx was removed in JDK 10
-    // We don't have Oracle Java 8 on Windows any more
-    @Requires([
-        UnitTestPreconditions.Jdk9OrEarlier,
-        UnitTestPreconditions.NotWindows
-    ])
-    def "compileJavaFx8Code"() {
-        Assume.assumeFalse("Setup invalid with toolchains", getClass().name.contains('Toolchain') && !getClass().name.contains('SameToolchain'))
-
-        expect:
-        succeeds("compileGroovy")
-    }
-
     def "cant compile against gradle base services"() {
         def gradleBaseServicesClass = Action
         buildFile """

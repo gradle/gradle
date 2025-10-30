@@ -44,18 +44,6 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         javadoc.text =~ /(?ms)Custom Taglet.*custom taglet value/
     }
 
-    @Issue(["GRADLE-2520", "https://github.com/gradle/gradle/issues/4993"])
-    @Requires(UnitTestPreconditions.Jdk9OrEarlier)
-    def canCombineLocalOptionWithOtherOptions() {
-        when:
-        run("javadoc")
-
-        then:
-        def javadoc = testResources.dir.file("build/docs/javadoc/Person.html")
-        javadoc.text =~ /(?ms)USED LOCALE=de_DE/
-        javadoc.text =~ /(?ms)Serial no. is valid javadoc!/
-    }
-
     def "writes header"() {
         buildFile << """
             apply plugin: "java"

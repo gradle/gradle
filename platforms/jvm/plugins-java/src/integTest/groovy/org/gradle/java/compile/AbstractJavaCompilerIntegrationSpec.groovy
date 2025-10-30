@@ -152,28 +152,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         !noDebug.debugIncludesLocalVariables
     }
 
-    // JavaFx was removed in JDK 10
-    // JavaFx comes packaged with Oracle JDKs
-    @Requires([
-        UnitTestPreconditions.Jdk9OrEarlier,
-        UnitTestPreconditions.JdkOracle
-    ])
-    def "can compile JavaFx 8 code"() {
-        given:
-        file("src/main/java/compile/test/FxApp.java") << """
-            import javafx.application.Application;
-            import javafx.stage.Stage;
-
-            public class FxApp extends Application {
-                public void start(Stage stage) {
-                }
-            }
-        """
-
-        expect:
-        succeeds("compileJava")
-    }
-
     def "honors project level compatibility when using toolchain"() {
         given:
         def lower = getLowerJvm()
