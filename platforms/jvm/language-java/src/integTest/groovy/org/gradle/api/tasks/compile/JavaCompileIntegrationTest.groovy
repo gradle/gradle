@@ -17,17 +17,13 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.Resources
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-
-import java.nio.file.Paths
 
 // TODO: Move all of these tests to AbstractJavaCompilerIntegrationSpec
 // so that we can verify them for forking, in-process, and cli compilers.
@@ -594,57 +590,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skipped ':compileJava'
-    }
-
-    @Issue("gradle/gradle#1358")
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    // Java 9 compiler throws error already: 'zip END header not found'
-    def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
-        buildFile << '''
-            plugins {
-                id("java-library")
-            }
-
-            dependencies {
-               implementation files('foo.jar')
-            }
-        '''
-        file('foo.jar') << 'this is clearly not a well formed jar file'
-        file('src/main/java/Hello.java') << 'public class Hello {}'
-
-        when:
-        executer.withStackTraceChecksDisabled()
-        run 'compileJava'
-
-        then:
-        executedAndNotSkipped ':compileJava'
-        errorOutput.contains('error in opening zip file')
-    }
-
-    @Issue("gradle/gradle#1581")
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    def "compile classpath snapshotting on Java 8 and earlier should warn when jar on classpath has non-utf8 characters in filenames"() {
-        buildFile << '''
-            plugins {
-                id("java-library")
-            }
-
-            dependencies {
-               implementation files('broken-utf8.jar')
-            }
-        '''
-        // This file has a file name which is not UTF-8.
-        // See https://bugs.openjdk.java.net/browse/JDK-7062777?focusedCommentId=12254124&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12254124.
-        resources.findResource('broken-utf8.is-a-jar').copyTo(file('broken-utf8.jar'))
-        file('src/main/java/Hello.java') << 'public class Hello {}'
-        executer.withStackTraceChecksDisabled()
-
-        when:
-        run 'compileJava', '--debug'
-
-        then:
-        executedAndNotSkipped ':compileJava'
-        outputContains "Malformed archive 'broken-utf8.jar'"
     }
 
     @Issue("gradle/gradle#1358")

@@ -19,8 +19,6 @@ package org.gradle.testing.junit.junit4
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import spock.lang.Issue
@@ -130,50 +128,6 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         executedAndNotSkipped(":test")
         GenericHtmlTestExecutionResult result = resultsFor()
         result.assertTestPathsExecuted(':DescriptionWithNullClassTest:someTest')
-    }
-
-    @Issue('https://github.com/gradle/gradle/issues/3189')
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    def "can work with PowerMock"() {
-        given:
-        file('src/test/java/FastTest.java') << '''
-            public interface FastTest {
-            }
-        '''.stripIndent()
-        file('src/test/java/MyTest.java') << """
-            ${testFrameworkImports}
-            import org.junit.experimental.categories.Category;
-            import org.powermock.modules.junit4.PowerMockRunner;
-            @RunWith(PowerMockRunner.class)
-            @Category(FastTest.class)
-            public class MyTest {
-                @Test
-                public void testMyMethod() {
-                    assertTrue("This is an error", false);
-                }
-            }
-        """.stripIndent()
-        buildFile << """
-            apply plugin: 'java'
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                ${testFrameworkDependencies}
-                testImplementation "org.powermock:powermock-api-mockito:1.6.5"
-                testImplementation "org.powermock:powermock-module-junit4:1.6.5"
-            }
-
-            test {
-                ${configureTestFramework} { ${includeCategoryOrTag('FastTest')} }
-            }
-        """.stripIndent()
-
-        when:
-        fails('test')
-
-        then:
-        outputContains('MyTest > testMyMethod FAILED')
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4924')

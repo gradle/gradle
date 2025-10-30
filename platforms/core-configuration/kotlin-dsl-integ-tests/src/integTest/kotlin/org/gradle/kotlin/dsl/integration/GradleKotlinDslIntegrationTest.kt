@@ -473,29 +473,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier::class)
-    fun `build script can use jdk8 extensions`() {
-
-        withBuildScript(
-            """
-
-            // without kotlin-stdlib-jdk8 we get:
-            // > Retrieving groups by name is not supported on this platform.
-
-            val regex = Regex("(?<bla>.*)")
-            val groups = regex.matchEntire("abc")?.groups
-            println("*" + groups?.get("bla")?.value + "*")
-
-            """
-        )
-
-        assertThat(
-            build("help").output,
-            containsString("*abc*")
-        )
-    }
-
-    @Test
     fun `settings script can use buildscript dependencies`() {
 
         withSettings(

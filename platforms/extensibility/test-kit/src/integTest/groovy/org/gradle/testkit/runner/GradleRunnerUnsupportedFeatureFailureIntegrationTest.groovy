@@ -17,9 +17,6 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
@@ -53,68 +50,6 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         if (condition) {
             throw throwable
         }
-    }
-
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier) // tests against old Gradle version that can only work with Java versions up tp 8
-    @Debug
-    def "fails informatively when trying to inspect build output in debug mode with unsupported gradle version"() {
-        def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG)
-        def minSupportedVersion = TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since.version
-
-        given:
-        buildFile << helloWorldTask()
-
-        when:
-        def result = runner('helloWorld')
-            .withGradleVersion(maxUnsupportedVersion)
-            .build()
-
-        and:
-        result.output
-
-        then:
-        def e = thrown UnsupportedFeatureException
-        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not capture build output in debug mode with the GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
-    }
-
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier) // tests against old Gradle version that can only work with Java versions up tp 8
-    def "fails informatively when trying to inject plugin classpath with unsupported gradle version"() {
-        def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION)
-        def minSupportedVersion = TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since.version
-
-        given:
-        buildFile plugin.useDeclaration
-
-        when:
-        runner('helloWorld')
-            .withGradleVersion(maxUnsupportedVersion)
-            .withPluginClasspath([file("foo")])
-            .build()
-
-        then:
-        def e = thrown UnsupportedFeatureException
-        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support plugin classpath injection. Support for this is available in Gradle $minSupportedVersion and all later versions."
-    }
-
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier) // tests against old Gradle version that can only work with Java versions up tp 8
-    def "fails informatively if trying to use conventional plugin classpath on version that does not support injection"() {
-        given:
-        def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.PLUGIN_CLASSPATH_INJECTION)
-        def minSupportedVersion = TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since.version
-
-        buildFile plugin.useDeclaration
-
-        when:
-        plugin.build().exposeMetadata {
-            runner('helloWorld')
-                .withGradleVersion(maxUnsupportedVersion)
-                .withPluginClasspath()
-                .buildAndFail()
-        }
-
-        then:
-        def e = thrown UnsupportedFeatureException
-        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support plugin classpath injection. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
     static String getMaxUnsupportedVersion(TestKitFeature feature) {

@@ -61,23 +61,4 @@ class JavaVersionCrossVersionTest extends ToolingApiSpecification {
             it.fileName.endsWith("build.gradle") && it.lineNumber == 4
         }
     }
-
-    @Requires([UnitTestPreconditions.Jdk8OrEarlier, IntegTestPreconditions.Java11HomeAvailable])
-    def "can deserialize failures with pre-jigsaw client and post-jigsaw daemon"() {
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk11.javaHome.absolutePath)
-
-        when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild().forTasks('myTask').run()
-        }
-
-        then:
-        GradleConnectionException e = thrown()
-        def rootCause = Exceptions.getRootCause(e)
-        rootCause instanceof RuntimeException
-        rootCause.message == "Boom"
-        rootCause.stackTrace.find {
-            it.fileName.endsWith("build.gradle") && it.lineNumber == 4
-        }
-    }
 }

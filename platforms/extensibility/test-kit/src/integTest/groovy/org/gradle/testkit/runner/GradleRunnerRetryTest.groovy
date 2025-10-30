@@ -17,8 +17,6 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.daemon.FakeDaemonLog
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 

@@ -30,20 +30,6 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     TestResources testResources = new TestResources(temporaryFolder)
 
-    @Issue("GRADLE-1563")
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    // JDK 9 requires an @Deprecated annotation that breaks this same test on Java 7 on Windows.
-    def handlesTagsAndTaglets() {
-        when:
-        run("javadoc")
-
-        then:
-        def javadoc = testResources.dir.file("build/docs/javadoc/Person.html")
-        javadoc.text =~ /(?ms)This is the Person class.*Author.*author value.*Deprecated.*deprecated value.*Custom Tag.*custom tag value/
-        // we can't currently control the order between tags and taglets (limitation on our side)
-        javadoc.text =~ /(?ms)Custom Taglet.*custom taglet value/
-    }
-
     def "writes header"() {
         buildFile << """
             apply plugin: "java"
@@ -92,29 +78,6 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('build/docs/javadoc/Foo.html').text.contains('myHeader')
-    }
-
-    @Requires(value = [
-        UnitTestPreconditions.NotWindows,
-        UnitTestPreconditions.Jdk8OrEarlier
-    ], reason = "JDK 9 Breaks multiline -header arguments.")
-    @Issue("GRADLE-3099")
-    def "writes multiline header"() {
-        buildFile << """
-            apply plugin: "java"
-            javadoc.options.header = \"\"\"
-                <!-- Hey
-Joe! -->
-            \"\"\"
-        """
-
-        writeSourceFile()
-
-        when:
-        run("javadoc", "-i")
-        then:
-        file("build/docs/javadoc/Foo.html").text.contains("""Hey
-Joe!""")
     }
 
     def "emits deprecation warning if executable specified as relative path"() {

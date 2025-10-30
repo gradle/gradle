@@ -17,9 +17,7 @@
 package org.gradle.groovy.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
