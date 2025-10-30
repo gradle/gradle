@@ -42,6 +42,8 @@ public interface BuildTreeModelController {
 
     boolean isParallelActionsCapable();
 
+    boolean isParallelActionsEnabled();
+
     /**
      * Runs the given actions, possibly in parallel.
      *

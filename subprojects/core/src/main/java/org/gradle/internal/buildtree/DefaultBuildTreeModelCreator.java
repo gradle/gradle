@@ -100,6 +100,11 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
+        public boolean isParallelActionsEnabled() {
+            return actionRunner.isParallelEnabled();
+        }
+
+        @Override
         @Nullable
         public <T> List<T> runQueryModelActions(List<Supplier<T>> actions) {
             return buildOperationRunner.call(new CallableBuildOperation<List<T>>() {

@@ -60,6 +60,10 @@ public class IntermediateBuildActionRunner {
         return buildModelParameters.isParallelToolingActionsCapable();
     }
 
+    public boolean isParallelEnabled() {
+        return buildModelParameters.isParallelToolingActions();
+    }
+
     public <T> List<T> run(List<Supplier<T>> actions) {
         List<NestedAction<T>> wrappers = new ArrayList<>(actions.size());
         for (Supplier<T> action : actions) {

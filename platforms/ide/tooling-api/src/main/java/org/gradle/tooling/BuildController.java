@@ -297,4 +297,12 @@ public interface BuildController {
         @Nullable Class<P> parameterType,
         @Nullable Action<? super P> parameterInitializer
     );
+
+    /**
+     * Returns {@code true} if the Gradle build is configured to run actions in parallel.
+     *
+     * @since 9.3.0
+     */
+    @Incubating
+    boolean isParallelActionsEnabled();
 }

@@ -30,6 +30,7 @@ data class DefaultBuildModelParameters(
     private val parallelProjectConfiguration: Boolean,
     private val intermediateModelCache: Boolean,
     private val parallelToolingActionsCapable: Boolean,
+    private val parallelToolingActions: Boolean,
     private val invalidateCoupledProjects: Boolean,
     private val modelAsProjectDependency: Boolean,
     private val resilientModelBuilding: Boolean
@@ -55,6 +56,8 @@ data class DefaultBuildModelParameters(
 
     override fun isParallelToolingActionsCapable(): Boolean = parallelToolingActionsCapable
 
+    override fun isParallelToolingActions(): Boolean = parallelToolingActions
+
     override fun isInvalidateCoupledProjects(): Boolean = invalidateCoupledProjects
 
     override fun isModelAsProjectDependency(): Boolean = modelAsProjectDependency
@@ -72,6 +75,7 @@ data class DefaultBuildModelParameters(
         "parallelProjectConfiguration" to parallelProjectConfiguration,
         "intermediateModelCache" to intermediateModelCache,
         "parallelToolingActionsCapable" to parallelToolingActionsCapable,
+        "parallelToolingActions" to parallelToolingActions,
         "invalidateCoupledProjects" to invalidateCoupledProjects,
         "modelAsProjectDependency" to modelAsProjectDependency,
         "resilientModelBuilding" to resilientModelBuilding

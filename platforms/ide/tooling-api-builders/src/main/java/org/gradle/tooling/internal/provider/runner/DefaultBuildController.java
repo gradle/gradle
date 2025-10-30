@@ -185,6 +185,11 @@ class DefaultBuildController implements
         }
     }
 
+    @Override
+    public boolean isParallelActionsEnabled() {
+        return controller.isParallelActionsEnabled();
+    }
+
     private static List<InternalFailure> toInternalFailures(List<Failure> failures) {
         return failures
             .stream()
