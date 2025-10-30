@@ -310,28 +310,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
                 GET_HELP)
     }
 
-    @Requires(IntegTestPreconditions.Java7HomeAvailable)
-    def "can use toolchains to compile java 1.7 code"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7)
-        buildFile << """
-            apply plugin: "java"
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(7)
-                }
-            }
-        """
-
-        when:
-        withInstallations(jdk).run(":compileJava", "--info")
-
-        then:
-        outputContains("Compiling with Java command line compiler")
-        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
-        classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(jdk.javaVersion)
-    }
-
     def "uses correct vendor when selecting a toolchain"() {
         def jdk = Jvm.current()
 

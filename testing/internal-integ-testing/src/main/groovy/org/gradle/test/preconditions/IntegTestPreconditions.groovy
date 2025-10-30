@@ -177,15 +177,6 @@ class IntegTestPreconditions {
         }
     }
 
-    static class Java7HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(7)
-            )
-        }
-    }
-
     static class Java8HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
