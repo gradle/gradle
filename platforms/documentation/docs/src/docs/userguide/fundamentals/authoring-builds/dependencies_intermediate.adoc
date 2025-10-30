@@ -28,7 +28,23 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/k
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
 ====
 
-Each dependency is associated with a configuration, such as `implementation`, `runtimeOnly`, or `testImplementation`, which defines the scope in which it's used.
+Each dependency is added to a **bucket configuration**.
+For example `implementation`, `runtimeOnly`, or `testImplementation`.
+Bucket configurations defines **where** that dependency is used (compile classpath, runtime only, tests, etc.).
+The **set of configurations available** depends on the plugins you apply (e.g., `java`/`java-library`, Android Gradle Plugin (AGP), Kotlin Multiplatform (KMP), etc.).
+
+Gradle recommends the **single-string notation** for external modules.
+The map notation is deprecated as of Gradle 9.1.0 and will fail your build in Gradle 10:
+
+[source,kotlin]
+----
+dependencies {
+    // GOOD: single-string notation
+    implementation("com.google.guava:guava:32.1.2-jre")
+    // BAD: map notation
+    implementation(group = "com.google.guava", name = "guava", version = "32.1.2-jre")
+}
+----
 
 == Centralize Versions with Version Catalogs
 

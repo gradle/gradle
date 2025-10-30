@@ -667,11 +667,6 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample")
         }
 
-        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
-            // Spring Boot requires Java 17+
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
-        }
-
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample")
         }
@@ -682,6 +677,10 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
             // Umbrella build project also contains Android projects
             excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample")
+            // AGP AND KMP are tested on Java 17 only
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-*.sample")
+            // Spring Boot requires Java 17+
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
         }
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
