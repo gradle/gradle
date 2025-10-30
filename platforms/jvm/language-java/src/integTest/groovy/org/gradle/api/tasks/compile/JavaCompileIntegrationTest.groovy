@@ -972,31 +972,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    // bootclasspath has been removed in Java 9+
-    @Requires(IntegTestPreconditions.BestJreAvailable)
-    @Issue("https://github.com/gradle/gradle/issues/19817")
-    def "fails if bootclasspath is provided as a path instead of a single file"() {
-        def rtJar = new File(AvailableJavaHomes.bestJre, "lib/rt.jar")
-        def bootClasspath = TextUtil.escapeString(rtJar.absolutePath) + "${File.pathSeparator}someotherpath"
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-            tasks.withType(JavaCompile) {
-                options.bootstrapClasspath = project.layout.files("$bootClasspath")
-            }
-        """
-        file('src/main/java/Foo.java') << 'public class Foo {}'
-
-        when:
-        runAndFail "compileJava"
-        then:
-        failure.assertHasDocumentedCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
-            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
-            " Add the individual files to the file collection instead." +
-            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
-    }
-
     def "deletes empty packages dirs"() {
         given:
         buildFile << """

@@ -17,18 +17,14 @@ package org.gradle.api.tasks.javadoc
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-
-import java.nio.file.Paths
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -463,31 +459,6 @@ Joe!""")
         run "javadoc"
         then:
         skipped(":javadoc")
-    }
-
-    // bootclasspath has been removed in Java 9+
-    @Requires(IntegTestPreconditions.BestJreAvailable)
-    @Issue("https://github.com/gradle/gradle/issues/19817")
-    def "shows deprecation if bootclasspath is provided as a path instead of a single file"() {
-        def rtJar = new File(AvailableJavaHomes.bestJre, "lib/rt.jar")
-        def bootClasspath = TextUtil.escapeString(rtJar.absolutePath) + "${File.pathSeparator}someotherpath"
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-            javadoc {
-                options.bootClasspath = [file('$bootClasspath')]
-            }
-        """
-        writeSourceFile()
-
-        when:
-        runAndFail "javadoc"
-        then:
-        failure.assertHasDocumentedCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
-            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
-            " Add the individual files to the file collection instead." +
-            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
     }
 
     private def stylesheetFileRelativePath(String name) {

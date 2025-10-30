@@ -23,35 +23,6 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class JreJavaHomeGroovyIntegrationTest extends AbstractIntegrationSpec {
-    @Requires(value = [
-        IntegTestPreconditions.BestJreAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
-    ], reason = "must run with a JRE")
-    def "groovy java cross compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
-        given:
-        def jreJavaHome = AvailableJavaHomes.bestJre
-        writeJavaTestSource("src/main/groovy")
-        writeGroovyTestSource("src/main/groovy")
-        file('build.gradle') << """
-                println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
-                apply plugin:'groovy'
-                dependencies{
-                    implementation localGroovy()
-                }
-                compileGroovy{
-                    options.fork = ${forkMode}
-                }
-                """
-        when:
-        executer.withJavaHome(jreJavaHome.absolutePath).withTasks("compileGroovy").run().output
-        then:
-        groovyClassFile("org/test/JavaClazz.class").exists()
-        groovyClassFile("org/test/GroovyClazz.class").exists()
-
-        where:
-        forkMode << [true, false]
-    }
-
     @Requires(UnitTestPreconditions.Windows)
     def "groovy compiler works when gradle is started with no JAVA_HOME defined in forking mode = #forkMode"() {
         given:

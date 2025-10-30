@@ -17,37 +17,10 @@
 package org.gradle.java.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
-
-    @Requires(value = [
-        IntegTestPreconditions.BestJreAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
-    ], reason = "must run with a JRE")
-    def "java compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
-        given:
-        def jreJavaHome = AvailableJavaHomes.bestJre
-        writeJavaTestSource("src/main/java");
-        file('build.gradle') << """
-        println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
-        apply plugin:'java'
-        compileJava {
-            options.fork = ${forkMode}
-        }
-        """
-        when:
-        executer.withJavaHome(jreJavaHome.absolutePath).withTasks("compileJava").run().output
-        then:
-        javaClassFile("org/test/JavaClazz.class").exists()
-
-        where:
-        forkMode << [true, false]
-    }
-
     @Requires(UnitTestPreconditions.Windows)
     def "java compilation works in forking mode = #forkMode when gradle is started with no JAVA_HOME defined"() {
         given:

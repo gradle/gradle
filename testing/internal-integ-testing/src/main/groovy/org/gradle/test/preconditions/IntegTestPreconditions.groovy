@@ -292,13 +292,6 @@ class IntegTestPreconditions {
         }
     }
 
-    static class BestJreAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.bestJre != null
-        }
-    }
-
     static class JavaHomeWithDifferentVersionAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
