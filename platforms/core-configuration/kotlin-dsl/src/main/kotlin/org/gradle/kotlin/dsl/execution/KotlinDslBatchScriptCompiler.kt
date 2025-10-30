@@ -24,14 +24,13 @@ import org.gradle.execution.BatchScriptCompiler
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
+import org.gradle.kotlin.dsl.execution.ResidualProgramCompiler.BatchItem
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassloadingCache
 import org.gradle.kotlin.dsl.provider.compiledScriptOf
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.serviceOf
-import java.io.File
 import javax.inject.Inject
 
 
@@ -51,89 +50,86 @@ class KotlinDslBatchScriptCompiler @Inject constructor(
         // scriptCache.put(...) all scripts
 
         globalScopedCacheBuilderFactory.createCacheBuilder("batch-compiler").open().use { builder ->
-            for (child in children) {
-                compileSingle(
-                    child,
-                    builder.baseDir.resolve(child.name),
-                    parent.mutableModel.serviceOf(),
-                    kotlinCompilerOptions(parent.mutableModel.serviceOf<GradleProperties>())
-                )
-            }
-        }
-    }
+            val programKind = ProgramKind.TopLevel
+            val programTarget = ProgramTarget.Project
+            val outputDir = builder.baseDir
+            val parentProject = parent.mutableModel
+            val temporaryFileProvider = parentProject.serviceOf<TemporaryFileProvider>()
+            val options = kotlinCompilerOptions(parentProject.serviceOf<GradleProperties>())
+            val stage1BlocksAccessorsClassPath = parentProject.serviceOf<Stage1BlocksAccessorClassPathGenerator>()
+                .stage1BlocksAccessorClassPath(parentProject)
+                .bin
+            val templateId = templateIdFor(programTarget, programKind, "stage1")
 
-    private fun compileSingle(
-        child: ProjectState,
-        outputDir: File,
-        temporaryFileProvider: TemporaryFileProvider,
-        options: KotlinCompilerOptions
-    ) {
-        val programKind = ProgramKind.TopLevel
-        val programTarget = ProgramTarget.Project
+            // TODO: check what's the right scope to use here
+            val compilationClassPath = parentProject.serviceOf<KotlinScriptClassPathProvider>()
+                .compilationClassPathOf(parentProject.baseClassLoaderScope)
 
-        val project = child.mutableModel
-
-        val classPathProvider = project.serviceOf<KotlinScriptClassPathProvider>()
-        val targetScope = project.classLoaderScope
-        val baseScope = project.baseClassLoaderScope
-        val stage1BlocksAccessorsClassPath = project.serviceOf<Stage1BlocksAccessorClassPathGenerator>().stage1BlocksAccessorClassPath(project).bin
-
-        val compilationClassPath = classPathProvider.compilationClassPathOf(targetScope.parent)
-        val scriptSource = project.buildScriptSource
-        val scriptPath = scriptSource.fileName!!
-
-        val templateId =
-            templateIdFor(programTarget, programKind, "stage1")
-
-        val parentClassLoader =
-            baseScope.exportClassLoader
-
-        val sourceHash = scriptSourceHasher.hash(scriptSource)
-
-        val programId =
-            ProgramId(
-                templateId,
-                sourceHash,
-                parentClassLoader,
-                compilerOptions = options
+            val compiler = ResidualProgramCompiler(
+                outputDir = outputDir,
+                compilerOptions = options,
+                classPath = compilationClassPath,
+                programKind = programKind,
+                programTarget = programTarget,
+                implicitImports = implicitImports.list,
+                logger = interpreterLogger,
+                temporaryFileProvider = temporaryFileProvider,
+                //            compileBuildOperationRunner = host::runCompileBuildOperation,
+                stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
             )
 
-        val sourceText =
-            scriptSource.resource!!.text
+            val batchItems = ArrayList<BatchItem>(children.size)
+            for (child in children) {
+                val project = child.mutableModel
+                val scriptSource = project.buildScriptSource
+                val scriptPath = scriptSource.fileName!!
+                val sourceHash = scriptSourceHasher.hash(scriptSource)
+                val sourceText = scriptSource.resource!!.text
+                val programSource = ProgramSource(scriptPath, sourceText)
+                val program = ProgramParser.parse(programSource, programKind, programTarget)
+                val residualProgram = program.map(
+                    PartialEvaluator(programKind, programTarget)::reduce
+                )
+                batchItems.add(
+                    BatchItem(
+                        sourceHash,
+                        residualProgram.packageName,
+                        residualProgram.document
+                    )
+                )
+            }
 
-        val programSource =
-            ProgramSource(scriptPath, sourceText)
+            compiler.compileBatch(batchItems)
 
-        val program =
-            ProgramParser.parse(programSource, programKind, programTarget)
+            for (child in children) {
+                val project = child.mutableModel
+                val scriptSource = project.buildScriptSource
+                val scriptPath = scriptSource.fileName!!
+                val sourceHash = scriptSourceHasher.hash(scriptSource)
+                val baseScope = project.baseClassLoaderScope
+                val parentClassLoader = baseScope.exportClassLoader
+                val programId =
+                    ProgramId(
+                        templateId,
+                        sourceHash,
+                        parentClassLoader,
+                        compilerOptions = options
+                    )
 
-        val residualProgram = program.map(
-            PartialEvaluator(programKind, programTarget)::reduce
-        )
-
-        ResidualProgramCompiler(
-            outputDir = outputDir,
-            compilerOptions = options,
-            classPath = compilationClassPath,
-            originalSourceHash = programId.sourceHash,
-            programKind = programKind,
-            programTarget = programTarget,
-            implicitImports = implicitImports.list,
-            logger = interpreterLogger,
-            temporaryFileProvider = temporaryFileProvider,
-//            compileBuildOperationRunner = host::runCompileBuildOperation,
-            stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
-            packageName = residualProgram.packageName,
-        ).compile(residualProgram.document)
-
-        val compiledScript = compiledScriptOf(
-            location = outputDir,
-            accessorsClassPath = stage1BlocksAccessorsClassPath,
-            baseScope,
-            childScopeId = classLoaderScopeIdFor(scriptPath, templateId),
-            origin = ClassLoaderScopeOrigin.Script(scriptSource.fileName, scriptSource.longDisplayName, scriptSource.shortDisplayName),
-            className = "Program"
-        )
-        scriptCache.put(programId, compiledScript)
+                val compiledScript = compiledScriptOf(
+                    location = outputDir,
+                    accessorsClassPath = stage1BlocksAccessorsClassPath,
+                    baseScope,
+                    childScopeId = classLoaderScopeIdFor(scriptPath, templateId),
+                    origin = ClassLoaderScopeOrigin.Script(
+                        scriptSource.fileName,
+                        scriptSource.longDisplayName,
+                        scriptSource.shortDisplayName
+                    ),
+                    className = "P$sourceHash"
+                )
+                scriptCache.put(programId, compiledScript)
+            }
+        }
     }
 }
