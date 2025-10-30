@@ -22,34 +22,24 @@ import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
+    def setup() {
+        ideXmxMb = 4096
+    }
+
     def "can sync gradle/gradle build without problems"() {
         given:
         gradle()
-
-        and:
-        ideXmxMb = 4096
 
         when:
         ideaSync(IDEA_COMMUNITY_VERSION)
 
         then:
-        report.assertHtmlReportHasProblems {
-            totalProblemsCount = 12
-            withUniqueProblems(
-                "Project :declarative-dsl-core cannot dynamically look up a property in the parent project :",
-                "Project :declarative-dsl-evaluator cannot dynamically look up a property in the parent project :",
-                "Project :declarative-dsl-tooling-models cannot dynamically look up a property in the parent project :",
-                "Project :kotlin-dsl-plugins cannot dynamically look up a property in the parent project :"
-            )
-        }
+        report.assertHtmlReportHasNoProblems()
     }
 
     def "can sync gradle/gradle incrementally without error"() {
         given:
         gradle()
-
-        and:
-        ideXmxMb = 4096
 
         expect:
         ideaSync(
