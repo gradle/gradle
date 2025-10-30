@@ -18,7 +18,6 @@ package org.gradle.test.preconditions
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.TestPrecondition
@@ -67,13 +66,6 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             return TestPrecondition.notSatisfied(FilePermissions)
-        }
-    }
-
-    static final class WorkingDir implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() < JavaVersion.VERSION_11
         }
     }
 

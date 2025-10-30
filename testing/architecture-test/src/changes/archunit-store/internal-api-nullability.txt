@@ -3663,7 +3663,6 @@ Class <org.gradle.test.preconditions.UnitTestPreconditions$Symlinks> is not anno
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Unix> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$UnsupportedDaemonJdkVersion> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Windows> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
-Class <org.gradle.test.preconditions.UnitTestPreconditions$WorkingDir> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.testdistribution.LocalOnly> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (LocalOnly.java:0)
 Class <org.gradle.testing.internal.util.GradlewRunner> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GradlewRunner.java:0)

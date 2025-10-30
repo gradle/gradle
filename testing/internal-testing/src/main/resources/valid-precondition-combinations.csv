@@ -88,7 +88,6 @@ UnitTestPreconditions$Unix,PluginTestPreconditions$DashAvailable
 UnitTestPreconditions$Unix,PluginTestPreconditions$StaticShAvailable
 UnitTestPreconditions$Windows
 UnitTestPreconditions$Windows,IntegTestPreconditions$IsEmbeddedExecutor
-UnitTestPreconditions$WorkingDir
 UnitTestPreconditions$OnRemoteTestDistributionExecutor
 UnitTestPreconditions$NotInGradleceptionBuild
 

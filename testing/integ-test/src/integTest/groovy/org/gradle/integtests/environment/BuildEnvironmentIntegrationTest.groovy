@@ -86,39 +86,6 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         out.contains("and will be even better")
     }
 
-    @Requires(UnitTestPreconditions.WorkingDir)
-    def "build is executed with working directory set to where the build was launched from"() {
-        def project1 = file("project1")
-        def project2 = file("project2")
-
-        project1.file('build.gradle') << """
-def expectedDir = new File(new URI('${project1.toURI()}'))
-def dir = new File('.')
-assert dir.canonicalFile == expectedDir.canonicalFile
-assert dir.directory
-def classesDir = new File("build/classes1")
-assert classesDir.mkdirs()
-assert classesDir.directory
-"""
-
-        project2.file('build.gradle') << """
-def expectedDir = new File(new URI('${project2.toURI()}'))
-def dir = new File('.')
-assert dir.canonicalFile == expectedDir.canonicalFile
-assert dir.directory
-def classesDir = new File("build/classes2")
-assert classesDir.mkdirs()
-assert classesDir.directory
-"""
-
-        when:
-        executer.inDirectory(project1).run()
-        executer.inDirectory(project2).run()
-
-        then:
-        noExceptionThrown()
-    }
-
     def "system properties should be made available to build"() {
         file('build.gradle') << """
             println('prop1=' + providers.systemProperty('prop1').get())

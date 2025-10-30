@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import org.junit.AssumptionViolatedException
 
