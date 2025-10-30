@@ -41,7 +41,6 @@ dependencies {
     implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
     implementation(libs.julToSlf4j)
-    implementation(libs.nativePlatform)
 
     // GSon is not strictly required here but removing it moves the dependency in the distribution from lib to lib/plugins
     // TODO Check if this is an issue

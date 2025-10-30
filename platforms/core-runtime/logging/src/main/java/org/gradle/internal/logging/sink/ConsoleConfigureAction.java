@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import net.rubygrapefruit.platform.internal.Platform;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
@@ -25,8 +24,6 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -34,8 +31,6 @@ import java.nio.charset.Charset;
 import java.util.function.Supplier;
 
 public class ConsoleConfigureAction {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleConfigureAction.class);
 
     private ConsoleConfigureAction() {
     }
@@ -68,9 +63,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if ("windows-aarch64".equals(Platform.current().getId())) {
-            renderer.addPlainConsole(stdout, stderr);
-        } else if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
@@ -114,10 +107,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
-        if ("windows-aarch64".equals(Platform.current().getId())) {
-            LOGGER.warn("Rich console output is not supported on Windows ARM64. Falling back to plain console output.");
-            renderer.addPlainConsole(stdout, stderr);
-        } else if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
