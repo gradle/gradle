@@ -24,7 +24,6 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
-import spock.lang.IgnoreRest
 
 import java.util.function.Consumer
 
@@ -32,6 +31,10 @@ import java.util.function.Consumer
 @TargetGradleVersion('>=9.3')
 class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
     static final String RESILIENT_MODEL_TRUE = "-Dorg.gradle.internal.resilient-model-building=true"
+    static final String BROKEN_SETTINGS_CONTENT = "broken settings file content!!!"
+    static final String BROKEN_BUILD_CONTENT = "broken build file content!!!"
+    static final String ISOLATED_PROJECTS_FLAG = "-Dorg.gradle.internal.isolated-projects.tooling=true"
+    static final String UNSAFE_ISOLATED_PROJECTS_FLAG = "-Dorg.gradle.unsafe.isolated-projects=true"
 
     def setup() {
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
@@ -46,7 +49,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    def "receive root project with broken settings file"() {
+    def "should fetch root project model despite broken settings file with compilation error"() {
         given:
         blowUpSettings()
 
@@ -57,7 +60,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.failures.toString().contains("Script compilation error")
     }
 
-    def "receive root project with throwing settings file"() {
+    def "should fetch root project model despite settings file throwing exception"() {
         given:
         settingsKotlinFile << """
             throw GradleException("Gradle exception boom !!!")
@@ -71,7 +74,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.model.rootProject.buildTreePath == ":"
     }
 
-    def "receive root project with broken root build file"() {
+    def "should fetch root project model despite broken root build file with compilation error"() {
         given:
         createRootProject()
         blowUpBuildGradleKts()
@@ -84,7 +87,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.model.includedBuilds.isEmpty()
     }
 
-    def "receive root project with throwing root build file"() {
+    def "should fetch root project model despite root build file throwing exception"() {
         given:
         createRootProject()
         buildFileKts << """
@@ -99,7 +102,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.model.includedBuilds.isEmpty()
     }
 
-    def "receive root project and included build root project with broken included build files"() {
+    def "should fetch root project and included build models despite broken included build files"() {
         given:
         createRootProject()
         createIncludedBuild("included1")
@@ -113,7 +116,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.model.includedBuilds.size() == 2
     }
 
-    def "receive root project and included plugin project root with broken included build file"() {
+    def "should fetch root project and included plugin project models despite broken included build file"() {
         given:
         settingsKotlinFile << """
         pluginManagement {
@@ -134,8 +137,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         !model.model.includedBuilds.isEmpty()
     }
 
-    @IgnoreRest
-    def "receive root project and included build root project (non-relative) with broken included settings file"() {
+    def "should fetch root project and included build models despite broken included settings files"() {
         given:
         createRootProject()
 
@@ -148,24 +150,19 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         then:
         model.failures.toString().contains("Script compilation error")
         model.model.includedBuilds.size() == 2
-        model.model.includedBuilds.getAt(0).buildIdentifier.rootDir == file("included1")
         model.model.includedBuilds.getAt(1).buildIdentifier.rootDir == file("included2")
+        model.model.includedBuilds.getAt(0).buildIdentifier.rootDir == file("included1")
     }
 
     def "should return failure when caching models with isolated projects"() {
         given:
         def intermediateCaching = [
-            "-Dorg.gradle.internal.isolated-projects.tooling=true",
-            "-Dorg.gradle.unsafe.isolated-projects=true"
+            ISOLATED_PROJECTS_FLAG,
+            UNSAFE_ISOLATED_PROJECTS_FLAG
         ]
         createRootProject()
-        settingsKotlinFile << """
-            includeBuild("included")
-        """
+        createFailingSettingsIncludedProject("included")
 
-        def included = file("included")
-        blowUpSettings(included)
-        blowUpBuildGradleKts(included)
 
         when:
         def model = runFetchModelAction() {
@@ -187,20 +184,22 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
     }
 
     TestFile blowUpSettings(TestFile included = null) {
-        def blowUpSettingsString = "settings boom !!!"
-        if (included == null) {
-            settingsKotlinFile << blowUpSettingsString
-        } else {
-            included.file(settingsKotlinFileName) << blowUpSettingsString
-        }
+        createBrokenFile(included, settingsKotlinFileName, BROKEN_SETTINGS_CONTENT)
     }
 
     TestFile blowUpBuildGradleKts(TestFile included = null) {
-        def blowUpString = "blow up !!!"
-        if (included == null) {
-            buildFileKts << blowUpString
+        createBrokenFile(included, defaultBuildKotlinFileName, BROKEN_BUILD_CONTENT)
+    }
+
+    private TestFile createBrokenFile(TestFile dir, String fileName, String content) {
+        if (dir == null) {
+            def targetFile = file(fileName)
+            targetFile << content
+            return targetFile
         } else {
-            included.file(defaultBuildKotlinFileName) << blowUpString
+            def targetFile = dir.file(fileName)
+            targetFile << content
+            return targetFile
         }
     }
 
