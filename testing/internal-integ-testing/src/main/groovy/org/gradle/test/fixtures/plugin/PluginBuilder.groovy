@@ -68,6 +68,10 @@ class PluginBuilder {
         file("src/main/java/${sourceFilePath(path)}")
     }
 
+    TestFile testJava(String path) {
+        file("src/test/java/${sourceFilePath(path)}")
+    }
+
     PluginBuilder applyBuildScriptPlugin(String id, String version = null) {
         buildScriptPlugins << new BuildScriptPlugin(id, version)
         this
