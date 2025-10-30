@@ -71,6 +71,12 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             }
             .build()
 
+        if (result.output.contains("has corrupt source.properties")) {
+            // https://github.com/gradle/gradle-private/issues/4910
+            File corruptedFile = new File("/opt/android/sdk/build-tools/36.0.0/source.properties")
+            println "Corrupted source.properties: ${corruptedFile.text}"
+        }
+
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':library:assembleDebug').outcome == TaskOutcome.SUCCESS
