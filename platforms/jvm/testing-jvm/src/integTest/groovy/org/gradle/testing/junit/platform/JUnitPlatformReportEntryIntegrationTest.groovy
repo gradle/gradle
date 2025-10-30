@@ -73,7 +73,7 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('com.example.ReportEntryTest').onlyRoot().assertChildrenExecuted("test(TestReporter)")
+        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata([constructor: "value"]).assertChildrenExecuted("test(TestReporter)")
         results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([beforeEach: "value", test: "value", afterEach: "value"])
     }
 
@@ -119,7 +119,7 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('com.example.ReportEntryTest').onlyRoot().assertChildrenExecuted("test(TestReporter)")
+        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata([constructor1: "value1", constructor2: "value2"]).assertChildrenExecuted("test(TestReporter)")
         results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([beforeEach1: "value1", beforeEach2: "value2", test1: "value1", test2: "value2", afterEach1: "value1", afterEach2: "value2"])
     }
 
@@ -174,7 +174,7 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('com.example.ReportEntryTest').onlyRoot().assertChildrenExecuted("test(TestReporter)")
+        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata(["constructor.json:mediaType": "application/json", "constructor.json:path": "constructor.json"]).assertChildrenExecuted("test(TestReporter)")
         results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata(
             [ "beforeEach.json:mediaType": "application/json",
               "beforeEach.json:path": "beforeEach.json",
@@ -245,7 +245,7 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('com.example.ReportEntryTest').onlyRoot().assertChildrenExecuted("test(TestReporter)")
+        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata(["constructor:mediaType": "application/octet-stream", "constructor:path": "constructor"]).assertChildrenExecuted("test(TestReporter)")
         results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata(
             [ "beforeEach:mediaType": "application/octet-stream",
               "beforeEach:path": "beforeEach",

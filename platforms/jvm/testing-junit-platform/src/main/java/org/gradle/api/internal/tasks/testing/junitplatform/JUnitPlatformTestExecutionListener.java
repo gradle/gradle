@@ -114,6 +114,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
+
+    @Nullable
     private TestPlan currentTestPlan;
 
     public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
@@ -124,21 +126,37 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
-        // TODO: Why are some test ids missing?
-        if (descriptorsByUniqueId.containsKey(testIdentifier.getUniqueId())) {
+        // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class constructor.
+        if (wasStarted(testIdentifier)) {
             resultProcessor.report(getId(testIdentifier), new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+        } else {
+            // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with it
+            Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
+            if (closestStartedAncestor != null) {
+                resultProcessor.report(closestStartedAncestor, new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+            }
+            // otherwise, we don't know what to associate this ReportEntry with
         }
     }
 
     @Override
     public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry file) {
-        // TODO: Why are some test ids missing?
-        if (descriptorsByUniqueId.containsKey(testIdentifier.getUniqueId())) {
-            Map<String, String> map = new LinkedHashMap<>();
-            // JUnit Jupiter suggests to use application/octet-stream if media type is unknown
-            map.put(file.getPath().getFileName() + ":mediaType", file.getMediaType().orElse("application/octet-stream"));
-            map.put(file.getPath().getFileName() + ":path", file.getPath().getFileName().toString());
+        // TODO: Replace this with something smarter to send the actual FileEntry contents across without going through Map<String, String>
+        Map<String, String> map = new LinkedHashMap<>();
+        // JUnit Jupiter suggests to use application/octet-stream if media type is unknown
+        map.put(file.getPath().getFileName() + ":mediaType", file.getMediaType().orElse("application/octet-stream"));
+        map.put(file.getPath().getFileName() + ":path", file.getPath().getFileName().toString());
+
+        // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class constructor.
+        if (wasStarted(testIdentifier)) {
             resultProcessor.report(getId(testIdentifier), new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(map)));
+        } else {
+            // The test has not started yet, so see if we can find a close ancestor and associate the FileEntry with it
+            Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
+            if (closestStartedAncestor != null) {
+                resultProcessor.report(closestStartedAncestor, new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(map)));
+            }
+            // otherwise, we don't know what to associate this FileEntry with
         }
     }
 
@@ -214,6 +232,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportSkipped(TestIdentifier testIdentifier) {
+        assert currentTestPlan != null;
+
         currentTestPlan.getChildren(testIdentifier).stream()
             .filter(child -> !wasStarted(child))
             .forEach(this::executionSkipped);
@@ -225,14 +245,19 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private TestStartEvent startEvent(TestIdentifier testIdentifier) {
-        Object idOfClosestStartedAncestor = getAncestors(testIdentifier).stream()
+        Object idOfClosestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
+        return startEvent(idOfClosestStartedAncestor);
+    }
+
+    @Nullable
+    private Object getIdOfClosestStartedAncestor(TestIdentifier testIdentifier) {
+        return getAncestors(testIdentifier).stream()
             .map(TestIdentifier::getUniqueId)
             .filter(descriptorsByUniqueId::containsKey)
             .findFirst()
             .map(descriptorsByUniqueId::get)
             .map(TestDescriptorInternal::getId)
             .orElse(null);
-        return startEvent(idOfClosestStartedAncestor);
     }
 
     private TestStartEvent startEvent(@Nullable Object parentId) {
@@ -297,6 +322,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {
+        assert currentTestPlan != null;
         boolean testsStarted = currentTestPlan.getDescendants(node).stream().anyMatch(this::wasStarted);
         String name = testsStarted ? "executionError" : "initializationError";
         return createTestDescriptor(node, name, name);
@@ -340,6 +366,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @SuppressWarnings("deprecation")
     private Optional<TestIdentifier> getParent(TestIdentifier testIdentifier) {
+        assert currentTestPlan != null;
         try {
             return testIdentifier.getParentIdObject().map(currentTestPlan::getTestIdentifier);
         // Some versions of the JDK throw a BootstrapMethodError
@@ -387,6 +414,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private boolean hasDifferentSourceThanAncestor(TestIdentifier testIdentifier) {
+        assert currentTestPlan != null;
+
         Optional<TestIdentifier> parent = currentTestPlan.getParent(testIdentifier);
         while (parent.isPresent()) {
             if (Objects.equals(parent.get().getSource(), testIdentifier.getSource())) {
