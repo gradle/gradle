@@ -35,10 +35,12 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         then:
         report.assertHtmlReportHasProblems {
             totalProblemsCount = 12
-            withLocatedProblem("Gradle runtime", "Project ':declarative-dsl-core' cannot dynamically look up a property in the parent project ':'")
-            withLocatedProblem("Gradle runtime", "Project ':declarative-dsl-evaluator' cannot dynamically look up a property in the parent project ':'")
-            withLocatedProblem("Gradle runtime", "Project ':declarative-dsl-tooling-models' cannot dynamically look up a property in the parent project ':'")
-            withLocatedProblem("Gradle runtime", "Project ':kotlin-dsl-plugins' cannot dynamically look up a property in the parent project ':'")
+            withUniqueProblems(
+                "Project :declarative-dsl-core cannot dynamically look up a property in the parent project :",
+                "Project :declarative-dsl-evaluator cannot dynamically look up a property in the parent project :",
+                "Project :declarative-dsl-tooling-models cannot dynamically look up a property in the parent project :",
+                "Project :kotlin-dsl-plugins cannot dynamically look up a property in the parent project :"
+            )
         }
     }
 
