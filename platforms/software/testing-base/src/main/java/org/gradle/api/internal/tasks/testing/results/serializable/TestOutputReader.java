@@ -19,12 +19,12 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
-import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.io.IoConsumer;
 import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 
 import java.io.Closeable;
@@ -44,13 +44,15 @@ import java.util.function.LongPredicate;
  */
 public final class TestOutputReader implements Closeable {
     private final Path outputEventsFile;
+    private final Serializer<TestOutputEvent> testOutputEventSerializer;
     /**
      * Channels that are currently open and can be reused. We limit the pool size to avoid excessive resource usage.
      */
     private final BlockingQueue<SeekableByteChannel> channelPool = new LinkedBlockingQueue<>(64);
 
-    TestOutputReader(Path outputEventsFile) {
+    TestOutputReader(Path outputEventsFile, Serializer<TestOutputEvent> testOutputEventSerializer) {
         this.outputEventsFile = outputEventsFile;
+        this.testOutputEventSerializer = testOutputEventSerializer;
     }
 
     public boolean hasOutput(OutputEntry entry, TestOutputEvent.Destination destination) {
@@ -137,7 +139,7 @@ public final class TestOutputReader implements Closeable {
         }
     }
 
-    private static void iterateEvents(
+    private void iterateEvents(
         Decoder decoder,
         LongPredicate matchesId,
         TestOutputEvent.Destination destination,
@@ -153,7 +155,7 @@ public final class TestOutputReader implements Closeable {
             }
             TestOutputEvent event;
             try {
-                event = TestEventSerializer.DefaultTestOutputEventSerializer.INSTANCE.read(decoder);
+                event = testOutputEventSerializer.read(decoder);
             } catch (EOFException e) {
                 throw new IllegalStateException("Should have reached EOF when reading the id, not in the middle of an event", e);
             } catch (Exception e) {

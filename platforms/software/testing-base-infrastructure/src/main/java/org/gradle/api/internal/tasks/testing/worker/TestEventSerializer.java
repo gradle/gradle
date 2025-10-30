@@ -48,17 +48,20 @@ import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@NullMarked
 public class TestEventSerializer {
     public static SerializerRegistry create() {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
         registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
+
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
         registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
         registry.register(DefaultParameterizedTestDescriptor.class, new DefaultParameterizedTestDescriptorSerializer());
@@ -67,10 +70,12 @@ public class TestEventSerializer {
         registry.register(DefaultTestClassDescriptor.class, new DefaultTestClassDescriptorSerializer());
         registry.register(DefaultTestMethodDescriptor.class, new DefaultTestMethodDescriptorSerializer());
         registry.register(DefaultTestDescriptor.class, new DefaultTestDescriptorSerializer());
+
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
-        registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
-        registry.register(DefaultTestOutputEvent.class, DefaultTestOutputEventSerializer.INSTANCE);
+        registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer(factory));
+        registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer(factory));
         registry.register(DefaultTestMetadataEvent.class, new TestMetadataEventSerializer());
+
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
         registry.register(TestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
@@ -78,7 +83,8 @@ public class TestEventSerializer {
         return registry;
     }
 
-    private static class NullableSerializer<T> implements Serializer<T> {
+    @NullMarked
+    private static class NullableSerializer<T> implements Serializer<@Nullable T> {
         private final Serializer<T> serializer;
 
         private NullableSerializer(Serializer<T> serializer) {
@@ -86,7 +92,7 @@ public class TestEventSerializer {
         }
 
         @Override
-        public T read(Decoder decoder) throws Exception {
+        public @Nullable T read(Decoder decoder) throws Exception {
             if (!decoder.readBoolean()) {
                 return null;
             }
@@ -94,7 +100,7 @@ public class TestEventSerializer {
         }
 
         @Override
-        public void write(Encoder encoder, T value) throws Exception {
+        public void write(Encoder encoder, @Nullable T value) throws Exception {
             encoder.writeBoolean(value != null);
             if (value != null) {
                 serializer.write(encoder, value);
@@ -129,7 +135,7 @@ public class TestEventSerializer {
     }
 
     private static class TestStartEventSerializer implements Serializer<TestStartEvent> {
-        final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new NullableSerializer<CompositeIdGenerator.CompositeId>(new IdSerializer());
+        final NullableSerializer<CompositeIdGenerator.CompositeId> idSerializer = new NullableSerializer<>(new IdSerializer());
 
         @Override
         public TestStartEvent read(Decoder decoder) throws Exception {
@@ -145,13 +151,13 @@ public class TestEventSerializer {
         }
     }
 
+    @NullMarked
     private static class TestMetadataEventSerializer implements Serializer<DefaultTestMetadataEvent> {
         private final MapSerializer<String, String> mapSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, BaseSerializerFactory.STRING_SERIALIZER);
 
         @Override
         public DefaultTestMetadataEvent read(Decoder decoder) throws Exception {
             long logTime = decoder.readLong();
-            // TODO: Change signature of TestMetadataEvent to use String values
             Map<String, String> keyValues = mapSerializer.read(decoder);
             return new DefaultTestMetadataEvent(logTime, Cast.uncheckedNonnullCast(keyValues));
         }
@@ -164,7 +170,11 @@ public class TestEventSerializer {
     }
 
     private static class TestCompleteEventSerializer implements Serializer<TestCompleteEvent> {
-        private final Serializer<TestResult.ResultType> typeSerializer = new NullableSerializer<TestResult.ResultType>(new BaseSerializerFactory().getSerializerFor(TestResult.ResultType.class));
+        private final NullableSerializer<TestResult.ResultType> typeSerializer;
+
+        TestCompleteEventSerializer(BaseSerializerFactory factory) {
+            typeSerializer = new NullableSerializer<>(factory.getSerializerFor(TestResult.ResultType.class));
+        }
 
         @Override
         public TestCompleteEvent read(Decoder decoder) throws Exception {
@@ -180,10 +190,12 @@ public class TestEventSerializer {
         }
     }
 
-    public static class DefaultTestOutputEventSerializer implements Serializer<DefaultTestOutputEvent> {
-        public static final DefaultTestOutputEventSerializer INSTANCE = new DefaultTestOutputEventSerializer();
+    private static class DefaultTestOutputEventSerializer implements Serializer<DefaultTestOutputEvent> {
+        private final Serializer<TestOutputEvent.Destination> destinationSerializer;
 
-        private final Serializer<TestOutputEvent.Destination> destinationSerializer = new BaseSerializerFactory().getSerializerFor(TestOutputEvent.Destination.class);
+        DefaultTestOutputEventSerializer(BaseSerializerFactory factory) {
+            destinationSerializer = factory.getSerializerFor(TestOutputEvent.Destination.class);
+        }
 
         @Override
         public DefaultTestOutputEvent read(Decoder decoder) throws Exception {
@@ -216,7 +228,7 @@ public class TestEventSerializer {
 
             // Read all causes
             int numOfCauses = decoder.readSmallInt();
-            List<TestFailure> causes = new ArrayList<TestFailure>(numOfCauses);
+            List<TestFailure> causes = new ArrayList<>(numOfCauses);
             for (int i = 0; i < numOfCauses; i++) {
                 causes.add(read(decoder));
             }
