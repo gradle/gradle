@@ -15,26 +15,34 @@
 [[test_kit]]
 = Testing Build Logic with TestKit
 
-The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally. At this time, it is focused on _functional_ testing. That is, testing build logic by exercising it as part of a programmatically executed build. Over time, the TestKit will likely expand to facilitate other kinds of tests.
+The Gradle TestKit helps you functionally test Gradle plugins and build logic by executing real builds in an isolated temp project and asserting on their results.
+You’ll typically pair TestKit with a test framework (JUnit or Spock) and a few small fixtures to generate test projects on the fly.
+Over time, TestKit has focused on functional/black-box testing, and that remains its sweet spot.
 
 [[sec:testkit_usage]]
 == Using TestKit
 
-To use the TestKit, include the following in your plugin's build:
+Add TestKit to your test dependencies:
 
-.Declaring the TestKit dependency
 ====
 include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
 include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
 ====
 
-The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<tooling_api.adoc#embedding,Gradle Tooling API client>>. It does not include a version of https://junit.org[JUnit], https://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
+The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<tooling_api.adoc#embedding,Gradle Tooling API client>>.
+It does not include a version of https://junit.org[JUnit], https://testng.org[TestNG], or any other test execution framework.
+Such a dependency must be explicitly declared.
 
-.Declaring the JUnit dependency
+For JUnit 5:
+
 ====
 include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-junit-dependency]"]
 include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-junit-dependency]"]
 ====
+
+==
+
+A modern way to organize plugin tests is to add a dedicated functional test suite using the JVM Test Suite plugin (added transitively by java-gradle-plugin). This cleanly separates unit and functional tests and wires TestKit for you.
 
 [[sec:functional_testing_with_the_gradle_runner]]
 == Functional testing with the Gradle runner
