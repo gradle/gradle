@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
@@ -163,8 +162,8 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                 implementation
                 runtimeOnly.extendsFrom(implementation)
                 compileClasspath.extendsFrom(implementation)
-                runtimeClasspath.extendsFrom(implementation, runtimeOnly)
-                runtimeClasspath {
+                conf.extendsFrom(implementation, runtimeOnly)
+                conf {
                    shouldResolveConsistentlyWith(compileClasspath)
                 }
             }
@@ -174,9 +173,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                 runtimeOnly 'org:bar:1.0'
             }
         """
-        def resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
-        resolve.expectDefaultConfiguration("runtime")
-        resolve.prepare()
+
         when:
         repositoryInteractions {
             'org:foo:1.0' {
@@ -195,6 +192,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                 expectResolve()
             }
         }
+
         succeeds 'checkDeps'
 
         then:

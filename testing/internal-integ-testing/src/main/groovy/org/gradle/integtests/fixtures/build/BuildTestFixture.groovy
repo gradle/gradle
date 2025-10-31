@@ -60,10 +60,13 @@ class BuildTestFixture {
 
     def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def project = populate(projectName) {
-            buildFile << """
+            // Configuring group and version in settings allows us to use the plugins block in the build file
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
                     group = 'org.test'
                     version = '1.0'
-                """
+                }
+            """
             file('src/main/java/Dummy.java') << "public class Dummy {}"
         }
         project.with(cl)
@@ -80,12 +83,12 @@ class BuildTestFixture {
                 settingsFile << "include '$it'\n"
             }
 
-            buildFile << """
-                    allprojects {
-                        group = 'org.test'
-                        version = '1.0'
-                    }
-                """
+            settingsFile << """
+                gradle.lifecycle.beforeProject {
+                    group = 'org.test'
+                    version = '1.0'
+                }
+            """
         }
         rootMulti.with(cl)
         addSourceToAllProjects(rootMulti, language, subprojects)

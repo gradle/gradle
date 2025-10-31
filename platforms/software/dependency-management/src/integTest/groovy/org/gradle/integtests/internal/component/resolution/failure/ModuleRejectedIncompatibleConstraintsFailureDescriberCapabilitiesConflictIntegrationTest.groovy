@@ -17,7 +17,6 @@
 package org.gradle.integtests.internal.component.resolution.failure
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 /**
@@ -28,7 +27,6 @@ import org.gradle.test.fixtures.dsl.GradleDsl
  * These are not actually incompatible constraints, and shouldn't be reported as such.
  */
 class ModuleRejectedIncompatibleConstraintsFailureDescriberCapabilitiesConflictIntegrationTest extends AbstractIntegrationSpec {
-    def resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
 
     def "capability conflict with #first and #second added by plugin with multiple constraints involved does not trigger constraint conflict describer"() {
         given:
@@ -121,11 +119,11 @@ class ModuleRejectedIncompatibleConstraintsFailureDescriberCapabilitiesConflictI
         """
 
         when:
-        resolve.prepare()
         fails(":resolve")
 
         then:
         result.getError().contains("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by")
         !result.getError().contains("Component is the target of multiple version constraints with conflicting requirements:")
     }
+
 }

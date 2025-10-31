@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 @ToBeFixedForIsolatedProjects(because = "allprojects")
 class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractIntegrationSpec {
-    ResolveTestFixture resolve
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
@@ -34,12 +34,12 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                 apply plugin: 'java-library'
             }
 
+            ${resolve.configureProject("compileClasspath")}
+
             dependencies {
                 api project(':producer')
             }
         """
-        resolve = new ResolveTestFixture(buildFile, 'compileClasspath')
-        resolve.prepare()
     }
 
     def "can fail resolution if producer doesn't have appropriate target version"() {

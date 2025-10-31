@@ -1442,9 +1442,12 @@ Found the following transformation chains:
     }
 
     def "result is applied for all query methods"() {
-        def fixture = new ResolveTestFixture(buildFile, "compile")
+        def resolve = new ResolveTestFixture(testDirectory)
 
         given:
+        settingsFile << """
+            ${resolve.configureSettings("compile")}
+        """
         buildFile << """
             project(':lib') {
                 projectDir.mkdirs()
@@ -1471,12 +1474,12 @@ Found the following transformation chains:
                 }
             }
         """
-        fixture.expectDefaultConfiguration("compile")
-        fixture.prepare()
 
-        expect:
+        when:
         succeeds ":app:checkDeps"
-        fixture.expectGraph {
+
+        then:
+        resolve.expectGraph(":app") {
             root(":app", "root:app:") {
                 project(":lib", "root:lib:") {
                     artifact(name: "lib.jar", type: "txt")

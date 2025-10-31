@@ -341,29 +341,37 @@ task retrieve(type: Sync) {
 
     def "removes redundant configurations from resolution result"() {
         given:
-        settingsFile << "rootProject.name = 'test'"
+        def resolve = new ResolveTestFixture(testDirectory)
+        settingsFile << """
+            rootProject.name = 'test'
+        """
 
-        def resolve = new ResolveTestFixture(buildFile, "compile")
         buildFile << """
-    group = 'org.test'
-    version = '1.0'
-    configurations {
-        compile
-    }
-    repositories {
-        ivy { url = "${ivyRepo.uri}" }
-    }
-    dependencies {
-        compile("ivy.configuration:projectA:1.2") {
-            targetConfiguration = "a"
-        }
-    }
-    task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-    }
-    """
-        resolve.prepare()
+            group = 'org.test'
+            version = '1.0'
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            repositories {
+                ivy {
+                    url = "${ivyRepo.uri}"
+                }
+            }
+
+            dependencies {
+                compile("ivy.configuration:projectA:1.2") {
+                    targetConfiguration = "a"
+                }
+            }
+
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
 
         ivyRepo.module('ivy.configuration', 'projectA', '1.2')
             .configuration("a")

@@ -104,14 +104,15 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
-        def resolveRelease = new ResolveTestFixture(buildFile, '_compileFreeRelease')
-        def resolveDebug = new ResolveTestFixture(buildFile, '_compileFreeDebug')
+        def resolve = new ResolveTestFixture(testDirectory)
 
         given:
         createDirs("a", "b")
-        file('settings.gradle') << """rootProject.name='test'
-include 'a', 'b'
-"""
+        file('settings.gradle') << """
+            rootProject.name='test'
+            include 'a', 'b'
+        """
+
         buildFile << """
             $typeDefs
 
@@ -145,15 +146,17 @@ include 'a', 'b'
                 ${fooAndBarJars()}
             }
         """
-        def origFile = buildFile.text
+
+        file("a/build.gradle") << """
+            ${resolve.configureProject("_compileFreeRelease", "_compileFreeDebug")}
+        """
 
         when:
-        resolveRelease.prepare()
-        run ':a:checkDeps'
+        run ':a:check_compileFreeRelease'
 
         then:
-        result.assertTasksScheduled(':b:barJar', ':a:checkDeps')
-        resolveRelease.expectGraph {
+        result.assertTasksScheduled(':b:barJar', ':a:check_compileFreeRelease')
+        resolve.expectGraph(":a") {
             root(":a", "test:a:") {
                 project(':b', 'test:b:') {
                     variant 'bar', [flavor: 'free', buildType: 'release']
@@ -163,13 +166,11 @@ include 'a', 'b'
         }
 
         when:
-        buildFile.text = origFile
-        resolveDebug.prepare()
-        run ':a:checkDeps'
+        run ':a:check_compileFreeDebug'
 
         then:
-        result.assertTasksScheduled(':b:fooJar', ':a:checkDeps')
-        resolveDebug.expectGraph {
+        result.assertTasksScheduled(':b:fooJar', ':a:check_compileFreeDebug')
+        resolve.expectGraph(":a") {
             root(":a", "test:a:") {
                 project(':b', 'test:b:') {
                     variant 'foo', [flavor: 'free', buildType: 'debug']

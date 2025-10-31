@@ -21,23 +21,29 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 
 class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
+
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
+
     IvyHttpModule mainModule
     IvyHttpModule dep
-    ResolveTestFixture resolve
 
     def setup() {
         mainModule = ivyHttpRepo.module("org", "main", "1.0").withModuleMetadata()
         dep = ivyHttpRepo.module("org", "foo", "1.9").publish()
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
-                ivy { url = "${ivyHttpRepo.uri}" }
+                ivy {
+                    url = "${ivyHttpRepo.uri}"
+                }
             }
-        """
-        prepareResolution()
 
+            ${resolve.configureProject("compileClasspath")}
+        """
     }
 
     def "doesn't try to fetch Gradle metadata if published and marker is not present"() {
@@ -122,7 +128,9 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
     def "doesn't try to fetch Gradle metadata if published has marker present and ignoreGradleMetadataRedirection is set"() {
         setup:
         buildFile.text = """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 ivy {
@@ -135,12 +143,12 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
                 }
             }
 
+            ${resolve.configureProject("compileClasspath")}
+
              dependencies {
                 api "org:main:1.0"
             }
         """
-
-        prepareResolution()
 
         createIvyFile(true)
 
@@ -170,11 +178,6 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         moduleFile.replace('"dependencies":[]', '''"dependencies":[
             { "group": "org", "module": "foo", "version": { "prefers": "1.9" } }
         ]''')
-    }
-
-    private void prepareResolution() {
-        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
-        resolve.prepare()
     }
 
 }

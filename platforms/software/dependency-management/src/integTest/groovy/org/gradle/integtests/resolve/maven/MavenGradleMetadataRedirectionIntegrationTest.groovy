@@ -21,22 +21,27 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 
 class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
+
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
+
     MavenHttpModule mainModule
     MavenHttpModule dep
-    ResolveTestFixture resolve
 
     def setup() {
         mainModule = mavenHttpRepo.module("org", "main", "1.0").withModuleMetadata()
         dep = mavenHttpRepo.module("org", "foo", "1.9").publish()
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
 
             repositories {
                 maven { url = "${mavenHttpRepo.uri}" }
             }
+
+            ${resolve.configureProject("compileClasspath")}
         """
-        prepareResolution()
     }
 
     def "doesn't try to fetch Gradle metadata if published and marker is not present"() {
@@ -121,7 +126,11 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
     def "doesn't try to fetch Gradle metadata if published has marker present and ignoreGradleMetadataRedirection is set"() {
         setup:
         buildFile.text = """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
+
+            ${resolve.configureProject("compileClasspath")}
 
             repositories {
                 maven {
@@ -138,7 +147,6 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
                 api "org:main:1.0"
             }
         """
-        prepareResolution()
         createPomFile(true)
 
         when:
@@ -167,11 +175,5 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         moduleFile.replace('"dependencies":[]', '''"dependencies":[
             { "group": "org", "module": "foo", "version": { "prefers": "1.9" } }
         ]''')
-    }
-
-    private void prepareResolution() {
-        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
-        resolve.expectDefaultConfiguration('compile')
-        resolve.prepare()
     }
 }
