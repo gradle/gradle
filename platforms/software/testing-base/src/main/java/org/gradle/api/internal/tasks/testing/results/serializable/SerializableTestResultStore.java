@@ -19,12 +19,10 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 import com.google.common.base.Throwables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -93,11 +91,6 @@ public final class SerializableTestResultStore {
 
         private static final long ROOT_ID = 1;
 
-        private static final class OutputStarts {
-            private long startStdout = OutputEntry.NO_OUTPUT;
-            private long startStderr = OutputEntry.NO_OUTPUT;
-        }
-
         private final Map<Object, Long> assignedIds = new HashMap<>();
         private final Set<Object> flatteningIds;
         private final List<TestDescriptorInternal> extraFlattenedDescriptors;
@@ -109,11 +102,7 @@ public final class SerializableTestResultStore {
          * Encoder storing the serialized test results.
          */
         private final KryoBackedEncoder resultsEncoder;
-        /**
-         * Encoder storing all output events.
-         */
-        private final KryoBackedEncoder outputEventsEncoder;
-        private final Map<Long, OutputStarts> outputEntryRangeStarts = new HashMap<>();
+        private final TestOutputWriter outputWriter;
         private long nextId = 1;
 
         // Map from testDescriptor -> Serialized metadata associated with that descriptor
@@ -131,8 +120,7 @@ public final class SerializableTestResultStore {
             resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
             try {
                 resultsEncoder.writeSmallInt(STORE_VERSION);
-                Files.deleteIfExists(outputEventsFile);
-                outputEventsEncoder = new KryoBackedEncoder(Files.newOutputStream(outputEventsFile));
+                outputWriter = new TestOutputWriter(outputEventsFile);
             } catch (Throwable t) {
                 // Ensure we don't leak the encoder if we fail to do operations in the constructor
                 try {
@@ -224,14 +212,9 @@ public final class SerializableTestResultStore {
 
             // We remove the id here since no further events should come for this test, and it won't be needed as a parent id anymore
             long id = assignedIds.remove(testDescriptor.getId());
-            OutputStarts outputStarts = outputEntryRangeStarts.remove(id);
             try {
-                OutputEntry.Ser.INSTANCE.write(resultsEncoder, new OutputEntry(
-                    id,
-                    outputStarts != null ? outputStarts.startStdout : OutputEntry.NO_OUTPUT,
-                    outputStarts != null ? outputStarts.startStderr : OutputEntry.NO_OUTPUT,
-                    outputStarts != null ? outputEventsEncoder.getWritePosition() : OutputEntry.NO_OUTPUT
-                ));
+                OutputEntry outputEntry = outputWriter.finishOutput(id);
+                OutputEntry.Ser.INSTANCE.write(resultsEncoder, outputEntry);
                 SerializableTestResult.Serializer.serialize(testNodeBuilder.build(), resultsEncoder);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -294,30 +277,7 @@ public final class SerializableTestResultStore {
             } else {
                 outputId = assignedIds.get(testDescriptor.getId());
             }
-            // Assign the start of the output entry range if this is the first time we see this output id
-            OutputStarts ranges = outputEntryRangeStarts.computeIfAbsent(outputId, id -> new OutputStarts());
-            switch (event.getDestination()) {
-                case StdOut:
-                    if (ranges.startStdout == OutputEntry.NO_OUTPUT) {
-                        ranges.startStdout = outputEventsEncoder.getWritePosition();
-                    }
-                    break;
-                case StdErr:
-                    if (ranges.startStderr == OutputEntry.NO_OUTPUT) {
-                        ranges.startStderr = outputEventsEncoder.getWritePosition();
-                    }
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unknown destination: " + event.getDestination());
-            }
-            try {
-                outputEventsEncoder.writeLong(outputId);
-                TestEventSerializer.DefaultTestOutputEventSerializer.INSTANCE.write(
-                    outputEventsEncoder, (DefaultTestOutputEvent) event
-                );
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            outputWriter.writeOutputEvent(outputId, event);
         }
 
         @Override
@@ -331,7 +291,7 @@ public final class SerializableTestResultStore {
                 // Write a 0 id to terminate the file
                 OutputEntry.Ser.INSTANCE.write(resultsEncoder, new OutputEntry(0, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT));
             } finally {
-                CompositeStoppable.stoppable(resultsEncoder, outputEventsEncoder).stop();
+                CompositeStoppable.stoppable(resultsEncoder, outputWriter).stop();
             }
             // Move the temporary results file to the final location, if successful
             Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
@@ -394,7 +354,7 @@ public final class SerializableTestResultStore {
         return decoder;
     }
 
-    public OutputReader createOutputReader() {
-        return new OutputReader(outputEventsFile);
+    public TestOutputReader createOutputReader() {
+        return new TestOutputReader(outputEventsFile);
     }
 }

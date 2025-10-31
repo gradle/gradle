@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
-import org.gradle.api.internal.tasks.testing.results.serializable.OutputReader;
+import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -210,9 +210,9 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private final Map<Long, ClassNode> classesById;
-    private final OutputReader outputReader;
+    private final TestOutputReader outputReader;
 
-    public TestTreeModelResultsProvider(TestTreeModel root, OutputReader outputReader) {
+    public TestTreeModelResultsProvider(TestTreeModel root, TestOutputReader outputReader) {
         this.classesById = createClasses(root);
         this.outputReader = outputReader;
     }

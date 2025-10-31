@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.stream.Streams;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
-import org.gradle.api.internal.tasks.testing.results.serializable.OutputReader;
+import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
@@ -287,10 +287,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     public static final class ForOutput extends PerRootTabRenderer {
-        private final OutputReader outputReader;
+        private final TestOutputReader outputReader;
         private final TestOutputEvent.Destination destination;
 
-        public ForOutput(int rootIndex, int perRootInfoIndex, OutputReader outputReader, TestOutputEvent.Destination destination) {
+        public ForOutput(int rootIndex, int perRootInfoIndex, TestOutputReader outputReader, TestOutputEvent.Destination destination) {
             super(rootIndex, perRootInfoIndex);
             this.outputReader = outputReader;
             this.destination = destination;
