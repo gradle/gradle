@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 
-@DoesNotSupportNonAsciiPaths(reason = "This fixes weird compilation error during sync when running locally on MacOs")
+@DoesNotSupportNonAsciiPaths(reason = "This fixes weird compilation error during sync when running locally on MacOs. See https://github.com/gradle/gradle/issues/35525")
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
     def setup() {
