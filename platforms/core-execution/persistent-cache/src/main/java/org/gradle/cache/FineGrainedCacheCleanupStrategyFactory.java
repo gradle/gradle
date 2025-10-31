@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.history;
+package org.gradle.cache;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-import java.util.Optional;
+import java.util.function.Supplier;
 
-@ServiceScope(Scope.Global.class)
-public interface ImmutableWorkspaceMetadataStore {
+/**
+ * A factory for creating fine-grained cache cleanup strategies.
+ */
+@ServiceScope(Scope.UserHome.class)
+public interface FineGrainedCacheCleanupStrategyFactory {
 
-    boolean workspaceMetadataExists(File workspace);
-
-    Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace);
-
-    void storeWorkspaceMetadata(File workspace, ImmutableWorkspaceMetadata metadata);
+    /**
+     * Creates a CacheCleanupStrategy that cleans up the cache entry based on the least recently used (LRU) algorithm.
+     *
+     * The entry is first marked as stale and only then deleted after a certain period of time.
+     */
+    FineGrainedCacheCleanupStrategy leastRecentlyUsedStrategy(int cacheDepth, Supplier<Long> cacheEntryRetentionTimestamp, Supplier<CleanupFrequency> frequency);
 
 }

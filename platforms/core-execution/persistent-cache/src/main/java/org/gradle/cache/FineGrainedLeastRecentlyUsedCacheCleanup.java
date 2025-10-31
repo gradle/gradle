@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.history;
+package org.gradle.cache;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.io.File;
-import java.util.Optional;
-
-@ServiceScope(Scope.Global.class)
-public interface ImmutableWorkspaceMetadataStore {
-
-    boolean workspaceMetadataExists(File workspace);
-
-    Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace);
-
-    void storeWorkspaceMetadata(File workspace, ImmutableWorkspaceMetadata metadata);
-
+public interface FineGrainedLeastRecentlyUsedCacheCleanup extends CleanupAction {
 }
