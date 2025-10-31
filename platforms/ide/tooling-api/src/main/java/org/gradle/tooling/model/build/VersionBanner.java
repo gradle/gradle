@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,39 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.tooling.model.build;
 
-import java.io.File;
+import org.gradle.tooling.model.BuildModel;
+import org.gradle.tooling.model.Model;
 
 /**
- * Informs about the Gradle environment, for example the Gradle version.
- * <p>
- * See example in {@link BuildEnvironment}
+ * Plaintext content printed by {@code gradle --version} (the banner including build time, JVM, OS, etc.).
+ * The content is produced by the target Gradle distribution without starting the daemon.
  *
- * @since 1.0-milestone-8
+ * @since 9.3.0
  */
-public interface GradleEnvironment {
-
+public interface VersionBanner extends Model, BuildModel {
     /**
-     * Informs about the Gradle user home.
-     *
-     * @since 2.4
-     */
-    File getGradleUserHome();
-
-    /**
-     * Informs about the Gradle version.
-     *
-     * @since 1.0-milestone-8
-     */
-    String getGradleVersion();
-
-    /**
-     * Returns the plaintext banner printed by {@code gradle --version}, including build time, JVMs and OS.
+     * Returns the exact banner text as printed by {@code gradle --version} for the target distribution.
      *
      * @since 9.3.0
      */
     String getVersionOutput();
-
 }
+
