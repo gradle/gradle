@@ -163,18 +163,16 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
                 nested("Gradle Test Run :test") {
                     nested("Gradle Test Executor") {
                         nested("Test class com.example.ReportEntryTest") {
-//                            metadata("constructor.json:mediaType", "application/json")
-//                            metadata("constructor.json:path", "constructor.json")
-                            ignoreMetadata()
+                            metadata("constructor.json:mediaType", "application/json")
+                            metadata("constructor.json:path", "constructor.json")
 
                             test("Test test(TestReporter)(com.example.ReportEntryTest)") {
-                                ignoreMetadata()
-//                                metadata("beforeEach.json:mediaType", "application/json")
-//                                metadata("beforeEach.json:path", "beforeEach.json")
-//                                metadata("test.json:mediaType", "application/json")
-//                                metadata("test.json:path", "test.json")
-//                                metadata("afterEach.json:mediaType", "application/json")
-//                                metadata("afterEach.json:path", "afterEach.json")
+                                metadata("beforeEach.json:mediaType", "application/json")
+                                metadata("beforeEach.json:path", "beforeEach.json")
+                                metadata("test.json:mediaType", "application/json")
+                                metadata("test.json:path", "test.json")
+                                metadata("afterEach.json:mediaType", "application/json")
+                                metadata("afterEach.json:path", "afterEach.json")
                             }
                         }
                     }

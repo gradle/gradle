@@ -56,11 +56,6 @@ interface TestEventSpec {
     void metadata(String key, Object value);
 
     /**
-     * Ignores any captured test metadata
-     */
-    void ignoreMetadata();
-
-    /**
      * Set the expected test display name
      *
      * This is *not* the operation's display name

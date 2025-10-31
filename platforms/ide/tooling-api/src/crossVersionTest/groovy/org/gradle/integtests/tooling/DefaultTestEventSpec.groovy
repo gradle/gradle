@@ -55,11 +55,6 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
         assert actualMetadata.remove(Collections.singletonMap(key, value)): "expected to find $key -> $value in $self"
     }
 
-    @Override
-    void ignoreMetadata() {
-        assert !actualMetadata.isEmpty() : "No metadata was captured"
-        actualMetadata.clear()
-    }
 
     @Override
     void displayName(String displayName) {
