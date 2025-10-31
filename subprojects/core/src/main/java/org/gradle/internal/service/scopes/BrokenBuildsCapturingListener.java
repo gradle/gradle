@@ -16,14 +16,15 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.composite.BuildIncludeListener;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,8 +42,7 @@ public class BrokenBuildsCapturingListener implements BuildIncludeListener {
 
     @Override
     public void buildInclusionFailed(BuildState buildState, @Nullable Exception exception) {
-        Failure failure = failureFactory.create(exception);
-        brokenBuilds.put(buildState, failure);
+        brokenBuilds.put(buildState, failureFactory.create(exception));
     }
 
     @Override
@@ -51,12 +51,30 @@ public class BrokenBuildsCapturingListener implements BuildIncludeListener {
     }
 
     @Override
-    public void settingsScriptFailed(SettingsInternal settingsScript, LocationAwareException e) {
+    public void settingsScriptFailed(SettingsInternal settingsScript, GradleException e) {
         getBrokenSettings().put(settingsScript, failureFactory.create(e));
     }
 
     @Override
     public Map<SettingsInternal, Failure> getBrokenSettings() {
         return brokenSettings;
+    }
+
+    @Override
+    public boolean isHandled(GradleException e) {
+        // Check if the exception or any of its causes are in the broken builds or settings
+        Throwable current = e;
+        while (current != null) {
+            if (isInFailures(current, brokenBuilds.values()) || isInFailures(current, brokenSettings.values())) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private static boolean isInFailures(Throwable exception, Collection<Failure> failures) {
+        return failures.stream().
+            anyMatch(failure -> failure.getOriginal() == exception);
     }
 }
