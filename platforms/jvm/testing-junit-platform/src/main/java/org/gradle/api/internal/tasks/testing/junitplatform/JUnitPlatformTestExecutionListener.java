@@ -55,10 +55,8 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -141,23 +139,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry file) {
-        // TODO: Replace this with something smarter to send the actual FileEntry contents across without going through Map<String, String>
-        Map<String, String> map = new LinkedHashMap<>();
-        // JUnit Jupiter suggests to use application/octet-stream if media type is unknown
-        map.put(file.getPath().getFileName() + ":mediaType", file.getMediaType().orElse("application/octet-stream"));
-        map.put(file.getPath().getFileName() + ":path", file.getPath().getFileName().toString());
-
-        // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class constructor.
-        if (wasStarted(testIdentifier)) {
-            resultProcessor.report(getId(testIdentifier), new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(map)));
-        } else {
-            // The test has not started yet, so see if we can find a close ancestor and associate the FileEntry with it
-            Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
-            if (closestStartedAncestor != null) {
-                resultProcessor.report(closestStartedAncestor, new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(map)));
-            }
-            // otherwise, we don't know what to associate this FileEntry with
-        }
+        // TODO: Capture this as well
     }
 
     @Override
