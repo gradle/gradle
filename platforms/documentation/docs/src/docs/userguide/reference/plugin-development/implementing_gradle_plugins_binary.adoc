@@ -757,7 +757,6 @@ Note that the `active` status does not depend on the `requested` status.
 Even if the user requests a feature, it may still not be active due to other build options being used in the build.
 Gradle can also activate a feature by default, even if the user did not specify a preference.
 
-
 [[custom_dependencies_blocks]]
 == Using a custom `dependencies` block
 
@@ -1078,3 +1077,27 @@ This snippet makes the <<#plugin-with-variants,plugin variant `gradle7` defined 
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 ====
+
+[[plugin-dependency-conflicts]]
+== Avoiding plugin dependency conflicts
+
+When developing a plugin that relies on the API of another plugin (e.g., the Android Gradle Plugin or the Kotlin Plugin), declaring that API dependency using the standard `implementation` configuration can cause serious classpath conflicts for the end user.
+
+This occurs because the `implementation` configuration forces the exact version you used onto the user's buildscript classpath, potentially overriding a newer or different version they require.
+
+To prevent buildscript classpath leakage and maintain version flexibility for your users, you must use the `compileOnly` configuration for any dependency that represents an underlying plugin's API.
+
+[source,text]
+----
+dependencies {
+    // BAD: Can cause conflict by forcing this version on the user's classpath
+    // implementation("com.android.tools.build:gradle-api:8.0.0")
+
+    // GOOD: Only available during compilation; user's project dictates the runtime version
+    compileOnly("com.android.tools.build:gradle-api:8.0.0")
+}
+----
+
+If you need to *enforce* a specific version (e.g., for internal <<implementing_convention_plugins.adoc#implementing_convention_plugins,Convention Plugins>>), the `implementation` approach may be acceptable, but this should be done with clear awareness of the potential user conflicts.
+
+WARNING: Using the `compileOnly` configuration will cause the standard plugin testing method, `GradleRunner.withPluginClasspath()`, to fail. See to learn more.
