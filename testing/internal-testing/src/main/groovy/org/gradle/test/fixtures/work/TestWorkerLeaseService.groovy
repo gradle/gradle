@@ -29,6 +29,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    Path getProjectLockPath(ResourceLock projectLock) {
+        return null
+    }
+
+    @Override
     ResourceLock getTaskExecutionLock(Path buildIdentityPath, Path projectIdentityPath) {
         return null
     }

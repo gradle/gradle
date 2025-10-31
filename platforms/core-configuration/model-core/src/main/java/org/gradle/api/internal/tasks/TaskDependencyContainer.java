@@ -23,6 +23,10 @@ public interface TaskDependencyContainer {
     TaskDependencyContainer EMPTY = context -> {
     };
 
+    static TaskDependencyContainer of(Object o) {
+        return context -> context.add(o);
+    }
+
     /**
      * Adds the dependencies from this container to the given context. Failures to calculate the build dependencies should be supplied to the context rather than thrown.
      */

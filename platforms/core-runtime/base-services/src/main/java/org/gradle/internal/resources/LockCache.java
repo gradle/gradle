@@ -19,7 +19,9 @@ package org.gradle.internal.resources;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
@@ -44,6 +46,21 @@ public class LockCache<K, T extends ResourceLock> {
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    /**
+     * Attempts to find the key for the given resource lock, or null if the lock
+     * is not present in this cache.
+     */
+    public @Nullable K getLockKey(ResourceLock resourceLock) {
+        Map<K, T> map = resourceLocks.asMap();
+        for (Map.Entry<K, T> entry : map.entrySet()) {
+            if (entry.getValue() == resourceLock) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
     }
 
     private T createResourceLock(final K key, final AbstractResourceLockRegistry.ResourceLockProducer<K, T> producer) {

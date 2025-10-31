@@ -33,6 +33,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.TaskExecutionLockRegistry;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,6 +175,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     @Override
     public ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
         return registries.get().getProjectLockRegistry().getProjectLock(buildIdentityPath, projectIdentityPath);
+    }
+
+    @Override
+    public @Nullable Path getProjectLockPath(ResourceLock projectLock) {
+        return registries.get().getProjectLockRegistry().getLockPath(projectLock);
     }
 
     @Override

@@ -52,6 +52,7 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
 
@@ -345,12 +346,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
 
         @Override
-        public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+        public @Nullable ResourceLock getAccessLock() {
+            return owner.getModel().getAccessLock();
         }
 
         @Override
-        public ProjectInternal getOwningProject() {
+        public @Nullable ProjectInternal getOwningProject() {
             return owner.getProject();
         }
 
@@ -383,8 +384,8 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             final List<TaskNode> tasks = new ArrayList<>();
 
             @Override
-            public boolean usesMutableProjectState() {
-                return FinalizeTransformDependenciesFromSelectedArtifacts.this.usesMutableProjectState();
+            public @Nullable ResourceLock getAccessLock() {
+                return FinalizeTransformDependenciesFromSelectedArtifacts.this.getAccessLock();
             }
 
             @Nullable
