@@ -107,7 +107,7 @@ class PluginBuilder {
         prepareToExecute()
         buildFile << buildScript
         buildFile << """
-            jar {
+            tasks.jar {
                 archiveFileName = "$testFile.name"
                 destinationDirectory = file("${TextUtil.escapeString(testFile.parentFile.absolutePath)}")
             }

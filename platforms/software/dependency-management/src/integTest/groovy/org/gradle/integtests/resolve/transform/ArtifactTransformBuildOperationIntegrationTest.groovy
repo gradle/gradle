@@ -671,8 +671,8 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
                 }
 
                 artifacts {
-                    implementation producer.out1
-                    implementation producer.out2
+                    implementation tasks.producer.out1
+                    implementation tasks.producer.out2
                 }
 
                 task resolve(type: ShowFileCollection) {

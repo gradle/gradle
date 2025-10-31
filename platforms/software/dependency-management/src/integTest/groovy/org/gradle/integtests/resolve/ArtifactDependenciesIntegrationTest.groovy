@@ -786,7 +786,10 @@ task test {
             dependencies { compile project(':') }
             task jar1(type: Jar) { destinationDirectory = buildDir; archiveBaseName = '1' }
             task jar2(type: Jar) { destinationDirectory = buildDir; archiveBaseName = '2' }
-            artifacts { compile jar1; 'default' jar2 }
+            artifacts {
+                compile tasks.jar1
+                'default' tasks.jar2
+            }
 '''
         resolve.prepare("compile")
 
