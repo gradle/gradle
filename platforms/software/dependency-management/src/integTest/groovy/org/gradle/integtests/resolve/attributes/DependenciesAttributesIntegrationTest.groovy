@@ -462,7 +462,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         failure.assertHasCause("""Could not find any version that matches org:test:[1.0,).""")
 
         and:
-        outputContains("Success for root project :")
+        outputContains("Success for root")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")

@@ -152,10 +152,7 @@ Required by:
             classes.doLast {
                 def components = configurations.compileClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 2
-                assert components[0].build.buildPath == ':buildB:buildSrc'
-                assert components[0].projectPath == ':'
-                assert components[0].projectName == '$rootProjectName'
-                assert components[0].buildTreePath == ':buildB:buildSrc'
+                assert components[0] instanceof RootComponentIdentifier
                 assert components[1].build.buildPath == ':buildB:buildSrc'
                 assert components[1].projectPath == ':a'
                 assert components[1].projectName == 'a'

@@ -147,7 +147,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project :' (conf)]""")
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root' (conf)]""")
     }
 
     /**

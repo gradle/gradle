@@ -61,10 +61,13 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
                 doLast {
                     def result = configurations.conf.incoming.resolutionResult
                     result.allComponents {
-                        if(it.id instanceof ModuleComponentIdentifier) {
+                        if (it.id instanceof RootComponentIdentifier) {
+                            println it.id.displayName + " " + it.selectionReason
+                        }
+                        if (it.id instanceof ModuleComponentIdentifier) {
                             println it.id.module + ":" + it.id.version + " " + it.selectionReason
                         }
-                        else if(it.id instanceof ProjectComponentIdentifier) {
+                        else if (it.id instanceof ProjectComponentIdentifier) {
                             println it.moduleVersion.name + ":" + it.moduleVersion.version + " " + it.selectionReason
                         }
                     }
@@ -77,7 +80,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
 
         then:
         output.contains """
-cool-project:5.0 root
+root root
 foo:1.0 between versions 1.0 and 0.5
 leaf:2.0 forced
 bar:1.0 requested
@@ -643,7 +646,7 @@ testRuntimeClasspath
         fails 'resolve'
 
         then:
-        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'root project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
+        failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'root'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12643")
@@ -967,10 +970,13 @@ testRuntimeClasspath
 
                     def otherDependency = otherDependencies[0]
                     assert otherDependency instanceof ResolvedDependencyResult
-                    assert otherDependency.selected == rootComponent
+
+                    def rootProjectComponent = otherDependency.selected
+                    assert rootProjectComponent.id instanceof ProjectComponentIdentifier
+                    assert rootProjectComponent.id.buildTreePath == ":"
 
                     def runtimeElements = otherDependency.resolvedVariant
-                    def runtimeElementsDependencies = rootComponent.getDependenciesForVariant(runtimeElements)
+                    def runtimeElementsDependencies = rootProjectComponent.getDependenciesForVariant(runtimeElements)
 
                     assert runtimeElementsDependencies.size() == 1
                     assert runtimeElementsDependencies[0].selected == otherComponent
@@ -1025,15 +1031,14 @@ testRuntimeClasspath
                 fun traverse() {
                     val variants = mutableListOf<String>()
                     traverseGraphVariants(rootComponent.get(), rootVariant.get()) { variant ->
-                        val owner = variant.owner as ProjectComponentIdentifier
-                        variants.add("\${owner.buildTreePath}:\${variant.displayName}")
+                        variants.add("\${variant.owner.displayName} \${variant.displayName}")
                     }
                     assert(variants == listOf(
-                        "::testRuntimeClasspath",
-                        ":other:runtimeElements",
-                        "::testFixturesRuntimeElements",
-                        ":other:testFixturesRuntimeElements",
-                        "::runtimeElements"
+                        "root testRuntimeClasspath",
+                        "project :other runtimeElements",
+                        "root project : testFixturesRuntimeElements",
+                        "project :other testFixturesRuntimeElements",
+                        "root project : runtimeElements"
                     ))
                 }
 

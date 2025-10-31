@@ -187,15 +187,12 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         name << ["detachedConfiguration", "detachedConfiguration1", "detachedConfiguration22902"]
     }
 
-    def "detached configuration has a different component ID and module version ID than the root component"() {
+    def "detached configuration has root component ID"() {
         mavenRepo.module("org", "foo").publish()
 
         buildFile << """
             configurations {
                 dependencyScope("deps")
-                resolvable("foo") {
-                    extendsFrom(deps)
-                }
             }
 
             if (${withDependencies}) {
@@ -206,22 +203,15 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task resolve {
-                def fooRoot = configurations.foo.incoming.resolutionResult.rootComponent
-
                 def detached = configurations.detachedConfiguration(configurations.deps.dependencies as Dependency[])
                 def detachedRoot = detached.incoming.resolutionResult.rootComponent
 
                 if (${withDependencies}) {
-                    assert configurations.foo.allDependencies.size() == 1
                     assert detached.allDependencies.size() == 1
                 }
 
                 doLast {
-                    // We don't really care _what_ the detached configuration's IDs are.
-                    // These really should be an implementation detail, as they are a synthetic ID and just need
-                    // to be different than the project that owns the detached component.
-                    assert fooRoot.get().id != detachedRoot.get().id
-                    assert fooRoot.get().moduleVersion != detachedRoot.get().moduleVersion
+                    assert detachedRoot.get().id instanceof RootComponentIdentifier
                 }
             }
         """

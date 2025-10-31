@@ -253,7 +253,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(TransformedVariantConverter.class);
             registration.add(ResolutionExecutor.class);
             registration.add(ShortCircuitingResolutionExecutor.class);
-            registration.add(ConfigurationResolver.Factory.class, DefaultConfigurationResolver.Factory.class);
+            registration.add(ConfigurationResolver.class, DefaultConfigurationResolver.class);
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
             registration.add(PublishArtifactNotationParserFactory.class);
@@ -428,8 +428,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             DefaultConfigurationFactory defaultConfigurationFactory,
             ResolutionStrategyFactory resolutionStrategyFactory,
             InternalProblems problemsService,
-            ConfigurationResolver.Factory resolverFactory,
-            AttributesSchemaInternal attributesSchema
+            ConfigurationResolver resolver
         ) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 instantiator,
@@ -438,8 +437,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 defaultConfigurationFactory,
                 resolutionStrategyFactory,
                 problemsService,
-                resolverFactory,
-                attributesSchema
+                resolver
             );
         }
 

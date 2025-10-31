@@ -103,11 +103,6 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
     ResolutionHost getResolutionHost();
 
     /**
-     * Return true if this is a detached configuration, false otherwise.
-     */
-    boolean isDetachedConfiguration();
-
-    /**
      * Version locks to use during resolution as a result of consistent resolution.
      */
     ImmutableList<ResolutionParameters.ModuleVersionLock> getConsistentResolutionVersionLocks();

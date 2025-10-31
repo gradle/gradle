@@ -80,9 +80,9 @@ abstract class AbstractJavaProjectTestFixturesIntegrationTest extends AbstractTe
         notExecuted(*skippedJars)
         outputContains """Test compile classpath
 ---
+junit-4.13.jar
 ${compileClasspathPackaging ? 'libs/root-1.0-test-fixtures.jar' : 'classes/java/testFixtures'}
 ${pluginName == 'java' || compileClasspathPackaging ? 'libs/root-1.0.jar' : 'classes/java/main'}
-junit-4.13.jar
 hamcrest-core-1.3.jar
 ---
 """
@@ -97,9 +97,9 @@ hamcrest-core-1.3.jar
 ---
 classes/java/test
 resources/test
+junit-4.13.jar
 libs/root-1.0-test-fixtures.jar
 libs/root-1.0.jar
-junit-4.13.jar
 hamcrest-core-1.3.jar
 ---
 """

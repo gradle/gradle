@@ -18,7 +18,10 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.AnonymousModule;
 import org.gradle.api.internal.artifacts.DefaultRootComponentIdentifier;
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenessVerifier;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
@@ -33,6 +36,7 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -45,17 +49,21 @@ public class LocalComponentGraphResolveStateFactory {
     private final ComponentIdGenerator idGenerator;
     private final LocalVariantGraphResolveStateBuilder metadataBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
+    @Inject
     public LocalComponentGraphResolveStateFactory(
         AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
         LocalVariantGraphResolveStateBuilder metadataBuilder,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
     ) {
         this.attributeDesugaring = attributeDesugaring;
         this.idGenerator = idGenerator;
         this.metadataBuilder = metadataBuilder;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
 
     /**
@@ -110,11 +118,14 @@ public class LocalComponentGraphResolveStateFactory {
     /**
      * Creates state for an adhoc root component with no variants.
      */
-    public LocalComponentGraphResolveState adhocRootComponentState(
-        String status,
-        ModuleVersionIdentifier moduleVersionId,
-        ImmutableAttributesSchema attributesSchema
-    ) {
+    public LocalComponentGraphResolveState adhocRootComponentState(ImmutableAttributesSchema attributesSchema) {
+        Module module = new AnonymousModule();
+        String status = module.getStatus();
+
+        // In reality the adhoc root component does not have a module identity.
+        // Eventually we should make the module ID optional on components.
+        ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
+
         long instanceId = idGenerator.nextComponentId();
         ComponentIdentifier componentIdentifier = new DefaultRootComponentIdentifier(instanceId);
 

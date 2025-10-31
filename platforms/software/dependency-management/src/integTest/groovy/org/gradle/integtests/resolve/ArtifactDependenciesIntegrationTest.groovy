@@ -799,8 +799,9 @@ task test {
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.2") {
-                project(":", "org.test:test:1.2")
-                artifact(name: '2', fileName: '2.jar')
+                project(":", "org.test:test:1.2") {
+                    artifact(name: '2', fileName: '2.jar')
+                }
             }
         }
     }
