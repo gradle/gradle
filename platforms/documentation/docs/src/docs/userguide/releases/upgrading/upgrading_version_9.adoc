@@ -70,6 +70,75 @@ The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[W
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
+==== Deprecated publishing dependency on an unpublished project
+
+When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.
+When the target project has no publications, Gradle will silently resolve the dependency to the target project's group, name, and version.
+
+Starting in Gradle 10.0.0, Gradle will no longer silently ignore unpublished projects during publication.
+Publishing a project with a dependency on another project that is not also published will be forbidden.
+This change will make it more difficult to publish broken metadata with invalid dependency coordinates.
+
+The example project below demonstrates a build that will trigger the deprecated behavior:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+dependencies {
+    api(project(":other"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+group = "com.example"
+version = "1.0.0"
+----
+
+In order to avoid this deprecation, ensure that all project dependencies of published projects are also published.
+In the example above, applying the `maven-publish` plugin and configuring a publication in the `:other` project will resolve the deprecation.
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
 [[deprecate_legacy_usage_values]]
 ==== Deprecation of legacy `Usage` attribute values
 
