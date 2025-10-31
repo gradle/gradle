@@ -62,6 +62,11 @@ public interface BuildLifecycleController {
     void configureProjects();
 
     /**
+     * Returns true if all projects in this build have been configured successfully.
+     */
+    boolean isProjectsConfigured();
+
+    /**
      * Runs the given action against the mutable state of this build after configuring the projects of the build.
      * This may fail with an error, if this build is loaded from cache rather than configured.
      *

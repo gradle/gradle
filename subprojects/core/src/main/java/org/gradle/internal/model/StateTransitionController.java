@@ -61,6 +61,16 @@ public class StateTransitionController<T extends StateTransitionController.State
      *
      * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
      */
+    public boolean inStateOrLater(T expected) {
+        CurrentState<T> current = state;
+        return current.hasSeenStateIgnoringTransitions(expected);
+    }
+
+    /**
+     * Verifies that the current state is the given state or some later state. Ignores any transition in progress and failures of previous operations.
+     *
+     * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
+     */
     public void assertInStateOrLater(T expected) {
         CurrentState<T> current = state;
         if (!current.hasSeenStateIgnoringTransitions(expected)) {

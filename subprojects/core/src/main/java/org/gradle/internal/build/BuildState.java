@@ -88,6 +88,11 @@ public interface BuildState {
     boolean isProjectsCreated();
 
     /**
+     * Returns true if all projects in this build have been configured successfully.
+     */
+    boolean isProjectsConfigured();
+
+    /**
      * Ensures all projects in this build are configured, if not already done.
      */
     void ensureProjectsConfigured();

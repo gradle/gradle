@@ -54,4 +54,9 @@ public interface BuildModelController {
      * Schedules the user requested tasks for this build into the given plan.
      */
     void scheduleRequestedTasks(@Nullable EntryTaskSelector selector, ExecutionPlan plan);
+
+    /**
+     * Returns true if all projects in this build have been configured successfully.
+     */
+    boolean isProjectsConfigured();
 }

@@ -155,6 +155,11 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
+    public boolean isProjectsConfigured() {
+        return getBuildController().isProjectsConfigured();
+    }
+
+    @Override
     public GradleInternal getMutableModel() {
         return getBuildController().getGradle();
     }

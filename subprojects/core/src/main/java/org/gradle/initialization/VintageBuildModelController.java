@@ -75,6 +75,11 @@ public class VintageBuildModelController implements BuildModelController {
         state.inState(Stage.Configured, () -> taskExecutionPreparer.scheduleRequestedTasks(gradle, selector, plan));
     }
 
+    @Override
+    public boolean isProjectsConfigured() {
+        return state.inStateOrLater(Stage.Configured);
+    }
+
     private void prepareSettings() {
         state.transitionIfNotPreviously(Stage.Created, Stage.SettingsLoaded, () -> settingsPreparer.prepareSettings(gradle));
     }

@@ -41,15 +41,19 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     @Override
-    protected void configureProjectsForModel(String modelName) {
+    protected void configureProjectsForModel(ProjectState target, String modelName) {
         try {
-            super.configureProjectsForModel(modelName);
+            super.configureProjectsForModel(target, modelName);
         } catch (GradleException e) {
-            rethrowExceptionIfNotResilientModel(modelName, e);
+            rethrowExceptionIfNotResilientModel(target, modelName, e);
         }
     }
 
-    private static void rethrowExceptionIfNotResilientModel(String modelName, GradleException e) {
+    private static void rethrowExceptionIfNotResilientModel(ProjectState target, String modelName, GradleException e) {
+        if (target.getOwner().isProjectsConfigured()) {
+            // If the included build was fully configured, allow querying the model
+            return;
+        }
         // For resilient models, ignore configuration failures
         if (!RESILIENT_MODELS.contains(modelName)) {
             throw e;
@@ -72,7 +76,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             try {
                 target.ensureConfigured();
             } catch (GradleException e) {
-                rethrowExceptionIfNotResilientModel(modelName, e);
+                rethrowExceptionIfNotResilientModel(target, modelName, e);
             }
 
             ProjectInternal project = target.getMutableModelEvenAfterFailure();

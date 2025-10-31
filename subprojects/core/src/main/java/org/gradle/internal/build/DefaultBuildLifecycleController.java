@@ -129,6 +129,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
+    public boolean isProjectsConfigured() {
+        return modelController.isProjectsConfigured();
+    }
+
+    @Override
     public <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
         return state.notInState(State.Finished, () -> action.apply(modelController.getConfiguredModel()));
     }
