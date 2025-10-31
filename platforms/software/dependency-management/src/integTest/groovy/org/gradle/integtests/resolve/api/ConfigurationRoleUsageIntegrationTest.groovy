@@ -282,7 +282,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
-        executer.noDeprecationChecks() // These are checked in the other tests, and there would be many of them here
         succeeds 'help'
     }
 
@@ -455,9 +454,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails"
-        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
-        // a post-execution error that a deprecation warning may appear in the output
-        executer.noDeprecationChecks()
+        if (configuration == "archives") {
+            executer.noDeprecationChecks() // False positive since failure message contains "deprecated"
+        }
         fails 'help'
 
         then:
@@ -489,9 +488,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails because the configuration is not allowed to change"
-        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
-        // a post-execution error that a deprecation warning may appear in the output
-        executer.noDeprecationChecks()
+        if (configuration == "archives") {
+            executer.noDeprecationChecks() // False positive since failure message contains "deprecated"
+        }
         fails 'help'
 
         then:
@@ -601,7 +600,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 canBeResolved = !canBeResolved
             }
         """
-        executer.noDeprecationChecks()
 
         expect:
         fails 'help'
