@@ -19,6 +19,7 @@ package org.gradle.testing.junit.platform
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 
 class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def setup() {
@@ -73,8 +74,17 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata([constructor: "value1"]).assertChildrenExecuted("test(TestReporter)")
-        results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([beforeEach: "value2", test: "value3", afterEach: "value4"])
+
+        def classLevelMetadata = [constructor: "value1"]
+        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata(classLevelMetadata).assertChildrenExecuted("test(TestReporter)")
+
+        def testLevelMetadata = [beforeEach: "value2", test: "value3", afterEach: "value4"]
+        results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata(testLevelMetadata)
+
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def clazz = xmlReport.testClass("com.example.ReportEntryTest")
+        clazz.assertMetadata(classLevelMetadata)
+        clazz.assertTestMetadata('test(TestReporter)', testLevelMetadata)
     }
 
     def "captures map report entry emitted by tests"() {
@@ -119,8 +129,17 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata([constructor1: "value1", constructor2: "value2"]).assertChildrenExecuted("test(TestReporter)")
-        results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([beforeEach1: "value1", beforeEach2: "value2", test1: "value1", test2: "value2", afterEach1: "value1", afterEach2: "value2"])
+
+        def classLevelMetadata = [constructor1: "value1", constructor2: "value2"]
+        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata(classLevelMetadata).assertChildrenExecuted("test(TestReporter)")
+
+        def testLevelMetadata = [beforeEach1: "value1", beforeEach2: "value2", test1: "value1", test2: "value2", afterEach1: "value1", afterEach2: "value2"]
+        results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata(testLevelMetadata)
+
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def clazz = xmlReport.testClass("com.example.ReportEntryTest")
+        clazz.assertMetadata(classLevelMetadata)
+        clazz.assertTestMetadata('test(TestReporter)', testLevelMetadata)
     }
 
     @Override

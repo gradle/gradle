@@ -90,7 +90,7 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         Map<String, Integer> methodCounter = [:]
 
         BuildableTestClassResult(long id, String className, long startTime) {
-            super(id, className, startTime)
+            super(id, className, className, startTime, [])
         }
 
         BuildableTestMethodResult testcase(String name, @DelegatesTo(value = BuildableTestMethodResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
@@ -128,7 +128,7 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         private final List<BuildableOutputEvent> outputEvents
 
         BuildableTestMethodResult(long id, String name, List<BuildableOutputEvent> outputEvents, TestResult result) {
-            super(id, name, name, result.resultType, result.startTime - result.endTime, result.endTime)
+            super(id, name, name, result.resultType, result.endTime-result.startTime, result.endTime, [])
             this.outputEvents = outputEvents
         }
 

@@ -25,15 +25,15 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 class TestClassResultSpec extends Specification {
 
     def "provides test class result information"() {
-        def result = new TestClassResult(1, 'class', 100)
+        def result = new TestClassResult(1, 'class', 'class', 0, [])
         assert result.duration == 0
 
         when:
-        result.add(new TestMethodResult(1, "foo", "foo", SUCCESS, 50L, 150))
-        result.add(new TestMethodResult(2, "fail", "fail", FAILURE, 50L, 250))
-        result.add(new TestMethodResult(3, "fail2", "fail2", FAILURE, 50L, 350))
-        result.add(new TestMethodResult(4, "skip1", "skip1", SKIPPED, 50L, 525))
-        result.add(new TestMethodResult(5, "skip2", "skip2", SKIPPED, 50L, 625))
+        result.add(new TestMethodResult(1, "foo", "foo", SUCCESS, 50L, 150, []))
+        result.add(new TestMethodResult(2, "fail", "fail", FAILURE, 50L, 250, []))
+        result.add(new TestMethodResult(3, "fail2", "fail2", FAILURE, 50L, 350, []))
+        result.add(new TestMethodResult(4, "skip1", "skip1", SKIPPED, 50L, 525, []))
+        result.add(new TestMethodResult(5, "skip2", "skip2", SKIPPED, 50L, 550, []))
         then:
         result.failuresCount == 2
         result.testsCount == 5
