@@ -61,6 +61,7 @@ dependencies {
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildProcessServices)
     implementation(projects.core)
+    implementation(projects.functional)
     implementation(projects.logging)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
