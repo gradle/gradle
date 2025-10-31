@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.repositories.PatternHelper;
@@ -24,6 +25,8 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class M2ResourcePattern extends AbstractResourcePattern {
@@ -47,12 +50,12 @@ public class M2ResourcePattern extends AbstractResourcePattern {
         return getBase().getRoot().resolve(substituteTokens(pattern, attributes));
     }
 
-    private String maybeSubstituteTimestamp(ModuleComponentArtifactMetadata artifact, String pattern) {
+    private static String maybeSubstituteTimestamp(ModuleComponentArtifactMetadata artifact, String pattern) {
         if (artifact.getComponentId() instanceof MavenUniqueSnapshotComponentIdentifier) {
             MavenUniqueSnapshotComponentIdentifier snapshotId = (MavenUniqueSnapshotComponentIdentifier) artifact.getComponentId();
             pattern = pattern
-                    .replaceFirst("-\\[revision]", "-" + snapshotId.getTimestampedVersion())
-                    .replace("[revision]", snapshotId.getSnapshotVersion());
+                .replaceFirst("-\\[revision]", "-" + snapshotId.getTimestampedVersion())
+                .replace("[revision]", snapshotId.getSnapshotVersion());
         }
         return pattern;
     }
@@ -75,12 +78,33 @@ public class M2ResourcePattern extends AbstractResourcePattern {
 
     @Override
     public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
-        String pattern = getBase().getPath();
-        if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
-            throw new UnsupportedOperationException("Cannot locate module version for non-maven layout.");
+        final String pattern = getBase().getPath();
+
+        final Map<String, String> attributes = toAttributes(componentIdentifier);
+
+        final String substitutedPattern = substituteTokens(pattern, attributes);
+
+        checkRequiredModuleVersionPathTokens();
+
+        final String path = StringUtils.substringBeforeLast(substitutedPattern, "/");
+
+        return getBase().getRoot().resolve(path);
+    }
+
+    private void checkRequiredModuleVersionPathTokens() {
+        final List<String> missingTokens = new ArrayList<>();
+        if (organisationIsOptional) {
+            missingTokens.add(PatternHelper.ORGANISATION_KEY);
         }
-        String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_VERSION_PATTERN.length() - 1);
-        return getBase().getRoot().resolve(substituteTokens(metaDataPattern, toAttributes(componentIdentifier)));
+        if (moduleIsOptional) {
+            missingTokens.add(PatternHelper.MODULE_KEY);
+        }
+        if (revisionIsOptional) {
+            missingTokens.add(PatternHelper.REVISION_KEY);
+        }
+        if (!missingTokens.isEmpty()) {
+            throw new UnsupportedOperationException("M2 layout pattern " + getBase().getPath() + " is missing required tokens: " + missingTokens);
+        }
     }
 
     @Override
