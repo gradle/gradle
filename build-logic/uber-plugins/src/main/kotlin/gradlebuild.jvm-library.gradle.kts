@@ -83,7 +83,7 @@ class ExternallyAvailableAttributeCompatibilityRule : AttributeCompatibilityRule
     }
 }
 
-// TODO: Verification of externally available libraries should be handled natively
+// TODO #35531: Verification of externally available libraries should be handled natively
 //       by the Gradle publishing plugins. Gradle should refuse to publish a project with a
 //       dependency on another project, unless the other project is also configured for publishing.
 fun ensurePublishedLibrariesOnlyDependOnPublishedLibraries() {
