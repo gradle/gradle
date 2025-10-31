@@ -24,9 +24,17 @@ import org.jspecify.annotations.Nullable;
  * @param <T> The value of the option.
  */
 public interface InternalOption<T extends @Nullable Object> extends Option {
+
+    String INTERNAL_PROPERTY_PREFIX = "org.gradle.internal.";
+
     T getDefaultValue();
 
     String getSystemPropertyName();
 
     T convert(String value);
+
+    static boolean isInternalOption(String name) {
+        return name.startsWith(INTERNAL_PROPERTY_PREFIX) ||
+            name.startsWith("org.gradle.configuration-cache.internal."); // TODO:configuration-cache - https://github.com/gradle/gradle/issues/35489
+    }
 }

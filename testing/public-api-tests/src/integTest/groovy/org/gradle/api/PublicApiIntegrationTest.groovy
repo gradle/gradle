@@ -39,7 +39,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
     def setup() {
         executer.beforeExecute {
-            args("-Dorg.gradle.unsafe.suppress-gradle-api=true")
+            args("-Dorg.gradle.internal.suppress-gradle-api=true")
             withInstallations(jvm)
         }
 
