@@ -189,54 +189,6 @@ task sleep {
         assert new TestFile(logFile).permissions == "rw-------"
     }
 
-    //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    def "foreground daemon log honors log levels for logging"() {
-        given:
-        buildFile """
-            tasks.register("log") {
-                doLast {
-                    logger.debug('debug me!')
-                    logger.info('info me!')
-                }
-            }
-        """
-
-        when:
-        def daemon = executer.noExtraLogging().withArguments("--foreground").start()
-
-        then:
-        poll(60) { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
-
-        when:
-        def infoBuild = executer.withArguments("-i").withTasks("log").run()
-
-        then:
-        infoBuild.output.count("debug me!") == 0
-        infoBuild.output.count("info me!") == 1
-
-        getLogs(executer.daemonBaseDir).size() == 0 //we should connect to the foreground daemon so no log was created
-
-        // Output is delivered asynchronously to the daemon's output, so wait for it to appear
-        poll(60) { assert daemon.standardOutput.count("info me!") == 1 }
-        daemon.standardOutput.count("debug me!") == 0
-        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
-
-        when:
-        def debugBuild = executer.withArguments("-d").withTasks("log").run()
-
-        then:
-        debugBuild.output.count("debug me!") == 1
-        debugBuild.output.count("info me!") == 1
-
-        poll(60) { assert daemon.standardOutput.count("info me!") == 2 }
-        daemon.standardOutput.count("debug me!") == 1
-        daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
-
-        cleanup:
-        daemon.abort()
-    }
-
     List<File> getLogs(File baseDir) {
         //the gradle version dir
         def daemonDir = new File(baseDir, GradleVersion.current().version)

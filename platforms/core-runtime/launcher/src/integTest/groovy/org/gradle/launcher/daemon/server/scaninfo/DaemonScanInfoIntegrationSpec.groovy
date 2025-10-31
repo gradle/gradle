@@ -18,13 +18,10 @@ package org.gradle.launcher.daemon.server.scaninfo
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
 
@@ -56,32 +53,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
         expect:
         executer.withArguments('help', '--continuous', '-i').run().assertTasksScheduled(':help')
-    }
-
-    //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    def "should capture basic data when a foreground daemon runs multiple builds"() {
-        given:
-        buildFile << """
-        ${imports()}
-
-        ${captureTask("capture1", 1, 1)}
-        ${captureTask("capture2", 2, 1)}
-        """
-
-        when:
-        def daemon = startAForegroundDaemon()
-
-        List<ExecutionResult> captureResults = []
-        captureResults << executer.withTasks('capture1').run()
-        captureResults << executer.withTasks('capture2').run()
-
-        then:
-        captureResults[0].assertTaskScheduled(':capture1')
-        captureResults[1].assertTaskScheduled(':capture2')
-
-        cleanup:
-        daemon?.abort()
     }
 
     def "a daemon expiration listener receives expiration reasons continuous:#continuous"() {

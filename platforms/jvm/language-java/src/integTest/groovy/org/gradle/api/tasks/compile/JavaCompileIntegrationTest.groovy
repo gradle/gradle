@@ -17,17 +17,13 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.Resources
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
-
-import java.nio.file.Paths
 
 // TODO: Move all of these tests to AbstractJavaCompilerIntegrationSpec
 // so that we can verify them for forking, in-process, and cli compilers.
@@ -597,57 +593,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1358")
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    // Java 9 compiler throws error already: 'zip END header not found'
-    def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
-        buildFile << '''
-            plugins {
-                id("java-library")
-            }
-
-            dependencies {
-               implementation files('foo.jar')
-            }
-        '''
-        file('foo.jar') << 'this is clearly not a well formed jar file'
-        file('src/main/java/Hello.java') << 'public class Hello {}'
-
-        when:
-        executer.withStackTraceChecksDisabled()
-        run 'compileJava'
-
-        then:
-        executedAndNotSkipped ':compileJava'
-        errorOutput.contains('error in opening zip file')
-    }
-
-    @Issue("gradle/gradle#1581")
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    def "compile classpath snapshotting on Java 8 and earlier should warn when jar on classpath has non-utf8 characters in filenames"() {
-        buildFile << '''
-            plugins {
-                id("java-library")
-            }
-
-            dependencies {
-               implementation files('broken-utf8.jar')
-            }
-        '''
-        // This file has a file name which is not UTF-8.
-        // See https://bugs.openjdk.java.net/browse/JDK-7062777?focusedCommentId=12254124&page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel#comment-12254124.
-        resources.findResource('broken-utf8.is-a-jar').copyTo(file('broken-utf8.jar'))
-        file('src/main/java/Hello.java') << 'public class Hello {}'
-        executer.withStackTraceChecksDisabled()
-
-        when:
-        run 'compileJava', '--debug'
-
-        then:
-        executedAndNotSkipped ':compileJava'
-        outputContains "Malformed archive 'broken-utf8.jar'"
-    }
-
-    @Issue("gradle/gradle#1358")
     def "compile classpath snapshotting should warn when jar on classpath contains malformed class file"() {
         buildFile << '''
             plugins {
@@ -970,31 +915,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         failureHasCause("Java compilation initialization error")
         failureCauseContains("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
-    }
-
-    // bootclasspath has been removed in Java 9+
-    @Requires(IntegTestPreconditions.BestJreAvailable)
-    @Issue("https://github.com/gradle/gradle/issues/19817")
-    def "fails if bootclasspath is provided as a path instead of a single file"() {
-        def rtJar = new File(AvailableJavaHomes.bestJre, "lib/rt.jar")
-        def bootClasspath = TextUtil.escapeString(rtJar.absolutePath) + "${File.pathSeparator}someotherpath"
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-            tasks.withType(JavaCompile) {
-                options.bootstrapClasspath = project.layout.files("$bootClasspath")
-            }
-        """
-        file('src/main/java/Foo.java') << 'public class Foo {}'
-
-        when:
-        runAndFail "compileJava"
-        then:
-        failure.assertHasDocumentedCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
-            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
-            " Add the individual files to the file collection instead." +
-            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
     }
 
     def "deletes empty packages dirs"() {
