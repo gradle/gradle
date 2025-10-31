@@ -39,6 +39,11 @@ interface GroupTestEventSpec extends TestEventSpec {
      * The name of the test in the test event.
      */
     void test(String name, @DelegatesTo(value = TestEventSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> spec);
+
+    /**
+     * Convenience method for {@link #test(String, Closure)} without any additional configuration.
+     */
+    void test(String name);
 }
 
 /**

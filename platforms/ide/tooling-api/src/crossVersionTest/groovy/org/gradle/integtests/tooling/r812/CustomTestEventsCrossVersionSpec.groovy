@@ -82,8 +82,7 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         testEvents {
             task(":customTest") {
                 nested("Test suite 'Custom test root'") {
-                    test("My test!") {
-                    }
+                    test("My test!")
                 }
             }
         }
@@ -141,8 +140,7 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
             task(":customTest") {
                 nested("Test suite 'Custom test root'") {
                     nested("Test class My Suite") {
-                        test("My test!") {
-                        }
+                        test("My test!")
                     }
                 }
             }
@@ -212,10 +210,8 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 nested("Test suite 'Custom test root'") {
                     nested("Test class My Suite") {
                         nested("Test class myTestMethod") {
-                            test("My test method! (foo=0)") {
-                            }
-                            test("My test method! (foo=1)") {
-                            }
+                            test("My test method! (foo=0)")
+                            test("My test method! (foo=1)")
                         }
                     }
                 }

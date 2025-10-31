@@ -65,21 +65,21 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
 
             public class ReportEntryTest {
                 ReportEntryTest(TestReporter testReporter) {
-                    testReporter.publishEntry("constructor", "value");
+                    testReporter.publishEntry("constructor", "value1");
                 }
 
                 @BeforeEach
                 public void beforeEach(TestReporter testReporter) {
-                    testReporter.publishEntry("beforeEach", "value");
-                }
-                @AfterEach
-                public void afterEach(TestReporter testReporter) {
-                    testReporter.publishEntry("afterEach", "value");
+                    testReporter.publishEntry("beforeEach", "value2");
                 }
                 @Test
                 public void test(TestReporter testReporter) {
                     System.out.println("Hello");
-                    testReporter.publishEntry("test", "value");
+                    testReporter.publishEntry("test", "value3");
+                }
+                @AfterEach
+                public void afterEach(TestReporter testReporter) {
+                    testReporter.publishEntry("afterEach", "value4");
                 }
             }
         """
@@ -92,12 +92,12 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
                 nested("Gradle Test Run :test") {
                     nested("Gradle Test Executor") {
                         nested("Test class com.example.ReportEntryTest") {
-                            metadata("constructor", "value")
+                            metadata("constructor", "value1")
                             test("Test test(TestReporter)(com.example.ReportEntryTest)") {
                                 output("Hello")
-                                metadata("beforeEach", "value")
-                                metadata("test", "value")
-                                metadata("afterEach", "value")
+                                metadata("beforeEach", "value2")
+                                metadata("test", "value3")
+                                metadata("afterEach", "value4")
                             }
                         }
                     }

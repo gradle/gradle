@@ -70,7 +70,7 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     }
 
     @Override
-    void test(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> assertionSpec) {
+    void test(String name, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> assertionSpec = {}) {
         def child = findChild(name)
         assertSpec(child, assertionSpec)
         verifyChild(child)

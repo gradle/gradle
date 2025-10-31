@@ -53,6 +53,8 @@ import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -73,6 +75,7 @@ import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
  */
 @NullMarked
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
 
     private final static List<TestFailureMapper> MAPPERS = Arrays.asList(
         new OpenTestAssertionFailedMapper(),
@@ -134,6 +137,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                 resultProcessor.report(closestStartedAncestor, new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
             }
             // otherwise, we don't know what to associate this ReportEntry with
+            LOGGER.debug("report entry published for unknown test identifier {}", testIdentifier);
         }
     }
 

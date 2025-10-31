@@ -323,8 +323,7 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         testEvents {
             task(":customTest") {
                 nested("Test suite 'Custom test root'") {
-                    test("My test!") {
-                    }
+                    test("My test!")
                 }
             }
         }

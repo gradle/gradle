@@ -52,20 +52,20 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
 
             public class ReportEntryTest {
                 ReportEntryTest(TestReporter testReporter) {
-                    testReporter.publishEntry("constructor", "value");
+                    testReporter.publishEntry("constructor", "value1");
                 }
 
                 @BeforeEach
                 public void beforeEach(TestReporter testReporter) {
-                    testReporter.publishEntry("beforeEach", "value");
-                }
-                @AfterEach
-                public void afterEach(TestReporter testReporter) {
-                    testReporter.publishEntry("afterEach", "value");
+                    testReporter.publishEntry("beforeEach", "value2");
                 }
                 @Test
                 public void test(TestReporter testReporter) {
-                    testReporter.publishEntry("test", "value");
+                    testReporter.publishEntry("test", "value3");
+                }
+                @AfterEach
+                public void afterEach(TestReporter testReporter) {
+                    testReporter.publishEntry("afterEach", "value4");
                 }
             }
         """
@@ -73,8 +73,8 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata([constructor: "value"]).assertChildrenExecuted("test(TestReporter)")
-        results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([beforeEach: "value", test: "value", afterEach: "value"])
+        results.testPath('com.example.ReportEntryTest').onlyRoot().assertMetadata([constructor: "value1"]).assertChildrenExecuted("test(TestReporter)")
+        results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([beforeEach: "value2", test: "value3", afterEach: "value4"])
     }
 
     def "captures map report entry emitted by tests"() {
@@ -105,13 +105,13 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
                 public void beforeEach(TestReporter testReporter) {
                     testReporter.publishEntry(of("beforeEach1", "value1", "beforeEach2", "value2"));
                 }
-                @AfterEach
-                public void afterEach(TestReporter testReporter) {
-                    testReporter.publishEntry(of("afterEach1", "value1", "afterEach2", "value2"));
-                }
                 @Test
                 public void test(TestReporter testReporter) {
                     testReporter.publishEntry(of("test1", "value1", "test2", "value2"));
+                }
+                @AfterEach
+                public void afterEach(TestReporter testReporter) {
+                    testReporter.publishEntry(of("afterEach1", "value1", "afterEach2", "value2"));
                 }
             }
         """
