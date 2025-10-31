@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.tooling.fixture.ProgressEvents
+import org.gradle.internal.SystemProperties
 import org.gradle.tooling.events.test.TestMetadataEvent
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestOutputDescriptor
@@ -46,7 +47,7 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
 
     @Override
     void output(String msg) {
-        def expectedOutput = msg + "\n"
+        def expectedOutput = msg + SystemProperties.getInstance().lineSeparator
         assert actualOutput.remove(expectedOutput): "expected to find '$msg' in $self"
     }
 

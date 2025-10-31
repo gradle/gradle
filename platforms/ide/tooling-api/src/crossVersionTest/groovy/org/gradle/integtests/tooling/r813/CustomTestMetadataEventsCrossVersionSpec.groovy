@@ -165,10 +165,10 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
-                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout\\n")
+                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout" + System.lineSeparator())
                             myTest.metadata(Instant.now(), "mykey1", "apple")
                             myTest.metadata(Instant.now(), "mykey2", 10)
-                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "More output on stdout\\n")
+                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "More output on stdout" + System.lineSeparator())
                             myTest.metadata(Instant.now(), "mykey3", ["banana", "cherry"])
                             myTest.succeeded(Instant.now())
                         }
