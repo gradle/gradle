@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
@@ -32,6 +33,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -85,6 +87,11 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         }
         return filePath;
     }
+
+    private static String getFilePath(TestTreeModel tree) {
+        return getFilePath(tree.getPath(), tree.getChildren().isEmpty());
+    }
+
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final MetadataRendererRegistry metadataRendererRegistry;
@@ -150,7 +157,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
             for (int i = 0; i < model.getPerRootInfo().size(); i++) {
                 // Roots should always have exactly one PerRootInfo entry
-                List<TestTreeModel.PerRootInfo> perRootInfos = model.getPerRootInfo().get(i);
+                List<PerRootInfo> perRootInfos = model.getPerRootInfo().get(i);
                 if (perRootInfos.isEmpty()) {
                     throw new IllegalStateException("Root model is missing display name info for root index " + i);
                 }
@@ -174,24 +181,32 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             htmlRenderer.render(model, new ReportRenderer<TestTreeModel, HtmlReportBuilder>() {
                 @Override
                 public void render(final TestTreeModel model, final HtmlReportBuilder output) {
-                    buildOperationExecutor.runAll(queue -> {
-                        queueTree(queue, model, output);
-                    });
+                    buildOperationExecutor.runAll(
+                        queue -> queueTree(queue, model, output),
+                        // This is mostly I/O, so run this in UNCONSTRAINED mode to allow more parallelism
+                        BuildOperationConstraint.UNCONSTRAINED
+                    );
                 }
 
                 private void queueTree(BuildOperationQueue<RunnableBuildOperation> queue, TestTreeModel tree, HtmlReportBuilder output) {
-                    String filePath = getFilePath(tree.getPath(), tree.getChildren().isEmpty());
+                    ImmutableList.Builder<HtmlReportFileRequest> requestsBuilder = ImmutableList.builder();
+                    requestsBuilder.add(new HtmlReportFileRequest(getFilePath(tree), tree));
+
+                    for (TestTreeModel childTree : tree.getChildren()) {
+                        // A container also emits all of its leaf children
+                        if (childTree.getChildren().isEmpty()) {
+                            requestsBuilder.add(new HtmlReportFileRequest(getFilePath(childTree), childTree));
+                        } else {
+                            queueTree(queue, childTree, output);
+                        }
+                    }
                     queue.add(new HtmlReportFileGenerator(
-                        filePath,
-                        tree,
+                        requestsBuilder.build(),
                         output,
                         outputReaders,
                         rootDisplayNames,
                         metadataRendererRegistry
                     ));
-                    for (String child : tree.getChildren().keySet()) {
-                        queueTree(queue, tree.getChildren().get(child), output);
-                    }
                 }
             }, reportsDirectory.toFile());
         } catch (Exception e) {
@@ -199,24 +214,31 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         }
     }
 
-    private static final class HtmlReportFileGenerator implements RunnableBuildOperation {
+    private static final class HtmlReportFileRequest {
         private final String fileUrl;
         private final TestTreeModel results;
+
+        private HtmlReportFileRequest(String fileUrl, TestTreeModel results) {
+            this.fileUrl = fileUrl;
+            this.results = results;
+        }
+    }
+
+    private static final class HtmlReportFileGenerator implements RunnableBuildOperation {
+        private final List<HtmlReportFileRequest> requests;
         private final HtmlReportBuilder output;
         private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
         private final MetadataRendererRegistry metadataRendererRegistry;
 
         HtmlReportFileGenerator(
-            String fileUrl,
-            TestTreeModel results,
+            List<HtmlReportFileRequest> requests,
             HtmlReportBuilder output,
             List<TestOutputReader> outputReaders,
             List<String> rootDisplayNames,
             MetadataRendererRegistry metadataRendererRegistry
         ) {
-            this.fileUrl = fileUrl;
-            this.results = results;
+            this.requests = requests;
             this.output = output;
             this.outputReaders = outputReaders;
             this.rootDisplayNames = rootDisplayNames;
@@ -225,12 +247,19 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Generate generic HTML test report for " + results.getPath().getName());
+            return BuildOperationDescriptor.displayName(
+                "Generate generic HTML test report for " + requests.stream()
+                    .map(r -> r.results.getPath().toString())
+                    .collect(Collectors.joining(", "))
+            );
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            output.renderHtmlPage(fileUrl, results, new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry));
+            GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry);
+            for (HtmlReportFileRequest request : requests) {
+                output.renderHtmlPage(request.fileUrl, request.results, renderer);
+            }
         }
     }
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic;
 
-import com.google.common.collect.Multimaps;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
@@ -132,10 +131,15 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     @Override
     protected ReportRenderer<TestTreeModel, SimpleHtmlWriter> getContentRenderer() {
         TabsRenderer<TestTreeModel> rootTabsRenderer = new TabsRenderer<>();
-        Multimaps.asMap(getModel().getPerRootInfo()).forEach((rootIndex, infos) -> {
+        List<List<PerRootInfo>> perRootInfo = getModel().getPerRootInfo();
+        for (int rootIndex = 0; rootIndex < perRootInfo.size(); rootIndex++) {
+            List<PerRootInfo> infos = perRootInfo.get(rootIndex);
+            if (infos.isEmpty()) {
+                continue;
+            }
             List<TabsRenderer<TestTreeModel>> perRootInfoTabsRenderers = new ArrayList<>(infos.size());
             for (int perRootInfoIndex = 0; perRootInfoIndex < infos.size(); perRootInfoIndex++) {
-                TestTreeModel.PerRootInfo info = infos.get(perRootInfoIndex);
+                PerRootInfo info = infos.get(perRootInfoIndex);
 
                 final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
                 perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex));
@@ -171,7 +175,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     directlyBelowRootTabsRenderer.render(model, output);
                 }
             });
-        });
+        }
         return rootTabsRenderer;
     }
 }
