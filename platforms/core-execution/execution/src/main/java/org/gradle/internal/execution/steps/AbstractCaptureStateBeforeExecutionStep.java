@@ -35,7 +35,6 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,8 +75,9 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState));
     }
 
-    @NonNull
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
+        // TODO Remove once IntelliJ stops complaining about possible NPE
+        //noinspection DataFlowIssue
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = captureOutputSnapshots(work, context);
 
@@ -139,6 +139,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
 
     private static class ImplementationsBuilder implements UnitOfWork.ImplementationVisitor {
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+        @Nullable
         private ImplementationSnapshot implementation;
         private final ImmutableList.Builder<ImplementationSnapshot> additionalImplementations = ImmutableList.builder();
 

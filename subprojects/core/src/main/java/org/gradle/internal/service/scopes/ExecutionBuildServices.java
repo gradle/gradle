@@ -185,8 +185,8 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
-            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
             new NoInputChangesStep<>(
+            new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             sharedExecutionPipeline
         )))))))))));

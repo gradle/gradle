@@ -141,7 +141,6 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
                 return UnitOfWork.WorkResult.DID_WORK;
             }
 
-            @Nullable
             @Override
             public Object getOutput(File workspace) {
                 return loadAlreadyProducedOutput(workspace);
@@ -165,7 +164,6 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
         }
     }
 
-    @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
         return new Output(instrumentedOutput(workspace), propertyUpgradeReport(workspace));

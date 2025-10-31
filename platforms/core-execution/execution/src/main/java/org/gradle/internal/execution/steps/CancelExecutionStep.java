@@ -43,7 +43,9 @@ public class CancelExecutionStep<C extends Context, R extends Result> implements
         } finally {
             cancellationToken.removeCallback(interrupt);
             if (cancellationToken.isCancellationRequested()) {
+                //noinspection ResultOfMethodCallIgnored
                 Thread.interrupted();
+                //noinspection ThrowFromFinallyBlock
                 throw new BuildCancelledException("Build cancelled while executing " + work.getDisplayName());
             }
         }

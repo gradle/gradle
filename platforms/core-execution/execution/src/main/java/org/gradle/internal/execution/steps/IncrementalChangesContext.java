@@ -25,6 +25,7 @@ import java.util.Optional;
 public class IncrementalChangesContext extends ValidationFinishedContext {
 
     private final ImmutableList<String> rebuildReasons;
+    @Nullable
     private final ExecutionStateChanges executionStateChanges;
 
     public IncrementalChangesContext(

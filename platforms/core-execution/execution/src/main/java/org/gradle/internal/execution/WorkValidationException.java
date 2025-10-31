@@ -26,7 +26,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.RenderingUtils.oxfordJoin;
@@ -69,10 +68,6 @@ public class WorkValidationException extends GradleException {
                     .collect(toImmutableList());
         }
 
-        public Builder limitTo(int maxProblems) {
-            return new Builder(problems.stream().limit(maxProblems).collect(Collectors.toList()));
-        }
-
         public BuilderWithSummary withSummaryForContext(String validatedObjectName, WorkValidationContext validationContext) {
             String summary = summarizeInContext(validatedObjectName, validationContext);
             return new BuilderWithSummary(problems, summary);
@@ -90,13 +85,13 @@ public class WorkValidationException extends GradleException {
                     describeTypesChecked(validationContext.getValidatedTypes()));
         }
 
-        private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
+        private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {
             return "type" + getPluralEnding(types) + " " + types.stream()
-                .map(s -> "'" + this.getTypeDisplayName(s) + "'")
+                .map(s -> "'" + getTypeDisplayName(s) + "'")
                 .collect(oxfordJoin("and"));
         }
 
-        private String getTypeDisplayName(Class<?> type) {
+        private static String getTypeDisplayName(Class<?> type) {
                 return ModelType.of(type).getDisplayName();
             }
     }
@@ -104,7 +99,7 @@ public class WorkValidationException extends GradleException {
     /**
      * A builder for a {@code WorkValidationException} that has a summary attached.
      *
-     * The {@link WorkValidationException#Builder} class is a Stepwise builder, this is step 2.
+     * The {@link WorkValidationException.Builder} class is a Stepwise builder, this is step 2.
      */
     public final static class BuilderWithSummary {
         private final List<String> problems;

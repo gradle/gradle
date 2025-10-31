@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NullMarked
+package org.gradle.internal.execution;
 
-package org.gradle.internal.execution.history.changes;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-public class CollectingChangeVisitor implements ChangeVisitor {
-    private final List<Change> changes = new ArrayList<>();
-
-    @Override
-    public boolean visitChange(Change change) {
-        changes.add(change);
-        return true;
-    }
-
-    public Collection<Change> getChanges() {
-        return changes;
-    }
-}
+import org.jspecify.annotations.NullMarked;
