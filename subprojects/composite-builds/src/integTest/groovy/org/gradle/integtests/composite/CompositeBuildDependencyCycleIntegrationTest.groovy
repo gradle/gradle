@@ -27,7 +27,6 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
-    List arguments = []
 
     def getCommon() {
         """
@@ -396,12 +395,61 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
      \\--- :buildB:b (*)""")
     }
 
+    def "declaring a dependency on the resolving project's module coordinates without a substitution is deprecated"() {
+        given:
+        dependency(buildA, "org.test:buildB:1.0")
+        dependency(buildB, "org.test:buildA:1.0")
+
+        buildA.buildFile << """
+            ${mavenTestRepository()}
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Depending on the resolving project's module coordinates has been deprecated. This will fail with an error in Gradle 10. Use a project dependency instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#module_identity_for_root_component")
+        resolveSucceeds(":checkGraph")
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
+                compositeSubstitute()
+                edge("org.test:buildA:1.0", ":buildA", "org.test:buildA:1.0")
+            }
+        }
+    }
+
+    def "declaring a dependency on the resolving project's module coordinates with a substitution succeeds"() {
+        given:
+        dependency(buildA, "org.test:buildB:1.0")
+        dependency(buildB, "org.test:buildA:1.0")
+
+        buildA.buildFile << """
+            ${mavenTestRepository()}
+
+            configurations.configureEach {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org.test:buildA:1.0')).using(project(':'))
+                }
+            }
+        """
+
+        when:
+        resolveSucceeds(":checkGraph")
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0") {
+                compositeSubstitute()
+                edge("org.test:buildA:1.0", ":buildA", "org.test:buildA:1.0")
+            }
+        }
+    }
+
     protected void resolveSucceeds(String task) {
-        super.execute(buildA, task, arguments)
+        execute(buildA, task)
     }
 
     protected void resolveFails(String task) {
-        super.fails(buildA, task, arguments)
+        fails(buildA, task)
     }
 
 

@@ -90,6 +90,49 @@ To ease migration, Gradle has automatically mapped legacy `Usage` values to thei
 Starting with Gradle 10, this automatic mapping will no longer occur when legacy `Usage` values are added directly to an `AttributeContainer` in build logic.
 To maintain backward compatibility, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
 
+[[module_identity_for_root_component]]
+==== Deprecated depending on current project using module coordinates
+
+Starting in Gradle 10.0, depending on the current project using module coordinates (group, name, version) will no longer resolve to the current project.
+Instead, Gradle will attempt to resolve the dependency from a repository.
+
+The example below demonstrates the change in behavior:
+
+.build.gradle.kts
+[source,kotlin]
+----
+group = "com.example"
+version = "1.0.0"
+
+val deps = configurations.dependencyScope("deps")
+val classpath = configurations.resolvable("classpath") {
+    extendsFrom(deps.get())
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+val elements = configurations.consumable("elements") {
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+dependencies {
+    // In Gradle 9.x, this dependency resolves to the `elements` configuration.
+    // In Gradle 10, this dependency will attempt to resolve from a repository.
+    deps("com.example:my-project:1.0.0")
+}
+----
+
+To continue depending on the current project, use a `project` dependency instead:
+
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    // Declare a dependency on the current project to continue resolving
+    // to the current project.
+    deps(project)
+}
+----
+
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 

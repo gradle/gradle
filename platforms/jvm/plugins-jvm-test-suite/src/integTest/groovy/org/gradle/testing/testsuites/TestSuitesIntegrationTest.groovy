@@ -998,7 +998,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect: "should be able to reference the project without failing"
+        executer.expectDocumentedDeprecationWarning("Depending on the resolving project's module coordinates has been deprecated. This will fail with an error in Gradle 10. Use a project dependency instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#module_identity_for_root_component")
         succeeds ':app:assemble', ':app:integrationTest'
+
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/integrationTest')
         unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
     }
