@@ -17,15 +17,16 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.base.Strings;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
-public abstract class AbstractMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
+public abstract class AbstractMavenArtifact implements MavenArtifactInternal, PublicationArtifactInternal {
     private final TaskDependency allBuildDependencies;
     private final DefaultTaskDependency additionalBuildDependencies;
     private String extension;
@@ -83,4 +84,8 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
         return getClass().getSimpleName() + " " + getExtension() + ":" + getClassifier();
     }
 
+    @Override
+    public Provider<Boolean> getEnableChecksumFileGeneration() {
+        return Providers.TRUE;
+    }
 }
