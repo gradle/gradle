@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Serializes test results.
@@ -138,7 +139,7 @@ public class TestResultSerializer {
         String className = decoder.readString();
         String classDisplayName = decoder.readString();
         long startTime = decoder.readLong();
-        TestClassResult result = new TestClassResult(id, className, classDisplayName, startTime);
+        TestClassResult result = new TestClassResult(id, className, classDisplayName, startTime, Collections.emptyList());
         int testMethodCount = decoder.readSmallInt();
         for (int i = 0; i < testMethodCount; i++) {
             TestMethodResult methodResult = readMethodResult(decoder);
@@ -154,7 +155,7 @@ public class TestResultSerializer {
         TestResult.ResultType resultType = TestResult.ResultType.values()[decoder.readSmallInt()];
         long duration = decoder.readSmallLong();
         long endTime = decoder.readLong();
-        TestMethodResult methodResult = new TestMethodResult(id, name, displayName, resultType, duration, endTime);
+        TestMethodResult methodResult = new TestMethodResult(id, name, displayName, resultType, duration, endTime, Collections.emptyList());
         int failures = decoder.readSmallInt();
         for (int i = 0; i < failures; i++) {
             String exceptionType = decoder.readString();

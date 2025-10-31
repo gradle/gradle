@@ -153,7 +153,8 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             nextClassId,
             perRootInfo.getResult().getName(),
             perRootInfo.getResult().getDisplayName(),
-            perRootInfo.getResult().getStartTime()
+            perRootInfo.getResult().getStartTime(),
+            perRootInfo.getMetadatas()
         );
     }
 
@@ -165,7 +166,8 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             result.getDisplayName(),
             result.getResultType(),
             result.getDuration(),
-            result.getEndTime()
+            result.getEndTime(),
+            perRootInfo.getMetadatas()
         );
         methodResult.getFailures().addAll(result.getFailures());
         if (result.getAssumptionFailure() != null) {
