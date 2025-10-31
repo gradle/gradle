@@ -57,6 +57,9 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin`() {
 
         KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
+        if (kotlinVersion < VersionNumber.parse(KotlinGradlePluginVersions().latestStable)) {
+            executer.noDeprecationChecks()
+        }
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn(
