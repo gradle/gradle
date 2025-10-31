@@ -17,18 +17,21 @@
 package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputReader;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -47,6 +50,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,15 +65,25 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
     private static final Logger LOG = Logging.getLogger(GenericHtmlTestReportGenerator.class);
 
-    public static String getFilePath(org.gradle.util.Path path) {
+    public static String getFilePath(org.gradle.util.Path path, boolean isLeaf) {
         String filePath;
         if (path.segmentCount() == 0) {
             filePath = "index.html";
+        } else if (isLeaf && !Objects.equals(path.getName(), "index")) {
+            // Avoid using a directory for each leaf node unless its name clashes (i.e. "index")
+            // This reduces VFS overhead from many directories for large test suites
+            String prefix = String.join("/", Iterables.transform(path.getParent().segments(), SafeFileLocationUtils::toSafeFileName));
+            filePath = prefix + (prefix.isEmpty() ? "" : "/") + SafeFileLocationUtils.toSafeFileName(path.getName() + ".html");
         } else {
             filePath = String.join("/", Iterables.transform(path.segments(), SafeFileLocationUtils::toSafeFileName)) + "/index.html";
         }
         return filePath;
     }
+
+    private static String getFilePath(TestTreeModel tree) {
+        return getFilePath(tree.getPath(), tree.getChildren().isEmpty());
+    }
+
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final MetadataRendererRegistry metadataRendererRegistry;
@@ -101,10 +116,10 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        List<SerializableTestResultStore.OutputReader> outputReaders = new ArrayList<>(stores.size());
+        List<OutputReader> outputReaders = new ArrayList<>(stores.size());
         try {
             for (SerializableTestResultStore store : stores) {
-                outputReaders.add(store.openOutputReader());
+                outputReaders.add(store.createOutputReader());
             }
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
@@ -117,7 +132,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         return reportsDirectory.resolve("index.html");
     }
 
-    private void generateReport(TestTreeModel root, List<SerializableTestResultStore.OutputReader> outputReaders) {
+    private void generateReport(TestTreeModel root, List<OutputReader> outputReaders) {
         LOG.info("Generating HTML test report...");
 
         Timer clock = Time.startTimer();
@@ -125,7 +140,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportsDirectory);
     }
 
-    private void generateFiles(TestTreeModel model, final List<SerializableTestResultStore.OutputReader> outputReaders) {
+    private void generateFiles(TestTreeModel model, final List<OutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             buildOperationRunner.run(new DeleteOldReportOperation(reportsDirectory));
@@ -134,7 +149,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
             for (int i = 0; i < model.getPerRootInfo().size(); i++) {
                 // Roots should always have exactly one PerRootInfo entry
-                List<TestTreeModel.PerRootInfo> perRootInfos = model.getPerRootInfo().get(i);
+                List<PerRootInfo> perRootInfos = model.getPerRootInfo().get(i);
                 if (perRootInfos.isEmpty()) {
                     throw new IllegalStateException("Root model is missing display name info for root index " + i);
                 }
@@ -155,27 +170,45 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                 }
             });
 
+            // Limit the number of concurrent operations to avoid excessive queue sizes
+            Semaphore maxOperationsLimiter = new Semaphore(128);
             htmlRenderer.render(model, new ReportRenderer<TestTreeModel, HtmlReportBuilder>() {
                 @Override
                 public void render(final TestTreeModel model, final HtmlReportBuilder output) {
-                    buildOperationExecutor.runAll(queue -> {
-                        queueTree(queue, model, output);
-                    });
+                    buildOperationExecutor.runAll(
+                        queue -> queueTree(queue, model, output),
+                        // This is mostly I/O, so run this in UNCONSTRAINED mode to allow more parallelism
+                        BuildOperationConstraint.UNCONSTRAINED
+                    );
                 }
 
                 private void queueTree(BuildOperationQueue<RunnableBuildOperation> queue, TestTreeModel tree, HtmlReportBuilder output) {
-                    String filePath = getFilePath(tree.getPath());
+                    try {
+                        maxOperationsLimiter.acquire();
+                    } catch (InterruptedException e) {
+                        // Re-interrupt the thread to ensure any cleanup code further up the stack is made aware of the interrupt.
+                        Thread.currentThread().interrupt();
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                    ImmutableList.Builder<HtmlReportFileRequest> requestsBuilder = ImmutableList.builder();
+                    requestsBuilder.add(new HtmlReportFileRequest(getFilePath(tree), tree));
+
+                    for (TestTreeModel childTree : tree.getChildren().values()) {
+                        // A container also emits all of its leaf children
+                        if (childTree.getChildren().isEmpty()) {
+                            requestsBuilder.add(new HtmlReportFileRequest(getFilePath(childTree), childTree));
+                        } else {
+                            queueTree(queue, childTree, output);
+                        }
+                    }
                     queue.add(new HtmlReportFileGenerator(
-                        filePath,
-                        tree,
+                        requestsBuilder.build(),
                         output,
                         outputReaders,
                         rootDisplayNames,
-                        metadataRendererRegistry
+                        metadataRendererRegistry,
+                        maxOperationsLimiter
                     ));
-                    for (String child : tree.getChildren().keySet()) {
-                        queueTree(queue, tree.getChildren().get(child), output);
-                    }
                 }
             }, reportsDirectory.toFile());
         } catch (Exception e) {
@@ -183,38 +216,59 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         }
     }
 
-    private static final class HtmlReportFileGenerator implements RunnableBuildOperation {
+    private static final class HtmlReportFileRequest {
         private final String fileUrl;
         private final TestTreeModel results;
-        private final HtmlReportBuilder output;
-        private final List<SerializableTestResultStore.OutputReader> outputReaders;
-        private final List<String> rootDisplayNames;
-        private final MetadataRendererRegistry metadataRendererRegistry;
 
-        HtmlReportFileGenerator(
-            String fileUrl,
-            TestTreeModel results,
-            HtmlReportBuilder output,
-            List<SerializableTestResultStore.OutputReader> outputReaders,
-            List<String> rootDisplayNames,
-            MetadataRendererRegistry metadataRendererRegistry
-        ) {
+        private HtmlReportFileRequest(String fileUrl, TestTreeModel results) {
             this.fileUrl = fileUrl;
             this.results = results;
+        }
+    }
+
+    private static final class HtmlReportFileGenerator implements RunnableBuildOperation {
+        private final List<HtmlReportFileRequest> requests;
+        private final HtmlReportBuilder output;
+        private final List<OutputReader> outputReaders;
+        private final List<String> rootDisplayNames;
+        private final MetadataRendererRegistry metadataRendererRegistry;
+        private final Semaphore semaphore;
+
+        HtmlReportFileGenerator(
+            List<HtmlReportFileRequest> requests,
+            HtmlReportBuilder output,
+            List<OutputReader> outputReaders,
+            List<String> rootDisplayNames,
+            MetadataRendererRegistry metadataRendererRegistry,
+            Semaphore semaphore
+        ) {
+            this.requests = requests;
             this.output = output;
             this.outputReaders = outputReaders;
             this.rootDisplayNames = rootDisplayNames;
             this.metadataRendererRegistry = metadataRendererRegistry;
+            this.semaphore = semaphore;
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Generate generic HTML test report for " + results.getPath().getName());
+            return BuildOperationDescriptor.displayName(
+                "Generate generic HTML test report for " + requests.stream()
+                    .map(r -> r.results.getPath().toString())
+                    .collect(Collectors.joining(", "))
+            );
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            output.renderHtmlPage(fileUrl, results, new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry));
+            try {
+                GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry);
+                for (HtmlReportFileRequest request : requests) {
+                    output.renderHtmlPage(request.fileUrl, request.results, renderer);
+                }
+            } finally {
+                semaphore.release();
+            }
         }
     }
 

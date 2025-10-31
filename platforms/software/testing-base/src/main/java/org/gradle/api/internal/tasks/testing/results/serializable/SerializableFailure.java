@@ -16,15 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
-import org.jspecify.annotations.NullMarked;
-
 import java.util.Collections;
 import java.util.List;
 
 /**
  * Represents a {@link Throwable} that can be safely serialized to disk, since it does not contain any references to exception objects.
  */
-@NullMarked
 public class SerializableFailure {
     private final String message;
     private final String stackTrace;

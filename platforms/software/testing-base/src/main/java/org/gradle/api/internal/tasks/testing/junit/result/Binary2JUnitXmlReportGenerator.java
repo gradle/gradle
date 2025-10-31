@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SafeFileLocationUtils;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -38,6 +39,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
+import java.util.concurrent.Semaphore;
 
 @NullMarked
 public class Binary2JUnitXmlReportGenerator {
@@ -90,10 +92,19 @@ public class Binary2JUnitXmlReportGenerator {
             }
         });
 
+        // Limit the number of concurrent operations to avoid excessive queue sizes
+        Semaphore maxOperationsLimiter = new Semaphore(128);
         buildOperationExecutor.runAll((BuildOperationQueue<JUnitXmlReportFileGenerator> queue) ->
             testResultsProvider.visitClasses(result -> {
                 final File reportFile = new File(testResultsDir, getReportFileName(result));
-                queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter));
+                try {
+                    maxOperationsLimiter.acquire();
+                } catch (InterruptedException e) {
+                    // Re-interrupt the thread to ensure any cleanup code further up the stack is made aware of the interrupt.
+                    Thread.currentThread().interrupt();
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+                queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter, maxOperationsLimiter));
             })
         );
 
@@ -108,11 +119,13 @@ public class Binary2JUnitXmlReportGenerator {
         private final TestClassResult result;
         private final File reportFile;
         private final JUnitXmlResultWriter xmlWriter;
+        private final Semaphore semaphore;
 
-        public JUnitXmlReportFileGenerator(TestClassResult result, File reportFile, JUnitXmlResultWriter xmlWriter) {
+        public JUnitXmlReportFileGenerator(TestClassResult result, File reportFile, JUnitXmlResultWriter xmlWriter, Semaphore semaphore) {
             this.result = result;
             this.reportFile = reportFile;
             this.xmlWriter = xmlWriter;
+            this.semaphore = semaphore;
         }
 
         @Override
@@ -130,6 +143,7 @@ public class Binary2JUnitXmlReportGenerator {
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), reportFile), e);
             } finally {
+                semaphore.release();
                 IoActions.closeQuietly(output);
             }
         }

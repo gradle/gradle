@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic;
 
-import com.google.common.collect.Multimaps;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputReader;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
@@ -36,14 +35,17 @@ import java.util.function.Function;
 final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     private static final URL STYLE_URL = Resources.getResource(GenericPageRenderer.class, "style.css");
 
-    public static String getUrlTo(Path originatingPath, Path targetPath) {
-        if (originatingPath.equals(targetPath)) {
+    public static String getUrlTo(
+        Path originatingPath, boolean isOriginatingPathLeaf,
+        Path targetPath, boolean isTargetPathLeaf
+    ) {
+        if (originatingPath.equals(targetPath) && isOriginatingPathLeaf == isTargetPathLeaf) {
             return "#";
         }
         // We know we're emitting to the file system, so let's just use NIO Path to do the path manipulation.
         // We need the `.` for relative resolution to work properly
-        java.nio.file.Path relativePath = Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(originatingPath)).getParent()
-            .relativize(Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(targetPath)));
+        java.nio.file.Path relativePath = Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(originatingPath, isOriginatingPathLeaf)).getParent()
+            .relativize(Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(targetPath, isTargetPathLeaf)));
         // Escape things that aren't `/` for the URL
         StringBuilder url = new StringBuilder();
         for (java.nio.file.Path segment : relativePath) {
@@ -54,12 +56,12 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         return url.substring(0, url.length() - 1);
     }
 
-    private final List<SerializableTestResultStore.OutputReader> outputReaders;
+    private final List<OutputReader> outputReaders;
     private final List<String> rootDisplayNames;
     private final MetadataRendererRegistry metadataRendererRegistry;
 
     GenericPageRenderer(
-        List<SerializableTestResultStore.OutputReader> outputReaders,
+        List<OutputReader> outputReaders,
         List<String> rootDisplayNames,
         MetadataRendererRegistry metadataRendererRegistry
     ) {
@@ -77,7 +79,10 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
             String title = path.equals(Path.ROOT) ? "all" : path.getName();
             htmlWriter.startElement("a")
                 .attribute("class", "breadcrumb")
-                .attribute("href", getUrlTo(getModel().getPath(), path))
+                .attribute("href", getUrlTo(
+                    getModel().getPath(), getModel().getChildren().isEmpty(),
+                    path, false
+                ))
                 .characters(title)
                 .endElement();
             htmlWriter.characters(" > ");
@@ -126,18 +131,23 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     @Override
     protected ReportRenderer<TestTreeModel, SimpleHtmlWriter> getContentRenderer() {
         TabsRenderer<TestTreeModel> rootTabsRenderer = new TabsRenderer<>();
-        Multimaps.asMap(getModel().getPerRootInfo()).forEach((rootIndex, infos) -> {
+        List<List<PerRootInfo>> perRootInfo = getModel().getPerRootInfo();
+        for (int rootIndex = 0; rootIndex < perRootInfo.size(); rootIndex++) {
+            List<PerRootInfo> infos = perRootInfo.get(rootIndex);
+            if (infos.isEmpty()) {
+                continue;
+            }
             List<TabsRenderer<TestTreeModel>> perRootInfoTabsRenderers = new ArrayList<>(infos.size());
             for (int perRootInfoIndex = 0; perRootInfoIndex < infos.size(); perRootInfoIndex++) {
-                TestTreeModel.PerRootInfo info = infos.get(perRootInfoIndex);
+                PerRootInfo info = infos.get(perRootInfoIndex);
 
                 final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
                 perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex));
-                SerializableTestResultStore.OutputReader outputReader = outputReaders.get(rootIndex);
-                if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdOut)) {
+                OutputReader outputReader = outputReaders.get(rootIndex);
+                if (outputReader.hasOutput(info.getOutputEntry(), TestOutputEvent.Destination.StdOut)) {
                     perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
                 }
-                if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdErr)) {
+                if (outputReader.hasOutput(info.getOutputEntry(), TestOutputEvent.Destination.StdErr)) {
                     perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
                 }
                 if (!info.getMetadatas().isEmpty()) {
@@ -165,7 +175,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     directlyBelowRootTabsRenderer.render(model, output);
                 }
             });
-        });
+        }
         return rootTabsRenderer;
     }
 }
