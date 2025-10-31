@@ -94,7 +94,7 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
             }
         }
 
-        checkDeps.dependsOn resolve
+        tasks.checkDeps.dependsOn tasks.resolve
 
         """
 

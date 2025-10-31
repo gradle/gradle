@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.nativeintegration.jansi;
+package org.gradle.problems.internal.rendering;
 
-public interface JansiRuntimeResolver {
+import org.gradle.api.problems.ProblemId;
 
-    String getOperatingSystem();
-    String getPlatform();
+/**
+ * Renders a complete problem report.
+ */
+interface SelectiveProblemWriter extends PartialProblemWriter {
+
+    /**
+     * Returns true if this writer can write the given problem id.
+     *
+     * @param problemId the problem id
+     * @return true if this writer can write the given problem id
+     */
+    boolean accepts(ProblemId problemId);
 }

@@ -184,7 +184,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             task jars
 
             dependencies {
-                compile files([a, b]) { builtBy jars }
+                compile files([a, b]) { builtBy tasks.jars }
             }
 
             ${configurationAndTransform('FileSizer')}
@@ -235,7 +235,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 artifacts {
-                    compile jar1, jar2
+                    compile tasks.jar1, tasks.jar2
                 }
             }
 
@@ -296,7 +296,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 artifacts {
-                    compile blueThing.output
+                    compile tasks.blueThing.output
                 }
             }
 
@@ -404,7 +404,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     archiveFileName = 'common.jar'
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                     compile file("common-file.jar")
                 }
             }
@@ -426,7 +426,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 artifacts {
-                    compile jar1, jar2
+                    compile tasks.jar1, tasks.jar2
                 }
             }
 
@@ -478,8 +478,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     compile.outgoing.variants {
                         files {
                             attributes.attribute(Attribute.of('artifactType', String), 'jar')
-                            artifact jar1
-                            artifact zip1
+                            artifact tasks.jar1
+                            artifact tasks.zip1
                         }
                     }
                 }
@@ -584,8 +584,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     compile.outgoing.variants {
                         files {
                             attributes.attribute(Attribute.of('artifactType', String), 'size')
-                            artifact jar1
-                            artifact jar2
+                            artifact tasks.jar1
+                            artifact tasks.jar2
                         }
                     }
                 }
@@ -644,12 +644,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         java7 {
                             attributes.attribute(Attribute.of('javaVersion', String), '7')
                             attributes.attribute(Attribute.of('color', String), 'green')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                         java8 {
                             attributes.attribute(Attribute.of('javaVersion', String), '8')
                             attributes.attribute(Attribute.of('color', String), 'red')
-                            artifact jar2
+                            artifact tasks.jar2
                         }
                     }
                 }
@@ -748,12 +748,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         java7 {
                             attributes.attribute(Attribute.of('javaVersion', String), '7')
                             attributes.attribute(Attribute.of('color', String), 'green')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                         java8 {
                             attributes.attribute(Attribute.of('javaVersion', String), '8')
                             attributes.attribute(Attribute.of('color', String), 'red')
-                            artifact jar2
+                            artifact tasks.jar2
                         }
                     }
                 }
@@ -1016,8 +1016,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             }
 
             dependencies {
-                api1 files(producer1)
-                api2 files(producer2)
+                api1 files(tasks.producer1)
+                api2 files(tasks.producer2)
             }
         """)
 
@@ -1068,13 +1068,13 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                             attribute(artifactType, "jar")
                             attribute(extraAttribute, "preferred")
                         }
-                        artifact jar
+                        artifact tasks.jar
                     }
                     secondary {
                         attributes {
                             attribute(artifactType, "intermediate")
                         }
-                        artifact jar
+                        artifact tasks.jar
                     }
                 }
             }
@@ -1245,7 +1245,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 artifacts {
-                    compile(jar1)
+                    compile(tasks.jar1)
                 }
             }
 
@@ -1337,17 +1337,17 @@ Found the following transformation chains:
                         variant1 {
                             attributes.attribute(buildType, 'release')
                             attributes.attribute(flavor, 'free')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                         variant2 {
                             attributes.attribute(buildType, 'release')
                             attributes.attribute(flavor, 'paid')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                         variant3 {
                             attributes.attribute(buildType, 'debug')
                             attributes.attribute(flavor, 'free')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                     }
                 }
@@ -1577,7 +1577,7 @@ Found the following transformation chains:
                 task jar1(type: Jar) { archiveFileName = 'jar1.jar' }
                 task jar2(type: Jar) { archiveFileName = 'jar2.jar' }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts { compile jar1, jar2 }
+                artifacts { compile tasks.jar1, tasks.jar2 }
             }
 
             abstract class Hasher implements TransformAction<TransformParameters.None> {
@@ -2218,7 +2218,7 @@ Found the following transformation chains:
                     archiveFileName = 'lib.jar'
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -2543,7 +2543,7 @@ Found the following transformation chains:
                 }
 
                 dependencies {
-                    compile files(lib1)
+                    compile files(tasks.lib1)
                 }
                 artifacts {
                     compile file1
@@ -2646,7 +2646,7 @@ Found the following transformation chains:
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -2713,7 +2713,7 @@ Found the following transformation chains:
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -2771,7 +2771,7 @@ Found the following transformation chains:
                 }
 
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -2784,7 +2784,7 @@ Found the following transformation chains:
                 ${configurationAndTransform()}
 
                 task dependent {
-                    dependsOn resolve
+                    dependsOn tasks.resolve
                 }
             }
 

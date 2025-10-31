@@ -33,7 +33,7 @@ class TestNGCoverage {
      * incorrect test reporting.  Other versions are kept for reference, but nothing earlier than this should
      * be tested in multi-version tests.
      */
-    private static final String FIXED_ICLASS_LISTENER = '6.9.13.3' // Introduces fixed IClassListener
+    static final String FIXED_ICLASS_LISTENER = '6.9.13.3' // Introduces fixed IClassListener
 
     private static final String BEFORE_BROKEN_PRESERVE_ORDER = '6.1.1' // Latest version before introduction of cbeust/testng#639 bug
     private static final String FIXED_BROKEN_PRESERVE_ORDER = '6.9.4'  // Fixes cbeust/testng#639 for preserve-order

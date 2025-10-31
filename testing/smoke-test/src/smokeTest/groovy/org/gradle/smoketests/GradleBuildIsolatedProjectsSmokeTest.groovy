@@ -16,9 +16,12 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
+
 class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedProjectsSmokeTest {
 
     def "can run Gradle build tasks with isolated projects enabled"() {
+        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         given:
         def tasks = [
             "build",
@@ -33,16 +36,17 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         ]
 
         when:
-        maxIsolatedProjectProblems = 13
+        maxIsolatedProjectProblems = 1
         isolatedProjectsRun(tasks)
 
         then:
         result.assertConfigurationCacheStateStoreDiscarded()
-        result.output.contains "13 problems were found storing the configuration cache, 5 of which seem unique."
-        result.output.contains "- Plugin 'org.jetbrains.kotlin.jvm': Project ':declarative-dsl-core' cannot dynamically look up a property in the parent project ':'"
-        result.output.contains "- Plugin 'org.jetbrains.kotlin.jvm': Project ':declarative-dsl-evaluator' cannot dynamically look up a property in the parent project ':'"
-        result.output.contains "- Plugin 'org.jetbrains.kotlin.jvm': Project ':declarative-dsl-tooling-models' cannot dynamically look up a property in the parent project ':'"
-        result.output.contains "- Plugin 'org.jetbrains.kotlin.jvm': Project ':kotlin-dsl-plugins' cannot dynamically look up a property in the parent project ':'"
-        result.output.contains "- Unknown location: Project ':docs' cannot dynamically look up a property in the parent project ':'"
+
+        fixture.assertHtmlReportHasProblems(result.output) {
+            totalProblemsCount = 1
+            withUniqueProblems(
+                "Project :docs cannot dynamically look up a property in the parent project :",
+            )
+        }
     }
 }

@@ -210,3 +210,8 @@ image::problems-report-html.png[]
 
 `AdditionalData` is not included in the HTML report.
 Plugins can log their own problem events, which appear alongside Gradle’s built-in reports.
+
+[[sec:console_rendering]]
+== Console rendering
+
+All problem reports are now rendered in the console output if `--warning-mode=all` is configured.
