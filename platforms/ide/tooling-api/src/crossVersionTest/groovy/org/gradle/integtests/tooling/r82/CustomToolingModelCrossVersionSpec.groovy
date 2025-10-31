@@ -28,6 +28,27 @@ class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         toolingApi.requireDaemons()
 
+        file("buildSrc/src/main/java/CustomModel.java").java("""
+import java.io.Serializable;
+import java.util.*;
+class CustomModel implements Serializable {
+    List<CustomThing> things = new ArrayList<>();
+
+    CustomModel(int heapSizeMb) {
+        for(int i = 0; i < heapSizeMb; i++) {
+            things.add(new CustomThing());
+        }
+    }
+}
+""")
+
+        file("buildSrc/src/main/java/CustomThing.java").java("""
+import java.io.Serializable;
+class CustomThing implements Serializable {
+    byte[] payload = new byte[1024 * 1024];
+}
+""")
+
         file('build.gradle') << """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -35,20 +56,6 @@ import javax.inject.Inject
 
 allprojects {
     apply plugin: CustomPlugin
-}
-
-class CustomModel implements Serializable {
-    List<CustomThing> things = new ArrayList()
-
-    CustomModel(int heapSizeMb) {
-        for(int i = 0; i < heapSizeMb; i++) {
-            things.add(new CustomThing())
-        }
-    }
-}
-
-class CustomThing implements Serializable {
-    byte[] payload = new byte[1024 * 1024]
 }
 
 class CustomBuilder implements ToolingModelBuilder {
