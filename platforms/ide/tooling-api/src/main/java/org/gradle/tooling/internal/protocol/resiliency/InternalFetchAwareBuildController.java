@@ -36,4 +36,6 @@ public interface InternalFetchAwareBuildController {
         ModelIdentifier modelIdentifier,
         @Nullable Object parameter
     );
+
+    boolean isParallelActionsEnabled();
 }

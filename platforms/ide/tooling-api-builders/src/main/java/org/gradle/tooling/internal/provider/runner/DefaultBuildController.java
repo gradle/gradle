@@ -150,7 +150,7 @@ class DefaultBuildController implements
 
     @Override
     public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
-        return controller.queryModelActionsRunInParallel();
+        return controller.isParallelActionsCapable();
     }
 
     @Override
@@ -183,6 +183,11 @@ class DefaultBuildController implements
             List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
             return new DefaultInternalFetchModelResult<>(null, failures);
         }
+    }
+
+    @Override
+    public boolean isParallelActionsEnabled() {
+        return controller.isParallelActionsEnabled();
     }
 
     private static List<InternalFailure> toInternalFailures(List<Failure> failures) {

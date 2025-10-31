@@ -61,7 +61,9 @@ public interface BuildModelParameters {
     /**
      * When {@link #isParallelProjectExecution()} is true, should Tooling API actions run in parallel?
      */
-    boolean isParallelToolingApiActions();
+    boolean isParallelToolingActionsCapable();
+
+    boolean isParallelToolingActions();
 
     /**
      * When {@link  #isIsolatedProjects()} is true, should project state be invalidated when a project it is coupled with changes?

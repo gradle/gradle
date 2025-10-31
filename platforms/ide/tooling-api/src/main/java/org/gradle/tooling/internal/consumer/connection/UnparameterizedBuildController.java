@@ -215,4 +215,9 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     public <M, P> FetchModelResult<M> fetch(@Nullable Model target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
         throw new UnsupportedVersionException(String.format("Gradle version %s does not support resilient model fetching.", gradleVersion.getVersion()));
     }
+
+    @Override
+    public boolean isParallelActionsEnabled() {
+        return false;
+    }
 }
