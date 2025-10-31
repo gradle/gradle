@@ -17,14 +17,12 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
-import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static java.util.Collections.emptyList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
@@ -95,7 +93,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 0L, startTime).completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList(), null)))
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime))
         _ * provider.writeAllOutput(_, _, _)
 
         when:

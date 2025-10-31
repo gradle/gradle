@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.internal.tasks.testing.DefaultTestFailure
-import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-import org.gradle.api.tasks.testing.TestResult
-import org.junit.AssumptionViolatedException
 import spock.lang.Specification
 
+import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 
@@ -32,11 +29,11 @@ class TestClassResultSpec extends Specification {
         assert result.duration == 0
 
         when:
-        result.add(new TestMethodResult(1, "foo", "foo", SUCCESS, 0L, 150).completed(new DefaultTestResult(TestResult.ResultType.SUCCESS, 100, 200, 1, 1, 0, [], null)))
-        result.add(new TestMethodResult(2, "fail", "fail", FAILURE, 0L, 250).completed(new DefaultTestResult(TestResult.ResultType.FAILURE, 250, 300, 1, 0, 1, [new RuntimeException("bar")], null)))
-        result.add(new TestMethodResult(3, "fail2", "fail2", FAILURE, 0L, 350).completed(new DefaultTestResult(TestResult.ResultType.FAILURE, 300, 450, 1, 0, 1, [new RuntimeException("foo")], null)))
-        result.add(new TestMethodResult(4, "skip1", "skip1", SKIPPED, 0L, 525).completed(new DefaultTestResult(TestResult.ResultType.SKIPPED, 500, 550, 1, 0, 0, [], null)))
-        result.add(new TestMethodResult(5, "skip2", "skip2", SKIPPED, 0L, 625).completed(new DefaultTestResult(TestResult.ResultType.SKIPPED, 600, 650, 1, 0, 0, [], DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException("")))))
+        result.add(new TestMethodResult(1, "foo", "foo", SUCCESS, 50L, 150))
+        result.add(new TestMethodResult(2, "fail", "fail", FAILURE, 50L, 250))
+        result.add(new TestMethodResult(3, "fail2", "fail2", FAILURE, 50L, 350))
+        result.add(new TestMethodResult(4, "skip1", "skip1", SKIPPED, 50L, 525))
+        result.add(new TestMethodResult(5, "skip2", "skip2", SKIPPED, 50L, 625))
         then:
         result.failuresCount == 2
         result.testsCount == 5

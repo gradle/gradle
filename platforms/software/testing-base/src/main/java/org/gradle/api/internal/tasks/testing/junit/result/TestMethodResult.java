@@ -46,13 +46,7 @@ public class TestMethodResult {
         this.endTime = endTime;
     }
 
-    public TestMethodResult completed(TestResult result) {
-        resultType = result.getResultType();
-        duration = result.getEndTime() - result.getStartTime();
-        endTime = result.getEndTime();
-        return this;
-    }
-
+    // TODO: These could be folded into the constructor as well
     public TestMethodResult addFailure(String message, String stackTrace, String exceptionType) {
         this.failures.add(new SerializableFailure(message, stackTrace, exceptionType));
         return this;

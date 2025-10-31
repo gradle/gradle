@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.internal.ConfigureUtil
@@ -119,8 +119,6 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     }
 
     static class BuildableTestMethodResult extends TestMethodResult {
-
-        long duration
         List<SerializableFailure> failures = []
 
         SerializableFailure assumptionFailure = null
@@ -130,10 +128,8 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         private final List<BuildableOutputEvent> outputEvents
 
         BuildableTestMethodResult(long id, String name, List<BuildableOutputEvent> outputEvents, TestResult result) {
-            super(id, name)
-            completed(result)
+            super(id, name, name, result.resultType, result.startTime - result.endTime, result.endTime)
             this.outputEvents = outputEvents
-            duration = result.endTime - result.startTime;
         }
 
         void failure(String message, String stackTrace) {
