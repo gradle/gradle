@@ -23,6 +23,7 @@ import com.google.common.collect.Multimaps;
 import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -101,10 +102,10 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        List<SerializableTestResultStore.OutputReader> outputReaders = new ArrayList<>(stores.size());
+        List<TestOutputReader> outputReaders = new ArrayList<>(stores.size());
         try {
             for (SerializableTestResultStore store : stores) {
-                outputReaders.add(store.openOutputReader());
+                outputReaders.add(store.createOutputReader());
             }
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
@@ -117,7 +118,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         return reportsDirectory.resolve("index.html");
     }
 
-    private void generateReport(TestTreeModel root, List<SerializableTestResultStore.OutputReader> outputReaders) {
+    private void generateReport(TestTreeModel root, List<TestOutputReader> outputReaders) {
         LOG.info("Generating HTML test report...");
 
         Timer clock = Time.startTimer();
@@ -125,7 +126,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportsDirectory);
     }
 
-    private void generateFiles(TestTreeModel model, final List<SerializableTestResultStore.OutputReader> outputReaders) {
+    private void generateFiles(TestTreeModel model, final List<TestOutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             buildOperationRunner.run(new DeleteOldReportOperation(reportsDirectory));
@@ -187,7 +188,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         private final String fileUrl;
         private final TestTreeModel results;
         private final HtmlReportBuilder output;
-        private final List<SerializableTestResultStore.OutputReader> outputReaders;
+        private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
         private final MetadataRendererRegistry metadataRendererRegistry;
 
@@ -195,7 +196,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             String fileUrl,
             TestTreeModel results,
             HtmlReportBuilder output,
-            List<SerializableTestResultStore.OutputReader> outputReaders,
+            List<TestOutputReader> outputReaders,
             List<String> rootDisplayNames,
             MetadataRendererRegistry metadataRendererRegistry
         ) {
