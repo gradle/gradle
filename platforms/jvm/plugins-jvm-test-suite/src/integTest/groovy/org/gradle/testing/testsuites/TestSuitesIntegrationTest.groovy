@@ -996,7 +996,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
             include("app")
         """
-        executer.noDeprecationChecks()
 
         expect: "should be able to reference the project without failing"
         succeeds ':app:assemble', ':app:integrationTest'
