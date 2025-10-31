@@ -458,11 +458,15 @@ class TestProblems implements InternalProblems {
     }
 
     void assertHasDeprecation(String expectedMessage) {
-        def deprecationMessages = summarizer.emitted
-            .findAll { it.additionalData instanceof DeprecationData }
-            .collect { it.contextualLabel }
+        def deprecationMessages = getDeprecationMessages()
         assert deprecationMessages.size() > 0
         assert deprecationMessages.find { it.contains(expectedMessage) } != null
+    }
+
+    List<String> getDeprecationMessages() {
+        summarizer.emitted
+            .findAll { it.additionalData instanceof DeprecationData }
+            .collect { it.contextualLabel.toString() }
     }
 
     void recordEmittedProblems() {
