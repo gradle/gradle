@@ -56,11 +56,11 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         generator = generatorWithMaxThreads(numThreads)
 
         def fooTest = new TestClassResult(1, 'FooTest', 100)
-            .add(new TestMethodResult(1, "foo"))
+            .add(new TestMethodResult(1, "foo", "foo", TestResult.ResultType.SUCCESS, 0, 200))
 
         def barTest = new TestClassResult(2, 'BarTest', 100)
-            .add(new TestMethodResult(2, "bar"))
-            .add(new TestMethodResult(3, "bar2"))
+            .add(new TestMethodResult(2, "bar", "bar", TestResult.ResultType.SUCCESS, 0, 200))
+            .add(new TestMethodResult(3, "bar2", "bar2", TestResult.ResultType.SUCCESS, 0, 200))
 
         resultsProvider.visitClasses(_) >> { Action action ->
             action.execute(fooTest)
@@ -83,7 +83,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         generator = generatorWithMaxThreads(1)
 
         def fooTest = new TestClassResult(1, 'FooTest', 100)
-            .add(new TestMethodResult(1, "foo"))
+            .add(new TestMethodResult(1, "foo", "foo", TestResult.ResultType.FAILURE, 0, 200))
 
         resultsProvider.visitClasses(_) >> { Action action ->
             action.execute(fooTest)
@@ -104,7 +104,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         given:
         generator = generatorWithMaxThreads(1)
 
-        def testMethodResult = new TestMethodResult(1, "testMethod", TestResult.ResultType.SUCCESS, 100, 200)
+        def testMethodResult = new TestMethodResult(1, "testMethod", "testMethod", TestResult.ResultType.SUCCESS, 100, 200)
 
         def testClassResult = new TestClassResult(1, className, 100)
             .add(testMethodResult)

@@ -43,11 +43,11 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test", SUCCESS, 15, startTime + 25))
-        result.add(new TestMethodResult(2, "some test two", SUCCESS, 15, startTime + 30))
-        result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
-        result.add(new TestMethodResult(4, "some skipped test", SKIPPED, 10, startTime + 45))
-        result.add(new TestMethodResult(5, "some assumption failure test", SKIPPED, 10, startTime + 50).setAssumptionFailure("assumption failed", "[assumption-failure-stack-trace]", "AssumptionViolationException"))
+        result.add(new TestMethodResult(1, "some test", "some test",SUCCESS, 15, startTime + 25))
+        result.add(new TestMethodResult(2, "some test two", "some test two",SUCCESS, 15, startTime + 30))
+        result.add(new TestMethodResult(3, "some failing test", "some failing test", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
+        result.add(new TestMethodResult(4, "some skipped test", "some skipped test", SKIPPED, 10, startTime + 45))
+        result.add(new TestMethodResult(5, "some assumption failure test", "some assumption failure test", SKIPPED, 10, startTime + 50).setAssumptionFailure("assumption failed", "[assumption-failure-stack-trace]", "AssumptionViolationException"))
 
         provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
         provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
@@ -95,7 +95,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList(), null)))
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 0L, startTime).completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList(), null)))
         _ * provider.writeAllOutput(_, _, _)
 
         when:
@@ -118,7 +118,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some \ud8d3\ude01 test", FAILURE, 200, 300).addFailure("<> encoded!\ud8d3\ude02", "<non ascii:\ud8d3\ude02 \u0302>", "<Exception\ud8d3\ude29>"))
+        result.add(new TestMethodResult(1, "some \ud8d3\ude01 test", "some \ud8d3\ude01 test", FAILURE, 200, 300).addFailure("<> encoded!\ud8d3\ude02", "<non ascii:\ud8d3\ude02 \u0302>", "<Exception\ud8d3\ude29>"))
         provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with \ud8d3\ude31CDATA end token: ]]> some ascii: ż") }
         provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: \ud8d3\udd20ż") }
 
@@ -202,7 +202,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40))
+        result.add(new TestMethodResult(3, "some failing test", "some failing test", FAILURE, 10, startTime + 40))
 
         when:
         def xml = getXml(result, options)

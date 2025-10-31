@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
-
 import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,20 +33,6 @@ public class TestMethodResult {
     private final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
 
     private SerializableFailure assumptionFailure = null;
-
-    public TestMethodResult(long id, String name) {
-        this(id, name, name);
-    }
-
-    public TestMethodResult(long id, String name, String displayName) {
-        this.id = id;
-        this.name = name;
-        this.displayName = displayName;
-    }
-
-    public TestMethodResult(long id, String name, TestResult.ResultType resultType, long duration, long endTime) {
-        this(id, name, name, resultType, duration, endTime);
-    }
 
     public TestMethodResult(long id, String name, String displayName, TestResult.ResultType resultType, long duration, long endTime) {
         if (id < 1) {
