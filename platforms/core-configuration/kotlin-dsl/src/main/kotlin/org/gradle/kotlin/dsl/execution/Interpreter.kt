@@ -195,6 +195,10 @@ class Interpreter(val host: Host) {
             return
         }
 
+        if (programTarget == ProgramTarget.Project && (target as Project).parent != null) {
+            error("Expecting cache hit for $target ($programId)")
+        }
+
         val specializedProgram =
             emitSpecializedProgramFor(
                 scriptHost,
@@ -282,7 +286,8 @@ class Interpreter(val host: Host) {
             classesDir,
             programId.templateId,
             stage1BlocksAccessorsClassPath,
-            scriptSource
+            scriptSource,
+            programId.sourceHash
         )
     }
 
@@ -321,11 +326,10 @@ class Interpreter(val host: Host) {
             )
 
             scriptSource.withLocationAwareExceptionHandling {
-                ResidualProgramCompiler(
+                val residualProgramCompiler = ResidualProgramCompiler(
                     outputDir = cachedDir,
                     compilerOptions = host.compilerOptions,
                     classPath = compilationClassPath,
-                    originalSourceHash = programId.sourceHash,
                     programKind = programKind,
                     programTarget = programTarget,
                     implicitImports = host.implicitImports,
@@ -333,8 +337,8 @@ class Interpreter(val host: Host) {
                     temporaryFileProvider = temporaryFileProvider,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
-                    packageName = residualProgram.packageName,
-                ).compile(residualProgram.document)
+                )
+                residualProgramCompiler.compile(residualProgram.document, programId.sourceHash, residualProgram.packageName)
             }
         }
     }
@@ -346,7 +350,8 @@ class Interpreter(val host: Host) {
         classesDir: File,
         scriptTemplateId: String,
         accessorsClassPath: ClassPath,
-        scriptSource: ScriptSource
+        scriptSource: ScriptSource,
+        sourceHash: HashCode
     ): CompiledScript {
 
         logClassLoadingOf(scriptTemplateId, scriptSource)
@@ -357,7 +362,7 @@ class Interpreter(val host: Host) {
             origin = ClassLoaderScopeOrigin.Script(scriptSource.fileName, scriptSource.longDisplayName, scriptSource.shortDisplayName),
             accessorsClassPath = accessorsClassPath,
             location = classesDir,
-            className = "Program"
+            className = "P$sourceHash"
         )
     }
 
@@ -479,20 +484,22 @@ class Interpreter(val host: Host) {
 
                             scriptHost.temporaryFileProvider.withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
 
-                                ResidualProgramCompiler(
+                                val residualProgramCompiler = ResidualProgramCompiler(
                                     outputDir,
                                     host.compilerOptions,
                                     compilationClassPath,
-                                    sourceHash,
                                     programKind,
                                     programTarget,
                                     host.implicitImports,
                                     interpreterLogger,
                                     scriptHost.temporaryFileProvider,
                                     host::runCompileBuildOperation
-                                ).emitStage2ProgramFor(
+                                )
+                                residualProgramCompiler.emitStage2ProgramFor(
                                     scriptFile,
-                                    originalScriptPath
+                                    originalScriptPath,
+                                    packageName = null,
+                                    "P$sourceHash"
                                 )
                             }
                         }
@@ -505,7 +512,8 @@ class Interpreter(val host: Host) {
                 cacheDir,
                 scriptTemplateId,
                 accessorsClassPath,
-                scriptSource
+                scriptSource,
+                programId.sourceHash
             )
         }
 
@@ -547,7 +555,7 @@ fun templateIdFor(programTarget: ProgramTarget, programKind: ProgramKind, stage:
     programTarget.name + "/" + programKind.name + "/" + stage
 
 
-private
+internal
 fun classLoaderScopeIdFor(scriptPath: String, stage: String) =
     "kotlin-dsl:$scriptPath:$stage"
 

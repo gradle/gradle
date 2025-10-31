@@ -86,7 +86,6 @@ class ResidualProgramCompiler(
     private val outputDir: File,
     private val compilerOptions: KotlinCompilerOptions,
     private val classPath: ClassPath = ClassPath.EMPTY,
-    private val originalSourceHash: HashCode,
     private val programKind: ProgramKind,
     private val programTarget: ProgramTarget,
     private val implicitImports: List<String> = emptyList(),
@@ -94,34 +93,48 @@ class ResidualProgramCompiler(
     private val temporaryFileProvider: TemporaryFileProvider,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
-    private val packageName: String? = null,
 ) {
 
-    fun compile(program: ResidualProgram) = when (program) {
-        is Static -> emitStaticProgram(program)
-        is Dynamic -> emitDynamicProgram(program)
+    data class BatchItem(
+        val sourceHash: HashCode,
+        val packageName: String?,
+        val program: ResidualProgram
+    )
+
+    fun compileBatch(programs: List<BatchItem>) {
+        for ((sourceHash, packageName, program) in programs) {
+            compile(program, sourceHash, packageName)
+        }
+    }
+
+    fun compile(program: ResidualProgram, sourceHash: HashCode, packageName: String?) {
+        val className = "P$sourceHash"
+        when (program) {
+            is Static -> emitStaticProgram(program, packageName, className)
+            is Dynamic -> emitDynamicProgram(program, sourceHash, packageName, className)
+        }
     }
 
     private
-    fun emitStaticProgram(program: Static) {
+    fun emitStaticProgram(program: Static, packageName: String?, className: String) {
 
-        program<ExecutableProgram> {
+        program<ExecutableProgram>(className) {
 
             overrideExecute {
-                emit(program.instructions)
+                emit(program.instructions, packageName)
             }
         }
     }
 
     private
-    fun emitDynamicProgram(program: Dynamic) {
+    fun emitDynamicProgram(program: Dynamic, sourceHash: HashCode, packageName: String?, className: String) {
 
-        program<ExecutableProgram.StagedProgram> {
+        program<ExecutableProgram.StagedProgram>(className) {
 
             overrideExecute {
 
-                emit(program.prelude.instructions)
-                emitEvaluateSecondStageOf()
+                emit(program.prelude.instructions, packageName)
+                emitEvaluateSecondStageOf(sourceHash)
             }
 
             overrideGetSecondStageScriptText(program.source.text)
@@ -156,7 +169,7 @@ class ResidualProgramCompiler(
 
     private
     fun mightBeLargerThan64KB(secondStageScriptText: String) =
-        // We use a simple heuristic to avoid converting the string to bytes
+    // We use a simple heuristic to avoid converting the string to bytes
         // if all code points were in UTF32, 16K code points would require 64K bytes
         secondStageScriptText.length >= 16 * 1024
 
@@ -177,26 +190,26 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emit(instructions: List<Instruction>) {
+    fun MethodVisitor.emit(instructions: List<Instruction>, packageName: String?) {
         instructions.forEach {
-            emit(it)
+            emit(it, packageName)
         }
     }
 
     private
-    fun MethodVisitor.emit(instruction: Instruction) = when (instruction) {
+    fun MethodVisitor.emit(instruction: Instruction, packageName: String?) = when (instruction) {
         is Instruction.SetupEmbeddedKotlin -> emitSetupEmbeddedKotlinFor()
         is Instruction.CloseTargetScope -> emitCloseTargetScopeOf()
-        is Instruction.Eval -> emitEval(instruction.script)
-        is Instruction.CollectProjectScriptDependencies -> emitCollectProjectScriptDependencies(instruction.script)
+        is Instruction.Eval -> emitEval(instruction.script, packageName)
+        is Instruction.CollectProjectScriptDependencies -> emitCollectProjectScriptDependencies(instruction.script, packageName)
         is Instruction.ApplyBasePlugins -> emitApplyBasePluginsTo()
         is Instruction.ApplyDefaultPluginRequests -> emitApplyEmptyPluginRequestsTo()
         is Instruction.ApplyPluginRequests -> emitApplyPluginRequests(instruction.requests, instruction.source)
         is Instruction.ApplyPluginRequestsOf -> {
             when (val program = instruction.program) {
-                is Program.Plugins -> emitCompiledPluginsBlock(program)
-                is Program.PluginManagement -> emitStage1Sequence(program)
-                is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
+                is Program.Plugins -> emitCompiledPluginsBlock(program, packageName)
+                is Program.PluginManagement -> emitStage1Sequence(program, packageName = packageName)
+                is Program.Stage1Sequence -> emitStage1Sequence(program.plugins, packageName = packageName)
                 else -> error("Expecting a residual program with plugins, got `$program'")
             }
         }
@@ -211,16 +224,16 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitCollectProjectScriptDependencies(source: ProgramSource) {
+    fun MethodVisitor.emitCollectProjectScriptDependencies(source: ProgramSource, packageName: String?) {
         val scriptDefinition = stage1ScriptDefinition
-        val compiledScriptClass = compileStage1(source, scriptDefinition, classPath + stage1BlocksClassPath)
+        val compiledScriptClass = compileStage1(source, scriptDefinition, packageName, classPath + stage1BlocksClassPath)
         emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
     }
 
     private
-    fun MethodVisitor.emitEval(source: ProgramSource) {
+    fun MethodVisitor.emitEval(source: ProgramSource, packageName: String?) {
         val scriptDefinition = stage1ScriptDefinition
-        val compiledScriptClass = compileStage1(source, scriptDefinition)
+        val compiledScriptClass = compileStage1(source, scriptDefinition, packageName = packageName)
         emitInstantiationOfCompiledScriptClass(compiledScriptClass, scriptDefinition)
     }
 
@@ -234,12 +247,12 @@ class ResidualProgramCompiler(
         }
 
     private
-    fun MethodVisitor.emitStage1Sequence(vararg stage1Seq: Program.Stage1?) {
-        emitStage1Sequence(listOfNotNull(*stage1Seq))
+    fun MethodVisitor.emitStage1Sequence(vararg stage1Seq: Program.Stage1?, packageName: String?) {
+        emitStage1Sequence(listOfNotNull(*stage1Seq), packageName)
     }
 
     private
-    fun MethodVisitor.emitStage1Sequence(stage1Seq: List<Program.Stage1>) {
+    fun MethodVisitor.emitStage1Sequence(stage1Seq: List<Program.Stage1>, packageName: String?) {
         val scriptDefinition = buildscriptWithPluginsScriptDefinition
         val plugins = stage1Seq.filterIsInstance<Program.Plugins>().singleOrNull()
         val firstElement = stage1Seq.first()
@@ -249,7 +262,8 @@ class ResidualProgramCompiler(
                     it.preserve(stage1Seq.map { stage1 -> stage1.fragment.range })
                 },
                 scriptDefinition,
-                stage1BlocksClassPath
+                packageName,
+                stage1BlocksClassPath,
             )
 
         val implicitReceiverType = implicitReceiverOf(scriptDefinition)!!
@@ -358,17 +372,18 @@ class ResidualProgramCompiler(
         invokeApplyPluginsTo()
     }
 
-    fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
+    fun emitStage2ProgramFor(scriptFile: File, originalPath: String, packageName: String? = null, className: String) {
 
         val scriptDefinition = stage2ScriptDefinition
         val compiledScriptClass = compileScript(
             scriptFile,
             originalPath,
             scriptDefinition,
-            StableDisplayNameFor.stage2
+            StableDisplayNameFor.stage2,
+            packageName = packageName
         )
 
-        program<ExecutableProgram> {
+        program<ExecutableProgram>(className) {
 
             overrideExecute {
 
@@ -378,9 +393,9 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitCompiledPluginsBlock(program: Program.Plugins) {
+    fun MethodVisitor.emitCompiledPluginsBlock(program: Program.Plugins, packageName: String?) {
 
-        val compiledPluginsBlock = compilePlugins(program)
+        val compiledPluginsBlock = compilePlugins(program, packageName)
 
         compiledScriptClassInstantiation(compiledPluginsBlock) {
 
@@ -478,14 +493,14 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitEvaluateSecondStageOf() {
+    fun MethodVisitor.emitEvaluateSecondStageOf(sourceHash: HashCode) {
         // programHost.evaluateSecondStageOf(...)
         ALOAD(Vars.ProgramHost)
         ALOAD(Vars.Program)
         ALOAD(Vars.ScriptHost)
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
-        loadHashCode(originalSourceHash)
+        loadHashCode(sourceHash)
         when {
             requiresSecondStageAccessors(programKind) -> emitAccessorsClassPathForScriptHost()
             else -> GETSTATIC(ClassPath::EMPTY)
@@ -551,11 +566,12 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun compilePlugins(program: Program.Plugins) =
+    fun compilePlugins(program: Program.Plugins, packageName: String?) =
         compileStage1(
             program.fragment.source.map { it.preserve(program.fragment.range) },
             pluginsScriptDefinition,
-            stage1BlocksClassPath
+            packageName,
+            stage1BlocksClassPath,
         )
 
     private
@@ -660,15 +676,15 @@ class ResidualProgramCompiler(
         "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)V"
 
     private
-    inline fun <reified T : ExecutableProgram> program(noinline classBody: ClassWriter.() -> Unit = {}) {
-        program(T::class.internalName, classBody)
+    inline fun <reified T : ExecutableProgram> program(className: String, noinline classBody: ClassWriter.() -> Unit = {}) {
+        program(className, T::class.internalName, classBody)
     }
 
     private
-    fun program(superName: InternalName, classBody: ClassWriter.() -> Unit = {}) {
+    fun program(className: String, superName: InternalName, classBody: ClassWriter.() -> Unit = {}) {
         writeFile(
-            "Program.class",
-            publicClass(InternalName("Program"), superName, null) {
+            "$className.class",
+            publicClass(InternalName(className), superName, null) {
                 publicDefaultConstructor(superName)
                 classBody()
             }
@@ -688,7 +704,8 @@ class ResidualProgramCompiler(
     fun compileStage1(
         source: ProgramSource,
         scriptDefinition: ScriptDefinition,
-        compileClassPath: ClassPath = classPath
+        packageName: String?,
+        compileClassPath: ClassPath = classPath,
     ): InternalName =
         temporaryFileProvider.withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
             val originalScriptPath = source.path
@@ -697,7 +714,8 @@ class ResidualProgramCompiler(
                 originalScriptPath,
                 scriptDefinition,
                 StableDisplayNameFor.stage1,
-                compileClassPath
+                compileClassPath,
+                packageName
             )
         }
 
@@ -707,7 +725,8 @@ class ResidualProgramCompiler(
         originalPath: String,
         scriptDefinition: ScriptDefinition,
         stage: String,
-        compileClassPath: ClassPath = classPath
+        compileClassPath: ClassPath = classPath,
+        packageName: String?
     ) = InternalName.from(
         compileBuildOperationRunner(originalPath, stage) {
             compileKotlinScriptToDirectory(

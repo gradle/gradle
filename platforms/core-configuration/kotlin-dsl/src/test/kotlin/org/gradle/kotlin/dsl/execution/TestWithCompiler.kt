@@ -72,15 +72,15 @@ abstract class TestWithCompiler : TestWithTempFiles() {
         programKind: ProgramKind,
         programTarget: ProgramTarget
     ) {
-        ResidualProgramCompiler(
+        val residualProgramCompiler = ResidualProgramCompiler(
             outputDir,
             KotlinCompilerOptions(),
             testRuntimeClassPath,
-            sourceHash,
             programKind,
             programTarget,
             temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
-        ).compile(program)
+        )
+        residualProgramCompiler.compile(program, residualProgramCompiler.originalSourceHash,)
     }
 
     private
