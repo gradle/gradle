@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class AssertionFailureDetails extends DefaultTestFailureDetails {
@@ -26,7 +26,7 @@ public class AssertionFailureDetails extends DefaultTestFailureDetails {
     @Nullable
     private final String actual;
 
-    public AssertionFailureDetails(String message, String className, String stacktrace, @Nullable String expected, @Nullable String actual) {
+    public AssertionFailureDetails(@Nullable String message, String className, String stacktrace, @Nullable String expected, @Nullable String actual) {
         super(message, className, stacktrace);
         this.expected = expected;
         this.actual = actual;

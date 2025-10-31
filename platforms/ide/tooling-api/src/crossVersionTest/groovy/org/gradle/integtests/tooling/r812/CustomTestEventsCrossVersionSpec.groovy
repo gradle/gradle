@@ -81,10 +81,8 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
-                    }
+                nested("Test suite 'Custom test root'") {
+                    test("My test!")
                 }
             }
         }
@@ -140,11 +138,9 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    composite("My Suite") {
-                        test("MyTestInternal") {
-                            displayName "My test!"
-                        }
+                nested("Test suite 'Custom test root'") {
+                    nested("Test class My Suite") {
+                        test("My test!")
                     }
                 }
             }
@@ -211,15 +207,11 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    composite("My Suite") {
-                        composite("myTestMethod") {
-                            test("myTestMethod[0]") {
-                                displayName "My test method! (foo=0)"
-                            }
-                            test("myTestMethod[1]") {
-                                displayName "My test method! (foo=1)"
-                            }
+                nested("Test suite 'Custom test root'") {
+                    nested("Test class My Suite") {
+                        nested("Test class myTestMethod") {
+                            test("My test method! (foo=0)")
+                            test("My test method! (foo=1)")
                         }
                     }
                 }
