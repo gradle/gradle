@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.internal.DefaultDynamicCallContextTracker
 import org.gradle.configuration.internal.DynamicCallContextTracker
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
@@ -177,6 +178,11 @@ class DefaultBuildModelControllerServices(
                 buildModelParameters,
                 instantiator
             )
+        }
+
+        @Provides
+        fun createDynamicCallContextTracker(): DynamicCallContextTracker {
+            return DefaultDynamicCallContextTracker()
         }
 
         @Provides
