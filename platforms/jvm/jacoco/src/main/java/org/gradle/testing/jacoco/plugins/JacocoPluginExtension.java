@@ -171,6 +171,7 @@ public abstract class JacocoPluginExtension {
         @Nullable
         @Optional
         @Nested
+        @SuppressWarnings("unused") // public API
         public JacocoTaskExtension getJacoco() {
             return jacoco.isEnabled() ? jacoco : null;
         }

@@ -110,6 +110,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
             visitor.candidate("Maps with 'file' key");
         }
 
+        @SuppressWarnings("unused") // reflection
         protected PublishArtifact parseMap(@MapKey("file") File file) {
             return fileConverter.parseType(file);
         }

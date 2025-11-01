@@ -62,6 +62,7 @@ public class IncrementalCompileProcessor {
                     this.sourceFileCount = sourceFileCount;
                 }
 
+                @SuppressWarnings("unused") // public API
                 public int getSourceFileCount() {
                     return sourceFileCount;
                 }
