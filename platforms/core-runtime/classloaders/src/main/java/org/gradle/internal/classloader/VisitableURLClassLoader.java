@@ -16,8 +16,6 @@
 
 package org.gradle.internal.classloader;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
@@ -27,23 +25,25 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Arrays.asList;
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     static {
         try {
-            //noinspection Since15
-            ClassLoader.registerAsParallelCapable();
+            registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
         }
     }
 
-    private final Map<Object, Object> userData = new HashMap<Object, Object>();
+    private final Map<Object, Object> userData = new HashMap<>();
 
     /**
      * This method can be used to store user data that should live among with this classloader
@@ -55,7 +55,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
      */
     public synchronized <T> T getUserData(Object consumerId, Factory<T> onMiss) {
         if (userData.containsKey(consumerId)) {
-            return Cast.uncheckedNonnullCast(userData.get(consumerId));
+            return uncheckedNonnullCast(userData.get(consumerId));
         }
         T value = onMiss.create();
         userData.put(consumerId, value);
@@ -99,22 +99,22 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     @Override
     public void visit(ClassLoaderVisitor visitor) {
         URL[] urls = getURLs();
-        visitor.visitSpec(new Spec(name, Arrays.asList(urls)));
+        visitor.visitSpec(new Spec(name, asList(urls)));
         visitor.visitClassPath(urls);
         visitor.visitParent(getParent());
     }
 
     public static class Spec extends ClassLoaderSpec {
-        final String name;
-        final List<URL> classpath;
-
-        public String getName() {
-            return name;
-        }
+        private final String name;
+        private final List<URL> classpath;
 
         public Spec(String name, List<URL> classpath) {
             this.name = name;
             this.classpath = classpath;
+        }
+
+        public String getName() {
+            return name;
         }
 
         public List<URL> getClasspath() {
@@ -134,8 +134,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
             if (obj == null || obj.getClass() != getClass()) {
                 return false;
             }
-            Spec other = (Spec) obj;
-            return classpath.equals(other.classpath);
+            return classpath.equals(((Spec) obj).classpath);
         }
 
         @Override
@@ -151,11 +150,10 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         return new VisitableURLClassLoader(name, parent, classPath);
     }
 
-    private static class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader implements InstrumentingClassLoader {
+    private static final class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader implements InstrumentingClassLoader {
         static {
             try {
                 // Not supported on Java 6, hence the try-catch
-                //noinspection Since15
                 ClassLoader.registerAsParallelCapable();
             } catch (NoSuchMethodError ignore) {
                 // ignore in Java 6
@@ -165,7 +163,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         private final TransformReplacer replacer;
         private final TransformErrorHandler errorHandler;
 
-        public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, TransformedClassPath classPath) {
+        private InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, TransformedClassPath classPath) {
             super(name, parent, classPath);
             replacer = new TransformReplacer(classPath);
             errorHandler = new TransformErrorHandler(name);
@@ -183,21 +181,23 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
-            errorHandler.enterClassLoadingScope(name);
-            Class<?> loadedClass;
             try {
-                loadedClass = super.findClass(name);
+                errorHandler.enterClassLoadingScope(name);
+                return super.findClass(name);
             } catch (Throwable e) {
                 throw errorHandler.exitClassLoadingScopeWithException(e);
+            } finally {
+                errorHandler.exitClassLoadingScope();
             }
-            errorHandler.exitClassLoadingScope();
-            return loadedClass;
         }
 
         @Override
         public void close() throws IOException {
-            IOUtils.closeQuietly(replacer);
-            super.close();
+            try {
+                closeQuietly(replacer);
+            } finally {
+                super.close();
+            }
         }
     }
 }
