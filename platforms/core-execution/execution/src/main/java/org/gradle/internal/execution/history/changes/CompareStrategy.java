@@ -19,7 +19,6 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import org.gradle.internal.hash.HashCode;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -39,7 +38,7 @@ public class CompareStrategy<C, S> {
         this.changeDetector = changeDetector;
     }
 
-    public boolean visitChangesSince(@NonNull C previous, @NonNull C current, String propertyTitle, ChangeVisitor visitor) {
+    public boolean visitChangesSince(C previous, C current, String propertyTitle, ChangeVisitor visitor) {
         if (Iterables.elementsEqual(rootHasher.apply(previous).entries(), rootHasher.apply(current).entries())) {
             return true;
         }
