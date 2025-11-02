@@ -89,7 +89,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'up-to-date build'
         result = runner
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+                expectMultiStringNotationDeprecation(agpVersion)
             }
             .build()
 
