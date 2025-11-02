@@ -98,6 +98,7 @@ import java.util.stream.Collectors;
  * to parse the template, with the following variables available:
  * <ul>
  * <li>{@code applicationName} - See {@link JavaAppStartScriptGenerationDetails#getApplicationName()}.</li>
+ * <li>{@code gitRef} - See {@link JavaAppStartScriptGenerationDetails#getGitRef()}.</li>
  * <li>{@code optsEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getOptsEnvironmentVar()}.</li>
  * <li>{@code exitEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getExitEnvironmentVar()}.</li>
  * <li>{@code moduleEntryPoint} - The module entry point, or {@code null} if none. Will also include the main class name if present, in the form {@code [moduleName]/[className]}.</li>
@@ -131,6 +132,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     private final Property<String> mainClass;
     private Iterable<String> defaultJvmOpts = new LinkedList<>();
     private String applicationName;
+    private String gitRef;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
     private FileCollection classpath;
@@ -291,6 +293,17 @@ public abstract class CreateStartScripts extends ConventionTask {
         this.applicationName = applicationName;
     }
 
+    @Nullable
+    @Input
+    @ToBeReplacedByLazyProperty
+    public String getGitRef() {
+        return gitRef;
+    }
+
+    public void setGitRef(@Nullable String gitRef) {
+        this.gitRef = gitRef;
+    }
+
     public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
@@ -357,6 +370,7 @@ public abstract class CreateStartScripts extends ConventionTask {
         StartScriptGenerator generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         generator.setApplicationName(getApplicationName());
+        generator.setGitRef(getGitRef());
         generator.setEntryPoint(getEntryPoint());
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());

@@ -31,6 +31,11 @@ public interface JavaAppStartScriptGenerationDetails {
     String getApplicationName();
 
     /**
+     * The Git revision or tag
+     */
+    String getGitRef();
+
+    /**
      * The environment variable to use to provide additional options to the JVM
      */
     String getOptsEnvironmentVar();
