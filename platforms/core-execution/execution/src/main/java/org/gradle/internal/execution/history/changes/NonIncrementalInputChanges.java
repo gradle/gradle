@@ -57,7 +57,8 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
 
     public Iterable<FileChange> getObjectFileChanges(Object parameter) {
         CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(incrementalInputProperties.getPropertyNameFor(parameter));
-        return () -> getAllFileChanges(Objects.requireNonNull(currentFileCollectionFingerprint)).iterator();
+        Objects.requireNonNull(currentFileCollectionFingerprint);
+        return () -> getAllFileChanges(currentFileCollectionFingerprint).iterator();
     }
 
     @Override
