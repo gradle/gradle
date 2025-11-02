@@ -16,12 +16,12 @@
 
 package org.gradle.integtests
 
-import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.wrapper.WrapperExecutor
 import org.junit.Rule
 import spock.lang.Shared
@@ -112,7 +112,9 @@ Visit https://gradle.org/release-checksums/ to verify the checksums of official 
 
         then:
         result.assertHasErrorOutput("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. " +
-            "Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option")
+            "Specify one in the wrapper task configuration or with the --gradle-distribution-sha256-sum task option. " +
+            "You can find checksums for all Gradle releases at https://gradle.org/release-checksums"
+        )
     }
 
     private writeValidDistributionHash() {
