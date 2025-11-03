@@ -28,6 +28,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -203,7 +204,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
 
-        getTestDefinitionDirs().from(getProject().getLayout().getProjectDirectory().file(TEST_DEFINITIONS_DIR));
+        getTestDefinitionDirs().from(getProjectLayout().getProjectDirectory().file(TEST_DEFINITIONS_DIR));
         getCandidateDefinitionDirs().convention(getTestDefinitionDirs()); // Filtering would be done here, as in getCandidateClassFiles().  Does it need a separate prop, or could it reuse patternSet?
         getScanForTestDefinitions().convention(false);
     }
@@ -1359,4 +1360,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     @Inject
     protected abstract JavaModuleDetector getJavaModuleDetector();
+
+    @Inject
+    protected abstract ProjectLayout getProjectLayout();
 }
