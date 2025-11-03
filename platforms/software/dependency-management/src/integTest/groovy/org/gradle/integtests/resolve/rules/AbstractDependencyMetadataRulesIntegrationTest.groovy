@@ -866,8 +866,8 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         then:
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints:
-   Dependency path: 'root project :' ($variantToTest) --> 'org.test:moduleB:1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path: 'root project :' ($variantToTest) --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{strictly 1.0}'"""
+   Dependency path: 'root' ($variantToTest) --> 'org.test:moduleB:1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path: 'root' ($variantToTest) --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{strictly 1.0}'"""
 
         where:
         thing                    | defineAsConstraint
@@ -941,8 +941,8 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         then:
         fails 'checkDep'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints:
-   Dependency path: 'root project :' ($variantToTest) --> 'org.test:moduleB:1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path: 'root project :' ($variantToTest) --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{require 1.+; reject 1.1 & 1.2}'"""
+   Dependency path: 'root' ($variantToTest) --> 'org.test:moduleB:1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path: 'root' ($variantToTest) --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{require 1.+; reject 1.1 & 1.2}'"""
 
         where:
         thing                    | defineAsConstraint

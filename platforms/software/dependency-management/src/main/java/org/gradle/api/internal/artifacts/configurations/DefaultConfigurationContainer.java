@@ -34,7 +34,6 @@ import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -62,7 +61,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final ResolutionStrategyFactory resolutionStrategyFactory;
     private final InternalProblems problemsService;
-
     private final ConfigurationResolver resolver;
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
@@ -75,8 +73,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory,
         InternalProblems problemsService,
-        ConfigurationResolver.Factory resolverFactory,
-        AttributesSchemaInternal schema
+        ConfigurationResolver resolver
     ) {
         super(Configuration.class, instantiator, Named.Namer.INSTANCE, callbackDecorator);
 
@@ -84,8 +81,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.problemsService = problemsService;
-
-        this.resolver = resolverFactory.create(this, owner, schema);
+        this.resolver = resolver;
     }
 
     @Override

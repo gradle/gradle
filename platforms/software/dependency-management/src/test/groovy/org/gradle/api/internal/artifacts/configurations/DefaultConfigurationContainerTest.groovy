@@ -50,10 +50,6 @@ import spock.lang.Specification
 class DefaultConfigurationContainerTest extends Specification {
 
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
-    private ConfigurationResolver.Factory resolverFactory = Mock(ConfigurationResolver.Factory) {
-        create(_, _, _) >> resolver
-    }
-
     private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
     private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
@@ -102,8 +98,7 @@ class DefaultConfigurationContainerTest extends Specification {
         configurationFactory,
         Mock(ResolutionStrategyFactory),
         TestUtil.problemsService(),
-        resolverFactory,
-        AttributeTestUtil.mutableSchema()
+        resolver
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {

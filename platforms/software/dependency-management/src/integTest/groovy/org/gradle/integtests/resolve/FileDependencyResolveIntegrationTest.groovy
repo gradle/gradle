@@ -203,6 +203,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
                     project(":", ":main:") {
                         configuration = "compile"
                         noArtifacts()
+                        project(":sub", "main:sub:")
                     }
                 }
             }
