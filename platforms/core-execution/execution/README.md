@@ -7,7 +7,7 @@ Notably, the execution engine is not responsible for deciding which units of wor
 
 [^concurrent-environment]: This means the engine is fully thread-safe and ensures that parallel execution of work does not cause problems, even when multiple processes are executing units of work simultaneously.
 
-![](Execution%20Engine%20Schematic.drawio.svg)
+[![](Execution%20Engine%20Schematic.drawio.svg)](Execution%20Engine%20Schematic.drawio.svg?raw=true)
 
 > [!TIP]
 > Use [draw.io](https://draw.io/) to make changes to the diagram. The linked SVG file can be opened directly in draw.io.
