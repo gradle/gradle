@@ -22,10 +22,15 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 @FluidDependenciesResolveTest
 class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, "compile")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        resolve.prepare()
+        buildFile << """
+            configurations {
+                compile
+            }
+            ${resolve.configureProject("compile")}
+        """
     }
 
     def "can specify producer task for file dependency"() {

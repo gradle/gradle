@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSpec {
 
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, 'res')
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         buildFile << """
@@ -31,11 +31,12 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
                     extendsFrom(conf)
                 }
             }
+
+            ${resolve.configureProject("res")}
         """
         settingsFile << """
             rootProject.name = 'test'
         """
-        resolve.prepare()
     }
 
     def "uses dependency attributes to select the right configuration on the target project (color=#color)"() {
