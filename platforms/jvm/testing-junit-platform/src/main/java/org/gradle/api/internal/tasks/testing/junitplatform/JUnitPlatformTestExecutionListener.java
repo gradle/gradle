@@ -218,8 +218,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportSkipped(TestIdentifier testIdentifier) {
-        assert currentTestPlan != null;
-
+        Objects.requireNonNull(currentTestPlan);
         currentTestPlan.getChildren(testIdentifier).stream()
             .filter(child -> !wasStarted(child))
             .forEach(this::executionSkipped);
@@ -352,7 +351,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @SuppressWarnings("deprecation")
     private Optional<TestIdentifier> getParent(TestIdentifier testIdentifier) {
-        assert currentTestPlan != null;
+        Objects.requireNonNull(currentTestPlan);
         try {
             return testIdentifier.getParentIdObject().map(currentTestPlan::getTestIdentifier);
         // Some versions of the JDK throw a BootstrapMethodError
@@ -400,7 +399,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private boolean hasDifferentSourceThanAncestor(TestIdentifier testIdentifier) {
-        assert currentTestPlan != null;
+        Objects.requireNonNull(currentTestPlan);
 
         Optional<TestIdentifier> parent = currentTestPlan.getParent(testIdentifier);
         while (parent.isPresent()) {
