@@ -127,6 +127,7 @@ import org.gradle.tooling.events.test.TestOutputEvent;
 import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
+import org.gradle.tooling.events.test.internal.DefaultReportMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultResourceBasedTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
@@ -200,6 +201,7 @@ import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
+import org.gradle.tooling.internal.protocol.events.InternalReportMetadataEvent;
 import org.gradle.tooling.internal.protocol.events.InternalResourceBasedTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalRootOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
@@ -628,11 +630,18 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private @Nullable TestMetadataEvent toTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
-        if (event instanceof InternalTestMetadataEvent) {
+        if (event instanceof InternalReportMetadataEvent) {
+            return transformReportMetadata((InternalReportMetadataEvent) event, descriptor);
+        } else if (event instanceof InternalTestMetadataEvent) {
             return transformTestMetadata((InternalTestMetadataEvent) event, descriptor);
-        } else {
+        }  else {
             return null;
         }
+    }
+
+    private TestMetadataEvent transformReportMetadata(InternalReportMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
+        OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
+        return new DefaultReportMetadataEvent(event.getEventTime(), clientDescriptor, event.getValues(), event.getTimestamp());
     }
 
     private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {

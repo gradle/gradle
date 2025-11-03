@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  *
  * This is created by the provider side of the tooling API.
  */
-public final class DefaultTestMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent {
+public class DefaultTestMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent {
     private static final int KEYS_TO_SUMMARIZE = 3;
 
     private final Map<String, Object> values;
