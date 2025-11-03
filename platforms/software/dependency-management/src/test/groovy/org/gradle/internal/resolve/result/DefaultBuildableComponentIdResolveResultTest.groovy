@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resolve.result
 
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
@@ -30,15 +31,17 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
 
     def "can resolve using id"() {
         def id = Stub(ComponentIdentifier)
-        def mvId = Stub(ModuleVersionIdentifier)
+        def moduleId = Stub(ModuleIdentifier)
+        String version = "foo"
 
         when:
-        result.resolved(id, mvId)
+        result.resolved(id, moduleId, version)
 
         then:
         result.hasResult()
         result.id == id
-        result.moduleVersionId == mvId
+        result.moduleId == moduleId
+        result.version == version
         result.state == null
         result.graphState == null
         result.failure == null
@@ -46,7 +49,10 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
 
     def "can resolve using state"() {
         def id = Stub(ComponentIdentifier)
-        def mvId = Stub(ModuleVersionIdentifier)
+        def mvId = Stub(ModuleVersionIdentifier) {
+            getModule() >> Stub(ModuleIdentifier)
+            getVersion() >> "bar"
+        }
         def metadata = Stub(ComponentGraphResolveMetadata) {
             getModuleVersionId() >> mvId
         }
@@ -62,7 +68,8 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         then:
         result.hasResult()
         result.id == id
-        result.moduleVersionId == mvId
+        result.moduleId == mvId.module
+        result.version == mvId.version
         result.state == state
         result.graphState == graphState
         result.failure == null

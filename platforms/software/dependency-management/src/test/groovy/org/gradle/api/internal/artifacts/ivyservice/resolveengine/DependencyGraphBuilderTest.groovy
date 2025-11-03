@@ -1212,7 +1212,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def selectorResolvesTo(ComponentSelector selector, ComponentIdentifier id, ModuleVersionIdentifier mvId) {
         1 * idResolver.resolve(selector, _, _, _, _, _) >> { ComponentSelector sel, ComponentOverrideMetadata om, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes ->
-            result.resolved(id, mvId)
+            result.resolved(id, mvId.module, mvId.version)
         }
     }
 

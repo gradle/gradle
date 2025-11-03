@@ -220,7 +220,7 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         }
 
         // If the previous result is still not rejected, do not need to re-resolve. The previous result is still good.
-        return allRejects != null && allRejects.accept(previousResult.getModuleVersionId().getVersion());
+        return allRejects != null && allRejects.accept(previousResult.getVersion());
     }
 
     @Override

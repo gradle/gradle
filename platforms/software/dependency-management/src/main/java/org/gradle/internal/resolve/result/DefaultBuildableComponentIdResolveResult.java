@@ -17,6 +17,7 @@
 package org.gradle.internal.resolve.result;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -33,7 +34,8 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     private ComponentGraphResolveState state;
     private ComponentGraphSpecificResolveState graphState;
     private ComponentIdentifier id;
-    private ModuleVersionIdentifier moduleVersionId;
+    private ModuleIdentifier moduleId;
+    private String version;
     private boolean rejected;
     private ImmutableSet.Builder<String> unmatchedVersions;
     private ImmutableSet.Builder<RejectedVersion> rejections;
@@ -56,9 +58,15 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
-    public ModuleVersionIdentifier getModuleVersionId() {
+    public ModuleIdentifier getModuleId() {
         assertResolved();
-        return moduleVersionId;
+        return moduleId;
+    }
+
+    @Override
+    public String getVersion() {
+        assertResolved();
+        return version;
     }
 
     @Override
@@ -80,21 +88,23 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
     }
 
     @Override
-    public void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier) {
+    public void resolved(ComponentIdentifier id, ModuleIdentifier module, String version) {
         reset();
         this.id = id;
-        this.moduleVersionId = moduleVersionIdentifier;
+        this.moduleId = module;
+        this.version = version;
     }
 
     @Override
-    public void rejected(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier) {
-        resolved(id, moduleVersionIdentifier);
+    public void rejected(ComponentIdentifier id, ModuleIdentifier module, String version) {
+        resolved(id, module, version);
         rejected = true;
     }
 
     @Override
     public void resolved(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
-        resolved(state.getId(), state.getMetadata().getModuleVersionId());
+        ModuleVersionIdentifier mdId = state.getMetadata().getModuleVersionId();
+        resolved(state.getId(), mdId.getModule(), mdId.getVersion());
         this.state = state;
         this.graphState = graphState;
     }
@@ -166,7 +176,8 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
         failure = null;
         state = null;
         id = null;
-        moduleVersionId = null;
+        moduleId = null;
+        version = null;
         rejected = false;
     }
 }

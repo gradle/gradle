@@ -56,13 +56,13 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult idResolveResult = entry.result;
 
             if (selectorState.isForce() && !hasSoftForce) {
-                T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
+                T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult);
                 return Collections.singletonList(forcedComponent);
             }
 
             if (idResolveResult.mark(this)) {
                 if (idResolveResult.getFailure() == null) {
-                    T componentState = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
+                    T componentState = componentForIdResolveResult(componentFactory, idResolveResult);
                     if (resolved == null) {
                         resolved = new ArrayList<>();
                     }
@@ -111,8 +111,8 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
-        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId().getModule(), idResolveResult.getModuleVersionId().getVersion(), idResolveResult.getState(), idResolveResult.getGraphState());
+    public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult) {
+        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleId(), idResolveResult.getVersion(), idResolveResult.getState(), idResolveResult.getGraphState());
         if (idResolveResult.isRejected()) {
             component.reject();
         }
@@ -166,7 +166,7 @@ class SelectorStateResolverResults {
 
     private static boolean emptyVersion(ComponentIdResolveResult existing) {
         if (existing.getFailure() == null) {
-            return existing.getModuleVersionId().getVersion().isEmpty();
+            return existing.getVersion().isEmpty();
         }
         return false;
     }
@@ -180,8 +180,8 @@ class SelectorStateResolverResults {
 
     private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure() == null && resolveResult.getFailure() == null) {
-            Version existingVersion = versionParser.transform(existing.getModuleVersionId().getVersion());
-            Version candidateVersion = versionParser.transform(resolveResult.getModuleVersionId().getVersion());
+            Version existingVersion = versionParser.transform(existing.getVersion());
+            Version candidateVersion = versionParser.transform(resolveResult.getVersion());
 
             int comparison = versionComparator.compare(candidateVersion, existingVersion);
             return comparison < 0;
@@ -206,7 +206,7 @@ class SelectorStateResolverResults {
                 return true;
             }
 
-            String version = candidate.getModuleVersionId().getVersion();
+            String version = candidate.getVersion();
             if (StringUtils.isEmpty(version)) {
                 return false;
             }
@@ -234,7 +234,7 @@ class SelectorStateResolverResults {
 
         @Override
         public String toString() {
-            return selector.toString() + " -> " + result.getModuleVersionId();
+            return selector.toString() + " -> " + result.getId();
         }
     }
 }

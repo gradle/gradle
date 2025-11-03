@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -70,8 +71,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
             ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
-            if (rejector != null && rejector.accept(component.getModuleVersionId().getVersion())) {
-                result.rejected(projectId, component.getModuleVersionId());
+            ModuleVersionIdentifier mvId = component.getModuleVersionId();
+            if (rejector != null && rejector.accept(mvId.getVersion())) {
+                result.rejected(projectId, mvId.getModule(), mvId.getVersion());
             } else {
                 result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
             }

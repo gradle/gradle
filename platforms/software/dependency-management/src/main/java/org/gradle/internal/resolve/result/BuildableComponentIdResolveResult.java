@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
@@ -26,15 +26,16 @@ import org.gradle.internal.resolve.RejectedVersion;
 import java.util.Collection;
 
 public interface BuildableComponentIdResolveResult extends ComponentIdResolveResult, ResourceAwareResolveResult {
+
     /**
      * Marks the component selector as resolved to the specified id.
      */
-    void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
+    void resolved(ComponentIdentifier id, ModuleIdentifier module, String version);
 
     /**
      * Marks the component selector as resolved to the specified id, but rejected.
      */
-    void rejected(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
+    void rejected(ComponentIdentifier id, ModuleIdentifier module, String version);
 
     /**
      * Marks the component selector as resolved, with the provided state. The id is taken from the metadata.

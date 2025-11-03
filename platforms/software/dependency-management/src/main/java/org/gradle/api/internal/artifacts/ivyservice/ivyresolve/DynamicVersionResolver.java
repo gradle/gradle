@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -262,7 +261,7 @@ public class DynamicVersionResolver {
         private final AttributesFactory attributesFactory;
         private final ComponentMetadataSupplierRuleExecutor metadataSupplierRuleExecutor;
         private final CacheExpirationControl cacheExpirationControl;
-        private ModuleComponentIdentifier firstRejected = null;
+        private @Nullable ModuleComponentIdentifier firstRejected = null;
 
         public RepositoryResolveState(
             VersionedComponentChooser versionedComponentChooser,
@@ -389,7 +388,7 @@ public class DynamicVersionResolver {
             registerAttempts(target);
 
             if (firstRejected != null) {
-                target.rejected(firstRejected, DefaultModuleVersionIdentifier.newId(firstRejected));
+                target.rejected(firstRejected, firstRejected.getModuleIdentifier(), firstRejected.getVersion());
             }
         }
 

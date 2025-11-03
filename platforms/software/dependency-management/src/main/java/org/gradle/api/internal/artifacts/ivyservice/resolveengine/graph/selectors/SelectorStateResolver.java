@@ -114,7 +114,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
     private List<T> resolveSingleSelector(ResolvableSelectorState selectorState, VersionSelector allRejects) {
         assert selectorState.getVersionConstraint() == null || selectorState.getVersionConstraint().getPreferredSelector() == null;
         ComponentIdResolveResult resolved = selectorState.resolve(allRejects);
-        T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved, selectorState);
+        T selected = SelectorStateResolverResults.componentForIdResolveResult(componentFactory, resolved);
         return Collections.singletonList(selected);
     }
 
@@ -246,7 +246,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
 
         @Override
         public int compare(ComponentIdResolveResult o1, ComponentIdResolveResult o2) {
-            return versionComparator.compare(versionParser.transform(o2.getModuleVersionId().getVersion()), versionParser.transform(o1.getModuleVersionId().getVersion()));
+            return versionComparator.compare(versionParser.transform(o2.getVersion()), versionParser.transform(o1.getVersion()));
         }
     }
 }

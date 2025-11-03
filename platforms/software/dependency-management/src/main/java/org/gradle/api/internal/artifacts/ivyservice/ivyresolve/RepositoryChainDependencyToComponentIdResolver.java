@@ -17,12 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -78,11 +76,10 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 String version = acceptor.getSelector();
                 ModuleIdentifier moduleId = module.getModuleIdentifier();
                 ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(moduleId, version);
-                ModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.newId(moduleId, version);
                 if (rejector != null && rejector.accept(version)) {
-                    result.rejected(id, mvId);
+                    result.rejected(id, moduleId, version);
                 } else {
-                    result.resolved(id, mvId);
+                    result.resolved(id, moduleId, version);
                 }
             }
         }

@@ -335,9 +335,9 @@ class SelectorStateResolverTest extends Specification {
 
         def resolvedOrRejected(ModuleComponentIdentifier id, VersionSelector rejectSelector, BuildableComponentIdResolveResult result) {
             if (rejectSelector != null && rejectSelector.accept(id.version)) {
-                result.rejected(id, DefaultModuleVersionIdentifier.newId(id))
+                result.rejected(id, id.moduleIdentifier, id.version)
             } else {
-                result.resolved(id, DefaultModuleVersionIdentifier.newId(id))
+                result.resolved(id, id.moduleIdentifier, id.version)
             }
         }
 

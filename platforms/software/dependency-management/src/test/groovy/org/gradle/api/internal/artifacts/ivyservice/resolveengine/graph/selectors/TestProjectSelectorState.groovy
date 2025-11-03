@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selecto
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
@@ -52,7 +52,7 @@ class TestProjectSelectorState implements ResolvableSelectorState {
     ComponentIdResolveResult resolve(VersionSelector allRejects) {
         def result = new DefaultBuildableComponentIdResolveResult()
         ProjectComponentIdentifier componentId = new DefaultProjectComponentIdentifier(projectId)
-        result.resolved(componentId, DefaultModuleVersionIdentifier.newId("org", projectId.projectName, VERSION))
+        result.resolved(componentId, DefaultModuleIdentifier.newId("org", projectId.projectName), VERSION)
         return result
     }
 
