@@ -24,6 +24,7 @@ import org.spockframework.runtime.extension.IMethodInvocation
 
 import java.util.function.Predicate
 import java.util.stream.Collectors
+import java.util.stream.Stream
 
 class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
@@ -106,17 +107,24 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
         if (annotations.isEmpty()) {
             return (v) -> true;
         }
-        List<Predicate<GradleVersion>> predicates = annotations.stream().map { annotation ->
-            GRADLE_VERSION_PREDICATE.toPredicate(constraintFor(annotation))
-        }.collect(Collectors.toList())
+        List<Predicate<GradleVersion>> predicates = annotations.stream()
+                .flatMap { annotation -> constraintsFor(annotation) }
+                .map(constraint -> GRADLE_VERSION_PREDICATE.toPredicate(constraint))
+                .collect(Collectors.toList())
         return (v) -> predicates.stream().allMatch { it.test(v) }
     }
 
-    private static String constraintFor(annotation) {
-        if(annotation.value() == "current"){
-            return "=${INSTALLATION_GRADLE_VERSION.baseVersion.version}"
-        }
-        return annotation.value()
+    private static Stream<String> constraintsFor(annotation) {
+        def patterns = annotation.value().split(/\s+/)*.trim()
+        return patterns.stream().map(
+                pattern -> {
+                    if ("current".equals(pattern)) {
+                        return "=${INSTALLATION_GRADLE_VERSION.baseVersion.version}" // special handling, needs an extra equals prefix
+                    } else {
+                        pattern.replaceAll("current", "${INSTALLATION_GRADLE_VERSION.baseVersion.version}")
+                    }
+                }
+        )
     }
 
     @Override
