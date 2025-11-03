@@ -65,7 +65,7 @@ public class TestEventSerializer {
         registry.register(DefaultTestDescriptor.class, new DefaultTestDescriptorSerializer());
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
-        registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
+        registry.register(DefaultTestOutputEvent.class, DefaultTestOutputEventSerializer.INSTANCE);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
         registry.register(TestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
@@ -156,7 +156,9 @@ public class TestEventSerializer {
         }
     }
 
-    private static class DefaultTestOutputEventSerializer implements Serializer<DefaultTestOutputEvent> {
+    public static class DefaultTestOutputEventSerializer implements Serializer<DefaultTestOutputEvent> {
+        public static final DefaultTestOutputEventSerializer INSTANCE = new DefaultTestOutputEventSerializer();
+
         private final Serializer<TestOutputEvent.Destination> destinationSerializer = new BaseSerializerFactory().getSerializerFor(TestOutputEvent.Destination.class);
 
         @Override
