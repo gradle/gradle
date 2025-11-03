@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ProjectDirectoryCreator
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
@@ -54,6 +55,7 @@ import spock.lang.Specification
 import java.util.function.Supplier
 
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
+import static org.junit.Assume.assumeNotNull
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 /**
@@ -462,6 +464,18 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         def failureOutput = targetDist.selectOutputWithFailureLogging(stdout, stderr).toString()
         assert failureOutput.contains("CONFIGURE FAILED")
         validateOutput(getFailure())
+    }
+
+    /**
+     * Gets a JVM different from the one running the tests that is compatible with the target Gradle distribution,
+     * then checks it is not null via {@link org.junit.Assume#assumeNotNull(Object, String)}.
+     *
+     * @return the JVM with a different version that can run the target Gradle distribution
+     */
+    Jvm requireDifferentVersionJvmCompatibleWithTargetDist() {
+        def otherJvm = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)
+        assumeNotNull(otherJvm, "No suitable alternative JVM found that can run Gradle ${targetDist}.")
+        return otherJvm
     }
 
     private void reset() {
