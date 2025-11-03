@@ -26,7 +26,7 @@ import java.util.Set;
 
 public interface ComponentResolutionState extends StringVersioned {
 
-    ComponentIdentifier getComponentId();
+    ComponentIdentifier getId();
 
     /**
      * The module that owns this component.

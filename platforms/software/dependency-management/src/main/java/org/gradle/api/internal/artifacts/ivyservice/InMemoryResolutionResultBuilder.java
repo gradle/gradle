@@ -58,7 +58,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     @Override
     public void visitNode(DependencyGraphNode node) {
         DependencyGraphComponent component = node.getOwner();
-        resolutionResultBuilder.startVisitComponent(component.getResultId(), component.getSelectionReason(), component.getRepositoryName(), component.getComponentId(), component.getResolveState().getMetadata().getModuleVersionId());
+        resolutionResultBuilder.startVisitComponent(component.getResultId(), component.getSelectionReason(), component.getRepositoryName(), component.getId(), component.getResolveState().getMetadata().getModuleVersionId());
         for (ResolvedGraphVariant variant : component.getSelectedVariants()) {
             ResolvedVariantResult publicView = component.getResolveState().getPublicViewFor(variant.getResolveState(), null);
             resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), publicView);

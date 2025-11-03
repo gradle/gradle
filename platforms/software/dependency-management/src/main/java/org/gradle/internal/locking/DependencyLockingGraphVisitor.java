@@ -80,7 +80,7 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
     @Override
     public void visitNode(DependencyGraphNode node) {
         boolean changing = false;
-        ComponentIdentifier identifier = node.getOwner().getComponentId();
+        ComponentIdentifier identifier = node.getOwner().getId();
         ComponentGraphResolveMetadata metadata = node.getOwner().getMetadataOrNull();
         if (metadata != null && metadata.isChanging()) {
             changing = true;

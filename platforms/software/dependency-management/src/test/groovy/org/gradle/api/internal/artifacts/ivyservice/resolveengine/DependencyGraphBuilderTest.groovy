@@ -1251,7 +1251,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         @Override
         void visitNode(DependencyGraphNode node) {
-            components.add(node.owner.componentId)
+            components.add(node.owner.id)
         }
 
         @Override

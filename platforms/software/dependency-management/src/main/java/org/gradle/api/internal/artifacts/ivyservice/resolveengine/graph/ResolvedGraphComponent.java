@@ -42,7 +42,7 @@ public interface ResolvedGraphComponent {
     /**
      * Returns a unique id for this component.
      */
-    ComponentIdentifier getComponentId();
+    ComponentIdentifier getId();
 
     /**
      * The reason this component was selected in the graph.

@@ -38,7 +38,7 @@ public class ProjectDependencyForcingResolver<T extends ComponentResolutionState
         T foundProjectCandidate = null;
         // fine one or more project dependencies among conflicting modules
         for (T candidate : details.getCandidates()) {
-            if (candidate.getComponentId() instanceof ProjectComponentIdentifier) {
+            if (candidate.getId() instanceof ProjectComponentIdentifier) {
                 if (foundProjectCandidate == null) {
                     // found the first project dependency
                     foundProjectCandidate = candidate;

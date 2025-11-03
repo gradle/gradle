@@ -17,10 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
-import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
@@ -35,14 +34,13 @@ abstract class AbstractConflictResolverTest extends Specification {
     ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails(participants)
 
     ModuleConflictResolver resolver
-    TestComponent root = new TestComponent(DefaultModuleVersionIdentifier.newId('', 'root', ''))
 
     protected void resolveConflicts() {
         resolver.select(details)
     }
 
     protected TestComponent module(String org, String name, String version) {
-        new TestComponent(DefaultModuleVersionIdentifier.newId(org, name, version))
+        new TestComponent(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(org, name), version))
     }
 
     protected TestComponent prefer(String version) {
@@ -78,17 +76,20 @@ abstract class AbstractConflictResolverTest extends Specification {
     }
 
     private static class TestComponent implements ComponentResolutionState {
-        final ModuleVersionIdentifier id
-        final ComponentIdentifier componentId
+        private final ModuleComponentIdentifier id
         ComponentGraphResolveMetadata metadata
         boolean rejected = false
         private MutableVersionConstraint constraint
         String repositoryName
 
-        TestComponent(ModuleVersionIdentifier id) {
+        TestComponent(ModuleComponentIdentifier id) {
             this.id = id
-            this.componentId = DefaultModuleComponentIdentifier.newId(id)
             this.constraint = new DefaultMutableVersionConstraint(id.version)
+        }
+
+        @Override
+        ModuleComponentIdentifier getId() {
+            return id
         }
 
         TestComponent strict() {
@@ -126,7 +127,9 @@ abstract class AbstractConflictResolverTest extends Specification {
             id.version
         }
 
-        String toString() { id }
+        String toString() {
+            id.toString()
+        }
 
         @Override
         Set<VirtualPlatformState> getPlatformOwners() {
@@ -142,7 +145,7 @@ abstract class AbstractConflictResolverTest extends Specification {
             return new ModuleResolutionState() {
                 @Override
                 ModuleIdentifier getId() {
-                    return TestComponent.this.id.module
+                    return TestComponent.this.id.moduleIdentifier
                 }
             }
         }

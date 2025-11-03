@@ -105,7 +105,7 @@ public class VirtualPlatformState {
     public ComponentIdentifier getSelectedPlatformId() {
         ComponentState selected = platformModule.getSelected();
         if (selected != null) {
-            return selected.getComponentId();
+            return selected.getId();
         }
         return null;
     }

@@ -121,7 +121,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
         def module = resolveState.getModule(moduleId)
         module.getVersions() >> versions.collect { String version ->
             Stub(ComponentState) {
-                getComponentId() >> DefaultModuleComponentIdentifier.newId(moduleId, version)
+                getId() >> DefaultModuleComponentIdentifier.newId(moduleId, version)
                 getVersion() >> version
                 getModule() >> module
             }

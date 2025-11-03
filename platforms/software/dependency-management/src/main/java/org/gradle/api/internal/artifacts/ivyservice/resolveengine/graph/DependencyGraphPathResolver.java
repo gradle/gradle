@@ -78,7 +78,7 @@ public class DependencyGraphPathResolver {
                     continue;
                 }
                 List<Describable> path = new ArrayList<>(shortest);
-                path.add(Describables.of(version.getComponentId().getDisplayName()));
+                path.add(Describables.of(version.getId().getDisplayName()));
                 shortestPaths.put(version, path);
             }
         }

@@ -215,7 +215,7 @@ class SelectorStateResolverTest extends Specification {
         def selected = resolverWithMock.selectBest(moduleId, moduleSelectors([nine, otherNine]))
 
         then:
-        selected.componentId == projectId
+        selected.id == projectId
         selected.version == TestProjectSelectorState.VERSION
         0 * mockResolver._
     }

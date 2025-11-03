@@ -53,7 +53,7 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     }
 
     @Override
-    public ComponentIdentifier getComponentId() {
+    public ComponentIdentifier getId() {
         return componentIdentifier;
     }
 

@@ -278,7 +278,7 @@ public class DependencyGraphBuilder {
         for (EdgeState edge : edges) {
             ComponentState targetComponent = edge.getTargetComponent();
             if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
-                if (!componentMetaDataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
+                if (!componentMetaDataResolver.isFetchingMetadataCheap(targetComponent.getId())) {
                     // Avoid initializing the list if there are no components requiring download (a common case)
                     if (requiringDownload == null) {
                         requiringDownload = new ArrayList<>();
@@ -447,7 +447,7 @@ public class DependencyGraphBuilder {
 
     private static Pair<Conflict, List<String>> buildConflictResolutions(ComponentState selected, ResolutionParameters.FailureResolutions failureResolutions) {
         ImmutableList<Conflict.Participant> participants = selected.getModule().getAllVersions().stream()
-            .map(component -> new Conflict.Participant(component.getVersion(), component.getComponentId()))
+            .map(component -> new Conflict.Participant(component.getVersion(), component.getId()))
             .collect(ImmutableList.toImmutableList());
 
         Conflict conflict = new Conflict(

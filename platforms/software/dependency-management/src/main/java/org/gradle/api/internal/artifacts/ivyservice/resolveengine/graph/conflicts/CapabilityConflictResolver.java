@@ -94,7 +94,7 @@ public class CapabilityConflictResolver {
             // Evict any node from the same component as the selected node, so we don't attach edges to it.
             // TODO #19788: Eviction currently causes broken graphs.
             for (Candidate candidate : candidates) {
-                if (candidate.node.getComponent().getComponentId().equals(winner.node.getComponent().getComponentId())) {
+                if (candidate.node.getComponent().getId().equals(winner.node.getComponent().getId())) {
                     if (candidate.node != winner.node) {
                         candidate.node.evict();
                     }
@@ -198,7 +198,7 @@ public class CapabilityConflictResolver {
                     NodeState selectedNode = details.selected.node;
                     Describable selectionReason = details.reason != null
                         ? () -> "On capability " + group + ":" + name + " " + details.reason
-                        : () -> "Explicit selection of " + selectedNode.getComponent().getComponentId().getDisplayName() + " variant " + selectedNode.getMetadata().getName();
+                        : () -> "Explicit selection of " + selectedNode.getComponent().getId().getDisplayName() + " variant " + selectedNode.getMetadata().getName();
                     return new SelectedCandidate(selectedNode, selectionReason);
                 }
             }
@@ -266,7 +266,7 @@ public class CapabilityConflictResolver {
             ImmutableList.Builder<ComponentVariantIdentifier> candidateIds = ImmutableList.builderWithExpectedSize(candidates.size());
             for (Candidate candidate : candidates) {
                 candidateIds.add(new DefaultComponentVariantIdentifier(
-                    candidate.node.getComponent().getComponentId(),
+                    candidate.node.getComponent().getId(),
                     candidate.node.getMetadata().getName()
                 ));
             }
@@ -276,7 +276,7 @@ public class CapabilityConflictResolver {
         @Override
         public CapabilityResolutionDetails select(ComponentVariantIdentifier candidateId) {
             for (Candidate candidate : candidates) {
-                if (candidate.node.getComponent().getComponentId().equals(candidateId.getId())) {
+                if (candidate.node.getComponent().getId().equals(candidateId.getId())) {
                     if (candidate.node.getMetadata().getName().equals(candidateId.getVariantName())) {
                         this.selected = candidate;
                         break;
@@ -297,7 +297,7 @@ public class CapabilityConflictResolver {
             ComponentIdentifier selectedComponentId = componentIdParser.parseNotation(notation);
 
             for (Candidate candidate : candidates) {
-                ComponentIdentifier candidateComponentId = candidate.node.getComponent().getComponentId();
+                ComponentIdentifier candidateComponentId = candidate.node.getComponent().getId();
 
                 if (selectedComponentId.equals(candidateComponentId)) {
                     this.selected = candidate;

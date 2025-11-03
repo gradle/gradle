@@ -89,7 +89,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
     ComponentState component(String group="group", String name="name", String version="1.0") {
         def moduleId = DefaultModuleIdentifier.newId(group, name)
         Mock(ComponentState) {
-            getComponentId() >> DefaultModuleComponentIdentifier.newId(moduleId, version)
+            getId() >> DefaultModuleComponentIdentifier.newId(moduleId, version)
             getModule() >> Mock(ModuleResolveState) {
                 getId() >> moduleId
             }

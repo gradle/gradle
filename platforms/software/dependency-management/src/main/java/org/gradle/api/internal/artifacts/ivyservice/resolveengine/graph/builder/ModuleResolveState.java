@@ -490,7 +490,7 @@ public class ModuleResolveState implements CandidateModule, ModuleResolutionStat
         }
         boolean newSelectedIsProject = false;
         if (conflictResolution == ConflictResolution.preferProjectModules) {
-            if (newSelected.getComponentId() instanceof ProjectComponentIdentifier) {
+            if (newSelected.getId() instanceof ProjectComponentIdentifier) {
                 // Keep the project selected
                 newSelectedIsProject = true;
             }
@@ -506,7 +506,7 @@ public class ModuleResolveState implements CandidateModule, ModuleResolutionStat
                 // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
                 LenientPlatformGraphResolveState platformResolveState = LenientPlatformGraphResolveState.of(
                     idGenerator,
-                    (ModuleComponentIdentifier) componentState.getComponentId(),
+                    (ModuleComponentIdentifier) componentState.getId(),
                     DefaultModuleVersionIdentifier.newId(getId(), componentState.getVersion()),
                     platformState,
                     resolveState.getRoot(),

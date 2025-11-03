@@ -80,7 +80,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
 
         then:
         2 * node.owner >> component
-        1 * component.componentId >> newId(mid, '1.0')
+        1 * component.id >> newId(mid, '1.0')
     }
 
     def 'ignores node having a ModuleComponentIdentifier but an empty version'() {
@@ -98,7 +98,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         then:
         2 * node.owner >> component
         1 * node.root >> false
-        1 * component.componentId >> identifier
+        1 * component.id >> identifier
         1 * identifier.version >> ''
         1 * component.metadataOrNull >> metadata
         1 * metadata.isChanging() >> false
@@ -120,7 +120,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         then:
         2 * node.owner >> component
         1 * node.root >> false
-        1 * component.componentId >> identifier
+        1 * component.id >> identifier
         1 * component.metadataOrNull >> null
         0 * _
     }
@@ -138,7 +138,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         then:
         2 * rootNode.owner >> component
         1 * rootNode.root >> true
-        1 * component.componentId >> identifier
+        1 * component.id >> identifier
         1 * component.metadataOrNull >> null
 
         and:
@@ -249,25 +249,25 @@ class DependencyLockingGraphVisitorTest extends Specification {
     }
 
 
-    private void addVisitedNode(ModuleComponentIdentifier module) {
+    private void addVisitedNode(ModuleComponentIdentifier identifier) {
         DependencyGraphNode node = Mock()
         DependencyGraphComponent owner = Mock()
         ComponentResolutionState component = Mock()
         node.owner >> owner
         node.component >> component
-        owner.componentId >> module
+        owner.id >> identifier
 
         visitor.visitNode(node)
     }
 
-    private void addVisitedChangingNode(ModuleComponentIdentifier module) {
+    private void addVisitedChangingNode(ModuleComponentIdentifier identifier) {
         DependencyGraphNode node = Mock()
         DependencyGraphComponent component = Mock()
         ComponentGraphResolveMetadata metadata = Mock()
         node.owner >> component
         component.metadataOrNull >> metadata
         metadata.isChanging() >> true
-        component.componentId >> module
+        component.id >> identifier
 
         visitor.visitNode(node)
     }

@@ -493,7 +493,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 // We will only add dependencies to the leaves if there is such a published module.
                 // To do this, we either check module has already selected the target version
                 // or we need to resolve the potential target version to see if it exists.
-                if (selectedComponent.getComponentId().equals(targetComponentId) ||
+                if (selectedComponent.getId().equals(targetComponentId) ||
                     componentVersionExists(targetComponentId)
                 ) {
                     return createDependencyMetadata(targetComponentId, platformId);
