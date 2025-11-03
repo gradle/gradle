@@ -182,6 +182,8 @@ class AndroidGradlePluginVersions {
         JavaVersion current = JavaVersion.current()
         JavaVersion mini = getMinimumJavaVersionFor(agpVersionNumber)
         assumeTrue("AGP $agpVersion minimum supported Java version is $mini, current is $current", current >= mini)
+        JavaVersion maxi = getMaximumJavaVersionFor(agpVersionNumber)
+        assumeTrue("AGP $agpVersion maximum supported Java version is $maxi, current is $current", current <= maxi)
     }
 
     static JavaVersion getMinimumJavaVersionFor(String agpVersion) {
@@ -200,5 +202,10 @@ class AndroidGradlePluginVersions {
 
     static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {
         return JavaVersion.VERSION_17
+    }
+
+    static JavaVersion getMaximumJavaVersionFor(VersionNumber agpVersion) {
+        // Note: only tested for latest AGP versions, but for our tests this is currently sufficient
+        return JavaVersion.VERSION_24
     }
 }
