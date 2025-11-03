@@ -7,10 +7,13 @@ Notably, the execution engine is not responsible for deciding which units of wor
 
 [^concurrent-environment]: This means the engine is fully thread-safe and ensures that parallel execution of work does not cause problems, even when multiple processes are executing units of work simultaneously.
 
-[![](Execution%20Engine%20Schematic.drawio.svg)](Execution%20Engine%20Schematic.drawio.svg?raw=true)
+![](Execution%20Engine%20Schematic.drawio.svg)
 
 > [!TIP]
-> Use [draw.io](https://draw.io/) to make changes to the diagram. The linked SVG file can be opened directly in draw.io.
+> To open a zoomable version of the schematic above right-click and choose "Open Image in New Tab".
+
+> [!TIP]
+> Use [draw.io](https://draw.io/) to make changes to the diagram. The linked SVG file can be opened directly in draw.io. Do not edit as raw SVG.
 
 Any action with well-defined inputs and outputs, where safe execution or output reuse is required, can be implemented using the execution engine.
 Indeed, it is our aspiration in Gradle for all such work to be executed via the execution engine.
