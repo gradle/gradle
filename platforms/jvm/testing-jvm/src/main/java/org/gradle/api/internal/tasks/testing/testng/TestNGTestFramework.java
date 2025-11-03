@@ -116,6 +116,6 @@ public abstract class TestNGTestFramework implements TestFramework {
 
     @Override
     public String getDisplayName() {
-        return "Test NG";
+        return "TestNG";
     }
 }

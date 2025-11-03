@@ -366,7 +366,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         testFrameworkName | testFrameworkMethod
-        "Test NG"         | "useTestNG()"
+        "TestNG"         | "useTestNG()"
         "JUnit"           | "useJUnit()"
     }
 
