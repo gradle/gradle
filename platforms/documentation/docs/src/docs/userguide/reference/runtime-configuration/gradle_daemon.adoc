@@ -16,6 +16,38 @@
 = Gradle Daemon
 :keywords: daemon, status, jps, no-daemon, stop, org.gradle.daemon, updateDaemonJvm, gradle-daemon-jvm.properties, jvm-version, jvm-vendor
 
+The Gradle Daemon is a long-lived, persistent process that runs in the background and hosts Gradle's execution engine.
+It dramatically reduces build times using caching, runtime optimizations, and eliminating JVM startup overhead.
+
+== The Gradle Client vs. the Gradle Daemon
+
+To run any Gradle command, your system starts two separate Java Virtual Machine (JVM) processes, which can use different Java versions.
+
+Understanding their distinct roles and how their respective JVM versions are determined is key to effective build configuration and debugging:
+
+[cols="1,2,3", options="header"]
+|===
+| Process | Role | JVM Version Source
+
+| *Gradle Client JVM*
+| Process that starts when you run `gradle` or `./gradlew` and stays alive for the *entire build invocation*. +
+It connects to (or starts) a Daemon, sends the build request, and streams output back to the console.
+| Uses the JVM that launches the wrapper script (e.g. `JAVA_HOME`, `java` on `PATH`, or your IDE).
+
+| *Gradle Daemon JVM*
+| Long-lived process that executes the build and caches state between runs.
+| Uses the JVM set by: +
+- `org.gradle.java.home` (properties) +
+- <<tooling_api.adoc#tooling_api,Tooling API>> requests (e.g., IDE) +
+- <<#sec:configuring_daemon_jvm,Daemon JVM toolchains>> +
+By default, the Gradle Client will look for compatible daemons* or start a new one if none are available.
+|===
+*Gradle reuses an existing daemon only if its Java home/version and JVM args (e.g., `org.gradle.jvmargs`, `GRADLE_OPTS`) are identical.
+Changing JVM args (like increasing memory) will spawn a new daemon. In the rare case where the daemon has been disabled (`--no-daemon` or `-Dorg.gradle.daemon=false`) and the Client process is compatible, the Gradle Daemon uses the JVM that launched the Gradle Client.
+
+[[understanding_daemon]]
+== Understanding the Daemon
+
 A daemon is a computer program that runs as a background process rather than being under the direct control of an interactive user.
 
 Gradle runs on the Java Virtual Machine (JVM) and uses several supporting libraries with non-trivial initialization time.
@@ -31,10 +63,7 @@ The Gradle Daemon reduces build times by:
 * Benefiting from continuous runtime optimization in the JVM
 * <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> to calculate exactly what needs to be rebuilt before you run a build
 
-[[understanding_daemon]]
-== Understanding the Daemon
-
-The Gradle JVM client sends the Daemon build information such as command line arguments, project directories, and environment variables so that it can run the build.
+The Gradle Client sends the Gradle Daemon build information such as command line arguments, project directories, and environment variables so that it can run the build.
 The Daemon is responsible for resolving dependencies, executing build scripts, creating and running tasks; when it is done, it sends the client the output.
 Communication between the client and the Daemon happens via a local socket connection.
 
@@ -224,7 +253,7 @@ If your build uses a toolchain, ensure it matches the `JAVA_HOME` value, or at l
 You should also check your IDE settings to make sure they match as well.
 
 [[sec:configuring_daemon_jvm]]
-== Configuring the Daemon JVM
+== Daemon JVM Toolchains
 
 By default, the Gradle Daemon runs with the same JVM installation that started the build.
 Gradle defaults to the current shell path and `JAVA_HOME` environment variable to locate a usable JVM.
