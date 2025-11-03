@@ -7,6 +7,8 @@ Notably, the execution engine is not responsible for deciding which units of wor
 
 [^concurrent-environment]: This means the engine is fully thread-safe and ensures that parallel execution of work does not cause problems, even when multiple processes are executing units of work simultaneously.
 
+![](Execution%20Engine%20Schematic.drawio.svg)
+
 Any action with well-defined inputs and outputs, where safe execution or output reuse is required, can be implemented using the execution engine.
 Indeed, it is our aspiration in Gradle for all such work to be executed via the execution engine.
 At the time of writing several work-like entities in Gradle exist that are not executed via the execution engine.
