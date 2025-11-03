@@ -30,14 +30,9 @@ import java.io.IOException;
  * </p>
  */
 public final class OutputEntry {
-    public static final class Ser implements Serializer<OutputEntry> {
-        public static final Ser INSTANCE = new Ser();
-
+    public static final Serializer<OutputEntry> SERIALIZER = new Serializer<OutputEntry>() {
         private static final byte DESTINATION_STDOUT = 0b01;
         private static final byte DESTINATION_STDERR = 0b10;
-
-        private Ser() {
-        }
 
         @Override
         public OutputEntry read(Decoder decoder) throws IOException {
@@ -81,7 +76,7 @@ public final class OutputEntry {
                 encoder.writeSmallLong(value.end);
             }
         }
-    }
+    };
 
     static final long NO_OUTPUT = -1;
 

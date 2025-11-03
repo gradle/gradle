@@ -214,9 +214,9 @@ public final class SerializableTestResultStore {
             long id = assignedIds.remove(testDescriptor.getId());
             try {
                 OutputEntry outputEntry = outputWriter.finishOutput(id);
-                OutputEntry.Ser.INSTANCE.write(resultsEncoder, outputEntry);
+                OutputEntry.SERIALIZER.write(resultsEncoder, outputEntry);
                 SerializableTestResult.Serializer.serialize(testNodeBuilder.build(), resultsEncoder);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
             TestDescriptorInternal parent = getFlattenedParent(testDescriptor);
@@ -289,7 +289,12 @@ public final class SerializableTestResultStore {
         public void close() throws IOException {
             try {
                 // Write a 0 id to terminate the file
-                OutputEntry.Ser.INSTANCE.write(resultsEncoder, new OutputEntry(0, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT));
+                OutputEntry.SERIALIZER.write(resultsEncoder, new OutputEntry(0, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT));
+            } catch (Exception e) {
+                if (e instanceof IOException) {
+                    throw (IOException) e;
+                }
+                throw UncheckedException.throwAsUncheckedException(e);
             } finally {
                 CompositeStoppable.stoppable(resultsEncoder, outputWriter).stop();
             }
@@ -321,7 +326,15 @@ public final class SerializableTestResultStore {
     public void forEachResult(Consumer<? super OutputTrackedResult> action) throws IOException {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
             while (true) {
-                OutputEntry entry = OutputEntry.Ser.INSTANCE.read(resultsDecoder);
+                OutputEntry entry;
+                try {
+                    entry = OutputEntry.SERIALIZER.read(resultsDecoder);
+                } catch (Exception e) {
+                    if (e instanceof IOException) {
+                        throw (IOException) e;
+                    }
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
                 if (entry.id == 0) {
                     break;
                 }
