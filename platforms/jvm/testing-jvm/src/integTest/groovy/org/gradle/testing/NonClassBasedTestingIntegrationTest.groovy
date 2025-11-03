@@ -169,7 +169,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
-        failureCauseContains("Cannot access input property 'candidateDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
+        failureCauseContains("Cannot access input property 'testDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
         failureCauseContains("java.nio.file.AccessDeniedException: ${dir.absolutePath}")
 
         cleanup:
@@ -214,7 +214,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec {
         if (OperatingSystem.current().isWindows()) {
             sourcesPresentAndNoTestsFound()
         } else {
-            failureCauseContains("Cannot access input property 'candidateDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
+            failureCauseContains("Cannot access input property 'testDefinitionDirs' of task ':test'. Accessing unreadable inputs or outputs is not supported.")
             failureCauseContains("Failed to create MD5 hash for file: ${badFile.absolutePath} (Permission denied)")
         }
 

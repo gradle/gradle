@@ -204,8 +204,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
 
-        getTestDefinitionDirs().from(getProjectLayout().getProjectDirectory().file(TEST_DEFINITIONS_DIR));
-        getCandidateDefinitionDirs().convention(getTestDefinitionDirs()); // Filtering would be done here, as in getCandidateClassFiles().  Does it need a separate prop, or could it reuse patternSet?
+        getTestDefinitionDirs().from(getProjectLayout().getProjectDirectory().file(TEST_DEFINITIONS_DIR)); // Filtering would be done here, as in getCandidateClassFiles().  Does it need a separate prop, or could it reuse patternSet?
         getScanForTestDefinitions().convention(false);
     }
 
@@ -676,7 +675,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), getCandidateDefinitionDirs().getFiles(), getScanForTestDefinitions().get(),
+            getCandidateClassFiles(), isScanForTestClasses(), getTestDefinitionDirs().getFiles(), getScanForTestDefinitions().get(),
             getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
@@ -866,12 +865,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
-     * Returns the directories to scan for resource-based testing.
+     * Returns directories to scan for non-class-based test definition files.
      *
+     * @return The directories holding non-class-based test definition files.
      * @since 9.3.0
      */
-    @Internal
     @Incubating
+    @InputFiles
+    @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getTestDefinitionDirs();
 
     /**
@@ -1261,19 +1264,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public FileTree getCandidateClassFiles() {
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
-
-    /**
-     * Returns directories to scan for non-class-based test definition files.
-     *
-     * @return The candidate directories holding non-class-based test definition files.
-     * @since 9.3.0
-     */
-    @Incubating
-    @InputFiles
-    @SkipWhenEmpty
-    @IgnoreEmptyDirectories
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract ConfigurableFileCollection getCandidateDefinitionDirs();
 
     /**
      * Executes the action against the {@link #getFilter()}.
