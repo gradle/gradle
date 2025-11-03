@@ -28,12 +28,14 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.reflect.Instantiator;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@NullMarked
 public class DefaultBuildIncluder implements BuildIncluder {
 
     private final BuildStateRegistry buildRegistry;
@@ -73,7 +75,8 @@ public class DefaultBuildIncluder implements BuildIncluder {
             try {
                 coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
             } catch (Exception e) {
-                buildIncludeListener.buildInclusionFailed(build, e);
+                buildIncludeListener.buildInclusionFailed(build);
+                throw e;
             }
             return build;
         }

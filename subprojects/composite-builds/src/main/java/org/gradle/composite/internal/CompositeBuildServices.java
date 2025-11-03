@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
@@ -34,8 +33,6 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.problems.failure.Failure;
-import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -45,7 +42,7 @@ import org.gradle.internal.service.scopes.BrokenBuildsCapturingListener;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
-import java.util.Map;
+import java.util.Set;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
@@ -69,9 +66,9 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        BuildIncludeListener createBuildIncludeListener(BuildModelParameters buildModelParameters, FailureFactory failureFactory) {
+        BuildIncludeListener createBuildIncludeListener(BuildModelParameters buildModelParameters) {
             if (buildModelParameters.isResilientModelBuilding()) {
-                return new BrokenBuildsCapturingListener(failureFactory);
+                return new BrokenBuildsCapturingListener();
             }
             //ignored in non-resilient model building
             return new NoOpBuildIncludeListener();
@@ -111,28 +108,23 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
 
         private static class NoOpBuildIncludeListener implements BuildIncludeListener {
             @Override
-            public void buildInclusionFailed(BuildState buildState, Exception exception) {
+            public void buildInclusionFailed(BuildState buildState) {
                 // No-op in non-resilient model building
             }
 
             @Override
-            public Map<BuildState, Failure> getBrokenBuilds() {
+            public Set<BuildState> getBrokenBuilds() {
                 throw new UnsupportedOperationException("getBrokenBuilds() should not be called in non-resilient model building");
             }
 
             @Override
-            public void settingsScriptFailed(SettingsInternal settingsScript, GradleException e) {
+            public void settingsScriptFailed(SettingsInternal settingsScript) {
                 // No-op in non-resilient model building
             }
 
             @Override
-            public Map<SettingsInternal, Failure> getBrokenSettings() {
+            public Set<SettingsInternal> getBrokenSettings() {
                 throw new UnsupportedOperationException("getBrokenSettings() should not be called in non-resilient model building");
-            }
-
-            @Override
-            public boolean isHandled(GradleException e) {
-                return false;
             }
         }
     }

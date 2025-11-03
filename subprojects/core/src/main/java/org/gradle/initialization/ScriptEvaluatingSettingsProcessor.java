@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -72,8 +71,8 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         settings.getCaches().finalizeConfiguration(gradle);
         try {
             applySettingsScript(settingsScript, settings);
-        } catch (GradleException e) {
-            buildIncludeListener.settingsScriptFailed(state.getSettings(), e);
+        } catch (Exception e) {
+            buildIncludeListener.settingsScriptFailed(settings);
             throw e;
         }
         LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getElapsed());

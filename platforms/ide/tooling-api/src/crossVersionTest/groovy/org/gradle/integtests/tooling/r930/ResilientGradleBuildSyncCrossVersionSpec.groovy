@@ -57,6 +57,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         def model = runFetchModelAction()
 
         then:
+        model.failures.size() == 1
         model.failures.toString().contains("Script compilation error")
     }
 
@@ -70,6 +71,8 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         def model = runFetchModelAction()
 
         then:
+
+        model.failures.size() == 1
         model.failures.toString().contains("Gradle exception boom !!!")
         model.model.rootProject.buildTreePath == ":"
     }
@@ -142,16 +145,17 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         createRootProject()
 
         createFailingSettingsIncludedProject("included1")
+        // The second included build will be skipped due to failure in the first one
         createFailingSettingsIncludedProject("included2")
 
         when:
         def model = runFetchModelAction()
 
         then:
+        model.failures.size() == 1
         model.failures.toString().contains("Script compilation error")
-        model.model.includedBuilds.size() == 2
-        model.model.includedBuilds.getAt(1).buildIdentifier.rootDir == file("included2")
-        model.model.includedBuilds.getAt(0).buildIdentifier.rootDir == file("included1")
+        model.model.includedBuilds.size() == 1
+        model.model.includedBuilds.find { it.buildIdentifier.rootDir == file("included1") } != null
     }
 
     def "should return failure when caching models with isolated projects"() {

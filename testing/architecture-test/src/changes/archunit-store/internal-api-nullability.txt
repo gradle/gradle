@@ -1357,7 +1357,6 @@ Class <org.gradle.internal.component.external.descriptor.MavenScope> is not anno
 Class <org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ChildBuildRegisteringSettingsLoader.java:0)
 Class <org.gradle.internal.composite.CommandLineIncludedBuildSettingsLoader> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (CommandLineIncludedBuildSettingsLoader.java:0)
 Class <org.gradle.internal.composite.CompositeBuildSettingsLoader> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (CompositeBuildSettingsLoader.java:0)
-Class <org.gradle.internal.composite.DefaultBuildIncluder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultBuildIncluder.java:0)
 Class <org.gradle.internal.composite.DefaultConfigurableIncludedBuild> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultConfigurableIncludedBuild.java:0)
 Class <org.gradle.internal.composite.DefaultConfigurableIncludedPluginBuild> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultConfigurableIncludedPluginBuild.java:0)
 Class <org.gradle.internal.composite.IncludedBuildInternal> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IncludedBuildInternal.java:0)

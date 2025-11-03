@@ -16,65 +16,35 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.composite.BuildIncludeListener;
-import org.gradle.internal.problems.failure.Failure;
-import org.gradle.internal.problems.failure.FailureFactory;
-import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 public class BrokenBuildsCapturingListener implements BuildIncludeListener {
 
-    private final FailureFactory failureFactory;
-    private final Map<BuildState, Failure> brokenBuilds = new HashMap<>();
-    private final Map<SettingsInternal, Failure> brokenSettings = new HashMap<>();
+    private final Set<BuildState> brokenBuilds = new HashSet<>();
+    private final Set<SettingsInternal> brokenSettings = new HashSet<>();
 
-    public BrokenBuildsCapturingListener(
-        FailureFactory failureFactory
-    ) {
-        this.failureFactory = failureFactory;
+    @Override
+    public void buildInclusionFailed(BuildState buildState) {
+        brokenBuilds.add(buildState);
     }
 
     @Override
-    public void buildInclusionFailed(BuildState buildState, @Nullable Exception exception) {
-        brokenBuilds.put(buildState, failureFactory.create(exception));
-    }
-
-    @Override
-    public Map<BuildState, Failure> getBrokenBuilds() {
+    public Set<BuildState> getBrokenBuilds() {
         return brokenBuilds;
     }
 
     @Override
-    public void settingsScriptFailed(SettingsInternal settingsScript, GradleException e) {
-        getBrokenSettings().put(settingsScript, failureFactory.create(e));
+    public void settingsScriptFailed(SettingsInternal settingsScript) {
+        getBrokenSettings().add(settingsScript);
     }
 
     @Override
-    public Map<SettingsInternal, Failure> getBrokenSettings() {
+    public Set<SettingsInternal> getBrokenSettings() {
         return brokenSettings;
-    }
-
-    @Override
-    public boolean isHandled(GradleException e) {
-        // Check if the exception or any of its causes are in the broken builds or settings
-        Throwable current = e;
-        while (current != null) {
-            if (isInFailures(current, brokenBuilds.values()) || isInFailures(current, brokenSettings.values())) {
-                return true;
-            }
-            current = current.getCause();
-        }
-        return false;
-    }
-
-    private static boolean isInFailures(Throwable exception, Collection<Failure> failures) {
-        return failures.stream().
-            anyMatch(failure -> failure.getOriginal() == exception);
     }
 }
