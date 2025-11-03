@@ -77,6 +77,10 @@ atlassian-ide-plugin.xml
 # ------------
 *.sublime-*
 
+# Draw.io
+# -------
+*.bkp
+
 # jEnv
 # ----
 .java-version
