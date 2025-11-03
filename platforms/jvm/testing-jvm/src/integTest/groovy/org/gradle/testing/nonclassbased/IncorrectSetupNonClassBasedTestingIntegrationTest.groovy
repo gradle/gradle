@@ -16,8 +16,6 @@
 
 package org.gradle.testing.nonclassbased
 
-
-import org.gradle.testing.fixture.TestNGCoverage
 /**
  * Tests that exercise and demonstrate incorrect Non-Class-Based Testing setups.
  */
