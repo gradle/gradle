@@ -39,8 +39,7 @@ public class IncrementalCompileProcessor {
         return buildOperationExecutor.call(new CallableBuildOperation<IncrementalCompilation>() {
             @Override
             public IncrementalCompilation call(BuildOperationContext context) {
-                CompilationState previousCompileState = previousCompileStateCache.get();
-                IncrementalCompileSourceProcessor processor = incrementalCompileFilesFactory.files(previousCompileState);
+                IncrementalCompileSourceProcessor processor = incrementalCompileFilesFactory.files(previousCompileStateCache.get());
                 for (File sourceFile : sourceFiles) {
                     processor.processSource(sourceFile);
                 }
@@ -49,10 +48,9 @@ public class IncrementalCompileProcessor {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                ProcessSourceFilesDetails operationDetails = new ProcessSourceFilesDetails(sourceFiles.size());
                 return BuildOperationDescriptor
                     .displayName("Processing source files")
-                    .details(operationDetails);
+                    .details(new ProcessSourceFilesDetails(sourceFiles.size()));
             }
 
             class ProcessSourceFilesDetails {
@@ -62,6 +60,7 @@ public class IncrementalCompileProcessor {
                     this.sourceFileCount = sourceFileCount;
                 }
 
+                @SuppressWarnings("unused") // public API
                 public int getSourceFileCount() {
                     return sourceFileCount;
                 }
