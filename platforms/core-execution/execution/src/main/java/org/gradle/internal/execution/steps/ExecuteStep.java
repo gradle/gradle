@@ -53,6 +53,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
     public Result execute(UnitOfWork work, C context) {
         Class<? extends UnitOfWork> workType = work.getClass();
         UnitOfWork.Identity identity = context.getIdentity();
+        // TODO Remove once IntelliJ stops complaining about possible NPE
+        //noinspection DataFlowIssue
         return buildOperationRunner.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext operationContext) {
