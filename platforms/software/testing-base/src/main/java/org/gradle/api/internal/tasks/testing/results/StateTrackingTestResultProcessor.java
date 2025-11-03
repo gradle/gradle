@@ -133,7 +133,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     }
 
     @Override
-    public void report(Object testId, TestMetadataEvent keyValueEvent) {
+    public void published(Object testId, TestMetadataEvent keyValueEvent) {
         listener.metadata(findDescriptor(testId), keyValueEvent);
     }
 }

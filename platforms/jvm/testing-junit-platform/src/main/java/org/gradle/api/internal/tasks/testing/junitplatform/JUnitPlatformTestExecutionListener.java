@@ -129,12 +129,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
         // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class constructor.
         if (wasStarted(testIdentifier)) {
-            resultProcessor.report(getId(testIdentifier), new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+            resultProcessor.published(getId(testIdentifier), new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
         } else {
             // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with it
             Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
             if (closestStartedAncestor != null) {
-                resultProcessor.report(closestStartedAncestor, new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+                resultProcessor.published(closestStartedAncestor, new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
             }
             // otherwise, we don't know what to associate this ReportEntry with
             LOGGER.debug("report entry published for unknown test identifier {}", testIdentifier);

@@ -47,8 +47,8 @@ public class TestRetryShieldingTestResultProcessor implements TestResultProcesso
     }
 
     @Override
-    public void report(Object testId, TestMetadataEvent keyValueEvent) {
-        delegate.report(testId, keyValueEvent);
+    public void published(Object testId, TestMetadataEvent keyValueEvent) {
+        delegate.published(testId, keyValueEvent);
     }
 
     @Override

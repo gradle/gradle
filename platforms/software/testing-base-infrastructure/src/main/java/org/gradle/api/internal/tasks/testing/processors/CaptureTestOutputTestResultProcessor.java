@@ -98,8 +98,8 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     }
 
     @Override
-    public void report(Object testId, TestMetadataEvent keyValueEvent) {
-        processor.report(testId, keyValueEvent);
+    public void published(Object testId, TestMetadataEvent keyValueEvent) {
+        processor.published(testId, keyValueEvent);
     }
 
 }

@@ -51,8 +51,8 @@ public interface TestResultProcessor {
     void failure(Object testId, TestFailure result);
 
     /**
-     * Notifies this processor that metadata has been emitted for the given test.
+     * Notifies this processor that metadata has been published for the given test.
      */
-    default void report(Object testId, TestMetadataEvent keyValueEvent) {}
+    default void published(Object testId, TestMetadataEvent keyValueEvent) {}
 
 }
