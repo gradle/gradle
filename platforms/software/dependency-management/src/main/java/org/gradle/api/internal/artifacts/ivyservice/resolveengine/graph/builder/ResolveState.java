@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -48,6 +47,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -145,10 +145,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.moduleConflictHandler = new DefaultModuleConflictHandler(moduleConflictResolver, moduleReplacements, this);
         this.capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityResolutionRules, this);
 
-        ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getModuleVersionId();
+        LocalComponentGraphResolveMetadata rootComponentMetadata = rootComponentState.getMetadata();
         ComponentIdentifier rootComponentId = rootComponentState.getId();
         this.consumerAttributes = rootVariant.getAttributes();
-        this.consumerSchema = rootComponentState.getMetadata().getAttributesSchema();
+        this.consumerSchema = rootComponentMetadata.getAttributesSchema();
 
         int graphSize = estimateGraphSize(rootVariant);
         this.modules = new LinkedHashMap<>(graphSize);
@@ -157,8 +157,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.queue = new ArrayDeque<>(graphSize);
 
         // Create root component and module
-        ModuleResolveState rootModule = getModule(rootModuleVersionId.getModule(), true);
-        ComponentState rootComponent = rootModule.getVersion(rootModuleVersionId.getVersion(), rootComponentId);
+        ModuleResolveState rootModule = getModule(rootComponentMetadata.getModuleId(), true);
+        ComponentState rootComponent = rootModule.getVersion(rootComponentMetadata.getVersion(), rootComponentId);
         rootComponent.setRoot();
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);

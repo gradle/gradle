@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -188,8 +188,13 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
         }
 
         @Override
-        public ModuleVersionIdentifier getModuleVersionId() {
-            return metadata.getModuleVersionId();
+        public ModuleIdentifier getModuleId() {
+            return metadata.getModuleVersionId().getModule();
+        }
+
+        @Override
+        public String getVersion() {
+            return metadata.getModuleVersionId().getVersion();
         }
 
         @Override

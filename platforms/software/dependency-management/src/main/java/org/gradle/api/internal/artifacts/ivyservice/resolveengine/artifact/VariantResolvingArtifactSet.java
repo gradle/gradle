@@ -175,7 +175,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         }
 
         ImmutableList.Builder<ResolvedVariant> excluded = ImmutableList.builderWithExpectedSize(variantArtifactSets.size());
-        ModuleIdentifier moduleId = componentArtifacts.getModuleVersionId().getModule();
+        ModuleIdentifier moduleId = componentArtifacts.getModuleId();
         for (ResolvedVariant artifactSet : variantArtifactSets) {
             excluded.add(new ExcludingVariantArtifactSet(artifactSet, moduleId, exclusions));
         }

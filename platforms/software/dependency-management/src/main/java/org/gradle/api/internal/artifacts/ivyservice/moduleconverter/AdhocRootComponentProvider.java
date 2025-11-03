@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.AnonymousModule;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
@@ -58,13 +58,14 @@ public class AdhocRootComponentProvider implements RootComponentProvider {
         Module module = new AnonymousModule();
 
         String status = module.getStatus();
-        ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
+        ModuleIdentifier moduleId = moduleIdentifierFactory.module(module.getGroup(), module.getName());
 
         ImmutableAttributesSchema immutableSchema = attributesSchemaFactory.create(schema);
 
         return localResolveStateFactory.adhocRootComponentState(
+            moduleId,
+            module.getVersion(),
             status,
-            moduleVersionId,
             immutableSchema
         );
     }

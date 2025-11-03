@@ -205,7 +205,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
             this.dependencyMetadata = dependencyMetadata;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
 
-            artifact = new DefaultResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, this.dependencyMetadata.getFiles(), calculatedValueContainerFactory.create(Describables.of(artifactIdentifier), file), calculatedValueContainerFactory);
+            artifact = new DefaultResolvableArtifact(null, null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, this.dependencyMetadata.getFiles(), calculatedValueContainerFactory.create(Describables.of(artifactIdentifier), file), calculatedValueContainerFactory);
         }
 
         @Override

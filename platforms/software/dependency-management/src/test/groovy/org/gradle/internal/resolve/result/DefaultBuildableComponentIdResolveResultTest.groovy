@@ -49,12 +49,12 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
 
     def "can resolve using state"() {
         def id = Stub(ComponentIdentifier)
-        def mvId = Stub(ModuleVersionIdentifier) {
-            getModule() >> Stub(ModuleIdentifier)
-            getVersion() >> "bar"
-        }
+        def moduleId = Stub(ModuleIdentifier)
+        def version = "bar"
         def metadata = Stub(ComponentGraphResolveMetadata) {
-            getModuleVersionId() >> mvId
+            getId() >> id
+            getModuleId() >> moduleId
+            getVersion() >> version
         }
         def state = Stub(ComponentGraphResolveState) {
             getId() >> id
@@ -68,8 +68,8 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         then:
         result.hasResult()
         result.id == id
-        result.moduleId == mvId.module
-        result.version == mvId.version
+        result.moduleId == moduleId
+        result.version == version
         result.state == state
         result.graphState == graphState
         result.failure == null

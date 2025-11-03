@@ -17,7 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
@@ -29,17 +29,21 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 public final class LocalComponentGraphResolveMetadata implements ComponentGraphResolveMetadata {
 
     private final ComponentIdentifier componentId;
-    private final ModuleVersionIdentifier moduleVersionId;
+    private final ModuleIdentifier moduleId;
+    private final String version;
     private final String status;
     private final ImmutableAttributesSchema attributesSchema;
 
+
     public LocalComponentGraphResolveMetadata(
-        ModuleVersionIdentifier moduleVersionId,
+        ModuleIdentifier moduleId,
+        String version,
         ComponentIdentifier componentId,
         String status,
         ImmutableAttributesSchema attributesSchema
     ) {
-        this.moduleVersionId = moduleVersionId;
+        this.moduleId = moduleId;
+        this.version = version;
         this.componentId = componentId;
         this.status = status;
         this.attributesSchema = attributesSchema;
@@ -51,8 +55,13 @@ public final class LocalComponentGraphResolveMetadata implements ComponentGraphR
     }
 
     @Override
-    public ModuleVersionIdentifier getModuleVersionId() {
-        return moduleVersionId;
+    public ModuleIdentifier getModuleId() {
+        return moduleId;
+    }
+
+    @Override
+    public String getVersion() {
+        return version;
     }
 
     @Override

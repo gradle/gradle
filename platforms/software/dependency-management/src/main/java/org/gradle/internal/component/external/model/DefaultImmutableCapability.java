@@ -16,7 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.jspecify.annotations.Nullable;
@@ -30,8 +30,8 @@ public class DefaultImmutableCapability implements ImmutableCapability {
         return new DefaultImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion());
     }
 
-    public static DefaultImmutableCapability defaultCapabilityForComponent(ModuleVersionIdentifier identifier) {
-        return new DefaultImmutableCapability(identifier.getGroup(), identifier.getName(), identifier.getVersion());
+    public static DefaultImmutableCapability of(ModuleIdentifier moduleId, String version) {
+        return new DefaultImmutableCapability(moduleId.getGroup(), moduleId.getName(), version);
     }
 
     private final String group;

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Action
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
@@ -90,7 +90,6 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
@@ -1071,13 +1070,14 @@ class DependencyGraphBuilderTest extends Specification {
 
     TestComponent revision(String name, String revision = '1.0') {
         // TODO Shouldn't really be using the local component implementation here
-        def id = newId("group", name, revision)
-        def componentId = DefaultModuleComponentIdentifier.newId(id)
+        def moduleId = DefaultModuleIdentifier.newId("group", name)
+        def componentId = DefaultModuleComponentIdentifier.newId(moduleId, revision)
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
         def defaultVariant = createVariantMetadata("default", componentId, [], artifacts)
         def metadata = new LocalComponentGraphResolveMetadata(
-            id,
+            moduleId,
+            revision,
             componentId,
             "release",
             attributesSchema
@@ -1094,7 +1094,8 @@ class DependencyGraphBuilderTest extends Specification {
         def rootVariant = createVariantMetadata("root", componentId, [], [])
 
         def metadata = new LocalComponentGraphResolveMetadata(
-            newId("group", "root", "1.0"),
+            DefaultModuleIdentifier.newId("group", "root"),
+            "1.0",
             componentId,
             "release",
             attributesSchema
@@ -1135,7 +1136,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def traverses(Map<String, ?> args = [:], TestComponent from, TestComponent to) {
         def selector = dependsOn(args, from, to)
-        selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleVersionId)
+        selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleId, to.component.metadata.version)
         println "Traverse $from to ${to.component.id}"
         1 * metaDataResolver.resolve(to.component.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             println "Called ${to.component.id}"
@@ -1145,7 +1146,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def doesNotTraverse(Map<String, ?> args = [:], TestComponent from, TestComponent to) {
         def selector = dependsOn(args, from, to)
-        selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleVersionId)
+        selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleId, to.component.metadata.version)
         0 * metaDataResolver.resolve(to.component.id, _, _)
     }
 
@@ -1157,7 +1158,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def traversesMissing(Map<String, ?> args = [:], TestComponent from, TestComponent to) {
         def selector = dependsOn(args, from, to)
-        selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleVersionId)
+        selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleId, to.component.metadata.version)
         1 * metaDataResolver.resolve(to.component.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             result.notFound(to.component.id)
         }
@@ -1165,7 +1166,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def traversesBroken(Map<String, ?> args = [:], TestComponent from, TestComponent to) {
         def selector = dependsOn(args, from, to)
-        selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleVersionId)
+        selectorResolvesTo(selector, to.component.id, to.component.metadata.moduleId, to.component.metadata.version)
         1 * metaDataResolver.resolve(to.component.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             org.gradle.internal.Factory<String> broken = { "broken" }
             result.failed(new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), new DefaultMutableVersionConstraint("c")), broken))
@@ -1173,7 +1174,7 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     def brokenSelector(Map<String, ?> args = [:], TestComponent from, String to) {
-        def selector = dependsOn(args, from, newId("group", to, "1.0"))
+        def selector = dependsOn(args, from, DefaultModuleIdentifier.newId("group", to), "1.0")
         1 * idResolver.resolve(selector, _, _, _, _, _) >> { ModuleComponentSelector sel, ComponentOverrideMetadata om, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes ->
             org.gradle.internal.Factory<String> broken = { "broken" }
             result.failed(new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), new DefaultMutableVersionConstraint("c")), broken))
@@ -1181,18 +1182,18 @@ class DependencyGraphBuilderTest extends Specification {
     }
 
     ModuleComponentSelector dependsOn(Map<String, ?> args = [:], TestComponent from, TestComponent to) {
-        dependsOn(args, from, to.component.metadata.moduleVersionId)
+        dependsOn(args, from, to.component.metadata.moduleId, to.component.metadata.version)
     }
 
-    ModuleComponentSelector dependsOn(Map<String, ?> args = [:], TestComponent from, ModuleVersionIdentifier to) {
-        ModuleVersionIdentifier dependencyId = args.revision ? newId(DefaultModuleIdentifier.newId(to.group, to.name), args.revision) : to
+    ModuleComponentSelector dependsOn(Map<String, ?> args = [:], TestComponent from, ModuleIdentifier moduleId, String version) {
+        String revision = args.revision ?: version
         boolean transitive = args.transitive == null || args.transitive
         boolean force = args.force
-        ComponentSelector componentSelector = newSelector(DefaultModuleIdentifier.newId(dependencyId.group, dependencyId.name), new DefaultMutableVersionConstraint(dependencyId.version))
+        ComponentSelector componentSelector = newSelector(moduleId, new DefaultMutableVersionConstraint(revision))
         List<ExcludeMetadata> excludeRules = []
         if (args.exclude) {
             ComponentGraphResolveState excluded = args.exclude.component
-            excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.metadata.moduleVersionId.group, excluded.metadata.moduleVersionId.name))
+            excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.metadata.moduleId.group, excluded.metadata.moduleId.name))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(
             componentSelector,
@@ -1210,9 +1211,9 @@ class DependencyGraphBuilderTest extends Specification {
         return componentSelector
     }
 
-    def selectorResolvesTo(ComponentSelector selector, ComponentIdentifier id, ModuleVersionIdentifier mvId) {
+    def selectorResolvesTo(ComponentSelector selector, ComponentIdentifier id, ModuleIdentifier moduleId, String version) {
         1 * idResolver.resolve(selector, _, _, _, _, _) >> { ComponentSelector sel, ComponentOverrideMetadata om, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes ->
-            result.resolved(id, mvId.module, mvId.version)
+            result.resolved(id, moduleId, version)
         }
     }
 

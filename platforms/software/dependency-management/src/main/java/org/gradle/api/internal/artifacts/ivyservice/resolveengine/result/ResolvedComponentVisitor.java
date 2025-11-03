@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -29,7 +29,14 @@ public interface ResolvedComponentVisitor {
     /**
      * Starts visiting a component.
      */
-    void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion);
+    void startVisitComponent(
+        Long id,
+        ComponentSelectionReason selectionReason,
+        @Nullable String repoName,
+        ComponentIdentifier componentId,
+        ModuleIdentifier moduleId,
+        String version
+    );
 
     /**
      * Visit a selected variant of the component.

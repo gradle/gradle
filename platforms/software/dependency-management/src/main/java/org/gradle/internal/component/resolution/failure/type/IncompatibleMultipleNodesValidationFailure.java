@@ -45,7 +45,7 @@ public final class IncompatibleMultipleNodesValidationFailure extends AbstractRe
 
     @Override
     public String describeRequestTarget() {
-        return selectedComponent.getModuleVersionId().toString();
+        return selectedComponent.getId().getDisplayName();
     }
 
     @Override

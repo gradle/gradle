@@ -120,7 +120,7 @@ class CalculateArtifactsCodec(
         val artifacts by lazy {
             files.map { file ->
                 val artifactId = ComponentFileArtifactIdentifier(ownerId, file.file.name)
-                PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file.file, file.classifier), artifactId, file.file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
+                PreResolvedResolvableArtifact(null, null, DefaultIvyArtifactName.forFile(file.file, file.classifier), artifactId, file.file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
             }
         }
     }

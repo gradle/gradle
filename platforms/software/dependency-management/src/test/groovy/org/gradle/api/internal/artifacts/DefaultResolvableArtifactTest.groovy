@@ -27,19 +27,20 @@ class DefaultResolvableArtifactTest extends Specification {
     def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
 
     def "artifacts are equal when artifact identifier is equal"() {
-        def dependency = dep("group", "module1", "1.2")
-        def dependencySameModule = dep("group", "module1", "1.2")
-        def dependency2 = dep("group", "module2", "1-beta")
+        def moduleId = DefaultModuleIdentifier.newId("group", "module1")
+        def version = "1.2"
+        def otherModuleId = DefaultModuleIdentifier.newId("group", "module2")
+        def otherVersion = "1-beta"
         def artifactSource = Stub(CalculatedValue)
         def ivyArt = Stub(IvyArtifactName)
         def artifactId = Stub(ComponentArtifactIdentifier)
         def otherArtifactId = Stub(ComponentArtifactIdentifier)
         def buildDependencies = Stub(TaskDependencyContainer)
 
-        def artifact = new DefaultResolvableArtifact(dependency, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
-        def equalArtifact = new DefaultResolvableArtifact(dependencySameModule, Stub(IvyArtifactName), artifactId, Stub(TaskDependencyContainer), Stub(CalculatedValue), calculatedValueContainerFactory)
-        def differentModule = new DefaultResolvableArtifact(dependency2, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
-        def differentId = new DefaultResolvableArtifact(dependency, ivyArt, otherArtifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+        def artifact = new DefaultResolvableArtifact(moduleId, version, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+        def equalArtifact = new DefaultResolvableArtifact(moduleId, version, Stub(IvyArtifactName), artifactId, Stub(TaskDependencyContainer), Stub(CalculatedValue), calculatedValueContainerFactory)
+        def differentModule = new DefaultResolvableArtifact(otherModuleId, otherVersion, ivyArt, artifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
+        def differentId = new DefaultResolvableArtifact(moduleId, version, ivyArt, otherArtifactId, buildDependencies, artifactSource, calculatedValueContainerFactory)
 
         expect:
         artifact Matchers.strictlyEqual(equalArtifact)
@@ -47,7 +48,4 @@ class DefaultResolvableArtifactTest extends Specification {
         artifact != differentId
     }
 
-    def dep(String group, String moduleName, String version) {
-        new DefaultModuleVersionIdentifier(group, moduleName, version)
-    }
 }

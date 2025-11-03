@@ -18,12 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
@@ -227,8 +225,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                     ComponentGraphResolveState versionState = version.getResolveStateOrNull();
                     if (versionState instanceof LenientPlatformGraphResolveState) {
                         LenientPlatformGraphResolveState lenientState = (LenientPlatformGraphResolveState) versionState;
-                        ModuleVersionIdentifier moduleVersionId = DefaultModuleVersionIdentifier.newId(module.getId(), getVersion());
-                        ComponentGraphResolveState withIds = lenientState.copyWithIds((ModuleComponentIdentifier) componentIdentifier, moduleVersionId);
+                        ComponentGraphResolveState withIds = lenientState.copyWithId((ModuleComponentIdentifier) componentIdentifier);
                         setState(withIds, ComponentGraphSpecificResolveState.EMPTY_STATE);
                         return true;
                     }

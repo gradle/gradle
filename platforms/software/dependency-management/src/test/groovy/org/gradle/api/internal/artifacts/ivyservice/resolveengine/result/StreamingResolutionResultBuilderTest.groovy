@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -224,8 +223,11 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
     private DependencyGraphComponent component(String org, String name, String ver, ComponentSelectionReason reason = requested()) {
         def componentId = componentIds++
+        def moduleId = DefaultModuleIdentifier.newId(org, name)
         def componentMetadata = Stub(ComponentGraphResolveMetadata) {
-            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(org, name), ver)
+            getId() >> DefaultModuleComponentIdentifier.newId(moduleId, ver)
+            getModuleId() >> moduleId
+            getVersion() >> ver
         }
 
         def componentState = Stub(ComponentGraphResolveState) {
@@ -243,8 +245,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     private DependencyGraphEdge dep(DependencyGraphNode node) {
-        def moduleVersionId = node.owner.resolveState.metadata.moduleVersionId
-        def selector = selector(moduleVersionId.group, moduleVersionId.name, moduleVersionId.version)
+        def metadata = node.owner.resolveState.metadata
+        def selector = selector(metadata.moduleId.group, metadata.moduleId.name, metadata.version)
         return dep(selector, node.nodeId)
     }
 

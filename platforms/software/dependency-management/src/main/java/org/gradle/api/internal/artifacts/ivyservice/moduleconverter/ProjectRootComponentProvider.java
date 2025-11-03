@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
@@ -90,13 +90,14 @@ public class ProjectRootComponentProvider implements RootComponentProvider {
     private LocalComponentGraphResolveState createProjectRootComponent() {
         Module module = componentIdentity.getModule();
 
-        ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
+        ModuleIdentifier moduleId = moduleIdentifierFactory.module(module.getGroup(), module.getName());
         ComponentIdentifier componentIdentifier = owner.getComponentIdentifier();
         String status = module.getStatus();
         ImmutableAttributesSchema immutableSchema = attributesSchemaFactory.create(schema);
 
         LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
-            moduleVersionId,
+            moduleId,
+            module.getVersion(),
             componentIdentifier,
             status,
             immutableSchema

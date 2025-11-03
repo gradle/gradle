@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -28,6 +29,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -40,7 +42,8 @@ import java.util.Set;
 
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
-    private final ModuleVersionIdentifier moduleVersion;
+    private final ModuleIdentifier moduleId;
+    private final String version;
     private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
@@ -53,14 +56,16 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private @Nullable Set<DependencyResult> cachedComponentDependencies;
 
     public DefaultResolvedComponentResult(
-        ModuleVersionIdentifier moduleVersion,
+        ModuleIdentifier moduleIdentifier,
+        String version,
         ComponentSelectionReason selectionReason,
         ComponentIdentifier componentId,
         ImmutableMap<Long, ResolvedVariantResult> selectedVariants,
         ImmutableList<ResolvedVariantResult> allVariants,
         @Nullable String repositoryName
     ) {
-        this.moduleVersion = moduleVersion;
+        this.moduleId = moduleIdentifier;
+        this.version = version;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
         this.selectedVariantsById = selectedVariants;
@@ -122,7 +127,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     @Override
     @Nullable
     public ModuleVersionIdentifier getModuleVersion() {
-        return moduleVersion;
+        return DefaultModuleVersionIdentifier.newId(moduleId, version);
     }
 
     @Override

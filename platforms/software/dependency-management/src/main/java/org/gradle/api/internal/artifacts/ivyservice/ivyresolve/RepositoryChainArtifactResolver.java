@@ -61,7 +61,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
         ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         ResolvableArtifact resolvableArtifact = sourceRepository.getArtifactCache().computeIfAbsent(artifact.getId(), id -> {
             CalculatedValue<File> artifactSource = calculatedValueFactory.create(Describables.of(artifact.getId()), () -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
-            return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueFactory);
+            return new DefaultResolvableArtifact(component.getModuleId(), component.getVersion(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueFactory);
         });
 
         result.resolved(resolvableArtifact);

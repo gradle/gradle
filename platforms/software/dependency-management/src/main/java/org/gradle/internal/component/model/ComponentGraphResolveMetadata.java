@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
@@ -40,7 +40,20 @@ public interface ComponentGraphResolveMetadata {
      */
     ComponentIdentifier getId();
 
-    ModuleVersionIdentifier getModuleVersionId();
+    /**
+     * Get the identifier of the module this component belongs to.
+     * <p>
+     * This component will conflict with any other component in the same module.
+     */
+    ModuleIdentifier getModuleId();
+
+    /**
+     * Get the version of this component.
+     * <p>
+     * If more than one component of a given module is present in a dependency graph,
+     * the version is used to select the winning component.
+     */
+    String getVersion();
 
     ImmutableAttributesSchema getAttributesSchema();
 

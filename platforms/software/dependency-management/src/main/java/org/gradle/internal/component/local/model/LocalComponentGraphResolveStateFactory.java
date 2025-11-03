@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultRootComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
@@ -111,15 +111,17 @@ public class LocalComponentGraphResolveStateFactory {
      * Creates state for an adhoc root component with no variants.
      */
     public LocalComponentGraphResolveState adhocRootComponentState(
+        ModuleIdentifier moduleId,
+        String version,
         String status,
-        ModuleVersionIdentifier moduleVersionId,
         ImmutableAttributesSchema attributesSchema
     ) {
         long instanceId = idGenerator.nextComponentId();
         ComponentIdentifier componentIdentifier = new DefaultRootComponentIdentifier(instanceId);
 
         LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
-            moduleVersionId,
+            moduleId,
+            version,
             componentIdentifier,
             status,
             attributesSchema

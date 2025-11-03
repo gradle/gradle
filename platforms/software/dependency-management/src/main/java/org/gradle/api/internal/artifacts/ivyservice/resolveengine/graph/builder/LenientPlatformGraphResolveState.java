@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -68,12 +68,11 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
     public static LenientPlatformGraphResolveState of(
         ComponentIdGenerator componentIdGenerator,
         ModuleComponentIdentifier moduleComponentIdentifier,
-        ModuleVersionIdentifier moduleVersionIdentifier,
         VirtualPlatformState virtualPlatformState,
         NodeState platformNode,
         ResolveState resolveState
     ) {
-        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier);
+        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata(moduleComponentIdentifier);
         return new LenientPlatformGraphResolveState(componentIdGenerator.nextComponentId(), metadata, componentIdGenerator, virtualPlatformState, platformNode, resolveState);
     }
 
@@ -95,10 +94,10 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
     /**
      * Create a copy of this component with the given ids.
      */
-    public ComponentGraphResolveState copyWithIds(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
+    public ComponentGraphResolveState copyWithId(ModuleComponentIdentifier id) {
         return new LenientPlatformGraphResolveState(
             idGenerator.nextComponentId(),
-            getMetadata().copyWithIds(componentIdentifier, moduleVersionIdentifier),
+            new LenientPlatformResolveMetadata(id),
             idGenerator,
             virtualPlatformState,
             platformNode,
@@ -128,8 +127,13 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         }
 
         @Override
-        public ModuleVersionIdentifier getModuleVersionId() {
-            return metadata.getModuleVersionId();
+        public ModuleIdentifier getModuleId() {
+            return metadata.getModuleId();
+        }
+
+        @Override
+        public String getVersion() {
+            return metadata.getVersion();
         }
 
         @Override
@@ -183,7 +187,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 component.virtualPlatformState,
                 component.resolveState,
                 component.platformNode,
-                component.getMetadata().getModuleVersionId().getVersion()
+                component.getMetadata().getVersion()
             );
 
             String name = Dependency.DEFAULT_CONFIGURATION;

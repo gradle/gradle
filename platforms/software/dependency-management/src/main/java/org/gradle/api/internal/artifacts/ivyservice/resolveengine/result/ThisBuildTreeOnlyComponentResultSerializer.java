@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.serialize.Decoder;
@@ -107,7 +108,8 @@ public class ThisBuildTreeOnlyComponentResultSerializer implements ComponentResu
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         String repo = decoder.readNullableString();
         ComponentGraphResolveState component = readComponentReference(decoder);
-        visitor.startVisitComponent(resultId, reason, repo, component.getId(), component.getMetadata().getModuleVersionId());
+        ComponentGraphResolveMetadata metadata = component.getMetadata();
+        visitor.startVisitComponent(resultId, reason, repo, component.getId(), metadata.getModuleId(), metadata.getVersion());
 
         boolean includeAllSelectableVariantResults = decoder.readBoolean();
         if (includeAllSelectableVariantResults) {

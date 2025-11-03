@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant
@@ -30,8 +31,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
-
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class ThisBuildTreeOnlyComponentResultSerializerTest extends Specification {
 
@@ -77,7 +76,9 @@ class ThisBuildTreeOnlyComponentResultSerializerTest extends Specification {
             getExternalVariant() >> v3
         }
         def componentMetadata = Stub(ComponentGraphResolveMetadata) {
-            moduleVersionId >> newId('org', 'foo', '2.0')
+            id >> componentIdentifier
+            moduleId >> componentIdentifier.moduleIdentifier
+            version >> componentIdentifier.version
         }
         def componentState = Stub(ComponentGraphResolveState) {
             id >> componentIdentifier
@@ -99,7 +100,7 @@ class ThisBuildTreeOnlyComponentResultSerializerTest extends Specification {
         then:
         result.id == componentIdentifier
         result.selectionReason == ComponentSelectionReasons.requested()
-        result.moduleVersion == newId('org', 'foo', '2.0')
+        result.moduleVersion == DefaultModuleVersionIdentifier.newId(componentIdentifier.getModuleIdentifier(), componentIdentifier.getVersion())
         for (def variants : [result.selectedVariants, result.availableVariants]) {
             variants.size() == 2
             variants[0] == v1Result

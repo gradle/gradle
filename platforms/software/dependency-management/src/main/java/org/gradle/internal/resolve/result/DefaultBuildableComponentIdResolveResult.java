@@ -18,8 +18,8 @@ package org.gradle.internal.resolve.result;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -103,8 +103,8 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
 
     @Override
     public void resolved(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
-        ModuleVersionIdentifier mdId = state.getMetadata().getModuleVersionId();
-        resolved(state.getId(), mdId.getModule(), mdId.getVersion());
+        ComponentGraphResolveMetadata metadata = state.getMetadata();
+        resolved(state.getId(), metadata.getModuleId(), metadata.getVersion());
         this.state = state;
         this.graphState = graphState;
     }

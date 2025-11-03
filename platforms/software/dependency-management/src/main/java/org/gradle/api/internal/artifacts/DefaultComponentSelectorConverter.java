@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.util.internal.GUtil;
 
 public class DefaultComponentSelectorConverter implements ComponentSelectorConverter {
@@ -43,8 +44,8 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
             DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
             ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState projectComponent = localComponentRegistry.getComponent(projectId);
-            ModuleVersionIdentifier moduleVersionId = projectComponent.getModuleVersionId();
-            return DefaultModuleVersionIdentifier.newId(moduleVersionId.getModule(), moduleVersionId.getVersion());
+            ComponentGraphResolveMetadata metadata = projectComponent.getMetadata();
+            return DefaultModuleVersionIdentifier.newId(metadata.getModuleId(), metadata.getVersion());
         }
         if (selector instanceof LibraryComponentSelector) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) selector;

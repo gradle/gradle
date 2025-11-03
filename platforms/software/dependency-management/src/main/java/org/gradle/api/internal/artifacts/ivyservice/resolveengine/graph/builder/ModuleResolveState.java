@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -507,7 +506,6 @@ public class ModuleResolveState implements CandidateModule, ModuleResolutionStat
                 LenientPlatformGraphResolveState platformResolveState = LenientPlatformGraphResolveState.of(
                     idGenerator,
                     (ModuleComponentIdentifier) componentState.getId(),
-                    DefaultModuleVersionIdentifier.newId(getId(), componentState.getVersion()),
                     platformState,
                     resolveState.getRoot(),
                     resolveState

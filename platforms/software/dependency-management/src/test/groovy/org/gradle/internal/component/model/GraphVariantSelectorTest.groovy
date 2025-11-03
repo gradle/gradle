@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.model
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeCompatibilityRule
@@ -51,7 +51,8 @@ class GraphVariantSelectorTest extends Specification {
     }
 
     ComponentGraphResolveMetadata toComponentMetadata = new LocalComponentGraphResolveMetadata(
-        Stub(ModuleVersionIdentifier),
+        Stub(ModuleIdentifier),
+        "version",
         toComponentId,
         "status",
         ImmutableAttributesSchema.EMPTY

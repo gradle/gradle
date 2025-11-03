@@ -23,12 +23,10 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -576,8 +574,7 @@ public class NodeState implements DependencyGraphNode {
         }
         if (resolvedComponent == null) {
             // the platform doesn't exist, so we're building a lenient one
-            ModuleVersionIdentifier platformModuleVersionId = DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
-            ComponentGraphResolveState newLenientPlatform = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), componentId, platformModuleVersionId, virtualPlatformState, this, resolveState);
+            ComponentGraphResolveState newLenientPlatform = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), componentId, virtualPlatformState, this, resolveState);
             componentState.setState(newLenientPlatform, ComponentGraphSpecificResolveState.EMPTY_STATE);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             componentState.getModule().maybeCreateVirtualMetadata(resolveState);

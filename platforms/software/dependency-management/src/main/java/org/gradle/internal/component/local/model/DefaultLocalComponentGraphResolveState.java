@@ -19,7 +19,7 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -67,11 +67,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         this.graphSelectionCandidates = calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->
             computeGraphSelectionCandidates(variantFactory)
         );
-    }
-
-    @Override
-    public ModuleVersionIdentifier getModuleVersionId() {
-        return getMetadata().getModuleVersionId();
     }
 
     @Override
@@ -125,8 +120,13 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         }
 
         @Override
-        public ModuleVersionIdentifier getModuleVersionId() {
-            return metadata.getModuleVersionId();
+        public ModuleIdentifier getModuleId() {
+            return metadata.getModuleId();
+        }
+
+        @Override
+        public String getVersion() {
+            return metadata.getVersion();
         }
 
         @Override

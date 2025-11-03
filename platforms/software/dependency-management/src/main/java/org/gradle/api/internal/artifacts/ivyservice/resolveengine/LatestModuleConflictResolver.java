@@ -108,7 +108,7 @@ public class LatestModuleConflictResolver<T extends ComponentResolutionState> im
 
     private boolean isMavenSnapshot(@Nullable ComponentGraphResolveMetadata metadata) {
         if (metadata instanceof MavenModuleResolveMetadata) {
-            return ((MavenModuleResolveMetadata) metadata).getSnapshotTimestamp() != null || metadata.getModuleVersionId().getVersion().endsWith("-SNAPSHOT");
+            return ((MavenModuleResolveMetadata) metadata).getSnapshotTimestamp() != null || metadata.getVersion().endsWith("-SNAPSHOT");
         }
         return false;
     }

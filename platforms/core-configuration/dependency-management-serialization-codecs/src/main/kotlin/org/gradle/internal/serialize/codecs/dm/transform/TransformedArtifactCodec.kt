@@ -60,7 +60,7 @@ class TransformedArtifactCodec(
         val ownerId = readNonNull<ComponentIdentifier>()
         val file = readNonNull<File>()
         val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
-        val artifact = PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
+        val artifact = PreResolvedResolvableArtifact(null, null, DefaultIvyArtifactName.forFile(file, null), artifactId, file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
         val steps = readNonNull<List<TransformStepSpec>>().map { BoundTransformStep(it.transformStep, it.recreateDependencies()) }
         return TransformingAsyncArtifactListener.TransformedArtifact(artifactSetName, sourceVariantId, target, ImmutableCapabilities.of(capabilities), artifact, steps)
     }

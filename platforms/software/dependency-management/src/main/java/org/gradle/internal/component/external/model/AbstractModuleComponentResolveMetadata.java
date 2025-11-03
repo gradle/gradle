@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -136,6 +137,16 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
+    public ModuleIdentifier getModuleId() {
+        return moduleVersionIdentifier.getModule();
+    }
+
+    @Override
+    public String getVersion() {
+        return moduleVersionIdentifier.getVersion();
+    }
+
+    @Override
     public ModuleSources getSources() {
         return moduleSources;
     }
@@ -167,13 +178,13 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     @Override
     public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getModule(), type, extension, classifier);
         return new DefaultModuleComponentArtifactMetadata(getId(), ivyArtifactName);
     }
 
     @Override
     public ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getModule(), type, extension, classifier);
         return new ModuleComponentOptionalArtifactMetadata(getId(), ivyArtifactName);
     }
 

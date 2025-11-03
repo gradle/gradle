@@ -19,12 +19,12 @@ package org.gradle.internal.component.local.model
 import org.gradle.api.artifacts.ConfigurationVariant
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
@@ -47,8 +47,6 @@ import org.gradle.util.TestUtil
  * Tests {@link LocalComponentGraphResolveStateFactory}.
  */
 class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderSpec {
-    ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
-    ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
 
     def metadataBuilder = new DefaultLocalVariantGraphResolveStateBuilder(
         new ComponentIdGenerator(),
@@ -66,8 +64,13 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
     LocalComponentGraphResolveState state
 
     def setup() {
+        ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("group", "module")
+        String version = "version"
+        ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleId, version)
+
         def metadata = new LocalComponentGraphResolveMetadata(
-            id,
+            moduleId,
+            version,
             componentIdentifier,
             "status",
             ImmutableAttributesSchema.EMPTY

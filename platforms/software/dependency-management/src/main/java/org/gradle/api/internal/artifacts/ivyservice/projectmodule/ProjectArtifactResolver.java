@@ -74,7 +74,7 @@ public class ProjectArtifactResolver implements ArtifactResolver, HoldsProjectSt
             File localArtifactFile = projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());
             if (localArtifactFile != null) {
                 CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), resolveArtifactLater(artifact));
-                resolvableArtifact = new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+                resolvableArtifact = new DefaultResolvableArtifact(component.getModuleId(), component.getVersion(), artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
                 allResolvedArtifacts.put(artifact.getId(), resolvableArtifact);
             }
         }

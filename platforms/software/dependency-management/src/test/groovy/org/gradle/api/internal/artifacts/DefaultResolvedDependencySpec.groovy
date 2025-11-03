@@ -286,7 +286,7 @@ class DefaultResolvedDependencySpec extends Specification {
     }
 
     private ResolvedArtifact createArtifact(String name) {
-        def id = DefaultModuleVersionIdentifier.newId("group", name, "1.2")
+        def moduleId = DefaultModuleIdentifier.newId("group", name)
         IvyArtifactName artifactStub = Mock() {
             getName() >> name
             getType() >> "someType"
@@ -295,7 +295,7 @@ class DefaultResolvedDependencySpec extends Specification {
         }
         def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
         def artifactSource = calculatedValueContainerFactory.create(Describables.of("artifact"), new File("pathTo" + name))
-        return new DefaultResolvableArtifact(id, artifactStub, Stub(ComponentArtifactIdentifier), Mock(TaskDependencyContainer), artifactSource, calculatedValueContainerFactory).toPublicView()
+        return new DefaultResolvableArtifact(moduleId, "1.2", artifactStub, Stub(ComponentArtifactIdentifier), Mock(TaskDependencyContainer), artifactSource, calculatedValueContainerFactory).toPublicView()
     }
 
     private DefaultResolvedDependency newDependency(

@@ -16,7 +16,7 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -112,13 +112,14 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     private LocalComponentGraphResolveState createLocalComponentState(ProjectInternal project) {
         ProjectState projectState = project.getOwner();
         Module module = project.getServices().get(DependencyMetaDataProvider.class).getModule();
-        ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
+        ModuleIdentifier moduleId = moduleIdentifierFactory.module(module.getGroup(), module.getName());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
         AttributesSchemaInternal mutableSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
         ImmutableAttributesSchema schema = attributesSchemaFactory.create(mutableSchema);
 
         LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
-            moduleVersionIdentifier,
+            moduleId,
+            module.getVersion(),
             componentIdentifier,
             module.getStatus(),
             schema

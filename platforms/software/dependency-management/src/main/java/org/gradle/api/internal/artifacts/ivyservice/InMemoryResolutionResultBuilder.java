@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Resolut
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -58,7 +59,17 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     @Override
     public void visitNode(DependencyGraphNode node) {
         DependencyGraphComponent component = node.getOwner();
-        resolutionResultBuilder.startVisitComponent(component.getResultId(), component.getSelectionReason(), component.getRepositoryName(), component.getId(), component.getResolveState().getMetadata().getModuleVersionId());
+
+        ComponentGraphResolveMetadata componentMetadata = component.getResolveState().getMetadata();
+        resolutionResultBuilder.startVisitComponent(
+            component.getResultId(),
+            component.getSelectionReason(),
+            component.getRepositoryName(),
+            component.getId(),
+            componentMetadata.getModuleId(),
+            componentMetadata.getVersion()
+        );
+
         for (ResolvedGraphVariant variant : component.getSelectedVariants()) {
             ResolvedVariantResult publicView = component.getResolveState().getPublicViewFor(variant.getResolveState(), null);
             resolutionResultBuilder.visitSelectedVariant(variant.getNodeId(), publicView);

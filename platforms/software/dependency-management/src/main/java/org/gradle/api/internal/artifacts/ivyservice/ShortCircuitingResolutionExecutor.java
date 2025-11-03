@@ -130,7 +130,8 @@ public class ShortCircuitingResolutionExecutor {
         VariantGraphResolveState rootVariant = params.getRootVariant();
 
         MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
-            rootComponent.getModuleVersionId(),
+            rootComponent.getMetadata().getModuleId(),
+            rootComponent.getMetadata().getVersion(),
             rootComponent.getId(),
             rootVariant.getAttributes(),
             getCapabilities(rootComponent, rootVariant),

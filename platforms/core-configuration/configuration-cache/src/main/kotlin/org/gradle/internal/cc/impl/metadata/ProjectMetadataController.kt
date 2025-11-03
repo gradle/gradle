@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.metadata
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder
@@ -92,7 +92,8 @@ class ProjectMetadataController(
     private
     suspend fun WriteContext.writeComponentMetadata(metadata: LocalComponentGraphResolveMetadata) {
         write(metadata.id)
-        write(metadata.moduleVersionId)
+        write(metadata.moduleId)
+        write(metadata.version)
         writeString(metadata.status)
         write(metadata.attributesSchema)
     }
@@ -165,12 +166,14 @@ class ProjectMetadataController(
     private
     suspend fun ReadContext.readComponentMetadata(): LocalComponentGraphResolveMetadata {
         val id = readNonNull<ComponentIdentifier>()
-        val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
+        val moduleId = readNonNull<ModuleIdentifier>()
+        val version = readString()
         val status = readString()
         val schema = readNonNull<ImmutableAttributesSchema>()
 
         return LocalComponentGraphResolveMetadata(
-            moduleVersionId,
+            moduleId,
+            version,
             id,
             status,
             schema

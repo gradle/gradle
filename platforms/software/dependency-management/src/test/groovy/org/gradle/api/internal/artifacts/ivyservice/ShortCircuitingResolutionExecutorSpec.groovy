@@ -24,8 +24,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.model.CalculatedValue
@@ -185,6 +188,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
             getRootVariant() >> Stub(LocalVariantGraphResolveState) {
                 getDependencies() >> Collections.emptyList()
             }
+            getRootComponent() >> componentState()
         }
     }
 
@@ -193,6 +197,20 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
             getRootVariant() >> Stub(LocalVariantGraphResolveState) {
                 getDependencies() >> [Mock(DependencyMetadata)]
             }
+            getRootComponent() >> componentState()
+        }
+    }
+
+    private LocalComponentGraphResolveState componentState() {
+        def moduleId = DefaultModuleIdentifier.newId("group", "module")
+        Stub(LocalComponentGraphResolveState) {
+            getMetadata() >> new LocalComponentGraphResolveMetadata(
+                moduleId,
+                "1.0",
+                DefaultModuleComponentIdentifier.newId(moduleId, "1.0"),
+                "status",
+                ImmutableAttributesSchema.EMPTY
+            )
         }
     }
 }

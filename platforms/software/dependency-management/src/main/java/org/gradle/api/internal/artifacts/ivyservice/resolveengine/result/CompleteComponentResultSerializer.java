@@ -17,14 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
@@ -52,7 +51,7 @@ import java.util.List;
 public class CompleteComponentResultSerializer implements ComponentResultSerializer {
 
     private final ComponentSelectionReasonSerializer reasonSerializer;
-    private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final Serializer<AttributeContainer> attributeContainerSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
     private final Serializer<List<Capability>> capabilitySerializer;
@@ -65,7 +64,7 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
         NamedObjectInstantiator namedObjectInstantiator
     ) {
         this.reasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
-        this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, namedObjectInstantiator);
         this.componentIdSerializer = new ComponentIdentifierSerializer();
         this.capabilitySerializer = new ListSerializer<>(new CapabilitySerializer());
@@ -79,7 +78,11 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
 
         ComponentGraphResolveState componentState = component.getResolveState();
         componentIdSerializer.write(encoder, componentState.getId());
-        moduleVersionIdSerializer.write(encoder, componentState.getMetadata().getModuleVersionId());
+
+        ModuleIdentifier moduleId = componentState.getMetadata().getModuleId();
+        encoder.writeString(moduleId.getGroup());
+        encoder.writeString(moduleId.getName());
+        encoder.writeString(componentState.getMetadata().getVersion());
 
         // TODO: Do not ignore includeAllSelectableVariantResults.
 
@@ -109,8 +112,13 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         String repo = decoder.readNullableString();
         ComponentIdentifier componentIdentifier = componentIdSerializer.read(decoder);
-        ModuleVersionIdentifier moduleVersionIdentifier = moduleVersionIdSerializer.read(decoder);
-        visitor.startVisitComponent(resultId, reason, repo, componentIdentifier, moduleVersionIdentifier);
+
+        String group = decoder.readString();
+        String name = decoder.readString();
+        String version = decoder.readString();
+
+        ModuleIdentifier moduleId = moduleIdentifierFactory.module(group, name);
+        visitor.startVisitComponent(resultId, reason, repo, componentIdentifier, moduleId, version);
 
         // TODO: Deserialize all selectable variant results if present.
         visitor.visitComponentVariants(ImmutableList.of());

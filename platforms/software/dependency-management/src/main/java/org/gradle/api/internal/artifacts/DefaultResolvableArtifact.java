@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -36,17 +37,27 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 
 public class DefaultResolvableArtifact implements ResolvableArtifact {
-    private final ModuleVersionIdentifier owner;
+
+    private final @Nullable ModuleIdentifier ownerModuleId;
+    private final @Nullable String ownerVersion;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependencyContainer buildDependencies;
     private final CalculatedValue<File> fileSource;
     private final WorkNodeAction resolvedArtifactDependency;
     private final CalculatedValueFactory calculatedValueFactory;
-    private final ResolvedArtifact publicView;
 
-    public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueFactory calculatedValueFactory) {
-        this.owner = owner;
+    public DefaultResolvableArtifact(
+        @Nullable ModuleIdentifier ownerModuleId,
+        @Nullable String ownerVersion,
+        IvyArtifactName artifact,
+        ComponentArtifactIdentifier artifactId,
+        TaskDependencyContainer builtBy,
+        CalculatedValue<File> fileSource,
+        CalculatedValueFactory calculatedValueFactory
+    ) {
+        this.ownerModuleId = ownerModuleId;
+        this.ownerVersion = ownerVersion;
         this.artifact = artifact;
         this.artifactId = artifactId;
         this.buildDependencies = builtBy;
@@ -59,7 +70,6 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
             this.resolvedArtifactDependency = null;
         }
         this.calculatedValueFactory = calculatedValueFactory;
-        this.publicView = new DefaultResolvedArtifact(artifactId, fileSource, owner, artifact);
     }
 
     @Override
@@ -99,7 +109,16 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
 
     @Override
     public ResolvedArtifact toPublicView() {
-        return publicView;
+        ModuleVersionIdentifier moduleVersionId = null;
+        if (ownerModuleId != null && ownerVersion != null) {
+            moduleVersionId = DefaultModuleVersionIdentifier.newId(ownerModuleId, ownerVersion);
+        }
+        return new DefaultResolvedArtifact(
+            artifactId,
+            fileSource,
+            moduleVersionId,
+            artifact
+        );
     }
 
     @Override
@@ -114,7 +133,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         }
 
         ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
-        return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueFactory);
+        return new PreResolvedResolvableArtifact(ownerModuleId, ownerVersion, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueFactory);
     }
 
     @Override

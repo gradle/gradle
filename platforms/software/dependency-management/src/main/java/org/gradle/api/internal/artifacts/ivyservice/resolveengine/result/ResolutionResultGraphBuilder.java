@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -57,13 +57,15 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     private long id;
     private ComponentSelectionReason selectionReason;
     private ComponentIdentifier componentId;
-    private ModuleVersionIdentifier moduleVersion;
+    private ModuleIdentifier moduleId;
+    private String version;
     private String repoName;
     private ImmutableList<ResolvedVariantResult> allVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariants = new LinkedHashMap<>();
 
     public static MinimalResolutionResult empty(
-        ModuleVersionIdentifier id,
+        ModuleIdentifier moduleId,
+        String version,
         ComponentIdentifier componentIdentifier,
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
@@ -71,7 +73,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         AttributeDesugaring attributeDesugaring
     ) {
         ResolutionResultGraphBuilder builder = new ResolutionResultGraphBuilder();
-        builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null, componentIdentifier, id);
+        builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null, componentIdentifier, moduleId, version);
 
         ResolvedVariantResult rootVariant = new DefaultResolvedVariantResult(
             componentIdentifier,
@@ -100,14 +102,15 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     }
 
     @Override
-    public void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion) {
+    public void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleIdentifier moduleId, String version) {
         this.id = id;
         this.selectionReason = selectionReason;
         this.selectedVariants.clear();
         this.allVariants = null;
         this.repoName = repoName;
         this.componentId = componentId;
-        this.moduleVersion = moduleVersion;
+        this.moduleId = moduleId;
+        this.version = version;
     }
 
     @Override
@@ -124,7 +127,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     public void endVisitComponent() {
         // The nodes in the graph represent variants (mostly) and multiple variants of a component may be included in the graph, so a given component may be visited multiple times
         if (!components.containsKey(id)) {
-            components.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId, ImmutableMap.copyOf(selectedVariants), allVariants, repoName));
+            components.put(id, new DefaultResolvedComponentResult(moduleId, version, selectionReason, componentId, ImmutableMap.copyOf(selectedVariants), allVariants, repoName));
         }
         selectedVariants.clear();
         allVariants = null;

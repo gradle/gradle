@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -27,6 +26,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -71,9 +71,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
             ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState component = localComponentRegistry.getComponent(projectId);
-            ModuleVersionIdentifier mvId = component.getModuleVersionId();
-            if (rejector != null && rejector.accept(mvId.getVersion())) {
-                result.rejected(projectId, mvId.getModule(), mvId.getVersion());
+            ComponentGraphResolveMetadata metadata = component.getMetadata();
+            if (rejector != null && rejector.accept(metadata.getVersion())) {
+                result.rejected(projectId, metadata.getModuleId(), metadata.getVersion());
             } else {
                 result.resolved(component, ComponentGraphSpecificResolveState.EMPTY_STATE);
             }

@@ -36,8 +36,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -267,13 +267,14 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             HashCode moduleDescriptorHash = cachingModuleSource.getDescriptorHash();
 
             if (cachedModuleArtifacts != null) {
-                if (!cacheExpirationControl.moduleArtifactsExpiry(component.getModuleVersionId(), null, Duration.ofMillis(cachedModuleArtifacts.getAgeMillis()),
+                ModuleVersionIdentifier mvId = DefaultModuleVersionIdentifier.newId(component.getModuleId(), component.getVersion());
+                if (!cacheExpirationControl.moduleArtifactsExpiry(mvId, null, Duration.ofMillis(cachedModuleArtifacts.getAgeMillis()),
                     cachingModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash())).isMustCheck()) {
                     result.resolved(cachedModuleArtifacts.getArtifacts());
                     return;
                 }
 
-                LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", contextId, component.getModuleVersionId(), delegate.getName());
+                LOGGER.debug("Artifact listing has expired: will perform fresh resolve of '{}' for '{}' in '{}'", contextId, component.getId(), delegate.getName());
             }
         }
 

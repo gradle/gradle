@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -239,11 +238,12 @@ class ResolutionResultGraphBuilderSpec extends Specification {
     }
 
     private void node(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
+        def version = "1"
         def resultId = id(module)
-        def componentId = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1")
-        def moduleVersionId = DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId("x", module), "1")
+        def moduleId = DefaultModuleIdentifier.newId("x", module)
+        def componentId = new DefaultModuleComponentIdentifier(moduleId, version)
 
-        builder.startVisitComponent(resultId, reason, "repo", componentId, moduleVersionId)
+        builder.startVisitComponent(resultId, reason, "repo", componentId, moduleId, version)
         builder.visitSelectedVariant(resultId, Stub(ResolvedVariantResult))
         builder.visitComponentVariants([])
         builder.endVisitComponent()

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
@@ -28,11 +28,9 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 public class LenientPlatformResolveMetadata implements ComponentGraphResolveMetadata {
 
     private final ModuleComponentIdentifier moduleComponentIdentifier;
-    private final ModuleVersionIdentifier moduleVersionIdentifier;
 
-    LenientPlatformResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
+    LenientPlatformResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier) {
         this.moduleComponentIdentifier = moduleComponentIdentifier;
-        this.moduleVersionIdentifier = moduleVersionIdentifier;
     }
 
     @Override
@@ -41,17 +39,18 @@ public class LenientPlatformResolveMetadata implements ComponentGraphResolveMeta
     }
 
     @Override
-    public ModuleVersionIdentifier getModuleVersionId() {
-        return moduleVersionIdentifier;
+    public ModuleIdentifier getModuleId() {
+        return moduleComponentIdentifier.getModuleIdentifier();
+    }
+
+    @Override
+    public String getVersion() {
+        return moduleComponentIdentifier.getVersion();
     }
 
     @Override
     public ImmutableAttributesSchema getAttributesSchema() {
         return ImmutableAttributesSchema.EMPTY;
-    }
-
-    LenientPlatformResolveMetadata copyWithIds(ModuleComponentIdentifier moduleComponentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier);
     }
 
     @Override

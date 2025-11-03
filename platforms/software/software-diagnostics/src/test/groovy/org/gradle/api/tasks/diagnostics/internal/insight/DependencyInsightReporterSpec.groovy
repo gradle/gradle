@@ -38,7 +38,6 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONFLICT_RESOLUTION
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -197,7 +196,7 @@ class DependencyInsightReporterSpec extends Specification {
     private static DefaultResolvedComponentResult component(String group, String name, String version, ComponentSelectionReason selectionReason) {
         def moduleId = DefaultModuleIdentifier.newId(group, name)
         def variant = defaultVariant()
-        new DefaultResolvedComponentResult(DefaultModuleVersionIdentifier.newId(moduleId, version), selectionReason, DefaultModuleComponentIdentifier.newId(moduleId, version), ImmutableMap.of(1L, variant), ImmutableList.of(variant), "repoId")
+        new DefaultResolvedComponentResult(moduleId, version, selectionReason, DefaultModuleComponentIdentifier.newId(moduleId, version), ImmutableMap.of(1L, variant), ImmutableList.of(variant), "repoId")
     }
 
     private static DefaultResolvedDependencyResult dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested()) {
@@ -214,10 +213,10 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private static DefaultResolvedDependencyResult path(String path) {
-        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(newId("group", "root", "1"), ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId")
+        DefaultResolvedComponentResult from = new DefaultResolvedComponentResult(DefaultModuleIdentifier.newId("group", "root"), "1", ComponentSelectionReasons.requested(), new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("group", "root"), "1"), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId")
         List<DefaultResolvedDependencyResult> pathElements = (path.split(' -> ') as List).reverse().collect {
             def (name, version) = it.split(':')
-            def componentResult = new DefaultResolvedComponentResult(newId('group', name, version), ComponentSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId")
+            def componentResult = new DefaultResolvedComponentResult(DefaultModuleIdentifier.newId('group', name), version, ComponentSelectionReasons.requested(), DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', name), version), ImmutableMap.of(1L, defaultVariant()), ImmutableList.of(defaultVariant()), "repoId")
             def result = new DefaultResolvedDependencyResult(newSelector(DefaultModuleIdentifier.newId("group", name), version), false, componentResult, null, from)
             from = componentResult
             result

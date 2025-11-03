@@ -43,7 +43,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
         this.attributeDesugaring = attributeDesugaring;
-        this.implicitCapability =  DefaultImmutableCapability.defaultCapabilityForComponent(graphMetadata.getModuleVersionId());
+        this.implicitCapability = DefaultImmutableCapability.of(graphMetadata.getModuleId(), graphMetadata.getVersion());
     }
 
     @Override
@@ -99,7 +99,8 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     private ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
         if (capabilities.asSet().isEmpty()) {
-            return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
+            T metadata = getMetadata();
+            return ImmutableCapabilities.of(DefaultImmutableCapability.of(metadata.getModuleId(), metadata.getVersion()));
         } else {
             return capabilities;
         }
