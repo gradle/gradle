@@ -16,10 +16,13 @@
 
 package org.gradle.testing.testengine.descriptor;
 
+import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.support.descriptor.AbstractTestDescriptor;
+import org.junit.platform.engine.support.descriptor.FileSource;
 
 import java.io.File;
+import java.util.Optional;
 
 public final class ResourceBasedTestDescriptor extends AbstractTestDescriptor {
     private final File file;
@@ -34,6 +37,11 @@ public final class ResourceBasedTestDescriptor extends AbstractTestDescriptor {
     @Override
     public Type getType() {
         return Type.TEST;
+    }
+
+    @Override
+    public Optional<TestSource> getSource() {
+        return Optional.of(FileSource.from(getFile()));
     }
 
     public File getFile() {
