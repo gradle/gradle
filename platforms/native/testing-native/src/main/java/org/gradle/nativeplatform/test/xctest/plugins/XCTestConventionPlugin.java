@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
@@ -82,16 +81,14 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
     private final ToolChainSelector toolChainSelector;
     private final NativeComponentFactory componentFactory;
-    private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
     private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory, ObjectFactory objectFactory, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
+    public XCTestConventionPlugin(MacOSSdkPlatformPathLocator sdkPlatformPathLocator, ToolChainSelector toolChainSelector, NativeComponentFactory componentFactory, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.sdkPlatformPathLocator = sdkPlatformPathLocator;
         this.toolChainSelector = toolChainSelector;
         this.componentFactory = componentFactory;
-        this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
         this.targetMachineFactory = targetMachineFactory;
     }
@@ -156,7 +153,7 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
             final SwiftComponent mainComponent = testComponent.getTestedComponent().getOrNull();
             final SetProperty<TargetMachine> mainTargetMachines = mainComponent != null ? mainComponent.getTargetMachines() : null;
             Dimensions.unitTestVariants(testComponent.getModule(), testComponent.getTargetMachines(), mainTargetMachines,
-                    objectFactory, attributesFactory,
+                    attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {

@@ -64,8 +64,9 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
 
         this.apiElements = configurations.consumable(getNames().withSuffix("cppApiElements"), conf -> {
             conf.extendsFrom(dependencies.getApiDependencies());
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-            conf.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+            AttributeContainer attrs = conf.getAttributes();
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+            attrs.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
         });
 
         AttributeContainer publicationAttributes = attributesFactory.mutable();

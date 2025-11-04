@@ -65,7 +65,6 @@ class DefaultJvmPluginServicesTest extends AbstractProjectBuilderSpec {
 
     @Subject
     DefaultJvmPluginServices services = new DefaultJvmPluginServices(
-        TestUtil.objectFactory(),
         TestUtil.providerFactory(),
         TestUtil.instantiatorFactory().decorateScheme().instantiator(),
         TestUtil.taskDependencyFactory()
