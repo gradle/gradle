@@ -88,7 +88,9 @@ trait TestEnginesFixture {
 
     enum TestEngines {
         BASIC_RESOURCE_BASED("rbt-engine"),
-        RESOURCE_AND_CLASS_BASED("resource-and-class-engine")
+        RESOURCE_AND_CLASS_BASED("resource-and-class-engine"),
+        FAILS_DISCOVERY_RESOURCE_BASED("fails-discovery-rbt-engine"),
+        FAILS_EXECUTION_RESOURCE_BASED("fails-execution-rbt-engine")
 
         private final String name
 

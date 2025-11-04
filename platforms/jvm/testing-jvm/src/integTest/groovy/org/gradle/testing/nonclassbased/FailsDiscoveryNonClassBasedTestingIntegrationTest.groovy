@@ -16,16 +16,18 @@
 
 package org.gradle.testing.nonclassbased
 
+import static org.gradle.util.Matchers.matchesRegexp
+
 /**
- * Tests that exercise and demonstrate a TestEngines that runs both class and non-class test definitions.
+ * Tests that exercise and demonstrate a broken Non-Class-Based Testing Engine that fails during discovery.
  */
-class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
+class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {
-        return [TestEngines.RESOURCE_AND_CLASS_BASED]
+        return [TestEngines.FAILS_DISCOVERY_RESOURCE_BASED]
     }
 
-    def "can use same engine for class and resource-based testing"() {
+    def "engine failing during discovery is handled gracefully"() {
         given:
         buildFile << """
             plugins {
@@ -40,23 +42,41 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
                 targets.all {
                     testTask.configure {
                         testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
-
-                        options {
-                            excludeEngines("junit-jupiter")
-                        }
                     }
                 }
             }
         """
 
-        writeTestClasses()
         writeTestDefinitions()
 
         when:
-        succeeds("test", "--info")
+        fails("test", "--info", "-S")
 
         then:
-        classBasedTestsExecuted()
-        nonClassBasedTestsExecuted()
+        failure.assertThatCause(matchesRegexp(/Could not complete execution for Gradle Test Executor \d+\./))
+        failure.assertHasErrorOutput("Caused by: java.lang.RuntimeException: Test discovery failed")
+    }
+
+    def "engine failing during discovery is not started if no test def dirs specified"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+            }
+        """
+
+        writeTestDefinitions()
+
+        when:
+        succeeds("test")
+
+        then:
+        result.assertTaskSkipped(":test")
     }
 }

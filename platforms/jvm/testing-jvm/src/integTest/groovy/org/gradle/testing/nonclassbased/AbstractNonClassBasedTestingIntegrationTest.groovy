@@ -19,6 +19,9 @@ package org.gradle.testing.nonclassbased
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import testengines.TestEnginesFixture
 
+/**
+ * Abstract base class for tests that exercise and demonstrate incorrect Non-Class-Based Testing setups.
+ */
 abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec implements TestEnginesFixture {
     protected void sourcesPresentAndNoTestsFound() {
         failureCauseContains("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
