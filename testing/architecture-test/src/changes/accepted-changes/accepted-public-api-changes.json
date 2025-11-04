@@ -1,193 +1,27 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Constructor org.gradle.api.tasks.compile.CompileOptions()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getForkOptions()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getHeaderOutputDirectory()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getRelease()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.GroovyCompile",
-            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.GroovyCompile",
-            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getGroovyOptions()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.GroovyCompile",
-            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getJavaLauncher()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.JavaCompile",
-            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getJavaCompiler()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getAccess()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getIncludeAuthor()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getIncludeMainForScripts()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
-            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getProcessScripts()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
-            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinaryResultsDirectory()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
-            "member": "Method org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getOutputDirectory()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
-            "member": "Method org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getPluginClasspath()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
-            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getAdditionalClassDirs()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
-            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getAdditionalSourceDirs()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
-            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getClassDirectories()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
-            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getExecutionData()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
-            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getSourceDirectories()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.util.Path",
-            "member": "Method org.gradle.util.Path.asString()",
-            "acceptation": "Deprecated Path.getPath() in favor of asString()",
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.fetch(org.gradle.tooling.BuildController,org.gradle.tooling.model.Model,kotlin.reflect.KClass)",
+            "acceptation": "We don\u0027t generate @since on the generated accessor method",
             "changes": [
                 "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.fetch(org.gradle.tooling.BuildController,org.gradle.tooling.model.Model,kotlin.reflect.KClass,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "We don\u0027t generate @since on the generated accessor method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.management.PluginRequest",
+            "member": "Method org.gradle.plugin.management.PluginRequest.getSelector()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
             ]
         }
     ]

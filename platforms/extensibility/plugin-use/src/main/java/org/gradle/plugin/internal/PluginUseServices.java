@@ -54,13 +54,13 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry
 import org.gradle.plugin.management.internal.autoapply.CompositeAutoAppliedPluginRegistry;
 import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPluginRegistry;
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
-import org.gradle.plugin.software.internal.DefaultSoftwareFeatureApplicator;
-import org.gradle.plugin.software.internal.DefaultSoftwareFeatureRegistry;
+import org.gradle.plugin.software.internal.DefaultProjectFeatureApplicator;
+import org.gradle.plugin.software.internal.DefaultProjectFeatureDeclarations;
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
-import org.gradle.plugin.software.internal.SoftwareTypeAnnotationHandler;
+import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.plugin.software.internal.ProjectTypeAnnotationHandler;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
@@ -102,8 +102,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NullMarked
     private static class GlobalScopeServices implements ServiceRegistrationProvider {
         @Provides
-        PropertyAnnotationHandler createSoftwareTypeAnnotationHandler() {
-            return new SoftwareTypeAnnotationHandler();
+        PropertyAnnotationHandler createProjectTypeAnnotationHandler() {
+            return new ProjectTypeAnnotationHandler();
         }
     }
 
@@ -131,9 +131,9 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         @SuppressWarnings("deprecation")
         void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
-            DefaultSoftwareFeatureRegistry softwareFeatureRegistry = new DefaultSoftwareFeatureRegistry(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
-            registration.add(org.gradle.plugin.software.internal.SoftwareTypeRegistry.class, softwareFeatureRegistry);
-            registration.add(SoftwareFeatureRegistry.class, softwareFeatureRegistry);
+            DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
+            registration.add(org.gradle.plugin.software.internal.SoftwareTypeRegistry.class, projectFeatureRegistry);
+            registration.add(ProjectFeatureDeclarations.class, projectFeatureRegistry);
         }
 
         @Provides
@@ -210,16 +210,16 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NullMarked
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareFeatureApplicator createSoftwareFeatureApplicator(
-            SoftwareFeatureRegistry softwareFeatureRegistry,
+        ProjectFeatureApplicator createProjectFeatureApplicator(
+            ProjectFeatureDeclarations projectFeatureDeclarations,
             ModelDefaultsApplicator modelDefaultsApplicator,
             PluginScheme pluginScheme,
             InternalProblems problems,
             PluginManagerInternal pluginManager,
             ProjectInternal project
         ) {
-            return new DefaultSoftwareFeatureApplicator(
-                softwareFeatureRegistry,
+            return new DefaultProjectFeatureApplicator(
+                projectFeatureDeclarations,
                 modelDefaultsApplicator,
                 pluginScheme.getInspectionScheme(),
                 problems,

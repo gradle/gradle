@@ -43,7 +43,6 @@ Instead of copy–pasting `publishing { … }` blocks into every `build.gradle(.
 
 The project layout is as follows:
 
-
 [.multi-language-sample]
 =====
 [source,kotlin]
@@ -79,6 +78,14 @@ The project layout is as follows:
 
 Here’s a precompiled script plugin that standardizes publishing.
 Notice how it sets the `group` and `version` from the root project and configures a local Maven repository in `build/repo`:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin",files="buildSrc/src/main/kotlin/myproject.publishing-conventions.gradle.kts[]"]

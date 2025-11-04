@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.UnresolvedDependency
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
@@ -54,9 +55,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
@@ -83,8 +84,6 @@ import org.gradle.util.TestUtil
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
-
-import java.util.function.Supplier
 
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
@@ -968,9 +967,10 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
-        Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
-        def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
+        def graph = Mock(ResolvedDependencyGraph) {
+            getRootComponent() >> Mock(ResolvedComponentResult)
+        }
+        def result = new MinimalResolutionResult(() -> graph, ImmutableAttributes.EMPTY)
         def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
@@ -979,7 +979,7 @@ This method is only meant to be called on configurations which allow the (non-de
         def out = config.incoming.resolutionResult
 
         then:
-        out.root == result.rootSource.get()
+        out.root == result.graphSource.get().rootComponent
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -1551,13 +1551,13 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private ResolverResults buildDependenciesResolved() {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
         def unresolved = Mock(UnresolvedDependency) {
             getProblem() >> failure
         }
@@ -1578,7 +1578,7 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(

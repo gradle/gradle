@@ -17,16 +17,16 @@
 package org.gradle.internal.declarativedsl
 
 import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
-import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
+import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
-class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
+class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
 
     def setup() {
         file("gradle.properties") << """
@@ -36,19 +36,19 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
     def 'set single value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def softwareType = new SoftwareTypePluginClassBuilder().withoutConventions()
+        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
         def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersProjectType(projectType.projectTypePluginClassName)
 
-        withSoftwareTypePlugins(
-            definition as SoftwareTypeDefinitionClassBuilder,
-            softwareType,
+        withProjectTypePlugins(
+            definition as ProjectTypeDefinitionClassBuilder,
+            projectType,
             settingsBuilder
         ).prepareToExecute()
 
         def defaultsConfig = """
             defaults {
-                testSoftwareType {
+                testProjectType {
                     dir = layout.projectDirectory.dir("defaultDir")
                     file = layout.settingsDirectory.file("defaultFile")
                 }
@@ -56,15 +56,15 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """.stripIndent()
         settingsFile() << getSettingsFileContent(setDefaults ? defaultsConfig : "")
 
-        def softwareTypeConfig = """
+        def projectTypeConfig = """
             dir = layout.projectDirectory.dir("someDir")
             file = layout.settingsDirectory.file("someFile")
         """.stripIndent()
-        buildFileForProject("a") << getProjectFileContent(setValues ? softwareTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
-        buildFileForProject("b") << getProjectFileContent(setValues ? softwareTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFileForProject("a") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFileForProject("b") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run("printTestSoftwareTypeExtensionConfiguration")
+        run("printTestProjectTypeDefinitionConfiguration")
 
         then:
         def expectedNamePrefix = setValues ? "some" : "default"
@@ -87,19 +87,19 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy doesn't have the `listOf(...)` function")
     def 'set multi value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def softwareType = new SoftwareTypePluginClassBuilder().withoutConventions()
+        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
         def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersProjectType(projectType.projectTypePluginClassName)
 
-        withSoftwareTypePlugins(
-            definition as SoftwareTypeDefinitionClassBuilder,
-            softwareType,
+        withProjectTypePlugins(
+            definition as ProjectTypeDefinitionClassBuilder,
+            projectType,
             settingsBuilder
         ).prepareToExecute()
 
         def defaultsConfig = """
             defaults {
-                testSoftwareType {
+                testProjectType {
                     dirs = listOf(layout.projectDirectory.dir("defaultDir1"), layout.projectDirectory.dir("defaultDir2"))
                     files = listOf(layout.settingsDirectory.file("defaultFile1"), layout.settingsDirectory.file("defaultFile2"))
                 }
@@ -107,15 +107,15 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """.stripIndent()
         settingsFile() << getSettingsFileContent(setDefaults ? defaultsConfig : "")
 
-        def softwareTypeConfig = """
+        def projectTypeConfig = """
             dirs = listOf(layout.projectDirectory.dir("someDir1"), layout.projectDirectory.dir("someDir2"))
             files = listOf(layout.settingsDirectory.file("someFile1"), layout.settingsDirectory.file("someFile2"))
         """.stripIndent()
-        buildFileForProject("a") << getProjectFileContent(setValues ? softwareTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
-        buildFileForProject("b") << getProjectFileContent(setValues ? softwareTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFileForProject("a") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFileForProject("b") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run("printTestSoftwareTypeExtensionConfiguration")
+        run("printTestProjectTypeDefinitionConfiguration")
 
         then:
         def expectedNamePrefix = setValues ? "some" : "default"
@@ -133,19 +133,19 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is specific to the Declarative DSL")
     def "using a read-only property by mistake gives a helpful error message for #name (set defaults: #setDefaults)"() {
         given:
-        def softwareType = new SoftwareTypePluginClassBuilder().withoutConventions()
+        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
         def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersProjectType(projectType.projectTypePluginClassName)
 
-        withSoftwareTypePlugins(
-            definition as SoftwareTypeDefinitionClassBuilder,
-            softwareType,
+        withProjectTypePlugins(
+            definition as ProjectTypeDefinitionClassBuilder,
+            projectType,
             settingsBuilder
         ).prepareToExecute()
 
         def defaultsConfig = """
             defaults {
-                testSoftwareType {
+                testProjectType {
                     dir = layout.projectDirectory.dir("defaultDir")
                     file = layout.settingsDirectory.file("defaultFile")
                 }
@@ -153,15 +153,15 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """.stripIndent()
         settingsFile() << getSettingsFileContent(setDefaults ? defaultsConfig : "")
 
-        def softwareTypeConfig = """
+        def projectTypeConfig = """
             dir = listOf(layout.projectDirectory.dir("someDir1"), layout.projectDirectory.dir("someDir2"))
             file = listOf(layout.settingsDirectory.file("someFile1"), layout.settingsDirectory.file("someFile2"))
         """.stripIndent()
-        buildFileForProject("a") << getProjectFileContent(softwareTypeConfig) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFileForProject("a") << getProjectFileContent(projectTypeConfig) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
         buildFileForProject("b") << ""
 
         when:
-        fails(":printTestSoftwareTypeExtensionConfiguration")
+        fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
         failureCauseContains("Failed to interpret the declarative DSL file '${(setDefaults ? settingsFile() : buildFileForProject("a")).path}':")
@@ -190,15 +190,15 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
         then:
         if (GradleDsl.KOTLIN == currentDsl()) {
-            failure.assertHasDescription("ProjectLayout should be referenced only inside of software type default configuration blocks")
+            failure.assertHasDescription("ProjectLayout should be referenced only inside of project type default configuration blocks")
         } else if (GradleDsl.GROOVY == currentDsl()) {
-            failure.assertHasCause("ProjectLayout should be referenced only inside of software type default configuration blocks")
+            failure.assertHasCause("ProjectLayout should be referenced only inside of project type default configuration blocks")
         } else {
             throw new RuntimeException("Shouldn't happen")
         }
     }
 
-    private static class DefinitionWithFileSystemLocationProperties extends SoftwareTypeDefinitionClassBuilder {
+    private static class DefinitionWithFileSystemLocationProperties extends ProjectTypeDefinitionClassBuilder {
         @Override
         String getClassContent() {
             return """
@@ -208,11 +208,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                 import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.file.RegularFileProperty;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
                     @Restricted
                     public abstract DirectoryProperty getDir();
 
@@ -233,7 +233,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         }
     }
 
-    private static class DefinitionWithFileSystemLocationListProperties extends SoftwareTypeDefinitionClassBuilder {
+    private static class DefinitionWithFileSystemLocationListProperties extends ProjectTypeDefinitionClassBuilder {
         @Override
         String getClassContent() {
             return """
@@ -244,11 +244,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.file.Directory;
                 import org.gradle.api.file.RegularFile;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
                     @Restricted
                     public abstract ListProperty<Directory> getDirs();
 
@@ -269,7 +269,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         }
     }
 
-    private static class DefinitionWithReadOnlyProperties extends SoftwareTypeDefinitionClassBuilder {
+    private static class DefinitionWithReadOnlyProperties extends ProjectTypeDefinitionClassBuilder {
         @Override
         String getClassContent() {
             return """
@@ -280,11 +280,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.file.Directory;
                 import org.gradle.api.file.RegularFileProperty;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
                     @Restricted
                     Directory getDir();
 
@@ -300,7 +300,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         }
     }
 
-    private static class DefinitionWithReadOnlyRegularFileProperty extends SoftwareTypeDefinitionClassBuilder {
+    private static class DefinitionWithReadOnlyRegularFileProperty extends ProjectTypeDefinitionClassBuilder {
         @Override
         String getClassContent() {
             return """
@@ -311,11 +311,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.file.RegularFile;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
                     @Restricted
                     DirectoryProperty getDir();
 
@@ -331,7 +331,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         }
     }
 
-    private static class DefinitionWithPropertiesOfFileSystemLocations extends SoftwareTypeDefinitionClassBuilder {
+    private static class DefinitionWithPropertiesOfFileSystemLocations extends ProjectTypeDefinitionClassBuilder {
         @Override
         String getClassContent() {
             return """
@@ -345,13 +345,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.file.RegularFileProperty;
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
 
                     private final Property<Directory> dir;
                     private final Property<RegularFile> file;
@@ -386,7 +386,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         }
     }
 
-    private static class DefinitionWithJavaBeanPropertiesOfFileSystemLocations extends SoftwareTypeDefinitionClassBuilder {
+    private static class DefinitionWithJavaBeanPropertiesOfFileSystemLocations extends ProjectTypeDefinitionClassBuilder {
         @Override
         String getClassContent() {
             return """
@@ -398,13 +398,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import org.gradle.api.file.RegularFile;
                 import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.file.RegularFileProperty;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
 
                     private Directory dir;
                     private RegularFile file;
@@ -461,10 +461,10 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    private static String getProjectFileContent(String softwareTypeConfig) {
+    private static String getProjectFileContent(String projectTypeConfig) {
         return """
-            testSoftwareType {
-                $softwareTypeConfig
+            testProjectType {
+                $projectTypeConfig
             }
         """.stripIndent()
     }

@@ -39,89 +39,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Publishing improvements
-
-#### New `PublishingExtension.getSoftwareComponentFactory()` method
-
-This release introduces a new method that exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service via the `publishing` extension, simplifying the creation of publishable components.
-In many cases, a component is already present. 
-For example, the bundled Java plugins already provide the `java` component by default.
-This new method is especially useful for plugin authors who want to create and publish custom components without needing to depend on the Java plugins.
-
-The following example shows how to use this new method to publish a custom component:
-
-```kotlin
-plugins {
-    id("maven-publish")
-}
-
-val consumableConfiguration: Configuration = getAConfiguration()
-
-publishing {
-    val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
-    myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
-    
-    publications {
-        create<MavenPublication>("maven") {
-            from(myCustomComponent)
-        }
-    }
-}
-```
-
-#### New provider-based methods for publishing configurations
-
-Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) which accept providers of consumable configurations:
-
-- [`void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#addVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
-- [`void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#withVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
-
-These complement the existing methods that accept realized configuration instances.
-
-With this new API, configurations can remain lazy and are only realized when actually needed for publishing.
-Consider the following example:
-
-```kotlin
-plugins {
-    id("base")
-    id("maven-publish")
-}
-
-group = "org.example"
-version = "1.0"
-
-val myTask = tasks.register<Jar>("myTask")
-val variantDependencies = configurations.dependencyScope("variantDependencies")
-val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configurations.consumable("myNewVariant") {
-    extendsFrom(variantDependencies.get())
-    outgoing {
-        artifact(myTask)
-    }
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
-    }
-}
-
-publishing {
-    val component = softwareComponentFactory.adhoc("component")
-    // This new overload now accepts a lazy provider of consumable configuration
-    component.addVariantsFromConfiguration(myNewVariant) {}
-
-    repositories {
-        maven {
-            url = uri("<your repo url>")
-        }
-    }
-    publications {
-        create<MavenPublication>("myPublication") {
-            from(component)
-        }
-    }
-}
-```
-
-With this approach, the `myNewVariant` configuration will only be realized if the `myPublication` publication is actually published.
-
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
@@ -156,7 +73,58 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="build-authoring"></a>
+### Build authoring improvements
 
+#### New `AttributeContainer.named()` method
+
+This release introduces a new convenience method on `AttributeContainer`, [`named()`](javadoc/org/gradle/api/attributes/AttributeContainer.html#named(java.lang.Class,java.lang.String)), which can create attribute values directly from the container without requiring a separate `ObjectFactory` instance.
+
+This method makes attribute assignment more concise while preserving the same semantics as creating a named value via `ObjectFactory`:
+
+```kotlin
+configurations.resolvable("foo") {
+    attributes {
+        // Before: 
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "red"))
+        
+        // After:
+        attribute(Usage.USAGE_ATTRIBUTE, named(Usage::class.java, "red"))
+    }
+}
+```
+
+<a name="stream-testkit-output"></a>
+### Stream TestKit output
+
+Gradle TestKit's `BuildResult` now offers a new method for accessing the build console output efficiently, especially for builds that produce a large volume of logs.
+
+[`BuildResult.getOutput()`](javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+returns a `String` with the full build console output.
+This can use large amounts of memory for builds with extensive logs.
+
+A new 
+[`BuildResult.getOutputReader()`](javadoc/org/gradle/testkit/runner/BuildResult.html#getOutput())
+method is available, returning a `BufferedReader` for streaming the build output incrementally.
+This can help reduce memory pressure in TestKit tests.
+
+Please ensure you close the `BufferedReader` after use; we recommend the standard Java try-with-resources pattern for this:
+
+```java
+void testProject() {
+    BuildResult buildResult = GradleRunner.create()
+        .withProjectDir(File("test-project"))
+        .withArguments(":build", "--info")
+        .build();
+
+    try (BufferedReader outputReader = buildResult.getOutputReader()) {
+        List<String> logLines = outputReader.lines()
+            .filter(line -> line.contains("example build message"))
+            .collect(Collectors.toList());
+        // do something with the log lines...
+    }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -171,11 +139,9 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-### Daemon toolchain is now stable
-
-Gradle introduced the [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) in Gradle 8.8 as an incubating feature.
-Since then the feature has been improved and stabilized.
-It is now considered stable and will no longer print an incubation warning when used.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 

@@ -82,7 +82,7 @@ dependencies {
         api(libs.commonsLang)           { version { strictly("3.17.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
+        api(libs.errorProneAnnotations) { version { strictly("2.42.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gradleFileEvents)      { version { strictly("0.2.8") }}
         api(libs.gradleProfiler)        { version { strictly("0.23.0-alpha-1") }}
@@ -176,6 +176,7 @@ dependencies {
         api(libs.trove4j)               { version { strictly("1.0.20200330") }}
         api(libs.jna)                   { version { strictly(jnaVersion) }}
         api(libs.jnaPlatform)           { version { strictly(jnaVersion) }}
+        api(libs.jnrConstants)          { version { strictly("0.10.4") } }
 
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}

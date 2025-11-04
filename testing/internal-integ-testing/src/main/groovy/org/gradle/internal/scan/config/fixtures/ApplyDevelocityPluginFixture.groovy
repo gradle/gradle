@@ -18,6 +18,7 @@ package org.gradle.internal.scan.config.fixtures
 
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.CONVENTIONS_PLUGIN_VERSION
 import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.VERSION
 
 /**
@@ -26,6 +27,7 @@ import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDeveloc
 class ApplyDevelocityPluginFixture {
     private static final String APPLY_DEVELOCITY_PLUGIN = """plugins {
         |    id("${AutoAppliedDevelocityPlugin.ID}") version("${VERSION}")
+        |    id("${AutoAppliedDevelocityPlugin.CONVENTIONS_PLUGIN_ID}").version("${CONVENTIONS_PLUGIN_VERSION}")
         |}""".stripMargin()
 
     static void applyDevelocityPlugin(File settingsFile) {

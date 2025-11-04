@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.junit.Assume
 import spock.lang.Issue
@@ -827,7 +828,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         buildFile << """
             java {
                 toolchain {
-                    languageVersion.set(JavaLanguageVersion.of(${newerJdk.javaVersion.majorVersion}))
+                    languageVersion.set(JavaLanguageVersion.of(${newerJdk.javaVersion?.majorVersion}))
                 }
             }
         """
@@ -864,6 +865,53 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             fqid == 'validation:missing-java-toolchain-plugin'
             contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.'
             definition.documentationLink.url.endsWith("/userguide/upgrading_major_version_9.html#validate_plugins_without_java_toolchain_90")
+        }
+    }
+
+    def "using toolchain lower than supported by the daemon causes a build failure"() {
+        def currentJdk = Jvm.current()
+        def unsupportedDaemonJDK = AvailableJavaHomes.getUnsupportedDaemonJdk()
+        Assume.assumeNotNull(unsupportedDaemonJDK)
+
+        def installationPaths = [currentJdk, unsupportedDaemonJDK].collect { it.javaHome.absolutePath }.join(",")
+
+        given:
+        source("producer/settings.gradle") << ""
+        source("producer/build.gradle") << "plugins { id 'java' }"
+        source("producer/src/main/java/Test.java") << "public class Test {}"
+
+        source("consumer/settings.gradle") << ""
+        source("consumer/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+            tasks.register("validatePlugins", ValidatePlugins) {
+                classes.from("../producer/build/classes/java/main")
+                outputFile.set(project.file("\$buildDir/report.txt"))
+                launcher.set(javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(8)
+                })
+            }
+        """
+
+        when:
+
+        executer.inDirectory(file("producer"))
+
+        succeeds("build")
+
+        executer.inDirectory(file("consumer"))
+            .withArgument("-Dorg.gradle.java.installations.paths=" + installationPaths)
+
+
+        then:
+        fails "validatePlugins"
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:invalid-java-toolchain'
+            contextualLabel == "Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION} is not supported."
+            definition.documentationLink.url.endsWith("/userguide/upgrading_version_9.html#validate_plugins_java_version")
         }
     }
 }

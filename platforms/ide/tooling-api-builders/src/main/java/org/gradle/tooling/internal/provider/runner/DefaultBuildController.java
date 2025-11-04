@@ -16,9 +16,12 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.BuildCancelledException;
+import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
@@ -28,10 +31,14 @@ import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
 import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.internal.protocol.resiliency.InternalFetchAwareBuildController;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
@@ -40,18 +47,29 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 @NullMarked
-@SuppressWarnings("deprecation")
-class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController, InternalStreamedValueRelay {
+class DefaultBuildController implements
+    InternalBuildController,
+    InternalBuildControllerVersion2,
+    InternalActionAwareBuildController,
+    InternalStreamedValueRelay,
+    InternalFetchAwareBuildController {
+
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
+    private final ResilientIssuesRecorder resilientIssuesRecorder;
 
     public DefaultBuildController(
         BuildTreeModelController controller,
@@ -59,7 +77,8 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         BuildCancellationToken cancellationToken,
         BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        ResilientIssuesRecorder resilientIssuesRecorder
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.controller = controller;
@@ -67,6 +86,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
+        this.resilientIssuesRecorder = resilientIssuesRecorder;
     }
 
     /**
@@ -92,7 +112,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
      * This is used by consumers 4.4 and later
      */
     @Override
-    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, Object parameter)
+    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
@@ -145,6 +165,28 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         StreamedValue streamedValue = new StreamedValue(serializedModel);
         BuildEventConsumer buildEventConsumer = this.buildEventConsumer;
         sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(streamedValue));
+    }
+
+    @Override
+    public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
+        try {
+            Object model = getModel(target, modelIdentifier, parameter).getModel();
+            Collection<InternalFailure> failures = getRecordedFailures().collect(toImmutableList());
+            return new DefaultInternalFetchModelResult<>(target, uncheckedNonnullCast(model), failures);
+        } catch (Exception e) {
+            ImmutableList.Builder<InternalFailure> builder = ImmutableList.builder();
+            getRecordedFailures().forEach(builder::add);
+            builder.add(DefaultFailure.fromThrowable(e));
+            return new DefaultInternalFetchModelResult<>(target, null, builder.build());
+        } finally {
+            resilientIssuesRecorder.clear();
+        }
+    }
+
+    private Stream<InternalFailure> getRecordedFailures() {
+        return resilientIssuesRecorder.getFailures()
+            .stream()
+            .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null));
     }
 
 }

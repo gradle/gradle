@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
@@ -39,6 +40,8 @@ import java.util.stream.Collectors;
  */
 public class TestTreeModel {
 
+    private static final TestTreeModel EMPTY_MODEL = new TestTreeModel(Path.ROOT, ImmutableMap.of(), ImmutableMap.of());
+
     /**
      * Load and merge a list of test result stores into a single tree model.
      *
@@ -51,11 +54,7 @@ public class TestTreeModel {
             SerializableTestResultStore store = stores.get(i);
             store.forEachResult(new StoreLoader(i, modelsByPath));
         }
-        TestTreeModel rootModel = modelsByPath.get(Path.ROOT);
-        if (rootModel == null) {
-            throw new IllegalStateException("All provided stores were empty");
-        }
-        return rootModel;
+        return modelsByPath.getOrDefault(Path.ROOT, EMPTY_MODEL);
     }
 
     private static final class StoreLoader implements Consumer<SerializableTestResultStore.OutputTrackedResult> {

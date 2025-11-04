@@ -51,3 +51,7 @@ dependencies {
 
     compileOnly(libs.errorProneAnnotations)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

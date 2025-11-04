@@ -110,7 +110,7 @@ tasks.compileJava {
 // end::java-release-flag[]
 
 // tag::integ-test-task[]
-val integrationTest = task<Test>("integrationTest") {
+val integrationTest = tasks.register<Test>("integrationTest") {
     description = "Runs integration tests."
     group = "verification"
 

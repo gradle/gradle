@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -29,6 +26,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.util.internal.GUtil;
 
 public class DefaultComponentSelectorConverter implements ComponentSelectorConverter {
+
     private final LocalComponentRegistry localComponentRegistry;
 
     public DefaultComponentSelectorConverter(LocalComponentRegistry localComponentRegistry) {
@@ -36,32 +34,24 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
     }
 
     @Override
-    public ModuleIdentifier getModule(ComponentSelector componentSelector) {
-        if (componentSelector instanceof ModuleComponentSelector) {
-            ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
-            return module.getModuleIdentifier();
-        }
-        ModuleVersionSelector moduleVersionSelector = getSelector(componentSelector);
-        return moduleVersionSelector.getModule();
-    }
-
-    @Override
-    public ModuleVersionSelector getSelector(ComponentSelector selector) {
+    public ModuleVersionIdentifier getModuleVersionId(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
-            return DefaultModuleVersionSelector.newSelector((ModuleComponentSelector) selector);
+            ModuleComponentSelector moduleSelector = (ModuleComponentSelector) selector;
+            return DefaultModuleVersionIdentifier.newId(moduleSelector.getModuleIdentifier(), moduleSelector.getVersion());
         }
         if (selector instanceof DefaultProjectComponentSelector) {
             DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
             ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState projectComponent = localComponentRegistry.getComponent(projectId);
             ModuleVersionIdentifier moduleVersionId = projectComponent.getModuleVersionId();
-            return DefaultModuleVersionSelector.newSelector(moduleVersionId.getModule(), moduleVersionId.getVersion());
+            return DefaultModuleVersionIdentifier.newId(moduleVersionId.getModule(), moduleVersionId.getVersion());
         }
         if (selector instanceof LibraryComponentSelector) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) selector;
             String libraryName = GUtil.elvis(libraryComponentSelector.getLibraryName(), "");
-            return DefaultModuleVersionSelector.newSelector(DefaultModuleIdentifier.newId(libraryComponentSelector.getProjectPath(), libraryName), "undefined");
+            return DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId(libraryComponentSelector.getProjectPath(), libraryName), "undefined");
         }
-        throw new GradleException("Unrecognized component selector: " + selector);
+        throw new IllegalArgumentException("Unrecognized component selector: " + selector);
     }
+
 }

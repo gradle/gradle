@@ -23,10 +23,12 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.problemsApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
     implementation(projects.ear)
+    implementation(projects.kotlinDsl)
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
@@ -40,6 +42,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
+    runtimeOnly(projects.buildEvents)
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
     runtimeOnly(projects.testingJvm)
@@ -70,7 +73,6 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {

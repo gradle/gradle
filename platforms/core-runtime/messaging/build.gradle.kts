@@ -33,8 +33,9 @@ dependencies {
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
     integTestImplementation(projects.serviceRegistryBuilder)
+    integTestImplementation(projects.toolingApi)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

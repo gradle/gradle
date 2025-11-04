@@ -36,6 +36,7 @@ import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.In
 import org.gradle.internal.declarativedsl.parsing.FailureCollectorContext.CheckedResult
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
+import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.KtNodeTypes.ANNOTATED_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.ANNOTATION_ENTRY
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
@@ -44,8 +45,6 @@ import org.jetbrains.kotlin.KtNodeTypes.BLOCK
 import org.jetbrains.kotlin.KtNodeTypes.BOOLEAN_CONSTANT
 import org.jetbrains.kotlin.KtNodeTypes.CALL_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.CLASS
-import org.jetbrains.kotlin.KtNodeTypes.CLASS_BODY
-import org.jetbrains.kotlin.KtNodeTypes.CLASS_INITIALIZER
 import org.jetbrains.kotlin.KtNodeTypes.DOT_QUALIFIED_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.ESCAPE_STRING_TEMPLATE_ENTRY
 import org.jetbrains.kotlin.KtNodeTypes.FUN
@@ -67,6 +66,7 @@ import org.jetbrains.kotlin.KtNodeTypes.PARENTHESIZED
 import org.jetbrains.kotlin.KtNodeTypes.PREFIX_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.PROPERTY
 import org.jetbrains.kotlin.KtNodeTypes.REFERENCE_EXPRESSION
+import org.jetbrains.kotlin.KtNodeTypes.SCRIPT_INITIALIZER
 import org.jetbrains.kotlin.KtNodeTypes.SHORT_STRING_TEMPLATE_ENTRY
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.THIS_EXPRESSION
@@ -90,13 +90,11 @@ import org.jetbrains.kotlin.lexer.KtTokens.DOT
 import org.jetbrains.kotlin.lexer.KtTokens.EQ
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.lexer.KtTokens.INTEGER_LITERAL
-import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.LPAR
 import org.jetbrains.kotlin.lexer.KtTokens.MINUS
 import org.jetbrains.kotlin.lexer.KtTokens.MUL
 import org.jetbrains.kotlin.lexer.KtTokens.OPEN_QUOTE
 import org.jetbrains.kotlin.lexer.KtTokens.QUALIFIED_ACCESS
-import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.RPAR
 import org.jetbrains.kotlin.lexer.KtTokens.SAFE_ACCESS
 import org.jetbrains.kotlin.parsing.hasIllegalUnderscore
@@ -107,14 +105,13 @@ import org.jetbrains.kotlin.parsing.parseBoolean
 import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import org.jetbrains.kotlin.psi.stubs.elements.KtConstantExpressionElementType
 import org.jetbrains.kotlin.psi.stubs.elements.KtNameReferenceExpressionElementType
+import org.jetbrains.kotlin.util.getChildren
 import org.jetbrains.kotlin.utils.doNothing
 
 
 class GrammarToTree(
     private val sourceIdentifier: SourceIdentifier,
-    private val sourceCode: String,
-    private val sourceOffset: Int,
-    private val suffixLength: Int
+    private val sourceCode: String
 ) {
 
     inner
@@ -122,14 +119,14 @@ class GrammarToTree(
         private
         val sourceData: MutableMap<LighterASTNode, LightTreeSourceData> = mutableMapOf()
 
-        fun sourceData(node: LighterASTNode, offset: Int = sourceOffset): LightTreeSourceData =
+        fun sourceData(node: LighterASTNode): LightTreeSourceData =
             sourceData.computeIfAbsent(node) {
-                it.sourceData(sourceIdentifier, sourceCode, offset)
+                it.sourceData(sourceIdentifier, sourceCode)
             }
 
         fun rootSourceData(): LightTreeSourceData =
             sourceData.computeIfAbsent(root) {
-                LightTreeSourceData(sourceIdentifier, sourceCode, sourceOffset, sourceOffset..sourceCode.lastIndex - suffixLength)
+                LightTreeSourceData(sourceIdentifier, sourceCode, sourceCode.indices)
             }
 
         fun parsingError(node: LighterASTNode, message: String): ParsingError {
@@ -159,12 +156,6 @@ class GrammarToTree(
             val innerSourceData = sourceData(inner)
             return UnsupportedConstruct(outerSourceData, innerSourceData, feature)
         }
-
-        fun unsupportedNoOffset(outer: LighterASTNode, inner: LighterASTNode, feature: UnsupportedLanguageFeature): UnsupportedConstruct {
-            val outerSourceData = sourceData(outer, 0)
-            val innerSourceData = sourceData(inner, 0)
-            return UnsupportedConstruct(outerSourceData, innerSourceData, feature)
-        } // TODO: hack, due to script wrapping
     }
 
     fun script(originalTree: LightTree): LanguageTreeResult {
@@ -190,7 +181,7 @@ class GrammarToTree(
     private
     fun packageHeader(tree: CachingLightTree, node: LighterASTNode): List<FailingResult> =
         when {
-            tree.children(node).isNotEmpty() -> listOf(tree.unsupportedNoOffset(node, node, UnsupportedLanguageFeature.PackageHeader))
+            tree.children(node).isNotEmpty() -> listOf(tree.unsupported(node, node, UnsupportedLanguageFeature.PackageHeader))
             else -> listOf()
         }
 
@@ -206,8 +197,8 @@ class GrammarToTree(
                             propertyAccessStatement(tree, it)
                                 .flatMap { e -> if (e is NamedReference) Element(e) else tree.unsupported(node, InvalidImportValue) }
                         )
-                        MUL -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.StarImport))
-                        IMPORT_ALIAS -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.RenamingImport))
+                        MUL -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.StarImport))
+                        IMPORT_ALIAS -> collectingFailure(tree.unsupported(node, it, UnsupportedLanguageFeature.RenamingImport))
                     }
                 }
 
@@ -223,7 +214,7 @@ class GrammarToTree(
                         }
 
                     val nameParts = checked(content!!).flatten()
-                    Element(Import(AccessChain(nameParts), tree.sourceData(node, offset = 0)))
+                    Element(Import(AccessChain(nameParts), tree.sourceData(node)))
                 }
             }
         }
@@ -744,38 +735,18 @@ class GrammarToTree(
         tree.children(toplevelNode(tree, IMPORT_LIST))
 
     private
-    fun scriptNodes(tree: LightTree): List<LighterASTNode> {
-        // the actual script we want to parse is wrapped into a class initializer block, we need to extract it
-
-        val childrenOfWrappingClass = tree.children(toplevelNode(tree, CLASS))
-        val wrappingClassBody = childrenOfWrappingClass.expectSingleOfKind(CLASS_BODY)
-        val childrenOfWrappingClassBody = tree.children(wrappingClassBody)
-        val wrappingClassInitializer = childrenOfWrappingClassBody.expectSingleOfKind(CLASS_INITIALIZER)
-        val childrenOfWrappingClassInitializer = tree.children(wrappingClassInitializer)
-        val wrappingClassInitializerBlock = childrenOfWrappingClassInitializer.expectSingleOfKind(BLOCK)
-        val childrenOfWrappingClassInitializerBlock = tree.children(wrappingClassInitializerBlock)
-
-        return extractBlockContent(childrenOfWrappingClassInitializerBlock)
-    }
+    fun scriptNodes(tree: LightTree): List<LighterASTNode> =
+        tree.children(toplevelNode(tree, KtNodeTypes.SCRIPT))
+            .expectSingleOrNoneOfKind(BLOCK)?.getChildren(tree)
+            ?.filter(LighterASTNode::isUseful)
+            ?.flatMap { if (it.tokenType == SCRIPT_INITIALIZER) it.getChildren(tree) else listOf(it) }
+            .orEmpty()
 
     private
     fun toplevelNode(tree: LightTree, parentNode: IElementType): LighterASTNode {
         val root = tree.root
         val childrenOfRoot = tree.children(root)
         return childrenOfRoot.expectSingleOfKind(parentNode)
-    }
-
-    private
-    fun extractBlockContent(blockNodes: List<LighterASTNode>): List<LighterASTNode> {
-        check(blockNodes.size >= 2) // first and last nodes are the opening an¡¡d closing braces
-
-        val openBrace = blockNodes.first()
-        openBrace.expectKind(LBRACE)
-
-        val closingBrace = blockNodes.last()
-        closingBrace.expectKind(RBRACE)
-
-        return blockNodes.slice(1..blockNodes.size - 2)
     }
 
     private

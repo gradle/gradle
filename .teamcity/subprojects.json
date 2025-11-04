@@ -266,6 +266,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "core-flow-services-api",
+    "path": "platforms/core-configuration/core-flow-services-api",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "core-kotlin-extensions",
     "path": "platforms/core-configuration/core-kotlin-extensions",
     "unitTests": false,
@@ -1106,6 +1113,27 @@
     "crossVersionTests": false
   },
   {
+    "name": "project-features",
+    "path": "platforms/core-configuration/project-features",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "project-features-api",
+    "path": "platforms/core-configuration/project-features-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "project-features-demos",
+    "path": "platforms/core-configuration/project-features-demos",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "public-api",
     "path": "packaging/public-api",
     "unitTests": false,
@@ -1284,27 +1312,6 @@
     "name": "software-diagnostics",
     "path": "platforms/software/software-diagnostics",
     "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "software-features",
-    "path": "platforms/core-configuration/software-features",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "software-features-api",
-    "path": "platforms/core-configuration/software-features-api",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "software-features-demos",
-    "path": "platforms/core-configuration/software-features-demos",
-    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },

@@ -85,15 +85,12 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
     @Override
     public Provider<ResolvedVariantResult> getRootVariant() {
-        return new DefaultProvider<>(() -> {
-            MinimalResolutionResult resolutionResult = getResolutionResult();
-            return resolutionResult.getRootSource().get().getVariant(resolutionResult.getRootVariantId());
-        });
+        return new DefaultProvider<>(() -> getResolutionResult().getGraphSource().get().getRootVariant());
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> getResolutionResult().getRootSource().get());
+        return new DefaultProvider<>(() -> getResolutionResult().getGraphSource().get().getRootComponent());
     }
 
     private MinimalResolutionResult getResolutionResult() {

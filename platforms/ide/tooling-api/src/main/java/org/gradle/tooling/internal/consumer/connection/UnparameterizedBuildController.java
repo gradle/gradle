@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.FetchModelResult;
 import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
@@ -106,9 +107,8 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
 
     @Override
     public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException {
-        ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
-        Object originalTarget = target == null ? null : adapter.unpack(target);
-
+        Object originalTarget = unpackModelTarget(target);
+        ModelIdentifier modelIdentifier = getModelIdentifierFromModelType(modelType);
         P parameter = initializeParameter(parameterType, parameterInitializer);
 
         BuildResult<?> result;
@@ -118,12 +118,25 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
             throw Exceptions.unknownModel(modelType, e);
         }
 
-        ViewBuilder<T> viewBuilder = resultAdapter.builder(modelType);
-        applyCompatibilityMapping(viewBuilder, new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
-        return viewBuilder.build(result.getModel());
+        return adaptModel(target, modelType, result.getModel());
     }
 
-    private <P> P initializeParameter(Class<P> parameterType, Action<? super P> parameterInitializer) {
+    protected <T> T adaptModel(@Nullable Model target, Class<T> modelType, Object model) {
+        ViewBuilder<T> viewBuilder = resultAdapter.builder(modelType);
+        applyCompatibilityMapping(viewBuilder, new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
+        return viewBuilder.build(model);
+    }
+
+    protected <T> ModelIdentifier getModelIdentifierFromModelType(Class<T> modelType) {
+        return modelMapping.getModelIdentifierFromModelType(modelType);
+    }
+
+    @Nullable
+    protected Object unpackModelTarget(@Nullable Model target) {
+        return target == null ? null : adapter.unpack(target);
+    }
+
+    protected static <P> P initializeParameter(@Nullable Class<P> parameterType, Action<? super P> parameterInitializer) {
         validateParameters(parameterType, parameterInitializer);
         if (parameterType != null) {
             // TODO: move this to ObjectFactory
@@ -135,7 +148,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
         }
     }
 
-    private <P> void validateParameters(Class<P> parameterType, Action<? super P> parameterInitializer) {
+    private static <P> void validateParameters(@Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
         if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null)) {
             throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parameterized model request.");
         }
@@ -145,7 +158,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
         }
     }
 
-    private String getProjectPath(Model target) {
+    private static String getProjectPath(@Nullable Model target) {
         if (target instanceof ProjectModel) {
             return ((ProjectModel) target).getProjectIdentifier().getProjectPath();
         } else {
@@ -181,5 +194,25 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     @Override
     public void send(Object value) {
         throw new UnsupportedVersionException(String.format("Gradle version %s does not support streaming values to the client.", gradleVersion.getVersion()));
+    }
+
+    @Override
+    public <M> FetchModelResult<Model, M> fetch(Class<M> modelType) {
+        return fetch(null, modelType, null, null);
+    }
+
+    @Override
+    public <T extends Model, M> FetchModelResult<T, M> fetch(T target, Class<M> modelType) {
+        return fetch(target, modelType, null, null);
+    }
+
+    @Override
+    public <M, P> FetchModelResult<Model, M> fetch(Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+        return fetch(null, modelType, parameterType, parameterInitializer);
+    }
+
+    @Override
+    public <T extends Model, M, P> FetchModelResult<T, M> fetch(@Nullable T target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+        throw new UnsupportedVersionException(String.format("Gradle version %s does not support resilient model fetching.", gradleVersion.getVersion()));
     }
 }

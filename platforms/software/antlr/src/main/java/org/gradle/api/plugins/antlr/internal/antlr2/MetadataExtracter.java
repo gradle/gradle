@@ -21,13 +21,15 @@ import org.jspecify.annotations.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newBufferedReader;
 
 /**
  * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
@@ -73,7 +75,7 @@ public class MetadataExtracter {
     @Nullable
     private String getPackageName(File grammarFileFile) {
         try {
-            return getPackageName(new FileReader(grammarFileFile));
+            return getPackageName(newBufferedReader(grammarFileFile.toPath(), UTF_8));
         } catch (IOException e) {
             throw new UncheckedIOException("Cannot read antlr grammar file", e);
         }

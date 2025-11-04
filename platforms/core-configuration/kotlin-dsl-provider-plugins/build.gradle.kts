@@ -14,7 +14,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.persistentCache)
     api(projects.declarativeDslToolingModels)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
 
     api(libs.inject)
     api(libs.kotlinStdlib)
