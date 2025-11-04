@@ -165,8 +165,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    // TODO:configuration-cache test currently flaky since cc might run tests in parallel
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "cc might cause tests to run in parallel")
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "cc causes tasks from the same project to run in parallel")
     def "does not run tests from multiple tasks from the same project in parallel"() {
         withBlockingJUnitTests(2)
         withBlockingJUnitTests(2, "other")
