@@ -5,10 +5,14 @@
 
 The execution engine is the main component of the execution platform.
 Its purpose is to provide a simple, unified way of declaring _units of work_ that the engine can execute, producing their outputs safely and efficiently in a concurrent environment.[^concurrent-environment]
-To achieve this goal, the engine utilizes a host of safeguards and optimizations.
-Notably, the execution engine is not responsible for deciding which units of work should be executed, nor is it concerned with scheduling executions (see the scheduler about that).
 
 [^concurrent-environment]: This means the engine is fully thread-safe and ensures that parallel execution of work does not cause problems, even when multiple processes are executing units of work simultaneously.
+
+It is best to think about "execution" as a way of _manifesting_ the outputs of a given unit of work.
+This can happen by executing the work, but some or all of the effort of execution can be saved via one of several optimization methods employed by the execution engine.
+
+> [!NOTE]
+> The execution engine is not responsible for deciding which units of work should be executed, nor is it concerned with scheduling executions (see the scheduler about that).
 
 Any action with well-defined inputs and outputs, where safe execution or output reuse is required, can be implemented using the execution engine.
 Indeed, it is our aspiration in Gradle for all such work to be executed via the execution engine.[^work-to-be-migrated]
@@ -54,7 +58,8 @@ When provided with well-defined units of work, the execution engine can employ s
 ![](Execution%20Engine%20Schematic.drawio.svg)
 
 > [!TIP]
-> To open a zoomable version of the schematic above right-click and choose "Open Image in New Tab".
+> There is a lot of useful detail in this schematic.
+> To open a zoomable version right-click on the image above and choose "Open Image in New Tab".
 
 > [!TIP]
 > Use [draw.io](https://draw.io/) to make changes to the diagram. The linked SVG file can be opened directly in draw.io. Do not edit as raw SVG.
@@ -96,7 +101,8 @@ If there are no changes to either its inputs or outputs, executing the work is n
 
 ### The Build Cache
 
-_TBD_
+If the execution state of the work is out-of-date, we try to load outputs from the build cache.
+If successful, we delete and unpack results to the output location.
 
 ### Execution Modes
 
