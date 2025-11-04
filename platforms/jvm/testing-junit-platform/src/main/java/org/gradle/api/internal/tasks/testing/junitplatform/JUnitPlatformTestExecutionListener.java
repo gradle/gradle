@@ -49,6 +49,7 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.reporting.FileEntry;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.FileSystemSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
@@ -303,7 +304,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         TestIdentifier classIdentifier = findTestClassIdentifier(node);
         String className = className(classIdentifier);
         String classDisplayName = node.getDisplayName();
-        return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName);
+        return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName, sourceOf(node));
+    }
+
+    private static String sourceOf(TestIdentifier node) {
+        return node.getSource()
+            .filter(FileSystemSource.class::isInstance)
+            .map(source -> ((FileSystemSource) source).getFile().getAbsolutePath())
+            .orElse("unknown");
     }
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {
@@ -317,7 +325,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         TestIdentifier classIdentifier = findTestClassIdentifier(test);
         String className = className(classIdentifier);
         String classDisplayName = classDisplayName(classIdentifier);
-        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
+        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName, sourceOf(test));
     }
 
     private Object getId(TestIdentifier testIdentifier) {

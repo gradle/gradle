@@ -29,7 +29,11 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
 
     @UsedByScanPlugin("test-distribution")
     public DefaultTestClassDescriptor(Object id, String className, @Nullable String classDisplayName) {
-        super(id, className);
+        this(id, className, classDisplayName, "unknown");
+    }
+
+    public DefaultTestClassDescriptor(Object id, String className, @Nullable String classDisplayName, String source) {
+        super(id, className, source);
         this.classDisplayName = classDisplayName == null ? className : classDisplayName;
     }
 

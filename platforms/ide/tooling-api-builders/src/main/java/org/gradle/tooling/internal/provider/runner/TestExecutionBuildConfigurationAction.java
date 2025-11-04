@@ -20,6 +20,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
@@ -33,6 +35,7 @@ import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalResourceBasedTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
@@ -50,6 +53,9 @@ import java.util.function.Consumer;
 
 @NullMarked
 class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
+
+    private static final Logger LOG = Logging.getLogger(TestExecutionBuildConfigurationAction.class);
+
     private final TestExecutionRequestAction testExecutionRequest;
 
     public TestExecutionBuildConfigurationAction(TestExecutionRequestAction testExecutionRequest) {
@@ -167,6 +173,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
 
     private void configureTestTasksInBuild(Context context) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
+        warnUnsupportedTestRerunningForResourceBasedTests(testDescriptors);
         for (final InternalTestDescriptor descriptor : testDescriptors) {
             final String testTaskPath = taskPathOf(descriptor);
             for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
@@ -175,6 +182,20 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                     if (taskPathOf(testDescriptor).equals(testTaskPath)) {
                         includeTestMatching((InternalJvmTestDescriptor) testDescriptor, testTask);
                     }
+                }
+            }
+        }
+    }
+
+    private static void warnUnsupportedTestRerunningForResourceBasedTests(Collection<InternalTestDescriptor> testDescriptors) {
+        Set<String> seenTasks = new LinkedHashSet<>();
+        for (InternalTestDescriptor descriptor : testDescriptors) {
+            if (descriptor instanceof InternalResourceBasedTestDescriptor) {
+                String taskPath = taskPathOf(descriptor);
+                if (!seenTasks.contains(taskPath)) {
+                    // Currently, Gradle TestLauncher API does not support re-running resource-based tests
+                    LOG.warn("Warning: Re-running resource-based tests is not supported via TestLauncher API. The '{}' task will be scheduled without further filtering.", taskPath);
+                    seenTasks.add(taskPath);
                 }
             }
         }
@@ -197,12 +218,14 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private static void includeTestMatching(InternalJvmTestDescriptor descriptor, AbstractTestTask testTask) {
-        String className = descriptor.getClassName();
-        String methodName = descriptor.getMethodName();
-        if (className == null && methodName == null) {
-            testTask.getFilter().includeTestsMatching("*");
-        } else {
-            testTask.getFilter().includeTest(className, methodName);
+        if (!(descriptor instanceof InternalResourceBasedTestDescriptor)) {
+            String className = descriptor.getClassName();
+            String methodName = descriptor.getMethodName();
+            if (className == null && methodName == null) {
+                testTask.getFilter().includeTestsMatching("*");
+            } else {
+                testTask.getFilter().includeTest(className, methodName);
+            }
         }
     }
 

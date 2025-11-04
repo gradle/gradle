@@ -23,7 +23,11 @@ public class DefaultTestSuiteDescriptor extends AbstractTestDescriptor {
 
     @UsedByScanPlugin("test-distribution")
     public DefaultTestSuiteDescriptor(Object id, String name) {
-        super(id, name);
+        this(id, name, "unknown");
+    }
+
+    public DefaultTestSuiteDescriptor(Object id, String name, String source) {
+        super(id, name, source);
     }
 
     @Override

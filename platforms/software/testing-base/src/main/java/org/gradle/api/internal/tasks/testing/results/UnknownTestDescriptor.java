@@ -48,6 +48,11 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    public String getSource() {
+        return "unknown";
+    }
+
+    @Override
     public String getDisplayName() {
         return getName();
     }

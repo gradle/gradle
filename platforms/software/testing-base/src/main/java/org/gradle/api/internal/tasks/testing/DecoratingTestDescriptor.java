@@ -46,6 +46,11 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    public String getSource() {
+        return descriptor.getSource();
+    }
+
+    @Override
     public Object getId() {
         return descriptor.getId();
     }

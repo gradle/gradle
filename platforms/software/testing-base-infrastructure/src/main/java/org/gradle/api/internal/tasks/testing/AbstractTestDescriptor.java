@@ -27,10 +27,12 @@ import org.jspecify.annotations.Nullable;
 public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     private final Object id;
     private final String name;
+    private final String source;
 
-    public AbstractTestDescriptor(Object id, String name) {
+    public AbstractTestDescriptor(Object id, String name, String source) {
         this.id = id;
         this.name = name;
+        this.source = source;
     }
 
     @Override
@@ -46,6 +48,11 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     @Override
     public String getClassName() {
         return null;
+    }
+
+    @Override
+    public String getSource() {
+        return source;
     }
 
     /**

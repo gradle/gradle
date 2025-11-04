@@ -30,8 +30,8 @@ import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
-import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -477,7 +477,8 @@ public class TestEventSerializer {
             String classDisplayName = decoder.readString();
             String name = decoder.readString();
             String displayName = decoder.readString();
-            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName);
+            String source = decoder.readString();
+            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName, source);
         }
 
         @Override
@@ -487,6 +488,7 @@ public class TestEventSerializer {
             encoder.writeString(value.getClassDisplayName());
             encoder.writeString(value.getName());
             encoder.writeString(value.getDisplayName());
+            encoder.writeString(value.getSource());
         }
     }
 
