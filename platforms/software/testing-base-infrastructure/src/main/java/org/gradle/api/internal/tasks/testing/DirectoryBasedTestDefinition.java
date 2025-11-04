@@ -26,14 +26,14 @@ import java.io.File;
  */
 @NullMarked
 public final class DirectoryBasedTestDefinition implements TestDefinition {
-    private final File resourceFile;
+    private final File dir;
 
-    public DirectoryBasedTestDefinition(File resourceFile) {
-        this.resourceFile = resourceFile.getAbsoluteFile();
+    public DirectoryBasedTestDefinition(File dir) {
+        this.dir = dir.getAbsoluteFile();
     }
 
     public File getTestDefinitionFile() {
-        return resourceFile;
+        return dir;
     }
 
     /**
@@ -42,12 +42,12 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
      */
     @Override
     public String getId() {
-        return resourceFile.getAbsolutePath();
+        return dir.getAbsolutePath();
     }
 
     @Override
     public String getDisplayName() {
-        return "tests in directory '" + resourceFile.getAbsolutePath() + "'";
+        return "tests in directory '" + dir.getAbsolutePath() + "'";
     }
 
     @Override
@@ -67,12 +67,12 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
 
         DirectoryBasedTestDefinition that = (DirectoryBasedTestDefinition) o;
 
-        return resourceFile.equals(that.resourceFile);
+        return dir.equals(that.dir);
     }
 
     @Override
     public int hashCode() {
-        return resourceFile.hashCode();
+        return dir.hashCode();
     }
 
     @Override

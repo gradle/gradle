@@ -59,6 +59,12 @@ public class Resources implements MethodRule {
     private Class<?> declaringTestClass;
     private Class<?> runningTestClass;
 
+    // If there is not an explicit no-arg constructor present and it is called, Groovy will attempt to supply nulls to
+    // an existing constructor, but choose the wrong one if there are multiple constructors.  See DefaultImportsReaderTest.groovy.
+    public Resources() {
+        this(null);
+    }
+
     public Resources(TestDirectoryProvider testDirectoryProvider) {
         this.testDirectoryProvider = testDirectoryProvider;
     }
