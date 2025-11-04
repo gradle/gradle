@@ -690,8 +690,6 @@ tasks.named<Test>("docsTest") {
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
-            // Does not work due to JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
-            excludeTestsMatching("org.gradle.docs.samples.*.building-kotlin-*")
             // Incompatible for unknown reasons, investigation ongoing
             excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app.sample")
         }
@@ -700,13 +698,18 @@ tasks.named<Test>("docsTest") {
             // SpotBugs doesn't support Java 23
             excludeTestsMatching("org.gradle.docs.samples.*.publishing-convention-plugins*")
             excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*")
-            // PMD doesn't support Java 23
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
         }
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            // Kotlin does not yet support 24 JDK target
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
+            // Kotlin does not yet support 25 JDK target
+            excludeTestsMatching("org.gradle.docs.samples.*.building-kotlin-*")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-use-convention-plugins-do_kotlin*")
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
+            // PMD doesn't support Java 26
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
