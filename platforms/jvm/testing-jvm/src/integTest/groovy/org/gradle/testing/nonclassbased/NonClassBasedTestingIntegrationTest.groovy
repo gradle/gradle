@@ -194,4 +194,43 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         then:
         testTaskWasSkippedDueToNoSources()
     }
+
+    def "resource-based test engine detects and executes test definitions only once in overlapping locations"() {
+        String parentLocation = "src/test/parent"
+        String childLocation = "src/test/parent/child"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$parentLocation"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$childLocation"))
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions(childLocation)
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        nonClassBasedTestsExecuted()
+
+        ["INFO: Executing resource-based test: Test [file=SomeTestSpec.rbt, name=foo]",
+        "INFO: Executing resource-based test: Test [file=SomeTestSpec.rbt, name=bar]",
+        "INFO: Executing resource-based test: Test [file=subSomeOtherTestSpec.rbt, name=other]"].forEach {
+            result.getOutput().findAll(it).size() == 1
+        }
+    }
 }

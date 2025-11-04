@@ -48,7 +48,7 @@ public class ResourceBasedTestEngine implements TestEngine {
         LOGGER.info(() -> {
             String selectorsMsg = discoveryRequest.getSelectorsByType(DiscoverySelector.class).stream()
                 .map(Object::toString)
-                .collect(Collectors.joining("\t\n", "\t", ""));
+                .collect(Collectors.joining("\n\t", "\t", ""));
             return "Discovering tests with engine: " + uniqueId + " using selectors:\n" + selectorsMsg;
         });
 
