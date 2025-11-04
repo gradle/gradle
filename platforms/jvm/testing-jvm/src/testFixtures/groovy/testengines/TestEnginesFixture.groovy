@@ -18,7 +18,6 @@
 package testengines
 
 import groovy.transform.SelfType
-import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -52,9 +51,9 @@ trait TestEnginesFixture {
 
         // Copy required test engine source to the root of the test directory structure for this test class
         TestResources resources = new TestResources(customTestDirectoryProvider, TestEngines.class, TestEngines.class)
-        assert resources.maybeCopy("shared")
+        copyFiles(resources, "shared")
         getEnginesToSetup().forEach {
-            assert resources.maybeCopy(it.name)
+            copyFiles(resources, it.name)
         }
 
         // Switch to engine build directory for this setup
@@ -72,10 +71,14 @@ trait TestEnginesFixture {
     }
 
     def cleanupSpec() {
+        engineBuildDir.deleteDir()
+    }
+
+    private copyFiles(TestResources resources, String path) {
         try {
-            engineBuildDir.deleteDir()
+            assert resources.maybeCopy(path)
         } catch (Exception ignored) {
-            // Ignore
+            // Ignore: Resources may have already been copied by another test class, this is fine
         }
     }
 
