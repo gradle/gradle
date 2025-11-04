@@ -114,7 +114,9 @@ A file collection fingerprint is created by fingerprinting the files and paths i
 
 * **archive comprehension** – archives can be considered equivalent to directories, their elements can be traversed and metadata like file order, timestamps and permissions ignored,
 
-* **filtering** – can restrict the scope to some pattern of files, like `\*.class` in Java compile classpath normalization (note that this filtering is in addition to any filtering applied to the input `FileCollection` itself; `FileCollection`-level filtering is already reflected in the file collection snapshot),
+* **pattern filtering** – can restrict the scope to some pattern of files, like `\*.class` in Java compile classpath normalization (note that this filtering is in addition to any filtering applied to the input `FileCollection` itself; `FileCollection`-level filtering is already reflected in the file collection snapshot),
+
+* **empty directory filtering** - can also ignore empty directories for fingerprints with `@IgnoreEmptyDirectories`.
 
 * **path normalization** – can disregard parts or the whole of the path of each file, e.g. `@PathSensitive(RELATIVE)` used on a task property,
 
