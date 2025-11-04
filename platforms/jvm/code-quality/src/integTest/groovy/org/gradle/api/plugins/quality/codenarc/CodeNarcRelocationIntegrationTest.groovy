@@ -60,7 +60,7 @@ class CodeNarcRelocationIntegrationTest extends AbstractProjectRelocationIntegra
 
             configurations.codenarc {
                 attributes {
-                    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL)) // to avoid shadowRuntimeElements variant
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, named(Bundling, Bundling.EXTERNAL)) // to avoid shadowRuntimeElements variant
                 }
             }
         """

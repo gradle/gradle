@@ -51,11 +51,7 @@ public abstract class Cached<T> {
 
     private static class Deferred<T> extends Cached<T> implements java.io.Serializable, EvaluationOwner {
 
-        /*
-         * TODO-RC fields are volatile as a workaround for call sites still unwisely using Cached from multiple threads.
-         *
-         * @see: https://github.com/gradle/gradle/issues/31239
-         */
+        // TODO(https://github.com/gradle/gradle/issues/31239) fields are volatile as a workaround for call sites still unwisely using Cached from multiple threads.
         private volatile @Nullable Callable<T> computation;
         private volatile @Nullable Try<T> result;
 

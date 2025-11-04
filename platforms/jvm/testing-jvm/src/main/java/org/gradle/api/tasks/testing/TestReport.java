@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,8 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
-import org.gradle.api.internal.tasks.testing.LegacyTestReportGenerator;
-import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.LegacyHtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
@@ -43,7 +41,10 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.stream.Collectors;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
@@ -55,14 +56,20 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
 public abstract class TestReport extends DefaultTask {
 
     @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    // Method kept for binary compatibility.
+    @SuppressWarnings("unused")
+    @Inject
     protected abstract BuildOperationRunner getBuildOperationRunner();
 
+    // Method kept for binary compatibility.
+    @SuppressWarnings("unused")
     @Inject
     protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
-
+    // Method kept for binary compatibility.
+    @SuppressWarnings("unused")
     @Inject
     protected abstract MetadataRendererRegistry getMetadataRendererRegistry();
 
@@ -95,34 +102,31 @@ public abstract class TestReport extends DefaultTask {
     @TaskAction
     void generateReport() {
         try {
-            TestReportGenerator impl = detectAndCreateImplementation(getTestResults());
-            if (impl.hasResults()) {
-                impl.generateReport(getBuildOperationRunner(), getBuildOperationExecutor(), getDestinationDirectory().get().getAsFile().toPath());
-            } else {
-                getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());
-                setDidWork(false);
-            }
+            List<Path> resultDirsAsPaths = new ArrayList<>(getTestResults().getFiles().size());
+            boolean isGenericImplementation = isGenericImplementation(resultDirsAsPaths);
+
+            Path reportsDir = getDestinationDirectory().get().getAsFile().toPath();
+            getObjectFactory().newInstance(
+                isGenericImplementation ? GenericHtmlTestReportGenerator.class : LegacyHtmlTestReportGenerator.class,
+                reportsDir
+            ).generate(resultDirsAsPaths);
         } catch (Exception e) {
             throw new RuntimeException("Could not write test report for results in " + getTestResults().getFiles(), e);
         }
     }
 
-    TestReportGenerator detectAndCreateImplementation(FileCollection resultDirs) {
+    private boolean isGenericImplementation(List<Path> resultDirsAsPaths) {
         Boolean isGenericImplementation = null;
-        for (File resultDir : resultDirs.getFiles()) {
+        for (File resultDir : getTestResults().getFiles()) {
             boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
             if (isGenericImplementation == null) {
                 isGenericImplementation = resultDirIsGenericImplementation;
             } else if (isGenericImplementation != resultDirIsGenericImplementation) {
                 throw new IllegalStateException("Cannot mix generic and non-generic test results in the same report.");
             }
+            resultDirsAsPaths.add(resultDir.toPath());
         }
-        assert isGenericImplementation != null : "@SkipWhenEmpty should prevent this from being called with an empty collection";
-        if (isGenericImplementation) {
-            return new GenericTestReportGenerator(resultDirs.getFiles().stream().map(File::toPath).collect(Collectors.toSet()), getMetadataRendererRegistry());
-        } else {
-            return new LegacyTestReportGenerator(resultDirs);
-        }
+        return Objects.requireNonNull(isGenericImplementation, "@SkipWhenEmpty should prevent this from being null");
     }
 
 }

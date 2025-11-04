@@ -41,7 +41,7 @@ public class LegacyProjectTypeDiscovery {
 
     public Set<LegacyProjectTypeImplementation<?>> discoverSoftwareTypeImplementations(
         Map<String, Class<? extends Plugin<Project>>> registeredTypes,
-        Map<DefaultProjectFeatureRegistry.RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses
+        Map<DefaultProjectFeatureDeclarations.RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses
     ) {
         final ImmutableSet.Builder<LegacyProjectTypeImplementation<?>> softwareTypeImplementationsBuilder = ImmutableSet.builder();
         pluginClasses.forEach((registeringPluginClass, pluginClassSet) ->

@@ -47,7 +47,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         this.accessHierarchies = accessHierarchies;
     }
 
-    public Node getNode() {
+    public LocalTaskNode getNode() {
         return node;
     }
 

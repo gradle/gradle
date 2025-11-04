@@ -56,7 +56,7 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
     }
 
     private static Set<String> getGitignoresToAppend(File gitignoreFile) {
-        Set<String> result = Sets.newLinkedHashSet(Arrays.asList(".gradle", "build"));
+        Set<String> result = Sets.newLinkedHashSet(Arrays.asList(".gradle", "build", ".kotlin"));
         if (gitignoreFile.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))){
                 result.removeAll(reader.lines().filter(it -> result.contains(it)).collect(Collectors.toSet()));
@@ -73,6 +73,8 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
             result.add("# Ignore Gradle project-specific cache directory");
         } else if (entry.startsWith("build")) {
             result.add("# Ignore Gradle build output directory");
+        } else if (entry.startsWith(".kotlin")) {
+            result.add("# Ignore Kotlin plugin data");
         }
         result.add(entry);
 

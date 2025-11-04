@@ -19,14 +19,14 @@ package org.gradle.api.plugins.java;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public interface HasSources<Model extends HasInputSources> {
     NamedDomainObjectContainer<? extends Sources<Model>> getSources();
 
-    interface Sources<Model extends HasInputSources> extends Named, HasResources, HasBuildModel<Model> {
+    interface Sources<Model extends HasInputSources> extends Named, HasResources, Definition<Model> {
         SourceDirectorySet getSourceDirectories();
     }
 }

@@ -115,7 +115,9 @@ fun Test.filterEnvironmentVariables(inheritDevelocityAccessToken: Boolean) {
     }
 
     if (inheritDevelocityAccessToken) {
-        environment["DEVELOCITY_ACCESS_KEY"] = System.getenv("DEVELOCITY_ACCESS_KEY")
+        System.getenv("DEVELOCITY_ACCESS_KEY")?.let {
+            environment["DEVELOCITY_ACCESS_KEY"] = it
+        }
     }
 }
 

@@ -1309,3 +1309,13 @@ abstract class AllTypes extends DefaultTask {
 ----
 =====
 ====
+
+== Extending existing tasks
+
+Sometimes writing tasks from scratch is not what's needed.
+Maybe you need a slightly modified version of an existing task, without altering or even having access to that task's sources.
+For example, a `Copy` task with some additional inputs.
+
+In those cases you can write new tasks that extend the functionality of other tasks, either via inheritance (new task type extends existing one) or delegation (composition).
+
+Take a look at <<build_cache.adoc#sec:using_annotations_to_enable_task_caching,this section of the manual>> (dealing with the cacheability of task inputs and outputs) for further information on what option there are for using delegation in the case of Gradle's built-in tasks.

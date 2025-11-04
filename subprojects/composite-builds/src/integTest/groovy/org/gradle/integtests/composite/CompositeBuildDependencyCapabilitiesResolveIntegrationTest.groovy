@@ -39,13 +39,13 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
             configurations {
                 first {
                    attributes {
-                       attribute(Attribute.of('org.gradle.usage', Usage), project.objects.named(Usage, 'java-api'))
+                       attribute(Attribute.of('org.gradle.usage', Usage), named(Usage, 'java-api'))
                    }
                    outgoing.capability('org:cap1:1.0')
                 }
                 second {
                    attributes {
-                       attribute(Attribute.of('org.gradle.usage', Usage), project.objects.named(Usage, 'java-api'))
+                       attribute(Attribute.of('org.gradle.usage', Usage), named(Usage, 'java-api'))
                    }
                    outgoing.capability('org:cap2:1.0')
                 }

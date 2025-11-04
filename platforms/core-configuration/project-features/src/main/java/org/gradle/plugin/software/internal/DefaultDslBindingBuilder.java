@@ -19,7 +19,7 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslBindingBuilder;
 import org.gradle.api.internal.plugins.DslBindingBuilderInternal;
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureBinding;
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @NullMarked
-public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends BuildModel> implements DslBindingBuilderInternal<T, V> {
+public class DefaultDslBindingBuilder<T extends Definition<V>, V extends BuildModel> implements DslBindingBuilderInternal<T, V> {
     private final Class<T> dslType;
     private final TargetTypeInformation<?> targetDefinitionType;
     private final Class<V> buildModelType;
@@ -56,7 +56,7 @@ public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends Buil
         this.transform = transform;
     }
 
-    private static <T extends HasBuildModel<V>, V extends BuildModel> ProjectFeatureBinding<T, V> bindingOf(
+    private static <T extends Definition<V>, V extends BuildModel> ProjectFeatureBinding<T, V> bindingOf(
         Class<T> dslType,
         @Nullable Class<? extends T> dslImplementationType,
         Path path,

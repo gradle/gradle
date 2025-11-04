@@ -16,6 +16,7 @@
 
 package configurations
 
+import common.FlakyTestStrategy
 import common.Os
 import common.buildScanTagParam
 import common.getBuildScanCustomValueParam
@@ -26,9 +27,11 @@ import model.Stage
 class SmokeIdeTests(
     model: CIBuildModel,
     stage: Stage,
+    flakyTestStrategy: FlakyTestStrategy,
 ) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
-        id(buildTypeId(model))
-        name = "Smoke Ide Tests"
+        val suffix = if (flakyTestStrategy == FlakyTestStrategy.ONLY)"_FlakyTestQuarantine" else ""
+        id(buildTypeId(model) + suffix)
+        name = "Smoke Ide Tests$suffix"
         description = "Tests against IDE sync process"
 
         requirements {
@@ -44,7 +47,7 @@ class SmokeIdeTests(
                 listOf(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("SmokeIdeTests"),
-                    "-PflakyTests=exclude",
+                    "-PflakyTests=$flakyTestStrategy",
                 ).joinToString(" "),
         )
     }) {

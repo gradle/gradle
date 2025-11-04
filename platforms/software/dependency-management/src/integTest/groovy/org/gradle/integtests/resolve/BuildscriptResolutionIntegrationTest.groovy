@@ -101,7 +101,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                         artifact file('bar.txt')
                     }
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "library"))
                     }
                 }
             }
@@ -134,7 +134,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "library"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "library"))
                     }
                 }
             }
@@ -546,7 +546,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                     buildscript.dependencies.create(project(":other"))
                 )
                 conf.attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                 }
                 def files = conf.incoming.files
                 doLast {
@@ -564,7 +564,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                         artifact file("foo.txt")
                     }
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
                 }
             }
@@ -595,7 +595,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                         artifact file("foo.txt")
                     }
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
                 }
             }

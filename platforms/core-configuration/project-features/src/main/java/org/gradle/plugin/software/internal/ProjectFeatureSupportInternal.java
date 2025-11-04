@@ -19,7 +19,7 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Named;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
@@ -54,34 +54,34 @@ public class ProjectFeatureSupportInternal {
 
         ProjectFeatureApplicator getProjectFeatureApplicator();
 
-        ProjectFeatureRegistry getProjectFeatureRegistry();
+        ProjectFeatureDeclarations getProjectFeatureRegistry();
 
         ObjectFactory objectFactory();
     }
 
     public static class DefaultProjectFeatureDefinitionContext implements ProjectFeatureDefinitionContext {
         private final ProjectFeatureApplicator projectFeatureApplicator;
-        private final ProjectFeatureRegistry projectFeatureRegistry;
+        private final ProjectFeatureDeclarations projectFeatureDeclarations;
         private final ObjectFactory objectFactory;
         protected final Object buildModel;
         private final Map<ProjectFeatureImplementation<?, ?>, Object> childrenDefinitions = new LinkedHashMap<>();
 
         public static class Factory {
             private final ProjectFeatureApplicator projectFeatureApplicator;
-            private final ProjectFeatureRegistry projectFeatureRegistry;
+            private final ProjectFeatureDeclarations projectFeatureDeclarations;
             private final ObjectFactory objectFactory;
 
             @Inject
-            public Factory(ProjectFeatureApplicator projectFeatureApplicator, ProjectFeatureRegistry projectFeatureRegistry, ObjectFactory objectFactory) {
+            public Factory(ProjectFeatureApplicator projectFeatureApplicator, ProjectFeatureDeclarations projectFeatureDeclarations, ObjectFactory objectFactory) {
                 this.projectFeatureApplicator = projectFeatureApplicator;
-                this.projectFeatureRegistry = projectFeatureRegistry;
+                this.projectFeatureDeclarations = projectFeatureDeclarations;
                 this.objectFactory = objectFactory;
             }
 
             public DefaultProjectFeatureDefinitionContext create(Object buildModel) {
                 return new DefaultProjectFeatureDefinitionContext(
                     projectFeatureApplicator,
-                    projectFeatureRegistry,
+                    projectFeatureDeclarations,
                     objectFactory,
                     buildModel
                 );
@@ -90,12 +90,12 @@ public class ProjectFeatureSupportInternal {
 
         public DefaultProjectFeatureDefinitionContext(
             ProjectFeatureApplicator projectFeatureApplicator,
-            ProjectFeatureRegistry projectFeatureRegistry,
+            ProjectFeatureDeclarations projectFeatureDeclarations,
             ObjectFactory objectFactory,
             Object buildModel
         ) {
             this.projectFeatureApplicator = projectFeatureApplicator;
-            this.projectFeatureRegistry = projectFeatureRegistry;
+            this.projectFeatureDeclarations = projectFeatureDeclarations;
             this.objectFactory = objectFactory;
             this.buildModel = buildModel;
         }
@@ -126,8 +126,8 @@ public class ProjectFeatureSupportInternal {
         }
 
         @Override
-        public ProjectFeatureRegistry getProjectFeatureRegistry() {
-            return projectFeatureRegistry;
+        public ProjectFeatureDeclarations getProjectFeatureRegistry() {
+            return projectFeatureDeclarations;
         }
 
         @Override
@@ -159,27 +159,27 @@ public class ProjectFeatureSupportInternal {
         Object target,
         V buildModel,
         ProjectFeatureApplicator projectFeatureApplicator,
-        ProjectFeatureRegistry projectFeatureRegistry,
+        ProjectFeatureDeclarations projectFeatureDeclarations,
         ObjectFactory objectFactory
     ) {
         DynamicObjectAware targetDynamicObjectAware = (DynamicObjectAware) target;
-        DefaultProjectFeatureDefinitionContext context = new DefaultProjectFeatureDefinitionContext(projectFeatureApplicator, projectFeatureRegistry, objectFactory, buildModel);
+        DefaultProjectFeatureDefinitionContext context = new DefaultProjectFeatureDefinitionContext(projectFeatureApplicator, projectFeatureDeclarations, objectFactory, buildModel);
         addProjectFeatureDynamicObjectToDefinition(objectFactory, targetDynamicObjectAware, context);
     }
 
     public static void attachLegacyDefinitionContext(
         Object target,
         ProjectFeatureApplicator projectFeatureApplicator,
-        ProjectFeatureRegistry projectFeatureRegistry,
+        ProjectFeatureDeclarations projectFeatureDeclarations,
         ObjectFactory objectFactory
     ) {
-        DefaultProjectFeatureDefinitionContext.Factory factory = new DefaultProjectFeatureDefinitionContext.Factory(projectFeatureApplicator, projectFeatureRegistry, objectFactory);
+        DefaultProjectFeatureDefinitionContext.Factory factory = new DefaultProjectFeatureDefinitionContext.Factory(projectFeatureApplicator, projectFeatureDeclarations, objectFactory);
         DefaultProjectFeatureDefinitionContext context = factory.create(target);
         addProjectFeatureDynamicObjectToDefinition(objectFactory, (DynamicObjectAware) target, context);
     }
 
 
-    public static <T extends HasBuildModel<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, T definition, ProjectFeatureImplementation<T, V> projectFeature) {
+    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, T definition, ProjectFeatureImplementation<T, V> projectFeature) {
         return createBuildModelInstance(objectFactory, definition, projectFeature.getBuildModelImplementationType());
     }
 
