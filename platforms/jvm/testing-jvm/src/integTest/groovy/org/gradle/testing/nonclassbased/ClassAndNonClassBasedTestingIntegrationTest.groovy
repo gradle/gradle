@@ -25,8 +25,9 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         return [TestEngines.RESOURCE_AND_CLASS_BASED]
     }
 
-    def "can use same engine for class and resource-based testing"() {
+    def "can use same engine for class and resource-based testing (classes: #classesPresent, non-class defs: #nonClassDefinitionsPresent)"() {
         given:
+
         buildFile << """
             plugins {
                 id 'java-library'
@@ -47,10 +48,64 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
                     }
                 }
             }
+
+            // Ensure the definitions directory exists even if no definitions are added
+            project.layout.projectDirectory.file("src/test/definitions").getAsFile().mkdirs()
+        """
+
+        if (classesPresent) {
+            writeTestClasses()
+        }
+        if (nonClassDefinitionsPresent) {
+            writeTestDefinitions()
+        }
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        if (classesPresent) {
+            classBasedTestsExecuted()
+        }
+        if (nonClassDefinitionsPresent) {
+            nonClassBasedTestsExecuted()
+        }
+
+        where:
+        classesPresent | nonClassDefinitionsPresent
+        true           | true
+        true           | false
+        false          | true
+    }
+
+    def "can use same engine and same test definitions dir for class and resource-based testing"() {
+        String customLocation = "src/test/java"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
+
+                        options {
+                            excludeEngines("junit-jupiter")
+                        }
+                    }
+                }
+            }
         """
 
         writeTestClasses()
-        writeTestDefinitions()
+        writeTestDefinitions(customLocation)
 
         when:
         succeeds("test", "--info")
