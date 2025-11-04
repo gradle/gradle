@@ -19,8 +19,9 @@ package org.gradle.tooling.events.test;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Describes a test that runs on the JVM and for which an event has occurred. At least
+ * Describes a class-based test that runs on the JVM and for which an event has occurred. At least
  * a suite name, class name, or method name is available for each JVM test.
+ *
  *
  * @since 2.4
  */

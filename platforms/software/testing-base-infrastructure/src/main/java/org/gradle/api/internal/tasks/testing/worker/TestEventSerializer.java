@@ -37,10 +37,31 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultClasspathResourceSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultCompositeTestSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultDirectorySource;
+import org.gradle.api.internal.tasks.testing.source.DefaultFilePosition;
+import org.gradle.api.internal.tasks.testing.source.DefaultFileSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultMissingSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultPackageSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultUnknownSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.source.ClassSource;
+import org.gradle.api.tasks.testing.source.ClasspathResourceSource;
+import org.gradle.api.tasks.testing.source.CompositeTestSource;
+import org.gradle.api.tasks.testing.source.DirectorySource;
+import org.gradle.api.tasks.testing.source.FilePosition;
+import org.gradle.api.tasks.testing.source.FileSource;
+import org.gradle.api.tasks.testing.source.MethodSource;
+import org.gradle.api.tasks.testing.source.MissingSource;
+import org.gradle.api.tasks.testing.source.PackageSource;
+import org.gradle.api.tasks.testing.source.TestSource;
+import org.gradle.api.tasks.testing.source.UnknownSource;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -470,6 +491,126 @@ public class TestEventSerializer {
         }
     }
 
+    @NullMarked
+    private static class TestSourceSerializer implements Serializer<TestSource> {
+
+        Serializer<FilePosition> filePositionSerializer = new NullableSerializer<>(new FilePositionSerializer());
+
+        @Override
+        public TestSource read(Decoder decoder) throws Exception {
+            int i = decoder.readSmallInt();
+            if (i == 0) {
+                return DefaultUnknownSource.getInstance();
+            } else if (i == 1) {
+                return DefaultMissingSource.getInstance();
+            } else if (i == 2) {
+                String absolutePath = decoder.readString();
+                FilePosition filePosition = filePositionSerializer.read(decoder);
+                return new DefaultFileSource(new File(absolutePath), filePosition);
+            } else if (i == 3) {
+                String absolutePath = decoder.readString();
+                return new DefaultDirectorySource(new File(absolutePath));
+            } else if (i == 4) {
+                String classpathResourceName = decoder.readString();
+                FilePosition position = filePositionSerializer.read(decoder);
+                return new DefaultClasspathResourceSource(classpathResourceName, position);
+            } else if (i == 5) {
+                String className = decoder.readString();
+                FilePosition filePosition = filePositionSerializer.read(decoder);
+                return new DefaultClassSource(className, filePosition);
+            } else if (i == 6) {
+                String className = decoder.readString();
+                String methodName = decoder.readString();
+                String methodParameterTypes = decoder.readString();
+                return new DefaultMethodSource(className, methodName, methodParameterTypes);
+            } else if (i == 7) {
+                String packageName = decoder.readString();
+                return new DefaultPackageSource(packageName);
+            } else if (i == 8) {
+                int size = decoder.readInt();
+                List<TestSource> testSources = new ArrayList<>(size);
+                for (int j = 0; j < size; j++) {
+                    testSources.add(read(decoder));
+                }
+                return new DefaultCompositeTestSource(testSources);
+            } else {
+                throw new IllegalArgumentException("Unknown TestSource type id: " + i);
+            }
+        }
+
+        @Override
+        public void write(Encoder encoder, TestSource value) throws Exception {
+            if (value instanceof UnknownSource) {
+                encoder.writeSmallInt(0);
+            } else if (value instanceof MissingSource) {
+                encoder.writeSmallInt(1);
+            } else if (value instanceof FileSource) {
+                encoder.writeSmallInt(2);
+                FileSource fileSource = (FileSource) value;
+                encoder.writeString(fileSource.getFile().getAbsolutePath());
+                filePositionSerializer.write(encoder, fileSource.getPosition());
+            } else if (value instanceof DirectorySource) {
+                encoder.writeSmallInt(3);
+                encoder.writeString(((DirectorySource) value).getFile().getAbsolutePath());
+            } else if (value instanceof ClasspathResourceSource) {
+                encoder.writeSmallInt(4);
+                ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) value;
+                encoder.writeString(classpathResourceSource.getClasspathResourceName());
+                filePositionSerializer.write(encoder, classpathResourceSource.getPosition());
+            } else if (value instanceof ClassSource) {
+                encoder.writeSmallInt(5);
+                ClassSource classSource = (ClassSource) value;
+                encoder.writeString(classSource.getClassName());
+                filePositionSerializer.write(encoder, classSource.getPosition());
+            } else if (value instanceof MethodSource) {
+                encoder.writeSmallInt(6);
+                MethodSource methodSource = (MethodSource) value;
+                encoder.writeString(methodSource.getClassName());
+                encoder.writeString(methodSource.getMethodName());
+                encoder.writeString(methodSource.getMethodParameterTypes());
+            } else if (value instanceof PackageSource) {
+                encoder.writeSmallInt(7);
+                encoder.writeString(((PackageSource) value).getPackageName());
+            } else if (value instanceof CompositeTestSource) {
+                encoder.writeSmallInt(8);
+                CompositeTestSource compositeTestSource = (CompositeTestSource) value;
+                encoder.writeInt(compositeTestSource.getTestSources().size());
+                for (TestSource testSource : compositeTestSource.getTestSources()) {
+                    write(encoder, testSource);
+                }
+            } else {
+                throw new IllegalArgumentException("Unknown TestSource type: " + value.getClass().getName());
+            }
+        }
+    }
+
+    @NullMarked
+    private static class FilePositionSerializer implements Serializer<FilePosition> {
+
+        @Override
+        public FilePosition read(Decoder decoder) throws Exception {
+            int line = decoder.readInt();
+            boolean hasColumn = decoder.readBoolean();
+            if (hasColumn) {
+                int column = decoder.readInt();
+                return new DefaultFilePosition(line, Integer.valueOf(column));
+            } else {
+                return new DefaultFilePosition(line, null);
+            }
+        }
+
+        @Override
+        public void write(Encoder encoder, @Nullable FilePosition position) throws Exception {
+            encoder.writeInt(position.getLine());
+            if (position.getColumn() == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                encoder.writeInt(position.getColumn());
+            }
+        }
+    }
+
     private static class DefaultTestClassDescriptorSerializer implements Serializer<DefaultTestClassDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
@@ -491,6 +632,7 @@ public class TestEventSerializer {
 
     private static class DefaultTestDescriptorSerializer implements Serializer<DefaultTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
+        final Serializer<TestSource> testSourceSerializer = new TestSourceSerializer();
 
         @Override
         public DefaultTestDescriptor read(Decoder decoder) throws Exception {
@@ -499,7 +641,8 @@ public class TestEventSerializer {
             String classDisplayName = decoder.readString();
             String name = decoder.readString();
             String displayName = decoder.readString();
-            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName);
+            TestSource source = testSourceSerializer.read(decoder);
+            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName, source);
         }
 
         @Override
@@ -509,6 +652,7 @@ public class TestEventSerializer {
             encoder.writeString(value.getClassDisplayName());
             encoder.writeString(value.getName());
             encoder.writeString(value.getDisplayName());
+            testSourceSerializer.write(encoder, value.getSource());
         }
     }
 

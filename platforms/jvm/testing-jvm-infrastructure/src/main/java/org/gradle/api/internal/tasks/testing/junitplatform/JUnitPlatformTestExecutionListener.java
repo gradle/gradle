@@ -35,8 +35,20 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAsse
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
+import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultClasspathResourceSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultCompositeTestSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultDirectorySource;
+import org.gradle.api.internal.tasks.testing.source.DefaultFilePosition;
+import org.gradle.api.internal.tasks.testing.source.DefaultFileSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultMissingSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultPackageSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultUnknownSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
+import org.gradle.api.tasks.testing.source.FilePosition;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -45,13 +57,16 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.reporting.FileEntry;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.ClasspathResourceSource;
+import org.junit.platform.engine.support.descriptor.CompositeTestSource;
+import org.junit.platform.engine.support.descriptor.DirectorySource;
 import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
+import org.junit.platform.engine.support.descriptor.PackageSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
@@ -73,6 +88,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
@@ -339,7 +355,42 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private DefaultTestClassDescriptor createTestContainerDescriptor(TestIdentifier node) {
         String name = extractClassOrResourceName(node);
         String classDisplayName = node.getDisplayName();
-        return new DefaultTestClassDescriptor(idGenerator.generateId(), name, classDisplayName);
+        return new DefaultTestClassDescriptor(idGenerator.generateId(), name, classDisplayName, sourceOf(node));
+    }
+
+    @SuppressWarnings("all")
+    private static TestSource sourceOf(TestIdentifier node) {
+        return node.getSource().map(s -> sourceOf(s)).orElse(DefaultMissingSource.getInstance());
+    }
+
+    public static TestSource sourceOf(org.junit.platform.engine.TestSource source) {
+        if (source instanceof FileSource) {
+            FileSource fileSource = (FileSource) source;
+            FilePosition position = fileSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
+            return new DefaultFileSource(fileSource.getFile(), position);
+        } else if (source instanceof DirectorySource) {
+            return new DefaultDirectorySource(((DirectorySource) source).getFile());
+        } else if (source instanceof ClassSource) {
+            ClassSource classSource = (ClassSource) source;
+            FilePosition position = classSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
+            return new DefaultClassSource(classSource.getClassName(), position);
+        } else if (source instanceof MethodSource) {
+            MethodSource methodSource = (MethodSource) source;
+            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName(), methodSource.getMethodParameterTypes());
+        } else if (source instanceof ClasspathResourceSource) {
+            ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) source;
+            FilePosition position = classpathResourceSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
+            return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), position);
+        } else if (source instanceof PackageSource) {
+            PackageSource packageSource = (PackageSource) source;
+            return new DefaultPackageSource(packageSource.getPackageName());
+        } else if (source instanceof CompositeTestSource) {
+            CompositeTestSource compositeTestSource = (CompositeTestSource) source;
+            List<TestSource> mappedSources = compositeTestSource.getSources().stream().map(JUnitPlatformTestExecutionListener::sourceOf).collect(Collectors.toList());
+            return new DefaultCompositeTestSource(mappedSources);
+        } else {
+            return DefaultUnknownSource.getInstance();
+        }
     }
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {
@@ -353,7 +404,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         TestDescriptorInternal parentDescriptor = findTestParentDescriptor(test);
         String className = determineClassName(test, parentDescriptor);
         String classDisplayName = determineClassDisplayName(test, parentDescriptor);
-        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
+        return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName, sourceOf(test));
     }
 
     private String determineClassName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
@@ -365,7 +416,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private String determineName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
-        TestSource source = node.getSource().orElse(null);
+        org.junit.platform.engine.TestSource source = node.getSource().orElse(null);
         if (source instanceof ClassSource || source instanceof MethodSource) {
             if (parentDescriptor == null) {
                 return JUnitPlatformSupport.UNKNOWN_CLASS;

@@ -19,13 +19,14 @@ package org.gradle.internal.build.event.types;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
 @NullMarked
-public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalOperationDescriptor {
+public class DefaultClassBasedTestDescriptor extends BaseTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalOperationDescriptor {
 
     private final OperationIdentifier id;
     private final String operationName;
@@ -35,10 +36,9 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     private final String className;
     private final String methodName;
     private final OperationIdentifier parentId;
-    private final String taskPath;
     private final String testDisplayName;
 
-    public DefaultTestDescriptor(
+    public DefaultClassBasedTestDescriptor(
         OperationIdentifier id,
         String operationName,
         String operationDisplayName,
@@ -48,8 +48,10 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         @Nullable String className,
         @Nullable String methodName,
         OperationIdentifier parentId,
-        String taskPath
+        String taskPath,
+        InternalTestSource testSource
     ) {
+        super(taskPath, testSource);
         this.id = id;
         this.operationName = operationName;
         this.operationDisplayName = operationDisplayName;
@@ -59,7 +61,6 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         this.className = className;
         this.methodName = methodName;
         this.parentId = parentId;
-        this.taskPath = taskPath;
     }
 
     @Override
@@ -108,15 +109,5 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     @Override
     public OperationIdentifier getParentId() {
         return parentId;
-    }
-
-    /**
-     * Only known for descriptors from test execution.
-     *
-     * @return the task path
-     */
-    @Nullable
-    public String getTaskPath() {
-        return taskPath;
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.tooling.events.test.internal;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
+import org.gradle.tooling.events.test.source.TestSource;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.jspecify.annotations.Nullable;
 
@@ -37,9 +38,10 @@ public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperatio
         JvmTestKind jvmTestKind,
         String suiteName,
         String className,
-        String methodName
+        String methodName,
+        TestSource testSource
     ) {
-        super(internalJvmTestDescriptor, parent);
+        super(internalJvmTestDescriptor, parent, testSource);
         this.jvmTestKind = jvmTestKind;
         this.suiteName = suiteName;
         this.className = className;
