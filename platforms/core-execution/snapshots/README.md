@@ -37,6 +37,11 @@ It would be inefficient to re-read file hierarchies every time a snapshot of a p
 
 ![](Virtual%20File%20System.drawio.svg)
 
+The VFS only stores information about the directory hierarchy of the running build.[^vfs-previous-builds]
+This means that we do not retain information about file-system objects outside the build directory.
+
+[^vfs-previous-builds]: Data about previous builds can also be retained for a while.
+
 The VFS is stored in an efficient sparse tree data structure using `FileSystemNode`s.
 This data-structure allows for reusing already taken snapshots when a parent directory's snapshot is 
 requested.
@@ -48,17 +53,21 @@ This service has multiple `read()` methods to acquire file and directory snapsho
 ### Change tracking
 
 For the VFS to correctly cache file-system state care must be taken to invalidate parts of the VFS before the file-system is modified.
-Code modifying files should either be wrapped in `FileSystemAccess.write()`, or a call to `FileSystemAccess.invalidate()` should be made before the changes are enacted.
-
-To track modifications happening outside the process, the VFS watches the file-system for changes.
-When a modification happens, any parts of the VFS data that might be out-of-date is discarded.
+It is assumed that during a running build changes to file-system areas tracked by the VFS are always invalidated.
+So code modifying the file-system should either be wrapped in `FileSystemAccess.write()`, or a call to `FileSystemAccess.invalidate()` should be made before the changes are enacted.
 
 ![File-system watching](File-System%20Watching.drawio.svg)
 
-The goal of file-system watching is primarily to track changes between builds (e.g. the user making changes to source files in their IDE).
-Changes happening during the build be explicitly invalidated via `FileSystemAccess.write()` or `invalidate()`.
+#### File-system watching
 
-- TODO: Symlink handling 
+To track modifications between builds, the VFS **watches the file-system** for changes on supported platforms.
+When a modification happens, any parts of the VFS data that might be out-of-date is discarded.
+
+When file-system watching is not available, we discard all VFS data collected during the build.
+
+The VFS and the execution engine in general does not distinguish between content available directly and content accessed through symlinks.
+However, file-system watching does not notify of changes happening to symlinked content reliably.
+Because of this we discard content accessed via symlinks from the VFS at the end of the build even if file-system watching is available.
 
 ## Input Normalization
 
