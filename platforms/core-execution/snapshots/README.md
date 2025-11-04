@@ -12,6 +12,8 @@ We use cryptographic hashes to represent the state of the data.
 
 Snapshots for scalar (non-file) inputs are captured by the `ValueSnasphotter` as `ValueSnapshot` objects.
 `FileSystemAccess` can be used to acquire snapshots of individual file-system locations as `FileSystemLocationSnapshot`s.
+A `FileSystemLocationSnapshot` contains the absolute path of the file-system object along with the hash of its contents.
+
 File collections are snapshotted by the `FileCollectionSnapshotter` as `FileSystemSnapshot`s (these can have multiple roots while `FileSystemLocationSnapshot`s have only one root).
 
 ## Hashing
@@ -95,14 +97,69 @@ Input normalization is a key feature that significantly increases the chance of 
 
 ### Fingerprints
 
-Normalized inputs are captured as **fingerprints**.
-These objects are similar to _snapshots,_ but they capture the hash of the _normalized_ contents instead of the _verbatim._
+Normalized inputs are captured as **fingerprints** (aka `FileSystemLocationFingerprint`s).
+These objects are similar to _snapshots,_ but instead of the _absolute path,_ they carry the _normalized path_ of the file-system object, and they capture the hash of the _normalized_ contents instead of the _verbatim._
 For example, when calculating the fingerprint of a Java source file, we replace all line-ending characters with `\n` before hashing the contents.
+We also capture only the relative path from the source directory.
 
-Fingerprints for individual files are represented as `FileSystemLocationFingerprint`s.
 For `FileCollection`s we store pef-file fingerprints in a `Map` indexed by the absolute path of the file.
 This means that fingerprints do not retain their respective file-system structures like snapshots do.[^hierarchical-fingerprints]
 
 [^hierarchical-fingerprints]: This is a historic choice and can be changed.
 Much of the machinery around hierarchical file-system snapshots can be reused for this purpose.
 
+### Normalization Strategies
+
+A file collection fingerprint is created by fingerprinting the files and paths in a file system snapshot via a _fingerprinting strategy._ A fingerprinting strategy can normalize file input in multiple ways:
+
+* **archive comprehension** – archives can be considered equivalent to directories, their elements can be traversed and metadata like file order, timestamps and permissions ignored,
+
+* **filtering** – can restrict the scope to some pattern of files, like `\*.class` in Java compile classpath normalization (note that this filtering is in addition to any filtering applied to the input `FileCollection` itself; `FileCollection`-level filtering is already reflected in the file collection snapshot),
+
+* **path normalization** – can disregard parts or the whole of the path of each file, e.g. `@PathSensitive(RELATIVE)` used on a task property,
+
+* **order normalization** – file order can be ignored by sorting the files in some reproducible order; root element order can be considered differently to descendant order, this is handled by `FingerprintHashingStrategy`,
+
+* **content normalization** – each file can be normalized individually, for example a `.properties` file on a JVM runtime classpath can be parsed to ignore comments etc.
+
+Gradle currently exposes two combinations of the above strategies to build logic.
+
+#### Path Normalization
+
+For most input file properties we use path normalization and ignore entry order completely. We use the `@PathSensitive` annotation on input properties for this with the following options:
+
+* `ABSOLUTE` – does not ignore the path, uses the whole absolute path of each entry,
+
+* `RELATIVE` – ignores the path from the roots,
+
+* `NAME_ONLY` – we consider only the names of files,
+
+* `IGNORE` – completely ignores the path.
+
+#### Classpath Normalization
+
+Gradle currently handles Java compile and JVM runtime classpaths specially. For these we normalize contents and paths; root element order is not normalized, but the order of entries of JARs and class directories *is* ignored.
+
+* compile classpath
+
+    * assumes files are ZIPs and treats them as directory hierarchies
+
+    * keeps order of root elements, ignores order of entries in subtrees
+
+    * filters `.class` files
+
+    * uses the extracted ABI of each `.class` file to calculate the content hash
+
+* runtime classpath
+
+    * assumes files are ZIPs and treats them as directory hierarchies; does this recursively
+
+    * keeps order of root elements, ignores order of entries in subtrees
+
+    * applies filter from `project.normalization.runtimeClasspath`
+
+    * normalizes `.properties` and `META-INF` content according to `project.normalization.runtimeClasspath`
+
+### Comparing Fingerprints
+
+The fingerprinting strategy also determines a *fingerprint compare strategy* for the resulting file collection fingerprint. The compare strategy is used for comparing two file collection fingerprints for up-to-date checking.
