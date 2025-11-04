@@ -3,9 +3,21 @@
 > [!TIP]
 > For general information on the execution platform and a glossary of the main terms in the [platform readme](../README.md).
 
+## Snapshotting
+
+A **snapshot** is a terse representation of the state of some data that we can use to check if the corresponding data has changed at all.
+We use cryptographic hashes to represent the state of the data.
+
+![File-system snapshotting](File-System%20Snapshotting.drawio.svg)
+
+Snapshots for scalar (non-file) inputs are captured by the `ValueSnasphotter` as `ValueSnapshot` objects.
+`FileSystemAccess` can be used to acquire snapshots of individual file-system locations as `FileSystemLocationSnapshot`s.
+File collections are snapshotted by the `FileCollectionSnapshotter` as `FileSystemSnapshot`s (these can have multiple roots while `FileSystemLocationSnapshot`s have only one root).
+
 ## Hashing
 
-We use the MD5[^md5-safety] cryptographic[^non-crypto-hashes] hash algorithm currently in calculating hashes from file contents and scalar inputs for snapshots and fingerprints.
+We use the MD5[^md5-safety] cryptographic[^non-crypto-hashes] hash algorithm in calculating hashes from file contents and scalar inputs for snapshots and fingerprints.
+We also use the same algorithm to calculate identifiers like the build cache key of a unit of work.
 
 [^md5-safety]: MD5 has long been compromised from a security standpoint, but our goal is not to protect against malicious intent.
 To avoid accidental collisions, MD5 is still sufficiently strong.
@@ -15,17 +27,38 @@ The [BLAKE family](https://en.wikipedia.org/wiki/BLAKE_(hash_function)) of crypt
 
 [^non-crypto-hashes]: While non-cryptographic hash algorithms like [xxHash](https://xxhash.com) or [MurmurHash](https://en.wikipedia.org/wiki/MurmurHash) are significantly faster, they lack the astronomical collision resistance we require.
 
-We also use the same algorithm to calculate identifiers like the build cache key of a unit of work.
-
 We use [Merkle trees](https://en.wikipedia.org/wiki/Merkle_tree) to generate a single hash representing complex inputs.
 This involves hashing together hashes of individual components to create a hash for the whole.
 
 ## Virtual File-System
 
 The execution engine regularly needs information about the state of the file-system in the form of snapshots taken of files and directories.
-It would be inefficient to re-read file hierarchies every time there is a need, so file-system state is cached in the virtual file-system (VFS). 
+It would be inefficient to re-read file hierarchies every time a snapshot of a part is needed, so file-system state is cached in the virtual file-system (VFS). 
 
 ![](Virtual%20File%20System.drawio.svg)
+
+The VFS is stored in an efficient sparse tree data structure using `FileSystemNode`s.
+This data-structure allows for reusing already taken snapshots when a parent directory's snapshot is 
+requested.
+It also supports storing filtered snapshots (e.g. when only `*.java` files are requested from a directory hierarchy).
+
+The VFS is not exposed directly; the entry point is via `FileSystemAccess`.
+This service has multiple `read()` methods to acquire file and directory snapshots.
+
+### Change tracking
+
+For the VFS to correctly cache file-system state care must be taken to invalidate parts of the VFS before the file-system is modified.
+Code modifying files should either be wrapped in `FileSystemAccess.write()`, or a call to `FileSystemAccess.invalidate()` should be made before the changes are enacted.
+
+To track modifications happening outside the process, the VFS watches the file-system for changes.
+When a modification happens, any parts of the VFS data that might be out-of-date is discarded.
+
+![File-system watching](File-System%20Watching.drawio.svg)
+
+The goal of file-system watching is primarily to track changes between builds (e.g. the user making changes to source files in their IDE).
+Changes happening during the build be explicitly invalidated via `FileSystemAccess.write()` or `invalidate()`.
+
+- TODO: Symlink handling 
 
 ## Input Normalization
 
