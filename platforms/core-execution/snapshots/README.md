@@ -141,7 +141,7 @@ For most input file properties we use path normalization and ignore entry order 
 Gradle handles Java compile and JVM runtime classpaths specially.
 For these we normalize contents and paths; root element order is not normalized, but the order of entries of JARs and class directories *is* ignored.
 
-* compile classpath
+* `@CompileClasspath`
 
     * assumes files are ZIPs and treats them as directory hierarchies
 
@@ -151,7 +151,7 @@ For these we normalize contents and paths; root element order is not normalized,
 
     * uses the extracted ABI of each `.class` file to calculate the content hash
 
-* runtime classpath
+* `@Classpath` (i.e. runtime classpath)
 
     * assumes files are ZIPs and treats them as directory hierarchies; does this recursively
 
