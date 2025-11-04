@@ -1,5 +1,8 @@
 # Execution Engine
 
+> [!TIP]
+> For general information on the execution platform and a glossary of the main terms in the [platform readme](../README.md).
+
 The execution engine is the main component of the execution platform.
 Its purpose is to provide a simple, unified way of declaring _units of work_ that the engine can execute, producing their outputs safely and efficiently in a concurrent environment.[^concurrent-environment]
 To achieve this goal, the engine utilizes a host of safeguards and optimizations.
