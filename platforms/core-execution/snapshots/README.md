@@ -35,7 +35,7 @@ This involves hashing together hashes of individual components to create a hash 
 The execution engine regularly needs information about the state of the file-system in the form of snapshots taken of files and directories.
 It would be inefficient to re-read file hierarchies every time a snapshot of a part is needed, so file-system state is cached in the virtual file-system (VFS). 
 
-![](Virtual%20File%20System.drawio.svg)
+![Virtual file-system](Virtual%20File-System.drawio.svg)
 
 The VFS only stores information about the directory hierarchy of the running build.[^vfs-previous-builds]
 This means that we do not retain information about file-system objects outside the build directory.
@@ -50,7 +50,7 @@ It also supports storing filtered snapshots (e.g. when only `*.java` files are r
 The VFS is not exposed directly; the entry point is via `FileSystemAccess`.
 This service has multiple `read()` methods to acquire file and directory snapshots.
 
-### Change tracking
+### Change Tracking
 
 For the VFS to correctly cache file-system state care must be taken to invalidate parts of the VFS before the file-system is modified.
 It is assumed that during a running build changes to file-system areas tracked by the VFS are always invalidated.
@@ -58,7 +58,7 @@ So code modifying the file-system should either be wrapped in `FileSystemAccess.
 
 ![File-system watching](File-System%20Watching.drawio.svg)
 
-#### File-system watching
+#### File-System Watching
 
 To track modifications between builds, the VFS **watches the file-system** for changes on supported platforms.
 When a modification happens, any parts of the VFS data that might be out-of-date is discarded.
@@ -68,6 +68,12 @@ When file-system watching is not available, we discard all VFS data collected du
 The VFS and the execution engine in general does not distinguish between content available directly and content accessed through symlinks.
 However, file-system watching does not notify of changes happening to symlinked content reliably.
 Because of this we discard content accessed via symlinks from the VFS at the end of the build even if file-system watching is available.
+
+#### Caching File Hashes
+
+Actual file content hashing is handled by the `FileHasher`.
+File hashes are cached in-memory and on disk based on file modification dates and last modification times.
+This means that even if we invalidate a file's snapshot in the VFS for some reason, we'd still be able to cheaply recreate the snapshot using the cached hash as long as the file remains unchanged in the actual file-system.
 
 ## Input Normalization
 
@@ -82,3 +88,21 @@ This means input hashes are calculated based on the extracted ABI of the classpa
 This allows reuse of existing compilation results despite differences in dependencies, as long as those differences don't affect the ABI.
 
 Input normalization is a key feature that significantly increases the chance of reusing existing results, boosting execution performance.
+
+> [!NOTE]
+> Input normalization is currently only available for file inputs.
+> However, normalization for scalar inputs can be introduced if needed.
+
+### Fingerprints
+
+Normalized inputs are captured as **fingerprints**.
+These objects are similar to _snapshots,_ but they capture the hash of the _normalized_ contents instead of the _verbatim._
+For example, when calculating the fingerprint of a Java source file, we replace all line-ending characters with `\n` before hashing the contents.
+
+Fingerprints for individual files are represented as `FileSystemLocationFingerprint`s.
+For `FileCollection`s we store pef-file fingerprints in a `Map` indexed by the absolute path of the file.
+This means that fingerprints do not retain their respective file-system structures like snapshots do.[^hierarchical-fingerprints]
+
+[^hierarchical-fingerprints]: This is a historic choice and can be changed.
+Much of the machinery around hierarchical file-system snapshots can be reused for this purpose.
+
