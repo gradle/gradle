@@ -133,8 +133,12 @@ public final class SafeFileLocationUtils {
      * <p>
      * Long strings will also be hashed to avoid issues with file name length limitations.
      * </p>
+     *
+     * @param name the original name
+     * @param forDirectory whether the name is intended for a directory
+     * @return a safe file name derived from the original name
      */
-    public static String toSafeFileName(String name) {
+    public static String toSafeFileName(String name, boolean forDirectory) {
         Utf8EncodingResult nameResult;
         try {
             nameResult = encodeIntoUtf8WithReplacement(name);
@@ -142,7 +146,7 @@ public final class SafeFileLocationUtils {
             throw new AssertionError("Unexpected encoding error, should have filtered invalid input", e);
         }
         if (nameResult.cleanBytes.length <= MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES) {
-            return nameResult.getCleanString();
+            return removeInvalidStrings(forDirectory, nameResult.getCleanString());
         }
 
         // We use hashUnencodedChars to ensure we hash the original name without any replacements
@@ -150,7 +154,20 @@ public final class SafeFileLocationUtils {
         byte[] hashBytes = HASHER.hashUnencodedChars(name).asBytes();
         String encoded = BASE_ENCODING.encode(hashBytes);
 
-        return shortenNameAndAddHash(nameResult.cleanBytes, encoded);
+        String shortName = shortenNameAndAddHash(nameResult.cleanBytes, encoded);
+        return removeInvalidStrings(forDirectory, shortName);
+    }
+
+    private static String removeInvalidStrings(boolean forDirectory, String name) {
+        if (forDirectory) {
+            // Remove any trailing dots for compatibility with win32 APIs
+            int lastIndexOfNonDot = name.length() - 1;
+            while (lastIndexOfNonDot >= 0 && name.charAt(lastIndexOfNonDot) == '.') {
+                lastIndexOfNonDot--;
+            }
+            return name.substring(0, lastIndexOfNonDot + 1);
+        }
+        return name;
     }
 
     private static final class Utf8EncodingResult {

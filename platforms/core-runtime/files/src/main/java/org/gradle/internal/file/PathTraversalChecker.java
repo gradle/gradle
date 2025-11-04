@@ -53,6 +53,13 @@ public class PathTraversalChecker {
         if (!name.contains("..")) {
             return false;
         }
+        if (isWindows()) {
+            // Directories with dots at the end will have them removed by win32 compatibility
+            // We don't know what paths might be directories, so just ban any occurrence of dots at the end
+            if (name.endsWith(".") || name.contains(".\\") || name.contains("./")) {
+                return true;
+            }
+        }
         // We have a .. but if not in-between a file separator, at the start, or at the end, it is OK
         return name.endsWith("\\..")
             || name.startsWith("..\\")
