@@ -177,6 +177,7 @@
          <trusted-key id="51B52DC5DD452F92BE342CC2858FC4C4F43856A3" group="xerces" name="xercesImpl"/>
          <trusted-key id="522CA055B326A636D833EF6A0551FD3684FCBBB7" group="org.apache.maven.resolver"/>
          <trusted-key id="53C935821AA6A755BD337DB53595395EB3D8E1BA" group="org.apache.logging.log4j"/>
+         <trusted-key id="55ABBEF06CF6277A23B1D3A21993B355097C8B5A" group="org.lz4" name="lz4-java"/>
          <trusted-key id="5989BAF76217B843D66BE55B2D0E1FB8FE4B68B4" group="org.eclipse.jetty"/>
          <trusted-key id="5B7F3605A8CE471A9CA8DB7EC84125C13BF6F2F2" group="^org[.]ajoberstar($|([.].*))" regex="true"/>
          <trusted-key id="5CE325996A35213326AE2C68912D2C0ECCDA55C0" group="com.google.errorprone" name="error_prone_annotations"/>
@@ -352,6 +353,7 @@
             <trusting group="com.headius"/>
             <trusting group="^org[.]jruby($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="F046369B06B761AC86D9849F71B329993BFFCFDD" group="org.openjdk.jmc"/>
          <trusted-key id="F254B35617DC255D9344BCFA873A8E86B4372146">
             <trusting group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
             <trusting group="^org[.]codehaus($|([.].*))" regex="true"/>
@@ -359,6 +361,7 @@
          <trusted-key id="F3184BCD55F4D016E30D4C9BF42E87F9665015C9" group="org.jsoup" name="jsoup"/>
          <trusted-key id="F3A90E6B10E809F851AB4FC54CC08E7F47C3EC76" group="com.zaxxer" name="HikariCP"/>
          <trusted-key id="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3" group="net.bytebuddy"/>
+         <trusted-key id="F9514E84AE3708288374BBBE097586CFEA37F9A6" group="org.owasp.encoder" name="encoder"/>
          <trusted-key id="FA77DCFEF2EE6EB2DEBEDD2C012579464D01C06A">
             <trusting group="org.apache.maven.doxia"/>
             <trusting group="org.codehaus.plexus"/>
@@ -370,7 +373,6 @@
          </trusted-key>
          <trusted-key id="FC2C31FC25FEDE4E7AD0D18C2BFD7825A8984FBE" group="com.github.javaparser" name="javaparser-core"/>
          <trusted-key id="FC411CD3CB7DCB0ABC9801058118B3BCDB1A5000" group="jakarta.xml.bind" name="jakarta.xml.bind-api"/>
-         <trusted-key id="FE72F1BFE9632B1FE049AC3E5BCD80B78ACD3A37" group="org.openjdk.jmc"/>
          <trusted-key id="FEB9209F2F2F3F4664841E55AC107B386692DADD" group="com.amazonaws"/>
          <trusted-key id="FF6E2C001948C5F2F38B0CC385911F425EC61B51">
             <trusting group="junit"/>
@@ -1403,11 +1405,6 @@
             <pgp value="150FDE3F7787E7D11EF4E12A9B7D32F2D50582E6"/>
          </artifact>
       </component>
-      <component group="org.lz4" name="lz4-java" version="1.7.1">
-         <artifact name="lz4-java-1.7.1.jar">
-            <pgp value="55EC199CAA5FFDB20C4D825E1F318213E56E467A"/>
-         </artifact>
-      </component>
       <component group="org.mozilla" name="rhino" version="1.7.10">
          <artifact name="rhino-1.7.10.jar">
             <pgp value="EA0B70B5050192C98CFA7E4F3F36885C24DF4B75"/>
@@ -1435,11 +1432,6 @@
          </artifact>
          <artifact name="node-16.13.2-win-x64.zip">
             <sha256 value="107e3ece84b7fa1e80b3bdf03181d395246c7867e27b17b6d7e6fa9c7932b467" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.owasp.encoder" name="encoder" version="1.2.2">
-         <artifact name="encoder-1.2.2.jar">
-            <pgp value="F9514E84AE3708288374BBBE097586CFEA37F9A6"/>
          </artifact>
       </component>
       <component group="org.pcollections" name="pcollections" version="4.0.1">
