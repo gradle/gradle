@@ -79,9 +79,8 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
+                nested("Test suite 'Custom test root'") {
+                    test("My test!") {
                         metadata("mykey", "my value")
                     }
                 }
@@ -135,9 +134,8 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
+                nested("Test suite 'Custom test root'") {
+                    test("My test!") {
                         metadata("mykey", "myvalue")
                     }
                 }
@@ -167,10 +165,10 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
-                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout" + System.lineSeparator())
                             myTest.metadata(Instant.now(), "mykey1", "apple")
                             myTest.metadata(Instant.now(), "mykey2", 10)
-                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "More output on stdout")
+                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "More output on stdout" + System.lineSeparator())
                             myTest.metadata(Instant.now(), "mykey3", ["banana", "cherry"])
                             myTest.succeeded(Instant.now())
                         }
@@ -194,9 +192,8 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
+                nested("Test suite 'Custom test root'") {
+                    test("My test!") {
                         output("This is a test output on stdout")
                         output("More output on stdout")
                         metadata("mykey1", "apple")
@@ -264,14 +261,13 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
+                nested("Test suite 'Custom test root'") {
                     metadata("myroot", "my root value")
-                    composite("My Group") {
+                    nested("Test class My Group") {
                         metadata("mygroup", "my group value")
-                        composite("My Inner Group") {
+                        nested("Test class My Inner Group") {
                             metadata("myinnergroup", "my inner group value")
-                            test("MyTestInternal") {
-                                displayName "My test!"
+                            test("My test!") {
                                 metadata("mytest", "my test value")
                             }
                         }
@@ -326,10 +322,8 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
-                    }
+                nested("Test suite 'Custom test root'") {
+                    test("My test!")
                 }
             }
         }

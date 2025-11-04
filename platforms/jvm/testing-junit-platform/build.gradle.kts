@@ -20,6 +20,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
+    implementation(libs.slf4jApi)
 
     compileOnly(libs.junitPlatform) {
         because("The actual version is provided by the user on the testRuntimeClasspath")

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
-import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import java.io.Closeable;
@@ -44,11 +44,13 @@ final class TestOutputWriter implements Closeable {
      * Encoder storing all output events.
      */
     private final KryoBackedEncoder outputEventsEncoder;
+    private final Serializer<TestOutputEvent> testOutputEventSerializer;
     private final Map<Long, OutputStarts> outputEntryRangeStarts = new HashMap<>();
 
-    public TestOutputWriter(Path outputEventsFile) throws IOException {
+    public TestOutputWriter(Path outputEventsFile, Serializer<TestOutputEvent> testOutputEventSerializer) throws IOException {
         Files.deleteIfExists(outputEventsFile);
-        outputEventsEncoder = new KryoBackedEncoder(Files.newOutputStream(outputEventsFile));
+        this.outputEventsEncoder = new KryoBackedEncoder(Files.newOutputStream(outputEventsFile));
+        this.testOutputEventSerializer = testOutputEventSerializer;
     }
 
     public void writeOutputEvent(long id, TestOutputEvent event) {
@@ -70,7 +72,7 @@ final class TestOutputWriter implements Closeable {
         }
         try {
             outputEventsEncoder.writeLong(id);
-            TestEventSerializer.DefaultTestOutputEventSerializer.INSTANCE.write(
+            testOutputEventSerializer.write(
                 outputEventsEncoder, (DefaultTestOutputEvent) event
             );
         } catch (Exception e) {

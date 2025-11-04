@@ -23,10 +23,12 @@ import com.google.common.collect.Multimaps;
 import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
-import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
+import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -36,6 +38,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.reporting.HtmlReportBuilder;
@@ -101,11 +104,11 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-
+        Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
         List<TestOutputReader> outputReaders = new ArrayList<>(stores.size());
         try {
             for (SerializableTestResultStore store : stores) {
-                outputReaders.add(store.createOutputReader());
+                outputReaders.add(store.createOutputReader(testOutputEventSerializer));
             }
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);

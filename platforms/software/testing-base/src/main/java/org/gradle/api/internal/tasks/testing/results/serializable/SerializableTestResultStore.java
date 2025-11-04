@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -30,6 +31,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.ExceptionSerializationUtil;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.jspecify.annotations.Nullable;
@@ -118,9 +120,10 @@ public final class SerializableTestResultStore {
             Files.createDirectories(serializedResultsFile.getParent());
             temporaryResultsFile = Files.createTempFile(serializedResultsFile.getParent(), "in-progress-results-generic", ".bin");
             resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
+            Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
             try {
                 resultsEncoder.writeSmallInt(STORE_VERSION);
-                outputWriter = new TestOutputWriter(outputEventsFile);
+                outputWriter = new TestOutputWriter(outputEventsFile, testOutputEventSerializer);
             } catch (Throwable t) {
                 // Ensure we don't leak the encoder if we fail to do operations in the constructor
                 try {
@@ -367,7 +370,7 @@ public final class SerializableTestResultStore {
         return decoder;
     }
 
-    public TestOutputReader createOutputReader() {
-        return new TestOutputReader(outputEventsFile);
+    public TestOutputReader createOutputReader(Serializer<TestOutputEvent> testOutputEventSerializer) {
+        return new TestOutputReader(outputEventsFile, testOutputEventSerializer);
     }
 }
