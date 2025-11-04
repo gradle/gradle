@@ -328,9 +328,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) dependency;
             moduleDependency.endorseStrictVersions();
-            platformSupport.addPlatformAttribute(moduleDependency, toCategory(Category.REGULAR_PLATFORM));
+            platformSupport.addPlatformAttribute(moduleDependency, Category.REGULAR_PLATFORM);
         } else if (dependency instanceof HasConfigurableAttributes) {
-            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) dependency, toCategory(Category.REGULAR_PLATFORM));
+            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) dependency, Category.REGULAR_PLATFORM);
         }
         return dependency;
     }
@@ -351,9 +351,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
             MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
             constraint.strictly(externalModuleDependency.getVersion());
-            platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
+            platformSupport.addPlatformAttribute(externalModuleDependency, Category.ENFORCED_PLATFORM);
         } else if (platformDependency instanceof HasConfigurableAttributes) {
-            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
+            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, Category.ENFORCED_PLATFORM);
         }
         return platformDependency;
     }
@@ -407,10 +407,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             versionConstraint.strictly(defaultSpec.dep.getVersion());
             defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, attrs.named(Category.class, Category.ENFORCED_PLATFORM));
         });
-    }
-
-    private Category toCategory(String category) {
-        return objects.named(Category.class, category);
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {

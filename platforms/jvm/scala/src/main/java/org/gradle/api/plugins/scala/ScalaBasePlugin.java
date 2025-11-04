@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.Category;
@@ -126,17 +127,15 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
         Provider<ResolvableConfiguration> toolchainClasspath = createToolchainRuntimeClasspath(project, scalaPluginExtension);
 
-        Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
-        Category incrementalAnalysisCategory = objectFactory.named(Category.class, "scala-analysis");
-        configureConfigurations((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
+        configureConfigurations((ProjectInternal) project, scalaPluginExtension);
 
         configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) javaPluginExtension(project), scalaPluginExtension, toolchainClasspath);
-        configureSourceSetDefaults((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
+        configureSourceSetDefaults((ProjectInternal) project, scalaPluginExtension);
         configureScaladoc(project, scalaRuntime, scalaPluginExtension, toolchainClasspath);
     }
 
     @SuppressWarnings("deprecation")
-    private void configureConfigurations(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
+    private void configureConfigurations(final ProjectInternal project, ScalaPluginExtension scalaPluginExtension) {
         DependencyHandler dependencyHandler = project.getDependencies();
 
         project.getConfigurations().resolvableDependencyScopeLocked(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME, plugins -> {
@@ -177,16 +176,25 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
         project.getConfigurations().consumable("incrementalScalaAnalysisElements", incrementalAnalysisElements -> {
             incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
-            incrementalAnalysisElements.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
-            incrementalAnalysisElements.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
+            AttributeContainer attrs = incrementalAnalysisElements.getAttributes();
+            setIncrementalAnalysisUsage(attrs);
+            setIncrementalAnalysisCategory(attrs);
         });
 
         AttributeMatchingStrategy<Usage> matchingStrategy = dependencyHandler.getAttributesSchema().attribute(USAGE_ATTRIBUTE);
         matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(incrementalAnalysisUsage);
+            actionConfiguration.params(objectFactory.named(Usage.class, "scala-analysis"));
             actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
             actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         });
+    }
+
+    private static void setIncrementalAnalysisUsage(AttributeContainer attrs) {
+        attrs.attribute(USAGE_ATTRIBUTE, attrs.named(Usage.class, "incremental-analysis"));
+    }
+
+    private static void setIncrementalAnalysisCategory(AttributeContainer attrs) {
+        attrs.attribute(CATEGORY_ATTRIBUTE, attrs.named(Category.class, "scala-analysis"));
     }
 
     private Provider<ResolvableConfiguration> createToolchainRuntimeClasspath(Project project, ScalaPluginExtension scalaPluginExtension) {
@@ -205,7 +213,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureSourceSetDefaults(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
+    private void configureSourceSetDefaults(final ProjectInternal project, ScalaPluginExtension scalaPluginExtension) {
         javaPluginExtension(project).getSourceSets().all(sourceSet -> {
 
             ScalaSourceDirectorySet scalaSource = createScalaSourceDirectorySet(sourceSet);
@@ -222,7 +230,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
             project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName()).getDependencies().addLater(createScalaDependency(scalaPluginExtension));
 
-            FileCollection incrementalAnalysis = createIncrementalAnalysisConfigurationFor(project.getConfigurations(), incrementalAnalysisCategory, incrementalAnalysisUsage, sourceSet);
+            FileCollection incrementalAnalysis = createIncrementalAnalysisConfigurationFor(project.getConfigurations(), sourceSet);
 
             createScalaCompileTask(project, sourceSet, scalaSource, incrementalAnalysis);
         });
@@ -318,14 +326,15 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return scalaSourceDirectorySet;
     }
 
-    private static FileCollection createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, Category incrementalAnalysisCategory, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
+    private static FileCollection createIncrementalAnalysisConfigurationFor(RoleBasedConfigurationContainerInternal configurations, SourceSet sourceSet) {
         Configuration classpath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
         return classpath.getIncoming().artifactView(viewConfiguration -> {
             viewConfiguration.withVariantReselection();
             viewConfiguration.lenient(true);
             viewConfiguration.componentFilter(spec(element -> element instanceof ProjectComponentIdentifier));
-            viewConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
-            viewConfiguration.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);
+            AttributeContainer attrs = viewConfiguration.getAttributes();
+            setIncrementalAnalysisUsage(attrs);
+            setIncrementalAnalysisCategory(attrs);
         }).getFiles();
     }
 
