@@ -82,3 +82,6 @@ packageCycles {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+// We do a lot of test file extraction here, and sometimes the cleanup service doesn't finish deleting in time
+testFilesCleanup.reportOnly = true
