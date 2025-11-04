@@ -8,7 +8,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
 
-    api(libs.httpcore)
     api(libs.inject)
     api(libs.jspecify)
 
@@ -23,6 +22,7 @@ dependencies {
 
     implementation(libs.commonsHttpclient)
     implementation(libs.guava)
+    implementation(libs.httpcore)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
