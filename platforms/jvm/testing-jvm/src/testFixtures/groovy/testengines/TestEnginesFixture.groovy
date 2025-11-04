@@ -73,7 +73,7 @@ trait TestEnginesFixture {
     }
 
     def cleanupSpec() {
-        //engineBuildDir.deleteDir()
+        engineBuildDir.deleteDir()
     }
 
     String enableEngineForSuite() {
