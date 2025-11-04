@@ -1,6 +1,60 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.CompileOptions()",
+            "acceptation": "Migrate task to dependency injection",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getForkOptions()",
+            "acceptation": "Migrate task to dependency injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()",
+            "acceptation": "Migrate task to dependency injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getHeaderOutputDirectory()",
+            "acceptation": "Migrate task to dependency injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()",
+            "acceptation": "Migrate task to dependency injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()",
+            "acceptation": "Migrate task to dependency injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getRelease()",
+            "acceptation": "Migrate task to dependency injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt",
             "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_8xle22tzu43ezso8mcqsuzcfqKt.fetch(org.gradle.tooling.BuildController,org.gradle.tooling.model.Model,kotlin.reflect.KClass)",
             "acceptation": "We don\u0027t generate @since on the generated accessor method",
