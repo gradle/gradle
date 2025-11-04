@@ -19,7 +19,7 @@ val antVersion = "1.10.15"
 // Don't forget to bump versions in
 // platforms/core-runtime/base-asm/src/main/java/org/gradle/model/internal/asm/AsmConstants.java
 // when upgrading ASM.
-val asmVersion = "9.8"
+val asmVersion = "9.9"
 val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.81"
 val hamcrestVersion = "3.0"
