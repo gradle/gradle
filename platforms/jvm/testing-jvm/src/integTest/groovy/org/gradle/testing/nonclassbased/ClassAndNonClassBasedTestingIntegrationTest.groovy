@@ -40,7 +40,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
 
                         options {
                             excludeEngines("junit-jupiter")
@@ -50,7 +50,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
             }
 
             // Ensure the definitions directory exists even if no definitions are added
-            project.layout.projectDirectory.file("src/test/definitions").getAsFile().mkdirs()
+            project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION").getAsFile().mkdirs()
         """
 
         if (classesPresent) {
@@ -79,7 +79,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
     }
 
     def "can use same engine and same test definitions dir for class and resource-based testing"() {
-        String customLocation = "src/test/java"
+        String definitionsLocation = "src/test/java"
 
         given:
         buildFile << """
@@ -94,7 +94,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$definitionsLocation"))
 
                         options {
                             excludeEngines("junit-jupiter")
@@ -105,7 +105,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         """
 
         writeTestClasses()
-        writeTestDefinitions(customLocation)
+        writeTestDefinitions(definitionsLocation)
 
         when:
         succeeds("test", "--info")
