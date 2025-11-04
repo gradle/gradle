@@ -40,7 +40,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
 
                         options {
                             if ($excludingJupiter) {
@@ -80,8 +80,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
-                        testDefinitionDirs.setFrom(project.layout.projectDirectory.file("$customLocation"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
                     }
                 }
             }
@@ -112,7 +111,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
                         testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
                     }
                 }
@@ -150,7 +149,6 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
                         testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
                     }
                 }

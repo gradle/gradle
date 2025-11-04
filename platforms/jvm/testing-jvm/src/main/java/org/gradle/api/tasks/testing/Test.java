@@ -169,8 +169,6 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @NullMarked
 @CacheableTask
 public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
-    private static final String TEST_DEFINITIONS_DIR = "src/test/definitions";
-
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
@@ -203,9 +201,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
-
-        getTestDefinitionDirs().from(getProjectLayout().getProjectDirectory().file(TEST_DEFINITIONS_DIR)); // Filtering would be done here, as in getCandidateClassFiles().  Does it need a separate prop, or could it reuse patternSet?
-        getScanForTestDefinitions().convention(false);
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -662,7 +657,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        if (!getTestFramework().supportsNonClassBasedTesting() && getScanForTestDefinitions().get()) {
+        if (!getTestFramework().supportsNonClassBasedTesting()) {
             throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
         }
 
@@ -675,7 +670,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), getTestDefinitionDirs().getFiles(), getScanForTestDefinitions().get(),
+            getCandidateClassFiles(), isScanForTestClasses(), getTestDefinitionDirs().getFiles(),
             getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
@@ -1170,15 +1165,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public void setScanForTestClasses(boolean scanForTestClasses) {
         this.scanForTestClasses = scanForTestClasses;
     }
-
-    /**
-     * Whether to scan for test resources for resource-based testing.
-     *
-     * @since 9.3.0
-     */
-    @Incubating
-    @Input
-    public abstract Property<Boolean> getScanForTestDefinitions();
 
     /**
      * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be restarted when this limit is reached.

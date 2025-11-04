@@ -39,7 +39,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
                     }
                 }
             }
@@ -68,7 +68,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
                         testDefinitionDirs.from(project.layout.projectDirectory.file("$badPath"))
                     }
                 }
@@ -104,8 +104,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
-                        testDefinitionDirs.setFrom(project.layout.projectDirectory.file("$badPath"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$badPath"))
                     }
                 }
             }
@@ -118,7 +117,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         failureCauseContains("Test definitions directory is not a directory: " + testDirectory.file(badPath).absolutePath)
     }
 
-    def "missing test classes and/or definitions is skipped or fails when appropriate (scan for test classes = #scanForTestClasses, has test classes = #hasTestClasses, scan for test defs = #scanForTestDefs, has test defs = #hasTestDefs)"() {
+    def "missing test classes and/or definitions is skipped or fails when appropriate (scan for test classes = #scanForTestClasses, has test classes = #hasTestClasses, add test defs dir = #addTestDefsDir, has test defs = #hasTestDefs)"() {
         buildFile << """
             plugins {
                 id 'java-library'
@@ -132,7 +131,9 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
                 targets.all {
                     testTask.configure {
                         scanForTestClasses = $scanForTestClasses
-                        scanForTestDefinitions = $scanForTestDefs
+                        if ($addTestDefsDir) {
+                            testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
+                        }
                     }
                 }
             }
@@ -163,18 +164,18 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
             if (scanForTestClasses && hasTestClasses) {
                 classBasedTestsExecuted()
             }
-            if (scanForTestDefs && hasTestDefs) {
+            if (addTestDefsDir && hasTestDefs) {
                 nonClassBasedTestsExecuted()
             }
         }
 
         where:
-        scanForTestClasses  | hasTestClasses    | scanForTestDefs   | hasTestDefs   || shouldBeSkipped  || shouldFail
+        scanForTestClasses  | hasTestClasses    | addTestDefsDir | hasTestDefs || shouldBeSkipped || shouldFail
         true                | true              | true              | true          || false            || false
         true                | false             | true              | true          || false            || false
         true                | true              | false             | true          || false            || false
         true                | true              | true              | false         || false            || false
-        true                | false             | false             | true          || false            || true
+        true                | false             | false             | true          || true             || false
         true                | false             | true              | false         || true             || false
         true                | true              | false             | false         || false            || false
         true                | false             | false             | false         || true             || false
@@ -182,7 +183,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         false               | false             | true              | true          || false            || false
         false               | true              | false             | true          || false            || true
         false               | true              | true              | false         || false            || true
-        false               | false             | false             | true          || false            || true
+        false               | false             | false             | true          || true             || false
         false               | false             | true              | false         || true             || false
         false               | true              | false             | false         || false            || true
         false               | false             | false             | false         || true             || false
@@ -202,7 +203,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
                     }
                 }
             }

@@ -36,7 +36,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
 
                 targets.all {
                     testTask.configure {
-                        scanForTestDefinitions = true
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
 
                         options {
                             excludeEngines("junit-jupiter")
