@@ -95,6 +95,39 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         nonClassBasedTestsExecuted()
     }
 
+    def "resource-based test engine detects and executes test definitions using custom test suite/task"() {
+        String customLocation = "src/integrationTest/some-other-place"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites {
+                integrationTest(JvmTestSuite) {
+                    ${enableEngineForSuite()}
+
+                    targets.all {
+                        testTask.configure {
+                            testDefinitionDirs.from(project.layout.projectDirectory.file("${customLocation}"))
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions(customLocation)
+
+        when:
+        succeeds("integrationTest", "--info")
+
+        then:
+        nonClassBasedTestsExecuted()
+    }
+
     def "resource-based test engine detects and executes test definitions in default and custom locations"() {
         String customLocation = "src/test/some-other-place"
 
