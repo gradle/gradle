@@ -47,8 +47,8 @@ Examples of units of work include:
 When provided with well-defined units of work, the execution engine can employ several safe optimizations to produce the outputs as efficiently as possible:
 
 - **Identity Caching**: If work has already been executed with the same inputs in the context of the current tool invocation, an in-memory cache is consulted for results.
-- **Incremental Build**: If file-producing work has been executed previously with the same inputs and the outputs are **up-to-date**, the execution is skipped.
-- **Build Cache**: If the output is not up-to-date locally, the engine searches for stored results in the **build cache**, checking the local cache first and then the remote cache if necessary.
+- **Incremental Build**: If the _execution state_ of the work is **up-to-date**, the execution is skipped.
+- **Build Cache**: If the output is not up-to-date locally, the engine searches for stored results in the _build cache,_ checking the local cache first and then the remote cache if necessary.
 - **Execution**: If no result is found in the build cache, the work is executed.
 
 ![](Execution%20Engine%20Schematic.drawio.svg)
@@ -67,11 +67,32 @@ Each unit has two identifiers:
 - **Identity**: A locally unique identifier of the work with respect to the current execution scope (e.g., the Gradle build tree).
 - **Cache Key**: A globally unique identifier used to store and retrieve the outputs of the work across time and space.
 
+## Execution State
+
+The **execution state** of a unit of work consists of:
+
+- Its inputs:
+  - Its implementation – the FQCN of the work's implementation (e.g. `org.gradle.api.tasks.compile.JavaCompile`) and the classloader hash of its classpath
+  - The value snapshots of its input properties
+  - The fingerprints of its file inputs
+- Its outputs:
+  - The file-system snapshots of its output files
+  - Whether the execution was successful
+  - The origins of the outputs (freshly produced or reused from a previous build)
+
 ## Optimizations
 
 ### Incremental Build (Up-to-Date Checks)
 
-_TBD_
+Execution state is stored in the **execution history**.
+This way we can compare the state of a unit of work before executing it to its state after its previous execution.
+If there are no changes to either its inputs or outputs, executing the work is not needed, and is thus skipped.
+
+* Input value changes are detected by comparing the `ValueSnapshot`s input value properties.
+
+* Input file changes are detected by comparing fingerprints of the input file properties.
+
+* Output changes are detected by comparing the snapshots of the output properties.
 
 ### The Build Cache
 
