@@ -32,8 +32,12 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAsse
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
+import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultOtherSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
@@ -266,7 +270,7 @@ public class JUnitTestEventAdapter extends RunListener {
     public void testStarted(Description description) {
         testsStarted = true;
         Object parentId = startRequiredParentIfNeeded(description);
-        TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
+        TestDescriptorInternal descriptor = methodDescriptor(idGenerator.generateId(), description);
         synchronized (lock) {
             TestDescriptorInternal oldTest = executing.put(description, descriptor);
             assert oldTest == null : String.format("Unexpected start event for %s", description);
@@ -290,7 +294,7 @@ public class JUnitTestEventAdapter extends RunListener {
             // This can happen when, for example, a @BeforeClass or @AfterClass method fails
             // We generate an artificial start/failure/completed sequence of events
             withPotentiallyMissingParent(className(failure.getDescription()), clock.getCurrentTime(), parentId -> {
-                TestDescriptorInternal child = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
+                TestDescriptorInternal child = methodDescriptor(idGenerator.generateId(), failure.getDescription());
                 resultProcessor.started(child, startEvent(parentId));
                 Throwable exception = failure.getException();
                 reportFailure(child.getId(), exception);
@@ -352,7 +356,7 @@ public class JUnitTestEventAdapter extends RunListener {
             // This can happen when, for example, a @BeforeClass or @AfterClass method fails
             // We generate an artificial start/failure/completed sequence of events
             withPotentiallyMissingParent(className(failure.getDescription()), clock.getCurrentTime(), parentId -> {
-                TestDescriptorInternal child = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
+                TestDescriptorInternal child = methodDescriptor(idGenerator.generateId(), failure.getDescription());
                 resultProcessor.started(child, startEvent(parentId));
                 Throwable exception = failure.getException();
                 reportAssumptionFailure(child.getId(), exception);
@@ -445,16 +449,33 @@ public class JUnitTestEventAdapter extends RunListener {
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
+    /**
+     * Creates a test descriptor. The descriptor source type is inferred from whether the class and method names can be obtained.
+     */
     private static TestDescriptorInternal descriptor(Object id, Description description) {
-        return new DefaultTestDescriptor(id, className(description), methodName(description));
+        String className = className(description);
+        String methodName = methodName(description);
+        TestSource source;
+        if (className != null && methodName != null) {
+            source = new DefaultMethodSource(className, methodName);
+        } else if (className != null && methodName == null) {
+            source = new DefaultClassSource(className);
+        } else {
+            source = DefaultOtherSource.getInstance();
+        }
+        return new DefaultTestDescriptor(id, className, methodName, source);
     }
 
-    private static TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
+    /**
+     * Creates a test descriptor describing a method, even if the method name cannot be obtained.
+     */
+    private static TestDescriptorInternal methodDescriptor(Object id, Description description) {
         String methodName = methodName(description);
+        String className = className(description);
         if (methodName != null) {
-            return new DefaultTestDescriptor(id, className(description), methodName);
+            return new DefaultTestDescriptor(id, className, methodName, new DefaultMethodSource(className, methodName));
         } else {
-            return new DefaultTestDescriptor(id, className(description), "classMethod");
+            return new DefaultTestDescriptor(id, className, "classMethod", new DefaultMethodSource(className, "classMethod"));
         }
     }
 
