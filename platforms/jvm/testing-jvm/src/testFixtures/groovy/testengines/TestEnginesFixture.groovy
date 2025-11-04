@@ -63,7 +63,6 @@ trait TestEnginesFixture {
         engineBuildDir = customTestDirectoryProvider.testDirectory.file(ENGINE_COPY_TO_DIR_NAME)
         engineBuilder.inDirectory(engineBuildDir)
             .withRepositoryMirrors()
-            .withConsole(ConsoleOutput.Verbose)
 
         // Build the test engine jar
         engineBuilder.withTasks("build").run()
