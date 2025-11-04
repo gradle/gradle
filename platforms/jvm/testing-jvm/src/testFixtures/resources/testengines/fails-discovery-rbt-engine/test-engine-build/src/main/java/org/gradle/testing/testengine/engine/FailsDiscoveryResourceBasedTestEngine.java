@@ -35,7 +35,7 @@ public class FailsDiscoveryResourceBasedTestEngine implements TestEngine {
     public static final Logger LOGGER = LoggerFactory.getLogger(FailsDiscoveryResourceBasedTestEngine.class);
 
     public static final String ENGINE_ID = "fails-discovery-rbt-engine";
-    public static final String ENGINE_NAME = "Resource Based Test Engine";
+    public static final String ENGINE_NAME = "Resource Based Test Engine (Fails at Discovery)";
 
     @Override
     public String getId() {

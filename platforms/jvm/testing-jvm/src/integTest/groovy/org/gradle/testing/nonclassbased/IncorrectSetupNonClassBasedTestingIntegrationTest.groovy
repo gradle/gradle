@@ -39,7 +39,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
                     }
                 }
             }
@@ -132,14 +132,15 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
                     testTask.configure {
                         scanForTestClasses = $scanForTestClasses
                         if ($addTestDefsDir) {
-                            testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
+                            testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
                         }
                     }
                 }
             }
         """
 
-        file("src/test/definitions").createDir()
+        // Ensure test definitions dir exists even if no defs are added
+        file("$DEFAULT_DEFINITIONS_LOCATION").createDir()
 
         if (hasTestClasses) {
             writeTestClasses()
@@ -203,7 +204,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
                     }
                 }
             }

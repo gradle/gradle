@@ -34,7 +34,7 @@ public class FailsExecutionResourceBasedTestEngine implements TestEngine {
     public static final Logger LOGGER = LoggerFactory.getLogger(FailsExecutionResourceBasedTestEngine.class);
 
     public static final String ENGINE_ID = "fails-execution-rbt-engine";
-    public static final String ENGINE_NAME = "Resource Based Test Engine";
+    public static final String ENGINE_NAME = "Resource Based Test Engine (Fails at Execution)";
 
     @Override
     public String getId() {

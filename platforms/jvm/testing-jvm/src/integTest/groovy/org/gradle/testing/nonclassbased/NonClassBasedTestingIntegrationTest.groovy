@@ -40,7 +40,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("${DEFAULT_DEFINITIONS_LOCATION}"))
 
                         options {
                             if ($excludingJupiter) {
@@ -64,40 +64,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         excludingJupiter << [true, false]
     }
 
-    def "resource-based test engine detects and executes test definitions in custom location"() {
-        String customLocation = "src/test/some-other-place"
-
-        given:
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing.suites.test {
-                ${enableEngineForSuite()}
-
-                targets.all {
-                    testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
-                    }
-                }
-            }
-        """
-
-        writeTestDefinitions(customLocation)
-
-        when:
-        succeeds("test", "--info")
-
-        then:
-        nonClassBasedTestsExecuted()
-    }
-
     def "resource-based test engine detects and executes test definitions using custom test suite/task"() {
-        String customLocation = "src/integrationTest/some-other-place"
-
         given:
         buildFile << """
             plugins {
@@ -112,14 +79,14 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                     targets.all {
                         testTask.configure {
-                            testDefinitionDirs.from(project.layout.projectDirectory.file("${customLocation}"))
+                            testDefinitionDirs.from(project.layout.projectDirectory.file("${DEFAULT_DEFINITIONS_LOCATION}"))
                         }
                     }
                 }
             }
         """
 
-        writeTestDefinitions(customLocation)
+        writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
 
         when:
         succeeds("integrationTest", "--info")
@@ -128,8 +95,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         nonClassBasedTestsExecuted()
     }
 
-    def "resource-based test engine detects and executes test definitions in default and custom locations"() {
-        String customLocation = "src/test/some-other-place"
+    def "resource-based test engine detects and executes test definitions in multiple locations"() {
+        String otherDefinitionsLocation = "src/test/some-other-place"
 
         given:
         buildFile << """
@@ -144,15 +111,15 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$otherDefinitionsLocation"))
                     }
                 }
             }
         """
 
         writeTestDefinitions()
-        file("$customLocation/SomeThirdTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+        file("$otherDefinitionsLocation/SomeThirdTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="third" />
             </tests>
@@ -166,9 +133,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         outputContains("INFO: Executing resource-based test: Test [file=SomeThirdTestSpec.rbt, name=third]")
     }
 
-    def "empty custom test definitions location skips"() {
-        String customLocation = "src/test/some-other-place"
-
+    def "empty test definitions location skips"() {
         given:
         buildFile << """
             plugins {
@@ -182,7 +147,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$customLocation"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
                     }
                 }
             }

@@ -31,7 +31,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
         return GenericTestExecutionResult.TestFramework.CUCUMBER
     }
 
-    def "can run Cucumber JVM feature files without using non-class-based testing"() {
+    def "can run Cucumber JVM feature files without using non-class-based testing (features in: #testLocation)"() {
         given:
         buildFile << """
             plugins {
@@ -50,13 +50,13 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/resources"))
+                        testDefinitionDirs.from(project.layout.projectDirectory.file("$testLocation"))
                     }
                 }
             }
         """
 
-        writeCucumberFeatureFiles()
+        writeCucumberFeatureFiles(testLocation)
         writeCucumberStepDefinitions()
 
         when:
@@ -66,6 +66,8 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
         def result = resultsFor()
         result.testPath("UnknownClass", "Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
 
+        where:
+        testLocation << ["src/test/resources", AbstractNonClassBasedTestingIntegrationTest.DEFAULT_DEFINITIONS_LOCATION]
     }
 
     private writeCucumberStepDefinitions(String path = "src/test/java") {

@@ -73,7 +73,11 @@ trait TestEnginesFixture {
     }
 
     def cleanupSpec() {
-        engineBuildDir.deleteDir()
+        try {
+            engineBuildDir.deleteDir()
+        } catch (Exception ignored) {
+            // Ignore
+        }
     }
 
     String enableEngineForSuite() {
@@ -88,9 +92,10 @@ trait TestEnginesFixture {
 
     enum TestEngines {
         BASIC_RESOURCE_BASED("rbt-engine"),
+        MULTI_FILE_RESOURCE_BASED("multi-file-rbt-engine"),
         RESOURCE_AND_CLASS_BASED("resource-and-class-engine"),
         FAILS_DISCOVERY_RESOURCE_BASED("fails-discovery-rbt-engine"),
-        FAILS_EXECUTION_RESOURCE_BASED("fails-execution-rbt-engine")
+        FAILS_EXECUTION_RESOURCE_BASED("fails-execution-rbt-engine"),
 
         private final String name
 
