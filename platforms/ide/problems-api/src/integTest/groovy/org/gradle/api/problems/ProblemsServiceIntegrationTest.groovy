@@ -454,6 +454,36 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "problems are rendered on the console when WarningMode=all configured"() {
+        given:
+        withReportProblemTask """
+            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("sample-problems", "Sample Problems");
+            ${ProblemId.name} problemId = ${ProblemId.name}.create("prototype-project", "Project is a prototype", problemGroup)
+            problems.getReporter().report(problemId) { spec ->
+                spec.contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
+                spec.severity(Severity.WARNING)
+                spec.details("Complex build logic like the Problems API usage should be integrated into plugins")
+                spec.solution("Look up the samples index for real-life examples")
+                spec.lineInFileLocation("/path/to/script", 20)
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        outputContains """
+Problem found: Project is a prototype (id: sample-problems:prototype-project)
+  This is a prototype and not a guideline for modeling real-life projects
+    Complex build logic like the Problems API usage should be integrated into plugins
+    Solution: Look up the samples index for real-life examples
+    Location: /path/to/script
+        """
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'sample-problems:prototype-project'
+        }
+    }
+
     static String problemIdScript() {
         """${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
            ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)"""

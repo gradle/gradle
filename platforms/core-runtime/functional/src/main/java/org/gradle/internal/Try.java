@@ -41,7 +41,7 @@ public abstract class Try<T extends @Nullable Object> {
      * The returned object will either hold the result or the exception thrown during the operation.
      * If the callable returns null, then the returned Try instance will hold null as its value.
      */
-    public static <U> Try<U> ofFailable(Callable<U> failable) {
+    public static <U extends @Nullable Object> Try<U> ofFailable(Callable<U> failable) {
         try {
             return Try.successful(failable.call());
         } catch (Exception e) {

@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -29,7 +28,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDependencyResolveTest implements PluginDslSupport {
+class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def "can declare component metadata rules in settings"() {
         withLoggingRuleInSettings()
@@ -244,7 +243,11 @@ class ComponentMetadataRulesInSettingsIntegrationTest extends AbstractModuleDepe
             }
         """
 
-        withPlugins(['test-plugin': '1.0'])
+        buildFile.text = """
+            plugins {
+                id("test-plugin").version("1.0")
+            }
+        """
 
         when:
         plugin.allowAll()

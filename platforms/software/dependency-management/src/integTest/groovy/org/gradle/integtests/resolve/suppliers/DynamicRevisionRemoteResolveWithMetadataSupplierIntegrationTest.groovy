@@ -1019,12 +1019,11 @@ group:projectB:2.2;release
             configurations {
                 conf
             }
+
+            ${resolve.configureProject("conf")}
         """
         addDependenciesTo(otherBuildFile)
-        otherBuildFile << """
-            // this is for parallel execution
-            checkDeps.mustRunAfter(rootProject.checkDeps)
-        """
+
         given:
         def supplierInteractions = withPerVersionStatusSupplier(file("buildSrc/src/main/groovy/MP.groovy"))
         otherBuildFile << supplierDeclaration('MP')
@@ -1057,7 +1056,7 @@ group:projectB:2.2;release
         // bouncycastle has .properties files that are actually binary files
         // see https://github.com/bcgit/bc-java/commit/0aacc38aefe7e79a6d9cca76bd690c24671c3feb
         executer.withStackTraceChecksDisabled()
-        run 'checkDeps', '--debug'
+        run ':checkDeps', ":b:checkDeps", '--debug'
 
         then:
         noExceptionThrown()

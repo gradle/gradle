@@ -31,7 +31,7 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19808")
-    def "nested classes are executed when filtering by class name"() {
+    def "nested classes are executed when filtering by class name on the command line"() {
         given:
         buildFile << """
             dependencies {
@@ -119,6 +119,72 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         'SampleTest$NestedTestClass'                      | true                  | [':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
         'SampleTest$NestedTestClass$SubNestedTestClass'   | false                 | [':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
         'SampleTest$NestedTestClass$SubNestedTestClass'   | true                  | [':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31304")
+    def "nested classes are not executed when excluded by class name in test configuration"() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
+            }
+            test {
+                filter.excludeTest("${excludeFilter}", null)
+            }
+        """
+
+        file("src/test/java/SampleTest.java") << """
+            import static org.junit.jupiter.api.Assertions.fail;
+
+            import org.junit.jupiter.api.Nested;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.params.ParameterizedTest;
+            import org.junit.jupiter.params.provider.ValueSource;
+
+            public class SampleTest {
+                @Test
+                public void regularTest() {
+                    fail();
+                }
+
+                @Nested
+                public class NestedTestClass {
+                    @Nested
+                    public class SubNestedTestClass {
+                        @Test
+                        public void subNestedTest() {
+                            fail();
+                        }
+
+                        @ParameterizedTest
+                        @ValueSource(strings = { "racecar", "radar", "able was I ere I saw elba" })
+                        public void palindromes(String candidate) {
+                            fail();
+                        }
+                    }
+
+                    @Test
+                    public void nestedTest() {
+                      fail();
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "test"
+
+        then:
+        result.assertTaskExecuted(":test")
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        assertExpectedTestCounts(testResult, expectedTests)
+
+        where:
+        excludeFilter                                       | expectedTests
+        'SampleTest'                                        | [':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest\\$NestedTestClass'                      | [':SampleTest', ':SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest\\$NestedTestClass\\$SubNestedTestClass' | [':SampleTest', ':SampleTest:SampleTest$NestedTestClass']
+        'SampleTest*'                                       | []
     }
 
     void assertExpectedTestCounts(GenericTestExecutionResult testExecutionResult, List<String> expectedTests) {

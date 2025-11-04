@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r930
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
@@ -25,8 +24,8 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.GradleVersion
 
-@TargetGradleVersion(">=9.3.0")
 @ToolingApiVersion(">=9.3.0")
 class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
@@ -178,7 +177,12 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         result.modelValue == null
         result.failureMessages.size() == 1
-        result.failureMessages[0].contains("Could not compile settings file")
+        // A bit different error messages from Gradle 8.7 onwards,
+        // compilation error was wrapped in a more generic error message before
+        def expectedFailure = targetVersion >= GradleVersion.version("8.7")
+            ? "Could not compile settings file"
+            : "Could not open cp_settings generic class cache for settings file"
+        result.failureMessages[0].contains(expectedFailure)
 
         where:
         method                                                       | buildAction

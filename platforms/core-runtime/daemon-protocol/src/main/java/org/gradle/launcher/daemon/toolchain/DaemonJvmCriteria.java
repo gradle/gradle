@@ -49,7 +49,7 @@ public interface DaemonJvmCriteria {
 
         @Override
         public String toString() {
-            return Jvm.current().getJavaHome().getAbsolutePath() + " (no JDK specified, using current Java home)";
+            return Jvm.current().getJavaHome().getAbsolutePath() + " (no Daemon JVM specified, using current Java home)";
         }
     }
 

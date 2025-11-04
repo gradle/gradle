@@ -77,7 +77,7 @@ public class TestSelectionMatcher {
         return mayMatchClass(includePatterns, fullQualifiedName);
     }
 
-    private boolean mayExcludeClass(String fullQualifiedName) {
+    public boolean mayExcludeClass(String fullQualifiedName) {
         if (buildScriptExcludePatterns.isEmpty()) {
             return false;
         }

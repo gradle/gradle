@@ -78,6 +78,9 @@
          <trusted-key id="073F7A9345756F3B40CDB99E6C70A3B7599C5736">
             <trusting group="org.apache.maven"/>
             <trusting group="org.apache.sshd"/>
+            <trusting group="org.codehaus.plexus" name="plexus-utils"/>
+            <trusting group="org.fusesource.jansi" name="jansi"/>
+            <trusting group="org.jline" name="jline"/>
          </trusted-key>
          <trusted-key id="077E8893A6DCC33DD4A4D5B256E73BA9A0B592D0" group="org.apache.logging.log4j"/>
          <trusted-key id="0785B3EFF60B1B1BEA94E0BB7C25280EAE63EBE5">
@@ -335,7 +338,6 @@
          <trusted-key id="E85AED155021AF8A6C6B7A4A7C7D8456294423BA" group="org.objenesis" name="objenesis"/>
          <trusted-key id="E870FB6BE4BA46C81520FD6936B9CF3BEB52D771" group="com.openhtmltopdf"/>
          <trusted-key id="EA022560A81E5BD48DB3D18B54AC8E2D98CFEAC6" group="org.ysb33r.gradle"/>
-         <trusted-key id="EA23DB1360D9029481E7F2EFECDFEA3CB4493B94" group="org.apache.sshd"/>
          <trusted-key id="EA313384CA0EBA950EA017E937890E298D9A2BFA">
             <trusting group="com.eed3si9n"/>
             <trusting group="org.scala-sbt"/>
@@ -912,11 +914,6 @@
             <pgp value="C3EB67E869C31CC00755038F0A07E0E55E45F65B"/>
          </artifact>
       </component>
-      <component group="jline" name="jline" version="2.14.6">
-         <artifact name="jline-2.14.6.jar">
-            <pgp value="EA23DB1360D9029481E7F2EFECDFEA3CB4493B94"/>
-         </artifact>
-      </component>
       <component group="joda-time" name="joda-time" version="1.6">
          <artifact name="joda-time-1.6.jar">
             <sha256 value="bc96dbe7c56f4fe367ea33e66dfcf18b589e3c8eddcff52a78323c5e6da2387e" reason="Artifact is not signed"/>
@@ -1227,11 +1224,6 @@
             <pgp value="F3D15B8FF9902805DE4BE6B18DC6F3D0ABDBD017"/>
          </artifact>
       </component>
-      <component group="org.codehaus.plexus" name="plexus-utils" version="4.0.2">
-         <artifact name="plexus-utils-4.0.2.jar">
-            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
-         </artifact>
-      </component>
       <component group="org.codehaus.plexus" name="plexus-xml" version="4.0.4">
          <artifact name="plexus-xml-4.0.4.jar">
             <pgp value="84789D24DF77A32433CE1F079EB80E92EB2135B1"/>
@@ -1271,11 +1263,6 @@
       <component group="org.freemarker" name="freemarker" version="2.3.32">
          <artifact name="freemarker-2.3.32.jar">
             <pgp value="13AC2213964ABE1D1C147C0E1939A2520BAB1D90"/>
-         </artifact>
-      </component>
-      <component group="org.fusesource.jansi" name="jansi" version="1.18">
-         <artifact name="jansi-1.18.jar">
-            <pgp value="EA23DB1360D9029481E7F2EFECDFEA3CB4493B94"/>
          </artifact>
       </component>
       <component group="org.gradle" name="gradle-tooling-api" version="5.2.1">
@@ -1381,16 +1368,6 @@
       <component group="org.jetbrains.kotlin" name="kotlin-stdlib" version="2.0.0">
          <artifact name="kotlin-stdlib-2.0.0-all.jar">
             <sha256 value="30e05222bc067fffb896a3276b5f1e3f29450bf1d9461d27a19ce0efc793b5cd" origin="Verified" reason="No asc file on plugins.gradle.org"/>
-         </artifact>
-      </component>
-      <component group="org.jline" name="jline" version="3.22.0">
-         <artifact name="jline-3.22.0.jar">
-            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
-         </artifact>
-      </component>
-      <component group="org.jline" name="jline" version="3.26.3">
-         <artifact name="jline-3.26.3.jar">
-            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
          </artifact>
       </component>
       <component group="org.jlleitschuh.gradle" name="ktlint-gradle" version="12.1.0">

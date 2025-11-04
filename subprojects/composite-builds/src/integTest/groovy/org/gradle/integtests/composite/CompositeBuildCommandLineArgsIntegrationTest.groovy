@@ -24,12 +24,15 @@ import org.gradle.test.fixtures.maven.MavenModule
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+
     BuildTestFile buildB
     MavenModule publishedModuleB
 
     def setup() {
         publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
-        new ResolveTestFixture(buildA.buildFile).prepare()
+        buildA.buildFile << """
+            ${ResolveTestFixture.configureProject("runtimeClasspath")}
+        """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """

@@ -17,10 +17,9 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.Failure;
 import org.gradle.tooling.FetchModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
+import org.gradle.tooling.internal.consumer.DefaultFetchModelResult;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
@@ -32,9 +31,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
 
 @NullMarked
 class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdapter {
@@ -62,32 +58,6 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
     private <T extends Model, M> FetchModelResult<M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
         Object model = result.getModel();
         M adaptedModel = model != null ? adaptModel(target, modelType, model) : null;
-        return new ModelFetchModelResult<>(result, adaptedModel);
-    }
-
-    private static class ModelFetchModelResult<M> implements FetchModelResult<M>, Serializable {
-        private final InternalFetchModelResult<Object> result;
-        private final M adaptedModel;
-        @Nullable
-        List<Failure> failures;
-
-        public ModelFetchModelResult(InternalFetchModelResult<Object> result, M adaptedModel) {
-            this.result = result;
-            this.adaptedModel = adaptedModel;
-            failures = null;
-        }
-
-        @Override
-        public M getModel() {
-            return adaptedModel;
-        }
-
-        @Override
-        public Collection<? extends Failure> getFailures() {
-            if (failures == null) {
-                failures = BuildProgressListenerAdapter.toFailures(result.getFailures());
-            }
-            return failures;
-        }
+        return DefaultFetchModelResult.of(adaptedModel, result.getFailures());
     }
 }

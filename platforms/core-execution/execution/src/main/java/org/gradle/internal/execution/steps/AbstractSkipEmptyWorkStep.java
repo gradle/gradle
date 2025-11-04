@@ -29,7 +29,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.jspecify.annotations.NonNull;
 
 import java.util.EnumSet;
 import java.util.Map;
@@ -117,7 +116,6 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
 
     abstract protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getKnownInputFileProperties(C context);
 
-    @NonNull
     private CachingResult skipExecutionWithEmptySources(UnitOfWork work, C context) {
         // Make sure we check for missing dependencies even if we skip executing the work
         WorkValidationContext validationContext = context.getValidationContext();

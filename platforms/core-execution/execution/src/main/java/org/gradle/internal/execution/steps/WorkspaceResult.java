@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 
 public class WorkspaceResult extends CachingResult implements ExecutionEngine.Result {
+    @Nullable
     private final File workspace;
 
     public WorkspaceResult(CachingResult parent, @Nullable File workspace) {
