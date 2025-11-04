@@ -6,21 +6,14 @@
 The execution engine is the main component of the execution platform.
 Its purpose is to provide a simple, unified way of declaring _units of work_ that the engine can execute, producing their outputs safely and efficiently in a concurrent environment.[^concurrent-environment]
 To achieve this goal, the engine utilizes a host of safeguards and optimizations.
-Notably, the execution engine is not responsible for deciding which units of work require output production, nor is it concerned with scheduling executions (see the scheduler about that).
+Notably, the execution engine is not responsible for deciding which units of work should be executed, nor is it concerned with scheduling executions (see the scheduler about that).
 
 [^concurrent-environment]: This means the engine is fully thread-safe and ensures that parallel execution of work does not cause problems, even when multiple processes are executing units of work simultaneously.
 
-![](Execution%20Engine%20Schematic.drawio.svg)
-
-> [!TIP]
-> To open a zoomable version of the schematic above right-click and choose "Open Image in New Tab".
-
-> [!TIP]
-> Use [draw.io](https://draw.io/) to make changes to the diagram. The linked SVG file can be opened directly in draw.io. Do not edit as raw SVG.
-
 Any action with well-defined inputs and outputs, where safe execution or output reuse is required, can be implemented using the execution engine.
-Indeed, it is our aspiration in Gradle for all such work to be executed via the execution engine.
-At the time of writing several work-like entities in Gradle exist that are not executed via the execution engine.
+Indeed, it is our aspiration in Gradle for all such work to be executed via the execution engine.[^work-to-be-migrated]
+
+[^work-to-be-migrated]: Currently several work-like entities in Gradle exist that are not executed via the execution engine.
 
 It is also our aspiration for the execution engine to be independent of Gradle concepts.
 In part this is a good way to ensure wider usability in the future.
@@ -55,8 +48,16 @@ When provided with well-defined units of work, the execution engine can employ s
 
 - **Identity Caching**: If work has already been executed with the same inputs in the context of the current tool invocation, an in-memory cache is consulted for results.
 - **Incremental Build**: If file-producing work has been executed previously with the same inputs and the outputs are **up-to-date**, the execution is skipped.
-- **Build Cache Lookup**: If the output is not up-to-date locally, the engine searches for stored results in the **build cache**, checking the local cache first and then the remote cache if necessary.
+- **Build Cache**: If the output is not up-to-date locally, the engine searches for stored results in the **build cache**, checking the local cache first and then the remote cache if necessary.
 - **Execution**: If no result is found in the build cache, the work is executed.
+
+![](Execution%20Engine%20Schematic.drawio.svg)
+
+> [!TIP]
+> To open a zoomable version of the schematic above right-click and choose "Open Image in New Tab".
+
+> [!TIP]
+> Use [draw.io](https://draw.io/) to make changes to the diagram. The linked SVG file can be opened directly in draw.io. Do not edit as raw SVG.
 
 ## Identifiers
 
@@ -65,36 +66,6 @@ Each unit has two identifiers:
 
 - **Identity**: A locally unique identifier of the work with respect to the current execution scope (e.g., the Gradle build tree).
 - **Cache Key**: A globally unique identifier used to store and retrieve the outputs of the work across time and space.
-
-### Hashing
-
-_Hashing_ is widely used in generating these identifiers.
-We use cryptographic hashing to generate universally unique identifiers for units of work (currently using the MD5 algorithm[^md5-safety][^other-crypto-hashes]).
-While non-cryptographic hash algorithms like [xxHash](https://xxhash.com) or [MurmurHash](https://en.wikipedia.org/wiki/MurmurHash) are significantly faster, they lack the astronomical collision resistance we require.
-
-[^md5-safety]: MD5 has long been compromised from a security standpoint, but our goal is not to protect against malicious intent.
-To avoid accidental collisions, MD5 is still sufficiently strong.
-We use it because it is very fast and universally available on the JVM, and it requires only 16 bytes per hash, which helps conserve memory compared to SHA1 (20 bytes) or SHA256 (32 bytes).
-
-[^other-crypto-hashes]: Other cryptographic hashes could be used, and making the hashing configurable is sensible.
-The [BLAKE family](https://en.wikipedia.org/wiki/BLAKE_(hash_function)) of cryptographic hash functions looks promising for performance, though more research is needed.
-
-We use [Merkle trees](https://en.wikipedia.org/wiki/Merkle_tree) to generate a single hash representing complex inputs.
-This involves hashing together hashes of individual components to create a hash for the whole.
-
-#### Input Normalization
-
-Not all inputs are relevant for a unit of work, and we can exploit this for better performance.
-For example, in a Java compilation task, line endings in source files are irrelevant; whether files use `\n` or `\r\n` does not affect the compilation result.
-Therefore, changes in line endings do not necessitate recompilation, and previously generated `.class` files can be considered up-to-date.
-Ignoring such differences also allows reusing cached compilation results across different operating systems via the remote build cache.
-
-To leverage this, the execution engine allows units of work to define how their inputs should be **normalized**.
-Besides line-ending normalization for source files, Java compilation can also declare the compilation classpath to be normalized via _ABI extraction_.
-This means input hashes are calculated based on the extracted ABI of the classpath rather than raw file contents.
-This allows reuse of existing compilation results despite differences in dependencies, as long as those differences don't affect the ABI.
-
-Input normalization is a key feature that significantly increases the chance of reusing existing results, boosting execution performance.
 
 ## Optimizations
 
