@@ -122,8 +122,6 @@ A file collection fingerprint is created by fingerprinting the files and paths i
 
 * **content normalization** – each file can be normalized individually, for example a `.properties` file on a JVM runtime classpath can be parsed to ignore comments etc.
 
-Gradle currently exposes two combinations of the above strategies to build logic.
-
 #### Path Normalization
 
 For most input file properties we use path normalization and ignore entry order completely. We use the `@PathSensitive` annotation on input properties for this with the following options:
@@ -136,9 +134,10 @@ For most input file properties we use path normalization and ignore entry order 
 
 * `IGNORE` – completely ignores the path.
 
-#### Classpath Normalization
+#### Content Normalization
 
-Gradle currently handles Java compile and JVM runtime classpaths specially. For these we normalize contents and paths; root element order is not normalized, but the order of entries of JARs and class directories *is* ignored.
+Gradle handles Java compile and JVM runtime classpaths specially.
+For these we normalize contents and paths; root element order is not normalized, but the order of entries of JARs and class directories *is* ignored.
 
 * compile classpath
 
@@ -159,6 +158,8 @@ Gradle currently handles Java compile and JVM runtime classpaths specially. For 
     * applies filter from `project.normalization.runtimeClasspath`
 
     * normalizes `.properties` and `META-INF` content according to `project.normalization.runtimeClasspath`
+
+We also handle inputs marked with `@NormalizeLineEndings` (typically source code) by, well, normalizing line endings.
 
 ### Comparing Fingerprints
 
