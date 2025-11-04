@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import com.google.common.base.Strings;
+import org.gradle.api.tasks.testing.TestSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -35,7 +37,11 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
 
     @UsedByScanPlugin("test-distribution")
     public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName) {
-        super(id, name);
+        this(id, className, name, classDisplayName, displayName, TestSources.unknown());
+    }
+
+    public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName, TestSource source) {
+        super(id, name, source);
         this.className = className;
         this.classDisplayName = classDisplayName == null ? className : classDisplayName;
         this.displayName = displayName;
@@ -43,8 +49,7 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
 
     @Override
     public String toString() {
-        String className = getClassName();
-        return "Test " + getName() + (className == null ? "" : ("(" + className + ")"));
+        return "Test " + getName() + (Strings.isNullOrEmpty(className) ? "" : ("(" + className + ")"));
     }
 
     @Override

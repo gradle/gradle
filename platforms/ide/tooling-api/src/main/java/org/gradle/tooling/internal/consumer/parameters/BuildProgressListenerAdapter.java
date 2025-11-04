@@ -127,6 +127,7 @@ import org.gradle.tooling.events.test.TestOutputEvent;
 import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
+import org.gradle.tooling.events.test.internal.DefaultSingleFileResourceBasedTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
 import org.gradle.tooling.events.test.internal.DefaultTestFileAttachmentMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
@@ -202,6 +203,7 @@ import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationR
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 import org.gradle.tooling.internal.protocol.events.InternalRootOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalSingleFileResourceBasedTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalStatusEvent;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
@@ -886,7 +888,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        if (descriptor instanceof InternalJvmTestDescriptor) {
+        if (descriptor instanceof InternalSingleFileResourceBasedTestDescriptor) {
+            InternalSingleFileResourceBasedTestDescriptor jvmTestDescriptor = (InternalSingleFileResourceBasedTestDescriptor) descriptor;
+            return new DefaultSingleFileResourceBasedTestOperationDescriptor(
+                jvmTestDescriptor,
+                parent,
+                jvmTestDescriptor.getFile()
+            );
+        } else if (descriptor instanceof InternalJvmTestDescriptor) {
             InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
             return new DefaultJvmTestOperationDescriptor(jvmTestDescriptor, parent,
                 toJvmTestKind(jvmTestDescriptor.getTestKind()), jvmTestDescriptor.getSuiteName(), jvmTestDescriptor.getClassName(), jvmTestDescriptor.getMethodName());
