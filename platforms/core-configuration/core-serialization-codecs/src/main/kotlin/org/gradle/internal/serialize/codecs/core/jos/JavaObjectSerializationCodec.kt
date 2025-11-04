@@ -231,7 +231,7 @@ internal
 fun Method.isReadResolve() =
     !isStatic(modifiers)
         && parameterCount == 0
-        && returnType == java.lang.Object::class.java
+        && returnType == Any::class.java
         && name == "readResolve"
 
 
