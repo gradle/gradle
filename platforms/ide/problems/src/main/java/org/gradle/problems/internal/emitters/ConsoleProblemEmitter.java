@@ -18,8 +18,8 @@ package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.problems.ProblemUtils;
 import org.gradle.problems.internal.rendering.ProblemWriter;
@@ -40,13 +40,13 @@ public class ConsoleProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         if (shouldRender(problem)) {
             render(problem);
         }
     }
 
-    private boolean shouldRender(InternalProblem problem) {
+    private boolean shouldRender(ProblemInternal problem) {
         // only write problem reports if warning mode is set to 'all'
         if (warningMode != WarningMode.All) {
             return false;
@@ -60,7 +60,7 @@ public class ConsoleProblemEmitter implements ProblemEmitter {
         return true;
     }
 
-    private static void render(InternalProblem problem) {
+    private static void render(ProblemInternal problem) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         ProblemWriter.simple().write(problem, pw);

@@ -16,7 +16,7 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
 
@@ -29,11 +29,11 @@ class ProblemHeaderWriter implements PartialProblemWriter {
     }
 
     @Override
-    public void write(InternalProblem problem, RenderOptions options, PrintWriter output) {
+    public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
         output.print(headerFor(options, problem));
     }
 
-    private String headerFor(RenderOptions options, InternalProblem problem) {
+    private String headerFor(RenderOptions options, ProblemInternal problem) {
         StringBuilder result = new StringBuilder(options.getPrefix());
         String displayName = problem.getDefinition().getId().getDisplayName();
         String name = (displayName == null || displayName.isEmpty()) ? problem.getDefinition().getId().toString() : displayName;

@@ -20,9 +20,9 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
-import org.gradle.api.problems.internal.InternalProblem
-import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer
+import org.gradle.api.problems.internal.ProblemBuilderInternal
+import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.reflect.Instantiator
@@ -42,7 +42,7 @@ class SimpleProblemWriterTest extends Specification {
 
     def "render problem with no group and id display name"(String displayName) {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(
                 createId(
                     "sample-problems",
@@ -64,7 +64,7 @@ class SimpleProblemWriterTest extends Specification {
 
     def "render problem with no group display name"(String displayName) {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             id(
                 createId(
                     "sample-problems",
@@ -87,7 +87,7 @@ class SimpleProblemWriterTest extends Specification {
 
     def "render problem with no id display name"(String displayName) {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(
                 createId(
                     "sample-problems",
@@ -110,7 +110,7 @@ class SimpleProblemWriterTest extends Specification {
 
     def "render problem with id only"() {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(createId())
         }
 
@@ -123,7 +123,7 @@ class SimpleProblemWriterTest extends Specification {
 
     def "render problem with multiline id displayNames"() {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(
                 createId(
                     "sample-problems",
@@ -143,7 +143,7 @@ class SimpleProblemWriterTest extends Specification {
 
     def "render problem with contextual message"() {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(createId())
               .contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
         }
@@ -160,7 +160,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
     def "contextual message falls back to exception message"() {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(createId())
                 .withException(new Exception("This is a prototype and not a guideline for modeling real-life projects"))
         }
@@ -177,7 +177,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
     def "render problem with contextual message and details"() {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(createId())
                 .contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
                 .details("Complex build logic like the Problems API usage should integrated into plugins")
@@ -197,7 +197,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
     def "details are rendered as a fallback to contextual message"() {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(createId())
                 .details("Complex build logic like the Problems API usage should integrated into plugins")
         }
@@ -214,7 +214,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
     def "render solution and location"() {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(createId())
                 .contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
                 .details("Complex build logic like the Problems API usage should integrated into plugins")
@@ -238,7 +238,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
     def "render multiple solution land location"() {
         given:
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(createId())
                 .contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
                 .details("Complex build logic like the Problems API usage should integrated into plugins")
@@ -265,12 +265,11 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
     }
 
     def "render multiline messages for all fields possible"() {
-        def problem = createProblem { InternalProblemBuilder spec ->
+        def problem = createProblem { ProblemBuilderInternal spec ->
             spec.id(createId())
                 .contextualLabel("This is a prototype and not${System.lineSeparator()}a guideline for modeling real-life projects")
                 .details("Complex build logic like the Problems API${System.lineSeparator()}usage should integrated into plugins")
                 .solution("Look up the samples index for${System.lineSeparator()}real-life examples")
-                .details("Complex build logic like the Problems API${System.lineSeparator()}usage should integrated into plugins")
         }
 
         when:
@@ -293,8 +292,8 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         ProblemId.create(idName, idDisplayName, group)
     }
 
-    InternalProblem createProblem(@DelegatesTo(value = InternalProblemBuilder) Closure spec) {
-        InternalProblemBuilder builder = createProblemBuilder()
+    ProblemInternal createProblem(@DelegatesTo(value = ProblemBuilderInternal) Closure spec) {
+        ProblemBuilderInternal builder = createProblemBuilder()
         spec.setDelegate(builder)
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec.call(builder)

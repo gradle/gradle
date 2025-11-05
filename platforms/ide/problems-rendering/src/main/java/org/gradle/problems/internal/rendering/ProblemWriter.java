@@ -18,7 +18,7 @@ package org.gradle.problems.internal.rendering;
 
 
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -42,7 +42,7 @@ public abstract class ProblemWriter {
      * @param problem the problem to write
      * @param writer the writer to write to
      */
-    public abstract void write(InternalProblem problem, Writer writer);
+    public abstract void write(ProblemInternal problem, Writer writer);
 
     /**
      * Renders multiple problems to the given writer.
@@ -50,7 +50,7 @@ public abstract class ProblemWriter {
      * @param problems the problems to write
      * @param writer the writer to write to
      */
-    public abstract void write(Collection<InternalProblem> problems, Writer writer);
+    public abstract void write(Collection<ProblemInternal> problems, Writer writer);
 
     /**
      * Creates a simple problem writer that renders each problem individually without grouping.
@@ -87,16 +87,16 @@ public abstract class ProblemWriter {
         }
 
         @Override
-        public void write(InternalProblem problem, Writer writer) {
+        public void write(ProblemInternal problem, Writer writer) {
             PrintWriter output = new PrintWriter(writer);
             writerRegistry.problemWriterFor(problem.getDefinition().getId()).write(problem, options, output);
         }
 
         @Override
-        public void write(Collection<InternalProblem> problems, Writer writer) {
+        public void write(Collection<ProblemInternal> problems, Writer writer) {
             PrintWriter output = new PrintWriter(writer);
             String sep = "";
-            for (InternalProblem problem : problems) {
+            for (ProblemInternal problem : problems) {
                 output.printf(sep);
                 sep = "%n";
                 writerRegistry.problemWriterFor(problem.getDefinition().getId()).write(problem, options, output);
@@ -118,30 +118,30 @@ public abstract class ProblemWriter {
         }
 
         @Override
-        public void write(InternalProblem problem, Writer writer) {
+        public void write(ProblemInternal problem, Writer writer) {
             write(Collections.singletonList(problem), writer);
         }
 
         @Override
-        public void write(Collection<InternalProblem> problems, Writer writer) {
+        public void write(Collection<ProblemInternal> problems, Writer writer) {
             write(problems, new PrintWriter(writer));
         }
 
-        private void write(Collection<InternalProblem> problems, PrintWriter output) {
+        private void write(Collection<ProblemInternal> problems, PrintWriter output) {
             // Group problems by problem id
             // When generic rendering is addressed, maybe we also group by the whole problem group hierarchy
-            Map<ProblemId, List<InternalProblem>> problemIdListMap = problems.stream().collect(Collectors.groupingBy(internalProblem -> internalProblem.getDefinition().getId()));
+            Map<ProblemId, List<ProblemInternal>> problemIdListMap = problems.stream().collect(Collectors.groupingBy(internalProblem -> internalProblem.getDefinition().getId()));
             String separator = "";
-            for (Map.Entry<ProblemId, List<InternalProblem>> problemIdListEntry : problemIdListMap.entrySet()) {
+            for (Map.Entry<ProblemId, List<ProblemInternal>> problemIdListEntry : problemIdListMap.entrySet()) {
                 renderProblemsById(output, problemIdListEntry.getKey(), problemIdListEntry.getValue(), separator);
                 separator = "%n";
             }
         }
 
-        private void renderProblemsById(PrintWriter output, ProblemId problemId, List<InternalProblem> problems, String separator) {
+        private void renderProblemsById(PrintWriter output, ProblemId problemId, List<ProblemInternal> problems, String separator) {
             String sep = separator;
             SelectiveProblemWriter renderer = problemWriterRegistry.problemWriterFor(problemId);
-            for (InternalProblem problem : problems) {
+            for (ProblemInternal problem : problems) {
                 output.printf(sep);
                 renderer.write(problem, options, output);
                 sep = "%n";
