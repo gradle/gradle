@@ -147,7 +147,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     }
 
     @Override
-    protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
+    protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, @Nullable URI rootUri, FileStore<String> externalResourcesFileStore) {
         return new NoOpRepositoryResourceAccessor();
     }
 

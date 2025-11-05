@@ -44,6 +44,7 @@ import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.stream.EncodedStream;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -200,6 +201,10 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         }
 
         private static class WorkerClassRemapper extends Remapper {
+            public WorkerClassRemapper() {
+                super(AsmConstants.ASM_LEVEL);
+            }
+
             @Override
             public String map(String typeName) {
                 if (typeName.startsWith("org/gradle/")) {

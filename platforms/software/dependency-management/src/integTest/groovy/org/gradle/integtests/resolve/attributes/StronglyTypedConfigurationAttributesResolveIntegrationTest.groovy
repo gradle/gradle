@@ -124,8 +124,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             artifacts {
                 'default' file('b-default.jar')
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -216,9 +216,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
-                bar barJar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
+                bar tasks.barJar
             }
         """
 
@@ -290,9 +290,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
-                bar barJar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
+                bar tasks.barJar
             }
         """
 
@@ -376,9 +376,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
-                bar barJar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
+                bar tasks.barJar
             }
         """
 
@@ -485,10 +485,10 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
-                bar barJar
-                bar2 bar2Jar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
+                bar tasks.barJar
+                bar2 tasks.bar2Jar
             }
         """
 
@@ -568,8 +568,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
             }
         """
 
@@ -648,8 +648,8 @@ All of them match the consumer attributes:
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    foo fooJar
-                    bar barJar
+                    foo tasks.fooJar
+                    bar tasks.barJar
                 }
             }
 
@@ -723,8 +723,8 @@ All of them match the consumer attributes:
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    foo fooJar
-                    bar barJar
+                    foo tasks.fooJar
+                    bar tasks.barJar
                 }
             }
 
@@ -783,8 +783,8 @@ All of them match the consumer attributes:
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    foo fooJar
-                    bar barJar
+                    foo tasks.fooJar
+                    bar tasks.barJar
                 }
             }
         """
@@ -841,8 +841,8 @@ All of them match the consumer attributes:
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    foo fooJar
-                    bar barJar
+                    foo tasks.fooJar
+                    bar tasks.barJar
                 }
             }
 
@@ -902,8 +902,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -970,8 +970,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -996,8 +996,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1088,10 +1088,10 @@ All of them match the consumer attributes:
                 c4 { attributes { attribute(flavor, objects.named(Flavor, 'full')); $release } }
             }
             artifacts {
-                c1 fooJar
-                c2 fooJar
-                c3 foo2Jar
-                c4 barJar
+                c1 tasks.fooJar
+                c2 tasks.fooJar
+                c3 tasks.foo2Jar
+                c4 tasks.barJar
             }
         """
 
@@ -1148,7 +1148,7 @@ All of them match the consumer attributes:
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                bar barJar
+                bar tasks.barJar
             }
         """
 
@@ -1210,7 +1210,7 @@ All of them match the consumer attributes:
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                bar barJar
+                bar tasks.barJar
             }
         """
 
@@ -1283,8 +1283,8 @@ All of them match the consumer attributes:
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1356,8 +1356,8 @@ All of them match the consumer attributes:
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 

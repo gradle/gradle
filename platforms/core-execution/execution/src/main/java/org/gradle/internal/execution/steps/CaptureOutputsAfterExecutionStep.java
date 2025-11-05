@@ -74,6 +74,8 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
     }
 
     private ExecutionOutputState captureOutputsAfterExecution(UnitOfWork work, C context, CachingState.CacheKeyCalculatedState cacheKeyCalculatedState, Result result) {
+        // TODO Remove once IntelliJ stops complaining about possible NPE
+        //noinspection DataFlowIssue
         return operation(
             operationContext -> {
                 Timer timer = Time.startTimer();

@@ -23,13 +23,18 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 abstract class AbstractLockingIntegrationTest extends AbstractDependencyResolutionTest {
     def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
-    ResolveTestFixture resolve
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        settingsFile << "rootProject.name = 'depLock'"
-        resolve = new ResolveTestFixture(buildFile, "lockedConf")
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
+        settingsFile << """
+            rootProject.name = 'depLock'
+        """
+        buildFile << """
+            plugins {
+                id("jvm-ecosystem")
+            }
+            ${resolve.configureProject("lockedConf")}
+        """
     }
 
     abstract LockMode lockMode()
@@ -39,25 +44,25 @@ abstract class AbstractLockingIntegrationTest extends AbstractDependencyResoluti
         mavenRepo.module('org', 'foo', '1.1').publish()
 
         buildFile << """
-dependencyLocking {
-    lockAllConfigurations()
-    lockMode = LockMode.${lockMode()}
-}
+            dependencyLocking {
+                lockAllConfigurations()
+                lockMode = LockMode.${lockMode()}
+            }
 
-repositories {
-    maven {
-        name = 'repo'
-        url = "${mavenRepo.uri}"
-    }
-}
-configurations {
-    lockedConf
-}
+            repositories {
+                maven {
+                    name = 'repo'
+                    url = "${mavenRepo.uri}"
+                }
+            }
+            configurations {
+                lockedConf
+            }
 
-dependencies {
-    lockedConf 'org:foo:1.+'
-}
-"""
+            dependencies {
+                lockedConf 'org:foo:1.+'
+            }
+        """
 
         lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
@@ -67,7 +72,6 @@ dependencies {
         succeeds 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration('runtime')
         resolve.expectGraph {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0")

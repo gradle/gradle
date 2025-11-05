@@ -26,10 +26,10 @@ import java.util.function.Consumer;
  * A variant of {@link Consumer} that is allowed to throw {@link IOException}.
  */
 @FunctionalInterface
-public interface IoConsumer<T> {
-    void accept(@Nullable T payload) throws IOException;
+public interface IoConsumer<T extends @Nullable Object> {
+    void accept(T payload) throws IOException;
 
-    static <T> Consumer<T> wrap(IoConsumer<T> consumer) {
+    static <T extends @Nullable Object> Consumer<T> wrap(IoConsumer<T> consumer) {
         return payload -> {
             try {
                 consumer.accept(payload);

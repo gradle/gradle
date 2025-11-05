@@ -17,21 +17,24 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestFailureDetails;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+@NullMarked
 public class DefaultTestFailureDetails implements TestFailureDetails {
 
-    private final String message;
+    private final @Nullable String message;
     private final String className;
     private final String stacktrace;
 
-    public DefaultTestFailureDetails(String message, String className, String stacktrace) {
+    public DefaultTestFailureDetails(@Nullable String message, String className, String stacktrace) {
         this.message = message;
         this.className = className;
         this.stacktrace = stacktrace;
     }
 
     @Override
+    @Nullable
     public String getMessage() {
         return message;
     }
@@ -62,11 +65,13 @@ public class DefaultTestFailureDetails implements TestFailureDetails {
     }
 
     @Override
+    @Nullable
     public String getExpected() {
         return null;
     }
 
     @Override
+    @Nullable
     public String getActual() {
         return null;
     }

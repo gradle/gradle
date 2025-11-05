@@ -20,26 +20,32 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
 
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static org.gradle.architecture.test.ArchUnitFixture.beNullMarkedClass;
+import static org.gradle.architecture.test.ArchUnitFixture.beNullUnmarkedMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.classes_not_written_in_kotlin;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.inGradleInternalApiPackages;
 import static org.gradle.architecture.test.ArchUnitFixture.inGradlePublicApiPackages;
 import static org.gradle.architecture.test.ArchUnitFixture.not_anonymous_classes;
 import static org.gradle.architecture.test.ArchUnitFixture.not_synthetic_classes;
+import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
 /**
- * This test validates that classes are annotated with {@link NullMarked}.
+ * This test validates that classes are annotated with {@link NullMarked} and not with {@link NullUnmarked}.
  * <p>
- * The annotation can be applied on the class directly, but the preferred way is to annotate the package by adding or updating the {@code package-info.java} file.
+ * The {@link NullMarked} annotation can be applied on the class directly,
+ * but the preferred way is to annotate the package by adding or updating the {@code package-info.java} file.
  * See {@code subprojects/core-api/src/main/java/org/gradle/package-info.java} for an example.
  * <p>
- * Note that adding the annotation for a package in one subproject will automatically apply it for the same package in all other subprojects.
- * Therefore, it's advised to add the annotation to the package in the most appropriate subproject.
- * For instance, if the package exists in both {@code :core} and {@code :base-services}, it should be annotated in {@code :base-services}.
+ * Note that when adding the {@link NullMarked} annotation on a package that is split across multiple subprojects,
+ * then you must add it to each of the split of the package.
+ * For instance, if the package exists in both {@code :core} and {@code :base-services}, it should be annotated in both.
  */
 @AnalyzeClasses(packages = "org.gradle")
 public class ApiNullabilityTest {
@@ -50,7 +56,7 @@ public class ApiNullabilityTest {
         .and(classes_not_written_in_kotlin)
         .and(not_synthetic_classes)
         .and(not_anonymous_classes)
-        .should(beAnnotatedOrInPackageAnnotatedWith(NullMarked.class)));
+        .should(beNullMarkedClass()));
 
     @ArchTest
     public static final ArchRule public_api_classes_are_annotated_with_non_null_api = freeze(classes()
@@ -58,5 +64,10 @@ public class ApiNullabilityTest {
         .and(classes_not_written_in_kotlin)
         .and(not_synthetic_classes)
         .and(not_anonymous_classes)
-        .should(beAnnotatedOrInPackageAnnotatedWith(NullMarked.class)));
+        .should(beNullMarkedClass()));
+
+    @ArchTest
+    public static final ArchRule public_api_methods_are_not_null_unmarked = freeze(methods()
+        .that(are(public_api_methods))
+        .should(not(beNullUnmarkedMethod())));
 }
