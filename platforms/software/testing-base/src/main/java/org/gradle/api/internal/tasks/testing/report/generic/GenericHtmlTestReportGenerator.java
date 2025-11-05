@@ -189,13 +189,13 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                 }
 
                 private void queueTree(BuildOperationQueue<RunnableBuildOperation> queue, TestTreeModel tree, HtmlReportBuilder output) {
-                    ImmutableList.Builder<HtmlReportFileRequest> requestsBuilder = ImmutableList.builder();
-                    requestsBuilder.add(new HtmlReportFileRequest(getFilePath(tree), tree));
+                    ImmutableList.Builder<TestTreeModel> requestsBuilder = ImmutableList.builder();
+                    requestsBuilder.add(tree);
 
                     for (TestTreeModel childTree : tree.getChildren()) {
                         // A container also emits all of its leaf children
                         if (childTree.getChildren().isEmpty()) {
-                            requestsBuilder.add(new HtmlReportFileRequest(getFilePath(childTree), childTree));
+                            requestsBuilder.add(childTree);
                         } else {
                             queueTree(queue, childTree, output);
                         }
@@ -214,25 +214,15 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         }
     }
 
-    private static final class HtmlReportFileRequest {
-        private final String fileUrl;
-        private final TestTreeModel results;
-
-        private HtmlReportFileRequest(String fileUrl, TestTreeModel results) {
-            this.fileUrl = fileUrl;
-            this.results = results;
-        }
-    }
-
     private static final class HtmlReportFileGenerator implements RunnableBuildOperation {
-        private final List<HtmlReportFileRequest> requests;
+        private final List<TestTreeModel> requests;
         private final HtmlReportBuilder output;
         private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
         private final MetadataRendererRegistry metadataRendererRegistry;
 
         HtmlReportFileGenerator(
-            List<HtmlReportFileRequest> requests,
+            List<TestTreeModel> requests,
             HtmlReportBuilder output,
             List<TestOutputReader> outputReaders,
             List<String> rootDisplayNames,
@@ -249,7 +239,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(
                 "Generate generic HTML test report for " + requests.stream()
-                    .map(r -> r.results.getPath().toString())
+                    .map(r -> r.getPath().toString())
                     .collect(Collectors.joining(", "))
             );
         }
@@ -257,8 +247,8 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         @Override
         public void run(BuildOperationContext context) {
             GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry);
-            for (HtmlReportFileRequest request : requests) {
-                output.renderHtmlPage(request.fileUrl, request.results, renderer);
+            for (TestTreeModel request : requests) {
+                output.renderHtmlPage(getFilePath(request), request, renderer);
             }
         }
     }
