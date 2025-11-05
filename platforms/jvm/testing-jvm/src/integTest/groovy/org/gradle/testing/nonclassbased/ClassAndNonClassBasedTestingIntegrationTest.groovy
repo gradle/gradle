@@ -49,7 +49,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
                 }
             }
 
-            // Ensure the definitions directory exists even if no definitions are added
+            // Ensure the definitions directory exists even if no definitions are added; otherwsie the task will fail with "Test definitions directory does not exist"
             project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION").getAsFile().mkdirs()
         """
 
