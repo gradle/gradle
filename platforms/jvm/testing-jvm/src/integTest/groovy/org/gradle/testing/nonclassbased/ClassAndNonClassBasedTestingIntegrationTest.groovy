@@ -40,7 +40,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         options {
                             excludeEngines("junit-jupiter")
@@ -94,7 +94,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$definitionsLocation"))
+                        testDefinitionDirs.from("$definitionsLocation")
 
                         options {
                             excludeEngines("junit-jupiter")

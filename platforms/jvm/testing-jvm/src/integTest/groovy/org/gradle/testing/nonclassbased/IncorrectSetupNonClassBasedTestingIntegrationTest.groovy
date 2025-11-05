@@ -39,7 +39,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
                     }
                 }
             }
@@ -68,15 +68,15 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("src/test/definitions"))
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$badPath"))
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                        testDefinitionDirs.from("$badPath")
                     }
                 }
             }
         """
 
         // Write some test def to default dir (which is still scanned), not badPath, needed to avoid "no sources" skip
-        def defaultTestDefsDir = file("src/test/definitions")
+        def defaultTestDefsDir = file(DEFAULT_DEFINITIONS_LOCATION)
         defaultTestDefsDir.mkdirs()
         defaultTestDefsDir.file("SomeTestDefinition.xml").createNewFile()
 
@@ -104,7 +104,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$badPath"))
+                        testDefinitionDirs.from("$badPath")
                     }
                 }
             }
@@ -132,7 +132,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
                     testTask.configure {
                         scanForTestClasses = $scanForTestClasses
                         if ($addTestDefsDir) {
-                            testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
+                            testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
                         }
                     }
                 }
@@ -204,7 +204,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
                     }
                 }
             }

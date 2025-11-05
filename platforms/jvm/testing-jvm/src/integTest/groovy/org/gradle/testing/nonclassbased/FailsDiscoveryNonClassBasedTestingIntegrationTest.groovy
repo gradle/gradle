@@ -41,7 +41,7 @@ class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
                     }
                 }
             }

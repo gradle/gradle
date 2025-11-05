@@ -50,7 +50,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$testLocation"))
+                        testDefinitionDirs.from("$testLocation")
                     }
                 }
             }

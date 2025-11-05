@@ -40,7 +40,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("${DEFAULT_DEFINITIONS_LOCATION}"))
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         options {
                             if ($excludingJupiter) {
@@ -79,7 +79,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                     targets.all {
                         testTask.configure {
-                            testDefinitionDirs.from(project.layout.projectDirectory.file("${DEFAULT_DEFINITIONS_LOCATION}"))
+                            testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
                         }
                     }
                 }
@@ -111,8 +111,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$otherDefinitionsLocation"))
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                        testDefinitionDirs.from("$otherDefinitionsLocation")
                     }
                 }
             }
@@ -147,7 +147,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION"))
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
                     }
                 }
             }
@@ -177,8 +177,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
                 targets.all {
                     testTask.configure {
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$parentLocation"))
-                        testDefinitionDirs.from(project.layout.projectDirectory.file("$childLocation"))
+                        testDefinitionDirs.from("$parentLocation")
+                        testDefinitionDirs.from("$childLocation")
                     }
                 }
             }
