@@ -38,6 +38,7 @@ trait TestEnginesFixture {
 
     private static File engineBuildDir
     private static String engineJarLibPath
+    private static File perClassDir
 
     abstract List<TestEngines> getEnginesToSetup()
 
@@ -45,7 +46,8 @@ trait TestEnginesFixture {
         // Create a custom test directory provider to isolate the engine build per test class
         TestDirectoryProvider testClassDirectoryProvider = new UniquePerTestClassDirectoryProvider(this.getClass())
         TestResources resources = new TestResources(testClassDirectoryProvider, TestEngines.class, this.getClass())
-        testClassDirectoryProvider.getTestDirectory().createDir()
+        perClassDir = testClassDirectoryProvider.getTestDirectory().getParentFile()
+
         assert resources.maybeCopy("shared")
         getEnginesToSetup().forEach {
             assert resources.maybeCopy(it.name)
@@ -67,7 +69,7 @@ trait TestEnginesFixture {
     }
 
     def cleanupSpec() {
-        assert engineBuildDir.deleteDir()
+        assert perClassDir.deleteDir()
     }
 
     String enableEngineForSuite() {
