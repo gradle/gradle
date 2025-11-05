@@ -63,6 +63,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         given:
         withKotlinBuildFile()
         useSample("kotlin-multiplatform-js-jvm-example")
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
 
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         replaceVariablesInBuildFile(kotlinVersion: kotlinVersion)

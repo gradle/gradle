@@ -46,7 +46,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_1_9.toString() == "9"
         JavaVersion.VERSION_1_10.toString() == "10"
         JavaVersion.VERSION_11.toString() == "11"
-        JavaVersion.VERSION_HIGHER.toString() == "30"
+        JavaVersion.VERSION_HIGHER.toString() == "31"
     }
 
     def convertsStringToVersion() {

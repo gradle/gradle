@@ -17,6 +17,7 @@ package org.gradle.groovy.compile
 
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -34,6 +35,7 @@ import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+import static org.junit.Assume.assumeFalse
 
 @TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
 abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
@@ -380,10 +382,20 @@ abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIn
     }
 
     def "compileBadJavaCode"() {
+        given:
+        assumeFalse(
+            "Java 26 has a bug which causes internal compiler errors when compiling invalid Java code.",
+            isGroovyCompilingOnJava26()
+        )
         expect:
         fails("compileGroovy")
         failure.assertHasErrorOutput 'illegal start of type'
         failure.assertHasCause(compilationFailureMessage)
+    }
+
+    // This can be removed when the bug for "compileBadJavaCode" is fixed
+    boolean isGroovyCompilingOnJava26() {
+        JavaVersion.current() == JavaVersion.VERSION_26
     }
 
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {

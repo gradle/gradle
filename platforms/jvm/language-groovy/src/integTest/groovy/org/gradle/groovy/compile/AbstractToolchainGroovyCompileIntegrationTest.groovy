@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.compile
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
@@ -36,6 +37,11 @@ abstract class AbstractToolchainGroovyCompileIntegrationTest extends AbstractApi
         executer.beforeExecute {
             withInstallations(jdk)
         }
+    }
+
+    @Override
+    boolean isGroovyCompilingOnJava26() {
+        return jdk.javaVersion == JavaVersion.VERSION_26
     }
 
     abstract Jvm computeJdkForTest()
