@@ -32,7 +32,7 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
         this.dir = dir.getAbsoluteFile();
     }
 
-    public File getTestDefinitionFile() {
+    public File getTestDefinitionsDir() {
         return dir;
     }
 

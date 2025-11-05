@@ -77,7 +77,7 @@ public class RunPreviousFailedFirstTestClassProcessor<D extends TestDefinition> 
         if (testDefinition instanceof ClassTestDefinition) {
             return previousFailedTestClasses.contains(((ClassTestDefinition) testDefinition).getTestClassName());
         } else if (testDefinition instanceof DirectoryBasedTestDefinition){
-            return previousFailedTestDefinitionDirectories.contains(((DirectoryBasedTestDefinition) testDefinition).getTestDefinitionFile());
+            return previousFailedTestDefinitionDirectories.contains(((DirectoryBasedTestDefinition) testDefinition).getTestDefinitionsDir());
         } else {
             throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
         }

@@ -160,7 +160,7 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
 
 
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
-            selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionFile()));
+            selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionsDir()));
         }
 
         private void processAllTestClasses() {
