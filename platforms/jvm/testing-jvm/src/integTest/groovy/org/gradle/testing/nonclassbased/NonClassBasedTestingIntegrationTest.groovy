@@ -130,7 +130,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
         then:
         nonClassBasedTestsExecuted()
-        outputContains("INFO: Executing resource-based test: Test [file=SomeThirdTestSpec.rbt, name=third]")
+        outputContains("INFO: Executing resource-based test: Test[file=SomeThirdTestSpec.rbt, name=third]")
     }
 
     def "empty test definitions location skips"() {
@@ -192,9 +192,9 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         then:
         nonClassBasedTestsExecuted()
 
-        ["INFO: Executing resource-based test: Test [file=SomeTestSpec.rbt, name=foo]",
-        "INFO: Executing resource-based test: Test [file=SomeTestSpec.rbt, name=bar]",
-        "INFO: Executing resource-based test: Test [file=subSomeOtherTestSpec.rbt, name=other]"].forEach {
+        ["INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]",
+        "INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]",
+        "INFO: Executing resource-based test: Test[file=subSomeOtherTestSpec.rbt, name=other]"].forEach {
             result.getOutput().findAll(it).size() == 1
         }
     }

@@ -59,9 +59,9 @@ class MultiFileNonClassBasedTestingIntegrationTest extends AbstractNonClassBased
 
         then:
         // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
-        outputContains("INFO: Executing resource-based test: Test [file=first-half.txt, name=test1]")
-        outputContains("INFO: Executing resource-based test: Test [file=first-half.txt, name=test2]")
-        outputContains("INFO: Executing resource-based test: Test [file=second-half.txt, name=test1]")
-        outputContains("INFO: Executing resource-based test: Test [file=second-half.txt, name=test2]")
+        outputContains("INFO: Executing resource-based test: Test[file=first-half.txt, name=test1]")
+        outputContains("INFO: Executing resource-based test: Test[file=first-half.txt, name=test2]")
+        outputContains("INFO: Executing resource-based test: Test[file=second-half.txt, name=test1]")
+        outputContains("INFO: Executing resource-based test: Test[file=second-half.txt, name=test2]")
     }
 }

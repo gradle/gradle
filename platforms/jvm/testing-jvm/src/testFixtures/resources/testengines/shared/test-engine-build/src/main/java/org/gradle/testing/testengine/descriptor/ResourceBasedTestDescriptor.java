@@ -54,6 +54,6 @@ public final class ResourceBasedTestDescriptor extends AbstractTestDescriptor {
 
     @Override
     public String toString() {
-        return "Test [file=" + file.getName() + ", name=" + name + "]";
+        return "Test[file=" + file.getName() + ", name=" + name + "]";
     }
 }
