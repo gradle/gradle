@@ -84,6 +84,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             }
             throw t;
         }
+
         try {
             testResultWriter.close();
         } catch (IOException e) {
