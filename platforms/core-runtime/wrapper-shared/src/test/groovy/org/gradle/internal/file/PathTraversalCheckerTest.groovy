@@ -16,7 +16,7 @@
 
 package org.gradle.internal.file
 
-import org.gradle.internal.os.OperatingSystem
+
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
@@ -42,6 +42,9 @@ class PathTraversalCheckerTest extends Specification {
         "..\\foo"      | "..foo"
         "foo/../bar"   | "foo/..bar"
         "foo\\..\\bar" | "foo\\..bar"
+        // Technically, this is not a path traversal, but we consider it unsafe due to
+        // code that might merge '\' and '/' later, thus introducing a path traversal.
+        "foo\\../bar"  | "foo\\..bar"
     }
 
     @Requires(
@@ -69,22 +72,31 @@ class PathTraversalCheckerTest extends Specification {
         where:
         safePath << [
             ".hidden",
-            "foo../bar",
-            "foo..\\bar",
             "foo/..bar",
             "foo\\..bar",
-            ".../bar",
-            "...\\bar",
             "./..foo",
             ".\\..foo",
+        ]
+    }
+
+    @Requires(
+        value = UnitTestPreconditions.NotWindows,
+        reason = "These path patterns are unsafe on Windows systems"
+    )
+    def "identifies potentially unsafe zip entry names (not windows)"() {
+        expect:
+        !isUnsafePathName(safePath)
+
+        where:
+        safePath << [
+            "foo../bar",
+            "foo..\\bar",
+            ".../bar",
+            "...\\bar",
             "foo...//",
             "foo...\\\\",
             "foo...//bar",
             "foo...\\\\bar"
         ]
-    }
-
-    private static boolean isWindows() {
-        OperatingSystem.current().isWindows()
     }
 }
