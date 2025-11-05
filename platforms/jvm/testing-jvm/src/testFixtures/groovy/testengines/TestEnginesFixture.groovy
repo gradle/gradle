@@ -52,7 +52,11 @@ trait TestEnginesFixture {
         // copy the same resources at once, so prevent those by synchronizing here.
         synchronized (lock) {
             TestResources resources = new TestResources(testClassDirectoryProvider, TestEngines.class, TestEngines.class)
-            assert resources.maybeCopy("shared")
+            testClassDirectoryProvider.getTestDirectory().createDir()
+            if (!resources.maybeCopy("shared")) {
+                // Try this copy twice, sometimes the file system is slow to unzip resources and these files are not found immediately
+                assert resources.maybeCopy("shared")
+            }
             getEnginesToSetup().forEach {
                 assert resources.maybeCopy(it.name)
             }
