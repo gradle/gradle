@@ -27,10 +27,10 @@ But the primary reason for keeping the execution engine self-contained is to kee
 
 A **unit of work** in the context of the execution engine is defined by an **identifiable** **action** with a set of known **inputs** and expected **outputs**.
 The _action_ is defined by code that is a pure function with regard to its _inputs_.
-It produces equivalent _outputs_ for equivalent _inputs_.
+It produces equivalent _outputs_ for equivalent _inputs._
 _Inputs_ and _outputs_ can be scalar values or files and directories.[^output-types]
 _Inputs_ are expected to be immutable after the execution of the unit starts.
-_Outputs_ should only be changed by the executing _action_.
+_Outputs_ should only be changed by the executing _action._
 When work produces files, it is executed in a **workspace** directory only accessible to the work action as a means of **sandboxing**.[^task-workspace]
 
 [^output-types]: Currently, only file-like outputs are supported, but this is a historical limitation that can be lifted if needed.
@@ -45,6 +45,31 @@ Examples of units of work include:
 - Maven goals[^maven]
 
 [^maven]: The execution engine is not currently used to execute Maven goals directly, but there is nothing Gradle-specific about it that would prevent such use.
+
+### Identifying Work
+
+To implement safe and optimized execution, the execution engine needs to identify units of work.
+Each unit has two identifiers:
+
+- **Identity**: A locally unique identifier of the work with respect to the current execution scope (e.g., the Gradle build tree).
+  For tasks this is the full path of the task (e.g. `:subproject:taskName`); for every other type of work it is a hash calculated from the **identity inputs** of the work (see below).
+- **Build cache Key**: A global identifier used to store and retrieve the outputs of the work across time and space.
+  This is calculated using all inputs.
+
+### Execution State
+
+The **execution state** of a unit of work consists of:
+
+- Its inputs:
+    - Its implementation – the FQCN of the work's implementation (e.g. `org.gradle.api.tasks.compile.JavaCompile`) and the classloader hash of its classpath
+    - The value snapshots of its input properties
+    - The fingerprints of its file inputs
+- Its outputs:
+    - The file-system snapshots of its output files
+    - Whether the execution was successful
+    - The origins of the outputs (freshly produced or reused from a previous build)
+
+Previous execution states are stored in the **execution history** indexed by the work's _identity._
 
 ## Execution Process
 
@@ -64,32 +89,14 @@ When provided with well-defined units of work, the execution engine can employ s
 > [!TIP]
 > Use [draw.io](https://draw.io/) to make changes to the diagram. The linked SVG file can be opened directly in draw.io. Do not edit as raw SVG.
 
-## Identifiers
-
-To implement safe and optimized execution, the execution engine needs to identify units of work.
-Each unit has two identifiers:
-
-- **Identity**: A locally unique identifier of the work with respect to the current execution scope (e.g., the Gradle build tree).
-- **Cache Key**: A globally unique identifier used to store and retrieve the outputs of the work across time and space.
-
-## Execution State
-
-The **execution state** of a unit of work consists of:
-
-- Its inputs:
-  - Its implementation – the FQCN of the work's implementation (e.g. `org.gradle.api.tasks.compile.JavaCompile`) and the classloader hash of its classpath
-  - The value snapshots of its input properties
-  - The fingerprints of its file inputs
-- Its outputs:
-  - The file-system snapshots of its output files
-  - Whether the execution was successful
-  - The origins of the outputs (freshly produced or reused from a previous build)
-
 ## Optimizations
 
-### Incremental Build (Up-to-Date Checks)
+### Up-to-Date Checks (aka Incremental Build)
 
-Execution state is stored in the **execution history**.
+> [!NOTE]
+> Incremental _build_ and incremental _work_ refer to different kinds of incrementality.
+> We should probably stop using incremental build as a term.
+
 This way we can compare the state of a unit of work before executing it to its state after its previous execution.
 If there are no changes to either its inputs or outputs, executing the work is not needed, and is thus skipped.
 
@@ -106,37 +113,45 @@ If successful, we delete and unpack results to the output location.
 
 ### Execution Modes
 
-Note that this differs from _incremental build,_ which involves skipping the entire execution of an up-to-date unit of work.
+When it comes to actually execution work, the execution engine supports two kinds of work: _mutable_ and _immutable._ _Mutable_ work can be executed _incrementally_ or _non-incrementally_ based on which of its inputs have changed compared to a previous execution.
 
-Fundamentally, the execution engine supports two kinds of work: _incremental_ and _non-incremental_.
+- **Immutable Work** is identified by its full set of inputs (i.e. all its inputs are **identity inputs**).
+  Examples are accessor generation and non-incremental artifact transforms.
 
-- **Non-Incremental Work**: Identified by its full set of inputs.
-  Changing any input effectively creates a new identity.
+- **Mutable Work**: Some of its inputs are **regular inputs** (while others can be **identity inputs**).
+  Examples are tasks and incremental artifact transforms.
 
-- **Incremental Work**: Has some **incremental inputs** that are not part of the work's identity.
-  Changing these incremental inputs does not change the work's identity.
-  However, changing a non-incremental input _does_ change the identity.[^task-identity]
+Work is executed in (i.e. its output is produced in) a **workspace**: a dedicated directory assigned to the work by its identity. Execution within these workspaces happens under a lock to prevent multiple units of work from colliding.[^task-workspace]
+
+[^task-workspace]: For historical reasons, Gradle tasks do get a dedicated workspace assigned.
+They also lack mutual exclusion, and two separate Gradle daemons running the same task on the same build can collide.
+
+If an identity input changes compared to a previous local execution, the execution engine treats the work as a new, distinct unit, and assigns a different workspace.
+Changing regular inputs does not change the mutable work's identity, and hence it will be executed in the same workspace.[^task-identity]
 
 [^task-identity]: This is currently not true for tasks, whose identity is the task's full path.
 The plan is to change this and have tasks execute in workspaces similar to artifact transforms.
 
-It is the responsibility of work to declare whether or not it is incremental.
-Any type of work can be executed incrementally by the engine, though currently it is only used by some tasks and artifact transforms.
-Other types of work like accessor generation never relies on incremental execution.
-
-Incremental work is executed within the same workspace as long as only incremental inputs are changing.
-This allows the work to reuse outputs from previous executions and update them instead of regenerating everything from scratch.
-To facilitate this, the execution engine provides the action with a list of changes to any incremental input since the last execution in the same workspace.
-
 #### Workspace Allocation
 
-Incremental work is assigned a **mutable workspace**, a directory on disk reused in subsequent builds.
-Execution within these workspaces happens under a lock to prevent multiple units of work from colliding.[^task-locking]
+Mutable work is executed within the same **mutable workspace** as long as only non-identity inputs are changing. (Hence the name.)
 
-[^task-locking]: For historical reasons, Gradle tasks lack such mutual exclusion, and two separate Gradle daemons running the same task can collide.
-
-In contrast, non-incremental work is assigned a temporary workspace directory upon execution.
+In contrast, _immutable work_ is assigned a **temporary workspace** directory upon execution.
 Once execution finishes (or results are loaded from the cache), the workspace directory is atomically moved to an **immutable workspace** that is not modified further.
+
+### Incremental Execution
+
+For _mutable work_ we distinguish between the following types of regular inputs:
+
+- **Non-incremental** -- Any change to the property value always triggers a full rebuild of the work.
+- **Incremental** -- Changes to the property value can cause an **incremental execution** of the work where the work is responsible for updating any previous outputs.
+  To facilitate this, the execution engine provides the action with a list of changes to any incremental input since the last execution in the same workspace.
+- **Primary** -- These are the same as _incremental_ inputs with the added feature that if all primary inputs are empty, execution of the work is skipped, and its outputs are deleted.
+
+If non-incremental execution is chosen, the mutable workspace is first cleaned up.[^task-output-cleanup]
+
+[^task-output-cleanup]: Once again for historical reasons this does not happen for tasks.
+The main reason is some incremental tasks do not declare themselves as incremental, and removing their outputs would be a breaking change.
 
 ## Legacy: The Special Case of Gradle Tasks
 
