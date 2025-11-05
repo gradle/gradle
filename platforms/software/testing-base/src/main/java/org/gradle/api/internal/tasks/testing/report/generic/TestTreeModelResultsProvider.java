@@ -121,7 +121,10 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
                     return;
                 }
                 for (PerRootInfo perRootInfo : node.getPerRootInfo().get(0)) {
-                    outputEntries.add(perRootInfo.getOutputEntry());
+                    OutputEntry outputEntry = perRootInfo.getOutputEntry();
+                    if (outputEntry != null) {
+                        outputEntries.add(outputEntry);
+                    }
                 }
             });
 
@@ -156,7 +159,10 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
 
         for (PerRootInfo leafPerRootInfo : leaves) {
             classResult.add(buildMethodResult(leafPerRootInfo));
-            methodOutputEntries.put(leafPerRootInfo.getId(), leafPerRootInfo.getOutputEntry());
+            OutputEntry outputEntry = leafPerRootInfo.getOutputEntry();
+            if (outputEntry != null) {
+                methodOutputEntries.put(leafPerRootInfo.getId(), outputEntry);
+            }
         }
         return classResult;
     }

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.stream.Streams;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
@@ -370,10 +371,13 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.startElement("span").attribute("class", "code")
                 .startElement("pre")
                 .attribute("id", outputId);
-            outputReader.useTestOutputEvents(
-                info.getOutputEntry(), destination,
-                event -> htmlWriter.characters(event.getMessage())
-            );
+            OutputEntry outputEntry = info.getOutputEntry();
+            if (outputEntry != null) {
+                outputReader.useTestOutputEvents(
+                    outputEntry, destination,
+                    event -> htmlWriter.characters(event.getMessage())
+                );
+            }
             htmlWriter.endElement();
             addClipboardCopyButton(htmlWriter, outputId);
             htmlWriter.endElement();

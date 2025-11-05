@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputTrackedResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -115,14 +116,21 @@ public final class PerRootInfo {
         }
     }
 
-    private final OutputTrackedResult outputTrackedResult;
+    private final SerializableTestResult result;
+    private final long id;
+    @Nullable
+    private final OutputEntry outputEntry;
     private final ImmutableList<String> children;
     private final int totalLeafCount;
     private final int failedLeafCount;
     private final int skippedLeafCount;
 
     private PerRootInfo(OutputTrackedResult outputTrackedResult, ImmutableList<String> children, int totalLeafCount, int failedLeafCount, int skippedLeafCount) {
-        this.outputTrackedResult = outputTrackedResult;
+        this.result = outputTrackedResult.getInnerResult();
+        this.id = outputTrackedResult.getId();
+        this.outputEntry = outputTrackedResult.getOutputEntry().hasOutput()
+            ? outputTrackedResult.getOutputEntry()
+            : null;
         this.children = children;
         this.totalLeafCount = totalLeafCount;
         this.failedLeafCount = failedLeafCount;
@@ -130,15 +138,16 @@ public final class PerRootInfo {
     }
 
     public SerializableTestResult getResult() {
-        return outputTrackedResult.getInnerResult();
+        return result;
     }
 
     public long getId() {
-        return outputTrackedResult.getId();
+        return id;
     }
 
+    @Nullable
     public OutputEntry getOutputEntry() {
-        return outputTrackedResult.getOutputEntry();
+        return outputEntry;
     }
 
     public ImmutableList<String> getChildren() {
@@ -158,6 +167,6 @@ public final class PerRootInfo {
     }
 
     public List<SerializedMetadata> getMetadatas() {
-        return outputTrackedResult.getInnerResult().getMetadatas();
+        return result.getMetadatas();
     }
 }
