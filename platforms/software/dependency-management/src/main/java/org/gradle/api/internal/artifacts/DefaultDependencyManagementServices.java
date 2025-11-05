@@ -236,6 +236,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.domainObjectContext = domainObjectContext;
         }
 
+        @SuppressWarnings("unused") // DI configuration
         void configure(ServiceRegistration registration) {
             registration.add(TransformedVariantFactory.class, DefaultTransformedVariantFactory.class);
             registration.add(ResolveExceptionMapper.class);
