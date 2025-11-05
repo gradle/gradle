@@ -61,10 +61,12 @@ public class MultiFileResourceBasedSelectorResolver implements SelectorResolver 
                 .map(Optional::get)
                 .map(Match::exact)
                 .forEach(tests::add);
-            return Resolution.matches(tests);
-        } else {
-            return Resolution.unresolved();
+
+            if (!tests.isEmpty()) {
+                return Resolution.matches(tests);
+            }
         }
+        return Resolution.unresolved();
     }
 
     private boolean hasTestHalves(File dir) {

@@ -25,7 +25,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         return [TestEngines.BASIC_RESOURCE_BASED]
     }
 
-    def "empty test definitions directory skips"() {
+    def "all test definitions dirs are non-existent skips"() {
         given:
         buildFile << """
             plugins {
@@ -52,7 +52,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         testTaskWasSkippedDueToNoSources()
     }
 
-    def "non-existent test definitions directory fails"() {
+    def "some test definitions dirs are non-existent warns and testing proceeds with other dirs"() {
         def badPath = "src/test/i-dont-exist"
 
         given:
@@ -75,20 +75,85 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
             }
         """
 
-        // Write some test def to default dir (which is still scanned), not badPath, needed to avoid "no sources" skip
-        def defaultTestDefsDir = file(DEFAULT_DEFINITIONS_LOCATION)
-        defaultTestDefsDir.mkdirs()
-        defaultTestDefsDir.file("SomeTestDefinition.xml").createNewFile()
+        writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
 
         when:
-        fails("test")
+        succeeds("test", "--info")
 
         then:
-        failureCauseContains("Test definitions directory does not exist: " + testDirectory.file(badPath).absolutePath)
+        outputContains("Test definitions directory does not exist: " + testDirectory.file(badPath).absolutePath)
+        nonClassBasedTestsExecuted()
     }
 
-    def "non-directory test definitions directory fails"() {
-        def badPath = "src/test/i-dont-exist.txt"
+    def "all test definitions dirs are empty skips"() {
+        def otherPath = "src/test/other-defs"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                        testDefinitionDirs.from("$otherPath")
+                    }
+                }
+            }
+        """
+
+        [otherPath, DEFAULT_DEFINITIONS_LOCATION].each { path ->
+            file(path).createDir()
+        }
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        testTaskWasSkippedDueToNoSources()
+    }
+
+    def "some test definitions dirs are empty proceeds silently with other dirs"() {
+        def emptyPath = "src/test/other-defs"
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                        testDefinitionDirs.from("$emptyPath")
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions()
+        file(emptyPath).createDir()
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        nonClassBasedTestsExecuted()
+    }
+
+    def "all test definitions dirs are not directories proceeds and fails with no tests found"() {
+        def badPath = "src/test/im-a-file.txt"
         file(badPath).createFile()
 
         given:
@@ -114,7 +179,41 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         fails("test")
 
         then:
-        failureCauseContains("Test definitions directory is not a directory: " + testDirectory.file(badPath).absolutePath)
+        sourcesPresentAndNoTestsFound()
+    }
+
+    def "some test definitions dirs are not directories warns and testing proceeds with other dirs"() {
+        def badPath = "src/test/im-a-file.txt"
+        file(badPath).createFile()
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                        testDefinitionDirs.from("$badPath")
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions()
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        outputContains("Test definitions directory is not a directory: " + testDirectory.file(badPath).absolutePath)
+        nonClassBasedTestsExecuted()
     }
 
     def "missing test classes and/or definitions is skipped or fails when appropriate (scan for test classes = #scanForTestClasses, has test classes = #hasTestClasses, add test defs dir = #addTestDefsDir, has test defs = #hasTestDefs)"() {

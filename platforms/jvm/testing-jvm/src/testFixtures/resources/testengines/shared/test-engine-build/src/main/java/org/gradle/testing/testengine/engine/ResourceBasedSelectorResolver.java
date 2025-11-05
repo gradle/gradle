@@ -70,9 +70,12 @@ public class ResourceBasedSelectorResolver implements SelectorResolver {
                     .map(Optional::get)
                     .map(Match::exact)
                     .collect(Collectors.toSet());
-            return Resolution.matches(tests);
-        } else {
-            return Resolution.unresolved();
+
+            if (!tests.isEmpty()) {
+                return Resolution.matches(tests);
+            }
         }
+
+        return Resolution.unresolved();
     }
 }

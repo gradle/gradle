@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
@@ -26,6 +25,8 @@ import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Set;
@@ -36,6 +37,8 @@ import java.util.regex.Pattern;
  * a detection or filename scan is performed to find test classes.
  */
 public class DefaultTestScanner implements TestDetector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTestScanner.class);
+
     private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
     private final Set<File> candidateDefinitionDirs;
@@ -80,15 +83,18 @@ public class DefaultTestScanner implements TestDetector {
             }
         });
         candidateDefinitionDirs.forEach(dir -> {
-            if (dir.exists()) {
-                if (dir.isDirectory()) {
-                    TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
-                    testClassProcessor.processTestDefinition(testDefinition);
-                } else {
-                    throw new GradleException("Test definitions directory is not a directory: " + dir.getAbsolutePath());
-                }
+            boolean isValid = false;
+            if (!dir.exists()) {
+                LOGGER.warn("Test definitions directory does not exist: " + dir.getAbsolutePath());
+            } else if (!dir.isDirectory()) {
+                LOGGER.warn("Test definitions directory is not a directory: " + dir.getAbsolutePath());
             } else {
-                throw new GradleException("Test definitions directory does not exist: " + dir.getAbsolutePath());
+                isValid = true;
+            }
+
+            if (isValid) {
+                TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
+                testClassProcessor.processTestDefinition(testDefinition);
             }
         });
     }
