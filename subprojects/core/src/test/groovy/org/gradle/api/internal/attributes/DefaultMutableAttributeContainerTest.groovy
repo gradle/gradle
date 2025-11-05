@@ -552,4 +552,41 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         container.getAttribute(a) == "other-a"
         container.getAttribute(b) == "other-b"
     }
+
+    def "translates deprecated usage values"() {
+        def container = createContainer()
+        container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, legacyUsage))
+
+        expect:
+        container.getAttribute(Usage.USAGE_ATTRIBUTE).name == legacyUsage
+        container.asImmutable().findEntry(Usage.USAGE_ATTRIBUTE).getIsolatedValue().name == replacedUsage
+        container.asImmutable().findEntry(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).getIsolatedValue().name == replacedLibraryElements
+
+        where:
+        legacyUsage                                            | replacedUsage      | replacedLibraryElements
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS          | Usage.JAVA_API     | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES       | Usage.JAVA_API     | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME | LibraryElements.RESOURCES
+    }
+
+    def "translates deprecated string-typed usage values"() {
+        def container = createContainer()
+        def attr = Attribute.of(Usage.USAGE_ATTRIBUTE.name, String)
+        container.attribute(attr, legacyUsage)
+
+        expect:
+        container.getAttribute(attr) == legacyUsage
+        container.asImmutable().findEntry(Usage.USAGE_ATTRIBUTE.name).getIsolatedValue() == replacedUsage
+        container.asImmutable().findEntry(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name).getIsolatedValue() == replacedLibraryElements
+
+        where:
+        legacyUsage                                            | replacedUsage      | replacedLibraryElements
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS          | Usage.JAVA_API     | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES       | Usage.JAVA_API     | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME | LibraryElements.RESOURCES
+    }
 }
