@@ -19,6 +19,7 @@ package org.gradle.testkit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -164,10 +165,10 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
 
                 @Test
                 void test() throws Exception {
-                    File projectDir = new File("${testKitProjectDir.absolutePath}");
+                    File projectDir = new File("${TextUtil.escapeString(testKitProjectDir.absolutePath)}");
                     Writer outputWriter = Files.newBufferedWriter(
                         Path.of(
-                            "${testDirectory.absolutePath}/output.txt"
+                            "${TextUtil.escapeString(testDirectory.absolutePath)}", "output.txt"
                         )
                     );
 
