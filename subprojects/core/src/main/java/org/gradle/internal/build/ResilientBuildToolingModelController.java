@@ -70,14 +70,14 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             // Force configuration of the target project to ensure all builders have been registered, but ignore failures
             try {
-                target.ensureConfigured();
+                targetProject.ensureConfigured();
             } catch (GradleException e) {
                 rethrowExceptionIfNotResilientModel(modelName, e);
             }
 
-            ProjectInternal project = target.getMutableModelEvenAfterFailure();
+            ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
             ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, parameter, target, project);
+            return lookup.locateForClientOperation(modelName, parameter, targetProject, project);
         }
     }
 }
