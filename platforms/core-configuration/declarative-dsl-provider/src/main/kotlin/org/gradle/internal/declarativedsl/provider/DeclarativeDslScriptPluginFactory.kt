@@ -18,7 +18,7 @@ package org.gradle.internal.declarativedsl.provider
 
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
@@ -33,7 +33,7 @@ import javax.inject.Inject
 internal
 class DeclarativeDslScriptPluginFactory @Inject constructor(
     private val declarativeKotlinScriptEvaluator: DeclarativeKotlinScriptEvaluator,
-    private val problems: InternalProblems
+    private val problems: ProblemsInternal
 ) : ScriptPluginFactory {
 
     override fun create(
@@ -57,7 +57,7 @@ class DeclarativeDslScriptPluginFactory @Inject constructor(
 
 private fun reportEvaluationFailuresAsProblemsAndThrow(
     scriptSource: ScriptSource,
-    problems: InternalProblems,
+    problems: ProblemsInternal,
     failures: List<NotEvaluated.StageFailure>
 ): Nothing {
     val failureProblems = failures.flatMap { stageFailure ->

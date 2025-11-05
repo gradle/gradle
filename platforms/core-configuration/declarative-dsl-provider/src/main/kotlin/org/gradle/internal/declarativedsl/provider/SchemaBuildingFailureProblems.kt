@@ -23,7 +23,7 @@ import org.gradle.api.problems.ProblemId.create
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup.scripts
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.evaluation.SchemaIssue
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
@@ -32,7 +32,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaFailureMessageForm
 
 internal fun schemaBuildingFailuresAsProblems(
     stageFailure: NotEvaluated.StageFailure.SchemaBuildingFailures,
-    problems: InternalProblems
+    problems: ProblemsInternal
 ): List<Problem> = stageFailure.failures.map { failure ->
     problems.reporter.create(schemaBuildingFailureProblemId(failure)) { problem ->
         problem.severity(Severity.ERROR)

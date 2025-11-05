@@ -17,11 +17,11 @@
 package org.gradle.internal.problems;
 
 import org.gradle.api.problems.ProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 
 public class ProblemUtils {
 
-    public static boolean isInGroup(InternalProblem problem, ProblemGroup targetGroup) {
+    public static boolean isInGroup(ProblemInternal problem, ProblemGroup targetGroup) {
         ProblemGroup group = problem.getDefinition().getId().getGroup();
         while (group != null) {
             if (group.equals(targetGroup)) {

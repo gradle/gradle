@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
-import static org.gradle.integtests.tooling.r813.WorkerProblemCrossVersionTest.prePostFixInternal
+import static org.gradle.integtests.tooling.r813.WorkerProblemCrossVersionSpec.prePostFixInternal
 
 @ToolingApiVersion(">=8.14")
 @TargetGradleVersion(">=8.14")
