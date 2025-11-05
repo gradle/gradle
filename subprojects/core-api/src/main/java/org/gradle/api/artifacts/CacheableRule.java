@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares a rule eligible for caching.
+ * Declares a {@link ComponentMetadataRule} eligible for caching.
  *
  * @since 4.9
  */
