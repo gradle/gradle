@@ -44,9 +44,7 @@ public class FailsDiscoveryResourceBasedTestEngine implements TestEngine {
 
     @Override
     public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
-        LOGGER.info(() -> {
-            return "Discovering tests with engine: " + uniqueId;
-        });
+        LOGGER.info(() -> "Discovering tests with engine: " + uniqueId);
 
         throw new RuntimeException("Test discovery failed");
     }
