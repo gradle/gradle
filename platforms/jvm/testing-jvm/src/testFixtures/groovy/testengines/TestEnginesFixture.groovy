@@ -39,27 +39,16 @@ trait TestEnginesFixture {
     private static File engineBuildDir
     private static String engineJarLibPath
 
-    private final Object[] lock = new Object[0]
-
     abstract List<TestEngines> getEnginesToSetup()
 
     def setupSpec() {
         // Create a custom test directory provider to isolate the engine build per test class
         TestDirectoryProvider testClassDirectoryProvider = new UniquePerTestClassDirectoryProvider(this.getClass())
-
-        // Copy required test engine source to the per-test-class directory for this test class
-        // There are race condition issues in TestResources if too many test classes run in parallel and try to
-        // copy the same resources at once, so prevent those by synchronizing here.
-        synchronized (lock) {
-            TestResources resources = new TestResources(testClassDirectoryProvider, TestEngines.class, TestEngines.class)
-            testClassDirectoryProvider.getTestDirectory().createDir()
-            if (!resources.maybeCopy("shared")) {
-                // Try this copy twice, sometimes the file system is slow to unzip resources and these files are not found immediately
-                assert resources.maybeCopy("shared")
-            }
-            getEnginesToSetup().forEach {
-                assert resources.maybeCopy(it.name)
-            }
+        TestResources resources = new TestResources(testClassDirectoryProvider, TestEngines.class, this.getClass())
+        testClassDirectoryProvider.getTestDirectory().createDir()
+        assert resources.maybeCopy("shared")
+        getEnginesToSetup().forEach {
+            assert resources.maybeCopy(it.name)
         }
 
         // Switch to engine build directory for this setup
