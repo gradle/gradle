@@ -374,7 +374,8 @@ class UnitTestPreconditions {
 
         private static final JavaVersion MAX_SUPPORTED_JAVA_VERSION =
             JavaVersion.forClassVersion(
-                JvmTarget.values().max { it.majorVersion }.majorVersion
+                // JvmTarget.values().max { it.majorVersion }.majorVersion
+                JvmTarget.JVM_24.majorVersion // TODO: not really ok, but Kotlin doesn't actually support Java 25 yet...
             )
 
         @Override
