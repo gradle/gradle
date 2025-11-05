@@ -60,14 +60,20 @@ public class TestNameTestDirectoryProvider extends AbstractTestDirectoryProvider
         return testDirectoryProvider;
     }
 
-    public static class ParentDirectoryProvider extends TestNameTestDirectoryProvider {
-        public ParentDirectoryProvider(Class<?> klass) {
+    public static final class UniquePerTestClassDirectoryProvider extends TestNameTestDirectoryProvider {
+        private final TestFile testDirectory;
+
+        public UniquePerTestClassDirectoryProvider(Class<?> klass) {
             super(klass);
+            String pathFromParent = "per-test-class-files/" + klass.getName().replace(".", "-");
+            this.testDirectory = super.getTestDirectory().getParentFile().file(pathFromParent);
+
+            assert !klass.getName().equals("tmp.extracted.resources"): "Test class cannot be named 'tmp.extracted.resources' when using UniquePerTestClassDirectoryProvider";
         }
 
         @Override
         public TestFile getTestDirectory() {
-            return super.getTestDirectory().getParentFile();
+            return testDirectory;
         }
     }
 }

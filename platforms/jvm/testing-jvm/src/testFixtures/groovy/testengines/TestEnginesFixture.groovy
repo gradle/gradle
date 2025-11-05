@@ -25,16 +25,12 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider.UniquePerTestClassDirectoryProvider
 import org.gradle.util.internal.TextUtil
 
 /**
- * Trait to provide custom JUnit Test Engines to integration tests.
- * <p>
- * Note that this trait can <strong>NOT BE SHARED</strong> by multiple test classes in the same project
- * that share a class name prefix (e.g. MyClassRedTest and MyClassBlueTest) because of the way our testing
- * infrastructure sets up test directories.  Both of these test classes would use the same engine copy-to
- * dir, and thus interfere with each other.
+ * Trait to provide custom JUnit {@link org.junit.platform.engine.TestEngine TestEngine}s to integration tests.
  */
 @SelfType(AbstractIntegrationSpec)
 trait TestEnginesFixture {
@@ -43,43 +39,42 @@ trait TestEnginesFixture {
     private static File engineBuildDir
     private static String engineJarLibPath
 
+    private final Object[] lock = new Object[0]
+
     abstract List<TestEngines> getEnginesToSetup()
 
     def setupSpec() {
-        // Create a custom test directory provider to isolate the engine build as a sibling of the test method dirs
-        TestNameTestDirectoryProvider customTestDirectoryProvider = new TestNameTestDirectoryProvider.ParentDirectoryProvider(this.getClass())
+        // Create a custom test directory provider to isolate the engine build per test class
+        TestDirectoryProvider testClassDirectoryProvider = new UniquePerTestClassDirectoryProvider(this.getClass())
 
-        // Copy required test engine source to the root of the test directory structure for this test class
-        TestResources resources = new TestResources(customTestDirectoryProvider, TestEngines.class, TestEngines.class)
-        copyFiles(resources, "shared")
-        getEnginesToSetup().forEach {
-            copyFiles(resources, it.name)
+        // Copy required test engine source to the per-test-class directory for this test class
+        // There are race condition issues in TestResources if too many test classes run in parallel and try to
+        // copy the same resources at once, so prevent those by synchronizing here.
+        synchronized (lock) {
+            TestResources resources = new TestResources(testClassDirectoryProvider, TestEngines.class, TestEngines.class)
+            assert resources.maybeCopy("shared")
+            getEnginesToSetup().forEach {
+                assert resources.maybeCopy(it.name)
+            }
         }
 
         // Switch to engine build directory for this setup
         GradleDistribution distribution = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
-        GradleExecuter engineBuilder = new GradleContextualExecuter(distribution, customTestDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
-        engineBuildDir = customTestDirectoryProvider.testDirectory.file(ENGINE_COPY_TO_DIR_NAME)
-        engineBuilder.inDirectory(engineBuildDir)
-            .withRepositoryMirrors()
+        GradleExecuter engineBuilder = new GradleContextualExecuter(distribution, testClassDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
+        engineBuildDir = testClassDirectoryProvider.testDirectory.file(ENGINE_COPY_TO_DIR_NAME)
 
         // Build the test engine jar
-        engineBuilder.withTasks("build").run()
+        engineBuilder.inDirectory(engineBuildDir)
+            .withRepositoryMirrors()
+            .withTasks("build")
+            .run()
 
         // And make the built jar's path available
         engineJarLibPath = engineBuildDir.file("build/libs/${ENGINE_COPY_TO_DIR_NAME}.jar").absolutePath
     }
 
     def cleanupSpec() {
-        engineBuildDir.deleteDir()
-    }
-
-    private copyFiles(TestResources resources, String path) {
-        try {
-            assert resources.maybeCopy(path)
-        } catch (Exception ignored) {
-            // Ignore: Resources may have already been copied by another test class, this is fine
-        }
+        assert engineBuildDir.deleteDir()
     }
 
     String enableEngineForSuite() {
