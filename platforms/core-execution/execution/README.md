@@ -153,6 +153,18 @@ If non-incremental execution is chosen, the mutable workspace is first cleaned u
 [^task-output-cleanup]: Once again for historical reasons this does not happen for tasks.
 The main reason is some incremental tasks do not declare themselves as incremental, and removing their outputs would be a breaking change.
 
+### Deferred Execution: The Special Case of Artifact Transforms
+
+Work with the same identity is typically only executed once during a build.
+Artifact transforms are somewhat special, as they are defined in the consuming project.
+This can cause transforms with the same identity to be invoked several times, often concurrently, during the same build.
+(Think of "minimize the Guava JAR" that is invoked for every subproject requiring Guava.)
+
+To handle this use case and make sure there is no race condition the execution engine has a "deferred" path.
+In this mode the execution engine will return eagerly with a `Deferrable<T>` that either holds an already cached result, or it can be completed synchronously at a later time.
+When work is completed, it gets stored in the identity cache.
+When execution happens via the synchronous, non-deferred way, the identity cache is ignored.
+
 ## Legacy: The Special Case of Gradle Tasks
 
 Some invariants that apply to other units of work do not yet apply to tasks in Gradle.
