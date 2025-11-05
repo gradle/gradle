@@ -45,12 +45,13 @@ public class ResourceBasedSelectorResolver implements SelectorResolver {
 
         if (!contents.isEmpty()) {
             Set<DiscoverySelector> selectors = new LinkedHashSet<>();
-            contents.stream()
-                .filter(File::isFile)
-                .forEach(file -> selectors.add(DiscoverySelectors.selectFile(file.getAbsolutePath())));
-            contents.stream()
-                .filter(File::isDirectory)
-                .forEach(file -> selectors.add(DiscoverySelectors.selectDirectory(file.getAbsolutePath())));
+            for (File file : contents) {
+                if (file.isFile()) {
+                    selectors.add(DiscoverySelectors.selectFile(file.getAbsolutePath()));
+                } else if (file.isDirectory()) {
+                    selectors.add(DiscoverySelectors.selectDirectory(file.getAbsolutePath()));
+                }
+            }
 
             return Resolution.selectors(selectors);
         } else {
