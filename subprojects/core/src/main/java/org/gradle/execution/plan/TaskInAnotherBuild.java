@@ -138,7 +138,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
 
     @Nullable
     @Override
-    public ResourceLock getProjectToLock() {
+    public ResourceLock getAccessLock() {
         // Ignore, as the node in the other build's execution graph takes care of this
         return null;
     }

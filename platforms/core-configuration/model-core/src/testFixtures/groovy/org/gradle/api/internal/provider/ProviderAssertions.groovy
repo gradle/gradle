@@ -17,20 +17,24 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+
+import java.util.function.Consumer
 
 trait ProviderAssertions {
     void assertHasNoProducer(ProviderInternal<?> provider) {
         def producer = provider.producer
         assert !producer.known
-        producer.visitProducerTasks { assert false }
-        producer.visitContentProducerTasks { assert false }
+        producer.getDependencies() == TaskDependencyContainer.EMPTY
+        producer.getContentDependencies() == TaskDependencyContainer.EMPTY
     }
 
     void assertHasKnownProducer(ProviderInternal<?> provider) {
         def producer = provider.producer
         assert producer.known
-        producer.visitProducerTasks { assert false }
-        producer.visitContentProducerTasks { assert false }
+        producer.getDependencies() == TaskDependencyContainer.EMPTY
+        producer.getContentDependencies() == TaskDependencyContainer.EMPTY
     }
 
     void assertHasProducer(ProviderInternal<?> provider, Task task, Task... additional) {
@@ -39,10 +43,35 @@ trait ProviderAssertions {
         def producer = provider.producer
         assert producer.known
         def tasks = []
-        producer.visitProducerTasks { tasks.add(it) }
+        producer.getDependencies().visitDependencies(new TestContext(tasks::add))
         assert tasks == expected
         tasks.clear()
-        producer.visitContentProducerTasks { tasks.add(it) }
+        producer.getContentDependencies().visitDependencies(new TestContext(tasks::add))
         assert tasks == expected
+    }
+
+    static class TestContext implements TaskDependencyResolveContext {
+
+        private final Consumer<Object> action
+
+        TestContext(Consumer<Object> action) {
+            this.action = action
+        }
+
+        @Override
+        void add(Object dependency) {
+            action.accept(dependency)
+        }
+
+        @Override
+        void visitFailure(Throwable failure) {
+            assert false
+        }
+
+        @Override
+        Task getTask() {
+            assert false
+        }
+
     }
 }

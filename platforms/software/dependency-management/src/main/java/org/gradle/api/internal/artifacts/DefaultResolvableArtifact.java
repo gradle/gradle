@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -30,7 +29,9 @@ import org.gradle.internal.component.local.model.TransformedComponentFileArtifac
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueFactory;
+import org.gradle.internal.resources.ResourceLock;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -158,15 +159,16 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         }
 
         @Override
-        public boolean usesMutableProjectState() {
-            return true;
+        public @Nullable ResourceLock getAccessLock() {
+            return artifact.fileSource.getAccessLock();
         }
 
         @Nullable
         @Override
         public Project getOwningProject() {
-            if (artifact.fileSource.getResourceToLock() instanceof ProjectState) {
-                return ((ProjectState) artifact.fileSource.getResourceToLock()).getMutableModel();
+            if (artifact.fileSource instanceof CalculatedValueContainer<?, ?>) {
+                CalculatedValueContainer<?, ?> container = (CalculatedValueContainer<?, ?>) artifact.fileSource;
+                return container.getOwningProject();
             } else {
                 return null;
             }
