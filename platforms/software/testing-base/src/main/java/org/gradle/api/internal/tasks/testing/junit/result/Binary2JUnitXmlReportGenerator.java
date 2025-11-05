@@ -101,7 +101,7 @@ public class Binary2JUnitXmlReportGenerator {
     }
 
     private static String getReportFileName(TestClassResult result) {
-        return SafeFileLocationUtils.toSafeFileName(REPORT_FILE_PREFIX + result.getClassName() + REPORT_FILE_EXTENSION);
+        return SafeFileLocationUtils.toSafeFileName(REPORT_FILE_PREFIX + result.getClassName() + REPORT_FILE_EXTENSION, false);
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {

@@ -49,7 +49,7 @@ public class ClassTestResults extends CompositeTestResults {
         this.name = name;
         this.displayName = displayName;
         this.packageResults = packageResults;
-        baseUrl = HTML_REPORT_DIR + "/" + SafeFileLocationUtils.toSafeFileName(name + HTML_EXTENSION);
+        baseUrl = HTML_REPORT_DIR + "/" + SafeFileLocationUtils.toSafeFileName(name + HTML_EXTENSION, false);
     }
 
     public long getId() {

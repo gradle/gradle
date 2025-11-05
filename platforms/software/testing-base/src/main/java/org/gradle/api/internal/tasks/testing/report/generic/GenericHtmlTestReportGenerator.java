@@ -69,7 +69,10 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         if (path.segmentCount() == 0) {
             filePath = "index.html";
         } else {
-            filePath = String.join("/", Iterables.transform(path.segments(), SafeFileLocationUtils::toSafeFileName)) + "/index.html";
+            filePath = String.join("/", Iterables.transform(
+                path.segments(),
+                name -> SafeFileLocationUtils.toSafeFileName(name, true)
+            )) + "/index.html";
         }
         return filePath;
     }
