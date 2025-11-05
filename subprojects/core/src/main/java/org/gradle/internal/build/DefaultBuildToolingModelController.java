@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.tooling.provider.model.UnknownModelException;
@@ -56,8 +57,8 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         }
 
         // Force configuration of the build and locate builder for default project
-        ProjectState targetProject = buildController.withProjectsConfigured(gradle -> gradle.getDefaultProject().getOwner());
-        return doLocate(targetProject, modelName, param);
+        ProjectState defaultProject = buildController.withProjectsConfigured(gradle -> gradle.getDefaultProject().getOwner());
+        return doLocate(defaultProject, modelName, param, ConfigurationResult.success());
     }
 
     @Override
@@ -65,17 +66,24 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         if (target.getOwner() != buildState) {
             throw new IllegalArgumentException("Project has unexpected owner.");
         }
+
         // Force configuration of the containing build and then locate the builder for target project
-        configureProjectsForModel(target, modelName);
-        return doLocate(target, modelName, param);
+        ConfigurationResult configurationResult = tryRunConfiguration(buildController::configureProjects);
+        return doLocate(target, modelName, param, configurationResult);
     }
 
-    protected void configureProjectsForModel(ProjectState target, String modelName) {
-        buildController.configureProjects();
-    }
-
-    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
+    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param, ConfigurationResult configurationResult) {
+        configurationResult.rethrowIfFailed();
         return new ProjectToolingScope(target, modelName, param);
+    }
+
+    protected static ConfigurationResult tryRunConfiguration(Runnable configuration) {
+        try {
+            configuration.run();
+            return ConfigurationResult.success();
+        } catch (GradleException e) {
+            return ConfigurationResult.failure(e);
+        }
     }
 
     private static abstract class AbstractToolingScope implements ToolingModelScope {
@@ -140,6 +148,42 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             target.ensureConfigured();
             ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
             return lookup.locateForClientOperation(modelName, parameter, target, target.getMutableModel());
+        }
+    }
+
+    protected static class ConfigurationResult {
+        @Nullable
+        private final GradleException exception;
+
+        private ConfigurationResult(@Nullable GradleException exception) {
+            this.exception = exception;
+        }
+
+        @Nullable
+        public GradleException getException() {
+            return exception;
+        }
+
+        public static ConfigurationResult failure(GradleException exception) {
+            return new ConfigurationResult(exception);
+        }
+
+        public static ConfigurationResult success() {
+            return new ConfigurationResult(null);
+        }
+
+        public boolean isSuccess() {
+            return exception == null;
+        }
+
+        public boolean isFailure() {
+            return !isSuccess();
+        }
+
+        public void rethrowIfFailed() {
+            if (exception != null) {
+                throw exception;
+            }
         }
     }
 }

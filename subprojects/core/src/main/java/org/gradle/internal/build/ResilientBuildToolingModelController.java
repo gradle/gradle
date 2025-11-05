@@ -16,15 +16,21 @@
 
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ResilientBuildToolingModelController extends DefaultBuildToolingModelController {
 
@@ -32,56 +38,113 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         // TODO: Is there a better way to identify resilient models?
         "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
     );
+    private final boolean isConfigureOnDemand;
+    private final FailureFactory failureFactory;
 
     public ResilientBuildToolingModelController(
         BuildState buildState,
         BuildLifecycleController buildController,
-        ToolingModelBuilderLookup buildScopeLookup) {
+        ToolingModelBuilderLookup buildScopeLookup,
+        boolean isConfigureOnDemand
+    ) {
         super(buildState, buildController, buildScopeLookup);
+        this.isConfigureOnDemand = isConfigureOnDemand;
+        this.failureFactory = buildController.getGradle().getServices().get(FailureFactory.class);
     }
 
     @Override
-    protected void configureProjectsForModel(ProjectState target, String modelName) {
-        try {
-            super.configureProjectsForModel(target, modelName);
-        } catch (GradleException e) {
-            rethrowExceptionIfNotResilientModel(target, modelName, e);
-        }
-    }
-
-    private static void rethrowExceptionIfNotResilientModel(ProjectState target, String modelName, GradleException e) {
-        if (target.getOwner().isProjectsConfigured()) {
-            // If the included build was fully configured, allow querying the model
-            return;
-        }
-        // For resilient models, ignore configuration failures
-        if (!RESILIENT_MODELS.contains(modelName)) {
-            throw e;
-        }
-    }
-
-    @Override
-    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
-        return new ResilientProjectToolingScope(target, modelName, param);
+    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param, ConfigurationResult configurationResult) {
+        return new ResilientProjectToolingScope(target, failureFactory, modelName, param, isConfigureOnDemand, configurationResult);
     }
 
     private static class ResilientProjectToolingScope extends ProjectToolingScope {
-        public ResilientProjectToolingScope(ProjectState target, String modelName, boolean parameter) {
+
+        private final boolean isConfigureOnDemand;
+        private final FailureFactory failureFactory;
+        private final ConfigurationResult allProjectsConfigurationResult;
+
+        public ResilientProjectToolingScope(
+            ProjectState target,
+            FailureFactory failureFactory,
+            String modelName,
+            boolean parameter,
+            boolean isConfigureOnDemand,
+            ConfigurationResult allProjectsConfigurationResult
+        ) {
             super(target, modelName, parameter);
+            this.isConfigureOnDemand = isConfigureOnDemand;
+            this.failureFactory = failureFactory;
+            this.allProjectsConfigurationResult = allProjectsConfigurationResult;
         }
 
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
-            // Force configuration of the target project to ensure all builders have been registered, but ignore failures
-            try {
-                target.ensureConfigured();
-            } catch (GradleException e) {
-                rethrowExceptionIfNotResilientModel(target, modelName, e);
-            }
-
+            // Force configuration of the target project to ensure all builders have been registered
+            ConfigurationResult configurationResult = isConfigureOnDemand || allProjectsConfigurationResult.isSuccess()
+                ? tryRunConfiguration(target::ensureConfigured)
+                : allProjectsConfigurationResult;
             ProjectInternal project = target.getMutableModelEvenAfterFailure();
             ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, parameter, target, project);
+
+            ToolingModelBuilderLookup.Builder builder = lookup.locateForClientOperation(modelName, parameter, target, project);
+            boolean isOwnerBuildSuccessfullyConfigured = target.getOwner().isProjectsConfigured();
+            return new ResilientToolingModelBuilder(builder, configurationResult, isConfigureOnDemand, isOwnerBuildSuccessfullyConfigured, failureFactory, modelName);
+        }
+    }
+
+    private static class ResilientToolingModelBuilder implements ToolingModelBuilderLookup.Builder {
+
+        private final ToolingModelBuilderLookup.Builder delegate;
+        private final ConfigurationResult configurationResult;
+        private final FailureFactory failureFactory;
+        private final boolean isConfigurationOnDemand;
+        private final boolean isOwnerBuildSuccessfullyConfigured;
+        private final String modelName;
+
+        public ResilientToolingModelBuilder(
+            ToolingModelBuilderLookup.Builder delegate,
+            ConfigurationResult result,
+            boolean isConfigurationOnDemand,
+            boolean isOwnerBuildSuccessfullyConfigured,
+            FailureFactory failureFactory,
+            String modelName
+        ) {
+            this.delegate = delegate;
+            this.configurationResult = result;
+            this.isConfigurationOnDemand = isConfigurationOnDemand;
+            this.isOwnerBuildSuccessfullyConfigured = isOwnerBuildSuccessfullyConfigured;
+            this.failureFactory = failureFactory;
+            this.modelName = modelName;
+        }
+
+        @Override
+        public @Nullable Class<?> getParameterType() {
+            return delegate.getParameterType();
+        }
+
+        @Override
+        public Object build(@Nullable Object parameter) {
+            if (configurationResult.isSuccess()) {
+                return delegate.build(parameter);
+            }
+
+            if (canRunModelBuilderOnFailure()) {
+                return delegate.build(parameter);
+            }
+
+            Failure failure = failureFactory.create(checkNotNull(configurationResult.getException()));
+            return ToolingModelBuilderResultInternal.of(ImmutableList.of(failure));
+        }
+
+        private boolean canRunModelBuilderOnFailure() {
+            if (RESILIENT_MODELS.contains(modelName)) {
+                // Some Gradle internal resilient models can run even with project failures
+                return true;
+            }
+
+            // For all other models: allow running if an owner build was fully configured (i.e., full included build), which means that another subtree of a build tree failed.
+            // For configure-on-demand, projects are configured individually, so failure at this point means that the project failed to configure, so forbid running the model builder.
+            return isOwnerBuildSuccessfullyConfigured && !isConfigurationOnDemand;
         }
     }
 }

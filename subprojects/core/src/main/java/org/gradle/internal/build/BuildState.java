@@ -89,6 +89,8 @@ public interface BuildState {
 
     /**
      * Returns true if all projects in this build have been configured successfully.
+     *
+     * Note: this will return incorrect value with configure-on-demand.
      */
     boolean isProjectsConfigured();
 

@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.util.internal.ToBeImplemented
@@ -31,6 +32,11 @@ import org.gradle.util.internal.ToBeImplemented
 @TargetGradleVersion('>=9.3')
 class CustomResilientModelCrossVersionSpec extends ToolingApiSpecification {
 
+    private static final List<String> IP_CONFIGURE_ON_DEMAND_FLAGS = [
+        "-Dorg.gradle.internal.isolated-projects.configure-on-demand=true",
+        "-Dorg.gradle.unsafe.isolated-projects=true"
+    ]
+
     def setup() {
         settingsFile.delete()
         file('init.gradle') << """
@@ -38,8 +44,8 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import javax.inject.Inject
 
-allprojects {
-    project.plugins.apply(CustomPlugin)
+gradle.lifecycle.beforeProject {
+    it.plugins.apply(CustomPlugin)
 }
 
 class CustomModel implements Serializable {
@@ -76,7 +82,7 @@ class CustomPlugin implements Plugin<Project> {
 """
     }
 
-    def "can query custom model for included build without build configuration errors, even if main project configuration fails"() {
+    def "can query custom model for included build without build configuration errors, even if main project configuration fails#description"() {
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -130,13 +136,19 @@ class CustomPlugin implements Plugin<Project> {
                 .withArguments(
                     "--init-script=${file('init.gradle').absolutePath}",
                     "-Dorg.gradle.internal.resilient-model-building=true",
+                    *extraGradleProperties
                 )
                 .run()
         }
 
         then:
-        result.successfullyQueriedProjects == ['build-logic']
-        result.failedToQueryProjects == ['root', 'a', 'b', 'c']
+        result.successfullyQueriedProjects == expectedSuccesfulProjects
+        result.failedToQueryProjects == expectedFailedProjects
+
+        where:
+        description                     | extraGradleProperties        | expectedSuccesfulProjects | expectedFailedProjects
+        ""                              | [""]                         | ['build-logic']           | ['root', 'a', 'b', 'c']
+        " with configuration-on-demand" | IP_CONFIGURE_ON_DEMAND_FLAGS | ['root', 'a', 'c', 'build-logic']           | ['b']
     }
 
     /**
@@ -234,11 +246,11 @@ class CustomPlugin implements Plugin<Project> {
         }
 
         void queryModelForProject(BuildController controller, BasicGradleProject project, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
-            try {
-                CustomModel model = controller.getModel(project, CustomModel.class)
-                assert model.value == 'greetings'
+            FetchModelResult<CustomModel> result = controller.fetch(project, CustomModel.class)
+            if (result.failures.empty) {
+                assert result.model.value == 'greetings'
                 successfulQueriedProjects.add(project.name)
-            } catch (Exception e) {
+            } else {
                 failedQueriedProjects.add(project.name)
             }
         }
