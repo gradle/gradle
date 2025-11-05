@@ -83,7 +83,7 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
                 repositories {
                     maven {
                         name = 'localRepo'
-                        url = uri('${localRepoDir.absolutePath}')
+                        url = uri('${TextUtil.escapeString(localRepoDir.absolutePath)}')
                     }
                 }
             }
@@ -118,7 +118,7 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
                 repositories {
                     maven {
                         name = 'localRepo'
-                        url = uri('${localRepoDir.absolutePath}')
+                        url = uri('${TextUtil.escapeString(localRepoDir.absolutePath)}')
                     }
                 }
             }
@@ -178,7 +178,6 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
                             .forwardStdOutput(outputWriter)
                             .build();
                 }
-
             }
         """
         pluginTestedBuilder.addBuildScriptContent("""
@@ -201,7 +200,7 @@ class TestKitWithPluginClasspathTests extends AbstractIntegrationSpec {
             pluginManagement {
                 repositories {
                     maven {
-                        url = uri('${localRepoDir.absolutePath}')
+                        url = uri('${TextUtil.escapeString(localRepoDir.absolutePath)}')
                     }
                 }
             }
