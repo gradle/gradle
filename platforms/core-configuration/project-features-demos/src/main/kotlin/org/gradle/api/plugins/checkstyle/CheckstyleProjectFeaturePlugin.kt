@@ -21,7 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
-import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration
+import org.gradle.api.internal.plugins.ProjectFeatureBinding
 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources
 import org.gradle.api.plugins.quality.Checkstyle
@@ -39,8 +39,8 @@ class CheckstyleProjectFeaturePlugin : Plugin<Project> {
      *     }
      * }
      */
-    class Binding : ProjectFeatureBindingRegistration {
-        override fun register(builder: ProjectFeatureBindingBuilder) {
+    class Binding : ProjectFeatureBinding {
+        override fun bind(builder: ProjectFeatureBindingBuilder) {
             builder.bindProjectFeatureToDefinition(
                 "checkstyle",
                 CheckstyleSourceSetDefinition::class,

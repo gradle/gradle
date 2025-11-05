@@ -17,19 +17,19 @@
 package org.gradle.api.internal.plugins;
 
 /**
- * A builder for configuring a DSL binding for a project type or project feature.
+ * A builder for further configuring a declared binding for a project type or project feature.
  *
  * @param <OwnDefinition> the type of the project type or project feature definition object
  * @param <OwnBuildModel> the type of the build model object for this project type or project feature
  */
-public interface DslBindingBuilder<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
+public interface DeclaredProjectFeatureBindingBuilder<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
     /**
      * Specify the implementation type to use when creating instances of the definition object in the DSL.
      *
      * @param implementationType the implementation type to use
      * @return this builder
      */
-    DslBindingBuilder<OwnDefinition, OwnBuildModel> withDefinitionImplementationType(Class<? extends OwnDefinition> implementationType);
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withDefinitionImplementationType(Class<? extends OwnDefinition> implementationType);
 
     /**
      * Specify the implementation type to use when creating instances of the build model object.
@@ -37,5 +37,5 @@ public interface DslBindingBuilder<OwnDefinition extends Definition<OwnBuildMode
      * @param implementationType the implementation type to use
      * @return this builder
      */
-    DslBindingBuilder<OwnDefinition, OwnBuildModel> withBuildModelImplementationType(Class<? extends OwnBuildModel> implementationType);
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withBuildModelImplementationType(Class<? extends OwnBuildModel> implementationType);
 }
