@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import spock.lang.Issue
 import spock.lang.Specification
 
 class LazySortedReferenceHashSetTest extends Specification {
@@ -89,5 +90,24 @@ class LazySortedReferenceHashSetTest extends Specification {
 
         then:
         thrown(ConcurrentModificationException)
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/35522')
+    def "can remove first element via iterator when backing array is exactly full"() {
+        given:
+        // Fill up to initial capacity so that array.length == size
+        def initialSet = (1..NodeSets.LazySortedReferenceHashSet.INITIAL_CAPACITY).collect { it.toString() }
+        set.addAll(initialSet)
+
+        when:
+        def it = set.iterator()
+        assert it.next() == "1"
+        it.remove()
+
+        then:
+        noExceptionThrown()
+
+        and:
+        set.toList() == initialSet.drop(1)
     }
 }
