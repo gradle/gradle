@@ -56,18 +56,38 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
     @Override
     public TaskDependencyContainer getDependencies() {
+        ValueSupplier.@Nullable ValueProducer delegateProducer = getDelegateProducer();
+        if (delegateProducer != null) {
+            return delegateProducer.getDependencies();
+        }
+        return TaskDependencyContainer.EMPTY;
+    }
+
+    @Override
+    public TaskDependencyContainer getContentDependencies() {
+        ValueSupplier.@Nullable ValueProducer delegateProducer = getDelegateProducer();
+        if (delegateProducer != null) {
+            return delegateProducer.getContentDependencies();
+        }
+        return TaskDependencyContainer.EMPTY;
+    }
+
+    private ValueSupplier.@Nullable ValueProducer getDelegateProducer() {
         try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
-                    return leftProducer.getDependencies();
+                    return leftProducer;
                 }
-                return TaskDependencyContainer.EMPTY;
+
+                return null;
             }
+
             if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
-                return rightProducer.getDependencies();
+                return rightProducer;
             }
+
+            return null;
         }
-        return TaskDependencyContainer.EMPTY;
     }
 
     private boolean mayHaveValue(ProviderInternal<?> provider) {
