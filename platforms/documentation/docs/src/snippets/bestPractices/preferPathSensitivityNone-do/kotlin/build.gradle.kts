@@ -27,7 +27,7 @@ val alternateInputsDir = layout.buildDirectory.dir("alternateInputs")
 tasks.register<AnimalSearchTask>("search") {
     find = "cat"
     if (project.hasProperty("useAlternateInput")) {
-        candidatesFile = alternateInputsDir.flatMap { project.provider { it.file("candidates.txt") } }
+        candidatesFile = alternateInputsDir.map { it.file("candidates.txt") }
     } else {
         candidatesFile = originalCandidatesFile
     }
