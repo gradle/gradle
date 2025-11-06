@@ -18,8 +18,10 @@ package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.GradleException;
+import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
@@ -44,8 +46,10 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     protected void configureProjectsForModel(String modelName) {
         try {
             super.configureProjectsForModel(modelName);
-        } catch (GradleException e) {
+        } catch (ProjectConfigurationException | TaskExecutionException e) {
             rethrowExceptionIfNotResilientModel(modelName, e);
+        } catch (RuntimeException re) {
+            throw re;
         }
     }
 

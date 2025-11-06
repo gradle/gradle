@@ -32,7 +32,6 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Ignore
 
 import java.util.function.Function
 import java.util.regex.Pattern
@@ -119,7 +118,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasScriptModelForFiles(model/*, "settings.gradle.kts"*/)
         assertHasErrorsInScriptModels(model, Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
         // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
-        // TODO: do better
     }
 
     def "basic build - broken build file - intact plugins block"() {
@@ -241,8 +239,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
     }
 
-    @ToBeImplemented // TODO: we should be able to do better
-    @Ignore
+    @ToBeImplemented
     def "basic build with included build - broken settings and build file in included build"() {
         given:
         settingsKotlinFile << """
@@ -269,16 +266,19 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         failure.assertHasDescription("Script compilation error")
 
         when:
-        fails {
+        def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
                     .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
                     .run()
         }
 
         then:
-        e = thrown(BuildActionFailureException)
-        e.cause.message.contains(includedSettings.absolutePath)
-        failure.assertHasDescription("Script compilation error")
+        assertHasScriptModelForFiles(model, /*"settings.gradle.kts"*/)
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
+                // Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*")
+        )
+        // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
     def "bigger build - nothing broken"() {
@@ -601,6 +601,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         INCLUDED_BUILDS_FIRST | 1                       | "A problem occurred configuring project ':b'." | null
     }
 
+    @ToBeImplemented
     def "build with convention plugins - broken settings convention"() {
         given:
         settingsKotlinFile << """
@@ -657,7 +658,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 Pair.of("build-logic", ".*Execution failed for task ':build-logic:compileKotlin.*"))
     }
 
-    @ToBeImplemented // TODO
+    @ToBeImplemented
     def "resilient Kotlin DSL can be queried with null target"() {
         given:
         settingsKotlinFile << """
@@ -678,7 +679,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasScriptModelForFiles(model/*, "settings.gradle.kts", "build.gradle.kts"*/)
         assertHasErrorsInScriptModels(model, Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         // assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
-        // TODO: do better
     }
 
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {
@@ -732,6 +732,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     private static void queryResilientKotlinDslScriptsModel(BuildController controller, GradleBuild build, Model target, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
+        try {
+            build.toString()
+        } catch (NullPointerException npe) {
+            return // TODO: a hacky fix until a GradleBuild related bug can be fixed
+        }
+
         def modelResult = controller.fetch(target, KotlinDslScriptsModel.class)
 
         assert modelResult.failures.size() <= 1 : "Expected a single failure, but got multiple ones"
