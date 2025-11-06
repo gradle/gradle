@@ -84,7 +84,9 @@ public final class NodeSets {
         @Override
         public boolean remove(Object o) {
             if (set.remove(o)) {
-                removeIndex(indexOf(o));
+                int index = indexOf(o);
+                assert index >= 0;
+                removeIndex(index);
                 return true;
             }
             return false;
