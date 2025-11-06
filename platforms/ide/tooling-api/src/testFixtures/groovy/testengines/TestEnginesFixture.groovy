@@ -16,10 +16,6 @@
 //file:noinspection unused
 
 package testengines
-
-
-import org.gradle.util.internal.TextUtil
-
 /**
  * TODO use the original TestEnginesFixture from testing-jvm.
  */
@@ -37,10 +33,11 @@ trait TestEnginesFixture {
                 useJUnitJupiter()
 
                 dependencies {
-                    implementation files("${TextUtil.normaliseFileSeparators(enginePath)}")
+                    implementation files("${enginePath.replace(File.separatorChar, '/' as char)}")
                 }
         """
     }
+
 
     enum TestEngines {
         BASIC_RESOURCE_BASED("rbt-engine"),

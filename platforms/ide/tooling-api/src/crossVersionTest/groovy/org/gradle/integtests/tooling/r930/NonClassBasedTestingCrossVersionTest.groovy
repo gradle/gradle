@@ -26,7 +26,6 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 import testengines.TestEnginesFixture
 
 @TargetGradleVersion(">=9.3.0")
-@ToolingApiVersion(">=9.3.0")
 class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification implements TestEnginesFixture {
 
     public static final DEFAULT_DEFINITIONS_LOCATION = "src/test/definitions"
@@ -124,6 +123,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
         excludingJupiter << [true, false]
     }
 
+    @ToolingApiVersion(">=9.3.0")
     def "Can rerun resource-based test task based on descriptors but cannot filter for individual scenarios"() {
         given:
         buildFile << """
@@ -176,6 +176,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
     }
 
 
+    @ToolingApiVersion(">=9.3.0")
     def "Receives detailed information about non-class-based test execution (excluding jupiter engine = #excludingJupiter)"() {
         given:
         buildFile << """
