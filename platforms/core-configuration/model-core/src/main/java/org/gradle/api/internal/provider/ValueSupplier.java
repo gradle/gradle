@@ -62,9 +62,7 @@ public interface ValueSupplier {
 
         TaskDependencyContainer getDependencies();
 
-        default TaskDependencyContainer getContentDependencies() {
-            return getDependencies();
-        }
+        TaskDependencyContainer getContentDependencies();
 
         default ValueProducer plus(ValueProducer producer) {
             if (this == NO_PRODUCER) {
@@ -151,6 +149,14 @@ public interface ValueSupplier {
                 right.getDependencies().visitDependencies(context);
             };
         }
+
+        @Override
+        public TaskDependencyContainer getContentDependencies() {
+            return context -> {
+                left.getContentDependencies().visitDependencies(context);
+                right.getContentDependencies().visitDependencies(context);
+            };
+        }
     }
 
     class UnknownProducer implements ValueProducer {
@@ -163,11 +169,21 @@ public interface ValueSupplier {
         public TaskDependencyContainer getDependencies() {
             return TaskDependencyContainer.EMPTY;
         }
+
+        @Override
+        public TaskDependencyContainer getContentDependencies() {
+            return TaskDependencyContainer.EMPTY;
+        }
     }
 
     class NoProducer implements ValueProducer {
         @Override
         public TaskDependencyContainer getDependencies() {
+            return TaskDependencyContainer.EMPTY;
+        }
+
+        @Override
+        public TaskDependencyContainer getContentDependencies() {
             return TaskDependencyContainer.EMPTY;
         }
     }
