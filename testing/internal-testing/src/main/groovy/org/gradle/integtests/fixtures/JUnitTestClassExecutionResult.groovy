@@ -81,6 +81,23 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    @Override
+    TestClassExecutionResult assertMetadata(Map<String, String> props) {
+        def properties = testClassNode.properties
+        def found = properties.children().collectEntries { [it.@name.text(), it.@value.text()] }
+        assert found == props
+        this
+    }
+
+    @Override
+    TestClassExecutionResult assertTestMetadata(String name, Map<String, String> props) {
+        def test = testCase(name)
+        def properties = test.properties
+        def found = properties.children().collectEntries { [it.@name.text(), it.@value.text()] }
+        assert found == props
+        this
+    }
+
     int getTestCount() {
         return testClassNode.@tests.toInteger()
     }
