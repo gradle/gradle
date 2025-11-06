@@ -73,7 +73,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
 
         then:
         events.tests.size() == 5 // task + executor + 3 tests
-        def test1 = events.operation('Test SomeTestSpec.rbt : foo') // TODO (donat) the display name should not say UnknownClass.
+        def test1 = events.operation('Test SomeTestSpec.rbt : foo')
         def test2 = events.operation('Test SomeTestSpec.rbt : bar')
         def test3 = events.operation('Test subSomeOtherTestSpec.rbt : other')
 
@@ -116,7 +116,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
 
         then:
         events.tests.size() == 5 // task + executor + 3 tests
-        def test1 = events.operation('Test SomeTestSpec.rbt : foo') // TODO (donat) the display name should not say UnknownClass.
+        def test1 = events.operation('Test SomeTestSpec.rbt : foo')
         def test2 = events.operation('Test SomeTestSpec.rbt : bar')
         def test3 = events.operation('Test subSomeOtherTestSpec.rbt : other')
 
@@ -211,7 +211,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
 
         then:
         events.tests.size() == 5 // task + executor + 3 tests
-        def test1 = events.operation('Test SomeTestSpec.rbt : foo') // TODO (donat) the display name should not say UnknownClass.
+        def test1 = events.operation('Test SomeTestSpec.rbt : foo')
         def test2 = events.operation('Test SomeTestSpec.rbt : bar')
         def test3 = events.operation('Test subSomeOtherTestSpec.rbt : other')
 
