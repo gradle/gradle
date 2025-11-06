@@ -40,14 +40,22 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     @Override
-    public @Nullable File resolveScriptFile(File dir, String basename) {
+    public ScriptResolutionResult resolveScriptFile(File dir, String basename) {
+        File selectedCandidate = null;
+        List<File> ignoredCandidates = new ArrayList<>();
+
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
             if (isCandidateFile(candidate)) {
-                return candidate;
+                if (selectedCandidate == null) {
+                    selectedCandidate = candidate;
+                } else {
+                    ignoredCandidates.add(candidate);
+                }
             }
         }
-        return null;
+
+        return new ScriptResolutionResult(dir, basename, selectedCandidate, ignoredCandidates);
     }
 
     private boolean isCandidateFile(File candidate) {
