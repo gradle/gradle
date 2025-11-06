@@ -18,15 +18,13 @@ package org.gradle.integtests.tooling.r930
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.ResourceBasedTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
-import testengines.TestEnginesFixture
 
 @TargetGradleVersion(">=9.3.0")
-class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification implements TestEnginesFixture {
+class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingCrossVersionTest {
 
     public static final DEFAULT_DEFINITIONS_LOCATION = "src/test/definitions"
 
@@ -47,7 +45,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
             ${mavenCentralRepository()}
 
             testing.suites.test {
-                ${enableEngineForSuite(buildContext.testFile("src/testFixtures/resources/test-engine-build.jar").absolutePath)}
+                ${enableEngineForSuite()}
 
                 targets.all {
                     testTask.configure {
@@ -90,7 +88,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
             ${mavenCentralRepository()}
 
             testing.suites.test {
-                ${enableEngineForSuite(buildContext.testFile("src/testFixtures/resources/test-engine-build.jar").absolutePath)}
+                ${enableEngineForSuite()}
 
                 targets.all {
                     testTask.configure {
@@ -134,7 +132,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
             ${mavenCentralRepository()}
 
             testing.suites.test {
-                ${enableEngineForSuite(buildContext.testFile("src/testFixtures/resources/test-engine-build.jar").absolutePath)}
+                ${enableEngineForSuite()}
 
                 targets.all {
                     testTask.configure {
@@ -187,7 +185,7 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
             ${mavenCentralRepository()}
 
             testing.suites.test {
-                ${enableEngineForSuite(buildContext.testFile("src/testFixtures/resources/test-engine-build.jar").absolutePath)}
+                ${enableEngineForSuite()}
 
                 targets.all {
                     testTask.configure {
@@ -236,19 +234,5 @@ class NonClassBasedTestingCrossVersionTest extends ToolingApiSpecification imple
 
         where:
         excludingJupiter << [true, false]
-    }
-
-    protected void writeTestDefinitions(String path = "src/test/definitions") {
-        file("$path/SomeTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
-            <tests>
-                <test name="foo" />
-                <test name="bar" />
-            </tests>
-        """
-        file("$path/subSomeOtherTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
-            <tests>
-                <test name="other" />
-            </tests>
-        """
     }
 }

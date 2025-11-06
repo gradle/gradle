@@ -82,6 +82,7 @@ trait TestEnginesFixture {
         """
     }
 
+    // if a new  test engine is added, add it to the AbstractResourceBasedTestingCrossVersionTest as well
     enum TestEngines {
         BASIC_RESOURCE_BASED("rbt-engine"),
         MULTI_FILE_RESOURCE_BASED("multi-file-rbt-engine"),

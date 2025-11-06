@@ -86,11 +86,11 @@ public class TestResources implements MethodRule {
         }
         TestFile dir = resources.findResource(resource);
         if (dir != null) {
-            logger.debug("Copying test resource '{}' from {} to test directory.", resource, dir);
+            logger.warn("Copying test resource '{}' from {} to test directory.", resource, dir);
             dir.copyTo(getDir());
             return true;
         } else {
-            logger.debug("Test resource '{}' not found, skipping.", resource);
+            logger.warn("Test resource '{}' not found, skipping.", resource);
             return false;
         }
     }
