@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
+import org.gradle.api.internal.tasks.testing.TestSources
+import org.gradle.api.tasks.testing.TestSource
 
 class SimpleTestDescriptor implements TestDescriptorInternal {
     String name = "testName"
@@ -30,7 +32,7 @@ class SimpleTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
-    String getSource() {
-        return "unknown"
+    TestSource getSource() {
+        return TestSources.unknown()
     }
 }

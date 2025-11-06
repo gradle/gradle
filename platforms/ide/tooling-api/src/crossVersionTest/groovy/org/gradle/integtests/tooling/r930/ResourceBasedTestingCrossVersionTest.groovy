@@ -120,7 +120,7 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         where:
         excludingJupiter << [true, false]
     }
-
+    
     @ToolingApiVersion(">=9.3.0")
     def "Can rerun resource-based test task based on descriptors but cannot filter for individual scenarios"() {
         given:

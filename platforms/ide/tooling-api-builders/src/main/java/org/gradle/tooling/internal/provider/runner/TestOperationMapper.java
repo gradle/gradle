@@ -20,9 +20,11 @@ import org.gradle.api.internal.tasks.testing.AbstractTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
+import org.gradle.api.tasks.testing.FileSource;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.TestSource;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractTestResult;
 import org.gradle.internal.build.event.types.DefaultFileComparisonTestAssertionFailure;
@@ -101,9 +103,9 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
 
-        String source = suite.getSource();
-        if (source != null && !source.contains("unknown")) {
-            return new DefaultResourceBasedTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId), source);
+        TestSource source = suite.getSource();
+        if (source instanceof FileSource) {
+            return new DefaultResourceBasedTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId), ((FileSource) source).getFile().getAbsolutePath());
         }
 
         return new DefaultTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId));
@@ -119,9 +121,9 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
 
-        String source = test.getSource();
-        if (source != null && !source.contains("unknown")) {
-            return new DefaultResourceBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId), source);
+        TestSource source = test.getSource();
+        if (source instanceof FileSource) {
+            return new DefaultResourceBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId), ((FileSource) source).getFile().getAbsolutePath());
         }
 
         return new DefaultTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId));

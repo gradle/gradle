@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestSources;
+import org.gradle.api.tasks.testing.TestSource;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -48,8 +50,8 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
-    public String getSource() {
-        return "unknown";
+    public TestSource getSource() {
+        return TestSources.unknown();
     }
 
     @Override

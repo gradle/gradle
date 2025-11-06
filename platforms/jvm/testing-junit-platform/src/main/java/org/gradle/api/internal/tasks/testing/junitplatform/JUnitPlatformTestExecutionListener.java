@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestSources;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.failure.DefaultThrowableToTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.TestFailureMapper;
@@ -37,6 +38,7 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFai
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
+import org.gradle.api.tasks.testing.TestSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
@@ -49,7 +51,6 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.reporting.FileEntry;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
-import org.junit.platform.engine.support.descriptor.FileSystemSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
@@ -307,11 +308,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName, sourceOf(node));
     }
 
-    private static String sourceOf(TestIdentifier node) {
+    private static TestSource sourceOf(TestIdentifier node) {
         return node.getSource()
-            .filter(FileSystemSource.class::isInstance)
-            .map(source -> ((FileSystemSource) source).getFile().getAbsolutePath())
-            .orElse("unknown");
+            .filter(org.junit.platform.engine.support.descriptor.FileSource.class::isInstance)
+            .map(source -> (TestSource) TestSources.fileSource(((org.junit.platform.engine.support.descriptor.FileSource) source).getFile()))
+            .orElse(TestSources.unknown());
     }
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {

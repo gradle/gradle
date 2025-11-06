@@ -40,7 +40,7 @@ public class DefaultResourceBasedTestDescriptor extends DefaultTestDescriptor im
         @Nullable String methodName,
         OperationIdentifier parentId,
         String taskPath,
-        String resourcePath
+        String resourcePath // TODO (donat) make it a File reference
     ) {
         super(
             id,

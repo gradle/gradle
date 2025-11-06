@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.TestSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 @UsedByScanPlugin("test-distribution")
@@ -23,10 +24,10 @@ public class DefaultTestSuiteDescriptor extends AbstractTestDescriptor {
 
     @UsedByScanPlugin("test-distribution")
     public DefaultTestSuiteDescriptor(Object id, String name) {
-        this(id, name, "unknown");
+        this(id, name, TestSources.unknown());
     }
 
-    public DefaultTestSuiteDescriptor(Object id, String name, String source) {
+    public DefaultTestSuiteDescriptor(Object id, String name, TestSource source) {
         super(id, name, source);
     }
 

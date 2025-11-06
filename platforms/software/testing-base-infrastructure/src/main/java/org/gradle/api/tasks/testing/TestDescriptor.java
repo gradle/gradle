@@ -77,5 +77,5 @@ public interface TestDescriptor {
      * @since 9.3.0
      */
     @Incubating
-    String getSource();
+    TestSource getSource();
 }
