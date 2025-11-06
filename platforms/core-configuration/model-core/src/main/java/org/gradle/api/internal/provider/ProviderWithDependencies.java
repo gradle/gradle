@@ -43,11 +43,14 @@ public class ProviderWithDependencies<T> extends AbstractProviderWithValue<T> {
 
     @Override
     public ValueProducer getProducer() {
-        // not a lambda for readability purposes.
-        //noinspection Convert2Lambda
         return new ValueProducer() {
             @Override
             public TaskDependencyContainer getDependencies() {
+                return dependencies;
+            }
+
+            @Override
+            public TaskDependencyContainer getContentDependencies() {
                 return dependencies;
             }
         };

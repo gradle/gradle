@@ -138,5 +138,14 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
                 }
             };
         }
+
+        @Override
+        public TaskDependencyContainer getContentDependencies() {
+            return context -> {
+                for (ValueProducer item : items) {
+                    item.getContentDependencies().visitDependencies(context);
+                }
+            };
+        }
     }
 }
