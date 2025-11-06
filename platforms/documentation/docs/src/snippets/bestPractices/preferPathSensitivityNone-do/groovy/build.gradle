@@ -27,7 +27,7 @@ def alternateInputsDir = layout.buildDirectory.dir("alternateInputs")
 tasks.register("search", AnimalSearchTask) {
     find = "cat"
     if (project.hasProperty("useAlternateInput")) {
-        candidatesFile = alternateInputsDir.flatMap { project.provider(() -> it.file("candidates.txt")) }
+        candidatesFile = alternateInputsDir.map { it.file("candidates.txt") }
     } else {
         candidatesFile = originalCandidatesFile
     }
