@@ -85,7 +85,9 @@ public final class NodeSets {
         public boolean remove(Object o) {
             if (set.remove(o)) {
                 int index = indexOf(o);
-                assert index >= 0;
+                if (index < 0) {
+                    throw new ConcurrentModificationException();
+                }
                 removeIndex(index);
                 return true;
             }
