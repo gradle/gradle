@@ -123,9 +123,9 @@ The following graph describes how configurations are setup when the Java Library
 
 image::java-library-ignore-deprecated-main.png[]
 
-* The configurations in _green_ are the ones a user should use to declare dependencies
+* The configurations in _blue_ are the ones a user should use to declare dependencies
 * The configurations in _pink_ are the ones used when a component compiles, or runs against the library
-* The configurations in _blue_ are internal to the component, for its own use
+* The configurations in _green_ are internal to the component, for its own use
 
 And the next graph describes the test configurations setup:
 
