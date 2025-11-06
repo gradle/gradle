@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.results.serializable.OutputTrackedR
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.function.Consumer;
 
@@ -42,7 +44,61 @@ import java.util.function.Consumer;
  */
 public class TestTreeModel {
 
-    private static final TestTreeModel EMPTY_MODEL = new TestTreeModel(Path.ROOT, ImmutableList.of(), ImmutableList.of());
+    private static final TestTreeModel EMPTY_MODEL = new TestTreeModel(SmallPath.ROOT, ImmutableList.of(), ImmutableList.of());
+
+    /**
+     * Variant of {@link Path} optimized for minimal memory usage.
+     * It is constructed strictly in a tree-like fashion, to allow sharing memory between parents and children,
+     * and also allowing the segment string to be shared with other code, like the test result itself.
+     */
+    private static final class SmallPath {
+        public static final SmallPath ROOT = new SmallPath(null, "");
+
+        @Nullable
+        private final SmallPath parent;
+        private final String segment;
+
+        private SmallPath(@Nullable SmallPath parent, String segment) {
+            this.parent = parent;
+            this.segment = segment;
+        }
+
+        public SmallPath child(String segment) {
+            return new SmallPath(this, segment);
+        }
+
+        public Path toPath() {
+            if (parent == null) {
+                return Path.ROOT;
+            } else {
+                return parent.toPath().child(segment);
+            }
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof SmallPath)) {
+                return false;
+            }
+            SmallPath other = (SmallPath) obj;
+            if (!segment.equals(other.segment)) {
+                return false;
+            }
+            if (parent == null) {
+                return other.parent == null;
+            } else {
+                return parent.equals(other.parent);
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(segment, parent);
+        }
+    }
 
     /**
      * Load and merge a list of test result stores into a single tree model.
@@ -51,13 +107,13 @@ public class TestTreeModel {
      * @return the merged tree model
      */
     public static TestTreeModel loadModelFromStores(List<SerializableTestResultStore> stores) throws IOException {
-        Map<Path, TestTreeModel.Builder> modelsByPath = new HashMap<>();
+        Map<SmallPath, TestTreeModel.Builder> modelsByPath = new HashMap<>();
         int rootCount = stores.size();
         for (int i = 0; i < rootCount; i++) {
             SerializableTestResultStore store = stores.get(i);
             store.forEachResult(new StoreLoader(rootCount, i, modelsByPath));
         }
-        TestTreeModel.Builder rootBuilder = modelsByPath.get(Path.ROOT);
+        TestTreeModel.Builder rootBuilder = modelsByPath.get(SmallPath.ROOT);
         if (rootBuilder == null) {
             return EMPTY_MODEL;
         }
@@ -78,10 +134,10 @@ public class TestTreeModel {
 
         private final int rootCount;
         private final int rootIndex;
-        private final Map<Path, TestTreeModel.Builder> modelsByPath;
+        private final Map<SmallPath, TestTreeModel.Builder> modelsByPath;
         private final ListMultimap<Long, Child> childrenByParentId;
 
-        public StoreLoader(int rootCount, int rootIndex, Map<Path, TestTreeModel.Builder> modelsByPath) {
+        public StoreLoader(int rootCount, int rootIndex, Map<SmallPath, TestTreeModel.Builder> modelsByPath) {
             this.rootCount = rootCount;
             this.rootIndex = rootIndex;
             this.modelsByPath = modelsByPath;
@@ -122,13 +178,13 @@ public class TestTreeModel {
             OptionalLong parentOutputId = result.getParentId();
             if (!parentOutputId.isPresent()) {
                 // We have the root, so now we can resolve all paths and attach to the models.
-                finalizePath(Path.ROOT, result.getId(), thisInfo);
+                finalizePath(SmallPath.ROOT, result.getId(), thisInfo);
             } else {
                 childrenByParentId.put(parentOutputId.getAsLong(), new Child(result.getId(), thisInfo));
             }
         }
 
-        private void finalizePath(Path path, long id, PerRootInfo.Builder rootInfo) {
+        private void finalizePath(SmallPath path, long id, PerRootInfo.Builder rootInfo) {
             // We use LinkedHashMap for the roots to keep them in the order of declaration in TestReport.
             // We use LinkedHashMap for the children to keep them in the order of results in the store.
             TestTreeModel.Builder model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel.Builder(rootCount, p));
@@ -157,7 +213,7 @@ public class TestTreeModel {
 
             for (Child child : children) {
                 String name = child.info.getName();
-                Path childPath = path.child(name);
+                SmallPath childPath = path.child(name);
                 finalizePath(childPath, child.id, child.info);
                 model.children.computeIfAbsent(name, n -> modelsByPath.get(childPath));
             }
@@ -165,11 +221,11 @@ public class TestTreeModel {
     }
 
     private static final class Builder {
-        private final Path path;
+        private final SmallPath path;
         private final List<List<PerRootInfo.Builder>> perRootInfoBuilders;
         final Map<String, TestTreeModel.Builder> children = new LinkedHashMap<>();
 
-        private Builder(int rootCount, Path path) {
+        private Builder(int rootCount, SmallPath path) {
             this.perRootInfoBuilders = new ArrayList<>(rootCount);
             for (int i = 0; i < rootCount; i++) {
                 perRootInfoBuilders.add(new ArrayList<>());
@@ -214,12 +270,12 @@ public class TestTreeModel {
         }
     }
 
-    private final Path path;
+    private final SmallPath path;
     private final List<List<PerRootInfo>> perRootInfo;
     private final List<TestTreeModel> children;
 
     private TestTreeModel(
-        Path path,
+        SmallPath path,
         List<List<PerRootInfo>> perRootInfo,
         List<TestTreeModel> children
     ) {
@@ -234,7 +290,7 @@ public class TestTreeModel {
      * @return the path of this node
      */
     public Path getPath() {
-        return path;
+        return path.toPath();
     }
 
     /**
@@ -261,7 +317,7 @@ public class TestTreeModel {
         // Take a unique ordered set of the child names, to only return one result per unique child name.
         // Consumers of this should iterate over the getPerRootInfo() to get all results for a given child name.
         ImmutableSet<String> childNames = ImmutableSet.copyOf(perRootInfoWithChildren.getChildren());
-        return Iterables.filter(children, c -> childNames.contains(c.path.getName()));
+        return Iterables.filter(children, c -> childNames.contains(c.path.segment));
     }
 
     /**
@@ -310,6 +366,7 @@ public class TestTreeModel {
             for (int i = 0; i < indent; i++) {
                 appendable.append(' ');
             }
+            Path path = getPath();
             String name = path.segmentCount() == 0 ? ":" : path.getName();
             appendable.append("- ").append(name).append('\n');
             for (TestTreeModel child : children) {

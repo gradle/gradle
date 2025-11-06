@@ -212,12 +212,13 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         TestTreeModel current = leaf;
         TestTreeModel parent;
         while ((parent = parentOfPath.get(current.getPath())) != null) {
-            if (className != null && className.equals(parent.getPath().getName())) {
+            org.gradle.util.Path parentPath = parent.getPath();
+            if (className != null && className.equals(parentPath.getName())) {
                 return parent;
             }
             // Pick highest non-root node if no class name match
             // But don't group the leaf using itself, that doesn't make sense.
-            boolean parentHasParent = parentOfPath.containsKey(parent.getPath());
+            boolean parentHasParent = parentOfPath.containsKey(parentPath);
             if (!parentHasParent && current != leaf) {
                 // Parent is the root, so the current is the highest non-root node
                 return current;

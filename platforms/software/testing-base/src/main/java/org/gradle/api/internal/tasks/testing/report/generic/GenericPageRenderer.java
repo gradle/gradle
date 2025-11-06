@@ -72,17 +72,18 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     }
 
     private void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
-        if (getModel().getPath().equals(Path.ROOT)) {
+        Path path = getModel().getPath();
+        if (path.equals(Path.ROOT)) {
             return;
         }
         htmlWriter.startElement("div").attribute("class", "breadcrumbs");
-        for (Path path : getModel().getPath().ancestors()) {
-            String title = path.equals(Path.ROOT) ? "all" : path.getName();
+        for (Path ancestorPath : path.ancestors()) {
+            String title = ancestorPath.equals(Path.ROOT) ? "all" : ancestorPath.getName();
             htmlWriter.startElement("a")
                 .attribute("class", "breadcrumb")
                 .attribute("href", getUrlTo(
-                    getModel().getPath(), getModel().getChildren().isEmpty(),
-                    path, false
+                    path, getModel().getChildren().isEmpty(),
+                    ancestorPath, false
                 ))
                 .characters(title)
                 .endElement();
@@ -90,7 +91,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         }
         htmlWriter.startElement("span")
             .attribute("class", "breadcrumb")
-            .characters(getModel().getPath().getName())
+            .characters(path.getName())
             .endElement();
         htmlWriter.endElement();
     }
