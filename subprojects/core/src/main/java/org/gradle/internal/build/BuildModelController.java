@@ -58,5 +58,5 @@ public interface BuildModelController {
     /**
      * Returns true if all projects in this build have been configured successfully.
      */
-    boolean isProjectsConfigured();
+    boolean isBuildConfigured();
 }

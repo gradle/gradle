@@ -57,13 +57,13 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Verifies that the current state is the given state or some later state. Ignores any transition in progress and failures of previous operations.
+     * Verifies that the given state was reached, even if there were failures afterward.
      *
      * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
      */
-    public boolean inStateOrLater(T expected) {
+    public boolean inStateOrLaterIgnoringFailures(T expected) {
         CurrentState<T> current = state;
-        return current.hasSeenStateIgnoringTransitions(expected);
+        return current.hasSeenStateIgnoringTransitionsOrFailures(expected);
     }
 
     /**

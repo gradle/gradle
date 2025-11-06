@@ -155,8 +155,8 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
-    public boolean isProjectsConfigured() {
-        return getBuildController().isProjectsConfigured();
+    public boolean isBuildConfigured() {
+        return getBuildController().isBuildConfigured();
     }
 
     @Override

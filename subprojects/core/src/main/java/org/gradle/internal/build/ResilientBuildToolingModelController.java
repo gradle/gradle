@@ -28,6 +28,7 @@ import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInter
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -80,14 +81,18 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             // Force configuration of the target project to ensure all builders have been registered
-            ConfigurationResult configurationResult = isConfigureOnDemand || fullBuildConfigurationResult.isSuccess()
-                ? tryRunConfiguration(target::ensureConfigured)
-                : fullBuildConfigurationResult;
+            ConfigurationResult projectConfigurationResult = tryRunConfiguration(target::ensureConfigured);
+
+            // For configure-on-demand, we care only about the project configuration result.
+            ConfigurationResult configurationResult = isConfigureOnDemand
+                ? projectConfigurationResult
+                : ConfigurationResult.firstFailed(projectConfigurationResult, fullBuildConfigurationResult);
+
             ProjectInternal project = target.getMutableModelEvenAfterFailure();
             ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
 
             ToolingModelBuilderLookup.Builder builder = lookup.locateForClientOperation(modelName, parameter, target, project);
-            boolean isOwnerBuildSuccessfullyConfigured = target.getOwner().isProjectsConfigured();
+            boolean isOwnerBuildSuccessfullyConfigured = target.getOwner().isBuildConfigured();
             return new ResilientToolingModelBuilder(builder, configurationResult, isConfigureOnDemand, isOwnerBuildSuccessfullyConfigured, failureFactory, modelName);
         }
     }
@@ -129,17 +134,23 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             }
 
             if (!canRunModelBuilderOnFailure()) {
-                Failure failure = failureFactory.create(checkNotNull(configurationResult.getException()));
-                return ToolingModelBuilderResultInternal.of(ImmutableList.of(failure));
+                List<Failure> failures = exceptionsAsFailures(configurationResult);
+                return ToolingModelBuilderResultInternal.of(failures);
             }
 
             Object model = delegate.build(parameter);
             if (!isProjectConfigurationSuccessfulEvenOnBuildFailure()) {
-                Failure failure = failureFactory.create(checkNotNull(configurationResult.getException()));
-                return ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failure));
+                List<Failure> failures = exceptionsAsFailures(configurationResult);
+                return ToolingModelBuilderResultInternal.attachFailures(model, failures);
             }
 
             return model;
+        }
+
+        private List<Failure> exceptionsAsFailures(ConfigurationResult configurationResult) {
+            return configurationResult.isFailure()
+                ? ImmutableList.of(failureFactory.create(checkNotNull(configurationResult.getException())))
+                : ImmutableList.of();
         }
 
         private boolean canRunModelBuilderOnFailure() {

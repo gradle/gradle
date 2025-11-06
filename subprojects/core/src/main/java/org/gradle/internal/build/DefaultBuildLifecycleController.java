@@ -129,8 +129,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public boolean isProjectsConfigured() {
-        return modelController.isProjectsConfigured();
+    public boolean isBuildConfigured() {
+        return modelController.isBuildConfigured();
     }
 
     @Override

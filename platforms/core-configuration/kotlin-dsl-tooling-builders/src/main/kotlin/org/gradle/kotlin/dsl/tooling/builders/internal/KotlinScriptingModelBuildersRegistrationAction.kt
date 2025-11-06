@@ -18,13 +18,11 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.project.ProjectConfigureAction
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelBuilder
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
-import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 
@@ -40,7 +38,7 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
         val isRootProject = project.parent == null
         if (isRootProject) {
             val builder = getBuilder(project)
-            registry.register(makeResilientIfNecessary(builder, project))
+            registry.register(builder)
             project.tasks.register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
         }
     }
@@ -54,16 +52,6 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
                 IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider)
             }
             else -> KotlinDslScriptsModelBuilder
-        }
-    }
-
-    private fun makeResilientIfNecessary(builder: AbstractKotlinDslScriptsModelBuilder, project: ProjectInternal) : ToolingModelBuilder {
-        val modelParameters = project.serviceOf<BuildModelParameters>()
-        return if (modelParameters.isResilientModelBuilding) {
-            val failureFactory = project.serviceOf<FailureFactory>()
-            ResilientKotlinDslScriptsModelBuilder(builder, failureFactory)
-        } else {
-            builder
         }
     }
 }

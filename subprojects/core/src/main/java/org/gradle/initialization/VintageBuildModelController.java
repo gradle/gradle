@@ -76,8 +76,8 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     @Override
-    public boolean isProjectsConfigured() {
-        return state.inStateOrLater(Stage.Configured);
+    public boolean isBuildConfigured() {
+        return state.inStateOrLaterIgnoringFailures(Stage.Configured);
     }
 
     private void prepareSettings() {

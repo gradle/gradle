@@ -591,14 +591,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         rootBuildFailure?.with {
             expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], it)
         }
-        includedBuildFailure?.with {
-            expectFailureToContain(resilientModels.failures[included], it)
-        }
+        resilientModels.failures[included] == null
 
         where:
-        queryStrategy         | expectedNoOfFailures    | rootBuildFailure                               | includedBuildFailure
-        ROOT_PROJECT_FIRST    | 2                       | "A problem occurred configuring project ':b'." | "Execution failed for task ':build-logic:compileKotlin'."
-        INCLUDED_BUILDS_FIRST | 1                       | "A problem occurred configuring project ':b'." | null
+        queryStrategy         | expectedNoOfFailures | rootBuildFailure                               | includedBuildFailure
+        ROOT_PROJECT_FIRST    | 1                    | "A problem occurred configuring project ':b'." | null
+        INCLUDED_BUILDS_FIRST | 1                    | "A problem occurred configuring project ':b'." | null
     }
 
     def "build with convention plugins - broken settings convention"() {
@@ -683,7 +681,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {
         def scriptModels = model.scriptModels
-        assert scriptModels.size() == expectedFiles.size(): "Expected ${expectedFiles.size()} script models, but got ${scriptModels.size()} "
+        def scriptModelsFiles = scriptModels.keySet()
+        assert scriptModelsFiles.size() == expectedFiles.size(): "Expected ${expectedFiles.size()} script models, but got ${scriptModels.size()} "
 
         for (String expectedFile : expectedFiles) {
             assert scriptModels.containsKey(new File(projectDir, expectedFile)): "No script model for file $expectedFile"

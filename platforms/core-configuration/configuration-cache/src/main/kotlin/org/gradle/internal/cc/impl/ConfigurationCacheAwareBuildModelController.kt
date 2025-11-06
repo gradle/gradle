@@ -56,9 +56,9 @@ class ConfigurationCacheAwareBuildModelController(
         } // Else, already scheduled
     }
 
-    override fun isProjectsConfigured(): Boolean {
+    override fun isBuildConfigured(): Boolean {
         return if (!maybeLoadFromCache()) {
-            delegate.isProjectsConfigured()
+            delegate.isBuildConfigured()
         } else {
             // Else already done
             true

@@ -152,6 +152,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     protected static class ConfigurationResult {
+
         @Nullable
         private final GradleException exception;
 
@@ -184,6 +185,10 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             if (exception != null) {
                 throw exception;
             }
+        }
+
+        protected static ConfigurationResult firstFailed(ConfigurationResult first, ConfigurationResult second) {
+            return first.isFailure() ? first : second;
         }
     }
 }
