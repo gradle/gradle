@@ -146,9 +146,9 @@ class CustomPlugin implements Plugin<Project> {
         result.failedToQueryProjects == expectedFailedProjects
 
         where:
-        description                     | extraGradleProperties        | expectedSuccesfulProjects | expectedFailedProjects
-        ""                              | [""]                         | ['build-logic']           | ['root', 'a', 'b', 'c']
-        " with configuration-on-demand" | IP_CONFIGURE_ON_DEMAND_FLAGS | ['root', 'a', 'c', 'build-logic']           | ['b']
+        description                     | extraGradleProperties        | expectedSuccesfulProjects         | expectedFailedProjects
+        ""                              | [""]                         | ['build-logic']                   | ['root', 'a', 'b', 'c']
+        " with configuration-on-demand" | IP_CONFIGURE_ON_DEMAND_FLAGS | ['root', 'a', 'c', 'build-logic'] | ['b']
     }
 
     /**

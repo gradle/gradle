@@ -61,7 +61,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
         private final boolean isConfigureOnDemand;
         private final FailureFactory failureFactory;
-        private final ConfigurationResult allProjectsConfigurationResult;
+        private final ConfigurationResult fullBuildConfigurationResult;
 
         public ResilientProjectToolingScope(
             ProjectState target,
@@ -69,20 +69,20 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             String modelName,
             boolean parameter,
             boolean isConfigureOnDemand,
-            ConfigurationResult allProjectsConfigurationResult
+            ConfigurationResult fullBuildConfigurationResult
         ) {
             super(target, modelName, parameter);
             this.isConfigureOnDemand = isConfigureOnDemand;
             this.failureFactory = failureFactory;
-            this.allProjectsConfigurationResult = allProjectsConfigurationResult;
+            this.fullBuildConfigurationResult = fullBuildConfigurationResult;
         }
 
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             // Force configuration of the target project to ensure all builders have been registered
-            ConfigurationResult configurationResult = isConfigureOnDemand || allProjectsConfigurationResult.isSuccess()
+            ConfigurationResult configurationResult = isConfigureOnDemand || fullBuildConfigurationResult.isSuccess()
                 ? tryRunConfiguration(target::ensureConfigured)
-                : allProjectsConfigurationResult;
+                : fullBuildConfigurationResult;
             ProjectInternal project = target.getMutableModelEvenAfterFailure();
             ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
 
@@ -128,23 +128,34 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
                 return delegate.build(parameter);
             }
 
-            if (canRunModelBuilderOnFailure()) {
-                return delegate.build(parameter);
+            if (!canRunModelBuilderOnFailure()) {
+                Failure failure = failureFactory.create(checkNotNull(configurationResult.getException()));
+                return ToolingModelBuilderResultInternal.of(ImmutableList.of(failure));
             }
 
-            Failure failure = failureFactory.create(checkNotNull(configurationResult.getException()));
-            return ToolingModelBuilderResultInternal.of(ImmutableList.of(failure));
+            Object model = delegate.build(parameter);
+            if (!isProjectConfigurationSuccessfulEvenOnBuildFailure()) {
+                Failure failure = failureFactory.create(checkNotNull(configurationResult.getException()));
+                return ToolingModelBuilderResultInternal.attachFailures(model, ImmutableList.of(failure));
+            }
+
+            return model;
         }
 
         private boolean canRunModelBuilderOnFailure() {
             if (RESILIENT_MODELS.contains(modelName)) {
-                // Some Gradle internal resilient models can run even with project failures
+                // Some Gradle internal resilient models can run even with project failures, so they are allowed to run always.
                 return true;
             }
 
-            // For all other models: allow running if an owner build was fully configured (i.e., full included build), which means that another subtree of a build tree failed.
-            // For configure-on-demand, projects are configured individually, so failure at this point means that the project failed to configure, so forbid running the model builder.
-            return isOwnerBuildSuccessfullyConfigured && !isConfigurationOnDemand;
+            // If we can assume project configuration was successful, then let's allow model builder to run.
+            return isProjectConfigurationSuccessfulEvenOnBuildFailure();
+        }
+
+        private boolean isProjectConfigurationSuccessfulEvenOnBuildFailure() {
+            // For configure-on-demand, projects are configured individually, so failure at this point means that the project failed to configure.
+            // For normal mode: assume project was successfully configured if owner build was fully configured, e.g., full included build configuration was successful.
+            return !isConfigurationOnDemand && isOwnerBuildSuccessfullyConfigured;
         }
     }
 }
