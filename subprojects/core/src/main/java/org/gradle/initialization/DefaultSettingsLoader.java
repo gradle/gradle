@@ -36,6 +36,7 @@ import org.gradle.internal.deprecation.Documentation;
 import org.gradle.util.Path;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that module is
@@ -77,7 +78,10 @@ public class DefaultSettingsLoader implements SettingsLoader {
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
         StartParameterInternal startParameter = gradle.getStartParameter();
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
+        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
+        if (buildLayout.getSettingsFileResolution() != null) {
+            buildLayout.getSettingsFileResolution().reportProblems(problems.getReporter());
+        }
 
         SettingsState state;
         ProjectSpec spec;
@@ -87,7 +91,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
             spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
         } else {
             logger.debug("Loading build definition for build: '{}'", gradle.getIdentityPath());
-            state = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
+            state = findSettingsAndLoadIfAppropriate(gradle, startParameter, buildLayout, gradle.getClassLoaderScope());
             SettingsInternal settings = state.getSettings();
             spec = ProjectSpecs.forStartParameter(startParameter, settings);
             if (useEmptySettings(spec, settings, startParameter)) {
@@ -163,10 +167,14 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private SettingsState findSettingsAndLoadIfAppropriate(
         GradleInternal gradle,
         StartParameter startParameter,
-        SettingsLocation settingsLocation,
+        BuildLayout buildLayout,
         ClassLoaderScope classLoaderScope
     ) {
-        SettingsState state = settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
+        Optional.ofNullable(buildLayout.getSettingsFileResolution()).ifPresent(
+            resolution -> resolution.reportProblems(problems.getReporter())
+        );
+
+        SettingsState state = settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter);
         validate(state.getSettings());
         return state;
     }
