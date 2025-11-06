@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.GradleBuild
 
 import java.util.function.Consumer
@@ -37,7 +36,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
     }
 
-    FetchModelResult<GradleBuild> runFetchModelAction(Consumer<BuildActionExecuter<FetchModelResult<GradleBuild>>> configurer = {}) {
+    BuildActionResult runFetchModelAction(Consumer<BuildActionExecuter<BuildActionResult>> configurer = {}) {
         succeeds {
             def action = action(new FetchModelAction())
                 .withArguments(RESILIENT_MODEL_TRUE)
@@ -186,10 +185,21 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    static class FetchModelAction implements BuildAction<FetchModelResult<GradleBuild>>, Serializable {
+    static class BuildActionResult implements Serializable {
+        final GradleBuild model
+        final List<String> failures
+
+        BuildActionResult(GradleBuild model, List<String> failures) {
+            this.model = model
+            this.failures = failures
+        }
+    }
+
+    static class FetchModelAction implements BuildAction<BuildActionResult>, Serializable {
         @Override
-        FetchModelResult<GradleBuild> execute(BuildController controller) {
-            return controller.fetch(GradleBuild, null, null)
+        BuildActionResult execute(BuildController controller) {
+            def result = controller.fetch(GradleBuild, null, null)
+            return new BuildActionResult(result.getModel(), result.getFailures().collect { it.message })
         }
     }
 }

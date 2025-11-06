@@ -16,25 +16,28 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.io.CharStreams;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
+import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.serialize.Serializer;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -58,9 +61,10 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
 
     public static void useResultsFrom(Path resultsDir, Consumer<TestTreeModelResultsProvider> resultsConsumer) {
         SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDir);
-        try (SerializableTestResultStore.OutputReader outputReader = resultsStore.openOutputReader()) {
+        Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
+        try  {
             TestTreeModel root = TestTreeModel.loadModelFromStores(Collections.singletonList(resultsStore));
-            TestTreeModelResultsProvider resultsProvider = new TestTreeModelResultsProvider(root, outputReader);
+            TestTreeModelResultsProvider resultsProvider = new TestTreeModelResultsProvider(root, resultsStore.createOutputReader(testOutputEventSerializer));
             resultsConsumer.accept(resultsProvider);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -70,15 +74,15 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     private static final class ClassNode {
         final TestClassResult result;
         /**
-         * All output IDs from this "class" and the intermediate nodes. Does not include output IDs from "method"s.
+         * All output entries from this "class" and the intermediate nodes. Does not include output entries from "method"s.
          */
-        final ImmutableSet<Long> outputIds;
-        final ImmutableSet<Long> methodOutputIds;
+        final ImmutableList<OutputEntry> outputEntries;
+        final ImmutableMap<Long, OutputEntry> methodOutputEntries;
 
-        ClassNode(TestClassResult result, ImmutableSet<Long> outputIds, ImmutableSet<Long> methodOutputIds) {
+        ClassNode(TestClassResult result, ImmutableList<OutputEntry> outputEntries, ImmutableMap<Long, OutputEntry> methodOutputEntries) {
             this.result = result;
-            this.outputIds = outputIds;
-            this.methodOutputIds = methodOutputIds;
+            this.outputEntries = outputEntries;
+            this.methodOutputEntries = methodOutputEntries;
         }
     }
 
@@ -105,22 +109,22 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             // We want these sorted by start time in order to preserve ordering between runs.
             leaves.sort(PER_ROOT_INFO_BY_START_TIME);
 
-            ImmutableSet.Builder<Long> methodOutputIds = ImmutableSet.builder();
-            TestClassResult classResult = buildClassResult(groupingNode, leaves, nextClassId, methodOutputIds);
+            ImmutableMap.Builder<Long, OutputEntry> methodOutputEntries = ImmutableMap.builder();
+            TestClassResult classResult = buildClassResult(groupingNode, leaves, nextClassId, methodOutputEntries);
             nextClassId++;
 
-            ImmutableSet.Builder<Long> outputIds = ImmutableSet.builder();
+            ImmutableList.Builder<OutputEntry> outputEntries = ImmutableList.builder();
             groupingNode.walkDepthFirst(node -> {
                 if (node.getChildren().isEmpty()) {
                     // One of our leaves, skip
                     return;
                 }
                 for (TestTreeModel.PerRootInfo perRootInfo : node.getPerRootInfo().get(0)) {
-                    outputIds.add(perRootInfo.getOutputId());
+                    outputEntries.add(perRootInfo.getOutputEntry());
                 }
             });
 
-            classesById.put(classResult.getId(), new ClassNode(classResult, outputIds.build(), methodOutputIds.build()));
+            classesById.put(classResult.getId(), new ClassNode(classResult, outputEntries.build(), methodOutputEntries.build()));
         }
         return classesById.build();
     }
@@ -129,13 +133,13 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         TestTreeModel groupingNode,
         List<TestTreeModel.PerRootInfo> leaves,
         long nextClassId,
-        ImmutableSet.Builder<Long> methodOutputIds
+        ImmutableMap.Builder<Long, OutputEntry> methodOutputEntries
     ) {
         TestClassResult classResult = createEmptyClassResult(groupingNode, nextClassId);
 
         for (TestTreeModel.PerRootInfo leafPerRootInfo : leaves) {
             classResult.add(buildMethodResult(leafPerRootInfo));
-            methodOutputIds.add(leafPerRootInfo.getOutputId());
+            methodOutputEntries.put(leafPerRootInfo.getId(), leafPerRootInfo.getOutputEntry());
         }
         return classResult;
     }
@@ -160,7 +164,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     private static TestMethodResult buildMethodResult(TestTreeModel.PerRootInfo perRootInfo) {
         SerializableTestResult result = perRootInfo.getResult();
         TestMethodResult methodResult = new TestMethodResult(
-            perRootInfo.getOutputId(),
+            perRootInfo.getId(),
             result.getName(),
             result.getDisplayName(),
             result.getResultType(),
@@ -209,9 +213,9 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private final Map<Long, ClassNode> classesById;
-    private final SerializableTestResultStore.OutputReader outputReader;
+    private final TestOutputReader outputReader;
 
-    public TestTreeModelResultsProvider(TestTreeModel root, SerializableTestResultStore.OutputReader outputReader) {
+    public TestTreeModelResultsProvider(TestTreeModel root, TestOutputReader outputReader) {
         this.classesById = createClasses(root);
         this.outputReader = outputReader;
     }
@@ -229,11 +233,13 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         if (classNode == null) {
             throw new IllegalArgumentException("No class with id " + classId);
         }
-        for (long outputId : classNode.outputIds) {
-            copyOutput(outputId, destination, writer);
-        }
-        for (long outputId : classNode.methodOutputIds) {
-            copyOutput(outputId, destination, writer);
+        try {
+            outputReader.useTestOutputEvents(
+                Iterables.concat(classNode.outputEntries, classNode.methodOutputEntries.values()), destination,
+                event -> writer.write(event.getMessage())
+            );
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -243,8 +249,13 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         if (classNode == null) {
             throw new IllegalArgumentException("No class with id " + classId);
         }
-        for (long outputId : classNode.outputIds) {
-            copyOutput(outputId, destination, writer);
+        try {
+            outputReader.useTestOutputEvents(
+                classNode.outputEntries, destination,
+                event -> writer.write(event.getMessage())
+            );
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -254,15 +265,15 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         if (classNode == null) {
             throw new IllegalArgumentException("No class with id " + classId);
         }
-        if (!classNode.methodOutputIds.contains(testId)) {
+        OutputEntry testEntry = classNode.methodOutputEntries.get(testId);
+        if (testEntry == null) {
             throw new IllegalArgumentException("No test with id " + testId + " in class with id " + classId);
         }
-        copyOutput(testId, destination, writer);
-    }
-
-    private void copyOutput(long outputId, TestOutputEvent.Destination destination, Writer writer) {
-        try (Reader output = outputReader.getOutput(outputId, destination)) {
-            CharStreams.copy(output, writer);
+        try {
+            outputReader.useTestOutputEvents(
+                testEntry, destination,
+                event -> writer.write(event.getMessage())
+            );
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -271,8 +282,11 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     @Override
     public boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
         ClassNode model = classesById.get(classId);
-        if (model != null && model.methodOutputIds.contains(testId)) {
-            return outputReader.hasOutput(testId, destination);
+        if (model != null) {
+            OutputEntry entry = model.methodOutputEntries.get(testId);
+            if (entry != null) {
+                return outputReader.hasOutput(entry, destination);
+            }
         }
         return false;
     }

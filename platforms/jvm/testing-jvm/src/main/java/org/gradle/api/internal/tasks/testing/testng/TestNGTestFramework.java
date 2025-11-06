@@ -72,7 +72,7 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory<?> getProcessorFactory() {
         List<File> suiteFiles = getOptions().getSuites(testTaskTemporaryDir.create());
         TestNGSpec spec = toSpec(getOptions(), filter);
         return new TestNgTestClassProcessorFactory(this.getOptions().getOutputDirectory(), spec, suiteFiles);
@@ -114,4 +114,8 @@ public abstract class TestNGTestFramework implements TestFramework {
         detector = null;
     }
 
+    @Override
+    public String getDisplayName() {
+        return "TestNG";
+    }
 }

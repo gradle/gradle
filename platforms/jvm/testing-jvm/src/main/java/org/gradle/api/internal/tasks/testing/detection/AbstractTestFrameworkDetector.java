@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -47,7 +47,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private List<File> testClassDirectories;
     private final ClassFileExtractionManager classFileExtractionManager;
     private final Map<File, Boolean> superClasses;
-    private TestClassProcessor testClassProcessor;
+    private TestClassProcessor<? super ClassTestDefinition> testClassProcessor;
 
     private List<File> testClassesDirectories;
     private List<File> testClasspath;
@@ -198,12 +198,12 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private void maybePublishTestClass(boolean isTest, TestClass testClass, boolean superClass) {
         if (isTest && !testClass.isAbstract() && !superClass) {
             String className = Type.getObjectType(testClass.getClassName()).getClassName();
-            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
+            testClassProcessor.processTestDefinition(new ClassTestDefinition(className));
         }
     }
 
     @Override
-    public void startDetection(TestClassProcessor testClassProcessor) {
+    public void startDetection(TestClassProcessor<? super ClassTestDefinition> testClassProcessor) {
         this.testClassProcessor = testClassProcessor;
     }
 

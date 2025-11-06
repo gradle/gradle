@@ -20,8 +20,10 @@ import org.gradle.internal.concurrent.Stoppable;
 
 /**
  * A processor for executing tests. Implementations are not required to be thread-safe.
+ *
+ * @param <D> the type of test definition supported by this processor
  */
-public interface TestClassProcessor extends Stoppable {
+public interface TestClassProcessor<D extends TestDefinition> extends Stoppable {
     /**
      * Performs any initialisation which this processor needs to perform.
      *
@@ -30,12 +32,12 @@ public interface TestClassProcessor extends Stoppable {
     void startProcessing(TestResultProcessor resultProcessor);
 
     /**
-     * Accepts the given test class for processing. May execute synchronously, asynchronously, or defer execution for
+     * Accepts the given test definition for processing. May execute synchronously, asynchronously, or defer execution for
      * later.
      *
-     * @param testClass The test class.
+     * @param testDefinition The test definition.
      */
-    void processTestClass(TestClassRunInfo testClass);
+    void processTestDefinition(D testDefinition);
 
     /**
      * Completes any pending or asynchronous processing. Blocks until all processing is complete. The processor should

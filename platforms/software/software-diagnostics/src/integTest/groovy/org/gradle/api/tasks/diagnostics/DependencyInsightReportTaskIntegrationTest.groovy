@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import org.gradle.util.GradleVersion
 
@@ -31,8 +30,10 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         executer.requireOwnGradleUserHomeDir()
         settingsFile << """
             rootProject.name = 'insight-test'
+            gradle.lifecycle.beforeProject { project ->
+                project.pluginManager.apply('org.gradle.jvm-ecosystem')
+            }
         """
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
     def "requires use of configuration flag if Java plugin isn't applied"() {

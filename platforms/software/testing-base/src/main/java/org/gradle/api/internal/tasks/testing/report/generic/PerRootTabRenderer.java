@@ -17,12 +17,11 @@
 package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.Iterables;
-import com.google.common.io.CharStreams;
 import org.apache.commons.lang3.stream.Streams;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
+import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -32,7 +31,6 @@ import org.gradle.reporting.ReportRenderer;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -289,10 +287,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     public static final class ForOutput extends PerRootTabRenderer {
-        private final SerializableTestResultStore.OutputReader outputReader;
+        private final TestOutputReader outputReader;
         private final TestOutputEvent.Destination destination;
 
-        public ForOutput(int rootIndex, int perRootInfoIndex, SerializableTestResultStore.OutputReader outputReader, TestOutputEvent.Destination destination) {
+        public ForOutput(int rootIndex, int perRootInfoIndex, TestOutputReader outputReader, TestOutputEvent.Destination destination) {
             super(rootIndex, perRootInfoIndex);
             this.outputReader = outputReader;
             this.destination = destination;
@@ -303,11 +301,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             String outputId = "root-" + rootIndex + "-test-" + destination.name().toLowerCase(Locale.ROOT) + "-" + info.getResult().getName();
             htmlWriter.startElement("span").attribute("class", "code")
                 .startElement("pre")
-                .attribute("id", outputId)
-                .characters("");
-            try (Reader reader = outputReader.getOutput(info.getOutputId(), destination)) {
-                CharStreams.copy(reader, htmlWriter);
-            }
+                .attribute("id", outputId);
+            outputReader.useTestOutputEvents(
+                info.getOutputEntry(), destination,
+                event -> htmlWriter.characters(event.getMessage())
+            );
             htmlWriter.endElement();
             addClipboardCopyButton(htmlWriter, outputId);
             htmlWriter.endElement();
@@ -381,7 +379,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         private SimpleHtmlWriter renderAdditionalMetadataElements(List<SerializedMetadata.SerializedMetadataElement> elements, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
             for (SerializedMetadata.SerializedMetadataElement element : elements) {
-                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 1 ? "even" : "odd");
                     renderMetadataKeyValueCells(element, htmlWriter);
                 htmlWriter.endElement();
             }

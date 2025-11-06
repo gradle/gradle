@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    def resolve = new ResolveTestFixture(testDirectory)
+
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
@@ -55,8 +57,9 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 runtimeOnly 'org:bar:1.0'
                 testImplementation 'org:baz:1.0'
             }
+
+            ${resolve.configureProject("runtimeClasspath", "testRuntimeClasspath")}
         """
-        def resolve = resolveClasspath 'runtime'
 
         when:
         foo.pom.expectGet()
@@ -66,7 +69,7 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         transitive10.pom.expectGet()
         transitive10.artifact.expectGet()
 
-        succeeds 'checkDeps'
+        succeeds ':checkRuntimeClasspath'
 
         then:
         resolve.expectGraph {
@@ -88,10 +91,9 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         }
 
         when:
-        resolve = resolveClasspath 'testRuntime'
         baz.pom.expectGet()
         baz.artifact.expectGet()
-        succeeds 'checkDeps'
+        succeeds ':checkTestRuntimeClasspath'
 
         then:
         resolve.expectGraph {
@@ -136,8 +138,8 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 implementation 'org:foo:1.0'
                 runtimeOnly 'org:bar:1.0'
             }
+            ${resolve.configureProject("compileClasspath")}
         """
-        def resolve = resolveClasspath 'compile'
 
         when:
         foo.pom.expectGet()
@@ -184,8 +186,8 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 customImplementation 'org:foo:1.0'
                 customRuntimeOnly 'org:bar:1.0'
             }
+            ${resolve.configureProject("customRuntimeClasspath")}
         """
-        def resolve = resolveClasspath 'customRuntime'
 
         when:
         foo.pom.expectGet()
@@ -217,13 +219,6 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         }
     }
 
-    ResolveTestFixture resolveClasspath(String name) {
-        def resolve = new ResolveTestFixture(buildFile, "${name}Classpath")
-        resolve.expectDefaultConfiguration((name =~ "[rR]untime") ? "runtime" : "compile")
-        resolve.prepare()
-        resolve
-    }
-
     @ToBeFixedForConfigurationCache(because = "resolves configuration at execution time")
     def "can declare a configuration which extends from a resolvable configuration which uses consistency"() {
         withRuntimeClasspathAsReference()
@@ -239,8 +234,8 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 myCompileClasspath.extendsFrom(compileClasspath)
             }
 
+            ${resolve.configureProject("compileClasspath")}
         """
-        def resolve = resolveClasspath 'compile'
 
         buildFile << """
             tasks.named('checkDeps') {

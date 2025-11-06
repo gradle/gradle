@@ -24,8 +24,11 @@ import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
+import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -35,6 +38,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.reporting.HtmlReportBuilder;
@@ -65,7 +69,10 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         if (path.segmentCount() == 0) {
             filePath = "index.html";
         } else {
-            filePath = String.join("/", Iterables.transform(path.segments(), SafeFileLocationUtils::toSafeFileName)) + "/index.html";
+            filePath = String.join("/", Iterables.transform(
+                path.segments(),
+                name -> SafeFileLocationUtils.toSafeFileName(name, true)
+            )) + "/index.html";
         }
         return filePath;
     }
@@ -100,11 +107,11 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-
-        List<SerializableTestResultStore.OutputReader> outputReaders = new ArrayList<>(stores.size());
+        Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
+        List<TestOutputReader> outputReaders = new ArrayList<>(stores.size());
         try {
             for (SerializableTestResultStore store : stores) {
-                outputReaders.add(store.openOutputReader());
+                outputReaders.add(store.createOutputReader(testOutputEventSerializer));
             }
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
@@ -117,7 +124,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         return reportsDirectory.resolve("index.html");
     }
 
-    private void generateReport(TestTreeModel root, List<SerializableTestResultStore.OutputReader> outputReaders) {
+    private void generateReport(TestTreeModel root, List<TestOutputReader> outputReaders) {
         LOG.info("Generating HTML test report...");
 
         Timer clock = Time.startTimer();
@@ -125,7 +132,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportsDirectory);
     }
 
-    private void generateFiles(TestTreeModel model, final List<SerializableTestResultStore.OutputReader> outputReaders) {
+    private void generateFiles(TestTreeModel model, final List<TestOutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             buildOperationRunner.run(new DeleteOldReportOperation(reportsDirectory));
@@ -187,7 +194,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         private final String fileUrl;
         private final TestTreeModel results;
         private final HtmlReportBuilder output;
-        private final List<SerializableTestResultStore.OutputReader> outputReaders;
+        private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
         private final MetadataRendererRegistry metadataRendererRegistry;
 
@@ -195,7 +202,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             String fileUrl,
             TestTreeModel results,
             HtmlReportBuilder output,
-            List<SerializableTestResultStore.OutputReader> outputReaders,
+            List<TestOutputReader> outputReaders,
             List<String> rootDisplayNames,
             MetadataRendererRegistry metadataRendererRegistry
         ) {

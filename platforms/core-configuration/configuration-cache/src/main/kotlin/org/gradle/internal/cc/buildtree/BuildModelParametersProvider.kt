@@ -67,7 +67,7 @@ object BuildModelParametersProvider {
 
     @JvmStatic
     val isolatedProjectsCaching =
-        InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.caching", InvocationScenarioParameter.TOOLING)
+        InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.caching", InvocationScenarioParameter.NONE)
 
     private
     val resilientModelBuilding =

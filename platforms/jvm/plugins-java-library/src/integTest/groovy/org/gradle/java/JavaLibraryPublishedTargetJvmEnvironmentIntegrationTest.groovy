@@ -77,8 +77,10 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
     }
 
     def prepareResolve(String config, String classifier) {
-        resolve = new ResolveTestFixture(buildFile, config)
-        resolve.prepare()
+        resolve = new ResolveTestFixture(testDirectory)
+        buildFile << """
+            ${resolve.configureProject(config)}
+        """
 
         module.publish()
         module.pom.expectGet()

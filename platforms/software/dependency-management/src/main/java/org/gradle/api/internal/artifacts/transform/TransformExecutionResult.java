@@ -206,10 +206,6 @@ public abstract class TransformExecutionResult {
                 this.relativePath = relativePath;
             }
 
-            public String getOutputLocation() {
-                return relativePath;
-            }
-
             @Override
             public TransformWorkspaceOutput resolveForWorkspace(File workspaceDir) {
                 File workspacePath = resolveForWorkspaceDirectly(workspaceDir);
