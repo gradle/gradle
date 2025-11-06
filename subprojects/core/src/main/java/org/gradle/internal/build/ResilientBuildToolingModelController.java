@@ -39,6 +39,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         // TODO: Is there a better way to identify resilient models?
         "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
     );
+
     private final boolean isConfigureOnDemand;
     private final FailureFactory failureFactory;
 
@@ -129,44 +130,35 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
         @Override
         public Object build(@Nullable Object parameter) {
-            if (configurationResult.isSuccess()) {
+            if (canAssumeProjectFullyConfigured()) {
                 return delegate.build(parameter);
             }
 
-            if (!canRunModelBuilderOnFailure()) {
-                List<Failure> failures = exceptionsAsFailures(configurationResult);
-                return ToolingModelBuilderResultInternal.of(failures);
-            }
-
-            Object model = delegate.build(parameter);
-            if (!isProjectConfigurationSuccessfulEvenOnBuildFailure()) {
-                List<Failure> failures = exceptionsAsFailures(configurationResult);
-                return ToolingModelBuilderResultInternal.attachFailures(model, failures);
-            }
-
-            return model;
+            Object model = canRunEvenIfProjectNotFullyConfigured(modelName) ? delegate.build(parameter) : null;
+            List<Failure> failures = configurationExceptionAsFailure(configurationResult);
+            return ToolingModelBuilderResultInternal.attachFailures(model, failures);
         }
 
-        private List<Failure> exceptionsAsFailures(ConfigurationResult configurationResult) {
-            return configurationResult.isFailure()
-                ? ImmutableList.of(failureFactory.create(checkNotNull(configurationResult.getException())))
-                : ImmutableList.of();
-        }
-
-        private boolean canRunModelBuilderOnFailure() {
-            if (RESILIENT_MODELS.contains(modelName)) {
-                // Some Gradle internal resilient models can run even with project failures, so they are allowed to run always.
+        private boolean canAssumeProjectFullyConfigured() {
+            if (configurationResult.isSuccess()) {
+                // If there was no configuration failure, then the project was configured successfully.
                 return true;
             }
 
-            // If we can assume project configuration was successful, then let's allow model builder to run.
-            return isProjectConfigurationSuccessfulEvenOnBuildFailure();
+            // For configure-on-demand, projects are configured individually, so failure at this point means that the project failed to configure.
+            // For normal mode assume project was successfully configured if the owner build was fully configured, e.g., full included build configuration was successful.
+            return !isConfigurationOnDemand && isOwnerBuildSuccessfullyConfigured;
         }
 
-        private boolean isProjectConfigurationSuccessfulEvenOnBuildFailure() {
-            // For configure-on-demand, projects are configured individually, so failure at this point means that the project failed to configure.
-            // For normal mode: assume project was successfully configured if owner build was fully configured, e.g., full included build configuration was successful.
-            return !isConfigurationOnDemand && isOwnerBuildSuccessfullyConfigured;
+        private static boolean canRunEvenIfProjectNotFullyConfigured(String modelName) {
+            // Some internal model builders can run even if the project is not fully configured.
+            return RESILIENT_MODELS.contains(modelName);
+        }
+
+        private List<Failure> configurationExceptionAsFailure(ConfigurationResult configurationResult) {
+            return configurationResult.isFailure()
+                ? ImmutableList.of(failureFactory.create(checkNotNull(configurationResult.getException())))
+                : ImmutableList.of();
         }
     }
 }
