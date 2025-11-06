@@ -48,7 +48,12 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
     @Override
     public String toString() {
         String className = getClassName();
-        return "Test " + getName() + (className == null ? "" : ("(" + className + ")"));
+        String classNameSuffix = "";
+        // TODO (donat) store whether class name is not available for tests  (is the case for resource-based testing)
+        if (className != null && !className.equals("UnknownClass")) {
+            classNameSuffix = "(" + className + ")";
+        }
+        return "Test " + getName() + classNameSuffix;
     }
 
     @Override
