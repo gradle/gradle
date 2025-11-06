@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.internal.tasks.testing.TestClassConsumer;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -27,7 +30,8 @@ import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
@@ -50,24 +54,34 @@ import javax.annotation.WillCloseWhenClosed;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
+import static org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor.isNestedClassInsideEnclosedRunner;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
 import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
-public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor {
+/**
+ * A {@link TestClassProcessor} for JUnit Platform.
+ * <p>
+ * This class is instantiated by reflection from {@link JUnitPlatformTestClassProcessorFactory}.
+ */
+@SuppressWarnings("unused")
+@NullMarked
+public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<TestDefinition> {
     private final JUnitPlatformSpec spec;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
     private final TestSelectionMatcher matcher;
 
-    private CollectThenExecuteTestClassConsumer testClassExecutor;
+    @Nullable
+    private CollectThenExecuteTestDefinitionConsumer testClassExecutor;
+    @Nullable
     private BackwardsCompatibleLauncherSession launcherSession;
+    @Nullable
     private ClassLoader junitClassLoader;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -88,44 +102,71 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected TestClassConsumer createTestExecutor(Actor resultProcessorActor) {
+    protected TestDefinitionConsumer<TestDefinition> createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
-        junitClassLoader = Thread.currentThread().getContextClassLoader();
-        testClassExecutor = new CollectThenExecuteTestClassConsumer(threadSafeResultProcessor);
+        ClassLoader junitClassLoader = Thread.currentThread().getContextClassLoader();
+        testClassExecutor = new CollectThenExecuteTestDefinitionConsumer(threadSafeResultProcessor, launcherSession, junitClassLoader, spec, idGenerator, clock);
         return testClassExecutor;
     }
 
     @Override
     public void stop() {
         if (startedProcessing) {
-            testClassExecutor.processAllTestClasses();
-            launcherSession.close();
+            Objects.requireNonNull(testClassExecutor).processAllTestClasses();
+            Objects.requireNonNull(launcherSession).close();
             super.stop();
         }
     }
 
-    private class CollectThenExecuteTestClassConsumer implements TestClassConsumer {
-        private final List<Class<?>> testClasses = new ArrayList<>();
-        private final TestResultProcessor resultProcessor;
+    @NullMarked
+    private static final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer<TestDefinition> {
+        private final List<DiscoverySelector> selectors = new ArrayList<>();
 
-        CollectThenExecuteTestClassConsumer(TestResultProcessor resultProcessor) {
+        private final TestResultProcessor resultProcessor;
+        private final BackwardsCompatibleLauncherSession launcherSession;
+        private final ClassLoader junitClassLoader;
+        private final JUnitPlatformSpec spec;
+        private final IdGenerator<?> idGenerator;
+        private final Clock clock;
+
+        CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor, BackwardsCompatibleLauncherSession launcherSession, ClassLoader junitClassLoader, JUnitPlatformSpec spec, IdGenerator<?> idGenerator, Clock clock) {
             this.resultProcessor = resultProcessor;
+            this.launcherSession = launcherSession;
+            this.junitClassLoader = junitClassLoader;
+            this.spec = spec;
+            this.idGenerator = idGenerator;
+            this.clock = clock;
         }
 
         @Override
-        public void consumeClass(@NonNull TestClassRunInfo testClassInfo) {
-            Class<?> klass = loadClass(testClassInfo.getTestClassName());
-            if (anyParentIsIncluded(klass, matcher) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
+        public void accept(TestDefinition testDefinition) {
+            if (testDefinition instanceof ClassTestDefinition) {
+                executeClass((ClassTestDefinition) testDefinition);
+            } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
+                executeDirectory((DirectoryBasedTestDefinition) testDefinition);
+            } else {
+                throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
+            }
+        }
+
+        private void executeClass(ClassTestDefinition testDefinition) {
+            Class<?> klass = loadClass(testDefinition.getTestClassName());
+            if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }
-            testClasses.add(klass);
+            selectors.add(DiscoverySelectors.selectClass(klass));
+        }
+
+
+        private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
+            selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionsDir()));
         }
 
         private void processAllTestClasses() {
-            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
+            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
-            Launcher launcher = launcherSession.getLauncher();
+            Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
             if (spec.isDryRun()) {
                 TestPlan testPlan = launcher.discover(discoveryRequest);
                 executeDryRun(testPlan, executionListener);
@@ -133,125 +174,107 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 launcher.execute(discoveryRequest, executionListener);
             }
         }
-    }
 
-    private void executeDryRun(TestPlan testPlan, TestExecutionListener listener) {
-        listener.testPlanExecutionStarted(testPlan);
-
-        for (TestIdentifier root : testPlan.getRoots()) {
-            dryRun(root, testPlan, listener);
-        }
-
-        listener.testPlanExecutionFinished(testPlan);
-    }
-
-    private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
-        if (testIdentifier.isTest()) {
-            listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
-        } else {
-            listener.executionStarted(testIdentifier);
-
-            for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
-                dryRun(child, testPlan, listener);
+        private Class<?> loadClass(String className) {
+            try {
+                return Class.forName(className, false, junitClassLoader);
+            } catch (ClassNotFoundException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
-            listener.executionFinished(testIdentifier, TestExecutionResult.successful());
         }
-    }
 
-    /**
-     * Test whether {@code org.junit.vintage:junit-vintage-engine} and {@code junit:junit} are
-     * available on the classpath. This allows us to enable or disable certain behavior
-     * which may attempt to load classes from these modules.
-     */
-    private boolean supportsVintageTests() {
-        try {
-            Class.forName("org.junit.vintage.engine.VintageTestEngine", false, junitClassLoader);
-            Class.forName("org.junit.runner.Request", false, junitClassLoader);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
+        private boolean isInnerClass(Class<?> klass) {
+            return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
         }
-    }
 
-    /**
-     * Returns true if any parent class of the given class is included by the given matcher.
-     * This is used to exclude inner classes of included classes, as they will be executed
-     * as part of the parent class's execution.
-     */
-    private static boolean anyParentIsIncluded(Class<?> klass, TestSelectionMatcher matcher) {
-        if (isInnerClass(klass)) {
-            Class<?> parent = klass.getEnclosingClass();
-            if (matcher.mayIncludeClass(parent.getName())) {
+        /**
+         * Test whether {@code org.junit.vintage:junit-vintage-engine} and {@code junit:junit} are
+         * available on the classpath. This allows us to enable or disable certain behavior
+         * which may attempt to load classes from these modules.
+         */
+        private boolean supportsVintageTests() {
+            try {
+                Class.forName("org.junit.vintage.engine.VintageTestEngine", false, junitClassLoader);
+                Class.forName("org.junit.runner.Request", false, junitClassLoader);
                 return true;
-            } else {
-                return anyParentIsIncluded(parent, matcher);
+            } catch (ClassNotFoundException e) {
+                return false;
             }
         }
-        return false;
-    }
 
-    private static boolean isInnerClass(Class<?> klass) {
-        return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
-    }
+        private LauncherDiscoveryRequest createLauncherDiscoveryRequest() {
+            LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectors);
 
-    private Class<?> loadClass(String className) {
-        try {
-            return Class.forName(className, false, junitClassLoader);
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            addTestNameFilters(requestBuilder);
+            addEnginesFilter(requestBuilder);
+            addTagsFilter(requestBuilder);
+
+            return requestBuilder.build();
+        }
+
+        private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
+            TestFilterSpec filter = spec.getFilter();
+            if (isNotEmpty(filter)) {
+                TestSelectionMatcher matcher = new TestSelectionMatcher(filter);
+                requestBuilder.filters(new ClassMethodNameFilter(matcher));
+            }
+        }
+
+        private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
+            List<String> includeEngines = spec.getIncludeEngines();
+            if (!includeEngines.isEmpty()) {
+                requestBuilder.filters(includeEngines(includeEngines));
+            }
+            List<String> excludeEngines = spec.getExcludeEngines();
+            if (!excludeEngines.isEmpty()) {
+                requestBuilder.filters(excludeEngines(excludeEngines));
+            }
+        }
+
+        private void addTagsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
+            List<String> includeTags = spec.getIncludeTags();
+            if (!includeTags.isEmpty()) {
+                requestBuilder.filters(includeTags(includeTags));
+            }
+            List<String> excludeTags = spec.getExcludeTags();
+            if (!excludeTags.isEmpty()) {
+                requestBuilder.filters(excludeTags(excludeTags));
+            }
+        }
+
+        private void executeDryRun(TestPlan testPlan, TestExecutionListener listener) {
+            listener.testPlanExecutionStarted(testPlan);
+
+            for (TestIdentifier root : testPlan.getRoots()) {
+                dryRun(root, testPlan, listener);
+            }
+
+            listener.testPlanExecutionFinished(testPlan);
+        }
+
+        private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
+            if (testIdentifier.isTest()) {
+                listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
+            } else {
+                listener.executionStarted(testIdentifier);
+
+                for (TestIdentifier child : testPlan.getChildren(testIdentifier)) {
+                    dryRun(child, testPlan, listener);
+                }
+                listener.executionFinished(testIdentifier, TestExecutionResult.successful());
+            }
+        }
+
+        private boolean isNotEmpty(TestFilterSpec filter) {
+            return !filter.getIncludedTests().isEmpty()
+                || !filter.getIncludedTestsCommandLine().isEmpty()
+                || !filter.getExcludedTests().isEmpty();
         }
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
-        List<DiscoverySelector> classSelectors = testClasses.stream()
-            .map(DiscoverySelectors::selectClass)
-            .collect(Collectors.toList());
-
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(classSelectors);
-
-        addTestNameFilters(requestBuilder);
-        addEnginesFilter(requestBuilder);
-        addTagsFilter(requestBuilder);
-
-        return requestBuilder.build();
-    }
-
-    private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
-        List<String> includeEngines = spec.getIncludeEngines();
-        if (!includeEngines.isEmpty()) {
-            requestBuilder.filters(includeEngines(includeEngines));
-        }
-        List<String> excludeEngines = spec.getExcludeEngines();
-        if (!excludeEngines.isEmpty()) {
-            requestBuilder.filters(excludeEngines(excludeEngines));
-        }
-    }
-
-    private void addTagsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
-        List<String> includeTags = spec.getIncludeTags();
-        if (!includeTags.isEmpty()) {
-            requestBuilder.filters(includeTags(includeTags));
-        }
-        List<String> excludeTags = spec.getExcludeTags();
-        if (!excludeTags.isEmpty()) {
-            requestBuilder.filters(excludeTags(excludeTags));
-        }
-    }
-
-    private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
-        TestFilterSpec filter = spec.getFilter();
-        if (isNotEmpty(filter)) {
-            requestBuilder.filters(new ClassMethodNameFilter(matcher));
-        }
-    }
-
-    private static boolean isNotEmpty(TestFilterSpec filter) {
-        return !filter.getIncludedTests().isEmpty()
-            || !filter.getIncludedTestsCommandLine().isEmpty()
-            || !filter.getExcludedTests().isEmpty();
-    }
-
-    private static class ClassMethodNameFilter implements PostDiscoveryFilter {
+    @NullMarked
+    private static final class ClassMethodNameFilter implements PostDiscoveryFilter {
         private final TestSelectionMatcher matcher;
 
         private ClassMethodNameFilter(TestSelectionMatcher matcher) {
@@ -361,7 +384,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private static class BackwardsCompatibleLauncherSession implements AutoCloseable {
+    @NullMarked
+    private static final class BackwardsCompatibleLauncherSession implements AutoCloseable {
 
         static BackwardsCompatibleLauncherSession open() {
             try {
@@ -394,5 +418,4 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             onClose.run();
         }
     }
-
 }

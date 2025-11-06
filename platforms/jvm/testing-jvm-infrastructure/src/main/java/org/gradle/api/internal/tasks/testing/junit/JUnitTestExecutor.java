@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.TestClassConsumer;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -44,13 +44,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class JUnitTestClassExecutor implements TestClassConsumer {
+@NullMarked
+public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefinition> {
     private final ClassLoader applicationClassLoader;
     private final JUnitSpec spec;
     private final JUnitTestEventAdapter listener;
     private @Nullable CategoryFilter categoryFilter;
 
-    public JUnitTestClassExecutor(
+    public JUnitTestExecutor(
         ClassLoader applicationClassLoader,
         JUnitSpec spec,
         Clock clock,
@@ -69,8 +70,8 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
     }
 
     @Override
-    public void consumeClass(TestClassRunInfo testClassInfo) {
-        String testClassName = testClassInfo.getTestClassName();
+    public void accept(ClassTestDefinition testDefinition) {
+        String testClassName = testDefinition.getTestClassName();
         boolean started = false;
         try {
             Request request = shouldRunTestClass(testClassName);
@@ -88,7 +89,7 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
             }
 
             if (started) {
-                listener.testExecutionFailure(testClassInfo, TestFailure.fromTestFrameworkFailure(throwable));
+                listener.testExecutionFailure(testDefinition, TestFailure.fromTestFrameworkFailure(throwable));
             } else {
                 // If we haven't even started to run the request, this is a Gradle problem, so propagate it
                 throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
@@ -145,7 +146,6 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
         return new FilteredGradleRequest(runner);
     }
 
-    @Nullable
     private List<Filter> buildFilters(String testClassName, Runner filteredRunner) {
         List<Filter> filters = new ArrayList<>();
         if (categoryFilter != null) {

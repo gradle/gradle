@@ -73,7 +73,7 @@ public abstract class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory<?> getProcessorFactory() {
         validateOptions();
         return new JUnitTestClassProcessorFactory(new JUnitSpec(
             filter.toSpec(), getOptions().getIncludeCategories(), getOptions().getExcludeCategories(), dryRun.get()));
@@ -119,5 +119,10 @@ public abstract class JUnitTestFramework implements TestFramework {
                     "Please either include or exclude the categories but not both.");
             }
         }
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "JUnit";
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec
 import org.gradle.api.tasks.testing.TestFailure
@@ -53,7 +53,7 @@ class TestNGTestClassProcessorTest extends Specification {
     void process(Iterable<String> classNames) {
         classProcessor.startProcessing(processor)
         for (String c : classNames) {
-            classProcessor.processTestClass(new DefaultTestClassRunInfo(c))
+            classProcessor.processTestDefinition(new ClassTestDefinition(c))
         }
         classProcessor.stop()
     }
@@ -220,7 +220,7 @@ class TestNGTestClassProcessorTest extends Specification {
         classProcessor.startProcessing(processor)
 
         when:
-        classProcessor.processTestClass(new DefaultTestClassRunInfo('unknown'))
+        classProcessor.processTestDefinition(new ClassTestDefinition('unknown'))
 
         then:
         def ex = thrown(GradleException)

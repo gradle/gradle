@@ -17,8 +17,9 @@
 package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.Actor;
@@ -33,19 +34,21 @@ import java.util.List;
  * Manages a set of parallel TestClassProcessors. Uses a simple round-robin algorithm to assign test classes to
  * processors.
  */
-public class MaxNParallelTestClassProcessor implements TestClassProcessor {
+public class MaxNParallelTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
     private final int maxProcessors;
-    private final Factory<TestClassProcessor> factory;
+    // In theory this should be a Factory<? extends TestClassProcessor<? extends D>>
+    // for full compatibility, but in practice we don't need it.
+    private final Factory<TestClassProcessor<D>> factory;
     private final ActorFactory actorFactory;
     private TestResultProcessor resultProcessor;
     private int pos;
-    private List<TestClassProcessor> processors = new ArrayList<TestClassProcessor>();
-    private List<TestClassProcessor> rawProcessors = new ArrayList<TestClassProcessor>();
-    private List<Actor> actors = new ArrayList<Actor>();
+    private final List<TestClassProcessor<D>> processors = new ArrayList<>();
+    private final List<TestClassProcessor<D>> rawProcessors = new ArrayList<>();
+    private final List<Actor> actors = new ArrayList<Actor>();
     private Actor resultProcessorActor;
     private volatile boolean stoppedNow;
 
-    public MaxNParallelTestClassProcessor(int maxProcessors, Factory<TestClassProcessor> factory, ActorFactory actorFactory) {
+    public MaxNParallelTestClassProcessor(int maxProcessors, Factory<TestClassProcessor<D>> factory, ActorFactory actorFactory) {
         this.maxProcessors = maxProcessors;
         this.factory = factory;
         this.actorFactory = actorFactory;
@@ -59,17 +62,17 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(D testDefinition) {
         if (stoppedNow) {
             return;
         }
 
-        TestClassProcessor processor;
+        TestClassProcessor<D> processor;
         if (processors.size() < maxProcessors) {
             processor = factory.create();
             rawProcessors.add(processor);
             Actor actor = actorFactory.createActor(processor);
-            processor = actor.getProxy(TestClassProcessor.class);
+            processor = Cast.uncheckedNonnullCast(actor.getProxy(TestClassProcessor.class));
             actors.add(actor);
             processors.add(processor);
             processor.startProcessing(resultProcessor);
@@ -77,7 +80,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
             processor = processors.get(pos);
             pos = (pos + 1) % processors.size();
         }
-        processor.processTestClass(testClass);
+        processor.processTestDefinition(testDefinition);
     }
 
     @Override
@@ -92,7 +95,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     @Override
     public void stopNow() {
         stoppedNow = true;
-        for (TestClassProcessor processor : rawProcessors) {
+        for (TestClassProcessor<D> processor : rawProcessors) {
             processor.stopNow();
         }
     }

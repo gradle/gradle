@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
 
-import org.jspecify.annotations.NullMarked;
+plugins {
+    `java-library`
+}
 
-/**
- * A type that consumes tests.
- * <p>
- * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests by class name.
- */
-@NullMarked
-public interface TestClassConsumer {
-    /**
-     * Consumes a class-based test given the class's name.
-     *
-     * @param testClassInfo Specifies the test class to consume
-     */
-    void consumeClass(TestClassRunInfo testClassInfo);
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api("org.junit.jupiter:junit-jupiter-engine:5.13.4")
 }

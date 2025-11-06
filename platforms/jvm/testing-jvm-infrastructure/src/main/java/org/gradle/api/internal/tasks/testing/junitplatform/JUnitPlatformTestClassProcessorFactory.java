@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
@@ -30,7 +32,7 @@ import java.lang.reflect.Constructor;
  * Implementation of {@link WorkerTestClassProcessorFactory} which instantiates a {@code JUnitPlatformTestClassProcessor}.
  * This class is loaded on test workers themselves and acts as the entry-point to running JUnit Platform tests on a test worker.
  */
-class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory, Serializable {
+class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory<TestDefinition>, Serializable {
     private final JUnitPlatformSpec spec;
 
     JUnitPlatformTestClassProcessorFactory(JUnitPlatformSpec spec) {
@@ -38,11 +40,11 @@ class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessor
     }
 
     @Override
-    public TestClassProcessor create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public TestClassProcessor<TestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         try {
             Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
             Constructor<?> constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
-            return (TestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);
+            return Cast.uncheckedNonnullCast(constructor.newInstance(spec, idGenerator, actorFactory, clock));
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
