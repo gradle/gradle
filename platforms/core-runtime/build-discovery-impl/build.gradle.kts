@@ -26,6 +26,4 @@ dependencies {
 
     api(libs.inject)
     api(libs.jspecify)
-
-    implementation(projects.baseServices)
 }

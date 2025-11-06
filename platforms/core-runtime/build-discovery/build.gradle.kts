@@ -25,6 +25,10 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
+    api(projects.problemsApi)
     implementation(projects.buildProcessServices)
+    implementation(projects.baseServices)
+
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
