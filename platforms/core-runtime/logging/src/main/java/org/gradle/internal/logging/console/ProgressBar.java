@@ -32,6 +32,19 @@ import java.util.concurrent.Future;
 public class ProgressBar {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBar.class);
 
+    // Unicode block characters for smoother progress display (U+258F to U+2588)
+    private static final char[] UNICODE_BLOCKS = {
+        ' ',    // Empty
+        '\u258F', // ▏ 1/8 block
+        '\u258E', // ▎ 2/8 block
+        '\u258D', // ▍ 3/8 block
+        '\u258C', // ▌ 4/8 block
+        '\u258B', // ▋ 5/8 block
+        '\u258A', // ▊ 6/8 block
+        '\u2589', // ▉ 7/8 block
+        '\u2588'  // █ full block
+    };
+
     private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
 
     private final ConsoleMetaData consoleMetaData;
@@ -41,6 +54,7 @@ public class ProgressBar {
     private final char fillerChar;
     private final char incompleteChar;
     private final String suffix;
+    private final boolean useUnicode;
 
     private int current;
     private int total;
@@ -50,6 +64,10 @@ public class ProgressBar {
     private List<StyledTextOutputEvent.Span> formatted;
 
     public ProgressBar(ConsoleMetaData consoleMetaData, String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int initialProgress, int totalProgress) {
+        this(consoleMetaData, progressBarPrefix, progressBarWidth, progressBarSuffix, completeChar, incompleteChar, suffix, initialProgress, totalProgress, false);
+    }
+
+    public ProgressBar(ConsoleMetaData consoleMetaData, String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int initialProgress, int totalProgress, boolean useUnicode) {
         this.consoleMetaData = consoleMetaData;
         this.progressBarPrefix = progressBarPrefix;
         this.progressBarWidth = progressBarWidth;
@@ -59,6 +77,7 @@ public class ProgressBar {
         this.suffix = suffix;
         this.current = initialProgress;
         this.total = totalProgress;
+        this.useUnicode = useUnicode;
     }
 
     public void moreProgress(int totalProgress) {
@@ -89,21 +108,67 @@ public class ProgressBar {
         String elapsedTimeStr = elapsedTimeFormatter.format(elapsedTime);
         if (formatted == null || !elapsedTimeStr.equals(lastElapsedTimeStr)) {
             int consoleCols = consoleMetaData.getCols();
-            int completedWidth;
-            if (current > total) {
-                // progress was reported excessively,
-                // we do not know how much work really is left,
-                // so we at least show one progress bar tick as unfinished
-                completedWidth = progressBarWidth - 1;
-            } else {
-                completedWidth = (int) ((double) current / total * progressBarWidth);
-            }
-            int remainingWidth = progressBarWidth - completedWidth;
 
             String statusPrefix = trimToConsole(consoleCols, 0, progressBarPrefix);
-            String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), fill(fillerChar, completedWidth));
-            String statusSuffix = trimToConsole(consoleCols, coloredProgress.length(), fill(incompleteChar, remainingWidth)
-                + progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
+            String coloredProgress;
+            String statusSuffix;
+
+            if (useUnicode) {
+                // Unicode mode: use block characters for finer granularity (8x resolution)
+                double progressRatio;
+                if (current > total) {
+                    // progress was reported excessively, show almost complete
+                    progressRatio = (progressBarWidth - 1.0) / progressBarWidth;
+                } else {
+                    progressRatio = (double) current / total;
+                }
+
+                // Calculate progress in eighths (8 sub-divisions per character)
+                double totalEighths = progressBarWidth * 8.0;
+                int completedEighths = (int) (progressRatio * totalEighths);
+
+                StringBuilder progress = new StringBuilder();
+                for (int i = 0; i < progressBarWidth; i++) {
+                    int eighthsAtPosition = i * 8;
+                    if (completedEighths >= eighthsAtPosition + 8) {
+                        // Full block
+                        progress.append(UNICODE_BLOCKS[8]);
+                    } else if (completedEighths > eighthsAtPosition) {
+                        // Partial block
+                        int partialEighths = completedEighths - eighthsAtPosition;
+                        progress.append(UNICODE_BLOCKS[partialEighths]);
+                    } else {
+                        // Empty space
+                        progress.append(UNICODE_BLOCKS[0]);
+                    }
+                }
+
+                coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), progress.toString());
+            } else {
+                // ASCII mode: traditional hash-based progress
+                int completedWidth;
+                if (current > total) {
+                    completedWidth = progressBarWidth - 1;
+                } else {
+                    completedWidth = (int) ((double) current / total * progressBarWidth);
+                }
+                int remainingWidth = progressBarWidth - completedWidth;
+
+                coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), fill(fillerChar, completedWidth));
+                statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(), fill(incompleteChar, remainingWidth)
+                    + progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
+                    + (timerEnabled ? " [" + elapsedTimeStr + "]" : ""));
+
+                lastElapsedTimeStr = elapsedTimeStr;
+                formatted = ImmutableList.of(
+                    new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusPrefix),
+                    new StyledTextOutputEvent.Span(failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader, coloredProgress),
+                    new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusSuffix));
+                return formatted;
+            }
+
+            statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(),
+                progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
                 + (timerEnabled ? " [" + elapsedTimeStr + "]" : ""));
 
             lastElapsedTimeStr = elapsedTimeStr;
