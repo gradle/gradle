@@ -27,7 +27,6 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.Failure
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
@@ -602,7 +601,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         INCLUDED_BUILDS_FIRST | 1                       | "A problem occurred configuring project ':b'." | null
     }
 
-    @ToBeImplemented // TODO: do better
     def "build with convention plugins - broken settings convention"() {
         given:
         settingsKotlinFile << """
@@ -636,8 +634,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 gradlePluginPortal()
             }
         """
-        def settingsPlugin = included.file("src/main/kotlin/build-logic.settings.gradle.kts") << """
-        """
+        def settingsPlugin = included.file("src/main/kotlin/build-logic.settings.gradle.kts") << ""
 
         when:
         def original = succeeds {
@@ -649,13 +646,15 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         settingsPlugin << """ broken !!! """
-        fails {
+        def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST)).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
         }
 
         then:
-        def e = thrown(GradleConnectionException)
-        e.message.startsWith("The supplied build action failed with an exception.")
+
+        assertHasScriptModelForFiles(model, "build-logic/settings.gradle.kts", "build-logic/build.gradle.kts", "build-logic/src/main/kotlin/build-logic.settings.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"),
+                Pair.of("build-logic", ".*Execution failed for task ':build-logic:compileKotlin.*"))
     }
 
     @ToBeImplemented // TODO
@@ -785,11 +784,11 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
             if (queryStrategy == ROOT_PROJECT_FIRST) {
                 queryKotlinDslScriptsModel(controller, rootBuild, scriptModels, failures)
-                for (GradleBuild build : rootBuild.includedBuilds) {
+                for (GradleBuild build : rootBuild.editableBuilds) {
                     queryKotlinDslScriptsModel(controller, build, scriptModels, failures)
                 }
             } else if (queryStrategy == INCLUDED_BUILDS_FIRST) {
-                for (GradleBuild build : rootBuild.includedBuilds) {
+                for (GradleBuild build : rootBuild.editableBuilds) {
                     queryKotlinDslScriptsModel(controller, build, scriptModels, failures)
                 }
                 queryKotlinDslScriptsModel(controller, rootBuild, scriptModels, failures)
