@@ -16,21 +16,22 @@
 
 package org.gradle.api.internal.tasks.testing.processors
 
-import org.gradle.api.internal.tasks.testing.TestClassProcessor
+
 import org.gradle.api.internal.tasks.testing.TestDefinition
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.actor.Actor
 import org.gradle.internal.actor.ActorFactory
 import spock.lang.Specification
 import org.gradle.internal.Factory
 
-class MaxNParallelTestClassProcessorTest extends Specification {
-    private final Factory<TestClassProcessor> factory = Mock()
+class MaxNParallelTestDefinitionProcessorTest extends Specification {
+    private final Factory<TestDefinitionProcessor> factory = Mock()
     private final TestResultProcessor resultProcessor = Mock()
     private final TestResultProcessor asyncResultProcessor = Mock()
     private final Actor resultProcessorActor = Mock()
     private final ActorFactory actorFactory = Mock()
-    private final MaxNParallelTestClassProcessor processor = new MaxNParallelTestClassProcessor(2, factory, actorFactory)
+    private final MaxNParallelTestDefinitionProcessor processor = new MaxNParallelTestDefinitionProcessor(2, factory, actorFactory)
 
     def createsThreadSafeWrapperForResultProcessorOnStart() {
         when:
@@ -60,8 +61,8 @@ class MaxNParallelTestClassProcessorTest extends Specification {
 
     def startsProcessorsOnDemandAndStopsAtEnd() {
         TestDefinition test = Mock()
-        TestClassProcessor processor1 = Mock()
-        TestClassProcessor asyncProcessor1 = Mock()
+        TestDefinitionProcessor processor1 = Mock()
+        TestDefinitionProcessor asyncProcessor1 = Mock()
         Actor actor1 = Mock()
 
         startProcessor()
@@ -72,7 +73,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * factory.create() >> processor1
         1 * actorFactory.createActor(processor1) >> actor1
-        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+        1 * actor1.getProxy(TestDefinitionProcessor) >> asyncProcessor1
         1 * asyncProcessor1.startProcessing(asyncResultProcessor)
         1 * asyncProcessor1.processTestDefinition(test)
 
@@ -87,10 +88,10 @@ class MaxNParallelTestClassProcessorTest extends Specification {
 
     def startsMultipleProcessorsOnDemandAndStopsAtEnd() {
         TestDefinition test = Mock()
-        TestClassProcessor processor1 = Mock()
-        TestClassProcessor processor2 = Mock()
-        TestClassProcessor asyncProcessor1 = Mock()
-        TestClassProcessor asyncProcessor2 = Mock()
+        TestDefinitionProcessor processor1 = Mock()
+        TestDefinitionProcessor processor2 = Mock()
+        TestDefinitionProcessor asyncProcessor1 = Mock()
+        TestDefinitionProcessor asyncProcessor2 = Mock()
         Actor actor1 = Mock()
         Actor actor2 = Mock()
 
@@ -102,7 +103,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * factory.create() >> processor1
         1 * actorFactory.createActor(processor1) >> actor1
-        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+        1 * actor1.getProxy(TestDefinitionProcessor) >> asyncProcessor1
         1 * asyncProcessor1.startProcessing(asyncResultProcessor)
         1 * asyncProcessor1.processTestDefinition(test)
 
@@ -112,7 +113,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * factory.create() >> processor2
         1 * actorFactory.createActor(processor2) >> actor2
-        1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
+        1 * actor2.getProxy(TestDefinitionProcessor) >> asyncProcessor2
         1 * asyncProcessor2.startProcessing(asyncResultProcessor)
         1 * asyncProcessor2.processTestDefinition(test)
 
@@ -126,10 +127,10 @@ class MaxNParallelTestClassProcessorTest extends Specification {
 
     def roundRobinsTestClassesToProcessors() {
         TestDefinition test = Mock()
-        TestClassProcessor processor1 = Mock()
-        TestClassProcessor processor2 = Mock()
-        TestClassProcessor asyncProcessor1 = Mock()
-        TestClassProcessor asyncProcessor2 = Mock()
+        TestDefinitionProcessor processor1 = Mock()
+        TestDefinitionProcessor processor2 = Mock()
+        TestDefinitionProcessor asyncProcessor1 = Mock()
+        TestDefinitionProcessor asyncProcessor2 = Mock()
         Actor actor1 = Mock()
         Actor actor2 = Mock()
 
@@ -141,7 +142,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * factory.create() >> processor1
         1 * actorFactory.createActor(processor1) >> actor1
-        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+        1 * actor1.getProxy(TestDefinitionProcessor) >> asyncProcessor1
         1 * asyncProcessor1.startProcessing(asyncResultProcessor)
         1 * asyncProcessor1.processTestDefinition(test)
 
@@ -151,7 +152,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * factory.create() >> processor2
         1 * actorFactory.createActor(processor2) >> actor2
-        1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
+        1 * actor2.getProxy(TestDefinitionProcessor) >> asyncProcessor2
         1 * asyncProcessor2.startProcessing(asyncResultProcessor)
         1 * asyncProcessor2.processTestDefinition(test)
 
@@ -170,10 +171,10 @@ class MaxNParallelTestClassProcessorTest extends Specification {
 
     def "stopNow propagates to factory created processors"() {
         TestDefinition test = Mock()
-        TestClassProcessor processor1 = Mock()
-        TestClassProcessor processor2 = Mock()
-        TestClassProcessor asyncProcessor1 = Mock()
-        TestClassProcessor asyncProcessor2 = Mock()
+        TestDefinitionProcessor processor1 = Mock()
+        TestDefinitionProcessor processor2 = Mock()
+        TestDefinitionProcessor asyncProcessor1 = Mock()
+        TestDefinitionProcessor asyncProcessor2 = Mock()
         Actor actor1 = Mock()
         Actor actor2 = Mock()
 
@@ -185,7 +186,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * factory.create() >> processor1
         1 * actorFactory.createActor(processor1) >> actor1
-        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+        1 * actor1.getProxy(TestDefinitionProcessor) >> asyncProcessor1
 
         when:
         processor.processTestDefinition(test)
@@ -193,7 +194,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         then:
         1 * factory.create() >> processor2
         1 * actorFactory.createActor(processor2) >> actor2
-        1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
+        1 * actor2.getProxy(TestDefinitionProcessor) >> asyncProcessor2
 
         when:
         processor.stopNow()

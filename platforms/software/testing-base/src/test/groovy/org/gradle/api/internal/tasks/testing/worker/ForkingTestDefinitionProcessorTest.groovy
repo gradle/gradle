@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.worker
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.TestDefinition
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.work.WorkerThreadRegistry
@@ -31,11 +31,11 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 
-class ForkingTestClassProcessorTest extends Specification {
+class ForkingTestDefinitionProcessorTest extends Specification {
     WorkerThreadRegistry workerLeaseRegistry = Mock(WorkerThreadRegistry)
-    RemoteTestClassProcessor remoteProcessor = Mock(RemoteTestClassProcessor)
+    RemoteTestDefinitionProcessor remoteProcessor = Mock(RemoteTestDefinitionProcessor)
     ObjectConnection connection = Mock(ObjectConnection) {
-        addOutgoing(RemoteTestClassProcessor.class) >> remoteProcessor
+        addOutgoing(RemoteTestDefinitionProcessor.class) >> remoteProcessor
     }
     WorkerProcess workerProcess = Mock(WorkerProcess) {
         getConnection() >> connection
@@ -131,7 +131,7 @@ class ForkingTestClassProcessorTest extends Specification {
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
             addUnrecoverableErrorHandler(_) >> { args -> handler = args[0] }
-            addOutgoing(_) >> Stub(RemoteTestClassProcessor)
+            addOutgoing(_) >> Stub(RemoteTestDefinitionProcessor)
         }
 
         when:
@@ -156,7 +156,7 @@ class ForkingTestClassProcessorTest extends Specification {
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
             addUnrecoverableErrorHandler(_) >> { args -> handler = args[0] }
-            addOutgoing(_) >> Stub(RemoteTestClassProcessor)
+            addOutgoing(_) >> Stub(RemoteTestDefinitionProcessor)
         }
 
         when:
@@ -174,8 +174,8 @@ class ForkingTestClassProcessorTest extends Specification {
     def newProcessor(
         ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
     ) {
-        return new ForkingTestClassProcessor(
-            workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory),
+        return new ForkingTestDefinitionProcessor(
+            workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestDefinitionProcessorFactory),
             Stub(JavaForkOptions), classpath, Mock(Action)
         )
     }

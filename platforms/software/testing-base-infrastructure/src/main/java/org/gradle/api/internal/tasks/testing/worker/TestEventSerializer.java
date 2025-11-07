@@ -68,7 +68,7 @@ public class TestEventSerializer {
         registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
         registry.register(DefaultParameterizedTestDescriptor.class, new DefaultParameterizedTestDescriptorSerializer());
         registry.register(DefaultTestSuiteDescriptor.class, new DefaultTestSuiteDescriptorSerializer());
-        registry.register(WorkerTestClassProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
+        registry.register(WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor.class, new WorkerTestSuiteDescriptorSerializer());
         registry.register(DefaultTestClassDescriptor.class, new DefaultTestClassDescriptorSerializer());
         registry.register(DefaultTestMethodDescriptor.class, new DefaultTestMethodDescriptorSerializer());
         registry.register(DefaultTestDescriptor.class, new DefaultTestDescriptorSerializer());
@@ -431,18 +431,18 @@ public class TestEventSerializer {
         }
     }
 
-    private static class WorkerTestSuiteDescriptorSerializer implements Serializer<WorkerTestClassProcessor.WorkerTestSuiteDescriptor> {
+    private static class WorkerTestSuiteDescriptorSerializer implements Serializer<WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
         @Override
-        public WorkerTestClassProcessor.WorkerTestSuiteDescriptor read(Decoder decoder) throws Exception {
+        public WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor read(Decoder decoder) throws Exception {
             Object id = idSerializer.read(decoder);
             String name = decoder.readString();
-            return new WorkerTestClassProcessor.WorkerTestSuiteDescriptor(id, name);
+            return new WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor(id, name);
         }
 
         @Override
-        public void write(Encoder encoder, WorkerTestClassProcessor.WorkerTestSuiteDescriptor value) throws Exception {
+        public void write(Encoder encoder, WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor value) throws Exception {
             idSerializer.write(encoder, (CompositeIdGenerator.CompositeId) value.getId());
             encoder.writeString(value.getName());
         }

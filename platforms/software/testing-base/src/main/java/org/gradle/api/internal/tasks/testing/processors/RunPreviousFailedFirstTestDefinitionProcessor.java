@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
@@ -30,14 +30,14 @@ import java.util.Set;
  * In order to speed up the development feedback cycle, this class guarantee previous failed test classes
  * to be passed to its delegate first.
  */
-public class RunPreviousFailedFirstTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
+public class RunPreviousFailedFirstTestDefinitionProcessor<D extends TestDefinition> implements TestDefinitionProcessor<D> {
     private final Set<String> previousFailedTestClasses;
     private final Set<File> previousFailedTestDefinitionDirectories;
-    private final TestClassProcessor<D> delegate;
+    private final TestDefinitionProcessor<D> delegate;
     private final LinkedHashSet<D> prioritizedTestDefinitions = new LinkedHashSet<>();
     private final LinkedHashSet<D> otherTestDefinitions = new LinkedHashSet<>();
 
-    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor<D> delegate) {
+    public RunPreviousFailedFirstTestDefinitionProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestDefinitionProcessor<D> delegate) {
         this.previousFailedTestClasses = previousFailedTestClasses;
         this.previousFailedTestDefinitionDirectories = previousFailedTestDefinitionDirectories;
         this.delegate = delegate;

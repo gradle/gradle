@@ -16,20 +16,21 @@
 
 package org.gradle.api.internal.tasks.testing.processors
 
-import org.gradle.api.internal.tasks.testing.TestClassProcessor
+
 import org.gradle.api.internal.tasks.testing.TestDefinition
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
-class RestartEveryNTestClassProcessorTest extends Specification {
-    private final Factory<TestClassProcessor> factory = Mock();
-    private final TestClassProcessor delegate = Mock();
+class RestartEveryNTestDefinitionProcessorTest extends Specification {
+    private final Factory<TestDefinitionProcessor> factory = Mock();
+    private final TestDefinitionProcessor delegate = Mock();
     private final TestDefinition test1 = Mock();
     private final TestDefinition test2 = Mock();
     private final TestDefinition test3 = Mock();
     private final TestResultProcessor resultProcessor = Mock();
-    private RestartEveryNTestClassProcessor processor = new RestartEveryNTestClassProcessor(factory, 2);
+    private RestartEveryNTestDefinitionProcessor processor = new RestartEveryNTestDefinitionProcessor(factory, 2);
 
     def 'creates delegate processor on first test'() {
         when:
@@ -65,7 +66,7 @@ class RestartEveryNTestClassProcessorTest extends Specification {
 
     def 'creates new delegate processor on (n + 1)th test'() {
         given:
-        TestClassProcessor delegate2 = Mock()
+        TestDefinitionProcessor delegate2 = Mock()
 
         when:
         processor.startProcessing(resultProcessor)
@@ -137,7 +138,7 @@ class RestartEveryNTestClassProcessorTest extends Specification {
 
     def 'uses single batch when n equals zero'() {
         given:
-        processor = new RestartEveryNTestClassProcessor(factory, 0)
+        processor = new RestartEveryNTestDefinitionProcessor(factory, 0)
 
         when:
         processor.startProcessing(resultProcessor)

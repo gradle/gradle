@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Objects;
 
 @NullMarked
-public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassProcessor<ClassTestDefinition> {
+public class TestNGTestDefinitionProcessor implements RequiresTestFrameworkTestDefinitionProcessor<ClassTestDefinition> {
     private final List<Class<?>> testClasses = new ArrayList<>();
     private final File testReportDir;
     private final TestNGSpec spec;
@@ -49,7 +49,7 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
     private TestResultProcessor resultProcessor;
     private boolean startedProcessing;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec spec, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
+    public TestNGTestDefinitionProcessor(File testReportDir, TestNGSpec spec, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
         this.spec = spec;
         this.suiteFiles = suiteFiles;
@@ -119,6 +119,6 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
 
     @Override
     public void stopNow() {
-        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestDefinitionProcessor");
     }
 }

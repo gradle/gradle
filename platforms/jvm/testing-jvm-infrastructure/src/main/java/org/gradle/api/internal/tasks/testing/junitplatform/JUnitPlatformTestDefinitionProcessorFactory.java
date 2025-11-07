@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
@@ -29,20 +29,20 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 
 /**
- * Implementation of {@link WorkerTestClassProcessorFactory} which instantiates a {@code JUnitPlatformTestClassProcessor}.
+ * Implementation of {@link WorkerTestDefinitionProcessorFactory} which instantiates a {@code JUnitPlatformTestDefinitionProcessor}.
  * This class is loaded on test workers themselves and acts as the entry-point to running JUnit Platform tests on a test worker.
  */
-class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessorFactory<TestDefinition>, Serializable {
+class JUnitPlatformTestDefinitionProcessorFactory implements WorkerTestDefinitionProcessorFactory<TestDefinition>, Serializable {
     private final JUnitPlatformSpec spec;
 
-    JUnitPlatformTestClassProcessorFactory(JUnitPlatformSpec spec) {
+    public JUnitPlatformTestDefinitionProcessorFactory(JUnitPlatformSpec spec) {
         this.spec = spec;
     }
 
     @Override
-    public TestClassProcessor<TestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public TestDefinitionProcessor<TestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         try {
-            Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
+            Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor");
             Constructor<?> constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
             return Cast.uncheckedNonnullCast(constructor.newInstance(spec, idGenerator, actorFactory, clock));
         } catch (Exception e) {

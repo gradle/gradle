@@ -21,13 +21,13 @@ import org.gradle.internal.time.Clock
 import org.gradle.internal.time.FixedClock
 import spock.lang.Specification
 
-class SuiteTestClassProcessorTest extends Specification {
+class SuiteTestDefinitionProcessorTest extends Specification {
     private final TestResultProcessor resultProcessor = Mock()
-    private final TestClassProcessor targetProcessor = Mock()
+    private final TestDefinitionProcessor targetProcessor = Mock()
     private final TestDescriptorInternal suiteDescriptor = Mock()
     private final ClassTestDefinition testDefinition = new ClassTestDefinition("<class-name>")
     private final Clock timeProvider = FixedClock.create()
-    private final SuiteTestClassProcessor processor = new SuiteTestClassProcessor(suiteDescriptor, targetProcessor, timeProvider)
+    private final SuiteTestDefinitionProcessor processor = new SuiteTestDefinitionProcessor(suiteDescriptor, targetProcessor, timeProvider)
 
     def setup() {
         _ * suiteDescriptor.getId() >> 'id'
@@ -79,7 +79,7 @@ class SuiteTestClassProcessorTest extends Specification {
         }
     }
 
-    def firesAFailureEventOnTestClassProcessingFailure() {
+    def firesAFailureEventOnTestProcessingFailure() {
         RuntimeException failure = new RuntimeException()
         processor.startProcessing(resultProcessor)
 

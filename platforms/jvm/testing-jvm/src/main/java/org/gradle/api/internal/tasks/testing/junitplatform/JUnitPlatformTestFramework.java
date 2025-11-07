@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
@@ -65,9 +65,9 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     protected abstract ObjectFactory getObjectFactory();
 
     @Override
-    public WorkerTestClassProcessorFactory<?> getProcessorFactory() {
+    public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         validateOptions();
-        return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
+        return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
             getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get()
         ));

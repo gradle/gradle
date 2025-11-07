@@ -26,12 +26,12 @@ import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<ClassTestDefinition> {
+public class JUnitTestDefinitionProcessor extends AbstractJUnitTestDefinitionProcessor<ClassTestDefinition> {
     private final IdGenerator<?> idGenerator;
     private final JUnitSpec spec;
     private final Clock clock;
 
-    public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public JUnitTestDefinitionProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(actorFactory);
         this.spec = spec;
         this.idGenerator = idGenerator;
