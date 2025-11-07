@@ -27,6 +27,7 @@ import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -37,10 +38,26 @@ import java.util.Set;
  */
 public class BuildStatusRenderer implements OutputEventListener {
     public static final int PROGRESS_BAR_WIDTH = 13;
-    public static final String PROGRESS_BAR_PREFIX = "<";
-    public static final char PROGRESS_BAR_COMPLETE_CHAR = '=';
-    public static final char PROGRESS_BAR_INCOMPLETE_CHAR = '-';
-    public static final String PROGRESS_BAR_SUFFIX = ">";
+
+    // Unicode progress bar style (Linux/macOS) - avoids ligature-triggering sequences
+    public static final String UNICODE_PROGRESS_BAR_PREFIX = "|";
+    public static final String UNICODE_PROGRESS_BAR_SUFFIX = "|";
+
+    // ASCII progress bar style (Windows) - simple hash-based progress
+    public static final String ASCII_PROGRESS_BAR_PREFIX = "[";
+    public static final char ASCII_PROGRESS_BAR_COMPLETE_CHAR = '#';
+    public static final char ASCII_PROGRESS_BAR_INCOMPLETE_CHAR = '.';
+    public static final String ASCII_PROGRESS_BAR_SUFFIX = "]";
+
+    // Legacy constants for backwards compatibility
+    @Deprecated
+    public static final String PROGRESS_BAR_PREFIX = ASCII_PROGRESS_BAR_PREFIX;
+    @Deprecated
+    public static final char PROGRESS_BAR_COMPLETE_CHAR = ASCII_PROGRESS_BAR_COMPLETE_CHAR;
+    @Deprecated
+    public static final char PROGRESS_BAR_INCOMPLETE_CHAR = ASCII_PROGRESS_BAR_INCOMPLETE_CHAR;
+    @Deprecated
+    public static final String PROGRESS_BAR_SUFFIX = ASCII_PROGRESS_BAR_SUFFIX;
 
     private enum Phase {
         Initializing, Configuring, Executing
@@ -152,12 +169,27 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     @VisibleForTesting
     public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
-        return new ProgressBar(consoleMetaData,
-            PROGRESS_BAR_PREFIX,
-            PROGRESS_BAR_WIDTH,
-            PROGRESS_BAR_SUFFIX,
-            PROGRESS_BAR_COMPLETE_CHAR,
-            PROGRESS_BAR_INCOMPLETE_CHAR,
-            initialSuffix, initialProgress, totalProgress);
+        // Use Unicode progress bars on Linux and macOS, ASCII on Windows
+        boolean useUnicode = !OperatingSystem.current().isWindows();
+
+        if (useUnicode) {
+            // Unicode mode: smooth progress with block characters
+            return new ProgressBar(consoleMetaData,
+                UNICODE_PROGRESS_BAR_PREFIX,
+                PROGRESS_BAR_WIDTH,
+                UNICODE_PROGRESS_BAR_SUFFIX,
+                ' ', // Not used in Unicode mode
+                ' ', // Not used in Unicode mode
+                initialSuffix, initialProgress, totalProgress, true);
+        } else {
+            // ASCII mode: hash-based progress for Windows
+            return new ProgressBar(consoleMetaData,
+                ASCII_PROGRESS_BAR_PREFIX,
+                PROGRESS_BAR_WIDTH,
+                ASCII_PROGRESS_BAR_SUFFIX,
+                ASCII_PROGRESS_BAR_COMPLETE_CHAR,
+                ASCII_PROGRESS_BAR_INCOMPLETE_CHAR,
+                initialSuffix, initialProgress, totalProgress, false);
+        }
     }
 }
