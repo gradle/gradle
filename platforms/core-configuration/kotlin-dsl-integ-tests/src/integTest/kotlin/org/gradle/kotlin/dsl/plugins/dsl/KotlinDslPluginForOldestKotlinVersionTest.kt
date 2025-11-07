@@ -72,7 +72,7 @@ class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest(
         withBuildScript("""plugins { id("some") }""")
 
         repeat(2) {
-            executer.expectExternalDeprecatedMessage("[KOTLIN] w: Language version $oldestKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
+            executer.expectExternalDeprecatedMessage("w: Language version $oldestKotlinLanguageVersion is deprecated in JVM and its support will be removed in a future version of Kotlin")
         }
         executer.withStackTraceChecksDisabled()
         // TODO: following lines from the deprecation warning are identified as stack-traces; the proper fix would be to improve the stack trace detection regexp...
