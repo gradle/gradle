@@ -41,12 +41,19 @@ dependencies {
 
     implementation(projects.concurrent)
 
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.junit) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
     compileOnly(libs.testng) {
+        because("The actual version is provided by the user on the testRuntimeClasspath")
+    }
+    compileOnly(libs.junitPlatform) {
+        because("The actual version is provided by the user on the testRuntimeClasspath")
+    }
+    compileOnly(libs.junitPlatformEngine) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
 
