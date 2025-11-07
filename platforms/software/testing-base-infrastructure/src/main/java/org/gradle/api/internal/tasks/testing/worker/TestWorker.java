@@ -52,15 +52,15 @@ import java.util.concurrent.BlockingQueue;
  * Processes tests in a remote process with the given {@link TestDefinitionProcessor} until a stop command is received.  Requires that
  * methods willed be called sequentially in the following order:
  *
- * - {@link RemoteTestClassProcessor#startProcessing()}
- * - 0 or more calls to {@link RemoteTestClassProcessor#processTestDefinition(TestDefinition)}
- * - {@link RemoteTestClassProcessor#stop()}
+ * - {@link RemoteTestDefinitionProcessor#startProcessing()}
+ * - 0 or more calls to {@link RemoteTestDefinitionProcessor#processTestDefinition(TestDefinition)}
+ * - {@link RemoteTestDefinitionProcessor#stop()}
  *
  * Commands are received on communication threads and then processed sequentially on the main thread.  Although concurrent calls to
- * any of the methods from {@link RemoteTestClassProcessor} are supported, the commands will still be executed sequentially in the
+ * any of the methods from {@link RemoteTestDefinitionProcessor} are supported, the commands will still be executed sequentially in the
  * main thread in order of arrival.
  */
-public class TestWorker<D extends TestDefinition> implements Action<WorkerProcessContext>, RemoteTestClassProcessor<D>, Serializable, Stoppable {
+public class TestWorker<D extends TestDefinition> implements Action<WorkerProcessContext>, RemoteTestDefinitionProcessor<D>, Serializable, Stoppable {
     private enum State {INITIALIZING, STARTED, STOPPED}
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
@@ -148,7 +148,7 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
         serverConnection.useParameterSerializers(TestEventSerializer.create());
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
-        serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
+        serverConnection.addIncoming(RemoteTestDefinitionProcessor.class, this);
         serverConnection.connect();
     }
 

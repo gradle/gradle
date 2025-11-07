@@ -35,7 +35,7 @@ import java.lang.reflect.Constructor;
 class JUnitPlatformTestDefinitionProcessorFactory implements WorkerTestDefinitionProcessorFactory<TestDefinition>, Serializable {
     private final JUnitPlatformSpec spec;
 
-    JUnitPlatformTestDefinitionProcessorFactory(JUnitPlatformSpec spec) {
+    public JUnitPlatformTestDefinitionProcessorFactory(JUnitPlatformSpec spec) {
         this.spec = spec;
     }
 

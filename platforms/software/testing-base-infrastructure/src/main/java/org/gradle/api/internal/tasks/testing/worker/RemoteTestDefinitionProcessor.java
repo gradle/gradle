@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 /**
  * @see TestDefinitionProcessor
  */
-public interface RemoteTestClassProcessor<D extends TestDefinition> {
+public interface RemoteTestDefinitionProcessor<D extends TestDefinition> {
     /**
      * Does not block.
      */

@@ -29,7 +29,7 @@ import java.io.Serializable;
  * Implementation of {@link WorkerTestDefinitionProcessorFactory} which instantiates a {@link JUnitTestDefinitionProcessor}.
  * This class is loaded on test workers themselves and acts as the entry-point to running JUnit 4 tests on a test worker.
  */
-class JUnitTestDefinitionProcessorFactory implements WorkerTestDefinitionProcessorFactory<ClassTestDefinition>, Serializable {
+public class JUnitTestDefinitionProcessorFactory implements WorkerTestDefinitionProcessorFactory<ClassTestDefinition>, Serializable {
     private final JUnitSpec spec;
 
     public JUnitTestDefinitionProcessorFactory(JUnitSpec spec) {

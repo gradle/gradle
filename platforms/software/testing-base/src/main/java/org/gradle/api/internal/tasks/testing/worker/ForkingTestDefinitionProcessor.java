@@ -48,7 +48,7 @@ public class ForkingTestDefinitionProcessor<D extends TestDefinition> implements
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final Lock lock = new ReentrantLock();
     private final WorkerThreadRegistry workerThreadRegistry;
-    private RemoteTestClassProcessor<D> remoteProcessor;
+    private RemoteTestDefinitionProcessor<D> remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
@@ -102,7 +102,7 @@ public class ForkingTestDefinitionProcessor<D extends TestDefinition> implements
         }
     }
 
-    RemoteTestClassProcessor<D> forkProcess() {
+    RemoteTestDefinitionProcessor<D> forkProcess() {
         WorkerProcessBuilder builder = workerFactory.create(new TestWorker<>(processorFactory));
         builder.setBaseName(GRADLE_TEST_WORKER_NAME);
         builder.setImplementationClasspath(classpath.getImplementationClasspath());
@@ -134,8 +134,8 @@ public class ForkingTestDefinitionProcessor<D extends TestDefinition> implements
             }
         });
         connection.addIncoming(TestResultProcessor.class, resultProcessor);
-        RemoteTestClassProcessor<D> remoteProcessor = Cast.uncheckedNonnullCast(
-            connection.addOutgoing(RemoteTestClassProcessor.class)
+        RemoteTestDefinitionProcessor<D> remoteProcessor = Cast.uncheckedNonnullCast(
+            connection.addOutgoing(RemoteTestDefinitionProcessor.class)
         );
         connection.connect();
         remoteProcessor.startProcessing();

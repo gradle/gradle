@@ -33,9 +33,9 @@ import spock.lang.Specification
 
 class ForkingTestDefinitionProcessorTest extends Specification {
     WorkerThreadRegistry workerLeaseRegistry = Mock(WorkerThreadRegistry)
-    RemoteTestClassProcessor remoteProcessor = Mock(RemoteTestClassProcessor)
+    RemoteTestDefinitionProcessor remoteProcessor = Mock(RemoteTestDefinitionProcessor)
     ObjectConnection connection = Mock(ObjectConnection) {
-        addOutgoing(RemoteTestClassProcessor.class) >> remoteProcessor
+        addOutgoing(RemoteTestDefinitionProcessor.class) >> remoteProcessor
     }
     WorkerProcess workerProcess = Mock(WorkerProcess) {
         getConnection() >> connection
@@ -131,7 +131,7 @@ class ForkingTestDefinitionProcessorTest extends Specification {
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
             addUnrecoverableErrorHandler(_) >> { args -> handler = args[0] }
-            addOutgoing(_) >> Stub(RemoteTestClassProcessor)
+            addOutgoing(_) >> Stub(RemoteTestDefinitionProcessor)
         }
 
         when:
@@ -156,7 +156,7 @@ class ForkingTestDefinitionProcessorTest extends Specification {
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
             addUnrecoverableErrorHandler(_) >> { args -> handler = args[0] }
-            addOutgoing(_) >> Stub(RemoteTestClassProcessor)
+            addOutgoing(_) >> Stub(RemoteTestDefinitionProcessor)
         }
 
         when:
