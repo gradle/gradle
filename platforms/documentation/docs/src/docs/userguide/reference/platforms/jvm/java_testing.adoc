@@ -818,3 +818,17 @@ NOTE: If you publish your library and use test fixtures, but do not want to publ
 include::sample[dir="snippets/java/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
 include::sample[dir="snippets/java/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
 ====
+
+[[sec:non-class-based-testing]]
+== Non-class based testing
+
+Some testing frameworks do not use classes to define tests (for instance https://cucumber.io/[Cucumber]).
+Gradle supports non-class based testing via JUnit Platform https://docs.junit.org/current/user-guide/#test-engines[TestEngine]s.
+
+To use a non-class based testing framework, you need to:
+
+ * Add the appropriate TestEngine dependency to the test runtime classpath
+ * Configure the `Test` task to use JUnit Platform
+ * Tell the `TestEngine` where to find the tests using the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testClassesDirs[testDefinitionDirs] property of the Test task.
+
+TODO demo snippet
