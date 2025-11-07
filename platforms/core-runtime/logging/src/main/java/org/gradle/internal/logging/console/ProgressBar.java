@@ -61,6 +61,7 @@ public class ProgressBar {
     private final char incompleteChar;
     private final String suffix;
     private final boolean useUnicode;
+    private final boolean useTaskbarProgress;
 
     private int current;
     private int total;
@@ -84,6 +85,7 @@ public class ProgressBar {
         this.current = initialProgress;
         this.total = totalProgress;
         this.useUnicode = useUnicode;
+        this.useTaskbarProgress = consoleMetaData.supportsTaskbarProgress();
     }
 
     public void moreProgress(int totalProgress) {
@@ -115,7 +117,12 @@ public class ProgressBar {
         if (formatted == null || !elapsedTimeStr.equals(lastElapsedTimeStr)) {
             int consoleCols = consoleMetaData.getCols();
 
-            String statusPrefix = trimToConsole(consoleCols, 0, progressBarPrefix);
+            // Calculate progress percentage for both display and taskbar
+            int progressPercent = (int) (current * 100.0 / total);
+
+            // Prepend taskbar progress sequence (invisible control sequence)
+            String taskbarSequence = buildTaskbarProgressSequence(progressPercent, failing);
+            String statusPrefix = trimToConsole(consoleCols, 0, taskbarSequence + progressBarPrefix);
             String coloredProgress;
             String statusSuffix;
 
@@ -162,7 +169,7 @@ public class ProgressBar {
 
                 coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), fill(fillerChar, completedWidth));
                 statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(), fill(incompleteChar, remainingWidth)
-                    + progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
+                    + progressBarSuffix + " " + progressPercent + '%' + ' ' + suffix
                     + (timerEnabled ? " [" + elapsedTimeStr + "]" : ""));
 
                 lastElapsedTimeStr = elapsedTimeStr;
@@ -174,7 +181,7 @@ public class ProgressBar {
             }
 
             statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(),
-                progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
+                progressBarSuffix + " " + progressPercent + '%' + ' ' + suffix
                 + (timerEnabled ? " [" + elapsedTimeStr + "]" : ""));
 
             lastElapsedTimeStr = elapsedTimeStr;
@@ -208,5 +215,32 @@ public class ProgressBar {
             return str.substring(0, consoleWidth);
         }
         return str;
+    }
+
+    /**
+     * Generates OSC 9;4 sequence for taskbar progress (ConEmu, Ghostty).
+     * Format: ESC ] 9 ; 4 ; state ; progress ST
+     * States: 0=remove, 1=normal, 2=error, 3=indeterminate, 4=paused
+     */
+    private String buildTaskbarProgressSequence(int progressPercent, boolean isError) {
+        if (!useTaskbarProgress) {
+            return "";
+        }
+
+        // ESC ] 9 ; 4 ; state ; progress BEL
+        // Using BEL (0x07) instead of ST (ESC \) for broader compatibility
+        int state = isError ? 2 : 1; // 1=normal, 2=error
+        return "\u001B]9;4;" + state + ";" + progressPercent + "\u0007";
+    }
+
+    /**
+     * Generates OSC 9;4 sequence to remove taskbar progress indicator.
+     */
+    private String clearTaskbarProgress() {
+        if (!useTaskbarProgress) {
+            return "";
+        }
+        // ESC ] 9 ; 4 ; 0 BEL (state 0 = remove progress)
+        return "\u001B]9;4;0\u0007";
     }
 }

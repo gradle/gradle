@@ -32,10 +32,18 @@ class ProgressBarTest extends Specification {
 
     ProgressBar progressBar
     ProgressBar unicodeProgressBar
+    ProgressBar taskbarProgressBar
+    ConsoleMetaData taskbarConsoleMetaData
 
     def setup() {
         progressBar = new ProgressBar(Stub(ConsoleMetaData), PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10, false)
         unicodeProgressBar = new ProgressBar(Stub(ConsoleMetaData), '|', PROGRESS_BAR_WIDTH, '|', ' ' as char, ' ' as char, BUILD_PHASE, 0, 10, true)
+
+        // Create a console metadata that supports taskbar progress
+        taskbarConsoleMetaData = Stub(ConsoleMetaData) {
+            supportsTaskbarProgress() >> true
+        }
+        taskbarProgressBar = new ProgressBar(taskbarConsoleMetaData, PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10, false)
     }
 
     private getProgress() {
@@ -183,5 +191,38 @@ class ProgressBarTest extends Specification {
 
         then:
         unicodeProgressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.FailureHeader
+    }
+
+    def "emits taskbar progress sequence when supported"() {
+        when:
+        taskbarProgressBar.update(false)
+        def result = taskbarProgressBar.formatProgress(false, 0).collect { it.text }.join("")
+
+        then:
+        // Should contain OSC 9;4 sequence: ESC ] 9 ; 4 ; 1 ; 10 BEL
+        // ESC = \u001B, BEL = \u0007
+        result.contains('\u001B]9;4;1;10\u0007')
+        result.contains('[#.........] 10% EXECUTING')
+    }
+
+    def "emits error state in taskbar progress when failing"() {
+        when:
+        taskbarProgressBar.update(true) // Mark as failing
+        def result = taskbarProgressBar.formatProgress(false, 0).collect { it.text }.join("")
+
+        then:
+        // Should contain OSC 9;4 with state 2 (error): ESC ] 9 ; 4 ; 2 ; 10 BEL
+        result.contains('\u001B]9;4;2;10\u0007')
+    }
+
+    def "does not emit taskbar progress when not supported"() {
+        when:
+        progressBar.update(false)
+        def result = progressBar.formatProgress(false, 0).collect { it.text }.join("")
+
+        then:
+        // Should NOT contain OSC 9;4 sequence
+        !result.contains('\u001B]9;4;')
+        result == '[#.........] 10% EXECUTING'
     }
 }
