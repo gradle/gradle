@@ -42,10 +42,10 @@ One important <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,
 
 Init scripts are discovered and executed in this order:
 
-1. Command line: `-I` / `--init-script path/to/init.gradle[.kts]` (can be repeated)
-2. `__$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>__/init.gradle(.kts)`
-3. Any `\*.init.gradle(.kts)` in `__$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>__/init.d/` (alphabetical)
-4. Any `\*.init.gradle(.kts)` in `$<<installation.adoc#sec:linux_macos_users_2,__GRADLE_HOME__>>/init.d/` (alphabetical)
+1. Command line: `-I` / `--init-script path/to/init.gradle(.kts)` (can be repeated)
+2. `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/init.gradle(.kts)`
+3. Any `\*.init.gradle(.kts)` in `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/init.d/` (alphabetical)
+4. Any `\*.init.gradle(.kts)` in `$<<installation.adoc#sec:linux_macos_users_2,GRADLE_HOME>>/init.d/` (alphabetical)
 
 All found scripts run; scripts in the same directory run alphabetically.
 
@@ -56,7 +56,7 @@ Like any Gradle script, an init script implements link:{groovyDslPath}/org.gradl
 
 NOTE: Properties from `gradle.properties` are available on `Settings`/`Project`, *not* on `Gradle`.
 
-TIP: Useful `Gradle` callbacks: `settingsEvaluated {}`, `projectsLoaded {}`, `beforeProject {}`, `afterProject {}`.
+Useful `Gradle` callbacks include: `settingsEvaluated {}`, `projectsLoaded {}`, `beforeProject {}`, `afterProject {}`.
 
 [[sec:configuring_projects_from_an_init_script]]
 === Configuring projects from an init script
