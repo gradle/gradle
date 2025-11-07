@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.worker
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.TestDefinition
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.work.WorkerThreadRegistry
@@ -31,7 +31,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 
-class ForkingTestClassProcessorTest extends Specification {
+class ForkingTestDefinitionProcessorTest extends Specification {
     WorkerThreadRegistry workerLeaseRegistry = Mock(WorkerThreadRegistry)
     RemoteTestClassProcessor remoteProcessor = Mock(RemoteTestClassProcessor)
     ObjectConnection connection = Mock(ObjectConnection) {
@@ -174,8 +174,8 @@ class ForkingTestClassProcessorTest extends Specification {
     def newProcessor(
         ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
     ) {
-        return new ForkingTestClassProcessor(
-            workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory),
+        return new ForkingTestDefinitionProcessor(
+            workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestDefinitionProcessorFactory),
             Stub(JavaForkOptions), classpath, Mock(Action)
         )
     }

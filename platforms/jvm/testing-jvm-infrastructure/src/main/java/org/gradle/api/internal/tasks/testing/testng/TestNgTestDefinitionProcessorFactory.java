@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
@@ -28,22 +28,22 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Implementation of {@link WorkerTestClassProcessorFactory} which instantiates a {@link TestNGTestClassProcessor}.
+ * Implementation of {@link WorkerTestDefinitionProcessorFactory} which instantiates a {@link TestNGTestDefinitionProcessor}.
  * This class is loaded on test workers themselves and acts as the entry-point to running TestNG tests on a test worker.
  */
-class TestNgTestClassProcessorFactory implements WorkerTestClassProcessorFactory<ClassTestDefinition>, Serializable {
+class TestNgTestDefinitionProcessorFactory implements WorkerTestDefinitionProcessorFactory<ClassTestDefinition>, Serializable {
     private final File testReportDir;
     private final TestNGSpec options;
     private final List<File> suiteFiles;
 
-    public TestNgTestClassProcessorFactory(File testReportDir, TestNGSpec options, List<File> suiteFiles) {
+    public TestNgTestDefinitionProcessorFactory(File testReportDir, TestNGSpec options, List<File> suiteFiles) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
     }
 
     @Override
-    public TestClassProcessor<ClassTestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
-        return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, idGenerator, clock, actorFactory);
+    public TestDefinitionProcessor<ClassTestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+        return new TestNGTestDefinitionProcessor(testReportDir, options, suiteFiles, idGenerator, clock, actorFactory);
     }
 }

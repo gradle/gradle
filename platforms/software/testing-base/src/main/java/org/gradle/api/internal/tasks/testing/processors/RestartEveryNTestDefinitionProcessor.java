@@ -16,20 +16,20 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.Factory;
 
-public class RestartEveryNTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
-    private final Factory<TestClassProcessor<D>> factory;
+public class RestartEveryNTestDefinitionProcessor<D extends TestDefinition> implements TestDefinitionProcessor<D> {
+    private final Factory<TestDefinitionProcessor<D>> factory;
     private final long restartEvery;
     private long testCount;
     private TestResultProcessor resultProcessor;
     private volatile boolean stoppedNow;
-    private volatile TestClassProcessor<D> processor;
+    private volatile TestDefinitionProcessor<D> processor;
 
-    public RestartEveryNTestClassProcessor(Factory<TestClassProcessor<D>> factory, long restartEvery) {
+    public RestartEveryNTestDefinitionProcessor(Factory<TestDefinitionProcessor<D>> factory, long restartEvery) {
         this.factory = factory;
         this.restartEvery = restartEvery;
     }
@@ -66,7 +66,7 @@ public class RestartEveryNTestClassProcessor<D extends TestDefinition> implement
     @Override
     public void stopNow() {
         stoppedNow = true;
-        TestClassProcessor<D> toStop = processor;
+        TestDefinitionProcessor<D> toStop = processor;
         if (toStop != null) {
             toStop.stopNow();
         }

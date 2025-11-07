@@ -18,18 +18,18 @@ package org.gradle.api.internal.tasks.testing.processors
 
 
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition
-import org.gradle.api.internal.tasks.testing.TestClassProcessor
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import spock.lang.Specification
 
-class RunPreviousFailedFirstTestClassProcessorTest extends Specification {
-    TestClassProcessor delegate = Mock()
+class RunPreviousFailedFirstTestDefinitionProcessorTest extends Specification {
+    TestDefinitionProcessor delegate = Mock()
     TestResultProcessor testResultProcessor = Mock()
-    RunPreviousFailedFirstTestClassProcessor processor
+    RunPreviousFailedFirstTestDefinitionProcessor processor
 
     def 'previous failed test classes should be passed to delegate first'() {
         given:
-        processor = new RunPreviousFailedFirstTestClassProcessor(['Class3'] as Set, [] as Set, delegate)
+        processor = new RunPreviousFailedFirstTestDefinitionProcessor(['Class3'] as Set, [] as Set, delegate)
 
         when:
         processor.startProcessing(testResultProcessor)

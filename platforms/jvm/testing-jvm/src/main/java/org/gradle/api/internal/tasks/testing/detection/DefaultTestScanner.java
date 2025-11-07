@@ -23,7 +23,7 @@ import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +33,12 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * The default test class scanner. Depending on the availability of a test framework detector,
- * a detection or filename scan is performed to find test classes.
+ * The default test definition scanner.
+ * <p>
+ * Depending on the availability of a test framework detector,
+ * a detection or filename scan is performed to find test definitions.
+ * <p>
+ * Test definitions include both class-based and non-class-based tests.
  */
 public class DefaultTestScanner implements TestDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTestScanner.class);
@@ -43,16 +47,17 @@ public class DefaultTestScanner implements TestDetector {
     private final FileTree candidateClassFiles;
     private final Set<File> candidateDefinitionDirs;
     private final TestFrameworkDetector testFrameworkDetector;
-    private final TestClassProcessor<TestDefinition> testClassProcessor;
+    private final TestDefinitionProcessor<TestDefinition> testDefinitionProcessor;
 
     public DefaultTestScanner(FileTree candidateClassFiles,
                               Set<File> candidateDefinitionDirs,
                               TestFrameworkDetector testFrameworkDetector,
-                              TestClassProcessor<TestDefinition> testClassProcessor) {
+                              TestDefinitionProcessor<TestDefinition> testDefinitionProcessor
+    ) {
         this.candidateClassFiles = candidateClassFiles;
         this.candidateDefinitionDirs = candidateDefinitionDirs;
         this.testFrameworkDetector = testFrameworkDetector;
-        this.testClassProcessor = testClassProcessor;
+        this.testDefinitionProcessor = testDefinitionProcessor;
     }
 
     @Override
@@ -65,7 +70,7 @@ public class DefaultTestScanner implements TestDetector {
     }
 
     private void detectionScan() {
-        testFrameworkDetector.startDetection(testClassProcessor);
+        testFrameworkDetector.startDetection(testDefinitionProcessor);
         candidateClassFiles.visit(new ClassFileVisitor() {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
@@ -79,7 +84,7 @@ public class DefaultTestScanner implements TestDetector {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
                 TestDefinition testDefinition = new ClassTestDefinition(getClassName(fileDetails));
-                testClassProcessor.processTestDefinition(testDefinition);
+                testDefinitionProcessor.processTestDefinition(testDefinition);
             }
         });
         candidateDefinitionDirs.forEach(dir -> {
@@ -94,7 +99,7 @@ public class DefaultTestScanner implements TestDetector {
 
             if (isValid) {
                 TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
-                testClassProcessor.processTestDefinition(testDefinition);
+                testDefinitionProcessor.processTestDefinition(testDefinition);
             }
         });
     }

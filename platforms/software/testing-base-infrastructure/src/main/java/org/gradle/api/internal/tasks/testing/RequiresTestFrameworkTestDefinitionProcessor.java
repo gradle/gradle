@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * A {@link TestClassProcessor} that requires a specific testing framework dependency or dependencies to be available
+ * A {@link TestDefinitionProcessor} that requires a specific testing framework dependency or dependencies to be available
  * at test runtime.
  *
  * Provides a standard way to check if the framework is available before starting the test class processing.
@@ -28,7 +28,7 @@ import org.jspecify.annotations.NullMarked;
  * @since 9.0
  */
 @NullMarked
-public interface RequiresTestFrameworkTestClassProcessor<D extends TestDefinition> extends TestClassProcessor<D> {
+public interface RequiresTestFrameworkTestDefinitionProcessor<D extends TestDefinition> extends TestDefinitionProcessor<D> {
     /**
      * Checks if the required framework dependencies for test class processing are available.
      *

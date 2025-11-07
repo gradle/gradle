@@ -23,7 +23,7 @@ import org.gradle.internal.concurrent.Stoppable;
  *
  * @param <D> the type of test definition supported by this processor
  */
-public interface TestClassProcessor<D extends TestDefinition> extends Stoppable {
+public interface TestDefinitionProcessor<D extends TestDefinition> extends Stoppable {
     /**
      * Performs any initialisation which this processor needs to perform.
      *

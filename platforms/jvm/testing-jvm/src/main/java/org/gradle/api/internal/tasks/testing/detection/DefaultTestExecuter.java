@@ -20,21 +20,21 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestDefinitionProcessor;
+import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestDefinitionProcessor;
+import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestDefinitionProcessor;
+import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.results.TestRetryShieldingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
-import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.worker.ForkingTestDefinitionProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
@@ -63,7 +63,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final int maxWorkerCount;
     private final Clock clock;
     private final DefaultTestFilter testFilter;
-    private TestClassProcessor<TestDefinition> processor;
+    private TestDefinitionProcessor<TestDefinition> processor;
 
     public DefaultTestExecuter(
         WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
@@ -85,7 +85,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         // Cast away from ? so we don't need to propagate the wildcard everywhere
         // This is safe because the frameworks that don't accept all TestDefinitions will have the dir selection filtered out earlier
         // If a TestFramework begins to reject ClassTestDefinitions, this needs rethinking.
-        final WorkerTestClassProcessorFactory<TestDefinition> testInstanceFactory = Cast.uncheckedNonnullCast(
+        final WorkerTestDefinitionProcessorFactory<TestDefinition> testInstanceFactory = Cast.uncheckedNonnullCast(
             testFramework.getProcessorFactory()
         );
 
@@ -94,12 +94,12 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             testExecutionSpec.getModulePath()
         );
 
-        final Factory<TestClassProcessor<TestDefinition>> forkingProcessorFactory = () -> new ForkingTestClassProcessor<>(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(), classpath, testFramework.getWorkerConfigurationAction());
-        final Factory<TestClassProcessor<TestDefinition>> reforkingProcessorFactory = () -> new RestartEveryNTestClassProcessor<>(forkingProcessorFactory, testExecutionSpec.getForkEvery());
+        final Factory<TestDefinitionProcessor<TestDefinition>> forkingProcessorFactory = () -> new ForkingTestDefinitionProcessor<>(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(), classpath, testFramework.getWorkerConfigurationAction());
+        final Factory<TestDefinitionProcessor<TestDefinition>> reforkingProcessorFactory = () -> new RestartEveryNTestDefinitionProcessor<>(forkingProcessorFactory, testExecutionSpec.getForkEvery());
         processor =
-            new PatternMatchTestClassProcessor<>(testFilter,
-                new RunPreviousFailedFirstTestClassProcessor<>(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
-                    new MaxNParallelTestClassProcessor<>(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
+            new PatternMatchTestDefinitionProcessor<>(testFilter,
+                new RunPreviousFailedFirstTestDefinitionProcessor<>(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
+                    new MaxNParallelTestDefinitionProcessor<>(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
         final FileTree testClassFiles = testExecutionSpec.isScanForTestClasses() ? testExecutionSpec.getCandidateClassFiles() : FileCollectionFactory.emptyTree();
         final Set<File> testDefinitionDirs = testExecutionSpec.getCandidateTestDefinitionDirs();

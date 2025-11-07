@@ -22,14 +22,14 @@ import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProce
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.time.Clock;
 
-public class SuiteTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
-    private final TestClassProcessor<D> processor;
+public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements TestDefinitionProcessor<D> {
+    private final TestDefinitionProcessor<D> processor;
     private final Clock clock;
     private final TestDescriptorInternal suiteDescriptor;
     private TestResultProcessor resultProcessor;
 
-    public SuiteTestClassProcessor(TestDescriptorInternal suiteDescriptor, TestClassProcessor<D> processor,
-                                   Clock clock) {
+    public SuiteTestDefinitionProcessor(TestDescriptorInternal suiteDescriptor, TestDefinitionProcessor<D> processor,
+                                        Clock clock) {
         this.suiteDescriptor = suiteDescriptor;
         this.processor = processor;
         this.clock = clock;
@@ -72,6 +72,6 @@ public class SuiteTestClassProcessor<D extends TestDefinition> implements TestCl
 
     @Override
     public void stopNow() {
-        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestDefinitionProcessor");
     }
 }

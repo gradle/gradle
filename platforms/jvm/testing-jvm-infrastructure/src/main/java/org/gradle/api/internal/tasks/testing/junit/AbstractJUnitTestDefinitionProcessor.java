@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 
 @NullMarked
-public abstract class AbstractJUnitTestClassProcessor<D extends TestDefinition> implements RequiresTestFrameworkTestClassProcessor<D> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
+public abstract class AbstractJUnitTestDefinitionProcessor<D extends TestDefinition> implements RequiresTestFrameworkTestDefinitionProcessor<D> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestDefinitionProcessor.class);
 
     private final ActorFactory actorFactory;
     @Nullable
@@ -41,7 +41,7 @@ public abstract class AbstractJUnitTestClassProcessor<D extends TestDefinition> 
 
     protected boolean startedProcessing;
 
-    public AbstractJUnitTestClassProcessor(ActorFactory actorFactory) {
+    public AbstractJUnitTestDefinitionProcessor(ActorFactory actorFactory) {
         this.actorFactory = actorFactory;
     }
 
@@ -75,6 +75,6 @@ public abstract class AbstractJUnitTestClassProcessor<D extends TestDefinition> 
 
     @Override
     public void stopNow() {
-        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
+        throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestDefinitionProcessor");
     }
 }

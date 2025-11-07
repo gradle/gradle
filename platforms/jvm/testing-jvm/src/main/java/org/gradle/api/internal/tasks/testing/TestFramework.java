@@ -54,13 +54,13 @@ public interface TestFramework extends Closeable, Describable {
     TestFrameworkOptions getOptions();
 
     /**
-     * Returns a factory which is used to create a {@link org.gradle.api.internal.tasks.testing.TestClassProcessor} in
+     * Returns a factory which is used to create a {@link TestDefinitionProcessor} in
      * each worker process. This factory is serialized across to the worker process, and then its {@link
-     * org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory#create(IdGenerator, ActorFactory, Clock)}
+     * WorkerTestDefinitionProcessorFactory#create(IdGenerator, ActorFactory, Clock)}
      * method is called to create the test processor.
      */
     @Internal
-    WorkerTestClassProcessorFactory<?> getProcessorFactory();
+    WorkerTestDefinitionProcessorFactory<?> getProcessorFactory();
 
     /**
      * Returns an action which is used to perform some framework specific worker process configuration. This action is

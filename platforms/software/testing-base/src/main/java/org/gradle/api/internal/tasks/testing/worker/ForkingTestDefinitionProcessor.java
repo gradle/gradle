@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
@@ -38,11 +38,11 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ForkingTestClassProcessor<D extends TestDefinition> implements TestClassProcessor<D> {
+public class ForkingTestDefinitionProcessor<D extends TestDefinition> implements TestDefinitionProcessor<D> {
     public static final String GRADLE_TEST_WORKER_NAME = "Gradle Test Executor";
 
     private final WorkerProcessFactory workerFactory;
-    private final WorkerTestClassProcessorFactory<D> processorFactory;
+    private final WorkerTestDefinitionProcessorFactory<D> processorFactory;
     private final JavaForkOptions options;
     private final ForkedTestClasspath classpath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
@@ -56,10 +56,10 @@ public class ForkingTestClassProcessor<D extends TestDefinition> implements Test
     private final Set<Throwable> unrecoverableExceptions = new HashSet<>();
 
 
-    public ForkingTestClassProcessor(
+    public ForkingTestDefinitionProcessor(
         WorkerThreadRegistry workerThreadRegistry,
         WorkerProcessFactory workerFactory,
-        WorkerTestClassProcessorFactory<D> processorFactory,
+        WorkerTestDefinitionProcessorFactory<D> processorFactory,
         JavaForkOptions options,
         ForkedTestClasspath classpath,
         Action<WorkerProcessBuilder> buildConfigAction

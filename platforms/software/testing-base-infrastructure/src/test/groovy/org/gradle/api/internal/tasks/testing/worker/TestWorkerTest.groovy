@@ -17,10 +17,11 @@
 
 package org.gradle.api.internal.tasks.testing.worker
 
-import org.gradle.api.internal.tasks.testing.TestClassProcessor
+
 import org.gradle.api.internal.tasks.testing.TestDefinition
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.time.Clock
@@ -34,8 +35,8 @@ class TestWorkerTest extends ConcurrentSpec {
     @Rule SetSystemProperties properties = new SetSystemProperties()
     def workerContext = Mock(WorkerProcessContext)
     def connection = Mock(ObjectConnection)
-    def factory = Mock(WorkerTestClassProcessorFactory)
-    def processor = Mock(TestClassProcessor)
+    def factory = Mock(WorkerTestDefinitionProcessorFactory)
+    def processor = Mock(TestDefinitionProcessor)
     def test = Mock(TestDefinition)
     def resultProcessor = Mock(TestResultProcessor)
     def worker = new TestWorker(factory)

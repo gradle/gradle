@@ -71,13 +71,13 @@ class TestEventSerializerTest extends SerializerSpec {
 
     def "serializes WorkerTestSuiteDescriptor"() {
         def id = new CompositeIdGenerator.CompositeId(1L, 2L)
-        def descriptor = new WorkerTestClassProcessor.WorkerTestSuiteDescriptor(id, "some-test")
+        def descriptor = new WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor(id, "some-test")
 
         when:
         def result = serialize(descriptor)
 
         then:
-        result instanceof WorkerTestClassProcessor.WorkerTestSuiteDescriptor
+        result instanceof WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor
         result.id == id
         result.name == "some-test"
     }

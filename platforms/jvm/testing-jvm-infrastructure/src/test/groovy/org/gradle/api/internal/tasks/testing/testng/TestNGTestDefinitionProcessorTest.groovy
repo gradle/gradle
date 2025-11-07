@@ -31,7 +31,7 @@ import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
-class TestNGTestClassProcessorTest extends Specification {
+class TestNGTestDefinitionProcessorTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
 
@@ -43,7 +43,7 @@ class TestNGTestClassProcessorTest extends Specification {
         [] as Set, [] as Set, [] as Set,
         TestNGTestRunner.DEFAULT_CONFIG_FAILURE_POLICY, false, false, false))
 
-    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+    @Subject classProcessor = new TestNGTestDefinitionProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
     @SuppressWarnings('GroovyAssignabilityCheck')
     void process(Class... clazz) {
@@ -260,7 +260,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [suite], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+        classProcessor = new TestNGTestDefinitionProcessor(dir.testDirectory, spec, [suite], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
         when:
         classProcessor.startProcessing(processor)
@@ -304,7 +304,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [suite1, suite2], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+        classProcessor = new TestNGTestDefinitionProcessor(dir.testDirectory, spec, [suite1, suite2], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
         when:
         classProcessor.startProcessing(processor)

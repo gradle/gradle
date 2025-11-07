@@ -19,12 +19,12 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
-import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestDefinitionProcessor;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -65,13 +65,13 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 /**
- * A {@link TestClassProcessor} for JUnit Platform.
+ * A {@link TestDefinitionProcessor} for JUnit Platform.
  * <p>
- * This class is instantiated by reflection from {@link JUnitPlatformTestClassProcessorFactory}.
+ * This class is instantiated by reflection from {@link JUnitPlatformTestDefinitionProcessorFactory}.
  */
 @SuppressWarnings("unused")
 @NullMarked
-public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<TestDefinition> {
+public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTestDefinitionProcessor<TestDefinition> {
     private final JUnitPlatformSpec spec;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
@@ -84,7 +84,7 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
     @Nullable
     private ClassLoader junitClassLoader;
 
-    public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public JUnitPlatformTestDefinitionProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(actorFactory);
         this.spec = spec;
         this.idGenerator = idGenerator;
