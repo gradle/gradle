@@ -113,6 +113,17 @@
             this.tabs = tabs;
             this.titles = titles;
             this.headers = headers;
+            this.init();
+        }
+
+        init() {
+            for (let i = 0; i < this.headers.length; i++) {
+                const header = this.headers[i];
+                header.onclick = () => {
+                    this.select(i);
+                    return false;
+                };
+            }
         }
 
         select(i) {
@@ -120,38 +131,12 @@
 
             changeElementClass(this.tabs[i], "tab selected");
             changeElementClass(this.headers[i], "selected");
-
-            while (this.headers[i].firstChild) {
-                this.headers[i].removeChild(this.headers[i].firstChild);
-            }
-
-            const a = document.createElement("a");
-
-            a.appendChild(document.createTextNode(this.titles[i]));
-            this.headers[i].appendChild(a);
         }
 
         deselectAll() {
             for (let i = 0; i < this.tabs.length; i++) {
                 changeElementClass(this.tabs[i], "tab deselected");
                 changeElementClass(this.headers[i], "deselected");
-
-                while (this.headers[i].firstChild) {
-                    this.headers[i].removeChild(this.headers[i].firstChild);
-                }
-
-                const a = document.createElement("a");
-
-                const id = this.baseId + "-tab" + i;
-                a.setAttribute("id", id);
-                a.setAttribute("href", "#tab" + i);
-                a.onclick = () => {
-                    this.select(i);
-                    return false;
-                };
-                a.appendChild(document.createTextNode(this.titles[i]));
-
-                this.headers[i].appendChild(a);
             }
         }
     }
