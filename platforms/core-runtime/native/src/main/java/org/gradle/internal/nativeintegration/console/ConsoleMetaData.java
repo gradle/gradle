@@ -72,7 +72,12 @@ public interface ConsoleMetaData {
                 lowerTerm.contains("tmux") ||
                 lowerTerm.contains("rxvt") ||
                 lowerTerm.contains("konsole") ||
-                lowerTerm.contains("gnome")) {
+                lowerTerm.contains("gnome") ||
+                lowerTerm.contains("alacritty") ||
+                lowerTerm.contains("kitty") ||
+                lowerTerm.contains("ghostty") ||
+                lowerTerm.contains("wezterm") ||
+                lowerTerm.contains("contour")) {
                 return true;
             }
             // Explicitly dumb terminals don't support Unicode
