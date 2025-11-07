@@ -1229,9 +1229,19 @@
             <pgp value="84789D24DF77A32433CE1F079EB80E92EB2135B1"/>
          </artifact>
       </component>
+      <component group="org.codehaus.plexus" name="plexus-xml" version="4.1.0">
+         <artifact name="plexus-xml-4.1.0.jar">
+            <pgp value="32118CF76C9EC5D918E54967CA80D1F0EB6CA4BA"/>
+         </artifact>
+      </component>
       <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.1">
          <artifact name="stax2-api-4.2.1.jar">
             <pgp value="6214760097DC5CFAD0175AC2C9FBAA83A8753994"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.2">
+         <artifact name="stax2-api-4.2.2.jar">
+            <pgp value="28118C070CB22A0175A2E8D43D12CA2AC19F3181"/>
          </artifact>
       </component>
       <component group="org.ec4j.core" name="ec4j-core" version="0.2.0">
@@ -1513,6 +1523,11 @@
          <artifact name="jdependency-2.12.jar">
             <pgp value="79156E0351AF8604DE9B186B09A79E1E15A04694"/>
             <sha256 value="c6ec4d03f9f04fb6448d36af43a1cc069a21ecb5e870133dd18fed4f4db1de68" origin="Verified" reason="A key couldn't be downloaded"/>
+         </artifact>
+      </component>
+      <component group="org.vafer" name="jdependency" version="2.13">
+         <artifact name="jdependency-2.13.jar">
+            <pgp value="79156E0351AF8604DE9B186B09A79E1E15A04694"/>
          </artifact>
       </component>
       <component group="org.w3c.css" name="sac" version="1.3">
