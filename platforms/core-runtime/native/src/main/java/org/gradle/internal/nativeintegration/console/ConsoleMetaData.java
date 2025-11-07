@@ -77,7 +77,12 @@ public interface ConsoleMetaData {
                 lowerTerm.contains("kitty") ||
                 lowerTerm.contains("ghostty") ||
                 lowerTerm.contains("wezterm") ||
-                lowerTerm.contains("contour")) {
+                lowerTerm.contains("contour") ||
+                lowerTerm.contains("foot") ||
+                lowerTerm.contains("mlterm") ||
+                lowerTerm.contains("st") ||
+                lowerTerm.contains("qterminal") ||
+                lowerTerm.contains("weston")) {
                 return true;
             }
             // Explicitly dumb terminals don't support Unicode
