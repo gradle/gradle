@@ -33,6 +33,12 @@ public class ProgressBar {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBar.class);
 
     // Unicode block characters for smoother progress display (U+258F to U+2588)
+    // Note: These characters require font support. Modern monospace fonts (Fira Code,
+    // JetBrains Mono, Cascadia Code, DejaVu Sans Mono) support them well. Older fonts
+    // like Courier New may only have the full block (█) and show replacement characters
+    // for partial blocks. The detection logic in ConsoleMetaData.supportsUnicode() uses
+    // conservative heuristics (UTF-8 locale, modern terminal detection) to avoid enabling
+    // Unicode mode when fonts are unlikely to support these characters.
     private static final char[] UNICODE_BLOCKS = {
         ' ',    // Empty
         '\u258F', // ▏ 1/8 block
