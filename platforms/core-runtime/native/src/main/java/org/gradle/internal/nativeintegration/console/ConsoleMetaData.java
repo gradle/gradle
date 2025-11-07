@@ -105,4 +105,35 @@ public interface ConsoleMetaData {
         // but be conservative - default to false unless we can confirm support
         return false;
     }
+
+    /**
+     * <p>Returns true if the terminal supports OSC 9;4 taskbar progress sequences.</p>
+     *
+     * <p>This sequence (ESC ] 9 ; 4 ; state ; progress ST) allows applications to control
+     * progress indicators in the Windows taskbar or terminal window decorations.</p>
+     *
+     * <p>Supported by: ConEmu, Ghostty, and potentially other terminals.</p>
+     *
+     * @return true if OSC 9;4 sequences are supported, false otherwise
+     */
+    default boolean supportsTaskbarProgress() {
+        // ConEmu explicitly supports OSC 9;4 sequences
+        if (System.getenv("ConEmuPID") != null) {
+            return true;
+        }
+
+        // Ghostty supports OSC 9;4 sequences
+        String term = System.getenv("TERM");
+        if (term != null && term.toLowerCase().contains("ghostty")) {
+            return true;
+        }
+
+        // Windows Terminal might support this in the future
+        // Currently commented out until verified
+        // if (System.getenv("WT_SESSION") != null) {
+        //     return true;
+        // }
+
+        return false;
+    }
 }
