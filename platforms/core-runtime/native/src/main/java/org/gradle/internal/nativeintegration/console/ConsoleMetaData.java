@@ -42,4 +42,57 @@ public interface ConsoleMetaData {
     int getRows();
 
     boolean isWrapStreams();
+
+    /**
+     * <p>Returns true if the console supports Unicode characters (e.g., box-drawing, block elements).</p>
+     *
+     * <p>This is determined by checking terminal capabilities such as UTF-8 encoding support,
+     * terminal type, and platform-specific indicators.</p>
+     *
+     * @return true if Unicode characters can be safely displayed, false otherwise
+     */
+    default boolean supportsUnicode() {
+        // Default implementation for backward compatibility
+        // Check for UTF-8 encoding in locale
+        String lang = System.getenv("LANG");
+        String lcAll = System.getenv("LC_ALL");
+        if ((lang != null && lang.toUpperCase().contains("UTF-8")) ||
+            (lcAll != null && lcAll.toUpperCase().contains("UTF-8"))) {
+            return true;
+        }
+
+        // Check for modern terminal types that support Unicode
+        String term = System.getenv("TERM");
+        if (term != null) {
+            String lowerTerm = term.toLowerCase();
+            // Modern terminals that support Unicode well
+            if (lowerTerm.contains("xterm") ||
+                lowerTerm.contains("256color") ||
+                lowerTerm.contains("screen") ||
+                lowerTerm.contains("tmux") ||
+                lowerTerm.contains("rxvt") ||
+                lowerTerm.contains("konsole") ||
+                lowerTerm.contains("gnome")) {
+                return true;
+            }
+            // Explicitly dumb terminals don't support Unicode
+            if (lowerTerm.equals("dumb") || lowerTerm.equals("unknown")) {
+                return false;
+            }
+        }
+
+        // Windows Terminal and other modern Windows consoles support Unicode
+        if (System.getenv("WT_SESSION") != null || System.getenv("WT_PROFILE_ID") != null) {
+            return true;
+        }
+
+        // ConEmu supports Unicode
+        if (System.getenv("ConEmuPID") != null) {
+            return true;
+        }
+
+        // On Windows, fallback to checking if Windows 10+ (which has better Unicode support)
+        // but be conservative - default to false unless we can confirm support
+        return false;
+    }
 }
