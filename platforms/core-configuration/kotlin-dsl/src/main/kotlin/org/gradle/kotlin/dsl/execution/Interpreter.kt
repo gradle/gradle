@@ -498,8 +498,7 @@ class Interpreter(val host: Host) {
                                 residualProgramCompiler.emitStage2ProgramFor(
                                     scriptFile,
                                     originalScriptPath,
-                                    packageName = null,
-                                    "P$sourceHash"
+                                    ResidualProgramCompiler.ClassName(null, "P$sourceHash")
                                 )
                             }
                         }
