@@ -16,9 +16,58 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/25469")
+    def "file tree access during CC storing should show a valid location"() {
+        def fixture = newConfigurationCacheFixture()
+        def someFolder = temporaryFolder.createDir("someFolder")
+        someFolder.createFile("file1.txt")
+        someFolder.createFile("file2.txt")
+        buildFile """
+            class LazyBean implements Serializable {
+                transient FileTree collection
+                int fileCount
+
+                private void writeObject(java.io.ObjectOutputStream oos) {
+                    fileCount = collection.files.size()
+                    oos.writeObject(fileCount)
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                private final def bean = new LazyBean(collection: project.fileTree(project.file("${someFolder.absolutePath}")))
+
+                @TaskAction
+                void run() {
+                    println "file count = " + bean.fileCount
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+        fixture.assertStateStored()
+
+        then:
+        outputContains("file count = 2")
+
+        when:
+        someFolder.createFile("file3.txt")
+        configurationCacheRun "ok"
+
+        then:
+        fixture.assertStateStored()
+        outputContains("file count = 3")
+        //TODO @rchaves: location message should be more helpful than this
+        outputContains("Calculating task graph as configuration cache cannot be reused because an input to unknown location has changed.")
+    }
+
     def "directory tree is treated as build input when its contents are queried during configuration"() {
         buildFile << """
             task report {
