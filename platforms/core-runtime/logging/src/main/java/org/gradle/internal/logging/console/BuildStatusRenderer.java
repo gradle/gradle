@@ -27,7 +27,6 @@ import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.os.OperatingSystem;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -169,8 +168,8 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     @VisibleForTesting
     public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
-        // Use Unicode progress bars on Linux and macOS, ASCII on Windows
-        boolean useUnicode = !OperatingSystem.current().isWindows();
+        // Use Unicode progress bars if terminal supports it, otherwise use ASCII
+        boolean useUnicode = consoleMetaData.supportsUnicode();
 
         if (useUnicode) {
             // Unicode mode: smooth progress with block characters
@@ -182,7 +181,7 @@ public class BuildStatusRenderer implements OutputEventListener {
                 ' ', // Not used in Unicode mode
                 initialSuffix, initialProgress, totalProgress, true);
         } else {
-            // ASCII mode: hash-based progress for Windows
+            // ASCII mode: hash-based progress for compatibility
             return new ProgressBar(consoleMetaData,
                 ASCII_PROGRESS_BAR_PREFIX,
                 PROGRESS_BAR_WIDTH,
