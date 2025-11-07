@@ -42,9 +42,20 @@ public interface LoggingConfiguration {
     ConsoleOutput getConsoleOutput();
 
     /**
+     * Returns the type of characters that should be written to the console.
+     * Defaults to {@link ConsoleUnicodeSupport#Auto}
+     */
+    ConsoleUnicodeSupport getConsoleUnicodeSupport();
+
+    /**
      * Specifies the style of logging output that should be written to the console.
      */
     void setConsoleOutput(ConsoleOutput consoleOutput);
+
+    /**
+     * Specifies the use of Unicode characters in the console output.
+     */
+    void setConsoleUnicodeSupport(ConsoleUnicodeSupport unicodeSupport);
 
     /**
      * Specifies which type of warnings should be written to the console.
