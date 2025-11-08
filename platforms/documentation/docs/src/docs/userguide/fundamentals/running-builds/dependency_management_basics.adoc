@@ -21,7 +21,7 @@ image::gradle-basic-7.png[]
 
 Dependency management is an automated technique for declaring and resolving external resources required by a project (i.e., dependencies).
 
-*Dependencies* include JARs, plugins, libraries, or source code that support building your project.
+*Dependencies* include JARs, libraries, or source code that support building your project.
 They *are declared in build scripts*.
 
 Gradle automatically handles downloading, caching, and resolving these dependencies, saving you from managing them manually.
@@ -31,7 +31,7 @@ It also handles version conflicts and supports flexible version declarations.
 
 To add a dependency to your project, specify a dependency in the `dependencies {}` block of your `build.gradle(.kts)` file.
 
-The following `build.gradle.kts` file adds a plugin and two dependencies to the project:
+The following `build.gradle(.kts)` file adds two dependencies to the project:
 
 ++++
 <div style="text-align: right;">
@@ -45,16 +45,24 @@ The following `build.gradle.kts` file adds a plugin and two dependencies to the 
 include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-dep]"]
 include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-dep]"]
 ====
-<1> Applies the Java Library plugin, which adds support for building Java libraries.
+<1> Applies the Java Library plugin.
 <2> Adds a dependency on Google's Guava library used in production code.
 <3> Adds a dependency on Apache's Juneau Marshall library, used in library code.
 
-Dependencies in Gradle are grouped by *configurations*, which define when and how the dependency is used:
+Dependencies in Gradle are grouped by *buckets* called *configurations*, which define when, where, and how the dependency is used.
+Configurations define the *scope* of your dependencies.
+In the example above:
 
 - `implementation` is used for dependencies needed to compile and run your production code.
 - `api` is used for dependencies that should be exposed to consumers of your library.
 
-NOTE: Gradle supports many other configurations, such as `testImplementation`, `runtimeOnly`, `compileOnly`, `api`, and more.
+When you apply certain plugins, Gradle **automatically creates the right configurations** for your project and makes them available to use.
+
+For example, applying `java` or `java-library` adds configurations like `implementation`, `api`, `compileOnly`, `runtimeOnly`, and `testImplementation` so you can declare dependencies in the right place without extra setup.
+
+The Android Gradle Plugin (AGP) adds **variant-aware** configs like `debugImplementation`, `releaseImplementation`, `androidTestImplementation`, and even per–build-type/flavor ones like `freeDebugImplementation`.
+
+Kotlin Multiplatform (KMP) creates **source set–scoped** configs such as `commonMainImplementation`, `commonTestImplementation`, `androidMainImplementation`, `iosArm64MainImplementation`, etc.—so you depend exactly where the code runs.
 
 == Viewing Project Dependencies
 
