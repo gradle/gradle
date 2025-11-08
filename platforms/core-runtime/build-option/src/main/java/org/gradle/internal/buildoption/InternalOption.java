@@ -27,18 +27,18 @@ public abstract class InternalOption<T extends @Nullable Object> implements Opti
 
     private final static String INTERNAL_PROPERTY_PREFIX = "org.gradle.internal.";
 
-    private final String systemPropertyName;
+    private final String propertyName;
 
-    public InternalOption(String systemPropertyName) {
-        if (!isInternalOption(systemPropertyName)) {
-            throw new IllegalArgumentException("Internal property name must start with '" + INTERNAL_PROPERTY_PREFIX + "', got '" + systemPropertyName + "'");
+    public InternalOption(String propertyName) {
+        if (!isInternalOption(propertyName)) {
+            throw new IllegalArgumentException("Internal property name must start with '" + INTERNAL_PROPERTY_PREFIX + "', got '" + propertyName + "'");
         }
 
-        this.systemPropertyName = systemPropertyName;
+        this.propertyName = propertyName;
     }
 
-    public String getSystemPropertyName() {
-        return systemPropertyName;
+    public String getPropertyName() {
+        return propertyName;
     }
 
     public abstract T getDefaultValue();

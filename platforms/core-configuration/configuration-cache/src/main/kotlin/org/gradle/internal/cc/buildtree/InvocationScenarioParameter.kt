@@ -43,6 +43,6 @@ enum class InvocationScenarioParameter(
         override fun getDefaultValue(): InvocationScenarioParameter = default
 
         override fun convert(value: String): InvocationScenarioParameter =
-            fromValue(value) ?: error("Invalid value '$value' for property '$systemPropertyName'. Allowed values are: ${entries.joinToString(",") { it.value }}")
+            fromValue(value) ?: error("Invalid value '$value' for property '$propertyName'. Allowed values are: ${entries.joinToString(",") { it.value }}")
     }
 }
