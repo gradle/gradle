@@ -16,15 +16,18 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import org.jspecify.annotations.NullMarked;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * @since 9.3
+ * @since 9.3.0
  */
+@NullMarked
 public interface InternalReportMetadataEvent extends InternalTestMetadataEvent {
     /**
      *
-     * @since 9.3
+     * @since 9.3.0
      */
     long getTimestamp();
 }

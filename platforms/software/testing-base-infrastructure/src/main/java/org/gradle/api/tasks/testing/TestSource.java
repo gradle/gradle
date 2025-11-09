@@ -16,7 +16,16 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
+import org.jspecify.annotations.NullMarked;
 
+/**
+ * A TODO (donat).
+ *
+ * @since 9.3.0
+ */
+@Incubating
+@NullMarked
 public interface TestSource {
 }
 

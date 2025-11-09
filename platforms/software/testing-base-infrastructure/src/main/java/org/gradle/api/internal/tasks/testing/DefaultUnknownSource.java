@@ -17,7 +17,9 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.UnknownSource;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class DefaultUnknownSource implements UnknownSource {
 
     private static final UnknownSource INSTANCE = new DefaultUnknownSource();

@@ -17,17 +17,19 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
+import org.jspecify.annotations.NullMarked;
 
 /**
- * TODO.
- * @since 9.3
+ * TODO (donat) document.
+ * @since 9.3.0
  */
 @Incubating
+@NullMarked
 public interface ReportMetadataEvent extends TestMetadataEvent {
     /**
-     * TODO.
+     * TODO (donat) document.
      *
-     * @since 9.3
+     * @since 9.3.0
      */
     long getTimestamp();
 }

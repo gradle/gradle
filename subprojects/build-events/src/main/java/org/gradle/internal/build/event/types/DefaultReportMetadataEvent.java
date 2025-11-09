@@ -18,6 +18,7 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalReportMetadataEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
@@ -26,6 +27,7 @@ import java.util.Map;
  *
  * This is created by the provider side of the tooling API.
  */
+@NullMarked
 public class DefaultReportMetadataEvent extends DefaultTestMetadataEvent implements InternalReportMetadataEvent {
     private final long timestamp;
 

@@ -18,9 +18,11 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.FileSource;
 import org.gradle.api.tasks.testing.UnknownSource;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 
+@NullMarked
 public class TestSources {
 
     public static FileSource fileSource(File file) {

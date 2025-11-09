@@ -17,9 +17,11 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.FileSource;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 
+@NullMarked
 public final class DefaultFileSource implements FileSource {
 
     private final File file;

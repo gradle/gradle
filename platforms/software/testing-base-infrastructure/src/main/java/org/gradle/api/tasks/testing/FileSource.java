@@ -16,9 +16,24 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
+import org.jspecify.annotations.NullMarked;
+
 import java.io.File;
 
+/**
+ * A TODO (donat).
+ *
+ * @since 9.3.0
+ */
+@Incubating
+@NullMarked
 public interface FileSource extends TestSource {
 
+    /**
+     * A TODO (donat).
+     *
+     * @since 9.3.0
+     */
     File getFile();
 }

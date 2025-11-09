@@ -452,6 +452,7 @@ public class TestEventSerializer {
         }
     }
 
+    @NullMarked
     private static class TestSourceSerializer implements Serializer<TestSource> {
 
         @Override
