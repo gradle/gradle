@@ -11,6 +11,15 @@
     vertical-align: top;
 }
 
+div.tab table.test-results td {
+    padding-left: 1em;
+}
+
+div.tab table.test-results th {
+    padding-top: 0.5em;
+    padding-left: 1em;
+}
+
 .breadcrumbs, .breadcrumbs a {
     color: #606060;
 }

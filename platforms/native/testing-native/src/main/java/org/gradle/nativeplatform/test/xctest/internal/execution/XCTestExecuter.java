@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.TestDetector;
@@ -114,7 +114,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
     }
 
-    static class XCTestProcessor implements TestClassProcessor<ClassTestDefinition> {
+    static class XCTestProcessor implements TestDefinitionProcessor<ClassTestDefinition> {
         private TestResultProcessor resultProcessor;
         private ExecHandle execHandle;
         private final ClientExecHandleBuilder execHandleBuilder;

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.logging.Logger;
@@ -73,9 +73,9 @@ public abstract class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory<?> getProcessorFactory() {
+    public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         validateOptions();
-        return new JUnitTestClassProcessorFactory(new JUnitSpec(
+        return new JUnitTestDefinitionProcessorFactory(new JUnitSpec(
             filter.toSpec(), getOptions().getIncludeCategories(), getOptions().getExcludeCategories(), dryRun.get()));
     }
 
