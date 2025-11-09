@@ -176,6 +176,8 @@ class Interpreter(val host: Host) {
         val programId =
             ProgramId(
                 templateId,
+                scriptSource.fileName,
+                scriptSource.className,
                 sourceHash,
                 parentClassLoader,
                 compilerOptions = host.compilerOptions
@@ -416,6 +418,8 @@ class Interpreter(val host: Host) {
 
             val programId = ProgramId(
                 scriptTemplateId,
+                scriptHost.scriptSource.fileName,
+                scriptHost.scriptSource.className,
                 sourceHash,
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),

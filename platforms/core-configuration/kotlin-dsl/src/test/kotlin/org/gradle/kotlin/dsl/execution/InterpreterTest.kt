@@ -68,6 +68,7 @@ class InterpreterTest : TestWithTempFiles() {
 
         """.trimIndent()
 
+        val scriptClassName = "Settings_gradle"
         val sourceHash = TestHashCodes.hashCodeFrom(42)
         val compilationClassPathHash = TestHashCodes.hashCodeFrom(11)
         val accessorsClassPathHash = TestHashCodes.hashCodeFrom(0)
@@ -81,6 +82,7 @@ class InterpreterTest : TestWithTempFiles() {
 
         val scriptSource = mock<ScriptSource> {
             on { fileName } doReturn scriptPath
+            on { className } doReturn scriptClassName
             on { resource } doReturn scriptSourceResource
             on { shortDisplayName } doReturn shortScriptDisplayName
             on { longDisplayName } doReturn longScriptDisplayName
@@ -104,8 +106,8 @@ class InterpreterTest : TestWithTempFiles() {
         val stage1CacheDir = root.resolve("stage1").apply { mkdir() }
         val stage2CacheDir = root.resolve("stage2").apply { mkdir() }
 
-        val stage1ProgramId = ProgramId(stage1TemplateId, sourceHash, parentClassLoader)
-        val stage2ProgramId = ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader, accessorsClassPathHash, compilationClassPathHash)
+        val stage1ProgramId = ProgramId(stage1TemplateId, scriptSource.fileName, scriptSource.className, sourceHash, parentClassLoader)
+        val stage2ProgramId = ProgramId(stage2TemplateId, scriptSource.fileName, scriptSource.className, sourceHash, targetScopeExportClassLoader, accessorsClassPathHash, compilationClassPathHash)
 
         val mockServiceRegistry = mock<ServiceRegistry> {
             on { get(GradleUserHomeTemporaryFileProvider::class.java) } doReturn GradleUserHomeTemporaryFileProvider {
