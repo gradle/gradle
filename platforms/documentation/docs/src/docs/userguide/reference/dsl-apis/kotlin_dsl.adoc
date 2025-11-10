@@ -345,7 +345,7 @@ The snippet above also demonstrates one way to configure elements of a project e
 Container-based project extensions, such as `SourceSetContainer`, allow you to configure the elements they hold.
 
 In our sample build script, we want to configure a source set named `main` within the source set container.
-We can do this by using the link:{javadocPath}/org/gradle/api/NamedDomainObjectCollection.html#named-java.lang.String-[named()] method instead of an accessor:
+We can do this by using the link:{javadocPath}/org/gradle/api/NamedDomainObjectCollection.html#named(java.lang.String)[named()] method instead of an accessor:
 
 ====
 include::sample[dir="snippets/kotlinDsl/noAccessors/kotlin",files="build.gradle.kts[tags=project-container-extension]"]
