@@ -19,6 +19,8 @@ package org.gradle.tooling.events.test;
 import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
+import java.io.File;
+
 /**
  * Describes a non-class-based test operation for which an event has occurred.
  *
@@ -29,9 +31,9 @@ import org.jspecify.annotations.NullMarked;
 public interface ResourceBasedTestOperationDescriptor extends TestOperationDescriptor {
 
     /**
-     * Returns the resource path of the file defining the test.
+     * Returns the file defining the test.
      * @return resource path
      * @since 9.3.0
      */
-    String getResourcePath();
+    File getResource();
 }

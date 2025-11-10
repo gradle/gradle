@@ -21,24 +21,26 @@ import org.gradle.tooling.events.test.ResourceBasedTestOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.jspecify.annotations.NullMarked;
 
+import java.io.File;
+
 /**
  * Implementation of the {@code JvmTestOperationDescriptor} interface.
  */
 @NullMarked
 public final class DefaultResourceBasedTestOperationDescriptor extends DefaultTestOperationDescriptor implements ResourceBasedTestOperationDescriptor {
-    private final String resourcePath;
+    private final File resource;
 
     public DefaultResourceBasedTestOperationDescriptor(
         InternalTestDescriptor internalTestDescriptor,
         OperationDescriptor parent,
-        String resourcePath
+        File resource
     ) {
         super(internalTestDescriptor, parent);
-        this.resourcePath = resourcePath;
+        this.resource = resource;
     }
 
     @Override
-    public String getResourcePath() {
-        return resourcePath;
+    public File getResource() {
+        return resource;
     }
 }

@@ -51,6 +51,7 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
         String className = getClassName();
         String classNameSuffix = "";
         // TODO (donat) store whether class name is not available for tests  (is the case for resource-based testing)
+        // should be deleted once https://github.com/gradle/gradle/pull/35575 is merged
         if (className != null && !className.equals("UnknownClass")) {
             classNameSuffix = "(" + className + ")";
         }

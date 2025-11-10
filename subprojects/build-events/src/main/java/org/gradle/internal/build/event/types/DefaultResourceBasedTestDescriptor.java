@@ -22,12 +22,13 @@ import org.gradle.tooling.internal.protocol.events.InternalResourceBasedTestDesc
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.io.Serializable;
 
 @NullMarked
 public class DefaultResourceBasedTestDescriptor extends DefaultTestDescriptor implements Serializable, InternalResourceBasedTestDescriptor, InternalOperationDescriptor {
 
-    private final String resourcePath;
+    private final File resource;
 
     public DefaultResourceBasedTestDescriptor(
         OperationIdentifier id,
@@ -40,7 +41,7 @@ public class DefaultResourceBasedTestDescriptor extends DefaultTestDescriptor im
         @Nullable String methodName,
         OperationIdentifier parentId,
         String taskPath,
-        String resourcePath // TODO (donat) make it a File reference
+        File resource
     ) {
         super(
             id,
@@ -54,12 +55,12 @@ public class DefaultResourceBasedTestDescriptor extends DefaultTestDescriptor im
             parentId,
             taskPath
         );
-        this.resourcePath = resourcePath;
+        this.resource = resource;
     }
 
 
     @Override
-    public String getResourcePath() {
-        return resourcePath;
+    public File getResource() {
+        return resource;
     }
 }

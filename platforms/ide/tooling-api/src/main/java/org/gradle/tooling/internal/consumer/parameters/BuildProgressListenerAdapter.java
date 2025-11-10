@@ -897,7 +897,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultResourceBasedTestOperationDescriptor(
                 jvmTestDescriptor,
                 parent,
-                jvmTestDescriptor.getResourcePath()
+                jvmTestDescriptor.getResource()
             );
         } else if (descriptor instanceof InternalJvmTestDescriptor) {
             InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;

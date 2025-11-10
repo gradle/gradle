@@ -20,8 +20,10 @@ import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * A TODO (donat).
+ * The source of a test run.
  *
+ * @see FileSource
+ * @see UnknownSource
  * @since 9.3.0
  */
 @Incubating

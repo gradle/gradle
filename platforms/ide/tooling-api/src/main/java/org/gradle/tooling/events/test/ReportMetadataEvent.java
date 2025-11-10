@@ -20,14 +20,15 @@ import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * TODO (donat) document.
+ * Represents a metadata event for test reports.
  * @since 9.3.0
  */
 @Incubating
 @NullMarked
 public interface ReportMetadataEvent extends TestMetadataEvent {
+
     /**
-     * TODO (donat) document.
+     * Returns the timestamp indicating when the event was created.
      *
      * @since 9.3.0
      */

@@ -120,7 +120,7 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         where:
         excludingJupiter << [true, false]
     }
-    
+
     @ToolingApiVersion(">=9.3.0")
     def "Can rerun resource-based test task based on descriptors but cannot filter for individual scenarios"() {
         given:
@@ -228,9 +228,9 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         test2.descriptor instanceof ResourceBasedTestOperationDescriptor
         test3.descriptor instanceof ResourceBasedTestOperationDescriptor
 
-        (test1.descriptor as ResourceBasedTestOperationDescriptor).resourcePath == file('src/test/definitions/SomeTestSpec.rbt').absolutePath
-        (test2.descriptor as ResourceBasedTestOperationDescriptor).resourcePath == file('src/test/definitions/SomeTestSpec.rbt').absolutePath
-        (test3.descriptor as ResourceBasedTestOperationDescriptor).resourcePath == file('src/test/definitions/subSomeOtherTestSpec.rbt').absolutePath
+        (test1.descriptor as ResourceBasedTestOperationDescriptor).resource == file('src/test/definitions/SomeTestSpec.rbt')
+        (test2.descriptor as ResourceBasedTestOperationDescriptor).resource == file('src/test/definitions/SomeTestSpec.rbt')
+        (test3.descriptor as ResourceBasedTestOperationDescriptor).resource == file('src/test/definitions/subSomeOtherTestSpec.rbt')
 
         where:
         excludingJupiter << [true, false]

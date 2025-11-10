@@ -18,6 +18,8 @@ package org.gradle.tooling.internal.protocol.events;
 
 import org.jspecify.annotations.NullMarked;
 
+import java.io.File;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
@@ -27,10 +29,10 @@ import org.jspecify.annotations.NullMarked;
 public interface InternalResourceBasedTestDescriptor extends InternalTestDescriptor {
 
     /**
-     * Returns the resource path of the resource that defines the test.
+     * Returns the resource that defines the test.
      *
-     * @return the resource path of the resource that defines the test
+     * @return the resource that defines the test
      * @since 9.3.0
      */
-    String getResourcePath();
+    File getResource();
 }

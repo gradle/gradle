@@ -22,7 +22,7 @@ import org.jspecify.annotations.NullMarked;
 import java.io.File;
 
 /**
- * A TODO (donat).
+ * The file defining the test.
  *
  * @since 9.3.0
  */
@@ -31,7 +31,7 @@ import java.io.File;
 public interface FileSource extends TestSource {
 
     /**
-     * A TODO (donat).
+     * The file defining the test.
      *
      * @since 9.3.0
      */

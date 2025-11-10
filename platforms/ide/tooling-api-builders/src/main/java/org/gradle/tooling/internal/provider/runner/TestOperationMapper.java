@@ -105,7 +105,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
 
         TestSource source = suite.getSource();
         if (source instanceof FileSource) {
-            return new DefaultResourceBasedTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId), ((FileSource) source).getFile().getAbsolutePath());
+            return new DefaultResourceBasedTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId), ((FileSource) source).getFile());
         }
 
         return new DefaultTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId));
@@ -123,7 +123,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
 
         TestSource source = test.getSource();
         if (source instanceof FileSource) {
-            return new DefaultResourceBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId), ((FileSource) source).getFile().getAbsolutePath());
+            return new DefaultResourceBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId), ((FileSource) source).getFile());
         }
 
         return new DefaultTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId));
