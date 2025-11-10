@@ -255,7 +255,7 @@ include::sample[dir="snippets/buildCache/cacheable-bundle-task/groovy",files="bu
 
 If for some reason you cannot create a new custom task class, it is also possible to make a task cacheable using the <<incremental_build.adoc#sec:task_input_output_runtime_api,runtime API>> to declare the inputs and outputs.
 
-For enabling caching for the task you need to use the link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf-org.gradle.api.specs.Spec-[TaskOutputs.cacheIf()] method.
+For enabling caching for the task you need to use the link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#cacheIf(org.gradle.api.specs.Spec)[TaskOutputs.cacheIf()] method.
 
 The declarations via the runtime API have the same effect as the annotations described above.
 Note that you cannot override file inputs and outputs via the runtime API.
@@ -275,7 +275,7 @@ You can configure the build cache by using the link:{groovyDslPath}/org.gradle.a
 Gradle supports a `local` and a `remote` build cache that can be configured separately.
 When both build caches are enabled, Gradle tries to load build outputs from the local build cache first, and then tries the remote build cache if no build outputs are found.
 If outputs are found in the remote cache, they are also stored in the local cache, so next time they will be found locally.
-Gradle stores ("pushes") build outputs in any build cache that is enabled and has link:{javadocPath}/org/gradle/caching/configuration/BuildCache.html#isPush--[BuildCache.isPush()] set to `true`.
+Gradle stores ("pushes") build outputs in any build cache that is enabled and has link:{javadocPath}/org/gradle/caching/configuration/BuildCache.html#isPush()[BuildCache.isPush()] set to `true`.
 
 By default, the local build cache has push enabled, and the remote build cache has push disabled.
 
@@ -434,6 +434,6 @@ The cache node can also be used without a Develocity installation with restricte
 
 Using a different build cache backend to store build outputs (which is not covered by the built-in support for connecting to an HTTP backend) requires implementing
 your own logic for connecting to your custom build cache backend.
-To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService-java.lang.Class-java.lang.Class-[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
+To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService(java.lang.Class,java.lang.Class)[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
 
 link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Develocity] includes a high-performance, easy to install and operate, shared build cache backend.
