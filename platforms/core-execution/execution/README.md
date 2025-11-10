@@ -73,12 +73,23 @@ Previous execution states are stored in the **execution history** indexed by the
 
 ## Execution Process
 
-When provided with well-defined units of work, the execution engine can employ several safe optimizations to produce the outputs as efficiently as possible:
+The execution engine employs a _pipeline of nested steps_ to process execution requests.
+This structure is similar to filter chains are implemented in servlet applications.
 
-- **Identity Caching**: If work has already been executed with the same inputs in the context of the current tool invocation, an in-memory cache is consulted for results.
-- **Incremental Build**: If the _execution state_ of the work is **up-to-date**, the execution is skipped.
-- **Build Cache**: If the output is not up-to-date locally, the engine searches for stored results in the _build cache,_ checking the local cache first and then the remote cache if necessary.
-- **Execution**: If no result is found in the build cache, the work is executed.
+Execution of a step generally follows the recipe:
+
+1. The step receives the _unit of work_ that is being executed, and an immutable data object called the **context** that contains information gathered by previous steps.
+
+2. The step can do some meaningful work, e.g. look things up about the _unit of work_ in some external service, alter the workspace etc.
+
+3. It can decide to invoke the next step in the pipeline, passing the _context_ to it.
+    It can pass the _context_ verbatim, or it can also attach additional data to the _context._
+
+    The step can also decide to **short-circuit**: it does not invoke the next step, and returns early instead.
+
+4. The step returns with a **result**: an immutable data object describing what happened.
+    This can be the verbatim _result_ returned by the invoked next step.
+    It can also be an _enriched_ version of it with additional data attached to it, or it can be a completely new object created by the step.
 
 ![](Execution%20Engine%20Schematic.drawio.svg)
 
@@ -90,6 +101,19 @@ When provided with well-defined units of work, the execution engine can employ s
 > Use [draw.io](https://draw.io/) to make changes to the diagram. The linked SVG file can be opened directly in draw.io. Do not edit as raw SVG.
 
 ## Optimizations
+
+When provided with well-defined units of work, the execution engine can employ several safe optimizations to produce the outputs as efficiently as possible:
+
+- **Identity Caching**: If work has already been executed with the same inputs in the context of the current tool invocation, an in-memory cache is consulted for results
+    Identity caching is only available for transforms; see [Deferred Execution](#deferred-execution-the-special-case-of-artifact-transforms) below.
+- **Up-to-Date Checks**: If the _execution state_ of the work is **up-to-date**, the execution is skipped.
+- **Build Cache**: If the output is not up-to-date locally, the engine searches for stored results in the _build cache,_ checking the local cache first and then the remote cache if necessary.
+- **Execution**: If no result is found in the build cache, the work is executed.
+
+### Origin Metadata
+
+Each produced result carries with it some **origin metadata**. This is a map of key-value pairs that describe which build created the result, how long it took, and the cache key associated with the result.
+When a result is produced by the execution engine the origin metadata can be consulted to understand if the result was produced during this build, or if it was reused from a previous one.
 
 ### Up-to-Date Checks (aka Incremental Build)
 
@@ -109,7 +133,19 @@ If there are no changes to either its inputs or outputs, executing the work is n
 ### The Build Cache
 
 If the execution state of the work is out-of-date, we try to load outputs from the build cache.
-If successful, we delete and unpack results to the output location.
+If we are allowed to use the cache, then first the local cache is consulted.
+If there is no entry with the cache key in the local cache, then we ask the remote cache.
+
+If there is a cache hit, we delete and unpack results to the output location.
+Local state is also cleared up when a result is loaded.
+
+If there's no cache hit, or we were not allowed to load from cache, we continue with execution.
+Once execution finished, we check if we are allowed to store in the local cache.
+If we are allowed, we store in the local and remote caches.
+
+> [!NOTE]
+> For tasks we have an internal mechanism that can prevent storing the results of an executed task in the build cache.
+> This internal feature was added and is only used by an optimization in Develocity's predictive test selection.
 
 ### Execution Modes
 
