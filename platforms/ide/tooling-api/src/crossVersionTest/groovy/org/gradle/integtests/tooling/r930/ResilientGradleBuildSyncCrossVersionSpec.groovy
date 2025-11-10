@@ -49,60 +49,56 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    def "should fetch root project model despite broken settings file with compilation error"() {
-        given:
-        blowUpSettings()
-
-        when:
-        def model = runFetchModelAction()
-
-        then:
-        model.failures.size() == 1
-        model.failures.toString().contains("Script compilation error")
-    }
-
-    def "should fetch root project model despite settings file throwing exception"() {
+    def "should fetch root project model when settings #description"() {
         given:
         settingsKotlinFile << """
-            throw GradleException("Gradle exception boom !!!")
+            rootProject.name = "root"
+            $causeOfFailure
         """
 
         when:
-        def model = runFetchModelAction()
+        def result = runFetchModelAction()
 
         then:
+        result.failures.size() == 1
+        result.failures[0].contains(expectedFailure)
+        result.model.includedBuilds.empty
+        result.model.editableBuilds.empty
+        result.model.rootProject.projectIdentifier.projectPath == ":"
+        // If Settings scripts fails to evaluate the name falls back to directory name
+        result.model.rootProject.name == expectedRootProjectName ?: settingsKotlinFile.parentFile.name
+        result.model.rootProject.projectIdentifier.buildIdentifier.rootDir == settingsKotlinFile.parentFile
+        result.model.projects == [result.model.rootProject] as Set
 
-        model.failures.size() == 1
-        model.failures.toString().contains("Gradle exception boom !!!")
-        model.model.rootProject.buildTreePath == ":"
+        where:
+        description         | causeOfFailure                                         | expectedRootProjectName | expectedFailure
+        "compilation error" | "broken settings file content!!!"                      | null                    | "Script compilation error"
+        "runtime error"     | "throw GradleException(\"Gradle exception boom !!!\")" | "root"                  | "Gradle exception boom !!!"
     }
 
-    def "should fetch root project model despite broken root build file with compilation error"() {
-        given:
-        createRootProject()
-        blowUpBuildGradleKts()
-
-        when:
-        def model = runFetchModelAction()
-
-        then:
-        model.failures.isEmpty()  // it did not fail
-        model.model.includedBuilds.isEmpty()
-    }
-
-    def "should fetch root project model despite root build file throwing exception"() {
+    def "should fetch root project model despite broken root build file with #description"() {
         given:
         createRootProject()
         buildFileKts << """
-            throw GradleException("Gradle exception boom !!!")
+            $causeOfFailure
         """
 
         when:
-        def model = runFetchModelAction()
+        def result = runFetchModelAction()
 
         then:
-        model.failures.isEmpty()  // it did not fail
-        model.model.includedBuilds.isEmpty()
+        result.failures.isEmpty()  // it did not fail
+        result.model.includedBuilds.empty
+        result.model.editableBuilds.empty
+        result.model.rootProject.projectIdentifier.projectPath == ":"
+        result.model.rootProject.name == "root"
+        result.model.rootProject.projectIdentifier.buildIdentifier.rootDir == settingsKotlinFile.parentFile
+        result.model.projects == [result.model.rootProject] as Set
+
+        where:
+        description         | causeOfFailure
+        "compilation error" | "broken gradle script content!!!"
+        "runtime error"     | "throw GradleException(\"Gradle exception boom !!!\")"
     }
 
     def "should fetch root project and included build models despite broken included build files"() {
@@ -112,32 +108,43 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         createIncludedBuild("included2")
 
         when:
-        def model = runFetchModelAction()
+        def result = runFetchModelAction()
 
         then:
-        model.failures.isEmpty()
-        model.model.includedBuilds.size() == 2
+        result.failures.isEmpty()
+        result.model.includedBuilds.size() == 2
     }
 
     def "should fetch root project and included plugin project models despite broken included build file"() {
         given:
         settingsKotlinFile << """
-        pluginManagement {
-            includeBuild("included-plugin")
-        }
-        rootProject.name = "root"
-    """
+            pluginManagement {
+                includeBuild("included-plugin")
+            }
+            rootProject.name = "root"
+        """
 
         def includedPlugin = createDirs("included-plugin").get(0)
         includedPlugin.file(settingsKotlinFileName) << """rootProject.name = "included-plugin" """
         blowUpBuildGradleKts(includedPlugin)
 
         when:
-        def model = runFetchModelAction()
+        def result = runFetchModelAction()
 
         then:
-        model.failures.isEmpty()
-        !model.model.includedBuilds.isEmpty()
+        result.failures.isEmpty()
+        result.model.includedBuilds.size() == 1
+        result.model.editableBuilds.size() == 1
+        result.model.rootProject.projectIdentifier.projectPath == ":"
+        result.model.rootProject.name == "root"
+        result.model.projects == [result.model.rootProject] as Set
+
+        // Check included build
+        result.model.includedBuilds[0].rootProject.projectIdentifier.projectPath == ":"
+        result.model.includedBuilds[0].rootProject.name == "included-plugin"
+        result.model.includedBuilds[0].projects == [result.model.includedBuilds[0].rootProject] as Set
+        result.model.editableBuilds == result.model.includedBuilds
+
     }
 
     def "should fetch root project and included build models despite broken included settings files"() {
@@ -155,7 +162,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.failures.size() == 1
         model.failures.toString().contains("Script compilation error")
         model.model.includedBuilds.size() == 1
-        model.model.includedBuilds.find { it.buildIdentifier.rootDir == file("included1") } != null
+        model.model.includedBuilds[0].buildIdentifier.rootDir == file("included1")
     }
 
     def "should return failure when caching models with isolated projects"() {
