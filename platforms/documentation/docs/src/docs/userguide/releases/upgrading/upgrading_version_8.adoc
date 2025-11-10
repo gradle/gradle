@@ -413,11 +413,11 @@ For instance, this wil *not* be allowed:
 [[task_project]]
 ==== Calling `Task.getProject()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.
+Calling link:{javadocPath}/org/gradle/api/Task.html#getProject()[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.
 This method can still be used during configuration time.
 
 The deprecation is only issued if the configuration cache is **not** enabled.
-When the configuration cache is enabled, calls to link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] are reported as configuration cache problems instead.
+When the configuration cache is enabled, calls to link:{javadocPath}/org/gradle/api/Task.html#getProject()[Task.getProject()] are reported as configuration cache problems instead.
 
 This deprecation was originally introduced in <<upgrading_version_7.adoc#task_project, Gradle 7.4>> but was only issued when the <<configuration_cache_enabling.adoc#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled. That feature flag no longer controls this deprecation.
 This is another step towards moving users away from idioms that are incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release.
@@ -514,16 +514,16 @@ This change impacts:
 [[deprecated_fork_options_java_home]]
 ==== Deprecated JavaHome property of ForkOptions
 
-The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()-[JavaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.0.
+The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()[JavaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.0.
 
-Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()-[executable] property instead.
+Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()[executable] property instead.
 
 NOTE: This deprecation was later link:#undeprecated_fork_options_java_home[removed], and for Gradle versions starting with 8.14, these methods will no longer throw deprecation warnings.
 
 [[mutating_buildscript_configurations]]
 ==== Deprecated mutating buildscript configurations
 
-Starting in Gradle 9.0.0, mutating configurations in a script's link:{javadocPath}/org/gradle/api/Script.html#buildscript-groovy.lang.Closure-[buildscript] block will result in an error.
+Starting in Gradle 9.0.0, mutating configurations in a script's link:{javadocPath}/org/gradle/api/Script.html#buildscript(groovy.lang.Closure)[buildscript] block will result in an error.
 This applies to project, settings, init, and standalone scripts.
 
 The buildscript configurations block is only intended to control buildscript classpath resolution.
@@ -625,7 +625,7 @@ This approach will not fetch project instances from different builds.
 [[deprecate_legacy_configuration_get_files]]
 ==== Deprecated `ResolvedConfiguration.getFiles()` and `LenientConfiguration.getFiles()`
 
-The link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getFiles()[ResolvedConfiguration.getFiles()] and link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getFiles()[LenientConfiguration.getFiles()] methods have been deprecated and will be removed in Gradle 9.0.0.
+The `ResolvedConfiguration.getFiles()` and `LenientConfiguration.getFiles()` methods have been deprecated and will be removed in Gradle 9.0.0.
 
 These deprecated methods do not track task dependencies, unlike their replacements.
 
@@ -743,8 +743,8 @@ The affected properties are:
 
 These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Javadoc] have been deprecated and will be removed in Gradle 9.0.0.
 
-- link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#isVerbose()[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
-- Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#setVerbose(boolean)[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
+- `isVerbose()` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
+- Calling `setVerbose(boolean)` with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
 - Calling `setVerbose(false)` did nothing.
 
 [[changes_8.10]]
@@ -917,7 +917,7 @@ This validation covers the following properties of a configuration:
 * Others (Transitive, Visible)
 
 Starting in Gradle 8.8, a deprecation warning will be emitted in cases that were not already an error.
-Usually, this deprecation is caused by mutating a configuration in a link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#beforeResolve-org.gradle.api.Action-[`beforeResolve`] hook.
+Usually, this deprecation is caused by mutating a configuration in a link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#beforeResolve(org.gradle.api.Action)[`beforeResolve`] hook.
 This hook is only executed after a configuration is fully resolved but not when it is partially resolved for computing task dependencies.
 
 Consider the following code that showcases the deprecated behavior:
@@ -963,9 +963,9 @@ For the following use cases, consider these alternatives when replacing a `befor
 
 * **Adding dependencies**: Use a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[DependencyFactory] and `addLater` or `addAllLater` on link:{javadocPath}/org/gradle/api/artifacts/DependencySet.html[DependencySet].
 * **Changing dependency versions**: Use <<using_preferred_versions,preferred version constraints>>.
-* **Adding excludes**: Use <<component_metadata_rules.adoc#component-metadata-rules,Component Metadata Rules>> to adjust dependency-level excludes, or link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] to add excludes to a configuration.
+* **Adding excludes**: Use <<component_metadata_rules.adoc#component-metadata-rules,Component Metadata Rules>> to adjust dependency-level excludes, or link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies(org.gradle.api.Action)[withDependencies] to add excludes to a configuration.
 * **Roles**: Configuration roles should be set upon creation and not changed afterward.
-* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] hook.
+* **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies(org.gradle.api.Action)[withDependencies] hook.
 * **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
 
 [[deprecate_filtered_configuration_file_and_filecollection_methods]]
@@ -1080,12 +1080,12 @@ A new API for defining file permissions has been added in Gradle 8.3, see:
 
 The new API has now been promoted to stable, and the old methods have been deprecated:
 
-- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getFileMode--[CopyProcessingSpec.getFileMode]
-- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setFileMode-java.lang.Integer-[CopyProcessingSpec.setFileMode]
-- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getDirMode--[CopyProcessingSpec.getDirMode]
-- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setDirMode-java.lang.Integer-[CopyProcessingSpec.setDirMode]
-- link:{javadocPath}/org/gradle/api/file/FileTreeElement.html#getMode--[FileTreeElement.getMode]
-- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#setMode-int-[FileCopyDetails.setMode]
+- `CopyProcessingSpec.getFileMode]`
+- `CopyProcessingSpec.setFileMode]`
+- `CopyProcessingSpec.getDirMode]`
+- `CopyProcessingSpec.setDirMode]`
+- `FileTreeElement.getMode]`
+- `FileCopyDetails.setMode]`
 
 [[directory_build_cache_retention_deprecated]]
 ==== Deprecated setting retention period directly on local build cache ====
@@ -1122,8 +1122,8 @@ beforeSettings {
 }
 ----
 
-Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[buildCache.local.removeUnusedEntriesAfterDays] is deprecated, and this method will be removed in Gradle 9.0.0.
-If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
+Calling `buildCache.local.removeUnusedEntriesAfterDays` is deprecated, and this method will be removed in Gradle 9.0.0.
+If set to a non-default value, this deprecated setting will take precedence over link:{javadocPath}/org/gradle/api/cache/CacheResourceConfiguration.html#setRemoveUnusedEntriesAfterDays(int)[`Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`].
 
 [[gradle_enterprise_extension_deprecated]]
 ==== Deprecated Kotlin DSL gradle-enterprise plugin block extension ====
@@ -1403,9 +1403,9 @@ A `getDependencies` method has been added to the interface that returns all decl
 [[deprecate_register_feature_main_source_set]]
 ==== Deprecated calling `registerFeature` using the `main` source set
 
-Calling `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature-java.lang.String-org.gradle.api.Action-[registerFeature]` on the `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html[java]` extension using the `main` source set is deprecated and will change behavior in Gradle 10.
+Calling `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[registerFeature]` on the `link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html[java]` extension using the `main` source set is deprecated and will change behavior in Gradle 10.
 
-Currently, features created while calling `link:{javadocPath}/org/gradle/api/plugins/FeatureSpec.html#usingSourceSet-org.gradle.api.tasks.SourceSet-[usingSourceSet]` with the `main` source set are initialized differently than features created while calling `usingSourceSet` with any other source set.
+Currently, features created while calling `link:{javadocPath}/org/gradle/api/plugins/FeatureSpec.html#usingSourceSet(org.gradle.api.tasks.SourceSet)[usingSourceSet]` with the `main` source set are initialized differently than features created while calling `usingSourceSet` with any other source set.
 Previously, when using the `main` source set, new `implementation`, `compileOnly`, `runtimeOnly`, `api`, and `compileOnlyApi` configurations were created, and the compile and runtime classpaths of the `main` source set were configured to extend these configurations.
 
 Starting in Gradle 10, the `main` source set will be treated like any other source set.
@@ -2319,7 +2319,7 @@ The following methods on `CompileOptions` are deprecated:
 - `setAnnotationProcessorGeneratedSourcesDirectory(File)`
 - `setAnnotationProcessorGeneratedSourcesDirectory(Provider<File>)`
 
-Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getGeneratedSourceOutputDirectory--[DirectoryProperty getGeneratedSourceOutputDirectory()]`
+Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getGeneratedSourceOutputDirectory()[DirectoryProperty getGeneratedSourceOutputDirectory()]`
 
 [[deprecated_configuration_usage]]
 ==== Using configurations incorrectly
@@ -2597,7 +2597,7 @@ webAppDirName = 'src/main/webapp' // Accessing a convention
 ====
 
 Clients should configure the `war` task directly.
-Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType(java.lang.Class)[tasks.withType(War.class).configureEach(...)] can be used to configure each task of type `War`.
 
 ====
 [.multi-language-sample]
@@ -2668,7 +2668,7 @@ appDirName = 'src/main/app' // Accessing a convention
 ====
 
 Clients should configure the `ear` task directly.
-Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType-java.lang.Class-[tasks.withType(Ear.class).configureEach(...)] can be used to configure each task of type `Ear`.
+Also, link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#withType(java.lang.Class)[tasks.withType(Ear.class).configureEach(...)] can be used to configure each task of type `Ear`.
 
 ====
 [.multi-language-sample]
@@ -2870,10 +2870,10 @@ The following methods on `BuildIdentifier` are deprecated:
 You could use these methods to distinguish between different project components with the same name but from different builds.
 However, for certain composite build setups, these methods do not provide enough information to guarantee uniqueness.
 
-Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath--[BuildIdentifier.getBuildPath()]`.
+Current usages of these methods should migrate to `link:{javadocPath}/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath()[BuildIdentifier.getBuildPath()]`.
 
 Similarly, the method `ProjectComponentSelector.getBuildName()` is deprecated.
-Use `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html#getBuildPath--[ProjectComponentSelector.getBuildPath()]` instead.
+Use `link:{javadocPath}/org/gradle/api/artifacts/component/ProjectComponentSelector.html#getBuildPath()[ProjectComponentSelector.getBuildPath()]` instead.
 
 [[changes_8.1]]
 == Upgrading from 8.0 and earlier
@@ -2953,7 +2953,7 @@ This is a potentially breaking change if you are consuming the console output of
 
 If you are configuring custom Kotlin compiler options on a project with the <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin, kotlin-dsl>> plugin applied you might encounter a breaking change.
 
-In previous Gradle versions, the `kotlin-dsl` plugin was adding required compiler arguments on link:{javadocPath}/org/gradle/api/Project.html#afterEvaluate-org.gradle.api.Action-[afterEvaluate {}].
+In previous Gradle versions, the `kotlin-dsl` plugin was adding required compiler arguments on link:{javadocPath}/org/gradle/api/Project.html#afterEvaluate(org.gradle.api.Action)[afterEvaluate {}].
 Now that the Kotlin Gradle Plugin provides <<lazy_configuration.adoc#lazy_configuration, lazy configuration>> properties, our `kotlin-dsl` plugin switched to adding required compiler arguments to the lazy properties directly.
 As a consequence, if you were setting `freeCompilerArgs` the `kotlin-dsl` plugin is now failing the build because its required compiler arguments are overridden by your configuration.
 
@@ -3016,8 +3016,8 @@ When a name clash occurs, one solution is to rename the element in user code.
 
 This is a non-exhaustive list of API additions in 8.1 that may cause name collisions with existing user code.
 
-* link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#getJvmArguments--[`JavaExec.getJvmArguments()`]
-* link:{javadocPath}/org/gradle/process/JavaExecSpec.html#getJvmArguments--[`JavaExecSpec.getJvmArguments()`]
+* link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#getJvmArguments()[`JavaExec.getJvmArguments()`]
+* link:{javadocPath}/org/gradle/process/JavaExecSpec.html#getJvmArguments()[`JavaExecSpec.getJvmArguments()`]
 
 ==== Using unsupported API to start external processes at configuration time is no longer allowed with the configuration cache enabled
 
@@ -3129,11 +3129,11 @@ This feature will be removed in Gradle 9.0.0.
 Eager population of the publication can happen if the following methods are called:
 
 * Maven
-** link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
+** link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts()[MavenPublication.getArtifacts()]
 * Ivy
-** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
-** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
-** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
+** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts()[IvyPublication.getArtifacts()]
+** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations()[IvyPublication.getConfigurations()]
+** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(org.gradle.api.Action)[IvyPublication.configurations(Action)]
 
 Previously, the following code did not generate warnings, but it created inconsistencies between published artifacts:
 
@@ -3254,7 +3254,7 @@ Setting custom build file using link:{groovyDslPath}/org.gradle.api.tasks.Gradle
 Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir] property instead to specify the root of the nested build.
 Alternatively, consider using one of the recommended alternatives for link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task.
 
-Setting custom build layout using link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods link:{javadocPath}/org/gradle/StartParameter.html#setBuildFile-java.io.File-[setBuildFile(File)] and link:{javadocPath}/org/gradle/StartParameter.html#setSettingsFile-java.io.File-[setSettingsFile(File)] as well as the counterpart getters link:{javadocPath}/org/gradle/StartParameter.html#getBuildFile--[getBuildFile()] and link:{javadocPath}/org/gradle/StartParameter.html#getSettingsFile--[getSettingsFile()] have been deprecated.
+Setting custom build layout using link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods `setBuildFile(File)`, `setSettingsFile(File)` as well as the counterpart getters `getBuildFile()` and `getSettingsFile()` have been deprecated.
 
 Please use standard locations for settings and build files:
 
@@ -3330,7 +3330,7 @@ This is done to reduce confusion about what such relative paths should resolve a
 [[task_convention]]
 ==== Calling `Task.getConvention()`, `Task.getExtensions()` from a task action
 
-Calling `Task.getConvention()`, link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.0.
+Calling `Task.getConvention()` from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.0.
 
 See the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
