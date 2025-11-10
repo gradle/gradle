@@ -1156,7 +1156,7 @@ It will do nothing if the directory already exists.
 
 === Using `Project.mkdir`
 
-You can create directories in Gradle using the `mkdir` method, which is available in the link:{javadocPath}/org/gradle/api/Project.html#mkdir-java.lang.Object-[`Project` object].
+You can create directories in Gradle using the `mkdir` method, which is available in the link:{javadocPath}/org/gradle/api/Project.html#mkdir(java.lang.Object)[`Project` object].
 This method takes a `File` object or a `String` representing the path of the directory to be created:
 
 [source,groovy]
