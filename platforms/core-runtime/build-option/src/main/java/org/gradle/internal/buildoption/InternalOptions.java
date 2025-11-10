@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * A service that determines the value for an {@link InternalOption}.
  */
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope({Scope.CrossBuildSession.class, Scope.BuildTree.class})
 public interface InternalOptions {
     /**
      * Lookup the value for an {@link InternalOption}.
