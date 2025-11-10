@@ -17,15 +17,10 @@
 package org.gradle.api.internal.plugins;
 
 /**
- * A registration action for configuring a project feature binding.  Instances of this interface should be
- * registered with the {@link BindsProjectFeature} annotation
+ * A registration action for configuring a project type binding.  Instances of this interface should be
+ * registered with the {@link BindsProjectType} annotation
  * on a project plugin.
  */
-public interface ProjectFeatureBindingRegistration {
-    /**
-     * Configure the project feature binding.
-     *
-     * @param builder the builder to use to configure the binding
-     */
-    void register(ProjectFeatureBindingBuilder builder);
+public interface ProjectTypeBinding {
+    void bind(ProjectTypeBindingBuilder builder);
 }

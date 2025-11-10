@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-public interface DslBindingBuilderInternal<T extends Definition<V>, V extends BuildModel> extends DslBindingBuilder<T, V> {
+public interface DeclaredProjectFeatureBindingBuilderInternal<T extends Definition<V>, V extends BuildModel> extends DeclaredProjectFeatureBindingBuilder<T, V> {
 
-    ProjectFeatureBinding<T, V> build();
+    ProjectFeatureBindingDeclaration<T, V> build();
 }

@@ -17,10 +17,10 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.DslBindingBuilder;
-import org.gradle.api.internal.plugins.DslBindingBuilderInternal;
+import org.gradle.api.internal.plugins.DeclaredProjectFeatureBindingBuilder;
+import org.gradle.api.internal.plugins.DeclaredProjectFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.Definition;
-import org.gradle.api.internal.plugins.ProjectFeatureBinding;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.gradle.internal.Cast;
@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @NullMarked
-public class DefaultDslBindingBuilder<T extends Definition<V>, V extends BuildModel> implements DslBindingBuilderInternal<T, V> {
+public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>, V extends BuildModel> implements DeclaredProjectFeatureBindingBuilderInternal<T, V> {
     private final Class<T> dslType;
     private final TargetTypeInformation<?> targetDefinitionType;
     private final Class<V> buildModelType;
@@ -42,7 +42,7 @@ public class DefaultDslBindingBuilder<T extends Definition<V>, V extends BuildMo
     @Nullable private Class<?> dslImplementationType;
     @Nullable private Class<?> buildModelImplementationType;
 
-    public DefaultDslBindingBuilder(
+    public DefaultDeclaredProjectFeatureBindingBuilder(
         Class<T> dslType,
         Class<V> buildModelType,
         TargetTypeInformation<?> targetDefinitionType,
@@ -56,7 +56,7 @@ public class DefaultDslBindingBuilder<T extends Definition<V>, V extends BuildMo
         this.transform = transform;
     }
 
-    private static <T extends Definition<V>, V extends BuildModel> ProjectFeatureBinding<T, V> bindingOf(
+    private static <T extends Definition<V>, V extends BuildModel> ProjectFeatureBindingDeclaration<T, V> bindingOf(
         Class<T> dslType,
         @Nullable Class<? extends T> dslImplementationType,
         Path path,
@@ -65,19 +65,19 @@ public class DefaultDslBindingBuilder<T extends Definition<V>, V extends BuildMo
         @Nullable Class<? extends V> buildModelImplementationType,
         ProjectFeatureApplyAction<T, ?, V> transform
     ) {
-        return new ProjectFeatureBinding<T, V>() {
+        return new ProjectFeatureBindingDeclaration<T, V>() {
             @Override
             public TargetTypeInformation<?> targetDefinitionType() {
                 return targetDefinitionType;
             }
 
             @Override
-            public Class<T> getDslType() {
+            public Class<T> getDefinitionType() {
                 return dslType;
             }
 
             @Override
-            public Optional<Class<? extends T>> getDslImplementationType() {
+            public Optional<Class<? extends T>> getDefinitionImplementationType() {
                 return Optional.ofNullable(dslImplementationType);
             }
 
@@ -104,19 +104,19 @@ public class DefaultDslBindingBuilder<T extends Definition<V>, V extends BuildMo
     }
 
     @Override
-    public DslBindingBuilder<T, V> withDefinitionImplementationType(Class<? extends T> implementationType) {
+    public DeclaredProjectFeatureBindingBuilder<T, V> withDefinitionImplementationType(Class<? extends T> implementationType) {
         this.dslImplementationType = implementationType;
         return this;
     }
 
     @Override
-    public DslBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType) {
+    public DeclaredProjectFeatureBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType) {
         this.buildModelImplementationType = implementationType;
         return this;
     }
 
     @Override
-    public ProjectFeatureBinding<T, V> build() {
+    public ProjectFeatureBindingDeclaration<T, V> build() {
         if (dslImplementationType != null && !dslType.isAssignableFrom(dslImplementationType)) {
             throw new IllegalArgumentException("Implementation type " + dslImplementationType + " is not a subtype of dsl type " + dslType);
         }
@@ -125,7 +125,7 @@ public class DefaultDslBindingBuilder<T extends Definition<V>, V extends BuildMo
             throw new IllegalArgumentException("Implementation type " + buildModelImplementationType + " is not a subtype of build model type " + buildModelType);
         }
 
-        return DefaultDslBindingBuilder.bindingOf(
+        return DefaultDeclaredProjectFeatureBindingBuilder.bindingOf(
             dslType,
             Cast.uncheckedCast(dslImplementationType),
             path,

@@ -32,7 +32,7 @@ public interface ProjectFeatureBindingBuilder {
      * @param name the name of the binding.  This is how it will be referenced in the DSL.
      * @param bindingTypeInformation type information about the parent object the feature can be bound to
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
-     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
      * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
@@ -42,7 +42,7 @@ public interface ProjectFeatureBindingBuilder {
         OwnBuildModel extends BuildModel,
         TargetDefinition extends Definition<?>
         >
-    DslBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
         String name,
         ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
         ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
@@ -56,7 +56,7 @@ public interface ProjectFeatureBindingBuilder {
      * @param definitionClass the class of the project feature definition object
      * @param targetDefinitionClass the class of the parent definition object this feature can be bound to
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
-     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
      * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
@@ -66,7 +66,7 @@ public interface ProjectFeatureBindingBuilder {
         OwnBuildModel extends BuildModel,
         TargetDefinition extends Definition<?>
         >
-    DslBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToDefinition(
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToDefinition(
         String name,
         Class<OwnDefinition> definitionClass,
         Class<TargetDefinition> targetDefinitionClass,
@@ -83,7 +83,7 @@ public interface ProjectFeatureBindingBuilder {
      * @param definitionClass the class of the project feature definition object
      * @param targetBuildModelClass the class of the build model type of the parent definition object this feature can be bound to
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
-     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
      * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
      * @param <TargetBuildModel> the type of the build model type of the parent definition object this feature can be bound to
@@ -93,7 +93,7 @@ public interface ProjectFeatureBindingBuilder {
         OwnBuildModel extends BuildModel,
         TargetBuildModel extends BuildModel
         >
-    DslBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToBuildModel(
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToBuildModel(
         String name,
         Class<OwnDefinition> definitionClass,
         Class<TargetBuildModel> targetBuildModelClass,

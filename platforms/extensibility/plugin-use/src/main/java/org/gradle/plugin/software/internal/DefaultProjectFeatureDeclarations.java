@@ -26,11 +26,11 @@ import org.gradle.api.internal.plugins.BindsProjectFeature;
 import org.gradle.api.internal.plugins.BindsProjectType;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
-import org.gradle.api.internal.plugins.ProjectFeatureBinding;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
-import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration;
+import org.gradle.api.internal.plugins.ProjectFeatureBinding;
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
-import org.gradle.api.internal.plugins.ProjectTypeBindingRegistration;
+import org.gradle.api.internal.plugins.ProjectTypeBinding;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
@@ -96,7 +96,7 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
     private <T extends Definition<V>, V extends BuildModel> void registerFeature(
         RegisteringPluginKey registeringPlugin,
         Class<? extends Plugin<Project>> pluginClass,
-        ProjectFeatureBinding<T, V> binding,
+        ProjectFeatureBindingDeclaration<T, V> binding,
         ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder
     ) {
         String projectFeatureName = binding.getName();
@@ -110,8 +110,8 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
             projectFeatureName,
             new DefaultBoundProjectFeatureImplementation<>(
                 projectFeatureName,
-                binding.getDslType(),
-                binding.getDslImplementationType().orElse(binding.getDslType()),
+                binding.getDefinitionType(),
+                binding.getDefinitionImplementationType().orElse(binding.getDefinitionType()),
                 binding.targetDefinitionType(),
                 binding.getBuildModelType(),
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
@@ -132,10 +132,10 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
         Optional<BindsProjectFeature> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectFeature.class);
         if (bindsSoftwareTypeAnnotation.isPresent()) {
             BindsProjectFeature bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
-            Class<? extends ProjectFeatureBindingRegistration> bindingRegistrationClass = bindsSoftwareType.value();
-            ProjectFeatureBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
+            Class<? extends ProjectFeatureBinding> bindingRegistrationClass = bindsSoftwareType.value();
+            ProjectFeatureBinding bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             ProjectFeatureBindingBuilderInternal builder = new DefaultProjectFeatureBindingBuilder();
-            bindingRegistration.register(builder);
+            bindingRegistration.bind(builder);
             builder.build().forEach(binding ->
                 registerFeature(registeringPluginClass, pluginClass, binding, projectFeatureImplementationsBuilder)
             );
@@ -146,10 +146,10 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
         Optional<BindsProjectType> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectType.class);
         if (bindsSoftwareTypeAnnotation.isPresent()) {
             BindsProjectType bindsProjectType = bindsSoftwareTypeAnnotation.get();
-            Class<? extends ProjectTypeBindingRegistration> bindingRegistrationClass = bindsProjectType.value();
-            ProjectTypeBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
+            Class<? extends ProjectTypeBinding> bindingRegistrationClass = bindsProjectType.value();
+            ProjectTypeBinding bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             ProjectTypeBindingBuilderInternal builder = new DefaultProjectTypeBindingBuilder();
-            bindingRegistration.register(builder);
+            bindingRegistration.bind(builder);
             builder.build().forEach(binding ->
                 registerFeature(registeringPluginKey, pluginClass, binding, projectFeatureImplementationsBuilder)
             );
