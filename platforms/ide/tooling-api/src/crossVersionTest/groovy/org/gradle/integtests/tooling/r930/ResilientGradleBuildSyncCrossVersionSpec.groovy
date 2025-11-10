@@ -133,18 +133,71 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         result.failures.isEmpty()
-        result.model.includedBuilds.size() == 1
-        result.model.editableBuilds.size() == 1
         result.model.rootProject.projectIdentifier.projectPath == ":"
         result.model.rootProject.name == "root"
         result.model.projects == [result.model.rootProject] as Set
 
-        // Check included build
+        // Check included and editable builds
+        result.model.includedBuilds.size() == 1
+        result.model.editableBuilds.size() == 1
         result.model.includedBuilds[0].rootProject.projectIdentifier.projectPath == ":"
         result.model.includedBuilds[0].rootProject.name == "included-plugin"
         result.model.includedBuilds[0].projects == [result.model.includedBuilds[0].rootProject] as Set
         result.model.editableBuilds == result.model.includedBuilds
+    }
 
+    def "should fetch root build and included build with a broken settings convention plugin"() {
+        given:
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            plugins {
+                id("build-logic")
+            }
+            include("a")
+        """
+        def included = file("build-logic")
+        included.file("settings.gradle.kts") << """
+            rootProject.name = "build-logic"
+            pluginManagement {
+                $repositoriesBlock
+            }
+        """
+        included.file("build.gradle.kts") << """
+            plugins {
+                `kotlin-dsl`
+            }
+            repositories {
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        """
+        included.file("src/main/kotlin/build-logic.settings.gradle.kts") << """
+            broken !!!
+        """
+        file("a/build.gradle.kts") << """
+        """
+
+        when:
+        def result = runFetchModelAction()
+
+        then:
+        result.failures.size() == 1
+        result.model.rootProject.projectIdentifier.projectPath == ":"
+        // Name was not setup due to failure when applying a plugin
+        result.model.rootProject.name == settingsKotlinFile.parentFile.name
+        // No other projects were configured due to settings failure
+        result.model.projects == [result.model.rootProject] as Set
+
+        // Check included and editable builds
+        result.model.includedBuilds.size() == 0
+        result.model.editableBuilds.size() == 1
+        result.model.editableBuilds[0].rootProject.projectIdentifier.projectPath == ":"
+        result.model.editableBuilds[0].rootProject.name == "build-logic"
+        result.model.editableBuilds[0].projects.size() == 1
+        result.model.editableBuilds[0].projects == [result.model.editableBuilds[0].rootProject] as Set
     }
 
     def "should fetch root project and included build models despite broken included settings files"() {
