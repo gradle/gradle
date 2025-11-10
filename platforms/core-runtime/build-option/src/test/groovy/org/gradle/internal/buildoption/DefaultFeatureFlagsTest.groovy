@@ -25,7 +25,7 @@ class DefaultFeatureFlagsTest extends Specification {
     def listenerManager = Stub(ListenerManager) {
         getBroadcaster(FeatureFlagListener) >> featureFlagListener
     }
-    def flags = new DefaultFeatureFlags(new DefaultInternalOptions(sysProperties), listenerManager)
+    def flags = new DefaultFeatureFlags(listenerManager, sysProperties)
 
     def "flag is disabled by default"() {
         def flag = Stub(FeatureFlag)

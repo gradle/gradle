@@ -176,8 +176,8 @@ object BuildModelParametersProvider {
     private
     fun warnOnPreviouslyExistingOptions(options: InternalOptions) {
         val replacements = mapOf(
-            "org.gradle.internal.isolated-projects.configure-on-demand.tooling" to isolatedProjectsConfigureOnDemand.systemPropertyName,
-            "org.gradle.internal.isolated-projects.configure-on-demand.tasks" to isolatedProjectsConfigureOnDemand.systemPropertyName,
+            "org.gradle.internal.isolated-projects.configure-on-demand.tooling" to isolatedProjectsConfigureOnDemand.propertyName,
+            "org.gradle.internal.isolated-projects.configure-on-demand.tasks" to isolatedProjectsConfigureOnDemand.propertyName,
         )
         for ((previous, current) in replacements) {
             if (options.getOption(StringInternalOption.of(previous)).isExplicit) {
@@ -192,7 +192,7 @@ object BuildModelParametersProvider {
         val supported = listOf(InvocationScenarioParameter.TOOLING, InvocationScenarioParameter.NONE)
         require(param in supported) {
             "Unsupported value for '%s' option: %s. Supported values: %s".format(
-                isolatedProjectsCaching.systemPropertyName, param.value, supported.map { it.value })
+                isolatedProjectsCaching.propertyName, param.value, supported.map { it.value })
         }
     }
 
