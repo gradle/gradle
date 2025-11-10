@@ -207,7 +207,7 @@ There are two ways to determine the delegate type, depending on the signature of
 In the example above, the method signature is `copy(Action<? super CopySpec>)` and it's the bit inside the angle brackets that tells you the delegate type — link:{javadocPath}/org/gradle/api/file/CopySpec.html[CopySpec] in this case.
  * For `Closure` arguments, the documentation will explicitly say in the description what type is being configured or what type the delegate it (different terminology for the same thing).
 
-Hence you can find both link:{javadocPath}/org/gradle/api/file/CopySpec.html#into-java.lang.Object-[into()] and link:{javadocPath}/org/gradle/api/file/CopySpec.html#from-java.lang.Object++...++-[from()] on `CopySpec`. You might even notice that both of those methods have variants that take an `Action` as their last argument, which means you can use block syntax with them.
+Hence you can find both link:{javadocPath}/org/gradle/api/file/CopySpec.html#into(java.lang.Object)[into()] and link:{javadocPath}/org/gradle/api/file/CopySpec.html#from(java.lang.Object...)[from()] on `CopySpec`. You might even notice that both of those methods have variants that take an `Action` as their last argument, which means you can use block syntax with them.
 
 All new Gradle APIs declare an `Action` argument type rather than `Closure`, which makes it very easy to pick out the delegate type. Even older APIs have an `Action` variant in addition to the old `Closure` one.
 
