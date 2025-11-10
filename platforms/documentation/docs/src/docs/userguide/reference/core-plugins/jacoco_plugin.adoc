@@ -80,7 +80,7 @@ image::jacocoHtmlReport.png[JaCoCo HTML report,903,277]
 
 NOTE: This feature requires the use of JaCoCo version 0.6.3 or higher.
 
-The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoCoverageVerification.html#violationRules-org.gradle.api.Action-[JacocoCoverageVerification.violationRules(org.gradle.api.Action)] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of link:{javadocPath}/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRulesContainer.html[JacocoViolationRulesContainer] providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
+The link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] task can be used to verify if code coverage metrics are met based on configured rules. Its API exposes the method link:{javadocPath}/org/gradle/testing/jacoco/tasks/JacocoCoverageVerification.html#violationRules(org.gradle.api.Action)[JacocoCoverageVerification.violationRules(org.gradle.api.Action)] which is used as main entry point for configuring rules. Invoking any of those methods returns an instance of link:{javadocPath}/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRulesContainer.html[JacocoViolationRulesContainer] providing extensive configuration options. The build fails if any of the configured rules are not met. JaCoCo only reports the first violated rule.
 
 Code coverage requirements can be specified for a project as a whole, for individual files, and for particular JaCoCo-specific types of coverage, e.g., lines covered or branches covered. The following example describes the syntax.
 
@@ -201,4 +201,4 @@ Attributes
 Artifacts
     - build/jacoco/test.exec (artifactType = binary)
 ----
-<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName()[TestSuite#getName()].
+<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/api/Named.html#getName()[TestSuite#getName()].
