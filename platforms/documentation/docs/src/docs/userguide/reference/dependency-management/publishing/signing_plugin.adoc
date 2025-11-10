@@ -221,7 +221,7 @@ include::sample[dir="snippets/signing/conditional/groovy",files="build.gradle[ta
 
 In this example, we only want to require signing if we are building a release version and we are going to publish it.
 Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation.
-See link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html#setRequired-java.lang.Object-[SigningExtension.setRequired(java.lang.Object)] for more information.
+See link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html#setRequired(java.lang.Object)[SigningExtension.setRequired(java.lang.Object)] for more information.
 
 If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured.
 Alternatively, you may want to skip signing entirely whether or not signatory credentials are available.
