@@ -21,12 +21,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.util.internal.ToBeImplemented
 
 @ToolingApiVersion('>=9.3')
 @TargetGradleVersion('>=9.3')
@@ -151,10 +149,6 @@ class CustomPlugin implements Plugin<Project> {
         " with configuration-on-demand" | IP_CONFIGURE_ON_DEMAND_FLAGS | ['root', 'a', 'c', 'build-logic'] | ['b']
     }
 
-    /**
-     * Requires GradleBuild model to run on runtime failures
-     */
-    @ToBeImplemented
     def "can query custom model for included build without build configuration errors, even if main settings fail"() {
         settingsKotlinFile << """
             pluginManagement {
@@ -199,7 +193,7 @@ class CustomPlugin implements Plugin<Project> {
         """
 
         when:
-        fails {
+        def result = succeeds {
             action(new ModelAction())
                 .withArguments(
                     "--init-script=${file('init.gradle').absolutePath}",
@@ -209,28 +203,15 @@ class CustomPlugin implements Plugin<Project> {
         }
 
         then:
-        def e = thrown(BuildActionFailureException)
-        e.cause.message.contains("Execution failed for task ':build-logic:compileKotlin'")
-
-        // Should be:
-        // def result = succeeds {
-        //            action(new ModelAction())
-        //                .withArguments(
-        //                    "--init-script=${file('init.gradle').absolutePath}",
-        //                    "-Dorg.gradle.internal.resilient-model-building=true",
-        //                )
-        //                .run()
-        //        }
-        // result.successfullyQueriedProjects == ['build-logic']
-        // Since the settings file fails to configure, no other projects is seen, so we cannot query them
-        // result.failedToQueryProjects == []
+        result.successfullyQueriedProjects == ['build-logic']
+        // Since the settings file fails to configure, only root of main project can be seen
+        result.failedToQueryProjects == [settingsKotlinFile.parentFile.name]
     }
 
     static class ModelAction implements BuildAction<ModelResult>, Serializable {
 
         @Override
         ModelResult execute(BuildController controller) {
-            println "Running action"
             GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
             List<String> successfulQueriedProjects = []
             List<String> failedQueriedProjects = []
