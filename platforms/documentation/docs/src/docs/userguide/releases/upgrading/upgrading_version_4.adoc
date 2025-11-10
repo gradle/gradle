@@ -120,11 +120,11 @@ Running Gradle & build environment::
  * The `org.gradle.readLoggingConfigFile` system property no longer does anything — update affected tests to work with your `java.util.logging` settings.
 Working with files::
  * You can no longer cast `FileCollection` objects to other types using the `as` keyword or the `asType()` method.
- * You can no longer pass `null` as the configuration action of link:{javadocPath}/org/gradle/api/file/CopySpec.html#from-java.lang.Object-org.gradle.api.Action-[CopySpec.from(Object, Action)].
+ * You can no longer pass `null` as the configuration action of link:{javadocPath}/org/gradle/api/file/CopySpec.html#from(java.lang.Object,org.gradle.api.Action)[CopySpec.from(Object, Action)].
  * For better compatibility with the Kotlin DSL, link:{javadocPath}/org/gradle/api/file/DuplicatesStrategy.html[CopySpec.duplicatesStrategy] is no longer nullable. The property setter no longer accepts `null` as a way
 to reset the property back to its default value. Use `DuplicatesStrategy.INHERIT` instead.
  * The `FileCollection.stopExecutionIfEmpty()` method has been removed — use the link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[@SkipWhenEmpty] annotation on `FileCollection` task properties instead.
- * The `FileCollection.add()` method has been removed — use link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[++])[Project.files()] and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree()] to create configurable file collections/file trees and add to them via link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#from-java.lang.Object++...++-[ConfigurableFileCollection.from()].
+ * The `FileCollection.add()` method has been removed — use link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[++])[Project.files()] and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree()] to create configurable file collections/file trees and add to them via link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#from(java.lang.Object...)[ConfigurableFileCollection.from()].
  * `SimpleFileCollection` has been removed — use link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(Object...)] instead.
  * Don't have your own classes extend `AbstractFileCollection` — use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[++])[Project.files()] method instead. This problem may exhibit as a missing `getBuildDependencies()` method.
 Java builds::
@@ -141,7 +141,7 @@ Java builds::
 +
 With the removal of Maven 2 support, the methods that configure unique snapshot behavior have also been removed. Maven 3 only supports unique snapshots, so we decided to remove them.
 Tasks & properties::
- * The following legacy classes and methods related to <<lazy_configuration#lazy_properties,lazy properties>> have been removed — use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property()] to create `Property` instances:
+ * The following legacy classes and methods related to <<lazy_configuration#lazy_properties,lazy properties>> have been removed — use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property(java.lang.Class)[ObjectFactory.property()] to create `Property` instances:
  ** `PropertyState`
  ** `DirectoryVar`
  ** `RegularFileVar`
@@ -159,11 +159,11 @@ Tasks & properties::
  ** `executer`
  ** `getValidators()`
  ** `addValidator()`
- * The link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#file-java.lang.Object-[TaskInputs.file(Object)] method can no longer be called with an argument that resolves to anything other than a single regular file.
- * The link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[TaskInputs.dir(Object)] method can no longer be called with an argument that resolves to anything other than a single directory.
+ * The link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#file(java.lang.Object)[TaskInputs.file(Object)] method can no longer be called with an argument that resolves to anything other than a single regular file.
+ * The link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir(java.lang.Object)[TaskInputs.dir(Object)] method can no longer be called with an argument that resolves to anything other than a single directory.
  * You can no longer register invalid inputs and outputs via link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html[TaskInputs] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html[TaskOutputs].
- * The `TaskDestroyables.file()` and `TaskDestroyables.files()` methods have been removed — use link:{javadocPath}/org/gradle/api/tasks/TaskDestroyables.html#register-java.lang.Object++...++-[TaskDestroyables.register()] instead.
- * `SimpleWorkResult` has been removed — use link:{javadocPath}/org/gradle/api/tasks/WorkResult.html#getDidWork--[WorkResult.didWork].
+ * The `TaskDestroyables.file()` and `TaskDestroyables.files()` methods have been removed — use link:{javadocPath}/org/gradle/api/tasks/TaskDestroyables.html#register(java.lang.Object...)[TaskDestroyables.register()] instead.
+ * `SimpleWorkResult` has been removed — use link:{javadocPath}/org/gradle/api/tasks/WorkResult.html#getDidWork()[WorkResult.didWork].
  * Overriding built-in tasks <<#deprecations_4.8,deprecated in 4.8>> now produces an error.
 +
 Attempting to replace a built-in task will produce an error similar to the following:
@@ -182,7 +182,7 @@ Kotlin DSL::
 Both changes could cause script compilation errors. See the https://github.com/gradle/kotlin-dsl-samples/releases/tag/v1.0.2#breaking-changes[Gradle Kotlin DSL release notes] for more information and how to fix builds broken by the changes described above.
 
 Miscellaneous::
- * The `ConfigurableReport.setDestination(Object)` method has been removed — use link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html#setDestination-java.io.File-[ConfigurableReport.setDestination(File)] instead.
+ * The `ConfigurableReport.setDestination(Object)` method has been removed — use `ConfigurableReport.setDestination(File)` instead.
  * The `Signature.setFile(File)` method has been removed — Gradle does not support changing the output file for the generated signature.
  * The read-only `Signature.toSignArtifact` property has been removed — it should never have been part of the public API.
  * The `@DeferredConfigurable` annotation has been removed.
@@ -210,16 +210,16 @@ If you are not already on version 4.9, skip down to the section that applies to 
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
- * `TaskContainer.add()` and `TaskContainer.addAll()` — use link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.create()] or link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.register()] instead
+ * `TaskContainer.add()` and `TaskContainer.addAll()` — use link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create(java.lang.String,java.lang.Class,org.gradle.api.Action)[TaskContainer.create()] or link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register(java.lang.String,java.lang.Class,org.gradle.api.Action)[TaskContainer.register()] instead
 
 === Potential breaking changes
 
  * There have been several potentially breaking changes in Kotlin DSL — see the _Breaking changes_ section of https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3[that project's release notes].
- * You can no longer use any of the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:beforeEvaluate(org.gradle.api.Action)[Project.beforeEvaluate()] or link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] methods with lazy task configuration, for example inside a link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.register()] block.
+ * You can no longer use any of the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:beforeEvaluate(org.gradle.api.Action)[Project.beforeEvaluate()] or link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] methods with lazy task configuration, for example inside a link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register(java.lang.String,java.lang.Class,org.gradle.api.Action)[TaskContainer.register()] block.
  * <<#rel4.10:aws_s3_permissions,Publishing to AWS S3 requires new permissions>>.
  * Both link:{javadocPath}/org/gradle/plugin/devel/tasks/PluginUnderTestMetadata.html[PluginUnderTestMetadata] and link:{javadocPath}/org/gradle/plugin/devel/tasks/GeneratePluginDescriptors.html[GeneratePluginDescriptors] — classes used by the <<java_gradle_plugin#java_gradle_plugin,Java Gradle Plugin Development Plugin>> — have been updated to use the Provider API.
 +
-Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set()] method to modify their values rather than using standard property assignment syntax, unless you are doing so in a Groovy build script.
+Use the link:{javadocPath}/org/gradle/api/provider/Property.html#set(T)[Property.set()] method to modify their values rather than using standard property assignment syntax, unless you are doing so in a Groovy build script.
 Standard property assignment still works in that one case.
 
 [[changes_4.9]]
@@ -229,7 +229,7 @@ Standard property assignment still works in that one case.
 
 === Potential breaking changes
 
- * You can no longer use GPath syntax with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[tasks.withType()].
+ * You can no longer use GPath syntax with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType(java.lang.Class)[tasks.withType()].
 +
 Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Groovy's spread operator] instead.
 For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.withType(JavaCompile)*.name`.
@@ -276,7 +276,7 @@ Checkstyle configuration files in subprojects — the old by-convention location
  * [Kotlin DSL] Only one `pluginManagement {}` block is allowed now.
  * The cache control DSL provided by the `org.gradle.api.artifacts.cache.*` interfaces are no longer available.
  * `getEnabledDirectoryReportDestinations()`, `getEnabledFileReportDestinations()` and `getEnabledReportNames()` have all been removed from `org.gradle.api.reporting.ReportContainer`.
- * link:{javadocPath}/org/gradle/StartParameter.html#getProjectProperties--[StartParameter.projectProperties] and link:{javadocPath}/org/gradle/StartParameter.html#getSystemPropertiesArgs--[StartParameter.systemPropertiesArgs] now return immutable maps.
+ * link:{javadocPath}/org/gradle/StartParameter.html#getProjectProperties()[StartParameter.projectProperties] and link:{javadocPath}/org/gradle/StartParameter.html#getSystemPropertiesArgs()[StartParameter.systemPropertiesArgs] now return immutable maps.
 
 [[changes_4.6]]
 == Upgrading from 4.5 and earlier
@@ -293,7 +293,7 @@ If you don't want any processing, but your compile classpath contains a processo
 === Potential breaking changes
 
  * The Java plugins now add a `__sourceSet__AnnotationProcessor` configuration for each source set, which might break if any of them match existing configurations you have. We recommend you remove your conflicting configuration declarations.
- * The `StartParameter.taskOutputCacheEnabled` property has been replaced by link:{javadocPath}/org/gradle/StartParameter.html#setBuildCacheEnabled-boolean-[StartParameter.setBuildCacheEnabled(boolean)].
+ * The `StartParameter.taskOutputCacheEnabled` property has been replaced by link:{javadocPath}/org/gradle/StartParameter.html#setBuildCacheEnabled(boolean)[StartParameter.setBuildCacheEnabled(boolean)].
  * The Visual Studio integration now only <<#rel4.6:visual_studio_single_solution,configures a single solution for all components in a build>>.
  * Gradle has replaced HttpClient 4.4.1 with version 4.5.5.
  * Gradle now bundles the `kotlin-stdlib-jdk8` artifact instead of `kotlin-stdlib-jre8`. This may affect your build. Please see the http://kotlinlang.org/docs/reference/whatsnew12.html#kotlin-standard-library-artifacts-and-split-packages[Kotlin documentation] for more details.
@@ -339,14 +339,14 @@ You can bypass the toolchain discovery by specifying the installation directory 
 
  * You should no longer run Gradle versions older than 2.6 via the Tooling API.
  * You should no longer run any version of Gradle via an older version of the Tooling API than 3.0.
- * You should no longer chain link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#property-java.lang.String-java.lang.Object-[TaskInputs.property(String,Object)] and link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#properties-java.util.Map-[TaskInputs.properties(Map)] methods.
+ * You should no longer chain link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#property(java.lang.String,java.lang.Object)[TaskInputs.property(String,Object)] and link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#properties(java.util.Map)[TaskInputs.properties(Map)] methods.
 
 === Potential breaking changes
 
- * link:{javadocPath}/org/gradle/api/DefaultTask.html#newOutputDirectory--[DefaultTask.newOutputDirectory()] now returns a `DirectoryProperty` instead of a `DirectoryVar`.
- * link:{javadocPath}/org/gradle/api/DefaultTask.html#newOutputFile--[DefaultTask.newOutputFile()] now returns a `RegularFileProperty` instead of a `RegularFileVar`.
- * link:{javadocPath}/org/gradle/api/DefaultTask.html#newInputFile--[DefaultTask.newInputFile()] now returns a `RegularFileProperty` instead of a `RegularFileVar`.
- * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.buildDirectory] now returns a `DirectoryProperty` instead of a `DirectoryVar`.
+ * `DefaultTask.newOutputDirectory()` now returns a `DirectoryProperty` instead of a `DirectoryVar`.
+ * `DefaultTask.newOutputFile()` now returns a `RegularFileProperty` instead of a `RegularFileVar`.
+ * `DefaultTask.newInputFile()` now returns a `RegularFileProperty` instead of a `RegularFileVar`.
+ * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory()[ProjectLayout.buildDirectory] now returns a `DirectoryProperty` instead of a `DirectoryVar`.
  * link:{groovyDslPath}/org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.html#org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask:compilerArgs[AbstractNativeCompileTask.compilerArgs] is now of type `ListProperty<String>` instead of `List<String>`.
  * link:{groovyDslPath}/org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.html#org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask:objectFileDir[AbstractNativeCompileTask.objectFileDir] is now of type `DirectoryProperty` instead of `File`.
  * link:{groovyDslPath}/org.gradle.nativeplatform.tasks.AbstractLinkTask.html#org.gradle.nativeplatform.tasks.AbstractLinkTask:linkerArgs[AbstractLinkTask.linkerArgs] is now of type `ListProperty<String>` instead of `List<String>`.
