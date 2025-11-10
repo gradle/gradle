@@ -19,9 +19,6 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.inspection.DefaultTypeParameterInspection;
-import org.gradle.internal.inspection.TypeParameterInspection;
-import org.gradle.plugin.software.internal.ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext;
 
 import javax.inject.Inject;
 
@@ -63,22 +60,13 @@ public interface ProjectFeatureApplicationContext {
      * This method must only be used on nested definition objects, such as container elements, and not on a feature's primary definition object, which has its
      * build model registered automatically.
      * <p>
-     * A build model must be registered for a definition before {@link ProjectFeatureDefinitionContext#getBuildModel()} is used on it.
+     * A build model must be registered for a definition before {@link #getBuildModel(Definition)} is used on it.
      *
      * @see ProjectFeatureApplicationContext#registerBuildModel(Definition, Class) the other overload to create a build model of a specific implementation type.
      *
      * @throws IllegalStateException if there is already a build model instance registered for the definition.
      */
-    default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition) {
-        @SuppressWarnings("rawtypes")
-        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
-        Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
-        if (modelType == null) {
-            throw new IllegalArgumentException("Cannot determine build model type for " + definition.getClass());
-        }
-
-        return registerBuildModel(definition, modelType);
-    }
+    <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition);
 
     /**
      * Creates, registers, and returns a new build model of the specific implementation type {@code implementationType} for the given {@code definition} instance.
@@ -86,7 +74,7 @@ public interface ProjectFeatureApplicationContext {
      * This method must only be used on nested definition objects, such as container elements, and not on a feature's primary definition object, which has its
      * build model registered automatically.
      * <p>
-     * A build model must be registered for a definition before {@link ProjectFeatureDefinitionContext#getBuildModel()} is used on it.
+     * A build model must be registered for a definition before {@link #getBuildModel(Definition)} is used on it.
      *
      * @see ProjectFeatureApplicationContext#registerBuildModel(Definition, Class) the other overload to create a build model of a specific implementation type.
      *

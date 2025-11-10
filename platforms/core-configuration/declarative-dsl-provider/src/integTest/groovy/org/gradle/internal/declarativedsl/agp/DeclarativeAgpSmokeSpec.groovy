@@ -22,7 +22,9 @@ import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Assume
+import spock.lang.Ignore
 
+@Ignore("AGP does not yet support the binding API")
 class DeclarativeAgpSmokeSpec extends AbstractIntegrationSpec {
 
     private final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
