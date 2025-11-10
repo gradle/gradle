@@ -115,11 +115,11 @@ If successful, we delete and unpack results to the output location.
 
 When it comes to actually execution work, the execution engine supports two kinds of work: _mutable_ and _immutable._ _Mutable_ work can be executed _incrementally_ or _non-incrementally_ based on which of its inputs have changed compared to a previous execution.
 
-- **Immutable Work** is identified by its full set of inputs (i.e. all its inputs are **identity inputs**).
-  Examples are accessor generation and non-incremental artifact transforms.
+- **Immutable Work** All inputs are **identity inputs**; the complete input set defines the work.
+  Examples: accessor generation and non-incremental artifact transforms.
 
-- **Mutable Work**: Some of its inputs are **regular inputs** (while others can be **identity inputs**).
-  Examples are tasks and incremental artifact transforms.
+- **Mutable Work**: Only a subset of inputs are **identity inputs**; the rest are **regular inputs** that may change between executions.
+  Examples: tasks and incremental artifact transforms.
 
 Work is executed in (i.e. its output is produced in) a **workspace**: a dedicated directory assigned to the work by its identity. Execution within these workspaces happens under a lock to prevent multiple units of work from colliding.[^task-workspace]
 
