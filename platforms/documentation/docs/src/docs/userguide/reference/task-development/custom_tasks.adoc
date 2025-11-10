@@ -102,10 +102,10 @@ The incremental task action can use link:{groovyDslPath}/org.gradle.work.InputCh
 
 The method returns an `Iterable` of type link:{javadocPath}/org/gradle/work/FileChange.html[FileChanges], which in turn can be queried for the following:
 
-* the link:{javadocPath}/org/gradle/work/FileChange.html#getFile--[affected file]
-* the link:{javadocPath}/org/gradle/work/FileChange.html#getChangeType--[change type] (`ADDED`, `REMOVED` or `MODIFIED`)
-* the link:{javadocPath}/org/gradle/work/FileChange.html#getNormalizedPath--[normalized path] of the changed file
-* the link:{javadocPath}/org/gradle/work/FileChange.html#getFileType--[file type] of the changed file
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getFile()[affected file]
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getChangeType()[change type] (`ADDED`, `REMOVED` or `MODIFIED`)
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getNormalizedPath()[normalized path] of the changed file
+* the link:{javadocPath}/org/gradle/work/FileChange.html#getFileType()[file type] of the changed file
 
 The following example demonstrates an incremental task that has a directory input.
 It assumes that the directory contains a collection of text files and copies them to an output directory, reversing the text within each file:
@@ -138,7 +138,7 @@ However, there are many cases where Gradle cannot determine which input files ne
 * There is no history available from a previous execution.
 * You are building with a different version of Gradle.
 Currently, Gradle does not use task history from a different version.
-* An link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[`upToDateWhen`] criterion added to the task returns `false`.
+* An link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen(groovy.lang.Closure)[`upToDateWhen`] criterion added to the task returns `false`.
 * An input property has changed since the previous execution.
 * A non-incremental input file property has changed since the previous execution.
 * One or more output files have changed since the previous execution.
@@ -359,7 +359,7 @@ Other notations, such as comma-separated lists or multiple values separated by a
 Describes an option with a file system element. +
 Passing the option on the command line also requires a value representing a path, e.g., `--output-file=file.txt` or `--output-dir outputDir`. +
 Relative paths are resolved relative to the project directory of the project that owns this property instance.
-See link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#set-java.io.File[`FileSystemLocationProperty.set()`].
+See link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#set(java.io.File)[`FileSystemLocationProperty.set()`].
 
 [[sec:documenting_available_task_option_values]]
 === Documenting available values for an option
