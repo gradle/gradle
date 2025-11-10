@@ -360,9 +360,9 @@ Logging is configurable on a per-log-level basis and by default, the following e
 | Full stacktraces are logged.
 |===
 
-Test logging can be modified on a per-log-level basis by adjusting the appropriate link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogging.html[TestLogging] instances in the link:{javadocPath}/org/gradle/api/tasks/testing/AbstractTestTask.html#getTestLogging--[testLogging] property of the test task.
+Test logging can be modified on a per-log-level basis by adjusting the appropriate link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLogging.html[TestLogging] instances in the link:{javadocPath}/org/gradle/api/tasks/testing/AbstractTestTask.html#getTestLogging()[testLogging] property of the test task.
 For example, to adjust the `INFO` level test logging configuration, modify the
-link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html#getInfo--[TestLoggingContainer.getInfo()] property.
+link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html#getInfo()[TestLoggingContainer.getInfo()] property.
 
 [[test_grouping]]
 == Test grouping
@@ -380,7 +380,7 @@ include::sample[dir="snippets/testing/junit-categories/kotlin",files="build.grad
 include::sample[dir="snippets/testing/junit-categories/groovy",files="build.gradle[tags=test-categories]"]
 ====
 
-http://junit.org/junit5/docs/current/user-guide[JUnit Platform] introduced http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] to replace categories. You can specify the included/excluded tags via link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform-org.gradle.api.Action-[Test.useJUnitPlatform(org.gradle.api.Action)], as follows:
+http://junit.org/junit5/docs/current/user-guide[JUnit Platform] introduced http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] to replace categories. You can specify the included/excluded tags via link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform(org.gradle.api.Action)[Test.useJUnitPlatform(org.gradle.api.Action)], as follows:
 
 .JUnit Platform Tags
 ====
@@ -415,7 +415,7 @@ include::sample[dir="snippets/testing/junitplatform-jupiter/kotlin",files="build
 include::sample[dir="snippets/testing/junitplatform-jupiter/groovy",files="build.gradle[tags=enabling-junit-platform]"]
 ====
 
-See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[Test.useJUnitPlatform()] for more details.
+See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform()[Test.useJUnitPlatform()] for more details.
 
 [[compiling_and_executing_junit_jupiter_tests]]
 === Compiling and executing JUnit Jupiter tests
@@ -462,7 +462,7 @@ include::sample[dir="snippets/testing/junitplatform-engine/groovy",files="build.
 [[test_execution_order]]
 == Test execution order in TestNG
 
-TestNG allows explicit control of the execution order of tests when you use a _testng.xml_ file. Without such a file — or an equivalent one configured by link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html#getSuiteXmlBuilder--[TestNGOptions.getSuiteXmlBuilder()] — you can't specify the test execution order. However, what you _can_ do is control whether all aspects of a test — including its associated `@BeforeXXX` and `@AfterXXX` methods, such as those annotated with `@Before/AfterClass` and `@Before/AfterMethod` — are executed before the next test starts. You do this by setting the link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html#getPreserveOrder--[TestNGOptions.getPreserveOrder()] property to `true`. If you set it to `false`, you may encounter scenarios in which the execution order is something like: `TestA.doBeforeClass()` -> `TestB.doBeforeClass()` -> `TestA` tests.
+TestNG allows explicit control of the execution order of tests when you use a _testng.xml_ file. Without such a file — or an equivalent one configured by link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html#getSuiteXmlBuilder()[TestNGOptions.getSuiteXmlBuilder()] — you can't specify the test execution order. However, what you _can_ do is control whether all aspects of a test — including its associated `@BeforeXXX` and `@AfterXXX` methods, such as those annotated with `@Before/AfterClass` and `@Before/AfterMethod` — are executed before the next test starts. You do this by setting the link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html#getPreserveOrder()[TestNGOptions.getPreserveOrder()] property to `true`. If you set it to `false`, you may encounter scenarios in which the execution order is something like: `TestA.doBeforeClass()` -> `TestB.doBeforeClass()` -> `TestA` tests.
 
 While preserving the order of tests is the default behavior when directly working with _testng.xml_ files, the https://jitpack.io/com/github/cbeust/testng/master/javadoc/org/testng/TestNG.html[TestNG API] that is used by Gradle's TestNG integration executes tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] The ability to preserve test execution order was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
 
