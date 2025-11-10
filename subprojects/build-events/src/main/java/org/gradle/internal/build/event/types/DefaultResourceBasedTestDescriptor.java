@@ -26,7 +26,13 @@ import java.io.File;
 import java.io.Serializable;
 
 @NullMarked
-public class DefaultResourceBasedTestDescriptor extends DefaultTestDescriptor implements Serializable, InternalResourceBasedTestDescriptor, InternalOperationDescriptor {
+public class DefaultResourceBasedTestDescriptor implements Serializable, InternalResourceBasedTestDescriptor, InternalOperationDescriptor {
+    private final OperationIdentifier id;
+    private final String operationName;
+    private final String operationDisplayName;
+    private final OperationIdentifier parentId;
+    private final String taskPath;
+    private final String testDisplayName;
 
     private final File resource;
 
@@ -35,32 +41,57 @@ public class DefaultResourceBasedTestDescriptor extends DefaultTestDescriptor im
         String operationName,
         String operationDisplayName,
         String displayName,
-        String testKind,
-        @Nullable String suiteName,
-        @Nullable String className,
-        @Nullable String methodName,
         OperationIdentifier parentId,
         String taskPath,
         File resource
     ) {
-        super(
-            id,
-            operationName,
-            operationDisplayName,
-            displayName,
-            testKind,
-            suiteName,
-            className,
-            methodName,
-            parentId,
-            taskPath
-        );
+        this.id = id;
+        this.operationName = operationName;
+        this.operationDisplayName = operationDisplayName;
+        this.testDisplayName = displayName;
+        this.parentId = parentId;
+        this.taskPath = taskPath;
         this.resource = resource;
     }
 
+    @Override
+    public OperationIdentifier getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return operationName;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return operationDisplayName;
+    }
+
+    @Override
+    public String getTestDisplayName() {
+        return testDisplayName;
+    }
+
+    @Override
+    public OperationIdentifier getParentId() {
+        return parentId;
+    }
+
+    /**
+     * Only known for descriptors from test execution.
+     *
+     * @return the task path
+     */
+    @Nullable
+    public String getTaskPath() {
+        return taskPath;
+    }
 
     @Override
     public File getResource() {
         return resource;
     }
+
 }
