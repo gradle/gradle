@@ -5,7 +5,8 @@ Tools used to execute work in the context of a Gradle build.
 ## Detailed guides
 
 * [Execution Engine](execution/README.md).
-* [Snapshotting and fingerprinting](snapshots/README.md).
+* [Snapshotting and Fingerprinting](snapshots/README.md).
+* [Work Validation](Work%20Validation.md)
 
 ## Glossary of terms
 
