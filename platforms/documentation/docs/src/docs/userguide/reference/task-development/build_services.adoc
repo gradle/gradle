@@ -68,14 +68,14 @@ include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/WebSe
 ----
 ====
 
-Note that you should *not* implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters--[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
+Note that you should *not* implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters()[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
 
 A build service implementation must be thread-safe, as it will potentially be used by multiple tasks concurrently.
 
 [[using_a_build_service_from_a_task]]
 == Registering a build service and connecting it to a task
 
-To create a build service, you register the service instance using the link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent-java.lang.String-java.lang.Class-org.gradle.api.Action-[BuildServiceRegistry.registerIfAbsent()] method.
+To create a build service, you register the service instance using the link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[BuildServiceRegistry.registerIfAbsent()] method.
 
 Registering the service does not create the service instance.
 This happens on demand when a task first uses the service.
@@ -167,7 +167,7 @@ Currently, it is impossible to use a build service with a worker API action that
 
 == Accessing the build service concurrently
 
-You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages--[BuildServiceSpec.getMaxParallelUsages()].
+You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages()[BuildServiceSpec.getMaxParallelUsages()].
 When this property has no value, which is the default, Gradle does not constrain access to the service.
 When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
 
