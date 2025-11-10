@@ -110,4 +110,23 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         "a relative path" | "build/custom"
     }
 
+    def "trace parameters can be provided in gradle.properties as #description"() {
+        file("gradle.properties") << """
+            ${BuildOperationTrace.SYSPROP}=$trace
+            ${BuildOperationTrace.TREE_SYSPROP}=true
+        """
+
+        when:
+        run "help"
+
+        then:
+        file("$trace-log.txt").exists()
+        file("$trace-tree.txt").exists()
+        file("$trace-tree.json").exists()
+
+        where:
+        description       | trace
+        "a file name"     | "custom"
+        "a relative path" | "build/custom"
+    }
 }
