@@ -201,4 +201,4 @@ Attributes
 Artifacts
     - build/jacoco/test.exec (artifactType = binary)
 ----
-<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName--[TestSuite#getName()].
+<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName()[TestSuite#getName()].
