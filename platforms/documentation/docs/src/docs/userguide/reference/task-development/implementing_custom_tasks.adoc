@@ -91,7 +91,7 @@ The `run.sh` script can execute the Java app (once packaged as a JAR) from the b
 java -cp 'libs/*' gradle.project.app.App
 ----
 
-Let's register a new task called `packageApp` using link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`task.register()`]:
+Let's register a new task called `packageApp` using link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register(java.lang.String,java.lang.Class)[`task.register()`]:
 
 ====
 [.multi-language-sample]
@@ -122,13 +122,13 @@ We need to configure the inputs and outputs.
 
 Defining inputs and outputs is what makes a task an actionable task.
 
-For the link:{javadocPath}/org/gradle/api/tasks/bundling/Zip.html[`Zip`] task type, we can use the link:{javadocPath}/org/gradle/api/tasks/AbstractCopyTask.html#from-java.lang.Object...-[`from()`] method to add a file to the inputs.
+For the link:{javadocPath}/org/gradle/api/tasks/bundling/Zip.html[`Zip`] task type, we can use the link:{javadocPath}/org/gradle/api/tasks/AbstractCopyTask.html#from(java.lang.Object...)[`from()`] method to add a file to the inputs.
 In our case, we add the run script.
 
 If the input is a file we create or edit directly, like a run file or Java source code, it's usually located somewhere in our project directory.
-To ensure we use the correct location, we use link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[`layout.projectDirectory`] and define a relative path to the project directory root.
+To ensure we use the correct location, we use link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory()[`layout.projectDirectory`] and define a relative path to the project directory root.
 
-We provide the outputs of the `jar` task as well as the JAR of all the dependencies (using link:{javadocPath}/org/gradle/api/Project.html#getConfigurations--[`configurations`]link:{javadocPath}/org/gradle/api/tasks/SourceSet.html#getRuntimeClasspath--[`.runtimeClasspath`]) as additional inputs.
+We provide the outputs of the `jar` task as well as the JAR of all the dependencies (using link:{javadocPath}/org/gradle/api/Project.html#getConfigurations()[`configurations`]link:{javadocPath}/org/gradle/api/tasks/SourceSet.html#getRuntimeClasspath()[`.runtimeClasspath`]) as additional inputs.
 
 For outputs, we need to define two properties.
 
@@ -223,7 +223,7 @@ Actionable tasks should be wired to lifecycle tasks so that a developer only nee
 So far, we called our new task directly.
 Let's wire it to a lifecycle task.
 
-The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object...-[`dependsOn()`]:
+The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn(java.lang.Object...)[`dependsOn()`]:
 
 ====
 [.multi-language-sample]
