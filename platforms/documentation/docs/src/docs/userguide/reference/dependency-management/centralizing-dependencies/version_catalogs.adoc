@@ -304,7 +304,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin/buildSrc
 include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy/buildSrc",files="settings.gradle[tags=import_main_catalog]"]
 ====
 
-The link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html#from-java.lang.Object-[VersionCatalogBuilder.from(Object dependencyNotation)] method accepts only a single file, meaning that notations like link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] must refer to one file.
+The link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html#from(java.lang.Object)[VersionCatalogBuilder.from(Object dependencyNotation)] method accepts only a single file, meaning that notations like link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] must refer to one file.
 Otherwise, the build will fail.
 
 TIP: Remember that you don't need to import the version catalog named `libs.versions.toml` if it resides in your `gradle` folder. It will be imported automatically.
