@@ -32,14 +32,6 @@
         },
         {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencies(org.gradle.api.Action)",
-            "acceptation": "faulty @since detection",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
             "acceptation": "faulty @since detection",
             "changes": [

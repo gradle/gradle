@@ -110,16 +110,6 @@ public interface ScriptHandler {
     void dependencies(@DelegatesTo(value=DependencyHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
 
     /**
-     * Configures the dependencies for the script. Executes the given action against the {@link DependencyHandler} for
-     * this handler.
-     *
-     * @param action the action to use to configure the dependencies.
-     * @since 9.3.0
-     */
-    @Incubating
-    void dependencies(Action<? super DependencyHandler> action);
-
-    /**
      * Returns the configurations of this handler. This usually contains a single configuration, called {@value
      * #CLASSPATH_CONFIGURATION}.
      *

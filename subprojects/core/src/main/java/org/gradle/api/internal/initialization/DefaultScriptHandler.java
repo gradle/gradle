@@ -90,7 +90,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         dependencies(ConfigureUtil.configureUsing(configureClosure));
     }
 
-    @Override
+    // TODO: This cannot be made part of the public API for ScriptHandler yet
+    // because Kotlin DSL relies on creating a DependencyHandlerScope to back dependencies {}
     public void dependencies(Action<? super DependencyHandler> action) {
         action.execute(getDependencies());
     }
