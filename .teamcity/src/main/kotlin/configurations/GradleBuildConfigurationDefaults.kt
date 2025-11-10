@@ -97,6 +97,11 @@ fun BaseGradleBuildType.tcParallelTests(numberOfBatches: Int) {
 }
 
 fun BuildFeatures.publishBuildStatusToGithub() {
+    if (VersionedSettingsBranch.fromDslContext().isExperimental) {
+        // don't publish xperimental commit status that might bother developer
+        return
+    }
+
     commitStatusPublisher {
         vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         publisher =

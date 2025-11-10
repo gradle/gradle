@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r90
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+
 import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -29,7 +29,7 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given criteria matching JAVA_HOME environment variable and disabled auto-detection When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = requireDifferentVersionJvmCompatibleWithTargetDist()
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
 
@@ -49,7 +49,7 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given custom toolchain location using environment variable and disabled auto-detection When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = requireDifferentVersionJvmCompatibleWithTargetDist()
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
 

@@ -38,7 +38,7 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
 
         when:
         withReadOnlyCache()
-        succeeds ':checkDeps'
+        succeeds ':checkDeps', ":resolveArtifacts"
 
         then:
         resolve.expectGraph {
@@ -68,7 +68,7 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         other.moduleMetadata.expectGet()
         other.artifact.expectGet()
 
-        succeeds ':checkDeps'
+        succeeds ':checkDeps', ":resolveArtifacts"
 
         then:
         resolve.expectGraph {

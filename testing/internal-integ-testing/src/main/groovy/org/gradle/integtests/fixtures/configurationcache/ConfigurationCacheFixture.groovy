@@ -32,13 +32,13 @@ class ConfigurationCacheFixture {
     private final AbstractIntegrationSpec spec
     final BuildOperationsFixture buildOperations
     final ConfigurationCacheBuildOperationsFixture configurationCacheBuildOperations
-    final ConfigurationCacheProblemsFixture problems
+    final ConfigurationCacheProblemsExecutionResultFixture problems
 
     ConfigurationCacheFixture(AbstractIntegrationSpec spec) {
         this.spec = spec
         buildOperations = new BuildOperationsFixture(spec.executer, spec.temporaryFolder)
         configurationCacheBuildOperations = new ConfigurationCacheBuildOperationsFixture(buildOperations)
-        problems = new ConfigurationCacheProblemsFixture(spec.testDirectory)
+        problems = new ConfigurationCacheProblemsExecutionResultFixture(spec.testDirectory)
     }
 
     /**

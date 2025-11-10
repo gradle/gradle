@@ -39,7 +39,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule
-    public final Resources resources = new Resources()
+    public final Resources resources = new Resources(null)
 
     def setup() {
         writeBuildFile()

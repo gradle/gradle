@@ -78,7 +78,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @NonNull
-    protected Value<? extends T> filterValue(@SuppressWarnings("unused") EvaluationScopeContext context, Value<? extends T> value) {
+    protected Value<? extends T> filterValue(EvaluationScopeContext ignored, Value<? extends T> value) {
         if (value.isMissing()) {
             return value.asType();
         }
@@ -90,7 +90,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
         }
     }
 
-    protected void beforeRead(@SuppressWarnings("unused") EvaluationScopeContext context) {
+    protected void beforeRead(EvaluationScopeContext ignored) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(

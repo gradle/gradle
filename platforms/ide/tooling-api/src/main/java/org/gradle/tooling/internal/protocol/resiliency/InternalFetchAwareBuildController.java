@@ -24,10 +24,10 @@ import org.jspecify.annotations.Nullable;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
- * <p>Consumer compatibility: This interface is used by all consumer versions from 9.3.</p>
- * <p>Provider compatibility: This interface is implemented by all provider versions from ???.</p>
+ * <p>Consumer compatibility: This interface is used by all consumer versions from 9.3.0.</p>
+ * <p>Provider compatibility: This interface is implemented by all provider versions from 9.3.0.</p>
  *
- * @since 9.3
+ * @since 9.3.0
  */
 @NullMarked
 public interface InternalFetchAwareBuildController {

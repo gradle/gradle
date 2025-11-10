@@ -25,7 +25,7 @@ public interface TestExecuter<T extends TestExecutionSpec> {
     void execute(T testExecutionSpec, TestResultProcessor testResultProcessor);
 
     /**
-     * Stops any {@link TestClassProcessor} utilized by this {@code TestExecuter}.
+     * Stops any {@link TestDefinitionProcessor} utilized by this {@code TestExecuter}.
      */
     @UsedByScanPlugin("test-distribution")
     void stopNow();

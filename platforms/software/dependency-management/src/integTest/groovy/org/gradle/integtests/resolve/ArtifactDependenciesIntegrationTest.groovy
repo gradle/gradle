@@ -30,16 +30,15 @@ import static org.hamcrest.CoreMatchers.containsString
  */
 @FluidDependenciesResolveTest
 class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
-    public final resolve = new ResolveTestFixture(buildFile)
+    public final resolve = new ResolveTestFixture(testDirectory)
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     void canHaveConfigurationHierarchy() {
         given:
-        resolve.prepare {
-            config("compile")
-            config("runtime")
-        }
+        buildFile << """
+            ${resolve.configureProject("compile", "runtime")}
+        """
 
         when:
         run("checkCompile")
@@ -81,11 +80,9 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
 
     void dependencyReportWithConflicts() {
         given:
-        resolve.prepare {
-            config("evictedTransitive")
-            config("evictedDirect")
-            config("multiProject")
-        }
+        buildFile << """
+            ${resolve.configureProject("evictedTransitive", "evictedDirect", "multiProject")}
+        """
 
         when:
         run(":checkEvictedTransitive")
@@ -137,7 +134,9 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
 
     void canHaveCycleInDependencyGraph() {
         given:
-        resolve.prepare("compile")
+        buildFile << """
+            ${resolve.configureProject("compile")}
+        """
 
         when:
         run(":checkDeps")
@@ -156,7 +155,9 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
 
     void canUseDynamicVersions() {
         given:
-        resolve.prepare("compile")
+        buildFile << """
+            ${resolve.configureProject("compile")}
+        """
 
         when:
         run(":checkDeps")
@@ -416,6 +417,7 @@ tasks.register("test", CheckArtifacts) {
             configurations {
                 compile
             }
+            ${resolve.configureProject("compile")}
             dependencies {
                 compile 'org.gradle.test:external1:1.0:classifier1'
             }
@@ -433,6 +435,7 @@ tasks.register("test", CheckArtifacts) {
             configurations {
                 compile
             }
+            ${resolve.configureProject("compile")}
             dependencies {
                 compile 'org.gradle.test:external1:1.0:classifier2'
             }
@@ -443,13 +446,12 @@ tasks.register("test", CheckArtifacts) {
                 }
             }
         """
-        resolve.prepare("compile")
 
         when:
         succeeds("a:checkDeps")
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(":a", "test:a:") {
                 module("org.gradle.test:external1:1.0") {
                     artifact(classifier: "classifier1")
@@ -461,7 +463,7 @@ tasks.register("test", CheckArtifacts) {
         succeeds("b:checkDeps")
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 module("org.gradle.test:external1:1.0") {
                     artifact(classifier: "classifier2")
@@ -622,32 +624,28 @@ task test {
         lib.publish()
 
         file('settings.gradle') << "rootProject.name = 'test'"
-        file('build.gradle') << """
-repositories {
-    maven { url = '${repo.uri}' }
-}
-configurations {
-    transitive
-    nonTransitive
-    extendedNonTransitive.extendsFrom nonTransitive
-    extendedBoth.extendsFrom transitive, nonTransitive
-    mergedNonTransitive
-}
-dependencies {
-    transitive 'org.gradle.test:external1:1.0'
-    nonTransitive 'org.gradle.test:external1:1.0', { transitive = false }
-    extendedNonTransitive 'org.gradle.test:two:1.0'
-    mergedNonTransitive 'org.gradle.test:external1:1.0', {transitive = false }
-    mergedNonTransitive 'org.gradle.test:external1:1.0:classifier', { transitive = false }
-}
-"""
-        resolve.prepare {
-            config("transitive")
-            config("nonTransitive")
-            config("extendedNonTransitive")
-            config("extendedBoth")
-            config("mergedNonTransitive")
-        }
+        buildFile << """
+            repositories {
+                maven { url = '${repo.uri}' }
+            }
+            configurations {
+                transitive
+                nonTransitive
+                extendedNonTransitive.extendsFrom nonTransitive
+                extendedBoth.extendsFrom transitive, nonTransitive
+                mergedNonTransitive
+            }
+
+            ${resolve.configureProject("transitive", "nonTransitive", "extendedNonTransitive", "extendedBoth", "mergedNonTransitive")}
+
+            dependencies {
+                transitive 'org.gradle.test:external1:1.0'
+                nonTransitive 'org.gradle.test:external1:1.0', { transitive = false }
+                extendedNonTransitive 'org.gradle.test:two:1.0'
+                mergedNonTransitive 'org.gradle.test:external1:1.0', {transitive = false }
+                mergedNonTransitive 'org.gradle.test:external1:1.0:classifier', { transitive = false }
+            }
+        """
 
         when:
         succeeds("checkTransitive")
@@ -779,16 +777,19 @@ task test {
     void projectCanDependOnItself() {
         given:
         file("settings.gradle") << "rootProject.name = 'test'"
-        file("build.gradle") << '''
+        file("build.gradle") << """
+            ${resolve.configureProject("compile")}
             group = 'org.test'
             version = '1.2'
             configurations { compile; create('default') }
             dependencies { compile project(':') }
             task jar1(type: Jar) { destinationDirectory = buildDir; archiveBaseName = '1' }
             task jar2(type: Jar) { destinationDirectory = buildDir; archiveBaseName = '2' }
-            artifacts { compile jar1; 'default' jar2 }
-'''
-        resolve.prepare("compile")
+            artifacts {
+                compile tasks.jar1
+                'default' tasks.jar2
+            }
+        """
 
         when:
         succeeds("checkDeps")

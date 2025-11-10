@@ -34,7 +34,8 @@ import java.util.function.Supplier;
 
 public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
 
-    private Object url;
+    private @Nullable Object url;
+    private @Nullable URI resolvedUrl;
     private boolean allowInsecureProtocol;
     private final String repositoryType;
     private final FileResolver fileResolver;
@@ -52,7 +53,18 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
 
     @Override
     public URI getUrl() {
-        return url == null ? null : fileResolver.resolveUri(url);
+        if (url == null) {
+            return null;
+        }
+
+        // We must always resolve the URL in case the backing Object is live/mutable
+        // However, we always try to return the same URI instance if the backing object hasn't changed
+        URI latestUrl = fileResolver.resolveUri(url);
+        if (!latestUrl.equals(resolvedUrl)) {
+            resolvedUrl = latestUrl;
+        }
+
+        return resolvedUrl;
     }
 
     @Override

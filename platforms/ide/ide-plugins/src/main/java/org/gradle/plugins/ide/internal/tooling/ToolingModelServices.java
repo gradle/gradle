@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.composite.BuildIncludeListener;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -57,7 +58,8 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
             final ProjectStateRegistry projectStateRegistry,
             BuildModelParameters buildModelParameters,
             IntermediateToolingModelProvider intermediateToolingModelProvider,
-            BuildIncludeListener failedIncludedBuildsRegistry
+            BuildIncludeListener failedIncludedBuildsRegistry,
+            FailureFactory failureFactory
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
@@ -84,7 +86,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
 
                 private ToolingModelBuilder createGradleBuildBuilder() {
                     return buildModelParameters.isResilientModelBuilding()
-                        ? new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry)
+                        ? new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory)
                         : new GradleBuildBuilder(buildStateRegistry);
                 }
 

@@ -80,7 +80,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {
-        def testClassDelegate = delegate.executedTestPaths.find { isTestClass(it) && it.segment(1).startsWith(SafeFileLocationUtils.toSafeFileName(testClass)) }
+        def testClassDelegate = delegate.executedTestPaths.find { isTestClass(it) && it.segment(1).startsWith(SafeFileLocationUtils.toSafeFileName(testClass, false)) }
         assert testClassDelegate, "No HTML file found for test class starting with '${testClass}'"
         return this.testClass(testClassDelegate.name)
     }

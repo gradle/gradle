@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.worker
 
 import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
@@ -35,13 +35,13 @@ class TestEventSerializerTest extends SerializerSpec {
     def serializer = TestEventSerializer.create()
 
     def "serializes DefaultTestClassRunInfo"() {
-        def info = new DefaultTestClassRunInfo("some-test")
+        def info = new ClassTestDefinition("some-test")
 
         when:
         def result = serialize(info)
 
         then:
-        result instanceof DefaultTestClassRunInfo
+        result instanceof ClassTestDefinition
         result.testClassName == "some-test"
     }
 
@@ -71,13 +71,13 @@ class TestEventSerializerTest extends SerializerSpec {
 
     def "serializes WorkerTestSuiteDescriptor"() {
         def id = new CompositeIdGenerator.CompositeId(1L, 2L)
-        def descriptor = new WorkerTestClassProcessor.WorkerTestSuiteDescriptor(id, "some-test")
+        def descriptor = new WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor(id, "some-test")
 
         when:
         def result = serialize(descriptor)
 
         then:
-        result instanceof WorkerTestClassProcessor.WorkerTestSuiteDescriptor
+        result instanceof WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor
         result.id == id
         result.name == "some-test"
     }

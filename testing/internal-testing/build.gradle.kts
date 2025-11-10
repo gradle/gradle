@@ -37,7 +37,6 @@ dependencies {
     api(libs.junit)
     api(libs.junit5JupiterApi)
     api(libs.spock)
-    api(libs.spockJUnit4)
 
     implementation(projects.baseAsm)
     implementation(projects.buildOperations)

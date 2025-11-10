@@ -29,14 +29,8 @@ import java.util.Objects;
 
 /**
  * Converts legacy {@link Usage} values to their modern equivalents.
- * <p>
- * TODO: This functionality should not be directly integrated in the attributes container, but
- * should be handled externally. This is mostly needed to translate legacy external attributes
- * to their modern counterparts, meaning we only need this when reading attributes from
- * GMM. We should deprecate using the legacy usage values for all other use cases, then remove
- * this class.
  */
-class UsageCompatibilityHandler {
+public class UsageCompatibilityHandler {
     private final IsolatableFactory isolatableFactory;
     private final NamedObjectInstantiator instantiator;
 
@@ -45,9 +39,8 @@ class UsageCompatibilityHandler {
         this.instantiator = instantiator;
     }
 
-    public <T> ImmutableAttributes doConcat(DefaultAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
-        factory.assertAttributeNotAlreadyPresent(node, key);
-
+    @Deprecated
+    public <T> ImmutableAttributes doConcat(AttributesFactory factory, ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
         assert key.getName().equals(Usage.USAGE_ATTRIBUTE.getName()) : "Should only be invoked for 'org.gradle.usage', got '" + key.getName() + "'";
 
         if (value instanceof CoercingStringValueSnapshot) {
@@ -55,25 +48,25 @@ class UsageCompatibilityHandler {
             String replacementUsage = getReplacementUsage(val);
             String libraryElements = getLibraryElements(val);
             if (replacementUsage == null || libraryElements == null) {
-                return factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
+                return factory.concat(node, key, value);
             }
 
             Attribute<String> typedAttribute = getAs(key, String.class);
             Isolatable<String> coercingStringValueSnapshot = new CoercingStringValueSnapshot(replacementUsage, instantiator);
-            ImmutableAttributes usageNode = factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(typedAttribute, coercingStringValueSnapshot));
-            return factory.doConcatEntry(usageNode, new DefaultImmutableAttributesEntry<>(Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(libraryElements, instantiator)));
+            ImmutableAttributes usageNode = factory.concat(node, typedAttribute, coercingStringValueSnapshot);
+            return factory.concat(usageNode, Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(libraryElements, instantiator));
         } else {
             String val = Objects.requireNonNull(value.isolate()).toString();
             String replacementUsage = getReplacementUsage(val);
             String libraryElements = getLibraryElements(val);
             if (replacementUsage == null || libraryElements == null) {
-                return factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
+                return factory.concat(node, key, value);
             }
 
             Attribute<Usage> typedAttribute = getAs(key, Usage.class);
             Isolatable<Usage> isolate = isolatableFactory.isolate(instantiator.named(Usage.class, replacementUsage));
-            ImmutableAttributes usageNode = factory.doConcatEntry(node, new DefaultImmutableAttributesEntry<>(typedAttribute, isolate));
-            return factory.doConcatEntry(usageNode, new DefaultImmutableAttributesEntry<>(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, libraryElements))));
+            ImmutableAttributes usageNode = factory.concat(node, typedAttribute, isolate);
+            return factory.concat(usageNode, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, libraryElements)));
         }
     }
 
@@ -83,19 +76,19 @@ class UsageCompatibilityHandler {
         return (Attribute<T>) key;
     }
 
-    @Nullable String getReplacementUsage(String usage) {
+    public static @Nullable String getReplacementUsage(String usage) {
         if (usage.endsWith("-jars")) {
-            return usage.replace("-jars", "");
+            return usage.substring(0, usage.length() - "-jars".length());
         } else if (usage.endsWith("-classes")) {
-            return usage.replace("-classes", "");
+            return usage.substring(0, usage.length() - "-classes".length());
         } else if (usage.endsWith("-resources")) {
-            return usage.replace("-resources", "");
+            return usage.substring(0, usage.length() - "-resources".length());
         }
 
         return null;
     }
 
-    @Nullable String getLibraryElements(String usage) {
+    public static @Nullable String getLibraryElements(String usage) {
         if (usage.endsWith("-jars")) {
             return LibraryElements.JAR;
         } else if (usage.endsWith("-classes")) {

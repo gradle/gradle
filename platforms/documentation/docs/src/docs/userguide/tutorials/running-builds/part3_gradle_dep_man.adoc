@@ -36,26 +36,28 @@ Learn the basics of project dependencies and Gradle's dependency management.
 
 == Step 1. Understanding the Version Catalog
 
-In Gradle, the `dependencies {}` block in your build script is where you declare the external libraries your project needs to work.
+In Gradle, the `dependencies {}` block in your build script is where you declare the external libraries, files, or projects your build needs to work.
 
 Each line inside this block tells Gradle two things:
 
-1. **What the dependency is** (like Guava or JUnit)
-2. **How it's used** (for production code, test code, etc.)
+1. **What the dependency is** (a library like Guava or JUnit, a file, or a project)
+2. **How and where it's used** (for production code, test code, an API, etc.)
 
 For example:
 
 [source, kotlin]
 ----
 dependencies {
-    implementation("com.google.guava:guava:32.1.2-jre") // <1>
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1") // <2>
+    implementation("com.google.guava:guava:32.1.2-jre")             // <1>
+    implementation(project(":utils"))                               // <2>
+    runtimeOnly(files("some.jar"))                                  // <3>
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")    // <4>
 }
 ----
-
-<1> `implementation(guava)`: This means your main application code depends on the Guava library. Gradle will download it from a repository and include it on the compile and runtime classpaths.
-<2> `testImplementation(jupiter)`: This means your test code depends on JUnit Jupiter (a testing library). It's only available during testing — not in the final packaged app.
+<1> *External dependency* — Gradle resolves `com.google.guava:guava:32.1.2-jre` from your declared repositories and adds it to this project’s compile and runtime classpaths.
+<2> *Project dependency* — The project depends on the sibling project `:utils`. Gradle wires task dependencies so `:utils` is built first and puts its main outputs on this project’s compile and runtime classpaths.
+<3> *Local file dependency* — Adds a local JAR only to the runtime classpath (not available at compile time).
+<4> *External dependency* — `testImplementation` is available only to the test source set (compile + runtime). It is not on the production runtime classpath.
 
 In <<part1_gradle_init.adoc#part1_begin,part 1>>, Gradle init created a project that uses version catalogs.
 
@@ -345,3 +347,4 @@ Hello World!
 
 [.text-right]
 **Next Step:** <<part4_gradle_plugins#part4_begin,Applying Plugins>> >>
+

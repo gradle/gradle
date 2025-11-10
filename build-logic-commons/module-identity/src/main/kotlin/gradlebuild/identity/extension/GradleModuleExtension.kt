@@ -48,6 +48,11 @@ abstract class GradleModuleExtension(val tasks: TaskContainer, val objects: Obje
         action(targetRuntimes)
     }
 
+    /**
+     * Declares whether this module is published to an external repository.
+     */
+    abstract val published: Property<Boolean>
+
 }
 
 interface ModuleIdentity {

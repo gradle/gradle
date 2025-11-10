@@ -92,14 +92,19 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Writes files describing the build operation stream for a build.
+ * <p>
  * Can be enabled for any build with {@code -Dorg.gradle.internal.operations.trace=«path-base»}.
+ * The output file {@code «path-base»-log.txt} is in the JSON Lines format.
+ * It contains a chronological log of events, each line is a JSON object.
  * <p>
- * Imposes no overhead when not enabled.
- * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
+ * The «path-base» param is optional.
+ * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of {@code "operations"} will be used.
+ * The output file will then be {@code "operations-log.txt"}.
+ * When disabled, the option imposes no overhead.
+ * Also used as the basis for asserting on the event stream in integration tests, via {@code BuildOperationFixture}.
  * <p>
- * Three files are created:
+ * Additional files can be generated with the {@code -Dorg.gradle.internal.operations.trace.tree=true} option.
  * <ul>
- * <li>«path-base»-log.txt: a chronological log of events, each line is a JSON object</li>
  * <li>«path-base»-tree.json: a JSON tree of the event structure</li>
  * <li>«path-base»-tree.txt: A simplified tree representation showing basic information</li>
  * </ul>
@@ -107,12 +112,9 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * Generally, the simplified tree view is best for browsing.
  * The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
  * <p>
- * The «path-base» param is optional.
- * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of "operations" will be used.
+ * The generation of trees can be very memory hungry, so you might need to increase heap memory of the build process
+ * to ensure the build completes successfully.
  * <p>
- * The generation of trees can be very memory hungry and thus can be disabled with
- * {@code -Dorg.gradle.internal.operations.trace.tree=false}.
- * </p>
  * The "trace" produced here is different to the trace produced by Gradle Profiler.
  * There, the focus is analyzing the performance profile.
  * Here, the focus is debugging/developing the information structure of build operations.
@@ -140,12 +142,12 @@ public class BuildOperationTrace implements Stoppable {
     private static final InternalOption<@Nullable String> FILTER_OPTION = StringInternalOption.of(FILTER_SYSPROP);
 
     /**
-     * A flag controlling whether tree generation is enabled ({@code true} by default).
+     * A flag controlling whether tree generation is enabled ({@code false} by default).
      * Only application when {@link #FILTER_SYSPROP} is not set.
      */
     public static final String TREE_SYSPROP = SYSPROP + ".tree";
 
-    private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, true);
+    private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, false);
 
     /**
      * Delimiter for entries in {@link #FILTER_SYSPROP}.

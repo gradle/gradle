@@ -23,5 +23,5 @@ enum class JvmCategory(
     MIN_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_17),
     MAX_LTS_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_21),
     MAX_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_25),
-    SANTA_TRACKER_SMOKE_TEST_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_17),
+    ANDROID_PROJECT_SMOKE_TEST_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_17),
 }

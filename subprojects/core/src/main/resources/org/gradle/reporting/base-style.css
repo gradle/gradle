@@ -72,6 +72,7 @@ ul.tabLinks li {
     border-bottom: none;
     margin-right: 6px;
     background-color: #f0f0f0;
+    cursor: pointer;
 }
 
 ul.tabLinks li.deselected > a {

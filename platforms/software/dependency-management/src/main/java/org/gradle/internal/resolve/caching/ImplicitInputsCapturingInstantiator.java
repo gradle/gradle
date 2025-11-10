@@ -19,15 +19,14 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.UnknownServiceException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.List;
 
 /**
  * An instantiator which is responsible for allowing the capture of implicit
@@ -44,24 +43,25 @@ import java.util.List;
  */
 @NullMarked
 public class ImplicitInputsCapturingInstantiator implements Instantiator {
-    private final ServiceRegistry serviceRegistry;
-    private final InstantiatorFactory factory;
 
-    public ImplicitInputsCapturingInstantiator(ServiceRegistry serviceRegistry, InstantiatorFactory factory) {
-        this.serviceRegistry = serviceRegistry;
-        this.factory = factory;
+    private final ServiceLookup delegate;
+    private final InstantiatorFactory instantiatorFactory;
+
+    public ImplicitInputsCapturingInstantiator(ServiceLookup delegate, InstantiatorFactory instantiatorFactory) {
+        this.delegate = delegate;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
     public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException {
-        return factory.inject(serviceRegistry).newInstance(type, parameters);
+        return instantiatorFactory.inject(delegate).newInstance(type, parameters);
     }
 
     public Instantiator capturing(final ImplicitInputRecorder registrar) {
         return new Instantiator() {
             @Override
             public <T> T newInstance(Class<? extends T> type, @Nullable Object... parameters) throws ObjectInstantiationException {
-                return factory.inject(capturingRegistry(registrar)).newInstance(type, parameters);
+                return instantiatorFactory.inject(capturingRegistry(registrar)).newInstance(type, parameters);
             }
         };
     }
@@ -71,50 +71,43 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
         try {
             // TODO: Whenever we allow _user_ services to be injected, this would have to know
             // from which classloader we need to load the service
-            return Cast.uncheckedCast(serviceRegistry.find(Class.forName(name)));
+            return Cast.uncheckedCast(delegate.find(Class.forName(name)));
         } catch (ClassNotFoundException e) {
             return null;
         }
     }
 
-    public ServiceRegistry capturingRegistry(ImplicitInputRecorder registrar) {
-        return new DefaultCapturingServicesRegistry(registrar);
+    public ServiceLookup capturingRegistry(ImplicitInputRecorder registrar) {
+        return new DefaultCapturingServiceLookup(registrar);
     }
 
-    private class DefaultCapturingServicesRegistry implements ServiceRegistry {
+    private class DefaultCapturingServiceLookup implements ServiceLookup {
+
         private final ImplicitInputRecorder registrar;
 
-        private DefaultCapturingServicesRegistry(ImplicitInputRecorder registrar) {
+        private DefaultCapturingServiceLookup(ImplicitInputRecorder registrar) {
             this.registrar = registrar;
         }
 
         @Override
-        public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
-            return serviceRegistry.get(serviceType);
-        }
-
-        @Override
-        public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
-            return serviceRegistry.getAll(serviceType);
-        }
-
-        @Override
         public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
-            return serviceRegistry.get(serviceType);
+            return delegate.get(serviceType);
         }
 
         @Override
         public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            return serviceRegistry.get(serviceType, annotatedWith);
+            return delegate.get(serviceType, annotatedWith);
         }
 
         @Override
         public Object find(Type serviceType) throws ServiceLookupException {
-            Object service = serviceRegistry.find(serviceType);
+            Object service = delegate.find(serviceType);
             if (service instanceof ImplicitInputsProvidingService) {
                 return ((ImplicitInputsProvidingService)service).withImplicitInputRecorder(registrar);
             }
             return service;
         }
+
     }
+
 }

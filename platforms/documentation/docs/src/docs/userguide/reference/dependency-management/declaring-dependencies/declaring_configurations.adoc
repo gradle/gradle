@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[declaring-dependency-configurations]]
-= Declaring Dependency Configurations
+= Creating Dependency Configurations
 :keywords: configuration
 
 [[sec:what-are-dependency-configurations]]
@@ -22,30 +22,39 @@ These scopes are represented by configurations, each identified by a unique name
 
 image::dependency-management-configurations.png[]
 
-Gradle plugins often add pre-defined link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[configurations] to your project.
-For example, when applied, the Java plugin adds configurations to your project for source code compilation (`implementation`), test execution (`testImplementation`), and more (`api`, `compileOnly`, `runtimeOnly`):
+Configurations are added automatically by applied plugins or can be created manually within your build.
 
-====
-include::sample[dir="snippets/artifacts/dependencyBasics/kotlin",files="build.gradle.kts[tags=configurations]"]
-include::sample[dir="snippets/artifacts/dependencyBasics/groovy",files="build.gradle[tags=configurations]"]
-====
-
-In this example, applying the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java Library>> plugin sets up the most common dependency configurations automatically:
-
-- `implementation` — These libraries are available when compiling your code and at runtime, but they’re internal. If another project depends on your library, it won’t automatically see `hibernate-core`.
-- `testImplementation` — These are used only to compile and run your tests. They’re not packaged or exposed to consumers.
-- `api` — These libraries are part of your public surface. Consumers of your library will compile against `guava` automatically and get it on their classpath when they depend on your library.
+Configurations aren't used just for declaring dependencies, they serve various roles in dependency management.
 
 [[sec:resolvable-consumable-configs]]
-== Resolvable and consumable configurations
+== Declarable, Resolvable, and Consumable configurations
 
-Configurations aren't used just for declaring dependencies, they serve various roles in dependency management:
+There are 3 types of configurations that fulfil different roles:
 
-1. *Declaring Dependencies Role*: Configurations that define a set of dependencies.
-2. *Consumer Role*: Configurations that are used to resolve dependencies into artifacts.
-3. *Producer Role*: Configurations that expose artifacts for consumption by other projects.
+[cols="^1,^2,^2,^5,2", options="header"]
+|===
+| # | Role | Name | What it means | Java example
 
-=== 1. Configurations for declaring dependencies - Declarable configurations
+| 1
+| Bucket Role
+| Declarable configuration
+| Define a set of dependencies.
+| `implementation`
+
+| 2
+| Consumer Role
+| Resolvable configuration
+| Resolve dependencies into concrete artifacts/files.
+| `runtimeClasspath`
+
+| 3
+| Producer Role
+| Consumable configuration
+| Expose built artifacts for other projects to consume.
+| `runtimeElements`
+|===
+
+=== 1. Declarable configurations
 
 To declare dependencies in your project, you can use or create *declarable configurations*.
 
@@ -60,7 +69,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 
 *Configurations used for declaring dependencies* define and manage the specific libraries or projects your code requires for tasks such as compilation or testing.
 
-=== 2. Configurations for consumers - Resolvable configurations
+=== 2. Resolvable configurations
 
 To control how dependencies are resolved and used within your project, you can use or create **resolvable configurations**.
 
@@ -79,7 +88,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 *Resolvable configurations* are those that can be resolved to produce a set of files or artifacts.
 These configurations are used to define the classpath for different stages of a build process, such as compilation or runtime.
 
-=== 3. Configurations for producers - Consumable configurations
+=== 3. Consumable configurations
 
 **Consumable configurations** are used to expose artifacts to other projects.
 
@@ -97,7 +106,143 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",fil
 A library typically provides consumable configurations like `apiElements` (for compilation) and `runtimeElements` (for runtime dependencies).
 These configurations expose the necessary artifacts for other projects to consume, without being resolvable within the current project.
 
-The `canBeDeclared`, `isCanBeConsumed` and `isCanBeResolved` flags help distinguish the roles of these configurations and are required when using older APIs.
+The `canBeDeclared`, `isCanBeConsumed` and `isCanBeResolved` <<sec:configuration-flags-roles,flags>> help distinguish the roles of these configurations and are required when using older APIs.
+
+== Configurations added by Plugins
+
+Gradle plugins often create link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[*configurations*] (like `implementation`, `api`, `testImplementation`) for you.
+Let's look at a few popular ones.
+
+=== Java Plugin
+
+When you apply the Java or Java Library (`java`, `java-library`, `application`) plugin, Gradle adds the following configurations.
+
+1. *Declarable* (you put dependencies into these):
+
+- `api` (`java-library` only), `implementation`, `compileOnly`, `runtimeOnly`, plus test variants (`testImplementation`, `testCompileOnly`, `testRuntimeOnly`), etc.
+
+2. *Resolvable* (you resolve these to get jars/dirs):
+
+- `compileClasspath`, `runtimeClasspath`, and their test equivalents (`testCompileClasspath`, `testRuntimeClasspath`).
+
+3. *Consumable* (Gradle publishes these so other projects can depend on you):
+
+- `apiElements` (`java-library` only) and `runtimeElements`.
+
+====
+include::sample[dir="snippets/artifacts/dependencyBasics/kotlin",files="build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/artifacts/dependencyBasics/groovy",files="build.gradle[tags=configurations]"]
+====
+
+There is a relationship between these configurations.
+
+image::dependency-management-java-configurations.png[]
+
+* What you declare in `api`:
+** *Your project*: on `compileClasspath` and (if needed) `runtimeClasspath`.
+** *Consumers*: exported via `apiElements` → ends up on consumers’ compile and runtime classpaths.
+* What you declare in `implementation`:
+** *Your project*: on `compileClasspath` and `runtimeClasspath`.
+** *Consumers*: not exported (kept internal). It’s not on consumers’ compile classpath; the runtime part is included in your `runtimeElements` so consumers can run you without needing to compile against those internals.
+* What you declare in `compileOnly`:
+** *Your project*: only on `compileClasspath` (not on `runtimeClasspath`).
+** *Consumers*: not exported (neither `apiElements` nor `runtimeElements`).
+* What you declare in `runtimeOnly`:
+** *Your project*: only on `runtimeClasspath`.
+** *Consumers*: included in `runtimeElements` (so they can run you), but not in `apiElements`.
+* *Test* configurations (`testImplementation`, etc.) affect only test resolvable classpaths (`testCompileClasspath`, `testRuntimeClasspath`) and are never published to consumers.
+
+=== Android Gradle Plugin
+
+When you apply the Android plugin (`com.android.application` or `com.android.library`), Gradle and the Android Gradle Plugin (AGP) add a richer set of configurations to handle multiple **build variants** (combinations of build types and product flavors).
+Each variant has its own declarable, resolvable, and consumable configurations, following the same conceptual model as the Java plugin.
+
+1. **Declarable** (you put dependencies into these):
+
+* `implementation`, `compileOnly`, `runtimeOnly`, `annotationProcessor`, and test equivalents (`androidTestImplementation`, `androidTestCompileOnly`, `androidTestRuntimeOnly`, `testImplementation`, `testCompileOnly`, `testRuntimeOnly`), plus variant-specific versions such as `debugImplementation`, `releaseImplementation`, and flavor-specific configurations (e.g., `freeImplementation`, `paidImplementation`).
+
+2. **Resolvable** (Gradle resolves these to get the actual JARs, AARs, or directories):
+
+* Each build variant defines its own resolvable classpaths:
+`debugCompileClasspath`, `debugRuntimeClasspath`, `releaseCompileClasspath`, `releaseRuntimeClasspath`, and similar sets for test variants (`testDebugCompileClasspath`, `testDebugRuntimeClasspath`, etc.).
+These are used internally by AGP tasks such as `compileDebugJavaWithJavac` or `mergeReleaseResources`.
+
+3. **Consumable** (Gradle publishes these so other modules can depend on your Android library):
+
+* For library modules (`com.android.library`), AGP defines variant-specific consumable configurations:
+`debugApiElements`, `debugRuntimeElements`, `releaseApiElements`, and `releaseRuntimeElements`.
+These control what other modules receive when they declare a dependency on a particular variant of your library.
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringConfigurations-android/kotlin",files="build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/dependencyManagement/declaringConfigurations-android/groovy",files="build.gradle[tags=configurations]"]
+====
+
+There is a relationship between these configurations, similar to the Java plugin, but **scoped per variant**.
+
+* What you declare in `implementation`:
+** *Your module*: included in that variant’s `compileClasspath` and `runtimeClasspath`.
+** *Consumers*: not exported; remains internal to that variant.
+* What you declare in `api` (for Android library modules):
+** *Your module*: visible on that variant’s `compileClasspath` and `runtimeClasspath`.
+** *Consumers*: exported via that variant’s `apiElements` configuration → appears on consumers’ compile and runtime classpaths.
+* What you declare in `compileOnly` or `annotationProcessor`:
+** *Your module*: used only for compilation; not packaged or exposed to consumers.
+* What you declare in `runtimeOnly`:
+** *Your module*: added only to the variant’s runtime classpath.
+** *Consumers*: included in the corresponding `runtimeElements` variant, so downstream modules can run your library.
+* Test configurations (`testImplementation`, `androidTestImplementation`, etc.) affect only their respective resolvable classpaths (`testCompileClasspath`, `androidTestCompileClasspath`, etc.) and are never published to consumers.
+
+=== Kotlin Multiplatform Plugin
+
+When you apply the Kotlin Multiplatform plugin (`org.jetbrains.kotlin.multiplatform`), Gradle creates configurations for each **source set** and **target**.
+The same underlying concepts apply — declarable, resolvable, and consumable — but they’re managed per source set instead of per variant or build type.
+
+1. **Declarable** (you put dependencies into these):
+
+* Each source set has its own declarable configuration, for example:
+
+* `commonMainImplementation`, `commonMainApi`, `commonMainCompileOnly`
+* `jvmMainImplementation`, `jsMainImplementation`, `iosMainImplementation`, etc.
+* and corresponding test configurations such as `commonTestImplementation`, `jvmTestImplementation`, and so on.
+* These are where you declare dependencies that apply to a specific source set or to all targets sharing that source set.
+
+2. **Resolvable** (Gradle resolves these to get JARs, KLIBs, or directories):
+
+* Every compilable source set has a corresponding resolvable configuration, such as:
+
+* `commonMainCompileClasspath`, `jvmMainCompileClasspath`, `iosArm64MainCompileClasspath`, etc.
+* These are used internally by Kotlin compilation tasks like `compileKotlinJvm`, `compileKotlinJs`, and `compileKotlinIosArm64` to obtain the appropriate libraries and dependencies for that target.
+
+3. **Consumable** (Gradle publishes these so other modules or projects can depend on your multiplatform component):
+
+* KMP creates consumable configurations for each target, such as:
+
+* `jvmApiElements`, `jvmRuntimeElements`, `jsApiElements`, `iosArm64ApiElements`, etc.
+* When you publish a KMP library, these configurations define the artifacts and metadata that Gradle and consumers use to resolve the right variant for their platform.
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringConfigurations-kmp/kotlin",files="build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/dependencyManagement/declaringConfigurations-kmp/groovy",files="build.gradle[tags=configurations]"]
+====
+
+There is a relationship between these configurations, similar to Java and Android, but **organized per source set and target**.
+
+* What you declare in `commonMainApi`:
+** *Shared source sets*: visible to all targets depending on `commonMain`.
+** *Consumers*: exported via the relevant `apiElements` for each target (e.g., `jvmApiElements`, `iosApiElements`), so downstream projects can compile against the shared API.
+
+* What you declare in `commonMainImplementation`:
+** *Your project*: included in compilation for all targets that depend on `commonMain`.
+** *Consumers*: not exported — internal only.
+
+* What you declare in target-specific configurations (e.g., `jvmMainImplementation`, `iosMainImplementation`):
+** *Your project*: visible only to that target’s compilation and runtime.
+** *Consumers*: packaged and published through that target’s consumable configuration (`jvmRuntimeElements`, etc.), but not exposed as API.
+
+* `compileOnly` and `runtimeOnly` equivalents work similarly per source set: used only during compilation or runtime for that target, not exported to consumers.
+
+* Test source sets (`commonTest`, `jvmTest`, etc.) have their own declarable and resolvable configurations, but are **never published** to consumers.
 
 [[sec:configuration-flags-roles]]
 == Configuration flags and roles

@@ -16,31 +16,35 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.io.CharStreams;
 import org.apache.commons.lang3.stream.Streams;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
+import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.Pair;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.reporting.ReportRenderer;
+import org.gradle.reporting.TabsRenderer;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
@@ -85,9 +89,53 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             if (info.getChildren().isEmpty()) {
                 renderLeafDetails(info, htmlWriter);
             } else {
-                renderChildren(htmlWriter);
+                renderContainerDetails(htmlWriter);
             }
             htmlWriter.endElement();
+        }
+
+        private void renderContainerDetails(SimpleHtmlWriter htmlWriter) throws IOException {
+            List<Pair<String, ChildTableRenderer>> childTableRenderers = getChildTableRenderers();
+
+            ReportRenderer<TestTreeModel, SimpleHtmlWriter> renderer;
+            if (childTableRenderers.size() == 1) {
+                // No need to render tabs if there is only one tab
+                renderer = Objects.requireNonNull(childTableRenderers.get(0).right);
+            } else {
+                TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
+                childTableRenderers.forEach(p -> tabsRenderer.add(p.left, p.right));
+                renderer = tabsRenderer;
+            }
+
+            renderer.render(getCurrentModel(), htmlWriter);
+        }
+
+        private List<Pair<String, ChildTableRenderer>> getChildTableRenderers() {
+            List<Pair<Path, TestTreeModel.PerRootInfo>> children = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
+                .flatMap(t ->
+                    t.getPerRootInfo().get(rootIndex).stream()
+                        .map(p -> Pair.of(t.getPath(), p))
+                )
+                .collect(Collectors.toList());
+            ImmutableList.Builder<Pair<String, ChildTableRenderer>> childTableRenderers = ImmutableList.builder();
+            addResultTabIfNeeded("Failed", TestResult.ResultType.FAILURE, children, childTableRenderers);
+            addResultTabIfNeeded("Skipped", TestResult.ResultType.SKIPPED, children, childTableRenderers);
+            childTableRenderers.add(Pair.of("All", new ChildTableRenderer(children)));
+            return childTableRenderers.build();
+        }
+
+        private static void addResultTabIfNeeded(
+            String name,
+            TestResult.ResultType resultType,
+            List<Pair<Path, TestTreeModel.PerRootInfo>> children,
+            ImmutableList.Builder<Pair<String, ChildTableRenderer>> childListRenderers
+        ) {
+            List<Pair<Path, TestTreeModel.PerRootInfo>> matchedChildren = children.stream()
+                .filter(p -> p.right.getResult().getResultType() == resultType)
+                .collect(Collectors.toList());
+            if (!matchedChildren.isEmpty()) {
+                childListRenderers.add(Pair.of(name, new ChildTableRenderer(matchedChildren)));
+            }
         }
 
         private static void renderSummary(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter, SerializableTestResult testResult) throws IOException {
@@ -202,48 +250,52 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             }
         }
 
-        private void renderChildren(SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("table");
-            htmlWriter.startElement("thead");
-            htmlWriter.startElement("tr");
+        private static final class ChildTableRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
+            private final List<Pair<Path, TestTreeModel.PerRootInfo>> children;
 
-            boolean anyNameAndDisplayNameDiffer = Iterables.any(
-                getCurrentModel().getChildrenOf(rootIndex),
-                childModel -> Iterables.any(
-                    childModel.getPerRootInfo().get(rootIndex),
+            public ChildTableRenderer(List<Pair<Path, TestTreeModel.PerRootInfo>> children) {
+                this.children = children;
+            }
+
+            @Override
+            public void render(TestTreeModel model, SimpleHtmlWriter htmlWriter) throws IOException {
+                htmlWriter.startElement("table").attribute("class", "test-results");
+                htmlWriter.startElement("thead");
+                htmlWriter.startElement("tr");
+
+                boolean anyNameAndDisplayNameDiffer = Iterables.any(
+                    children,
                     child -> {
-                        SerializableTestResult childResult = child.getResult();
+                        SerializableTestResult childResult = child.right.getResult();
                         return !childResult.getName().equals(childResult.getDisplayName());
                     }
-                )
-            );
+                );
 
-            htmlWriter.startElement("th").characters("Child").endElement();
-            if (anyNameAndDisplayNameDiffer) {
-                htmlWriter.startElement("th").characters("Name").endElement();
-            }
-            htmlWriter.startElement("th").characters("Tests").endElement();
-            htmlWriter.startElement("th").characters("Failures").endElement();
-            htmlWriter.startElement("th").characters("Skipped").endElement();
-            htmlWriter.startElement("th").characters("Duration").endElement();
-            htmlWriter.startElement("th").characters("Success rate").endElement();
+                htmlWriter.startElement("th").characters("Child").endElement();
+                if (anyNameAndDisplayNameDiffer) {
+                    htmlWriter.startElement("th").characters("Name").endElement();
+                }
+                htmlWriter.startElement("th").characters("Tests").endElement();
+                htmlWriter.startElement("th").characters("Failures").endElement();
+                htmlWriter.startElement("th").characters("Skipped").endElement();
+                htmlWriter.startElement("th").characters("Duration").endElement();
+                htmlWriter.startElement("th").characters("Success rate").endElement();
 
-            htmlWriter.endElement();
-            htmlWriter.endElement();
+                htmlWriter.endElement();
+                htmlWriter.endElement();
 
-            List<TestTreeModel> sortedByName = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
-                .sorted(Comparator.comparing(TestTreeModel::getPath))
-                .collect(Collectors.toList());
+                List<Pair<Path, TestTreeModel.PerRootInfo>> sortedByName = new ArrayList<>(children);
+                sortedByName.sort(Comparator.comparing(Pair::left));
 
-            for (TestTreeModel child : sortedByName) {
-                for (TestTreeModel.PerRootInfo perRootInfo : child.getPerRootInfo().get(rootIndex)) {
+                for (Pair<Path, TestTreeModel.PerRootInfo> pair : sortedByName) {
+                    TestTreeModel.PerRootInfo perRootInfo = pair.right;
                     SerializableTestResult result = perRootInfo.getResult();
                     String statusClass = getStatusClass(result.getResultType());
                     htmlWriter.startElement("tr");
 
                     htmlWriter.startElement("td").attribute("class", statusClass);
                     htmlWriter.startElement("a")
-                        .attribute("href", GenericPageRenderer.getUrlTo(getCurrentModel().getPath(), child.getPath()))
+                        .attribute("href", GenericPageRenderer.getUrlTo(model.getPath(), pair.left))
                         .characters(result.getDisplayName()).endElement();
                     htmlWriter.endElement();
 
@@ -259,8 +311,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
                     htmlWriter.endElement();
                 }
+                htmlWriter.endElement();
             }
-            htmlWriter.endElement();
         }
 
         private static String getStatusClass(TestResult.ResultType resultType) {
@@ -289,10 +341,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     public static final class ForOutput extends PerRootTabRenderer {
-        private final SerializableTestResultStore.OutputReader outputReader;
+        private final TestOutputReader outputReader;
         private final TestOutputEvent.Destination destination;
 
-        public ForOutput(int rootIndex, int perRootInfoIndex, SerializableTestResultStore.OutputReader outputReader, TestOutputEvent.Destination destination) {
+        public ForOutput(int rootIndex, int perRootInfoIndex, TestOutputReader outputReader, TestOutputEvent.Destination destination) {
             super(rootIndex, perRootInfoIndex);
             this.outputReader = outputReader;
             this.destination = destination;
@@ -303,11 +355,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             String outputId = "root-" + rootIndex + "-test-" + destination.name().toLowerCase(Locale.ROOT) + "-" + info.getResult().getName();
             htmlWriter.startElement("span").attribute("class", "code")
                 .startElement("pre")
-                .attribute("id", outputId)
-                .characters("");
-            try (Reader reader = outputReader.getOutput(info.getOutputId(), destination)) {
-                CharStreams.copy(reader, htmlWriter);
-            }
+                .attribute("id", outputId);
+            outputReader.useTestOutputEvents(
+                info.getOutputEntry(), destination,
+                event -> htmlWriter.characters(event.getMessage())
+            );
             htmlWriter.endElement();
             addClipboardCopyButton(htmlWriter, outputId);
             htmlWriter.endElement();
@@ -381,7 +433,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         private SimpleHtmlWriter renderAdditionalMetadataElements(List<SerializedMetadata.SerializedMetadataElement> elements, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
             for (SerializedMetadata.SerializedMetadataElement element : elements) {
-                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 1 ? "even" : "odd");
                     renderMetadataKeyValueCells(element, htmlWriter);
                 htmlWriter.endElement();
             }

@@ -83,6 +83,9 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings()
         withBuildScript("""plugins { id("some") }""")
 
+        // Since we are testing an older KGP version
+        executer.noDeprecationChecks()
+
         // See https://github.com/gradle/gradle-private/issues/4767
         executer.requireIsolatedDaemons()
 
@@ -134,11 +137,11 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings().appendText("""includeBuild("producer")""")
         withBuildScript("""plugins { id("some") }""")
 
+        // Since we are testing an older KGP version
+        executer.noDeprecationChecks()
+
         // See https://github.com/gradle/gradle-private/issues/4767
         executer.requireIsolatedDaemons()
-        repeat(times = 2) {
-            executer.expectExternalDeprecatedMessage("w: Language version $previousKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
-        }
 
         build("help", ).apply {
             assertThat(output, containsString("some!"))

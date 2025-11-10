@@ -24,6 +24,7 @@ import java.util.Optional;
 
 public class WorkspaceContext extends IdentityContext {
     private final File workspace;
+    @Nullable
     private final ExecutionHistoryStore history;
     private final boolean captureBeforeExecutionState;
 

@@ -17,11 +17,15 @@
 package org.gradle.internal.file;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import static java.lang.String.format;
 
 public class PathTraversalChecker {
+    private static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase(Locale.US).contains("windows");
 
     /**
      * Checks the entry name for path traversal vulnerable sequences.
@@ -42,27 +46,62 @@ public class PathTraversalChecker {
     }
 
     public static boolean isUnsafePathName(String name) {
-        return name.isEmpty()
-            || name.startsWith("/")
-            || name.startsWith("\\")
-            || containsDirectoryNavigation(name)
-            || (name.contains(":") && isWindows());
+        if (name.isEmpty()) {
+            return true;
+        }
+        if (IS_WINDOWS && name.contains(":")) {
+            return true;
+        }
+        if (name.startsWith("/") || name.startsWith("\\")) {
+            return true;
+        }
+
+        return containsDirectoryNavigation(name);
+    }
+
+    /**
+     * We want to treat both '/' and '\' as path separators on all OSes.
+     *
+     * @param name the original path name
+     * @return the path name with all separators replaced with the OS file separator
+     */
+    private static String osIndependentPath(String name) {
+        if (File.separatorChar == '\\') {
+            return name.replace('/', File.separatorChar);
+        } else if (File.separatorChar == '/') {
+            return name.replace('\\', File.separatorChar);
+        } else {
+            // Throw an error here, as we would want to add this separator to our list
+            // rather than passing it through unmodified
+            throw new IllegalStateException("Unknown file separator: " + File.separatorChar);
+        }
     }
 
     private static boolean containsDirectoryNavigation(String name) {
-        if (!name.contains("..")) {
-            return false;
+        List<String> names = buildNamesList(name);
+        for (String part : names) {
+            if (part.equals("..")) {
+                return true;
+            }
+            if (IS_WINDOWS) {
+                // Directories with dots at the end will have them removed by win32 compatibility
+                // We don't know what paths might be directories, so just ban any occurrence of dots at the end
+                if (!part.equals(".") && part.endsWith(".")) {
+                    return true;
+                }
+            }
         }
-        // We have a .. but if not in-between a file separator, at the start, or at the end, it is OK
-        return name.endsWith("\\..")
-            || name.startsWith("..\\")
-            || name.contains("\\..\\")
-            || name.endsWith("/..")
-            || name.startsWith("../")
-            || name.contains("/../");
+        return false;
     }
 
-    private static boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase(Locale.US).contains("windows");
+    private static List<String> buildNamesList(String name) {
+        // We run this through File then toPath, as `name` is primarily used with new File(...) calls elsewhere
+        // This ensures a consistent parsing/understanding of the path
+        Path path = new File(osIndependentPath(name)).toPath();
+        List<String> names = new ArrayList<>(path.getNameCount());
+        for (Path part : path) {
+            names.add(part.toString());
+        }
+        return names;
     }
 }

@@ -131,7 +131,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                         attribute(Attribute.of('attr', String), "incorrect")
                     }
                     outgoing {
-                        artifact(wrongZip)
+                        artifact(tasks.wrongZip)
                     }
                 }
                 consumable("foo") {
@@ -140,7 +140,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                         attribute(Attribute.of('attr', String), "correct")
                     }
                     outgoing {
-                        artifact(firstZip)
+                        artifact(tasks.firstZip)
                     }
                 }
             }
@@ -207,7 +207,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                         attribute(Attribute.of('attr', String), "incorrect")
                     }
                     outgoing {
-                        artifact(wrongZip)
+                        artifact(tasks.wrongZip)
                     }
                 }
                 consumable("foo") {
@@ -216,10 +216,10 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
                         attribute(Attribute.of('attr', String), "correct")
                     }
                     outgoing {
-                        artifact(firstZip)
+                        artifact(tasks.firstZip)
                         variants {
                             secondary {
-                                artifact(secondZip)
+                                artifact(tasks.secondZip)
                                 attributes {
                                     attribute(Attribute.of("another", String), "value")
                                 }

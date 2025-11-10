@@ -58,7 +58,6 @@ trait WithAndroidDeprecations {
                 "Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"com.android.tools.build:aapt2:$aapt2Version:$platform\". Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation"
             )
         }
-
     }
 
 }

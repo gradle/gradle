@@ -241,7 +241,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 2
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
-            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":foo", "Project access.")
         }
     }

@@ -62,12 +62,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         }
 
         DefaultGradleBuild create() {
-            ensureProjectsLoaded(target);
-            return convert(target);
-        }
-
-        protected void ensureProjectsLoaded(BuildState target) {
             target.ensureProjectsLoaded();
+            return convert(target);
         }
 
         protected DefaultGradleBuild convert(BuildState targetBuild) {
@@ -79,7 +75,7 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             all.put(targetBuild, model);
 
             // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
-            ensureProjectsLoaded(targetBuild);
+            targetBuild.ensureProjectsLoaded();
 
             GradleInternal gradle = targetBuild.getMutableModel();
             addProjects(targetBuild, model);

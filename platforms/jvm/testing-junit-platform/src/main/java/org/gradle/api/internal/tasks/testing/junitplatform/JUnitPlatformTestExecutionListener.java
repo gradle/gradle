@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
+import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -36,6 +37,7 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFai
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
+import org.gradle.internal.Cast;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -43,11 +45,16 @@ import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.engine.UniqueId;
+import org.junit.platform.engine.reporting.FileEntry;
+import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -68,6 +75,7 @@ import static org.junit.platform.engine.TestExecutionResult.Status.FAILED;
  */
 @NullMarked
 public class JUnitPlatformTestExecutionListener implements TestExecutionListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitPlatformTestExecutionListener.class);
 
     private final static List<TestFailureMapper> MAPPERS = Arrays.asList(
         new OpenTestAssertionFailedMapper(),
@@ -79,16 +87,63 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private static final DefaultThrowableToTestFailureMapper FAILURE_MAPPER = new DefaultThrowableToTestFailureMapper(MAPPERS);
 
+    /**
+     * Tracks if {@code getUniqueIdObject()} method exists in the current classloader.
+     *
+     * The method was added in JUnit Platform 1.8, so won't exist in earlier versions that might be the ones we're
+     * using at runtime here.
+     */
+    private static final boolean HAS_GET_UNIQUE_ID_OBJECT_METHOD = Arrays.stream(TestIdentifier.class.getMethods())
+        .anyMatch(method -> method.getName().equals("getUniqueIdObject"));
+
+    /**
+     * Determines if the given TestIdentifier represents the test engine.
+     *
+     * @param testIdentifier the identifier to check
+     * @return {@code true} if the TestIdentifier represents the test engine; {@code false} otherwise
+     */
+    private static boolean isEngineNode(TestIdentifier testIdentifier) {
+        UniqueId uniqueIdObject = HAS_GET_UNIQUE_ID_OBJECT_METHOD
+            ? testIdentifier.getUniqueIdObject()
+            : UniqueId.parse(testIdentifier.getUniqueId());
+        List<UniqueId.Segment> segments = uniqueIdObject.getSegments();
+        // No need to check, guaranteed to have at least one segment
+        return "engine".equals(segments.get(segments.size() - 1).getType());
+    }
+
     private final ConcurrentMap<String, TestDescriptorInternal> descriptorsByUniqueId = new ConcurrentHashMap<>();
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
+
+    @Nullable
     private TestPlan currentTestPlan;
 
     public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
+    }
+
+    @Override
+    public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
+        // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class constructor.
+        if (wasStarted(testIdentifier)) {
+            resultProcessor.published(getId(testIdentifier), new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+        } else {
+            // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with it
+            Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
+            if (closestStartedAncestor != null) {
+                resultProcessor.published(closestStartedAncestor, new DefaultTestMetadataEvent(clock.getCurrentTime(), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+            }
+            // otherwise, we don't know what to associate this ReportEntry with
+            LOGGER.debug("report entry published for unknown test identifier {}", testIdentifier);
+        }
+    }
+
+    @Override
+    public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry file) {
+        // TODO: Capture this as well
     }
 
     @Override
@@ -121,25 +176,6 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
         if (testIdentifier.getParentId().isPresent() && !isEngineNode(testIdentifier)) {
             reportStartedUnlessAlreadyStarted(testIdentifier);
-        }
-    }
-
-    /**
-     * Determines if the given TestIdentifier represents the test engine.
-     *
-     * @param testIdentifier the identifier to check
-     * @return {@code true} if the TestIdentifier represents the test engine; {@code false} otherwise
-     */
-    private boolean isEngineNode(TestIdentifier testIdentifier) {
-        // The method getUniqueIdObject() was added in JUnit Platform 1.8, so won't exist in earlier versions that
-        // might be the ones we're using at runtime here.
-        boolean hasUniqueIdObjectMethod = Arrays.stream(testIdentifier.getClass().getMethods()).anyMatch(method -> method.getName().equals("getUniqueIdObject"));
-        if (hasUniqueIdObjectMethod) {
-            return "engine".equals(testIdentifier.getUniqueIdObject().getLastSegment().getType());
-        } else {
-            String[] idSegments = testIdentifier.getUniqueId().split("/");
-            String lastSegment = idSegments[idSegments.length - 1];
-            return lastSegment.startsWith("[engine");
         }
     }
 
@@ -182,6 +218,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportSkipped(TestIdentifier testIdentifier) {
+        Objects.requireNonNull(currentTestPlan);
         currentTestPlan.getChildren(testIdentifier).stream()
             .filter(child -> !wasStarted(child))
             .forEach(this::executionSkipped);
@@ -193,14 +230,19 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private TestStartEvent startEvent(TestIdentifier testIdentifier) {
-        Object idOfClosestStartedAncestor = getAncestors(testIdentifier).stream()
+        Object idOfClosestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
+        return startEvent(idOfClosestStartedAncestor);
+    }
+
+    @Nullable
+    private Object getIdOfClosestStartedAncestor(TestIdentifier testIdentifier) {
+        return getAncestors(testIdentifier).stream()
             .map(TestIdentifier::getUniqueId)
             .filter(descriptorsByUniqueId::containsKey)
             .findFirst()
             .map(descriptorsByUniqueId::get)
             .map(TestDescriptorInternal::getId)
             .orElse(null);
-        return startEvent(idOfClosestStartedAncestor);
     }
 
     private TestStartEvent startEvent(@Nullable Object parentId) {
@@ -265,6 +307,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {
+        assert currentTestPlan != null;
         boolean testsStarted = currentTestPlan.getDescendants(node).stream().anyMatch(this::wasStarted);
         String name = testsStarted ? "executionError" : "initializationError";
         return createTestDescriptor(node, name, name);
@@ -308,6 +351,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @SuppressWarnings("deprecation")
     private Optional<TestIdentifier> getParent(TestIdentifier testIdentifier) {
+        Objects.requireNonNull(currentTestPlan);
         try {
             return testIdentifier.getParentIdObject().map(currentTestPlan::getTestIdentifier);
         // Some versions of the JDK throw a BootstrapMethodError
@@ -355,6 +399,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private boolean hasDifferentSourceThanAncestor(TestIdentifier testIdentifier) {
+        Objects.requireNonNull(currentTestPlan);
+
         Optional<TestIdentifier> parent = currentTestPlan.getParent(testIdentifier);
         while (parent.isPresent()) {
             if (Objects.equals(parent.get().getSource(), testIdentifier.getSource())) {

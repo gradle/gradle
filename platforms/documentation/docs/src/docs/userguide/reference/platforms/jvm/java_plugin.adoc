@@ -287,65 +287,88 @@ The Java plugin adds a number of <<dependency_configurations.adoc#sub:what-are-d
 Tasks such as `compileJava` and `test` then use one or more of those configurations to get the corresponding files and use them, for example by placing them on a compilation or runtime classpath.
 
 [[tab:configurations]]
-=== Dependency configurations
+== Dependency configurations
+
+The role of each configuration is described in the following tables.
 
 [NOTE]
 ====
 For information on the `default` and `archives` configurations, please consult the
 <<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
 
-For information on the `api` or `compileOnlyApi` configurations, please consult the
+For information on the `api`, `compileOnlyApi` , or consumable configurations, please consult the
 <<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
 <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
 ====
 
-==== Dependency Declaration Configurations
+=== Declarable (Bucket) Configurations
 
-`implementation`::
-Represents dependencies that are required both at compile time and runtime for the main source set of a project (i.e., implementation only dependencies).
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
 
-`compileOnly`::
-Represents dependencies that are required only at compile time and are not included in the runtime classpath (i.e., compile time only dependencies, not used at runtime).
+| `implementation`
+| Declarable
+| Represents dependencies that are required both at compile time and runtime for the main source set of a project (i.e., implementation only dependencies).
 
-`runtimeOnly`::
-Represents dependencies that are required only at runtime and are not included in the compile classpath (i.e., dependencies required only at runtime).
+| `compileOnly`
+| Declarable
+| Represents dependencies that are required only at compile time and are not included in the runtime classpath (i.e., compile time only dependencies, not used at runtime).
 
-`testImplementation` extends `implementation`::
-Represents dependencies that are required both at compile time and runtime for the test source set of a project (i.e., implementation only dependencies for tests).
+| `runtimeOnly`
+| Declarable
+| Represents dependencies that are required only at runtime and are not included in the compile classpath (i.e., dependencies required only at runtime).
 
-`testCompileOnly`::
-Represents dependencies that are required only at compile time for the test source set of a project and are not included in the runtime classpath (i.e., additional dependencies only for compiling tests, not used at runtime).
+| `testImplementation` (extends `implementation`)
+| Declarable
+| Represents dependencies that are required both at compile time and runtime for the test source set of a project (i.e., implementation only dependencies for tests).
 
-`testRuntimeOnly` extends `runtimeOnly`::
-Represents dependencies that are required only at runtime for the test source set of a project (i.e., runtime only dependencies for running tests).
+| `testCompileOnly`
+| Declarable
+| Represents dependencies that are required only at compile time for the test source set of a project and are not included in the runtime classpath (i.e., additional dependencies only for compiling tests, not used at runtime).
 
-`annotationProcessor`::
-Represents annotation processors used during the compilation of a project's source code (i.e., annotation processors used during compilation).
+| `testRuntimeOnly` (extends `runtimeOnly`)
+| Declarable
+| Represents dependencies that are required only at runtime for the test source set of a project (i.e., runtime only dependencies for running tests).
 
-==== Resolvable Configurations
+| `annotationProcessor`
+| Declarable
+| Represents annotation processors used during the compilation of a project's source code (i.e., annotation processors used during compilation).
+|===
 
-`compileClasspath` extends `compileOnly, implementation`::
-Represents the classpath used when compiling the main sources, which includes dependencies from both `compileOnly` and `implementation` configurations. Used by task `compileJava`.
+=== Resolvable Configurations
 
-`runtimeClasspath` extends `runtimeOnly, implementation`::
-Represents the classpath used to run the main sources, which includes dependencies from both `runtimeOnly` and `implementation` configurations. Used by task `run`.
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
 
-`testCompileClasspath` extends `testCompileOnly, testImplementation`::
-Represents the classpath used to compile the test sources, which includes dependencies from both `testCompileOnly` and `testImplementation` configurations. Used by task `compileTestJava`.
+| `compileClasspath` (extends `compileOnly, implementation`)
+| Resolvable
+| Represents the classpath used when compiling the main sources, which includes dependencies from both `compileOnly` and `implementation` configurations. Used by the `compileJava` task.
 
-`testRuntimeClasspath` extends `testRuntimeOnly, testImplementation`::
-Represents the classpath used to run the test sources, which includes dependencies from both `testRuntimeOnly` and `testImplementation` configurations. Used by task `test`.
+| `runtimeClasspath` (extends `runtimeOnly, implementation`)
+| Resolvable
+| Represents the classpath used to run the main sources, which includes dependencies from both `runtimeOnly` and `implementation` configurations. Used by the `run` task.
 
-The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
+| `testCompileClasspath` (extends `testCompileOnly, testImplementation`)
+| Resolvable
+| Represents the classpath used to compile the test sources, which includes dependencies from both `testCompileOnly` and `testImplementation` configurations. Used by the `compileTestJava` task.
 
- * blue background — you can declare dependencies against the configuration.
- * green background — the configuration is for consumption by tasks, not for you to declare dependencies.
- * grey background — a task.
+| `testRuntimeClasspath` (extends `testRuntimeOnly, testImplementation`)
+| Resolvable
+| Represents the classpath used to run the test sources, which includes dependencies from both `testRuntimeOnly` and `testImplementation` configurations. Used by the `test` task.
+|===
 
-.Java plugin - _main_ source set dependency configurations
+The following diagrams show the dependency configurations for the _main_ source set. You can use this legend to interpret the colors:
+
+ * _blue_ background — you can declare dependencies against the configuration.
+ * _green_ background — the configuration is for consumption by tasks, not for you to declare dependencies.
+ * _grey_ background — a task.
+
 image::java-main-configurations.png[]
 
-.Java plugin - _test_ source set dependency configurations
+And the next graph describes the _test_ source set:
+
 image::java-test-configurations.png[]
 
 For each source set you add to the project, the Java plugins adds the following dependency configurations:

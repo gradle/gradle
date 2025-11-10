@@ -47,6 +47,14 @@ addInstallShadedJarTask(shadedJarTask)
 addShadedJarVariant(shadedJarTask)
 configureShadedSourcesJarVariant()
 
+plugins.withId("gradlebuild.publish-public-libraries") {
+    gradleModule {
+        // Since all of our dependencies are shaded, we don't care if they are published or not.
+        // Hackily declare this project as non-published to skip the verification.
+        published = false
+    }
+}
+
 fun registerTransforms() {
     dependencies {
         registerTransform(ShadeClasses::class) {

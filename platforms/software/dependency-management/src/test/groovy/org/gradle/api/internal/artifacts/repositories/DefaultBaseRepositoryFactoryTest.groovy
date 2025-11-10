@@ -116,6 +116,20 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         repo.url == centralUrl
     }
 
+    def "returns the same URL instance"() {
+        given:
+        def url = "https://repo.invalid/"
+
+        when:
+        fileResolver.resolveUri(url) >> { new URI(url) }
+        def repo = factory.createMavenRepository()
+        repo.url = url
+
+        then:
+        !fileResolver.resolveUri(url).is(fileResolver.resolveUri(url))
+        repo.url.is(repo.url)
+    }
+
     def createIvyRepository() {
         expect:
         def repo = factory.createIvyRepository()

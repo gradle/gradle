@@ -18,18 +18,18 @@ package org.gradle.internal.cc.impl.fixtures
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsExecutionResultFixture
 
 abstract class AbstractConfigurationCacheOptInFeatureIntegrationTest extends AbstractIntegrationSpec {
     static final String WARN_PROBLEMS_CLI_OPT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
-    protected ConfigurationCacheProblemsFixture problems
+    protected ConfigurationCacheProblemsExecutionResultFixture problems
 
     def setup() {
         // Verify that the previous test cleaned up state correctly
         assert System.getProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME) == null
         assert System.getProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME) == null
-        problems = new ConfigurationCacheProblemsFixture(testDirectory)
+        problems = new ConfigurationCacheProblemsExecutionResultFixture(testDirectory)
     }
 
     def cleanup() {

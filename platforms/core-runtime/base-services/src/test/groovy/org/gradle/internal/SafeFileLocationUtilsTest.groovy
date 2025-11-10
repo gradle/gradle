@@ -33,7 +33,7 @@ class SafeFileLocationUtilsTest extends Specification {
 
     def "toSafeFileName preserves Unicode and replaces problematic characters"() {
         expect:
-        toSafeFileName(input) == output
+        toSafeFileName(input, false) == output
         where:
         input           | output
         'Test_$1-2.3'   | 'Test_$1-2.3'
@@ -48,6 +48,22 @@ class SafeFileLocationUtilsTest extends Specification {
         '한글테스트'     | '한글테스트'
         'Test 中文'      | 'Test-中文'
         'Gradle Test Executor 1' | 'Gradle-Test-Executor-1'
+    }
+
+    def "toSafeFileName removes dots at end of directory name"() {
+        expect:
+        toSafeFileName(input, true) == output
+        where:
+        input           | output
+        'folder.'       | 'folder'
+        'folder..'      | 'folder'
+        'folder...'     | 'folder'
+        'folder.name.'  | 'folder.name'
+        'folder.name..' | 'folder.name'
+        '.foo'          | '.foo'
+        '..foo'         | '..foo'
+        '..'            | ''
+        '.'             | ''
     }
 
     def "assertInWindowsPathLengthLimitation throws exception when path limit exceeded"() {
@@ -66,7 +82,7 @@ class SafeFileLocationUtilsTest extends Specification {
 
     def "toSafeFileName handles edge cases"() {
         expect:
-        toSafeFileName(input) == output
+        toSafeFileName(input, false) == output
         where:
         input                                    | output
         ''                                       | ''
@@ -95,12 +111,12 @@ class SafeFileLocationUtilsTest extends Specification {
         // Prove our test string is what it says it is, since it may not be obvious to the reader
         stringWithExactlyMaxSafeFileNameChars.length() == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES
         // This gets shortened because it is at the byte limit, it comes out as 254 as the entire multi-byte char is removed
-        toSafeFileName(stringWithExactlyMaxSafeFileNameChars).getBytes(StandardCharsets.UTF_8).length == 254
+        toSafeFileName(stringWithExactlyMaxSafeFileNameChars, false).getBytes(StandardCharsets.UTF_8).length == 254
 
         when:
         def stringWithOneMoreThanMaxSafeBytes = 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + 1)
         then:
-        toSafeFileName(stringWithOneMoreThanMaxSafeBytes).getBytes(StandardCharsets.UTF_8).length == 255
+        toSafeFileName(stringWithOneMoreThanMaxSafeBytes, false).getBytes(StandardCharsets.UTF_8).length == 255
 
         when:
         def stringWithExactlyMaxSafeBytesWithUnicode = ('Θ' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES / 2)) +
@@ -109,12 +125,12 @@ class SafeFileLocationUtilsTest extends Specification {
         then:
         // Prove our test string is what it says it is, since it may not be obvious to the reader
         stringWithExactlyMaxSafeBytesWithUnicode.getBytes(StandardCharsets.UTF_8).length == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES
-        toSafeFileName(stringWithExactlyMaxSafeBytesWithUnicode).getBytes(StandardCharsets.UTF_8).length == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES
+        toSafeFileName(stringWithExactlyMaxSafeBytesWithUnicode, false).getBytes(StandardCharsets.UTF_8).length == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES
     }
 
     def "toSafeFileName hashes overly long paths"() {
         expect:
-        toSafeFileName(input) == TRUNCATED_PREFIX + output
+        toSafeFileName(input, false) == TRUNCATED_PREFIX + output
         where:
         input                       | output
         'A' * 256                   | 'A' * MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + '-RH50HNS6NT02C'
@@ -140,13 +156,13 @@ class SafeFileLocationUtilsTest extends Specification {
         stringWithUnicodeThatSitsOnByteLimit.getBytes(StandardCharsets.UTF_8).length == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + 1
         // The truncation should remove the multi-byte character to avoid invalid UTF-8
         // resulting in a string of 254 bytes, not 255 bytes
-        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit).getBytes(StandardCharsets.UTF_8).length == 254
-        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit) == TRUNCATED_PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) + '-72GHCULK4CDNS'
+        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false).getBytes(StandardCharsets.UTF_8).length == 254
+        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false) == TRUNCATED_PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) + '-72GHCULK4CDNS'
     }
 
     def "toSafeFileName handles null input"() {
         when:
-        toSafeFileName(null)
+        toSafeFileName(null, false)
 
         then:
         thrown(NullPointerException)

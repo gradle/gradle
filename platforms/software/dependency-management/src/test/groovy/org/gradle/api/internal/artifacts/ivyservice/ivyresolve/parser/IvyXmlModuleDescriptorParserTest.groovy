@@ -44,7 +44,7 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule
-    public final Resources resources = new Resources()
+    public final Resources resources = new Resources(null)
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()

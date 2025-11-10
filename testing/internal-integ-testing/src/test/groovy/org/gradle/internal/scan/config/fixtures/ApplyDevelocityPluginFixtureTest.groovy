@@ -35,10 +35,9 @@ class ApplyDevelocityPluginFixtureTest extends Specification {
 
         then:
         file.text =="""plugins {
-            |    id("com.gradle.develocity") version("${VERSION}")
+            |    id("com.gradle.develocity").version("${VERSION}")
             |    id("io.github.gradle.develocity-conventions-plugin").version("${CONVENTIONS_PLUGIN_VERSION}")
             |}
-            |
             |includeBuild '../lib'""".stripMargin()
     }
 
@@ -64,13 +63,38 @@ class ApplyDevelocityPluginFixtureTest extends Specification {
             |        gradlePluginPortal()
             |    }
             |}
-            |
             |plugins {
-            |    id("com.gradle.develocity") version("${VERSION}")
+            |    id("com.gradle.develocity").version("${VERSION}")
             |    id("io.github.gradle.develocity-conventions-plugin").version("${CONVENTIONS_PLUGIN_VERSION}")
             |}
             |
             |includeBuild '../lib'""".stripMargin()
+    }
+
+    def "existing plugins block"() {
+        given:
+        File file = File.createTempFile("test_script", ".tmp")
+        file.write("""plugins {
+            |    id 'java-library'
+            |}
+            |
+            |includeBuild '../lib'
+            |""".stripMargin())
+        file.deleteOnExit()
+
+        when:
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(file)
+
+        then:
+        file.text =="""plugins {
+            |    id("com.gradle.develocity").version("${VERSION}")
+            |    id("io.github.gradle.develocity-conventions-plugin").version("${CONVENTIONS_PLUGIN_VERSION}")
+            |
+            |    id 'java-library'
+            |}
+            |
+            |includeBuild '../lib'
+            |""".stripMargin()
     }
 
 }

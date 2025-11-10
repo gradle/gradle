@@ -30,7 +30,6 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 
 public class DefaultOutputFilesRepository implements OutputFilesRepository, Closeable {
 
@@ -108,7 +107,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         cacheAccess.close();
     }
 }

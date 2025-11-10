@@ -38,7 +38,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 configurations.create('default')
                 task jar {}
                 artifacts {
-                    'default' file('libInclude.jar'), { builtBy jar }
+                    'default' file('libInclude.jar'), { builtBy tasks.jar }
                 }
             }
 
@@ -46,7 +46,7 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 configurations.create('default')
                 task jar {}
                 artifacts {
-                    'default' file('libExclude.jar'), { builtBy jar }
+                    'default' file('libExclude.jar'), { builtBy tasks.jar }
                 }
             }
 

@@ -25,7 +25,6 @@ import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.composite.BuildIncludeListener;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -72,8 +71,8 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         settings.getCaches().finalizeConfiguration(gradle);
         try {
             applySettingsScript(settingsScript, settings);
-        } catch (LocationAwareException e) {
-            buildIncludeListener.settingsScriptFailed(state.getSettings(), e);
+        } catch (Exception e) {
+            buildIncludeListener.settingsScriptFailed(settings);
             throw e;
         }
         LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getElapsed());

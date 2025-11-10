@@ -19,6 +19,7 @@ package org.gradle.api.internal.runtimeshaded;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.util.Trie;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.BufferedReader;
@@ -54,6 +55,7 @@ class ImplementationDependencyRelocator extends Remapper {
     }
 
     public ImplementationDependencyRelocator(RuntimeShadedJarType type) {
+        super(AsmConstants.ASM_LEVEL);
         prefixes = readPrefixes(type);
     }
 

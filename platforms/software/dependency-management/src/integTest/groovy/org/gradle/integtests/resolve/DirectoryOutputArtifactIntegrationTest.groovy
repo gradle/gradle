@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
 
     def "can attach a directory as output of a configuration"() {
         given:
@@ -170,7 +169,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         }
 
         artifacts {
-            compile file:file("$buildDir/someDir"), builtBy: generateFiles
+            compile file: file("$buildDir/someDir"), builtBy: tasks.generateFiles
         }
         '''
 
@@ -209,7 +208,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         }
 
         artifacts {
-            compile_output file:compileJava.destinationDirectory.asFile.get(), builtBy: compileJava
+            compile_output file: tasks.compileJava.destinationDirectory.asFile.get(), builtBy: tasks.compileJava
         }
         '''
         file('b/src/main/java/Hello.java') << 'public class Hello {}'
@@ -264,7 +263,7 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         }
 
         artifacts {
-            compile_output file:compileJava.destinationDirectory.asFile.get(), builtBy: compileJava
+            compile_output file: tasks.compileJava.destinationDirectory.asFile.get(), builtBy: tasks.compileJava
         }
         """
         file('b/src/main/java/Hello.java') << '''import org.apache.commons.lang3.StringUtils;
@@ -283,31 +282,36 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "doesn't throw an NPE when loading results from disk"() {
+        ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
+
         file('someDir/a.txt') << 'some text'
-        file('settings.gradle') << 'rootProject.name="nullsafe"'
-        buildFile << '''
-        version = '1.0'
+        file('settings.gradle') << """
+            rootProject.name="nullsafe"
+        """
+        buildFile << """
+            version = '1.0'
 
-        configurations {
-            compile
-            _classpath
-        }
-
-        artifacts {
-            _classpath file("someDir")
-        }
-
-        dependencies {
-            compile project(path: ':', configuration: '_classpath')
-        }
-
-        task run {
-            doLast {
-                assert configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.name == [':nullsafe:1.0']
+            configurations {
+                compile
+                _classpath
             }
-        }
-        '''
-        resolve.prepare("compile")
+
+            ${resolve.configureProject("compile")}
+
+            artifacts {
+                _classpath file("someDir")
+            }
+
+            dependencies {
+                compile project(path: ':', configuration: '_classpath')
+            }
+
+            task run {
+                doLast {
+                    assert configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.name == [':nullsafe:1.0']
+                }
+            }
+        """
 
         when:
         run 'checkDeps'

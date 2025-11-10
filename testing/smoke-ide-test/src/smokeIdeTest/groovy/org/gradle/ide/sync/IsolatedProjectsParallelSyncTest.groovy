@@ -16,11 +16,10 @@
 
 package org.gradle.ide.sync
 
-import org.gradle.test.fixtures.Flaky
+
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/4661")
 class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
 
     @Rule
@@ -41,26 +40,25 @@ class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
     }
 
     private void simpleProject() {
-        file("settings.gradle") << """
+        projectFile("settings.gradle") << """
             rootProject.name = 'project-under-test'
             include ':a'
             include ':b'
         """
 
-        file("gradle.properties") << """
-            org.gradle.configuration-cache.problems=warn
+        projectFile("gradle.properties") << """
             org.gradle.unsafe.isolated-projects=true
         """
 
-        file("build.gradle") << """
+        projectFile("build.gradle") << """
             ${server.callFromBuildUsingExpression("'configure-root'")}
         """
 
-        file("a/build.gradle") << """
+        projectFile("a/build.gradle") << """
             ${server.callFromBuildUsingExpression("'configure-a'")}
         """
 
-        file("b/build.gradle") << """
+        projectFile("b/build.gradle") << """
             ${server.callFromBuildUsingExpression("'configure-b'")}
         """
     }

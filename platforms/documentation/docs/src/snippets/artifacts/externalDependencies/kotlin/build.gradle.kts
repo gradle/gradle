@@ -1,5 +1,6 @@
 repositories {
     mavenCentral()
+    google()
 }
 
 val implementation by configurations.creating
@@ -22,21 +23,22 @@ tasks.register("listJars") {
 
 // tag::module-dependencies[]
 dependencies {
-    runtimeOnly("org.springframework:spring-aop:2.5")
+    // 1) Regular module dependency using string notation (JAR)
+    runtimeOnly("org.springframework:spring-core:2.5",
+        "org.springframework:spring-aop:2.5")
+
+    // 2) Regular module dependency with a config block
     runtimeOnly("org.hibernate:hibernate:3.0.5") {
         isTransitive = true
     }
+
+    // 3) Classifier + extension (:resources@zip) — fetches a ZIP artifact instead of a JAR
+    runtimeOnly("net.sf.docbook:docbook-xsl:1.75.2:resources@zip")
+
+    // 4) Extension only (@aar) — Android AAR instead of JAR
+    implementation("com.google.android.material:material:1.11.0@aar")
 }
 // end::module-dependencies[]
-
-// tag::module-dependencies-map[]
-dependencies {
-    runtimeOnly("org.springframework:spring-core:2.5")
-    runtimeOnly("org.hibernate:hibernate:3.0.5") {
-        isTransitive = true
-    }
-}
-// end::module-dependencies-map[]
 
 // tag::file-dependencies[]
 dependencies {

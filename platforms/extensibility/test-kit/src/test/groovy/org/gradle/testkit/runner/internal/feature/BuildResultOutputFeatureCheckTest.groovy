@@ -25,7 +25,8 @@ class BuildResultOutputFeatureCheckTest extends Specification {
 
     public static final GradleVersion UNSUPPORTED_GRADLE_VERSION = GradleVersion.version('2.8')
 
-    @ExpectDeprecation("Capturing build output in debug mode with the GradleRunner for the version of Gradle you are using (%s) is deprecated with TestKit.")
+    @ExpectDeprecation(
+        "Capturing build output in debug mode with the GradleRunner for the version of Gradle you are using (2.9) is deprecated with TestKit. TestKit will only support the last 5 major versions in future. has been deprecated.")
     def "supported Gradle version passes check [version = #gradleVersion, embedded = #embedded]"() {
         given:
         BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since, embedded)

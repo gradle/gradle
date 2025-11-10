@@ -16,21 +16,18 @@
 package org.gradle.internal.logging.text
 
 import org.gradle.internal.SystemProperties
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
 class AbstractLineChoppingStyledTextOutputTest extends Specification {
     private static final String NIX_EOL = "\n"
     private static final String WINDOWS_EOL = "\r\n"
-    private static final String SYSTEM_EOL = SystemProperties.instance.getLineSeparator();
-    private static final def EOLS = [
+    private static final String SYSTEM_EOL = SystemProperties.instance.getLineSeparator()
+    private static final List<List<String>> EOLS = [
         ["System", SYSTEM_EOL],
         ["*nix", NIX_EOL],
         ["Windows", WINDOWS_EOL]
     ]
-    @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final StringBuilder result = new StringBuilder()
 
     def "appends text to current line"() {
@@ -107,8 +104,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can append eol in chunks"() {
-        System.setProperty("line.separator", "----")
-        def output = output()
+        def output = output("----")
 
         when:
         output.text("a--")
@@ -124,8 +120,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can append eol prefix"() {
-        System.setProperty("line.separator", "----")
-        def output = output()
+        def output = output("----")
 
         when:
         output.text("a--")
@@ -144,8 +139,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
     @Issue("https://github.com/gradle/gradle/issues/2077")
     def "can append consecutive return character on Windows"() {
-        System.setProperty("line.separator", "\r\n")
-        def output = output()
+        def output = output("\r\n")
 
         when:
         output.text('\r')
@@ -156,8 +150,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can append data after a carriage return on Windows"() {
-        System.setProperty("line.separator", "\r\n")
-        def output = output()
+        def output = output("\r\n")
 
         when:
         output.text('\r')
@@ -168,8 +161,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can append new line after multiple carriage return followed by data on Windows"() {
-        System.setProperty("line.separator", "\r\n")
-        def output = output()
+        def output = output("\r\n")
 
         when:
         output.text('\r\r\r')
@@ -180,8 +172,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can split eol across style changes"() {
-        System.setProperty("line.separator", "----")
-        def output = output()
+        def output = output("----")
 
         when:
         output.text("--")
@@ -204,8 +195,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "can split Windows eol across multiple call on non-Windows eol default"() {
-        System.setProperty("line.separator", "\n")
-        def output = output()
+        def output = output("\n")
 
         when:
         output.text("\r")
@@ -216,8 +206,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
     }
 
     def "Carriage return isn't detected as new line [#type]"() {
-        System.setProperty("line.separator", eol)
-        def output = output()
+        def output = output(eol as String)
 
         when:
         output.text("1\r2\r3\r")
@@ -235,8 +224,8 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         [type, eol] << EOLS
     }
 
-    def output() {
-        final AbstractLineChoppingStyledTextOutput output = new AbstractLineChoppingStyledTextOutput() {
+    def output(String eol = SystemProperties.getInstance().lineSeparator) {
+        final AbstractLineChoppingStyledTextOutput output = new AbstractLineChoppingStyledTextOutput(eol) {
             @Override
             protected void doStyleChange(StyledTextOutput.Style style) {
                 result.append("{style}")
@@ -256,7 +245,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
 
             @Override
             protected void doEndLine(CharSequence endOfLine) {
-                assert endOfLine in [System.getProperty("line.separator"), NIX_EOL, WINDOWS_EOL]
+                assert String.valueOf(endOfLine) in [eol, NIX_EOL, WINDOWS_EOL]
                 result.append("{eol}")
             }
         }

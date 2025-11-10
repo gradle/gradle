@@ -20,7 +20,10 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 
+import java.util.regex.Pattern;
+
 public class AsmClassGenerator {
+    private static final Pattern DOT_PATTERN = Pattern.compile("\\.");
 
     private final ClassWriter visitor;
     private final String generatedTypeName;
@@ -31,7 +34,7 @@ public class AsmClassGenerator {
         this.targetType = targetType;
         visitor = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         generatedTypeName = targetType.getName() + classNameSuffix;
-        generatedType = Type.getType("L" + generatedTypeName.replaceAll("\\.", "/") + ";");
+        generatedType = Type.getType("L" + DOT_PATTERN.matcher(generatedTypeName).replaceAll("/") + ";");
     }
 
     public ClassWriter getVisitor() {

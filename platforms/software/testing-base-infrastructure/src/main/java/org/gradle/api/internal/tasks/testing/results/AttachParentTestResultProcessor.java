@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 public class AttachParentTestResultProcessor implements TestResultProcessor {
@@ -59,4 +60,10 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
         }
         processor.completed(testId, event);
     }
+
+    @Override
+    public void published(Object testId, TestMetadataEvent keyValueEvent) {
+        processor.published(testId, keyValueEvent);
+    }
+
 }

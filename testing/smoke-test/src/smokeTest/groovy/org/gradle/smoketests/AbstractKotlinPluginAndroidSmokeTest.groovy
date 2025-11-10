@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.util.internal.VersionNumber
@@ -42,6 +43,7 @@ abstract class AbstractKotlinPluginAndroidSmokeTest extends AbstractSmokeTest im
         given:
         AndroidHome.assertIsSet()
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidPluginVersion)
+        KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinPluginVersion)
         this.kotlinPluginVersion = VersionNumber.parse(kotlinPluginVersion)
         useSample(getSampleName())
 

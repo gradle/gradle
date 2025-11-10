@@ -140,7 +140,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         // Project has no publications: simply use the project name in place of the dependency name
         if (coordsType.equals(ModuleVersionIdentifier.class)) {
 
-            // TODO: Deprecate this behavior
+            // TODO #35531: Deprecate this behavior
 //            String message = "Cannot publish dependency on " + project.getDisplayName() + " since it does not declare any publications. " +
 //                "Publishing a component that depends on another project without publications";
 //            DeprecationLogger.deprecate(message)

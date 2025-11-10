@@ -45,7 +45,7 @@ public class TestNGTestFrameworkTest extends Specification {
         def processor = framework.getProcessorFactory().create(Mock(IdGenerator), Mock(ActorFactory), FixedClock.create())
 
         then:
-        processor instanceof TestNGTestClassProcessor
+        processor instanceof TestNGTestDefinitionProcessor
         framework.detector
     }
 

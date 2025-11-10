@@ -24,12 +24,11 @@ import spock.lang.Issue
 import java.util.concurrent.CopyOnWriteArrayList
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
-    def resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
             rootProject.name = "depsub"
-            ${resolve.configureSettings()}
         """
     }
 
@@ -355,7 +354,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":impl:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     configuration = "runtimeElements"
@@ -391,7 +390,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
             artifacts {
                 runtimeElements (file("artifact.txt")) {
-                    builtBy build
+                    builtBy tasks.build
                 }
             }
         """
@@ -455,7 +454,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         notExecuted ":api:jar"
 
-        resolve.expectGraph {
+        resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
                 edge("project :api", "org.utils:api:1.5") {
                     selectedByRule()
@@ -499,7 +498,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":test:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":test") {
             root(":test", "depsub:test:") {
                 module("org.utils:impl:1.5") {
                     edge("org.utils:api:1.5", ":api", "depsub:api:") {
@@ -544,7 +543,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":impl:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     selectedByRule()
@@ -580,7 +579,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":impl:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     forced()
@@ -646,7 +645,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":impl:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     configuration = 'runtimeElements'
@@ -682,7 +681,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":test:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":test") {
             root(":test", "depsub:test:") {
                 edge("org.utils:impl:1.5", ":impl", "depsub:impl:") {
                     selectedByRule()
@@ -744,7 +743,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":impl:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
                 module("org.utils:api:2.0")
                 edge("project :api", "org.utils:api:2.0").byConflictResolution("between versions 2.0 and 1.6").selectedByRule()
@@ -772,7 +771,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             group = "org.utils"
             version = '3.0'
 
-            jar.archiveVersion = '3.0'
+            tasks.jar.archiveVersion = '3.0'
         """
 
         file("impl/build.gradle") << """
@@ -796,7 +795,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":impl:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":impl") {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:dep1:1.5", "org.utils:dep1:2.0") {
                     byConflictResolution("between versions 1.6 and 2.0")
@@ -1330,6 +1329,8 @@ Required by:
             }
         }
 
+        ${resolve.configureProject("runtimeClasspath")}
+
         ${mavenTestRepository()}
 
         task jar(type: Jar) {
@@ -1342,7 +1343,7 @@ Required by:
         }
 
         configurations.runtimeElements.outgoing {
-            artifact jar
+            artifact tasks.jar
         }
 
         def moduleId(String group, String name, String version) {
@@ -1602,6 +1603,8 @@ Required by:
                 id("java-library")
             }
 
+            ${resolve.configureProject("runtimeClasspath")}
+
             repositories {
                 maven { url = "${mavenRepo.uri}" }
             }
@@ -1644,6 +1647,8 @@ Required by:
             plugins {
                 id("java-library")
             }
+
+            ${resolve.configureProject("runtimeClasspath")}
 
             ${mavenTestRepository()}
 

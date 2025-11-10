@@ -40,6 +40,7 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "#tasks with rich console"() {
         given:
         runner.tasksToRun = tasks.split(' ')
+        runner.gradleOpts << "-Xmx4g"
         runner.warmUpRuns = 5
         runner.runs = 8
 

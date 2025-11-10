@@ -19,11 +19,11 @@ package org.gradle.testkit.runner.internal;
 import com.google.common.io.FileBackedOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.UnsupportedFeatureException;
+import org.gradle.testkit.runner.internal.feature.BuildResultOutputFeatureCheck;
 import org.gradle.testkit.runner.internal.feature.TestKitFeature;
 import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
@@ -122,7 +122,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions %s and later.",
                     targetGradleVersion.getVersion(), MINIMUM_SUPPORTED_GRADLE_VERSION.getVersion()));
             } else {
-                checkDeprecationWarning(targetGradleVersion);
+                warnIfUnsupportedVersion(targetGradleVersion);
             }
 
 
@@ -145,7 +145,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 if (targetGradleVersion.compareTo(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince()) < 0) {
                     throw new UnsupportedFeatureException("support plugin classpath injection", targetGradleVersion, TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince());
                 } else {
-                    checkDeprecationWarning(targetGradleVersion);
+                    warnIfUnsupportedVersion(targetGradleVersion);
                 }
                 launcher.withInjectedClassPath(parameters.getInjectedClassPath());
             }
@@ -190,14 +190,9 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.asByteSource(), tasks);
     }
 
-    private static void checkDeprecationWarning(GradleVersion targetGradleVersion) {
-        if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
-            DeprecationLogger.deprecate(String.format("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.",
-                    targetGradleVersion.getVersion()))
-                .willBecomeAnErrorInGradle10()
-                .withUserManual("third_party_integration", "sec:embedding_compatibility")
-                .nagUser();
-        }
+    private static void warnIfUnsupportedVersion(GradleVersion targetGradleVersion) {
+        BuildResultOutputFeatureCheck.warnIfUnsupportedVersion(targetGradleVersion,
+            version -> String.format("The version of Gradle you are using (%s) is deprecated with TestKit.", version));
     }
 
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {

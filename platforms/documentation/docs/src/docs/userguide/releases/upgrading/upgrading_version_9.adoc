@@ -39,6 +39,28 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.2.21
+
+The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[Kotlin 2.2.21].
+
+==== Upgrade to Jansi 2.4.2
+
+Jansi was upgraded from https://github.com/fusesource/jansi/blob/jansi-2.4.2/changelog.md#jansi-118-released-2019-04-02[1.18] to https://github.com/fusesource/jansi/releases/tag/jansi-2.4.2[2.4.2] to pick up support for Windows ARM64.
+
+==== Upgrade to ASM 9.9
+
+ASM was upgraded from 9.8 to https://asm.ow2.io/versions.html[9.9] to ensure earlier compatibility for Java 26.
+
+==== Upgrade to Groovy 4.0.29
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[Groovy 4.0.29].
+
+==== Upgrade to JaCoCo 0.8.14
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.14].
+
 === Deprecations
 
 [[deprecated_wrapper_get_available_distribution_types]]
@@ -47,6 +69,26 @@ The previous step will help you identify potential problems by issuing deprecati
 The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[Wrapper] task has been deprecated and will be removed in Gradle 10.
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
+
+[[deprecate_legacy_usage_values]]
+==== Deprecation of legacy `Usage` attribute values
+
+Since Gradle 5.6, the link:{javadocPath}/org/gradle/api/attributes/Usage.html[`Usage`] attribute has been split into a separate link:{javadocPath}/org/gradle/api/attributes/LibraryElements.html[`LibraryElements`] attribute.
+In the JVM ecosystem, `Usage` indicates whether a variant is intended for compilation or runtime, while `LibraryElements` specifies the format of the artifact (for example, a JAR file or a classes directory).
+
+To ease migration, Gradle has automatically mapped legacy `Usage` values to their corresponding `Usage` and `LibraryElements` pairs:
+
+|===
+| Legacy `Usage`           | Replaced `Usage` | Replaced `LibraryElements`
+| `java-api-jars`          | `java-api`       | `jar`
+| `java-api-classes`       | `java-api`       | `classes`
+| `java-runtime-jars`      | `java-runtime`   | `jar`
+| `java-runtime-classes`   | `java-runtime`   | `classes`
+| `java-runtime-resources` | `java-runtime`   | `resources`
+|===
+
+Starting with Gradle 10, this automatic mapping will no longer occur when legacy `Usage` values are added directly to an `AttributeContainer` in build logic.
+To maintain backward compatibility, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
 
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier

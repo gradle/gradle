@@ -32,6 +32,7 @@ class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
+        runner.gradleOpts << "-Xmx4g"
 
         when:
         def result = runner.run()

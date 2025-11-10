@@ -23,7 +23,7 @@ description = "Problems API rendering infrastructure"
 dependencies {
     api(projects.problemsApi)
 
-    api(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     implementation(libs.guava)
     implementation(projects.baseServices)

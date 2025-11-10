@@ -198,6 +198,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder contextualLabel(String contextualLabel) {
+        // TODO (donat) enforce contextual label to be a single line
         this.contextualLabel = contextualLabel;
         return this;
     }

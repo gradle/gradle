@@ -23,6 +23,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputTrackedResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
@@ -64,7 +66,7 @@ public class TestTreeModel {
         return modelsByPath.getOrDefault(Path.ROOT, EMPTY_MODEL);
     }
 
-    private static final class StoreLoader implements Consumer<SerializableTestResultStore.OutputTrackedResult> {
+    private static final class StoreLoader implements Consumer<OutputTrackedResult> {
 
         private static final class Child {
             private final long id;
@@ -87,8 +89,8 @@ public class TestTreeModel {
         }
 
         @Override
-        public void accept(SerializableTestResultStore.OutputTrackedResult result) {
-            List<Child> children = childrenByParentId.get(result.getOutputId());
+        public void accept(OutputTrackedResult result) {
+            List<Child> children = childrenByParentId.get(result.getId());
             int totalLeafCount = 0;
             int failedLeafCount = 0;
             int skippedLeafCount = 0;
@@ -117,12 +119,12 @@ public class TestTreeModel {
                 }
             }
             PerRootInfo thisInfo = new PerRootInfo(result, childNames, childIsLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
-            OptionalLong parentOutputId = result.getParentOutputId();
+            OptionalLong parentOutputId = result.getParentId();
             if (!parentOutputId.isPresent()) {
                 // We have the root, so now we can resolve all paths and attach to the models.
-                finalizePath(null, Path.ROOT, result.getOutputId(), thisInfo);
+                finalizePath(null, Path.ROOT, result.getId(), thisInfo);
             } else {
-                childrenByParentId.put(parentOutputId.getAsLong(), new Child(result.getOutputId(), thisInfo));
+                childrenByParentId.put(parentOutputId.getAsLong(), new Child(result.getId(), thisInfo));
             }
         }
 
@@ -163,14 +165,14 @@ public class TestTreeModel {
     }
 
     public static final class PerRootInfo {
-        private SerializableTestResultStore.OutputTrackedResult outputTrackedResult;
+        private OutputTrackedResult outputTrackedResult;
         private final List<String> children;
         private final BitSet childIsLeaf;
         private int totalLeafCount;
         private int failedLeafCount;
         private int skippedLeafCount;
 
-        public PerRootInfo(SerializableTestResultStore.OutputTrackedResult outputTrackedResult, List<String> children, BitSet childIsLeaf, int totalLeafCount, int failedLeafCount, int skippedLeafCount) {
+        public PerRootInfo(OutputTrackedResult outputTrackedResult, List<String> children, BitSet childIsLeaf, int totalLeafCount, int failedLeafCount, int skippedLeafCount) {
             this.outputTrackedResult = outputTrackedResult;
             this.children = new ArrayList<>(children);
             this.childIsLeaf = childIsLeaf;
@@ -183,8 +185,12 @@ public class TestTreeModel {
             return outputTrackedResult.getInnerResult();
         }
 
-        public long getOutputId() {
-            return outputTrackedResult.getOutputId();
+        public long getId() {
+            return outputTrackedResult.getId();
+        }
+
+        public OutputEntry getOutputEntry() {
+            return outputTrackedResult.getOutputEntry();
         }
 
         public List<String> getChildren() {

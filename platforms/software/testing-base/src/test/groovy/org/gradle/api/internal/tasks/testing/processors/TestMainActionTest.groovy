@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.processors
 
-import org.gradle.api.internal.tasks.testing.TestClassProcessor
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.detection.TestDetector
 import org.gradle.api.tasks.testing.TestFailure
@@ -28,7 +28,7 @@ class TestMainActionTest extends Specification {
     private static final long CLOCK_START = 100L
     private static final long CLOCK_INCREMENT = MockClock.DEFAULT_AUTOINCREMENT_MS
 
-    private final TestClassProcessor processor = Mock()
+    private final TestDefinitionProcessor processor = Mock()
     private final TestResultProcessor resultProcessor = Mock()
     private final TestDetector detector = Mock()
     private final def timeProvider = MockClock.createAutoIncrementingAt(CLOCK_START)

@@ -27,7 +27,7 @@ import spock.lang.Issue
  */
 class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    def resolve = new ResolveTestFixture(buildFile, "conf")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
@@ -35,15 +35,20 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         """
         buildFile << """
             ${mavenCentralRepository()}
+
             group = 'org'
             version = '1.0'
+
+            configurations {
+                conf
+            }
+
+            ${resolve.configureProject("conf")}
         """
-        resolve.prepare()
     }
 
     def "mutating the provider value before it's added resolves to the correct dependency"() {
         buildFile << """
-        configurations { conf }
 
         def lazyDep = objects.property(String).convention("org.mockito:mockito-core:1.8")
 
@@ -79,7 +84,6 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
                 url = "${mavenRepo.uri}"
             }
         }
-        configurations { conf }
 
         dependencies {
             conf provider { "group:projectA:\${property('project.version')}" }
@@ -94,7 +98,7 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
             }
         }
 
-        checkDeps.dependsOn resolve
+        tasks.checkDeps.dependsOn tasks.resolve
 
         """
 
@@ -139,8 +143,6 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
     @ToBeImplemented("https://github.com/gradle/gradle/issues/12972")
     def "property has no value"() {
         buildFile """
-        configurations { conf }
-
         def emptyDep = objects.property(String)
 
         // https://github.com/gradle/gradle/issues/15319
@@ -175,8 +177,6 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
 
     def "provider throws an exception"() {
         buildFile << """
-        configurations { conf }
-
         def lazyDep = provider {
             throw new GradleException("Boom!")
         }
@@ -220,7 +220,6 @@ The following types/formats are supported:"""
     def "fails with reasonable error message if a Configuration is provided"() {
         buildFile << """
         configurations {
-           conf
            other
         }
 

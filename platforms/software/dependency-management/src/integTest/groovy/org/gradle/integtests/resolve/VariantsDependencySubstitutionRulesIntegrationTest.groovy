@@ -20,12 +20,22 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
-    def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << "rootProject.name='depsub'\n"
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
+
+        buildFile << """
+            plugins {
+                id("jvm-ecosystem")
+            }
+
+            configurations {
+                conf
+            }
+
+            ${resolve.configureProject("conf")}
+        """
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13204")

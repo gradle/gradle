@@ -15,6 +15,20 @@
 [[platforms]]
 = Platforms
 
+++++
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+"sub::toml-dependencies-format": "version_catalogs.html#sec::toml-dependencies-format",
+};
+
+if (currentAnchor && redirectionRules[currentAnchor]) {
+window.location.href = redirectionRules[currentAnchor];
+}
+</script>
+++++
+
 Platforms are used to ensure that all dependencies in a project align with a consistent set of versions.
 
 [[sec:sharing-dep-versions-between-projects]]

@@ -18,7 +18,7 @@ val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
 val spockVersion = if (isGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val groovyGroup = if (isGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
-val asmVersion = "9.8"
+val asmVersion = "9.9"
 // To try out newer kotlin versions
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
     .getOrElse(embeddedKotlinVersion)
@@ -35,7 +35,7 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:3.0.1")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:3.4.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
