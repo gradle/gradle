@@ -72,7 +72,7 @@ This error indicates that you have annotated a property of an artifact transform
 
 To fix this problem, you must remove the property and use the `TransformOutputs` parameter instead.
 
-See link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html#transform-org.gradle.api.artifacts.transform.TransformOutputs-[TransformAction#transform(TransformOutputs)] for details.
+See link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html#transform(org.gradle.api.artifacts.transform.TransformOutputs)[TransformAction#transform(TransformOutputs)] for details.
 
 [[ignored_annotations_on_field]]
 == Invalid use of annotations on fields
