@@ -52,7 +52,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.ExecutionBehavior;
 import org.gradle.internal.execution.ExecutionContext;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImplementationVisitor;
@@ -415,6 +414,10 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
+        // If the task is declared with InputChanges received in its action,
+        // then we know it is prepared to execute non-incrementally.
+        // If the task does not request an InputChanges object, then
+        // we cannot assume if it understands non-incremental execution.
         return getExecutionBehavior() == ExecutionBehavior.INCREMENTAL;
     }
 

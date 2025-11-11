@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
@@ -36,7 +37,7 @@ import java.util.Set;
 /**
  * When executed non-incrementally remove previous outputs owned by the work unit.
  */
-public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R extends Result> implements Step<C, R> {
+public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R extends Result> extends MutableStep<C, R> {
 
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
@@ -53,7 +54,7 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    protected R executeMutable(MutableUnitOfWork work, C context) {
         if (!context.isIncrementalExecution()) {
             if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
                 boolean hasOverlappingOutputs = context.getBeforeExecutionState()

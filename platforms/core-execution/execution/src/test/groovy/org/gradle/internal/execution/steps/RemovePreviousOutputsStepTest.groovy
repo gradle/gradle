@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.history.BeforeExecutionState
@@ -36,9 +37,9 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
     def delegateResult = Mock(Result)
     def outputChangeListener = Mock(OutputChangeListener)
     def deleter = TestFiles.deleter()
+    def work = Stub(MutableUnitOfWork)
 
     def step = new RemovePreviousOutputsStep<>(deleter, outputChangeListener, delegate)
-
 
     def "deletes only the previous outputs"() {
         def outputs = new WorkOutputs()

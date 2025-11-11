@@ -68,6 +68,7 @@ public interface UnitOfWork extends Describable {
      */
     default void visitIdentityInputs(InputVisitor visitor) {}
 
+    // TODO Move to MutableUnitOfWork
     /**
      * Visit regular inputs of the work.
      *
@@ -110,6 +111,7 @@ public interface UnitOfWork extends Describable {
     /**
      * Whether overlapping outputs should be allowed or ignored.
      */
+    // TODO Move to MutableUnitOfWork
     default OverlappingOutputHandling getOverlappingOutputHandling() {
         return OverlappingOutputHandling.IGNORE_OVERLAPS;
     }
@@ -145,13 +147,6 @@ public interface UnitOfWork extends Describable {
      */
     default FileCollectionStructureVisitor getInputDependencyChecker(WorkValidationContext validationContext) {
         return FileCollectionStructureVisitor.NO_OP;
-    }
-
-    /**
-     * Whether the outputs should be cleanup up when the work is executed non-incrementally.
-     */
-    default boolean shouldCleanupOutputsOnNonIncrementalExecution() {
-        return true;
     }
 
     /**

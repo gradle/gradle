@@ -244,8 +244,8 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            ExecutionBehavior getExecutionBehavior() {
-                return ExecutionBehavior.NON_INCREMENTAL
+            MutableUnitOfWork.ExecutionBehavior getExecutionBehavior() {
+                return MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL
             }
 
             @Override

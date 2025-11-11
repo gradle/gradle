@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import org.gradle.internal.execution.ExecutionBehavior
+
 import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
@@ -35,7 +35,7 @@ class ResolveInputChangesStepTest extends StepSpec<IncrementalCachingContext> {
         when:
         def returnedResult = step.execute(work, context)
         then:
-        _ * work.executionBehavior >> ExecutionBehavior.INCREMENTAL
+        _ * work.executionBehavior >> MutableUnitOfWork.ExecutionBehavior.INCREMENTAL
         _ * context.changes >> optionalChanges
         1 * changes.createInputChanges() >> inputChanges
         1 * inputChanges.incremental >> true
@@ -52,7 +52,7 @@ class ResolveInputChangesStepTest extends StepSpec<IncrementalCachingContext> {
         when:
         def returnedResult = step.execute(work, context)
         then:
-        _ * work.executionBehavior >> ExecutionBehavior.NON_INCREMENTAL
+        _ * work.executionBehavior >> MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * delegate.execute(work, _ as InputChangesContext) >> { UnitOfWork work, InputChangesContext context ->
             assert context.inputChanges == Optional.empty()
             return result
