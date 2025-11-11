@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -137,7 +138,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         );
     }
 
-    private static class ImplementationsBuilder implements UnitOfWork.ImplementationVisitor {
+    private static class ImplementationsBuilder implements ImplementationVisitor {
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
         @Nullable
         private ImplementationSnapshot implementation;

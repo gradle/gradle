@@ -54,6 +54,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.ExecutionBehavior;
 import org.gradle.internal.execution.Identity;
+import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
@@ -193,6 +194,7 @@ public class TaskExecution implements MutableUnitOfWork {
         }
     }
 
+    @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
         return null;

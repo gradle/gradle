@@ -201,7 +201,7 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            void visitImplementations(UnitOfWork.ImplementationVisitor visitor) {
+            void visitImplementations(ImplementationVisitor visitor) {
                 visitor.visitImplementation(implementationType)
                 additionalImplementations.forEach(visitor::visitAdditionalImplementation)
             }

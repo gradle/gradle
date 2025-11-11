@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.execution.ImplementationVisitor
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
@@ -69,7 +70,7 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
         step.execute(work, context)
 
         then:
-        _ * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
+        _ * work.visitImplementations(_) >> { ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationType)
             additionalImplementations.each {
                 visitor.visitAdditionalImplementation(it)
@@ -154,7 +155,7 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
     void snapshotState() {
         _ * context.shouldCaptureBeforeExecutionState() >> true
         _ * context.previousExecutionState >> Optional.empty()
-        _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
+        _ * work.visitImplementations(_ as ImplementationVisitor) >> { ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationType)
         }
         _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())

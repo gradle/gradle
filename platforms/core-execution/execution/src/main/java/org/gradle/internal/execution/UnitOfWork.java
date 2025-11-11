@@ -33,7 +33,6 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -97,21 +96,6 @@ public interface UnitOfWork extends Describable {
      */
     default void visitImplementations(ImplementationVisitor visitor) {
         visitor.visitImplementation(getClass());
-    }
-
-    // TODO Move this to {@link InputVisitor}
-    interface ImplementationVisitor {
-        /**
-         * Visit the implementation of the work. This is the type of the task or transform being executed.
-         */
-        void visitImplementation(Class<?> implementation);
-
-        /**
-         * Visits additional implementations related to the work. This is only used for additional task
-         * actions that are added via {@code Task.doLast()} etc.
-         */
-        // TODO Make these additional implementations into identity inputs
-        void visitAdditionalImplementation(ImplementationSnapshot implementation);
     }
 
     /**
