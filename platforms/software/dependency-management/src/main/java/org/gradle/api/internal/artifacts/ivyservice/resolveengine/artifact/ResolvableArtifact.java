@@ -16,9 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Action;
+import org.gradle.api.Buildable;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
+import org.gradle.api.internal.tasks.WorkNodeAction;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
 
@@ -50,4 +57,25 @@ public interface ResolvableArtifact extends TaskDependencyContainer {
     ResolvableArtifact transformedTo(File file);
 
     ResolvedArtifact toPublicView();
+
+    default void visitProducerTasks(Action<? super Task> visitor) {
+        visitDependencies(new AbstractTaskDependencyResolveContext() {
+            @Override
+            public void add(Object dependency) {
+                if (dependency instanceof Task) {
+                    visitor.execute((Task) dependency);
+                } else if (dependency instanceof TaskDependency) {
+                    TaskDependencyUtil.getDependenciesForInternalUse((TaskDependency) dependency, null).forEach(visitor::execute);
+                } else if (dependency instanceof TaskDependencyContainer) {
+                    ((TaskDependencyContainer) dependency).visitDependencies(this);
+                } else if (dependency instanceof Buildable) {
+                    TaskDependencyUtil.getDependenciesForInternalUse((Buildable) dependency).forEach(visitor::execute);
+                } else if (dependency instanceof WorkNodeAction) {
+                    ((WorkNodeAction) dependency).visitDependencies(this);
+                } else {
+                    throw new AssertionError(String.format("Unexpected dependency type: %s", dependency.getClass().getName()));
+                }
+            }
+        });
+    }
 }

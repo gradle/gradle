@@ -150,6 +150,23 @@ Since Gradle 8.5, the same information can be obtained via the `BuildFeatures` s
 
 Starting in 8.0, adding an artifact to a configuration that is neither resolvable nor consumable was deprecated.  This deprecation was overly broad and also captured certain valid usages.  It has been removed in Gradle 8.14.
 
+==== Executing a transform before the input task has completed
+
+Executing an artifact transform that needs to transform a locally built artifact before the task has completed can cause strange build failures because it indicates stale or non-existent outputs may be used by mistake. This behavior is deprecated and will emit a deprecation warning. This will become an error in Gradle 9.0.
+
+The following example demonstrates this problem where the producer's output file is transformed before the producer was executed:
+```kotlin
+configurations.runtimeClasspath { attributes.attribute(transformed, true) }
+dependencies { implementation(project(":child")) }
+
+tasks.register<Sync>("copyRT") {
+    from(configurations.runtimeClasspath.map { it.files })
+    destinationDir = layout.buildDirectory.dir("out").get().asFile
+}
+```
+
+Querying the value of `files` will produce a deprecation warning if done prior to `:child:jar` completing, as the output file has not yet been generated.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
