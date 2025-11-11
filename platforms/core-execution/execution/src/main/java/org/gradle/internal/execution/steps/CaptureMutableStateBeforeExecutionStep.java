@@ -42,12 +42,12 @@ import java.util.Optional;
 
 import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS;
 
-public class CaptureIncrementalStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
+public class CaptureMutableStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
     private final Step<? super MutableBeforeExecutionContext, ? extends R> delegate;
 
-    public CaptureIncrementalStateBeforeExecutionStep(
+    public CaptureMutableStateBeforeExecutionStep(
         BuildOperationRunner buildOperationRunner,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,

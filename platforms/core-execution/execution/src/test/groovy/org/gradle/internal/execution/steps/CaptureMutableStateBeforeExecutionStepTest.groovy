@@ -32,7 +32,7 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 
-class CaptureIncrementalStateBeforeExecutionStepTest extends StepSpec<PreviousExecutionContext> {
+class CaptureMutableStateBeforeExecutionStepTest extends StepSpec<PreviousExecutionContext> {
 
     def inputFingerprinter = Mock(InputFingerprinter)
     def outputSnapshotter = Mock(OutputSnapshotter)
@@ -40,7 +40,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends StepSpec<PreviousEx
     def work = Stub(MutableUnitOfWork)
 
     final step
-        = new CaptureIncrementalStateBeforeExecutionStep(buildOperationRunner, outputSnapshotter, overlappingOutputDetector, delegate)
+        = new CaptureMutableStateBeforeExecutionStep(buildOperationRunner, outputSnapshotter, overlappingOutputDetector, delegate)
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter
@@ -199,9 +199,9 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends StepSpec<PreviousEx
 
     void assertOperation(Throwable expectedFailure = null) {
         if (expectedFailure == null) {
-            assertSuccessfulOperation(CaptureIncrementalStateBeforeExecutionStep.Operation, "Snapshot inputs and outputs before executing job ':test'", CaptureIncrementalStateBeforeExecutionStep.Operation.Result.INSTANCE)
+            assertSuccessfulOperation(CaptureMutableStateBeforeExecutionStep.Operation, "Snapshot inputs and outputs before executing job ':test'", CaptureMutableStateBeforeExecutionStep.Operation.Result.INSTANCE)
         } else {
-            assertFailedOperation(CaptureIncrementalStateBeforeExecutionStep.Operation, "Snapshot inputs and outputs before executing job ':test'", expectedFailure)
+            assertFailedOperation(CaptureMutableStateBeforeExecutionStep.Operation, "Snapshot inputs and outputs before executing job ':test'", expectedFailure)
         }
     }
 }

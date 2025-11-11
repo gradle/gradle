@@ -49,7 +49,7 @@ import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureImmutableStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ChoosePipelineStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
@@ -189,7 +189,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyMutableWorkStep(problemHandler, outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
+            new CaptureMutableStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep.Mutable<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
             new ResolveMutableCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,

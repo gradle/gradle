@@ -24,7 +24,7 @@ import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.impl.DefaultExecutionProblemHandler;
 import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
-import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
@@ -74,7 +74,7 @@ public class TestExecutionEngineFactory {
             new IdentityCacheStep<>(progressEventEmitter,
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
+            new CaptureMutableStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep.Mutable<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
             new ResolveMutableCachingStateStep<>(buildCacheController, false,
