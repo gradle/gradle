@@ -81,10 +81,10 @@ class DefaultJvmPluginServicesTest extends AbstractProjectBuilderSpec {
 
         then:
         (config.attributes as AttributeContainerInternal).asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
-            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
+            (CATEGORY_ATTRIBUTE): config.attributes.named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): config.attributes.named(Usage, JAVA_API),
+            (BUNDLING_ATTRIBUTE): config.attributes.named(Bundling, EXTERNAL),
+            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): config.attributes.named(TargetJvmEnvironment, STANDARD_JVM),
         ]
 
         when:
@@ -94,10 +94,10 @@ class DefaultJvmPluginServicesTest extends AbstractProjectBuilderSpec {
 
         then:
         (config.attributes as AttributeContainerInternal).asMap() == [
-            (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
-            (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
-            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
+            (CATEGORY_ATTRIBUTE): config.attributes.named(Category, LIBRARY),
+            (USAGE_ATTRIBUTE): config.attributes.named(Usage, JAVA_API),
+            (BUNDLING_ATTRIBUTE): config.attributes.named(Bundling, EXTERNAL),
+            (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): config.attributes.named(TargetJvmEnvironment, STANDARD_JVM),
             (TARGET_JVM_VERSION_ATTRIBUTE): 8
         ]
     }
