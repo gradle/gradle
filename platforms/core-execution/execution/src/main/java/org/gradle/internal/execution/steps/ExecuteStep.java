@@ -20,6 +20,7 @@ import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -52,7 +53,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
     @Override
     public Result execute(UnitOfWork work, C context) {
         Class<? extends UnitOfWork> workType = work.getClass();
-        UnitOfWork.Identity identity = context.getIdentity();
+        Identity identity = context.getIdentity();
         // TODO Remove once IntelliJ stops complaining about possible NPE
         //noinspection DataFlowIssue
         return buildOperationRunner.call(new CallableBuildOperation<Result>() {
@@ -74,7 +75,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
                         }
 
                         @Override
-                        public UnitOfWork.Identity getIdentity() {
+                        public Identity getIdentity() {
                             return identity;
                         }
                     });
@@ -135,7 +136,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
             Class<?> getWorkType();
-            UnitOfWork.Identity getIdentity();
+            Identity getIdentity();
         }
 
         interface Result {

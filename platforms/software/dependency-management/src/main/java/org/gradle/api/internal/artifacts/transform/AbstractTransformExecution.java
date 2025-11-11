@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;

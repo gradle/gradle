@@ -61,14 +61,6 @@ public interface UnitOfWork extends Describable {
      */
     Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
 
-    interface Identity {
-        /**
-         * The identity of the work unit that uniquely identifies it
-         * among the other work units of the same type in the current build.
-         */
-        String getUniqueId();
-    }
-
     /**
      * Executes the work synchronously.
      */

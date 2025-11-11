@@ -588,7 +588,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     def "results are loaded from identity cache"() {
         def work = builder.build()
-        def cache = new ManualEvictionInMemoryCache<UnitOfWork.Identity, Try<Object>>()
+        def cache = new ManualEvictionInMemoryCache<Identity, Try<Object>>()
 
         when:
         def executedResult = executeDeferred(work, cache)
@@ -697,7 +697,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         createExecutor().createRequest(unitOfWork).execute()
     }
 
-    String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
+    String executeDeferred(UnitOfWork unitOfWork, Cache<Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
         def result = createExecutor().createRequest(unitOfWork)
             .executeDeferred(cache)

@@ -16,13 +16,10 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-/**
- * Handles warnings and errors that occur during the execution of a unit of work.
- */
-@ServiceScope(Scope.Build.class)
-public interface ExecutionProblemHandler {
-    void handleReportedProblems(Identity identity, UnitOfWork work, WorkValidationContext validationContext);
+public interface Identity {
+    /**
+     * The identity of the work unit that uniquely identifies it
+     * among the other work units of the same type in the current build.
+     */
+    String getUniqueId();
 }

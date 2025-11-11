@@ -22,7 +22,6 @@ import org.gradle.cache.Cache;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.service.scopes.Scope;
@@ -59,7 +58,7 @@ public interface ExecutionEngine {
          *
          * If the cache already contains the outputs for the given work, an already finished {@link Deferrable} will be returned.
          * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
-         * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
+         * The work is looked up by its {@link Identity identity} in the given cache.
          */
         <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, IdentityCacheResult<T>> cache);
     }

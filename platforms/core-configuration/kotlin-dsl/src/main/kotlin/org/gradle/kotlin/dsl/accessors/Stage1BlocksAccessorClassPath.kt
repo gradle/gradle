@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
@@ -155,7 +156,7 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
     }
 
     override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) =
-        UnitOfWork.Identity { "$classLoaderHash-$identitySuffix" }
+        Identity { "$classLoaderHash-$identitySuffix" }
 
     protected
     abstract val identitySuffix: String

@@ -146,7 +146,7 @@ class MutableUnitOfWorkBuilder {
     }
 
     @Immutable
-    private static class SimpleIdentity implements UnitOfWork.Identity {
+    private static class SimpleIdentity implements Identity {
         final String uniqueId
     }
 
@@ -159,7 +159,7 @@ class MutableUnitOfWorkBuilder {
             boolean executed
 
             @Override
-            UnitOfWork.Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+            Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
                 new SimpleIdentity("myId")
             }
 

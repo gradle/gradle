@@ -29,6 +29,7 @@ import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
@@ -189,13 +190,13 @@ class GenerateProjectAccessors(
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
 
-    override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
+    override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
         val hasher = Hashing.newHasher()
         requireNotNull(identityInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
         requireNotNull(identityInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
         val identityHash = hasher.hash().toString()
-        return UnitOfWork.Identity { identityHash }
+        return Identity { identityHash }
     }
 
     override fun getWorkspaceProvider() = workspaceProvider.accessors
