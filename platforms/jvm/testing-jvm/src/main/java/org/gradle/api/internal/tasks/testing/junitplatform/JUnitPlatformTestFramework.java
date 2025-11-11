@@ -58,7 +58,8 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
         JUnitPlatformTestFramework newTestFramework = getObjectFactory().newInstance(JUnitPlatformTestFramework.class,
             newTestFilters,
-            dryRun);
+            dryRun,
+            workingDir);
 
         newTestFramework.getOptions().copyFrom(getOptions());
         return newTestFramework;
