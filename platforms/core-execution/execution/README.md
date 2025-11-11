@@ -52,7 +52,7 @@ To implement safe and optimized execution, the execution engine needs to identif
 Each unit has two identifiers:
 
 - **Identity**: A locally unique identifier of the work with respect to the current execution scope (e.g., the Gradle build tree).
-  For tasks this is the full path of the task (e.g. `:subproject:taskName`); for every other type of work it is a hash calculated from the **immutable inputs** of the work (see below).
+  For tasks this is the task path (e.g. `:subproject:taskName`); for every other type of work it is a hash calculated from the **immutable inputs** of the work (see below).
 - **Build cache Key**: A global identifier used to store and retrieve the outputs of the work across time and space.
   This is calculated using all inputs.
 
@@ -177,12 +177,12 @@ Once execution finishes (or results are loaded from the cache), the workspace di
 
 ### Incremental Execution
 
-For _mutable work_ we distinguish between the following types of mutable inputs:
+For _mutable work_ we distinguish between the following _behaviors_ of mutable inputs:
 
 - **Non-incremental** -- Any change to the property value always triggers a full rebuild of the work.
-- **Incremental** -- Changes to the property value can cause an **incremental execution** of the work where the work is responsible for updating any previous outputs.
+- **Incremental** (annotated with `@Incremental` in tasks and transforms) -- Changes to the property value can cause an **incremental execution** of the work where the work is responsible for updating any previous outputs.
   To facilitate this, the execution engine provides the action with a list of changes to any incremental input since the last execution in the same workspace.
-- **Primary** -- These are the same as _incremental_ inputs with the added feature that if all primary inputs are empty, execution of the work is skipped, and its outputs are deleted.
+- **Primary** (annotated with `@SkipWhenEmpty` in tasks) -- These are the same as _incremental_ inputs with the added feature that if all primary inputs are empty, execution of the work is skipped, and its outputs are deleted.
 
 If non-incremental execution is chosen, the mutable workspace is first cleaned up.[^task-output-cleanup]
 
@@ -208,7 +208,7 @@ This is mostly historical and should be addressed.
 
 ### Identity
 
-A task's identity is its full path (e.g., `:project-name:taskName`).
+A task's identity is its path in the build it is defined in (e.g., `:project-name:taskName`).
 Crucially, this identity is independent of non-incremental inputs.
 For non-incremental tasks, when one of their (non-incremental) inputs changes, previous outputs are still presented to the action, making it the action's responsibility to clean them up.
 

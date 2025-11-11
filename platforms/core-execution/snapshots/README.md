@@ -30,6 +30,7 @@ The [BLAKE family](https://en.wikipedia.org/wiki/BLAKE_(hash_function)) of crypt
 [^non-crypto-hashes]: While non-cryptographic hash algorithms like [xxHash](https://xxhash.com) or [MurmurHash](https://en.wikipedia.org/wiki/MurmurHash) are significantly faster, they lack the astronomical collision resistance we require.
 
 We use [Merkle trees](https://en.wikipedia.org/wiki/Merkle_tree) to generate a single hash representing complex inputs.
+(See `MerkleDirectorySnapshotBuilder`.)
 This involves hashing together hashes of individual components to create a hash for the whole.
 
 ## Virtual File-System
@@ -40,7 +41,7 @@ It would be inefficient to re-read file hierarchies every time a snapshot of a p
 ![Virtual file-system](Virtual%20File-System.drawio.svg)
 
 The VFS only stores information about the directory hierarchy of the running build.[^vfs-previous-builds]
-This means that we do not retain information about file-system objects outside the build directory.
+This means that we do not retain information about file-system objects outside the root directory of the build (or that of any included builds).
 
 [^vfs-previous-builds]: Data about previous builds can also be retained for a while.
 
@@ -74,7 +75,8 @@ Because of this we discard content accessed via symlinks from the VFS at the end
 #### Caching File Hashes
 
 Actual file content hashing is handled by the `FileHasher`.
-File hashes are cached in-memory and on disk based on file modification dates and last modification times.
+File hashes are cached in-memory and on disk.
+These caches use the file modification date and size as a heuristic to tell if the file has been modified.
 This means that even if we invalidate a file's snapshot in the VFS for some reason, we'd still be able to cheaply recreate the snapshot using the cached hash as long as the file remains unchanged in the actual file-system.
 
 ## Input Normalization
@@ -112,15 +114,15 @@ Much of the machinery around hierarchical file-system snapshots can be reused fo
 
 A file collection fingerprint is created by fingerprinting the files and paths in a file system snapshot via a _fingerprinting strategy._ A fingerprinting strategy can normalize file input in multiple ways:
 
-* **archive comprehension** – archives can be considered equivalent to directories, their elements can be traversed and metadata like file order, timestamps and permissions ignored,
+* **archive comprehension** – archives can be considered equivalent to directories, their elements can be traversed and metadata like file order, timestamps and permissions ignored
 
-* **pattern filtering** – can restrict the scope to some pattern of files, like `\*.class` in Java compile classpath normalization (note that this filtering is in addition to any filtering applied to the input `FileCollection` itself; `FileCollection`-level filtering is already reflected in the file collection snapshot),
+* **pattern filtering** – can restrict the scope to some pattern of files, like `\*.class` in Java compile classpath normalization (note that this filtering is in addition to any filtering applied to the input `FileCollection` itself; `FileCollection`-level filtering is already reflected in the file collection snapshot)
 
-* **empty directory filtering** - can also ignore empty directories for fingerprints with `@IgnoreEmptyDirectories`.
+* **empty directory filtering** - can also ignore empty directories for fingerprints with `@IgnoreEmptyDirectories`
 
-* **path normalization** – can disregard parts or the whole of the path of each file, e.g. `@PathSensitive(RELATIVE)` used on a task property,
+* **path normalization** – can disregard parts or the whole of the path of each file, e.g. `@PathSensitive(RELATIVE)` used on a task property
 
-* **order normalization** – file order can be ignored by sorting the files in some reproducible order; root element order can be considered differently to descendant order, this is handled by `FingerprintHashingStrategy`,
+* **order normalization** – file order can be ignored by sorting the files in some reproducible order; root element order can be considered differently to descendant order, this is handled by `FingerprintHashingStrategy`
 
 * **content normalization** – each file can be normalized individually, for example a `.properties` file on a JVM runtime classpath can be parsed to ignore comments etc.
 
