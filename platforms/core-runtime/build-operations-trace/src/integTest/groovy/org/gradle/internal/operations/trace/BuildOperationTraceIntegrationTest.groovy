@@ -18,8 +18,44 @@ package org.gradle.internal.operations.trace
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 
 class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
+    def "no tree files are produced by default"() {
+        when:
+        run "help", "-D${BuildOperationTrace.SYSPROP}=trace"
+
+        then:
+        file("trace-log.txt").exists()
+        !file("trace-tree.txt").exists()
+        !file("trace-tree.json").exists()
+    }
+
+    def "no trace files are produced when trace parameter is false"() {
+        when:
+        run "help", "-D${BuildOperationTrace.SYSPROP}=false"
+
+        then:
+        testDirectory.listFiles().findAll { it.name.endsWith("-log.txt") } == []
+    }
+
+    def "trace files are written to absolute path when absolute path is provided"() {
+        given:
+        def absolutePath = tmpDir.file("custom-trace").absolutePath
+
+        when:
+        run "help", "-D${BuildOperationTrace.TREE_SYSPROP}=true", "-D${BuildOperationTrace.SYSPROP}=$absolutePath"
+
+        then:
+        tmpDir.file("custom-trace-log.txt").exists()
+        tmpDir.file("custom-trace-tree.txt").exists()
+        tmpDir.file("custom-trace-tree.json").exists()
+    }
 
     def "trace files are relative to the current directory when parameter is #description"() {
         when:
