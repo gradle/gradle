@@ -97,17 +97,17 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         Map<File, List<Error>> errors = new TreeMap<>();
 
         // First check release notes (if present)
-//        gatherDeadLinksInFileReleaseNotes(errors);
+        gatherDeadLinksInFileReleaseNotes(errors);
 
         // Then scan the samples tree (if provided).
         // Note: index.adoc files in samples are excluded intentionally.
-//        getSamplesRoot()
-//            .getAsFileTree()
-//            .matching(pattern -> {
-//                pattern.include("**/*.adoc");
-//                pattern.exclude("**/index.adoc"); // Exclude index.adoc files
-//            })
-//            .forEach(file -> gatherDeadLinksInFileSamples(file, errors));
+        getSamplesRoot()
+            .getAsFileTree()
+            .matching(pattern -> {
+                pattern.include("**/*.adoc");
+                pattern.exclude("**/index.adoc"); // Exclude index.adoc files
+            })
+            .forEach(file -> gatherDeadLinksInFileSamples(file, errors));
 
         // Finally scan documentation root for *.adoc files
         getDocumentationRoot()
@@ -172,7 +172,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             String line = br.readLine();
             while (line != null) {
                 lineNumber++;
-                gatherDeadUserGuideLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadUserGuideLinksInLineReleaseNotes(line, lineNumber, errorsForFile);
                 gatherDeadSamplesLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadJavadocLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
                 gatherNonMarkdownLinksInLIneReleaseNotes(line, lineNumber, errorsForFile);
@@ -189,7 +189,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     }
 
     // Release-notes: check user guide cross-references (userguide/upgrading_version_9.html)
-    private void gatherDeadUserGuideLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+    private void gatherDeadUserGuideLinksInLineReleaseNotes(String line, int lineNumber, List<Error> errorsForFile) {
         //  - userguide/upgrading_version_9.html                -> find upgrading_version_9.adoc
         //  - userguide/upgrading_version_9.html#changes_9.0.0  -> find anchor [[changes_9.0.0]] in upgrading_version_9.adoc
         Pattern p = Pattern.compile(
