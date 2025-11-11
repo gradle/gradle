@@ -333,6 +333,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
             task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation()); // working/usermanual/raw/
             task.getJavadocRoot().convention(layout.getBuildDirectory().dir("javadoc"));
+            task.getGroovyDslRoot().convention(layout.getProjectDirectory().dir("src/docs/dsl"));
             task.getReleaseNotesFile().convention(layout.getProjectDirectory().file("src/docs/release/notes.md"));
             task.getSamplesRoot().convention(layout.getBuildDirectory().dir("working/samples/docs"));
             task.dependsOn(tasks.named("javadocAll"));

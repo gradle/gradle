@@ -83,6 +83,10 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getJavadocRoot();
 
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getGroovyDslRoot();
+
     @Optional @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getReleaseNotesFile();
@@ -386,7 +390,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 lineNumber++;
                 gatherDeadSamplesLinksInLineDocumentation(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadJavadocLinksInLineDocumentation(sourceFile, line, lineNumber, errorsForFile);
-                // TODO: DSL checks
+                gatherDeadGroovyDslLinksInLineDocumentation(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadLinksInLineDocumentation(sourceFile, line, lineNumber, errorsForFile);
                 gatherMarkdownLinksInLineDocumentation(line, lineNumber, errorsForFile);
 
@@ -431,7 +435,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         }
     }
 
-    // Documentation: check javadoc links inside AsciiDoc: link:{javadocPath}/.../SomeClass.html#method()
+    // Documentation: check javadoc links (link:{javadocPath}/.../SomeClass.html#method())
     private void gatherDeadJavadocLinksInLineDocumentation(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Pattern p = Pattern.compile(
             "link:\\{javadocPath\\}/" +         // literal prefix
@@ -450,6 +454,43 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                     String hrefSearch = "href=\"#" + anchor + "\"";
                     if (fileDoesNotContainText(referencedFile, hrefSearch)) {
                         errorsForFile.add(new Error(lineNumber, line, "Missing Javadoc href fragment '#" + anchor + "' in " + referencedFile.getName()));
+                    }
+                }
+            }
+        }
+    }
+
+    // Documentation: check groovy dsl links (link:{groovyDslPath}/org.gradle.api.plugins.quality.Checkstyle.html[Checkstyle])
+    private void gatherDeadGroovyDslLinksInLineDocumentation(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Pattern p = Pattern.compile(
+            "link:\\{groovyDslPath\\}/" +            // literal prefix
+                "([^#\\s\\[]+\\.html)" +             // group(1): HTML filename/path (with .html)
+                "(?:#([^\\]\\s]+))?" +               // optional group(2): fragment (everything up to ']' or whitespace)
+                "(?:\\[[^\\]]*\\])?"                 // optional bracketed label that may follow
+        );
+        Matcher matcher = p.matcher(line);
+        while (matcher.find()) {
+            String htmlPath = matcher.group(1);   // e.g. "org.gradle.api.plugins.quality.Checkstyle.html"
+            String fragment = matcher.group(2);   // e.g. "org.gradle.api.plugins.quality.Checkstyle:maxHeapSize" or null
+            String xmlName = htmlPath.endsWith(".html") ? htmlPath.replace(".html", ".xml") : htmlPath + ".xml";
+            File referencedFile = new File(getGroovyDslRoot().get().getAsFile(), xmlName);
+            if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                // Check xml file exists in
+                errorsForFile.add(new Error(lineNumber, line, "Missing DSL XML file for " + htmlPath + " (expected " + xmlName + ")"));
+            } else {
+                if (fragment != null && !fragment.isEmpty()) {
+                    // fragment may look like "org.gradle.api.file.ProjectLayout:buildDirectory"
+                    String memberName = fragment;
+                    int lastColon = fragment.lastIndexOf(':');
+                    if (lastColon >= 0 && lastColon < fragment.length() - 1) {
+                        memberName = fragment.substring(lastColon + 1);
+                    }
+                    // conservative trim of common trailing punctuation (e.g., ')' or ',') if any
+                    memberName = memberName.replaceAll("[\\),;\\.]?$", "");
+
+                    if (fileDoesNotContainText(referencedFile, memberName)) {
+                        errorsForFile.add(new Error(lineNumber, line,
+                            "Looking for DSL member '" + memberName + "' in " + xmlName));
                     }
                 }
             }
