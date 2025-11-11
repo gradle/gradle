@@ -33,6 +33,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,11 +44,13 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
 
     private final DefaultTestFilter filter;
     private final Provider<Boolean> dryRun;
+    private final File workingDir;
 
     @Inject
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun) {
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun, File workingDir) {
         this.filter = filter;
         this.dryRun = dryRun;
+        this.workingDir = workingDir;
     }
 
     @UsedByScanPlugin("test-retry")
@@ -69,7 +72,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
         validateOptions();
         return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
-            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get()
+            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), workingDir
         ));
     }
 

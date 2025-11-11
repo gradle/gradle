@@ -42,6 +42,7 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
@@ -49,6 +50,7 @@ import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.reporting.FileEntry;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
+import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
@@ -56,6 +58,9 @@ import org.junit.platform.launcher.TestPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -121,14 +126,16 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
+    private final File workingDir;
 
     @Nullable
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator) {
+    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File workingDir) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
+        this.workingDir = workingDir;
     }
 
     @Override
@@ -306,9 +313,9 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private DefaultTestClassDescriptor createTestContainerDescriptor(TestIdentifier node) {
-        String className = className(node);
+        String name = extractClassOrResourceName(node);
         String classDisplayName = node.getDisplayName();
-        return new DefaultTestClassDescriptor(idGenerator.generateId(), className, classDisplayName);
+        return new DefaultTestClassDescriptor(idGenerator.generateId(), name, classDisplayName);
     }
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {
@@ -394,7 +401,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return hasClassSource(testIdentifier) && hasDifferentSourceThanAncestor(testIdentifier);
     }
 
-    private String className(TestIdentifier node) {
+    private String extractClassOrResourceName(TestIdentifier node) {
         TestIdentifier testClassIdentifier = findTestClassIdentifier(node);
         if (testClassIdentifier != null) {
             Optional<ClassSource> classSource = getClassSource(testClassIdentifier);
@@ -402,12 +409,43 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                 return classSource.get().getClassName();
             }
         }
+
+        if (hasFileSource(node)) {
+            Optional<String> fileSourceName = computeNameForFileBasedTest(node);
+            if (fileSourceName.isPresent()) {
+                return fileSourceName.get();
+            }
+        }
+
         // Fall back to the unique id of the node.
         // This prevents duplicate class names that our report can't handle,
         // and provides appropriate information for non-class-based testing.
         UniqueId.Segment lastSegment = getLastUniqueIdSegment(node);
         // Remove ':' as we use them in Paths for reporting
         return (lastSegment.getType() + "_" + lastSegment.getValue()).replace(':', '_');
+    }
+
+    /**
+     * Computes the relative path from the project root to the source file of the given test identifier.
+     *
+     * @param node the test identifier whose source file path is to be computed, <strong>MUST</strong> possess a {@link FileSource}
+     * @return the relative path from the project root to the source file, or {@link Optional#empty()} if the path could not be computed
+     */
+    private Optional<String> computeNameForFileBasedTest(TestIdentifier node) {
+        Object source = node.getSource().orElse(null);
+        if (!(source instanceof FileSource)) {
+            throw new IllegalArgumentException("Node source must be a FileSource, was: " + source);
+        }
+
+        try {
+            Path rootDirPath = workingDir.toPath().toRealPath();
+            Path testDefPath = ((FileSource) source).getFile().toPath().toRealPath();
+            String relativePath = TextUtil.normaliseFileSeparators(rootDirPath.relativize(testDefPath).toString());
+            return Optional.of(relativePath);
+        } catch (IOException e) {
+            LOGGER.warn("Could not compute relative path to source file for test identifier {}", node, e);
+            return Optional.empty();
+        }
     }
 
     private static boolean hasClassSource(TestIdentifier testIdentifier) {
@@ -424,6 +462,16 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         return testIdentifier.getSource()
             .filter(source -> source instanceof MethodSource)
             .map(source -> (MethodSource) source);
+    }
+
+    private static boolean hasFileSource(TestIdentifier testIdentifier) {
+        return getFileSource(testIdentifier).isPresent();
+    }
+
+    private static Optional<FileSource> getFileSource(TestIdentifier testIdentifier) {
+        return testIdentifier.getSource()
+            .filter(source -> source instanceof FileSource)
+            .map(source -> (FileSource) source);
     }
 
     private boolean hasDifferentSourceThanAncestor(TestIdentifier testIdentifier) {
