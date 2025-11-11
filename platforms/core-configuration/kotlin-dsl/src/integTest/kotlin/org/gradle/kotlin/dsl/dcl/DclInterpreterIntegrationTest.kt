@@ -121,7 +121,6 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 import org.gradle.api.Project
                 import org.gradle.api.Named
                 import org.gradle.api.NamedDomainObjectContainer
-                import org.gradle.api.internal.plugins.software.SoftwareType
                 import javax.inject.Inject
                 import ${BindsProjectType::class.qualifiedName}
                 import ${BindsProjectFeature::class.qualifiedName}

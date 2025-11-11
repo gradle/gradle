@@ -25,7 +25,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.events.ProgressListener
 
-@TargetGradleVersion(">=8.14")
+@TargetGradleVersion(">=8.14 <9.3")
 @ToolingApiVersion('>=8.14')
 class AndroidEcosystemPrototypeCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
 

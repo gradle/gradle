@@ -70,7 +70,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     throw RuntimeException("Boom String")
                 }
 
-                class Model : ${BuildModel.class.simpleName} {
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -139,7 +139,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     abstract val name: Property<String>?
                 }
 
-                class Model : ${BuildModel.class.simpleName} {
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -210,7 +210,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     abstract val name: Property<String>?
                 }
 
-                class Model : ${BuildModel.class.simpleName} {
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -282,7 +282,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     public abstract Property<String> getName();
                 }
 
-                public interface Model extends ${BuildModel.class.simpleName} {
+                interface Model extends ${BuildModel.class.simpleName} {
                 }
             }
         """
