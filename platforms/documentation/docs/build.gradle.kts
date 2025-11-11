@@ -5,6 +5,7 @@ import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
@@ -625,6 +626,15 @@ tasks.named("quickTest") {
 // TODO add some kind of test precondition support in sample test conf
 tasks.named<Test>("docsTest") {
     useJUnitPlatform()
+
+    doFirst {
+        println("Includes:")
+        println(filter.includePatterns.joinToString("\n"))
+        println("\nExcludes:")
+        println(filter.excludePatterns.joinToString("\n"))
+        println("\nCLI:")
+        println((filter as DefaultTestFilter).commandLineIncludePatterns.joinToString("\n"))
+    }
 
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
