@@ -24,7 +24,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputVisitor;
@@ -44,7 +44,7 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE;
 
 public class BuildCacheStep<C extends WorkspaceContext & CachingContext> implements Step<C, AfterExecutionResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);

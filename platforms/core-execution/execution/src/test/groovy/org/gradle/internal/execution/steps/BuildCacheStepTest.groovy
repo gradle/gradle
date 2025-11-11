@@ -22,6 +22,7 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.caching.CachingDisabledReason
@@ -36,8 +37,7 @@ import org.gradle.internal.vfs.FileSystemAccess
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
-import static org.gradle.internal.execution.ExecutionEngine.Execution
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE
 
 class BuildCacheStepTest extends StepSpec<TestCachingContext> implements SnapshotterFixture {
     def buildCacheController = Mock(BuildCacheController)

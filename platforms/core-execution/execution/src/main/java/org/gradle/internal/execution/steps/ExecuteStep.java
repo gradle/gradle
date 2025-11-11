@@ -18,9 +18,9 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.Execution;
+import org.gradle.internal.execution.Execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionContext;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
-import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkOutput;
@@ -40,9 +40,9 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY;
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
 
 public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Result> {
 

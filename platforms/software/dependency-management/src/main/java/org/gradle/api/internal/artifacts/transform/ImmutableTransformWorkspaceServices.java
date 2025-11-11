@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.cache.Cache;
-import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.service.scopes.Scope;
@@ -29,5 +29,5 @@ import java.io.Closeable;
 public interface ImmutableTransformWorkspaceServices extends Closeable {
     ImmutableWorkspaceProvider getWorkspaceProvider();
 
-    Cache<Identity, ExecutionEngine.IdentityCacheResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
+    Cache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
 }

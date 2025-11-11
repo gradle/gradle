@@ -25,8 +25,8 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.snapshot.FileSystemSnapshot
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.SHORT_CIRCUITED
 
 class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<PreviousExecutionContext> implements SnapshotterFixture {
     def problemHandler = Mock(ExecutionProblemHandler)
