@@ -59,7 +59,6 @@ public class ResolveMutableCachingStateStep<C extends MutableChangesContext> ext
 
     @Override
     protected void calculateCachingState(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
-        // TODO Move this to mutable case
         OverlappingOutputs detectedOverlappingOutputs = context.getDetectedOverlappingOutputs()
             .orElse(null);
         work.shouldDisableCaching(detectedOverlappingOutputs)
