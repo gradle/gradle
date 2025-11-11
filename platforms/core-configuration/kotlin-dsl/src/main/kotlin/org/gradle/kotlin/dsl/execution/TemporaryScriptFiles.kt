@@ -21,17 +21,24 @@ import java.io.File
 
 
 internal
-inline fun <T> TemporaryFileProvider.withTemporaryScriptFileFor(scriptPath: String, scriptText: String, action: (File) -> T): T =
+inline fun <T> TemporaryFileProvider.withTemporaryDirectory(action: (File) -> T): T =
     createTemporaryDirectory("gradle-kotlin-dsl-", null).let { tempDir ->
         try {
-            val tempFile = canonicalScriptFileFor(tempDir, scriptPath, scriptText)
-            try {
-                action(tempFile)
-            } finally {
-                tempFile.delete()
-            }
+            action(tempDir)
         } finally {
             tempDir.delete()
+        }
+    }
+
+
+internal
+inline fun <T> TemporaryFileProvider.withTemporaryScriptFileFor(scriptPath: String, scriptText: String, action: (File) -> T): T =
+    withTemporaryDirectory { tempDir ->
+        val tempFile = canonicalScriptFileFor(tempDir, scriptPath, scriptText)
+        try {
+            action(tempFile)
+        } finally {
+            tempFile.delete()
         }
     }
 

@@ -59,9 +59,12 @@ import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
+import org.gradle.kotlin.dsl.support.compileKotlinScriptsToDirectory
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
+import org.gradle.kotlin.dsl.support.scriptNameForPath
 import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.use.internal.PluginRequestCollector
+import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -108,11 +111,17 @@ class ResidualProgramCompiler(
 
     fun compileBatch(programs: List<BatchItem>) {
         for ((sourceHash, packageName, program) in programs) {
-            compile(program, sourceHash, packageName)
+            doCompile(program, sourceHash, packageName)
         }
+        batchCompile()
     }
 
     fun compile(program: ResidualProgram, sourceHash: HashCode, packageName: String?) {
+        doCompile(program, sourceHash, packageName)
+        batchCompile()
+    }
+
+    private fun doCompile(program: ResidualProgram, sourceHash: HashCode, packageName: String?) {
         val className = "P$sourceHash"
         when (program) {
             is Static -> emitStaticProgram(program, ClassName(packageName, className))
@@ -214,7 +223,7 @@ class ResidualProgramCompiler(
             when (val program = instruction.program) {
                 is Program.Plugins -> emitCompiledPluginsBlock(program, className)
                 is Program.PluginManagement -> emitStage1Sequence(program, className = className)
-                is Program.Stage1Sequence -> emitStage1Sequence(program.plugins, className = className)
+                is Program.Stage1Sequence -> emitStage1Sequence(listOfNotNull(program.pluginManagement, program.buildscript, program.plugins), className = className)
                 else -> error("Expecting a residual program with plugins, got `$program'")
             }
         }
@@ -705,24 +714,54 @@ class ResidualProgramCompiler(
     fun outputFile(relativePath: String) =
         outputDir.resolve(relativePath)
 
+
+    data class Compilation(
+        val scriptPath: String,
+        val source: ProgramSource,
+        val scriptDefinition: ScriptDefinition,
+        val compileClassPath: ClassPath,
+        val className: ClassName
+    )
+
+    private
+    val compilation = mutableListOf<Compilation>()
+
+    private fun batchCompile() {
+        val scriptDefinition = compilation.first().scriptDefinition
+        val compileClassPath = compilation.first().compileClassPath
+        temporaryFileProvider.withTemporaryDirectory() { scriptDir ->
+            val scriptFiles = mutableMapOf<String, String>()
+            compilation.forEach {
+                val originalScriptPath = it.source.path
+                val scriptFile = scriptDir.resolve(it.scriptPath).apply { writeText(it.source.text) }
+                scriptFiles[scriptFile.path] = originalScriptPath
+            }
+
+            compileKotlinScriptsToDirectory(
+                outputDir,
+                compilerOptions,
+                scriptFiles.keys,
+                scriptDefinition,
+                compileClassPath.asFiles,
+                logger
+            ) { path ->
+                scriptFiles[path] ?: path
+            }
+        }
+    }
+
     private
     fun compileStage1(
         source: ProgramSource,
         scriptDefinition: ScriptDefinition,
         className: ClassName,
         compileClassPath: ClassPath = classPath,
-    ): InternalName =
-        temporaryFileProvider.withTemporaryScriptFileFor(className.name + ".gradle.kts", source.text) { scriptFile ->
-            val originalScriptPath = source.path
-            compileScript(
-                scriptFile,
-                originalScriptPath,
-                scriptDefinition,
-                StableDisplayNameFor.stage1,
-                compileClassPath,
-                className
-            )
+    ): InternalName {
+        val scriptPath = className.name + ".gradle.kts"
+        return InternalName.from(scriptNameForPath(scriptPath)).also {
+            compilation.push(Compilation(scriptPath, source, scriptDefinition, compileClassPath, className))
         }
+    }
 
     private
     fun compileScript(

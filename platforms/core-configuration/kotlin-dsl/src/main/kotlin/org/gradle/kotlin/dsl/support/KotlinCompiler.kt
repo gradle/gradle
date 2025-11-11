@@ -23,6 +23,7 @@ import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.kotlin.dsl.execution.interpreterLogger
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
 import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
@@ -124,6 +125,29 @@ fun scriptDefinitionFromTemplate(
 
 
 internal
+fun compileKotlinScriptsToDirectory(
+    outputDirectory: File,
+    compilerOptions: KotlinCompilerOptions,
+    scriptFiles: Collection<String>,
+    scriptDef: ScriptDefinition,
+    classPath: List<File>,
+    logger: Logger,
+    pathTranslation: (String) -> String
+) {
+
+    compileKotlinScriptModuleTo(
+        outputDirectory,
+        compilerOptions,
+        "buildscript",
+        scriptFiles,
+        scriptDef,
+        classPath,
+        messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
+    )
+}
+
+
+internal
 fun compileKotlinScriptToDirectory(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
@@ -144,7 +168,13 @@ fun compileKotlinScriptToDirectory(
         messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
     )
 
-    return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+    return scriptNameForPath(scriptFile.name)
+}
+
+
+internal
+fun scriptNameForPath(filePath: String): String {
+    return NameUtils.getScriptNameForFile(filePath).asString()
 }
 
 
@@ -157,7 +187,7 @@ fun compileKotlinScriptModuleTo(
     scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     messageCollector: LoggingMessageCollector
-) {
+) = logTime("Compiling ${scriptFiles.size} scripts") {
     withRootDisposable {
         withCompilationExceptionHandler(messageCollector) {
             val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
@@ -606,3 +636,22 @@ fun compilerMessageFor(path: String, line: Int, column: Int, message: String) =
 private
 fun clickableFileUrlFor(path: String): String =
     ConsoleRenderer().asClickableFileUrl(File(path))
+
+
+internal
+fun logTime(title: String, action: () -> Unit) {
+    val startTime = System.nanoTime()
+    action()
+    val elapsedNanos = System.nanoTime() - startTime
+    val humanElapsed = nanoToHumanFriendlyString(elapsedNanos)
+    interpreterLogger.warn("$title took $humanElapsed ($elapsedNanos ns)")
+}
+
+
+private
+fun nanoToHumanFriendlyString(elapsedNanos: Long): String = when {
+    elapsedNanos >= 1_000_000_000L -> String.format("%.2f s", elapsedNanos / 1_000_000_000.0)
+    elapsedNanos >= 1_000_000L -> String.format("%.2f ms", elapsedNanos / 1_000_000.0)
+    elapsedNanos >= 1_000L -> String.format("%.2f µs", elapsedNanos / 1_000.0)
+    else -> "$elapsedNanos ns"
+}
