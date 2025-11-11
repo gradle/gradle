@@ -18,10 +18,10 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 
-class ResolveNonIncrementalCachingStateStepTest extends AbstractResolveCachingStateStepTest<ValidationFinishedContext, ResolveNonIncrementalCachingStateStep<ValidationFinishedContext>> {
+class ResolveImmutableCachingStateStepTest extends AbstractResolveCachingStateStepTest<ImmutableValidationFinishedContext, ResolveImmutableCachingStateStep<ImmutableValidationFinishedContext>> {
     @Override
-    ResolveNonIncrementalCachingStateStep<ValidationFinishedContext> createStep() {
-        return new ResolveNonIncrementalCachingStateStep<>(buildCache, false, delegate)
+    ResolveImmutableCachingStateStep<ImmutableValidationFinishedContext> createStep() {
+        return new ResolveImmutableCachingStateStep<>(buildCache, false, delegate)
     }
 
     def "calculates cache key when execution state is available"() {

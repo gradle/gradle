@@ -26,7 +26,7 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
-class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
+class ResolveChangesStepTest extends StepSpec<MutableValidationFinishedContext> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<>(changeDetector, delegate)
     def beforeExecutionState = Stub(BeforeExecutionState) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,12 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.Identity;
 
-public class NonIncrementalCachingContext extends ValidationFinishedContext implements CachingContext {
-
-    private final CachingState cachingState;
-
-    public NonIncrementalCachingContext(ValidationFinishedContext parent, CachingState cachingState) {
-        super(parent);
-        this.cachingState = cachingState;
-    }
-
+public interface IdentifyingContext extends ValidatingContext {
     /**
-     * The resolved state of caching for the work.
+     * Returns an identity for the given work item that uniquely identifies it
+     * among all the other work items of the same type in the current build.
      */
-    @Override
-    public CachingState getCachingState() {
-        return cachingState;
-    }
+    Identity getIdentity();
 }

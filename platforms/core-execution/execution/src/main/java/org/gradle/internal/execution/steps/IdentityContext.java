@@ -23,7 +23,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class IdentityContext extends ExecutionRequestContext {
+public class IdentityContext extends ExecutionRequestContext implements IdentifyingContext {
 
     private final ImplementationSnapshot implementation;
     private final ImmutableList<ImplementationSnapshot> additionalImplementations;
@@ -79,10 +79,7 @@ public class IdentityContext extends ExecutionRequestContext {
         return inputFileProperties;
     }
 
-    /**
-     * Returns an identity for the given work item that uniquely identifies it
-     * among all the other work items of the same type in the current build.
-     */
+    @Override
     public Identity getIdentity() {
         return identity;
     }

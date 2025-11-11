@@ -31,7 +31,7 @@ import org.jspecify.annotations.NullMarked;
 
 import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.nonIncremental;
 
-public class ResolveChangesStep<C extends ValidationFinishedContext, R extends Result> extends MutableStep<C, R> {
+public class ResolveChangesStep<C extends MutableValidationFinishedContext, R extends Result> extends MutableStep<C, R> {
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
     private static final ImmutableList<String> UNTRACKED = ImmutableList.of("Change tracking is disabled.");
     private static final ImmutableList<String> VALIDATION_FAILED = ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
@@ -64,7 +64,7 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
     }
 
     @NullMarked
-    private ExecutionStateChanges resolveExecutionStateChanges(MutableUnitOfWork work, ValidationFinishedContext context, BeforeExecutionState beforeExecution) {
+    private ExecutionStateChanges resolveExecutionStateChanges(MutableUnitOfWork work, MutableValidationFinishedContext context, BeforeExecutionState beforeExecution) {
         IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
         return context.getNonIncrementalReason()
             .map(ImmutableList::of)

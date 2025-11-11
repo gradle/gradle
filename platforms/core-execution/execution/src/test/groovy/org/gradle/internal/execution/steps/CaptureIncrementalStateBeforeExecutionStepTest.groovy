@@ -16,29 +16,110 @@
 
 package org.gradle.internal.execution.steps
 
-
+import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.ValueSnapshot
 
 import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 
-class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStateBeforeExecutionStepTest<PreviousExecutionContext> {
+class CaptureIncrementalStateBeforeExecutionStepTest extends StepSpec<PreviousExecutionContext> {
 
+    def inputFingerprinter = Mock(InputFingerprinter)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
     def work = Stub(MutableUnitOfWork)
 
-    AbstractCaptureStateBeforeExecutionStep<PreviousExecutionContext, CachingResult> step
+    final step
         = new CaptureIncrementalStateBeforeExecutionStep(buildOperationRunner, outputSnapshotter, overlappingOutputDetector, delegate)
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter
+    }
+
+    def "no state is captured when instructed to skip"() {
+        when:
+        step.execute(work, context)
+        then:
+        assertNoOperation()
+        _ * context.shouldCaptureBeforeExecutionState() >> false
+        1 * delegate.execute(work, _ as BeforeMutableExecutionContext) >> { UnitOfWork work, BeforeMutableExecutionContext delegateContext ->
+            assert !delegateContext.beforeExecutionState.present
+        }
+        0 * _
+    }
+
+    def "input properties are snapshotted"() {
+        def knownSnapshot = Mock(ValueSnapshot)
+        def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+        def inputSnapshot = Mock(ValueSnapshot)
+        def inputFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+        def knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        def knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
+
+        when:
+        step.execute(work, context)
+
+        then:
+        _ * context.inputProperties >> knownInputProperties
+        _ * context.inputFileProperties >> knownInputFileProperties
+        1 * inputFingerprinter.fingerprintInputProperties(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            knownInputProperties,
+            knownInputFileProperties,
+            _,
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
+            ImmutableSortedMap.of("input", inputSnapshot),
+            knownInputFileProperties,
+            ImmutableSortedMap.of("input-file", inputFileFingerprint),
+            ImmutableSet.of())
+        interaction { snapshotState() }
+        1 * delegate.execute(work, _ as BeforeMutableExecutionContext) >> { UnitOfWork work, BeforeMutableExecutionContext delegateContext ->
+            assert !delegateContext.detectedOverlappingOutputs.present
+            def state = delegateContext.beforeExecutionState.get()
+            assert state.inputProperties as Map == ["known": knownSnapshot, "input": inputSnapshot]
+            assert state.inputFileProperties as Map == ["known-file": knownFileFingerprint, "input-file": inputFileFingerprint]
+        }
+        0 * _
+
+        assertOperation()
+    }
+
+    def "fails when input properties cannot be snapshot"() {
+        def failure = new InputFingerprinter.InputFileFingerprintingException("input", new IOException("Error"))
+        when:
+        step.execute(work, context)
+
+        then:
+        def ex = thrown RuntimeException
+        ex == failure
+
+        _ * context.inputProperties >> ImmutableSortedMap.of()
+        _ * context.inputFileProperties >> ImmutableSortedMap.of()
+        1 * inputFingerprinter.fingerprintInputProperties(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            _,
+            _
+        ) >> { throw failure }
+        interaction { snapshotState() }
+        0 * _
+
+        assertOperation(ex)
     }
 
     def "output file properties are snapshotted"() {
@@ -50,7 +131,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
         then:
         _ * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as BeforeMutableExecutionContext) >> { UnitOfWork work, BeforeMutableExecutionContext delegateContext ->
             assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
             assert state.outputFileLocationSnapshots == outputSnapshots
@@ -98,7 +179,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
         1 * overlappingOutputDetector.detect(previousOutputSnapshots, beforeExecutionOutputSnapshots) >> null
 
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as BeforeMutableExecutionContext) >> { UnitOfWork work, BeforeMutableExecutionContext delegateContext ->
             assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
             assert state.outputFileLocationSnapshots == beforeExecutionOutputSnapshots
@@ -108,10 +189,19 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
         assertOperation()
     }
 
-    @Override
     void snapshotState() {
-        super.snapshotState()
+        _ * context.shouldCaptureBeforeExecutionState() >> true
+        _ * context.previousExecutionState >> Optional.empty()
+        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
+    }
+
+    void assertOperation(Throwable expectedFailure = null) {
+        if (expectedFailure == null) {
+            assertSuccessfulOperation(CaptureIncrementalStateBeforeExecutionStep.Operation, "Snapshot inputs and outputs before executing job ':test'", CaptureIncrementalStateBeforeExecutionStep.Operation.Result.INSTANCE)
+        } else {
+            assertFailedOperation(CaptureIncrementalStateBeforeExecutionStep.Operation, "Snapshot inputs and outputs before executing job ':test'", expectedFailure)
+        }
     }
 }

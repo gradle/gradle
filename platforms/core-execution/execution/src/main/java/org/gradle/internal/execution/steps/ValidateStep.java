@@ -34,18 +34,53 @@ import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.util.internal.TextUtil;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
-public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
-    private final ExecutionProblemHandler problemHandler;
-    private final Step<? super ValidationFinishedContext, ? extends R> delegate;
+public abstract class ValidateStep<
+    C extends BeforeExecutionContext,
+    D extends ValidationFinishedContext,
+    R extends Result
+    > implements Step<C, R> {
+    public static class Immutable<R extends Result>
+        extends ValidateStep<BeforeImmutableExecutionContext, ImmutableValidationFinishedContext, R> {
+        public Immutable(
+            ExecutionProblemHandler problemHandler,
+            Step<? super ImmutableValidationFinishedContext, ? extends R> delegate
+        ) {
+            super(problemHandler, delegate);
+        }
 
-    public ValidateStep(
+        @Override
+        protected ImmutableValidationFinishedContext createDelegateContext(BeforeImmutableExecutionContext context, List<? extends InternalProblem> problems) {
+            return new ImmutableValidationFinishedContext(context, problems);
+        }
+    }
+
+    public static class Mutable<R extends Result>
+        extends ValidateStep<BeforeMutableExecutionContext, MutableValidationFinishedContext, R> {
+        public Mutable(
+            ExecutionProblemHandler problemHandler,
+            Step<? super MutableValidationFinishedContext, ? extends R> delegate
+        ) {
+            super(problemHandler, delegate);
+        }
+
+        @Override
+        protected MutableValidationFinishedContext createDelegateContext(BeforeMutableExecutionContext context, List<? extends InternalProblem> problems) {
+            return new MutableValidationFinishedContext(context, problems);
+        }
+    }
+
+    private final ExecutionProblemHandler problemHandler;
+    private final Step<? super D, ? extends R> delegate;
+
+    protected ValidateStep(
         ExecutionProblemHandler problemHandler,
-        Step<? super ValidationFinishedContext, ? extends R> delegate
+        Step<? super D, ? extends R> delegate
     ) {
         this.problemHandler = problemHandler;
         this.delegate = delegate;
@@ -61,8 +96,10 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
         problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
 
-        return delegate.execute(work, new ValidationFinishedContext(context, validationContext.getProblems()));
+        return delegate.execute(work, createDelegateContext(context, validationContext.getProblems()));
     }
+
+    protected abstract D createDelegateContext(C context, List<? extends InternalProblem> problems);
 
     private static void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
         MutableReference<Class<?>> workClass = MutableReference.empty();

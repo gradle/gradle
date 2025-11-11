@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,22 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.caching.CachingState;
 
-import java.util.Optional;
+public class ImmutableCachingContext extends ImmutableValidationFinishedContext implements CachingContext {
 
-public interface BeforeExecutionContext extends IdentifyingContext {
+    private final CachingState cachingState;
+
+    public ImmutableCachingContext(ImmutableValidationFinishedContext parent, CachingState cachingState) {
+        super(parent);
+        this.cachingState = cachingState;
+    }
+
     /**
-     * Returns the execution state before execution.
-     * Empty if execution state was not observed before execution.
+     * The resolved state of caching for the work.
      */
-    Optional<BeforeExecutionState> getBeforeExecutionState();
+    @Override
+    public CachingState getCachingState() {
+        return cachingState;
+    }
 }

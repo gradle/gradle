@@ -33,8 +33,8 @@ import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
-import org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
+import org.gradle.internal.execution.steps.ResolveMutableCachingStateStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -75,9 +75,9 @@ public class TestExecutionEngineFactory {
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(problemHandler,
+            new ValidateStep.Mutable<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
-            new ResolveIncrementalCachingStateStep<>(buildCacheController, false,
+            new ResolveMutableCachingStateStep<>(buildCacheController, false,
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
@@ -85,7 +85,7 @@ public class TestExecutionEngineFactory {
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            new ExecuteStep<>(buildOperationRunner
+            new ExecuteStep.Mutable(buildOperationRunner
         )))))))))))))))),
             problems);
         // @formatter:on

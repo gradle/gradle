@@ -26,7 +26,6 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateFactory;
 import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.hash.HashCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,6 @@ import org.slf4j.helpers.NOPLogger;
 
 import java.util.Formatter;
 import java.util.List;
-import java.util.Optional;
 
 public abstract class AbstractResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractResolveCachingStateStep.class);
@@ -77,28 +75,26 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
         CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
-        // TODO Move this to mutable case
-        HashCode cacheKey = getPreviousCacheKeyIfApplicable(context)
-            .orElseGet(() -> cachingStateFactory.calculateCacheKey(beforeExecutionState));
+        HashCode cacheKey = calculateCacheKey(context, beforeExecutionState, cachingStateFactory);
+
         ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
+        calculateCachingState(work, context, cachingDisabledReasonsBuilder);
+
+        return cachingStateFactory.createCachingState(beforeExecutionState, cacheKey, cachingDisabledReasonsBuilder.build());
+    }
+
+    protected HashCode calculateCacheKey(C context, BeforeExecutionState beforeExecutionState, CachingStateFactory cachingStateFactory) {
+        return cachingStateFactory.calculateCacheKey(beforeExecutionState);
+    }
+
+    protected void calculateCachingState(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
         if (!context.getValidationProblems().isEmpty()) {
             cachingDisabledReasonsBuilder.add(VALIDATION_FAILED_REASON);
         }
         if (!buildCache.isEnabled()) {
             cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
         }
-        OverlappingOutputs detectedOverlappingOutputs = context.getDetectedOverlappingOutputs()
-            .orElse(null);
-        work.shouldDisableCaching(detectedOverlappingOutputs)
-            .ifPresent(cachingDisabledReasonsBuilder::add);
-
-        return cachingStateFactory.createCachingState(beforeExecutionState, cacheKey, cachingDisabledReasonsBuilder.build());
     }
-
-    /**
-     * Return cache key from previous build if there are no changes.
-     */
-    protected abstract Optional<HashCode> getPreviousCacheKeyIfApplicable(C context);
 
     protected abstract UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState);
 

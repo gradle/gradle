@@ -64,7 +64,7 @@ class OverlappingOutputsFilterTest extends Specification {
         def previousExecutionState = Stub(PreviousExecutionState) {
             getOutputFilesProducedByWork() >> previousOutputs
         }
-        def context = Stub(BeforeExecutionContext) {
+        def context = Stub(BeforeMutableExecutionContext) {
             getBeforeExecutionState() >> Optional.of(beforeExecutionState)
             getPreviousExecutionState() >> Optional.of(previousExecutionState)
             detectedOverlappingOutputs >> Optional.of(overlappingOutputs)

@@ -24,14 +24,14 @@ import org.gradle.internal.file.TreeType;
 
 import java.io.File;
 
-public class BroadcastChangingOutputsStep<C extends InputChangesContext> implements Step<C, Result>  {
+public class BroadcastChangingOutputsStep<C extends WorkspaceContext> implements Step<C, Result>  {
     private final OutputChangeListener outputChangeListener;
 
-    private final Step<? super InputChangesContext, ? extends Result> delegate;
+    private final Step<? super C, ? extends Result> delegate;
 
     public BroadcastChangingOutputsStep(
         OutputChangeListener outputChangeListener,
-        Step<? super InputChangesContext, ? extends Result> delegate
+        Step<? super C, ? extends Result> delegate
     ) {
         this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;

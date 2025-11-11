@@ -16,18 +16,23 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.caching.CachingStateFactory;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Optional;
 
-public class ResolveIncrementalCachingStateStep<C extends IncrementalChangesContext> extends AbstractResolveCachingStateStep<C> {
+public class ResolveMutableCachingStateStep<C extends IncrementalChangesContext> extends AbstractResolveCachingStateStep<C> {
     private final Step<? super IncrementalCachingContext, ? extends UpToDateResult> delegate;
 
-    public ResolveIncrementalCachingStateStep(
+    public ResolveMutableCachingStateStep(
         BuildCacheController buildCache,
         boolean emitDebugLogging,
         Step<? super IncrementalCachingContext, ? extends UpToDateResult> delegate
@@ -37,11 +42,29 @@ public class ResolveIncrementalCachingStateStep<C extends IncrementalChangesCont
     }
 
     @Override
-    protected Optional<HashCode> getPreviousCacheKeyIfApplicable(C context) {
+    protected HashCode calculateCacheKey(C context, BeforeExecutionState beforeExecutionState, CachingStateFactory cachingStateFactory) {
+        return getPreviousCacheKeyIfApplicable(context)
+            .orElseGet(() -> super.calculateCacheKey(context, beforeExecutionState, cachingStateFactory));
+    }
+
+    /**
+     * Return cache key from previous build if there are no changes.
+     */
+    private static Optional<HashCode> getPreviousCacheKeyIfApplicable(IncrementalChangesContext context) {
         return context.getChanges()
             .flatMap(changes -> context.getPreviousExecutionState()
                 .filter(__ -> changes.getChangeDescriptions().isEmpty())
                 .map(PreviousExecutionState::getCacheKey));
+    }
+
+    @Override
+    protected void calculateCachingState(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
+        // TODO Move this to mutable case
+        OverlappingOutputs detectedOverlappingOutputs = context.getDetectedOverlappingOutputs()
+            .orElse(null);
+        work.shouldDisableCaching(detectedOverlappingOutputs)
+            .ifPresent(cachingDisabledReasonsBuilder::add);
+        super.calculateCachingState(work, context, cachingDisabledReasonsBuilder);
     }
 
     @Override
