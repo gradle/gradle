@@ -48,7 +48,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             private ExecutionRequestContext createExecutionRequestContext() {
                 WorkValidationContext validationContext = this.validationContext != null
                     ? this.validationContext
-                    : new DefaultWorkValidationContext(work.getTypeOriginInspector(), problems);
+                    : new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems);
                 return new ExecutionRequestContext(nonIncrementalReason, validationContext);
             }
 

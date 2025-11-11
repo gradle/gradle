@@ -173,13 +173,5 @@ public interface UnitOfWork extends Describable {
         return Optional.empty();
     }
 
-    /**
-     * Returns a type origin inspector, which is used for diagnostics (e.g. error messages) to provide
-     * more context about the origin of types (for example in what plugin a type is defined)
-     */
-    default WorkValidationContext.TypeOriginInspector getTypeOriginInspector() {
-        return WorkValidationContext.TypeOriginInspector.NO_OP;
-    }
-
     CachingDisabledReason NOT_WORTH_CACHING = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
 }
