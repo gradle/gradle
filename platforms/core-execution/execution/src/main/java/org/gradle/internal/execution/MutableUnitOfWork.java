@@ -35,6 +35,13 @@ public interface MutableUnitOfWork extends UnitOfWork {
     ExecutionBehavior getExecutionBehavior();
 
     /**
+     * Whether overlapping outputs should be allowed or ignored.
+     */
+    default OverlappingOutputHandling getOverlappingOutputHandling() {
+        return OverlappingOutputHandling.IGNORE_OVERLAPS;
+    }
+
+    /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.
      */
     default boolean shouldCleanupOutputsOnNonIncrementalExecution() {
@@ -65,5 +72,17 @@ public interface MutableUnitOfWork extends UnitOfWork {
          * Work is not capable of incremental execution, no need to track input changes.
          */
         NON_INCREMENTAL
+    }
+
+    enum OverlappingOutputHandling {
+        /**
+         * Overlapping outputs are detected and handled.
+         */
+        DETECT_OVERLAPS,
+
+        /**
+         * Overlapping outputs are not detected.
+         */
+        IGNORE_OVERLAPS
     }
 }

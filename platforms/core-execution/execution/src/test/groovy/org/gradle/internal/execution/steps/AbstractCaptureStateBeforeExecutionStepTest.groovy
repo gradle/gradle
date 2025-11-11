@@ -28,8 +28,6 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
-import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
-
 abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExecutionContext> extends StepSpec<C> {
 
     interface MyWorkClass extends UnitOfWork {
@@ -159,7 +157,6 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
             visitor.visitImplementation(implementationType)
         }
         _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
-        _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
     }
 
     void assertOperation(Throwable expectedFailure = null) {

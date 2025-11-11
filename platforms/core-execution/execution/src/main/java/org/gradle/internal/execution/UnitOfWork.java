@@ -68,13 +68,13 @@ public interface UnitOfWork extends Describable {
      */
     default void visitIdentityInputs(InputVisitor visitor) {}
 
-    // TODO Move to MutableUnitOfWork
     /**
      * Visit regular inputs of the work.
      *
      * Regular inputs are inputs that are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
      * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} as well as this method.
      */
+    // TODO Move to MutableUnitOfWork
     default void visitRegularInputs(InputVisitor visitor) {}
 
     /**
@@ -106,26 +106,6 @@ public interface UnitOfWork extends Describable {
     // TODO Make this part of CachingState instead
     default boolean isAllowedToLoadFromCache() {
         return true;
-    }
-
-    /**
-     * Whether overlapping outputs should be allowed or ignored.
-     */
-    // TODO Move to MutableUnitOfWork
-    default OverlappingOutputHandling getOverlappingOutputHandling() {
-        return OverlappingOutputHandling.IGNORE_OVERLAPS;
-    }
-
-    enum OverlappingOutputHandling {
-        /**
-         * Overlapping outputs are detected and handled.
-         */
-        DETECT_OVERLAPS,
-
-        /**
-         * Overlapping outputs are not detected.
-         */
-        IGNORE_OVERLAPS
     }
 
     default Optional<Duration> getTimeout() {
