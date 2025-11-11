@@ -697,7 +697,7 @@ public class BuildOperationTrace implements Stoppable {
      * silently ignored.
      * <p>
      * The use case for this executor strongly overlaps with that of
-     * {@link org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
+     * {@code org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
      * We should consider merging these implementations.
      */
     private static class AsyncExecutor implements Closeable {
