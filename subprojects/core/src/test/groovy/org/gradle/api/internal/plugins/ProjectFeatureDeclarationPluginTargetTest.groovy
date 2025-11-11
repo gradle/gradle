@@ -23,7 +23,6 @@ import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
@@ -47,7 +46,6 @@ class ProjectFeatureDeclarationPluginTargetTest extends Specification {
     def projectTypePluginAnnotationMetadata = Mock(TypeAnnotationMetadata)
     def projectFeaturePluginMetadata = Mock(TypeMetadata)
     def projectFeaturePluginAnnotationMetadata = Mock(TypeAnnotationMetadata)
-    def propertyMetadata = Mock(PropertyMetadata)
 
     def "adds project feature plugins for ecosystem plugin that declare #type"() {
         when:
@@ -107,7 +105,6 @@ class ProjectFeatureDeclarationPluginTargetTest extends Specification {
         1 * registrationTypeAnnotationMetadata.getAnnotation(RegistersSoftwareTypes.class) >> Optional.of(registersSoftwareTypes)
         1 * registersSoftwareTypes.value() >> [ProjectTypePlugin.class]
         1 * metadataStore.getTypeMetadata(ProjectTypePlugin.class) >> projectTypePluginMetadata
-        1 * projectTypePluginMetadata.getPropertiesMetadata() >> [propertyMetadata]
         2 * projectTypePluginMetadata.getTypeAnnotationMetadata() >> projectTypePluginAnnotationMetadata
         1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
         1 * projectTypePluginAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
