@@ -21,9 +21,9 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.hash.TestHashCodes
 
-class ResolveMutableCachingStateStepTest extends AbstractResolveCachingStateStepTest<IncrementalChangesContext, ResolveMutableCachingStateStep<IncrementalChangesContext>> {
+class ResolveMutableCachingStateStepTest extends AbstractResolveCachingStateStepTest<MutableChangesContext, ResolveMutableCachingStateStep<MutableChangesContext>> {
     @Override
-    ResolveMutableCachingStateStep<IncrementalChangesContext> createStep() {
+    ResolveMutableCachingStateStep<MutableChangesContext> createStep() {
         return new ResolveMutableCachingStateStep<>(buildCache, false, delegate)
     }
 

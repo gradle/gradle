@@ -29,13 +29,13 @@ import org.gradle.internal.hash.HashCode;
 
 import java.util.Optional;
 
-public class ResolveMutableCachingStateStep<C extends IncrementalChangesContext> extends AbstractResolveCachingStateStep<C> {
-    private final Step<? super IncrementalCachingContext, ? extends UpToDateResult> delegate;
+public class ResolveMutableCachingStateStep<C extends MutableChangesContext> extends AbstractResolveCachingStateStep<C> {
+    private final Step<? super MutableCachingContext, ? extends UpToDateResult> delegate;
 
     public ResolveMutableCachingStateStep(
         BuildCacheController buildCache,
         boolean emitDebugLogging,
-        Step<? super IncrementalCachingContext, ? extends UpToDateResult> delegate
+        Step<? super MutableCachingContext, ? extends UpToDateResult> delegate
     ) {
         super(buildCache, emitDebugLogging);
         this.delegate = delegate;
@@ -50,7 +50,7 @@ public class ResolveMutableCachingStateStep<C extends IncrementalChangesContext>
     /**
      * Return cache key from previous build if there are no changes.
      */
-    private static Optional<HashCode> getPreviousCacheKeyIfApplicable(IncrementalChangesContext context) {
+    private static Optional<HashCode> getPreviousCacheKeyIfApplicable(MutableChangesContext context) {
         return context.getChanges()
             .flatMap(changes -> context.getPreviousExecutionState()
                 .filter(__ -> changes.getChangeDescriptions().isEmpty())
@@ -69,6 +69,6 @@ public class ResolveMutableCachingStateStep<C extends IncrementalChangesContext>
 
     @Override
     protected UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState) {
-        return delegate.execute(work, new IncrementalCachingContext(context, cachingState));
+        return delegate.execute(work, new MutableCachingContext(context, cachingState));
     }
 }

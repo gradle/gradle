@@ -31,7 +31,7 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
-class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> implements SnapshotterFixture {
+class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implements SnapshotterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
     def cacheKey = TestHashCodes.hashCodeFrom(1234)
 
@@ -46,7 +46,7 @@ class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> im
     def outputFile = file("output.txt").text = "output"
     def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
-    def step = new StoreExecutionStateStep<IncrementalCachingContext, AfterExecutionResult>(delegate)
+    def step = new StoreExecutionStateStep<MutableCachingContext, AfterExecutionResult>(delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
 

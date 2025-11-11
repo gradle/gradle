@@ -22,13 +22,13 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
-public class IncrementalChangesContext extends MutableValidationFinishedContext {
+public class MutableChangesContext extends MutableValidationFinishedContext {
 
     private final ImmutableList<String> rebuildReasons;
     @Nullable
     private final ExecutionStateChanges executionStateChanges;
 
-    public IncrementalChangesContext(
+    public MutableChangesContext(
         MutableValidationFinishedContext parent,
         ImmutableList<String> rebuildReasons,
         @Nullable ExecutionStateChanges executionStateChanges
@@ -38,7 +38,7 @@ public class IncrementalChangesContext extends MutableValidationFinishedContext 
         this.executionStateChanges = executionStateChanges;
     }
 
-    protected IncrementalChangesContext(IncrementalChangesContext parent) {
+    protected MutableChangesContext(MutableChangesContext parent) {
         this(parent, parent.getRebuildReasons(), parent.getChanges().orElse(null));
     }
 

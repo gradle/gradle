@@ -38,11 +38,11 @@ public class ResolveChangesStep<C extends MutableValidationFinishedContext, R ex
 
     private final ExecutionStateChangeDetector changeDetector;
 
-    private final Step<? super IncrementalChangesContext, R> delegate;
+    private final Step<? super MutableChangesContext, R> delegate;
 
     public ResolveChangesStep(
         ExecutionStateChangeDetector changeDetector,
-        Step<? super IncrementalChangesContext, R> delegate
+        Step<? super MutableChangesContext, R> delegate
     ) {
         this.changeDetector = changeDetector;
         this.delegate = delegate;
@@ -50,14 +50,14 @@ public class ResolveChangesStep<C extends MutableValidationFinishedContext, R ex
 
     @Override
     protected R executeMutable(MutableUnitOfWork work, C context) {
-        IncrementalChangesContext delegateContext = context.getBeforeExecutionState()
+        MutableChangesContext delegateContext = context.getBeforeExecutionState()
             .map(beforeExecution -> resolveExecutionStateChanges(work, context, beforeExecution))
-            .map(changes -> new IncrementalChangesContext(context, changes.getChangeDescriptions(), changes))
+            .map(changes -> new MutableChangesContext(context, changes.getChangeDescriptions(), changes))
             .orElseGet(() -> {
                 ImmutableList<String> rebuildReason = context.getNonIncrementalReason()
                     .map(ImmutableList::of)
                     .orElse(UNTRACKED);
-                return new IncrementalChangesContext(context, rebuildReason, null);
+                return new MutableChangesContext(context, rebuildReason, null);
             });
 
         return delegate.execute(work, delegateContext);

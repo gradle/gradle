@@ -18,11 +18,11 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.caching.CachingState;
 
-public class IncrementalCachingContext extends IncrementalChangesContext implements CachingContext {
+public class MutableCachingContext extends MutableChangesContext implements CachingContext {
 
     private final CachingState cachingState;
 
-    public IncrementalCachingContext(IncrementalChangesContext parent, CachingState cachingState) {
+    public MutableCachingContext(MutableChangesContext parent, CachingState cachingState) {
         super(parent);
         this.cachingState = cachingState;
     }
