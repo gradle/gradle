@@ -103,7 +103,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
 
         projectFeatureImplementationsBuilder.put(
             projectFeatureName,
-            new DefaultBoundProjectFeatureImplementation<>(
+            new DefaultProjectFeatureImplementation<>(
                 projectFeatureName,
                 binding.getDefinitionType(),
                 binding.getDefinitionImplementationType().orElse(binding.getDefinitionType()),
