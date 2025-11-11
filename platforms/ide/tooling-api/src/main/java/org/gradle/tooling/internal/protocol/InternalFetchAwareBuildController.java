@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.resiliency;
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
