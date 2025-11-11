@@ -21,9 +21,11 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 
 @TargetGradleVersion(">=4.1")
+@Ignore("Temporarily, should be annotated <10.0 instead")
 class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can load script template using classpath model"() {

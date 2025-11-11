@@ -55,16 +55,9 @@ class KotlinDslIntellijPlatformIntegrationTest : AbstractKotlinIntegrationTest()
     @Suppress("DEPRECATION")
     private
     val templateClassNames = listOf(
-        // Script templates for IDE support
         org.gradle.kotlin.dsl.KotlinGradleScriptTemplate::class.java.name,
         org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate::class.java.name,
         org.gradle.kotlin.dsl.KotlinProjectScriptTemplate::class.java.name,
-        // Legacy script templates for IDE support
-        org.gradle.kotlin.dsl.KotlinInitScript::class.java.name,
-        org.gradle.kotlin.dsl.KotlinSettingsScript::class.java.name,
-        org.gradle.kotlin.dsl.KotlinBuildScript::class.java.name,
-        // Legacy script dependencies resolver for IDE support
-        org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver::class.java.name,
     )
 
     private fun loadScriptTemplatesFromDistro(ijRegex: Regex) {
