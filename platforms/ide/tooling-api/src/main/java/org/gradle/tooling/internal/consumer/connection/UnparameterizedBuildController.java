@@ -227,4 +227,9 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
             return DefaultFetchModelResult.failure(e);
         }
     }
+
+    @Override
+    public boolean isParallelActionsEnabled() {
+        return false;
+    }
 }

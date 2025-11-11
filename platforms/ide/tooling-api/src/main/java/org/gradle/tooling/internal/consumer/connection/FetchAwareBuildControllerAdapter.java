@@ -42,6 +42,11 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
     }
 
     @Override
+    public boolean isParallelActionsEnabled() {
+        return fetch.isParallelActionsEnabled();
+    }
+
+    @Override
     public <M, P> FetchModelResult<M> fetch(
         @Nullable Model target,
         Class<M> modelType,
