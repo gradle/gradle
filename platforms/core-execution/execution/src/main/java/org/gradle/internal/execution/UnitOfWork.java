@@ -44,17 +44,6 @@ import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
 
-    CachingDisabledReason NOT_WORTH_CACHING = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
-
-    /**
-     * Identifier of the type of the work used in build operations.
-     * <p>
-     * Values returned here become part of the contract of related build operations.
-     */
-    default Optional<String> getBuildOperationWorkType() {
-        return Optional.empty();
-    }
-
     /**
      * Determine the identity of the work unit that uniquely identifies it
      * among the other work units of the same type in the current build.
@@ -134,7 +123,7 @@ public interface UnitOfWork extends Describable {
      * Visit identity inputs of the work.
      *
      * These are inputs that are passed to {@link #identify(Map, Map)} to calculate the identity of the work.
-     * These are more expensive to calculate than regular inputs as they need to be calculated even if the execution of the work is short circuited by an identity cache.
+     * These are more expensive to calculate than regular inputs as they need to be calculated even if the execution of the work is short-circuited by an identity cache.
      * They also cannot reuse snapshots taken during previous executions.
      * Because of these reasons only capture inputs as identity if they are actually used to calculate the identity of the work.
      * Any non-identity inputs should be visited when calling {@link #visitRegularInputs(InputVisitor)}.
@@ -352,10 +341,21 @@ public interface UnitOfWork extends Describable {
     default void ensureLegacySnapshottingInputsClosed() {}
 
     /**
-     * Returns a type origin inspector, which is used for diagnostics (e.g error messages) to provide
+     * Identifier of the type of the work used in build operations.
+     * <p>
+     * Values returned here become part of the contract of related build operations.
+     */
+    default Optional<String> getBuildOperationWorkType() {
+        return Optional.empty();
+    }
+
+    /**
+     * Returns a type origin inspector, which is used for diagnostics (e.g. error messages) to provide
      * more context about the origin of types (for example in what plugin a type is defined)
      */
     default WorkValidationContext.TypeOriginInspector getTypeOriginInspector() {
         return WorkValidationContext.TypeOriginInspector.NO_OP;
     }
+
+    CachingDisabledReason NOT_WORTH_CACHING = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");
 }
