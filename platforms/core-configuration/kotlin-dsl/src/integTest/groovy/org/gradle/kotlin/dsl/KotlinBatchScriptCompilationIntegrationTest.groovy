@@ -23,9 +23,10 @@ class KotlinBatchScriptCompilationIntegrationTest extends AbstractIntegrationSpe
 
     def setup() {
         requireOwnGradleUserHomeDir 'to avoid reusing the script cache'
+        executer.requireIsolatedDaemons()
     }
 
-    def '#numberOfProjects projects (IP: #ip)'() {
+    def '#numberOfProjects projects (IP: #ip, batch: #batch)'() {
         given:
         numberOfProjects.times {
             def projName = "p$it"
@@ -34,8 +35,9 @@ class KotlinBatchScriptCompilationIntegrationTest extends AbstractIntegrationSpe
             """
             file("$projName/build.gradle.kts") << """
                 plugins {
-                    println("$projName!")
+                    System.setProperty("$projName", "$projName")
                 }
+                assert(System.getProperty("$projName") == "$projName")
                 tasks.register("ok")
             """
         }
@@ -44,27 +46,39 @@ class KotlinBatchScriptCompilationIntegrationTest extends AbstractIntegrationSpe
         if (ip) {
             withIsolatedProjects()
         }
-        run "ok", "-S"
+        run "ok", "-S", "--dry-run", "-Dorg.gradle.internal.kotlin-dsl.batch=$batch"
 
         then:
         numberOfProjects.times {
             def projName = "p$it"
-            outputContains "$projName!"
+            outputContains "$projName:ok"
         }
 
         where:
-        numberOfProjects | ip
-        5                | false
-//        10               | false
-//        50               | false
-//        100              | false
-//        500              | false
-//        1000             | false
-//        5                | true
-//        10               | true
-//        50               | true
-//        100              | true
-//        500              | true
-//        1000             | true
+        numberOfProjects | ip    | batch
+        5                | false | false
+        5                | false | true
+        10               | false | false
+        10               | false | true
+        50               | false | false
+        50               | false | true
+        100              | false | false
+        100              | false | true
+        500              | false | false
+        500              | false | true
+//        1000             | false | false
+//        1000             | false | true
+        5                | true  | false
+        5                | true  | true
+        10               | true  | false
+        10               | true  | true
+        50               | true  | false
+        50               | true  | true
+        100              | true  | false
+        100              | true  | true
+        500              | true  | false
+        500              | true  | true
+//        1000             | true  | false
+//        1000             | true  | true
     }
 }

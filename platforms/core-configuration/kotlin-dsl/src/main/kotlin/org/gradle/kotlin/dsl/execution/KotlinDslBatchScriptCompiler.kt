@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.properties.GradleProperties
@@ -42,7 +43,23 @@ class KotlinDslBatchScriptCompiler @Inject constructor(
     private val globalScopedCacheBuilderFactory: GlobalScopedCacheBuilderFactory
 ) : BatchScriptCompiler {
 
+    companion object {
+
+        fun isEnabled() = java.lang.Boolean.getBoolean("org.gradle.internal.kotlin-dsl.batch")
+
+        fun maybeExpectCacheHit(target: Any, programId: ProgramId) {
+            if (isEnabled() && target is Project && target.parent != null) {
+                error("Expecting cache hit for $target ($programId)")
+            }
+        }
+    }
+
     override fun compile(parent: ProjectState, children: List<ProjectState>) {
+
+        if (!isEnabled() || isBatchCompiled(parent)) {
+            return
+        }
+
         // acquire cache directory...
         // parse
         // partially evaluate
@@ -132,4 +149,15 @@ class KotlinDslBatchScriptCompiler @Inject constructor(
             }
         }
     }
+
+    private fun isBatchCompiled(project: ProjectState): Boolean {
+        val guard = javaClass.getName()
+        val extraProperties = project.mutableModel.extensions.extraProperties
+        if (extraProperties.has(guard)) {
+            return true
+        }
+        extraProperties.set(guard, guard)
+        return false
+    }
+
 }
