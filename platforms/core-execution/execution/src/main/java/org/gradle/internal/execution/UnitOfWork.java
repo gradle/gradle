@@ -72,16 +72,9 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Loads output not produced during the current execution.
-     * This can be output produced during a previous execution when the work is up-to-date,
-     * or loaded from cache.
+     * Validate the work definition and configuration.
      */
-    @Nullable
-    Object loadAlreadyProducedOutput(File workspace);
-
-    default Optional<Duration> getTimeout() {
-        return Optional.empty();
-    }
+    default void validate(WorkValidationContext validationContext) {}
 
     /**
      * Capture the classloader of the work's implementation type.
@@ -118,6 +111,14 @@ public interface UnitOfWork extends Describable {
     void visitOutputs(File workspace, OutputVisitor visitor);
 
     /**
+     * Loads output not produced during the current execution.
+     * This can be output produced during a previous execution when the work is up-to-date,
+     * or loaded from cache.
+     */
+    @Nullable
+    Object loadAlreadyProducedOutput(File workspace);
+
+    /**
      * Return a reason to disable caching for this work.
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
@@ -152,10 +153,9 @@ public interface UnitOfWork extends Describable {
         IGNORE_OVERLAPS
     }
 
-    /**
-     * Validate the work definition and configuration.
-     */
-    default void validate(WorkValidationContext validationContext) {}
+    default Optional<Duration> getTimeout() {
+        return Optional.empty();
+    }
 
     /**
      * Checks if outputs of the work are only consumed by inputs that declare a dependency on this unit of work.
