@@ -17,10 +17,9 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.Failure;
 import org.gradle.tooling.FetchModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
+import org.gradle.tooling.internal.consumer.DefaultFetchModelResult;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
@@ -32,9 +31,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
 
 @NullMarked
 class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdapter {
@@ -46,8 +42,8 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
     }
 
     @Override
-    public <T extends Model, M, P> FetchModelResult<T, M> fetch(
-        @Nullable T target,
+    public <M, P> FetchModelResult<M> fetch(
+        @Nullable Model target,
         Class<M> modelType,
         @Nullable Class<P> parameterType,
         @Nullable Action<? super P> parameterInitializer
@@ -59,42 +55,9 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
         return adaptResult(target, modelType, result);
     }
 
-    private <T extends Model, M> FetchModelResult<T, M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
+    private <T extends Model, M> FetchModelResult<M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
         Object model = result.getModel();
         M adaptedModel = model != null ? adaptModel(target, modelType, model) : null;
-        return new ModelFetchModelResult<>(result, adaptedModel, target);
-    }
-
-    private static class ModelFetchModelResult<T extends Model, M> implements FetchModelResult<T, M>, Serializable {
-        private final InternalFetchModelResult<Object> result;
-        private final M adaptedModel;
-        private final T target;
-        @Nullable
-        List<Failure> failures;
-
-        public ModelFetchModelResult(InternalFetchModelResult<Object> result, M adaptedModel, T target) {
-            this.result = result;
-            this.adaptedModel = adaptedModel;
-            this.target = target;
-            failures = null;
-        }
-
-        @Override
-        public T getTarget() {
-            return target;
-        }
-
-        @Override
-        public M getModel() {
-            return adaptedModel;
-        }
-
-        @Override
-        public Collection<? extends Failure> getFailures() {
-            if (failures == null) {
-                failures = BuildProgressListenerAdapter.toFailures(result.getFailures());
-            }
-            return failures;
-        }
+        return DefaultFetchModelResult.of(adaptedModel, result.getFailures());
     }
 }

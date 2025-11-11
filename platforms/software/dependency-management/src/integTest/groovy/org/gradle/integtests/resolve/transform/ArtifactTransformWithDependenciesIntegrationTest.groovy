@@ -375,7 +375,7 @@ project(':common') {
                     additional {
                         attributes {
                             attribute(color, 'purple')
-                            artifact(producer.output)
+                            artifact(tasks.producer.output)
                         }
                     }
                 }
@@ -557,7 +557,7 @@ project(':common') {
         setupBuildWithTransformOfExternalDependencyThatUsesDifferentTransformForUpstreamDependencies()
 
         buildFile << """
-            resolveArtifacts.collection = view
+            tasks.resolveArtifacts.collection = view
         """
 
         when:
@@ -583,8 +583,8 @@ project(':common') {
         setupBuildWithTransformOfExternalDependencyThatUsesDifferentTransformForUpstreamDependencies()
 
         buildFile << """
-            resolveArtifacts.collection = view
-            resolveArtifacts.dependsOn {
+            tasks.resolveArtifacts.collection = view
+            tasks.resolveArtifacts.dependsOn {
                 view.forEach { println("artifact = " + it) }
                 []
             }
@@ -684,7 +684,7 @@ project(':common') {
                         one {
                             attributes.attribute(flavor, 'bland')
                             attributes.attribute(selectable, 'yes')
-                            artifact(producer.output)
+                            artifact(tasks.producer.output)
                         }
                         two {
                             attributes.attribute(flavor, 'cloying')
@@ -1405,7 +1405,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         setupBuildWithTwoSteps()
         buildFile << """
             project(':common') {
-                producer.doLast {
+                tasks.producer.doLast {
                     throw new RuntimeException("broken")
                 }
             }

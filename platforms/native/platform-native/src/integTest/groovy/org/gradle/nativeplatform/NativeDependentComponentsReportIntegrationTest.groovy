@@ -210,7 +210,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         run 'libraries:dependentComponents', '--component', 'foo'
 
         then:
-        output.contains '''
+        removeIrrelevantOutput(output).contains '''
             ------------------------------------------------------------
             Project ':libraries'
             ------------------------------------------------------------
@@ -223,6 +223,12 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    \\--- :extensions:bazar:staticLibrary
             \\--- :libraries:foo:staticLibrary
             '''.stripIndent()
+    }
+
+    String removeIrrelevantOutput(String output) {
+        return output.readLines().findAll {
+             !(it ==~ /^Problem found.*$/) && !(it ==~ /.*caused invocation of 'Task.project' in other task at execution.*$/)
+        }.join('\n')
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)

@@ -26,7 +26,6 @@ errorprone {
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
-        "UnusedMethod", // 34 occurrences
     )
 }
 
@@ -76,6 +75,7 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.fileOperations)
     implementation(projects.time)
     implementation(projects.baseAsm)

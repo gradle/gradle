@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[declaring-dependencies-basics]]
-= Declaring Dependencies Basics
+= Declaring Dependencies
 
 [[sec:dependency-types]]
 == Types of dependencies
@@ -28,28 +28,23 @@ There are three main types of dependencies in Gradle:
 === 1. Module dependencies
 
 Module dependencies are the most common dependencies.
-They refer to a dependency that is identified by module coordinates (group, name, and version).
+They refer to a published module by its coordinates (`group:name:version`).
 
-Module dependencies are declared using the single-string notation, where the group, name, and version are joined into a single string:
+Every dependency is added to a bucket configuration that defines its scope.
+
+Use the single string `"group:name:version"` (you can also include classifier/extension if needed, e.g., `group:name:version:classifier@ext`):
 
 ====
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
 ====
 
-Gradle also supports the multi-string notation, where each coordinate may be declared separately:
-
-====
-include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies-map]"]
-include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies-map]"]
-====
-
-NOTE: The multi-string notation for module dependencies has been deprecated and will not be supported starting in Gradle 10. Use the single-string notation instead.
+WARNING: The map notation is deprecated and will be removed in Gradle 10. Prefer the single-string form. +
+For example: `runtimeOnly(group: 'org.springframework', name: 'spring-core', version: '2.5')`. +
+Should be: `runtimeOnly('org.springframework:spring-core:2.5')`.
 
 Module dependencies use the link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html[`ExternalModuleDependency`] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] APIs.
-These APIs provide various properties and configuration methods for defining dependencies.
-
-For advanced configurations, such as enforcing strict versions, you can also provide a closure when alongside these notations.
+These APIs provide expose properties and configuration methods for defining dependencies such a `transitive`, `because`, and a `version {}` block for `strictly`, `prefer`, and `reject`.
 
 [[sec:project-dependencies]]
 === 2. Project dependencies

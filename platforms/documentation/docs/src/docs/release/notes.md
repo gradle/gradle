@@ -45,7 +45,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ================== TEMPLATE ==============================
 
-<a name="FILL-IN-KEY-AREA"></a>
 ### FILL-IN-KEY-AREA improvements
 
 <<<FILL IN CONTEXT FOR KEY AREA>>>
@@ -73,7 +72,6 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="build-authoring"></a>
 ### Build authoring improvements
 
 #### New `AttributeContainer.named()` method
@@ -94,7 +92,6 @@ configurations.resolvable("foo") {
 }
 ```
 
-<a name="stream-testkit-output"></a>
 ### Stream TestKit output
 
 Gradle TestKit's `BuildResult` now offers a new method for accessing the build console output efficiently, especially for builds that produce a large volume of logs.
@@ -125,6 +122,14 @@ void testProject() {
     }
 }
 ```
+
+### Simple console rendering for Problem Reports
+The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
+
+Previously, a limitation was that problem reports were not displayed in the console output.
+In this release, we've taken a first step toward full console integration.
+All problem reports are now rendered in the console output when you configure `--warning-mode=all`.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.versions
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -36,14 +35,16 @@ embedded mode
 """
     def baseBuild
     def baseSettings
-    def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         (9..13).each {
             mavenRepo.module("org", "foo", "${it}").publish()
         }
 
-        settingsFile << "rootProject.name = 'test'"
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
         buildFile << """
             repositories {
                 maven { url = '${mavenRepo.uri}' }
@@ -51,8 +52,8 @@ embedded mode
             configurations {
                 conf
             }
-"""
-        resolve.prepare()
+        """
+
         baseBuild = buildFile.text
         baseSettings = settingsFile.text
     }

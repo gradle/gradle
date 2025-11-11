@@ -38,7 +38,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
     def setup() {
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 
-        resolve = new ResolveTestFixture(buildA.buildFile).expectDefaultConfiguration("runtime")
+        resolve = new ResolveTestFixture(buildA)
+        buildA.buildFile << """
+            ${resolve.configureProject("runtimeClasspath")}
+        """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
@@ -115,31 +118,6 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 
         and:
         executed ":buildB:jar"
-    }
-
-    def "can resolve dependency graph without building artifacts"() {
-        given:
-        resolve.withoutBuildingArtifacts()
-
-        buildA.buildFile << """
-            dependencies {
-                implementation "org.test:buildB:1.0"
-            }
-        """
-
-        when:
-        checkDependencies()
-
-        then:
-        checkGraph {
-            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
-                compositeSubstitute()
-            }
-        }
-
-        and:
-        notExecuted ":buildB:jar"
     }
 
     def "substitutes external dependencies with project dependencies using --include-build"() {
@@ -832,12 +810,10 @@ Required by:
     }
 
     private void checkDependencies() {
-        resolve.prepare()
         execute(buildA, ":checkDeps", buildArgs)
     }
 
     private void checkDependenciesFails() {
-        resolve.prepare()
         fails(buildA, ":checkDeps", buildArgs)
     }
 

@@ -119,6 +119,20 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-discovery",
+    "path": "platforms/core-runtime/build-discovery",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-discovery-impl",
+    "path": "platforms/core-runtime/build-discovery-impl",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
@@ -1362,13 +1376,6 @@
     "path": "platforms/software/testing-base-infrastructure",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "testing-junit-platform",
-    "path": "platforms/jvm/testing-junit-platform",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.resolve.catalog
 
-
-import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -34,7 +32,7 @@ import org.junit.Rule
  * These tests use Groovy settings files because the parent class sets up things in it already.
  */
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
+class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest {
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
@@ -59,13 +57,10 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 alias(otherLibs.plugins.${alias.replace('-', '.')})
             }
-
-            apply(from="fixture.gradle")
         """
 
         when:
@@ -97,13 +92,10 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 alias(libs.plugins.greeter) version "1.5"
             }
-
-            apply(from="fixture.gradle")
         """
 
         when:
@@ -132,13 +124,10 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 id("com.acme.greeter") version libs.versions.greeter
             }
-
-            apply(from="fixture.gradle")
         """
 
         when:
@@ -171,7 +160,6 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 alias(libs.plugins.greeter)
@@ -210,7 +198,6 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             buildscript {
                 repositories {
@@ -258,12 +245,10 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 $pluginRequest
             }
-            apply(from="fixture.gradle")
         """
 
         when:

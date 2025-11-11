@@ -22,11 +22,12 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_LARGE_COVERAGE
 
 @TargetCoverage({ JUNIT4_LARGE_COVERAGE })
 class JUnit4FilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnit4MultiVersionTest {
+
     def 'filter as many classes as possible before sending to worker process'() {
         given:
-        // We can know which class is sent to TestClassProcessor via afterSuite() hook method
-        // because JUnitTestClassProcessor will emit a test suite event for each loaded class.
-        // However, JUnitPlatformTestClassProcessor won't emit such event unless the class is executed.
+        // We can know which class is sent to TestDefinitionProcessor via afterSuite() hook method
+        // because JUnitTestDefinitionProcessor will emit a test suite event for each loaded class.
+        // However, JUnitPlatformTestDefinitionProcessor won't emit such event unless the class is executed.
         // That's why we run test with JUnit 4 only.
         file('src/test/java/org/gradle/FooTest.java') << """
             package org.gradle;

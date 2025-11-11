@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 public class BeforeExecutionContext extends PreviousExecutionContext {
+    @Nullable
     private final BeforeExecutionState beforeExecutionState;
 
     public BeforeExecutionContext(PreviousExecutionContext parent, @Nullable BeforeExecutionState beforeExecutionState) {

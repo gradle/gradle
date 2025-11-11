@@ -16,10 +16,19 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-class TestNGAssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
+import static org.hamcrest.Matchers.containsString
+
+class TestNGAssumptionFailureIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
+
     def "captures assumption failures"() {
         buildFile << """
             plugins {
@@ -67,12 +76,10 @@ class TestNGAssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
         then:
         outputContains("Assumption failure: skipped reason")
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
-            assert it.message == "skipped reason"
-            assert it.type == "org.testng.SkipException"
-            assert it.text.contains("skipped reason")
-        }
+        def testResult = resultsFor()
+        testResult.testPath(':com.example.MyTest:theTest').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SKIPPED)
+            .assertFailureMessages(containsString("org.testng.SkipException: skipped reason"))
     }
 
     def "does not capture ignored tests as assumption failures"() {

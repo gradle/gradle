@@ -18,16 +18,17 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.internal.event.ListenerManager;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DefaultFeatureFlags implements FeatureFlags {
     private final Set<FeatureFlag> enabled = new CopyOnWriteArraySet<FeatureFlag>();
-    private final InternalOptions options;
     private final FeatureFlagListener broadcaster;
+    private final Map<String, String> startParameterSystemProperties;
 
-    public DefaultFeatureFlags(InternalOptions options, ListenerManager listenerManager) {
-        this.options = options;
+    public DefaultFeatureFlags(ListenerManager listenerManager, Map<String, String> startParameterSystemProperties) {
+        this.startParameterSystemProperties = startParameterSystemProperties;
         this.broadcaster = listenerManager.getBroadcaster(FeatureFlagListener.class);
     }
 
@@ -35,10 +36,9 @@ public class DefaultFeatureFlags implements FeatureFlags {
     public boolean isEnabled(FeatureFlag flag) {
         broadcaster.flagRead(flag);
         if (flag.getSystemPropertyName() != null) {
-            // Can explicitly disable property using system property
-            Option.Value<Boolean> option = options.getOption(new InternalFlag(flag.getSystemPropertyName()));
-            if (option.isExplicit() || option.get()) {
-                return option.get();
+            String systemPropertyValue = startParameterSystemProperties.get(flag.getSystemPropertyName());
+            if (systemPropertyValue != null) {
+                return BooleanOptionUtil.isTrue(systemPropertyValue);
             }
         }
         return enabled.contains(flag);

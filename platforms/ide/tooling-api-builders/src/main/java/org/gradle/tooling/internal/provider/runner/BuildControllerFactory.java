@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.buildtree.BuildTreeModelController;
@@ -33,22 +32,19 @@ public class BuildControllerFactory {
     private final BuildEventConsumer buildEventConsumer;
     private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
-    private final ResilientIssuesRecorder resilientIssuesRecorder;
 
     public BuildControllerFactory(
         WorkerThreadRegistry workerThreadRegistry,
         BuildCancellationToken buildCancellationToken,
         BuildEventConsumer buildEventConsumer,
         BuildTreeModelSideEffectExecutor sideEffectExecutor,
-        PayloadSerializer payloadSerializer,
-        ResilientIssuesRecorder resilientIssuesRecorder
+        PayloadSerializer payloadSerializer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
         this.buildCancellationToken = buildCancellationToken;
         this.buildEventConsumer = buildEventConsumer;
         this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
-        this.resilientIssuesRecorder = resilientIssuesRecorder;
     }
 
     public DefaultBuildController controllerFor(BuildTreeModelController controller) {
@@ -57,8 +53,7 @@ public class BuildControllerFactory {
             buildCancellationToken,
             buildEventConsumer,
             sideEffectExecutor,
-            payloadSerializer,
-            resilientIssuesRecorder
+            payloadSerializer
         );
     }
 }

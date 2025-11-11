@@ -50,11 +50,14 @@ dependencies {
     testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(testFixtures(projects.modelReflect))
-    testFixturesImplementation(libs.guava)
     testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(testFixtures(projects.modelReflect))
+    testFixturesImplementation(testFixtures(projects.testingBase))
+
+    testFixturesImplementation(libs.guava)
 
     integTestImplementation(testFixtures(projects.modelReflect))
+    integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.nativePlatform) {
         because("Required for SystemInfo")

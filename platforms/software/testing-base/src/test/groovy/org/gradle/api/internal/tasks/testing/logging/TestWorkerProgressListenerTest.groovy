@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-import org.gradle.api.internal.tasks.testing.worker.WorkerTestClassProcessor
+import org.gradle.api.internal.tasks.testing.worker.WorkerTestDefinitionProcessor
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.logging.progress.ProgressLogger
@@ -193,7 +193,7 @@ class TestWorkerProgressListenerTest extends Specification {
     }
 
     static TestDescriptor createTestDescriptor(TestEvent testEvent) {
-        def testWorkerDescriptor = new WorkerTestClassProcessor.WorkerTestSuiteDescriptor(1, testEvent.testWorkerName)
+        def testWorkerDescriptor = new WorkerTestDefinitionProcessor.WorkerTestSuiteDescriptor(1, testEvent.testWorkerName)
         def defaultTestClassDescriptor = new DefaultTestClassDescriptor(1, testEvent.testClassName)
         def decoratingDefaultTestClassDescriptor = new DecoratingTestDescriptor(defaultTestClassDescriptor, null)
         def decoratingTestWorkerDescriptor = new DecoratingTestDescriptor(testWorkerDescriptor, decoratingDefaultTestClassDescriptor)

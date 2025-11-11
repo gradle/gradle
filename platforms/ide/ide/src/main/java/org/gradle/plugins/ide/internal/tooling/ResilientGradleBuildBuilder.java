@@ -16,12 +16,10 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import com.google.common.collect.Streams;
 import org.gradle.api.GradleException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.ResilientIssuesRecorder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -29,18 +27,23 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.problems.failure.Failure;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
+import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.GRADLE_BUILD_MODEL_NAME;
 import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.addProjects;
 
@@ -48,16 +51,16 @@ import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.addProj
 public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
     private final BuildStateRegistry buildStateRegistry;
     private final BuildIncludeListener failedIncludedBuildsRegistry;
-    private final ResilientIssuesRecorder resilientIssuesRecorder;
+    private final FailureFactory failureFactory;
 
     public ResilientGradleBuildBuilder(
         BuildStateRegistry buildStateRegistry,
         BuildIncludeListener failedIncludedBuildsRegistry,
-        ResilientIssuesRecorder resilientIssuesRecorder
+        FailureFactory failureFactory
     ) {
         this.buildStateRegistry = buildStateRegistry;
         this.failedIncludedBuildsRegistry = failedIncludedBuildsRegistry;
-        this.resilientIssuesRecorder = resilientIssuesRecorder;
+        this.failureFactory = failureFactory;
     }
 
     @Override
@@ -65,29 +68,28 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
         return GRADLE_BUILD_MODEL_NAME.equals(modelName);
     }
 
-
     @Override
-    public DefaultGradleBuild create(BuildState target) {
+    public ToolingModelBuilderResultInternal create(BuildState target) {
         return new ResilientGradleBuildCreator(target).create();
     }
 
     @NullMarked
     private class ResilientGradleBuildCreator {
-        private final Map<BuildState, Failure> brokenBuilds = new HashMap<>();
-        private final Map<SettingsInternal, Failure> brokenSettings = new HashMap<>();
         private final BuildState target;
         private final Map<BuildState, DefaultGradleBuild> all = new LinkedHashMap<>();
+        private final Collection<Failure> failures = new LinkedHashSet<>();
 
         ResilientGradleBuildCreator(BuildState target) {
             this.target = target;
         }
 
-        DefaultGradleBuild create() {
+        ToolingModelBuilderResultInternal create() {
             ensureProjectsLoaded(target);
             DefaultGradleBuild gradleBuild = convert(target);
-            Streams.concat(brokenBuilds.values().stream(), brokenSettings.values().stream())
-                .forEach(resilientIssuesRecorder::recordResilientIssue);
-            return gradleBuild;
+            List<Failure> allFailures = failures.stream()
+                .distinct()
+                .collect(toImmutableList());
+            return ToolingModelBuilderResultInternal.of(gradleBuild, allFailures);
         }
 
         protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model) {
@@ -118,12 +120,7 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             try {
                 target.ensureProjectsLoaded();
             } catch (GradleException e) {
-                if (e.getCause() instanceof org.gradle.kotlin.dsl.support.ScriptCompilationException) {
-                    this.brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
-                    this.brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
-                    return;
-                }
-                throw e;
+                failures.add(failureFactory.create(e));
             }
         }
 
@@ -135,16 +132,18 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             model = new DefaultGradleBuild();
             all.put(targetBuild, model);
 
-            // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
             ensureProjectsLoaded(targetBuild);
 
-            Failure failure = brokenBuilds.get(targetBuild);
-            if (failure == null && !brokenSettings.isEmpty()) {
-                Map.Entry<SettingsInternal, Failure> settingsEntry = brokenSettings.entrySet().iterator().next();
-                ProjectDescriptor rootProject = settingsEntry.getKey().getRootProject();
+            Collection<SettingsInternal> brokenSettings = failedIncludedBuildsRegistry.getBrokenSettings();
+            if (!brokenSettings.contains(targetBuild) && !brokenSettings.isEmpty()) {
+                SettingsInternal settingsEntry = brokenSettings.iterator().next();
+                ProjectDescriptor rootProject = settingsEntry.getRootProject();
                 BasicGradleProject root = convertRoot(targetBuild, rootProject);
                 model.setRootProject(root);
                 model.addProject(root);
+            }
+            if (targetBuild instanceof IncludedBuildState) {
+                model.setBuildIdentifier(new DefaultBuildIdentifier(((IncludedBuildState) targetBuild).getBuildDefinition().getBuildRootDir()));
             }
 
             GradleInternal gradle = targetBuild.getMutableModel();
@@ -171,13 +170,12 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
         }
 
         private void addFailedBuilds(BuildState targetBuild, DefaultGradleBuild model) {
-            for (Map.Entry<BuildState, Failure> entry : brokenBuilds.entrySet()) {
-                BuildState parent = entry.getKey().getParent();
+            for (BuildState entry : failedIncludedBuildsRegistry.getBrokenBuilds()) {
+                BuildState parent = entry.getParent();
                 if (parent != null && parent.equals(targetBuild)) {
-                    model.addIncludedBuild(convert(entry.getKey()));
+                    model.addIncludedBuild(convert(entry));
                 }
             }
         }
-
     }
 }

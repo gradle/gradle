@@ -61,6 +61,8 @@ val core = platform("core") {
         subproject("base-asm")
         subproject("base-services")
         subproject("build-configuration")
+        subproject("build-discovery")
+        subproject("build-discovery-impl")
         subproject("build-operations")
         subproject("build-operations-trace")
         subproject("build-option")
@@ -260,7 +262,6 @@ val jvm = platform("jvm") {
     subproject("scala")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")
-    subproject("testing-junit-platform")
     subproject("war")
 }
 

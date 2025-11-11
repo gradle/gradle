@@ -33,6 +33,7 @@ dependencies {
     }
     integTestImplementation(projects.buildOption)
     integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(testFixtures(projects.testingBase))
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)  {
         because("Requires ':toolingApiBuilders': Event handlers are in the wrong place, and should live in this project")

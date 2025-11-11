@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
@@ -129,5 +130,10 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
 
         //in theory this should not happen
         return new UnknownTestDescriptor();
+    }
+
+    @Override
+    public void published(Object testId, TestMetadataEvent keyValueEvent) {
+        listener.metadata(findDescriptor(testId), keyValueEvent);
     }
 }

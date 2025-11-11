@@ -23,11 +23,6 @@
     "linux" : 399,
     "windows" : 454,
     "macOs" : 331
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 779,
-    "windows" : 1016,
-    "macOs" : 635
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change with configuration caching",
@@ -36,11 +31,6 @@
     "linux" : 403,
     "windows" : 476,
     "macOs" : 420
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 731,
-    "windows" : 844,
-    "macOs" : 657
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change",
@@ -49,11 +39,6 @@
     "linux" : 359,
     "windows" : 491,
     "macOs" : 356
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 713,
-    "windows" : 959,
-    "macOs" : 441
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.non-abi change with configuration caching",
@@ -62,11 +47,6 @@
     "linux" : 353,
     "windows" : 481,
     "macOs" : 336
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 489,
-    "windows" : 792,
-    "macOs" : 381
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.calculate task graph with test finalizer",
@@ -82,9 +62,6 @@
   }, {
     "testProject" : "nowInAndroidBuild",
     "linux" : 4735
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 2375
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean phthalic:assembleDebug with clean transforms cache",
@@ -100,9 +77,6 @@
   }, {
     "testProject" : "nowInAndroidBuild",
     "linux" : 1148
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 529
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run clean phthalic:assembleDebug",
@@ -124,9 +98,6 @@
   }, {
     "testProject" : "nowInAndroidBuild",
     "linux" : 1472
-  }, {
-    "testProject" : "santaTrackerAndroidBuild",
-    "linux" : 710
   } ]
 }, {
   "scenario" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble for abi change with local cache",

@@ -35,6 +35,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         given:
         def springVersion = springVersion
         def bomVersion = bomVersion
+        def resolve = new ResolveTestFixture(new TestFile(testProjectDir))
 
         settingsFile << """
             rootProject.name = 'springbootproject'
@@ -48,6 +49,8 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
 
             ${bomDeclaration}
 
+            ${resolve.configureProject("testCompileClasspath")}
+
             dependencies {
                 implementation "org.springframework.boot:spring-boot"
                 implementation "org.springframework.boot:spring-boot-autoconfigure"
@@ -58,8 +61,6 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
                 testImplementation "org.springframework.boot:spring-boot-test-autoconfigure"
             }
         """
-        def resolve = new ResolveTestFixture(new TestFile(buildFile), 'testCompileClasspath')
-        resolve.prepare()
 
         when:
         def runner = runner('checkDep')
@@ -142,7 +143,6 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             module("org.springframework.boot:spring-boot:$bomVersion")
         }
 
-        resolve.expectDefaultConfiguration('compile')
         resolve.expectGraph {
             root(':', ':springbootproject:') {
                 if (directBomDependency) {
