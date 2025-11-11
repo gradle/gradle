@@ -366,7 +366,7 @@ public class StaticInnerTest {
                 }
 
                 @Override
-                public void execute(ExecutionContext context) {
+                public void execute(ExecutionRequest request) {
                 }
             }
         '''
@@ -503,7 +503,7 @@ public class StaticInnerTest {
                 }
 
                 @Override
-                public void execute(ExecutionContext context) {
+                public void execute(ExecutionRequest request) {
                     throw new RuntimeException("oops");
                 }
             }
