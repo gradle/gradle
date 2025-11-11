@@ -52,7 +52,7 @@ To implement safe and optimized execution, the execution engine needs to identif
 Each unit has two identifiers:
 
 - **Identity**: A locally unique identifier of the work with respect to the current execution scope (e.g., the Gradle build tree).
-  For tasks this is the full path of the task (e.g. `:subproject:taskName`); for every other type of work it is a hash calculated from the **identity inputs** of the work (see below).
+  For tasks this is the full path of the task (e.g. `:subproject:taskName`); for every other type of work it is a hash calculated from the **immutable inputs** of the work (see below).
 - **Build cache Key**: A global identifier used to store and retrieve the outputs of the work across time and space.
   This is calculated using all inputs.
 
@@ -151,10 +151,10 @@ If we are allowed, we store in the local and remote caches.
 
 When it comes to actually execution work, the execution engine supports two kinds of work: _mutable_ and _immutable._ _Mutable_ work can be executed _incrementally_ or _non-incrementally_ based on which of its inputs have changed compared to a previous execution.
 
-- **Immutable Work** All inputs are **identity inputs**; the complete input set defines the work.
+- **Immutable Work** All inputs are **immutable inputs**; the complete input set defines the work.
   Examples: accessor generation and non-incremental artifact transforms.
 
-- **Mutable Work**: Only a subset of inputs are **identity inputs**; the rest are **regular inputs** that may change between executions.
+- **Mutable Work**: Only a subset of inputs are **immutable inputs**; the rest are **mutable inputs** that may change between executions.
   Examples: tasks and incremental artifact transforms.
 
 Work is executed in (i.e. its output is produced in) a **workspace**: a dedicated directory assigned to the work by its identity. Execution within these workspaces happens under a lock to prevent multiple units of work from colliding.[^task-workspace]
@@ -162,22 +162,22 @@ Work is executed in (i.e. its output is produced in) a **workspace**: a dedicate
 [^task-workspace]: For historical reasons, Gradle tasks do get a dedicated workspace assigned.
 They also lack mutual exclusion, and two separate Gradle daemons running the same task on the same build can collide.
 
-If an identity input changes compared to a previous local execution, the execution engine treats the work as a new, distinct unit, and assigns a different workspace.
-Changing regular inputs does not change the mutable work's identity, and hence it will be executed in the same workspace.[^task-identity]
+If an immutable input changes compared to a previous local execution, the execution engine treats the work as a new, distinct unit, and assigns a different workspace.
+Changing mutable inputs does not change the mutable work's identity, and hence it will be executed in the same workspace.[^task-identity]
 
 [^task-identity]: This is currently not true for tasks, whose identity is the task's full path.
 The plan is to change this and have tasks execute in workspaces similar to artifact transforms.
 
 #### Workspace Allocation
 
-Mutable work is executed within the same **mutable workspace** as long as only non-identity inputs are changing. (Hence the name.)
+Mutable work is executed within the same **mutable workspace** as long as only mutable inputs are changing. (Hence the name.)
 
 In contrast, _immutable work_ is assigned a **temporary workspace** directory upon execution.
 Once execution finishes (or results are loaded from the cache), the workspace directory is atomically moved to an **immutable workspace** that is not modified further.
 
 ### Incremental Execution
 
-For _mutable work_ we distinguish between the following types of regular inputs:
+For _mutable work_ we distinguish between the following types of mutable inputs:
 
 - **Non-incremental** -- Any change to the property value always triggers a full rebuild of the work.
 - **Incremental** -- Changes to the property value can cause an **incremental execution** of the work where the work is responsible for updating any previous outputs.
