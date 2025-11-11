@@ -16,10 +16,8 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
@@ -29,33 +27,24 @@ import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
 public abstract class AbstractCaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCaptureStateBeforeExecutionStep.class);
-
-    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final Step<? super BeforeExecutionContext, ? extends R> delegate;
 
     public AbstractCaptureStateBeforeExecutionStep(
         BuildOperationRunner buildOperationRunner,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
         super(buildOperationRunner);
-        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.delegate = delegate;
     }
 
@@ -100,18 +89,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
     @Nullable
     abstract protected OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots);
 
-    private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
-        // TODO We should probably capture these during identify step
-        ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
-        work.visitImplementations(implementationsBuilder);
-        ImplementationSnapshot implementation = implementationsBuilder.getImplementation();
-        ImmutableList<ImplementationSnapshot> additionalImplementations = implementationsBuilder.getAdditionalImplementations();
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Implementation for {}: {}", work.getDisplayName(), implementation);
-            LOGGER.debug("Additional implementations for {}: {}", work.getDisplayName(), additionalImplementations);
-        }
-
+    private static BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
         Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
         ImmutableSortedMap<String, ValueSnapshot> previousInputPropertySnapshots = previousExecutionState
             .map(ExecutionInputState::getInputProperties)
@@ -130,45 +108,13 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         );
 
         return new DefaultBeforeExecutionState(
-            implementation,
-            additionalImplementations,
+            context.getImplementation(),
+            context.getAdditionalImplementations(),
             newInputs.getAllValueSnapshots(),
             newInputs.getAllFileFingerprints(),
             unfilteredOutputSnapshots,
             overlappingOutputs
         );
-    }
-
-    private static class ImplementationsBuilder implements ImplementationVisitor {
-        private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-        @Nullable
-        private ImplementationSnapshot implementation;
-        private final ImmutableList.Builder<ImplementationSnapshot> additionalImplementations = ImmutableList.builder();
-
-        public ImplementationsBuilder(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-            this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        }
-
-        @Override
-        public void visitImplementation(Class<?> implementation) {
-            this.implementation = ImplementationSnapshot.of(implementation, classLoaderHierarchyHasher);
-        }
-
-        @Override
-        public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
-            this.additionalImplementations.add(implementation);
-        }
-
-        public ImplementationSnapshot getImplementation() {
-            if (implementation == null) {
-                throw new IllegalStateException("No implementation is set");
-            }
-            return implementation;
-        }
-
-        public ImmutableList<ImplementationSnapshot> getAdditionalImplementations() {
-            return additionalImplementations.build();
-        }
     }
 
     /*

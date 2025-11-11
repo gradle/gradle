@@ -70,11 +70,11 @@ public class TestExecutionEngineFactory {
         ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler(validationWarningReporter, virtualFileSystem);
         // @formatter:off
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationRunner,
+            new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher,
             new IdentityCacheStep<>(progressEventEmitter,
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
             new ResolveIncrementalCachingStateStep<>(buildCacheController, false,

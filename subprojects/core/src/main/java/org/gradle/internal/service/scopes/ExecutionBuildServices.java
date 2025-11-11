@@ -179,7 +179,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
-            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
+            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner,
             new ValidateStep<>(problemHandler,
             new ResolveNonIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
@@ -197,7 +197,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyIncrementalWorkStep(problemHandler, outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
+            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
             new ResolveIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
@@ -213,7 +213,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         )))))))))))))))));
 
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationRunner,
+            new IdentifyStep<>(buildOperationRunner, classLoaderHierarchyHasher,
             new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationRunner,
             new ChoosePipelineStep<>(

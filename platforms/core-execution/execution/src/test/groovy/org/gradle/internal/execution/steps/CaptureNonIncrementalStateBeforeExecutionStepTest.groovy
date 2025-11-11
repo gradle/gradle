@@ -22,7 +22,7 @@ import org.gradle.internal.execution.UnitOfWork
 class CaptureNonIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStateBeforeExecutionStepTest<PreviousExecutionContext> {
 
     AbstractCaptureStateBeforeExecutionStep<PreviousExecutionContext, CachingResult> step
-        = new CaptureNonIncrementalStateBeforeExecutionStep(buildOperationRunner, classloaderHierarchyHasher, delegate)
+        = new CaptureNonIncrementalStateBeforeExecutionStep(buildOperationRunner, delegate)
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter

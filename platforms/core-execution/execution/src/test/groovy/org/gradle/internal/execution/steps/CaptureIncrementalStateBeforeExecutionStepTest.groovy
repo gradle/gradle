@@ -35,7 +35,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
     def work = Stub(MutableUnitOfWork)
 
     AbstractCaptureStateBeforeExecutionStep<PreviousExecutionContext, CachingResult> step
-        = new CaptureIncrementalStateBeforeExecutionStep(buildOperationRunner, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
+        = new CaptureIncrementalStateBeforeExecutionStep(buildOperationRunner, outputSnapshotter, overlappingOutputDetector, delegate)
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter

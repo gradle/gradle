@@ -21,7 +21,6 @@ import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.jspecify.annotations.Nullable;
@@ -30,10 +29,9 @@ public class CaptureNonIncrementalStateBeforeExecutionStep<C extends PreviousExe
 
     public CaptureNonIncrementalStateBeforeExecutionStep(
         BuildOperationRunner buildOperationRunner,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Step<? super BeforeExecutionContext, ? extends R> delegate
     ) {
-        super(buildOperationRunner, classLoaderHierarchyHasher, delegate);
+        super(buildOperationRunner, delegate);
     }
 
     @Override

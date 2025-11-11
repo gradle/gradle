@@ -18,27 +18,15 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.execution.ImplementationVisitor
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.ValueSnapshot
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
 abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExecutionContext> extends StepSpec<C> {
 
-    interface MyWorkClass extends UnitOfWork {
-    }
-
-    def classloaderHierarchyHasher = Stub(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(_ as ClassLoader) >> TestHashCodes.hashCodeFrom(1234)
-    }
     def inputFingerprinter = Mock(InputFingerprinter)
-    def implementationType = MyWorkClass
-    def implementationSnapshot = ImplementationSnapshot.of(implementationType.name, TestHashCodes.hashCodeFrom(1234))
 
     abstract AbstractCaptureStateBeforeExecutionStep<PreviousExecutionContext, CachingResult> getStep()
 
@@ -56,34 +44,6 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
             assert !delegateContext.beforeExecutionState.present
         }
         0 * _
-    }
-
-    def "implementations are snapshotted"() {
-        def additionalImplementations = [
-            ImplementationSnapshot.of("FirstAction", TestHashCodes.hashCodeFrom(2345)),
-            ImplementationSnapshot.of("SecondAction", TestHashCodes.hashCodeFrom(3456))
-        ]
-
-        when:
-        step.execute(work, context)
-
-        then:
-        _ * work.visitImplementations(_) >> { ImplementationVisitor visitor ->
-            visitor.visitImplementation(implementationType)
-            additionalImplementations.each {
-                visitor.visitAdditionalImplementation(it)
-            }
-        }
-        interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
-            def state = delegateContext.beforeExecutionState.get()
-            assert !state.detectedOverlappingOutputs.present
-            assert state.implementation == implementationSnapshot
-            assert state.additionalImplementations == additionalImplementations
-        }
-        0 * _
-
-        assertOperation()
     }
 
     def "input properties are snapshotted"() {
@@ -153,9 +113,6 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
     void snapshotState() {
         _ * context.shouldCaptureBeforeExecutionState() >> true
         _ * context.previousExecutionState >> Optional.empty()
-        _ * work.visitImplementations(_ as ImplementationVisitor) >> { ImplementationVisitor visitor ->
-            visitor.visitImplementation(implementationType)
-        }
         _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
     }
 
