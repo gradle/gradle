@@ -51,7 +51,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     }
 
     @Override
-    public <T, V> T applyFeatureTo(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
+    public <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
         ProjectFeatureDefinitionContext parentDefinitionContext = ProjectFeatureSupportInternal.getContext(parentDefinition);
 
         ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult result = parentDefinitionContext.getOrAddChildDefinition(projectFeature, () -> {
@@ -61,7 +61,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
 
             pluginManager.apply(projectFeature.getPluginClass());
 
-            Object definition = instantiateBoundFeatureObjectsAndApply(parentDefinition, Cast.uncheckedCast(projectFeature));
+            Object definition = instantiateBoundFeatureObjectsAndApply(parentDefinition, projectFeature);
 
             return Cast.uncheckedNonnullCast(definition);
         });
@@ -74,7 +74,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         return Cast.uncheckedNonnullCast(result.definition);
     }
 
-    private static <T, V> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<T, V> projectFeature) {
+    private static <T extends Definition<V>, V extends BuildModel> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<T, V> projectFeature) {
         context.childrenDefinitions().keySet().stream().findFirst().ifPresent(projectTypeAlreadyApplied -> {
             throw new IllegalStateException(
                 "The project has already applied the '" +
@@ -86,7 +86,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         });
     }
 
-    private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, BoundProjectFeatureImplementation<T, V> projectFeature) {
+    private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
         T definition = instantiateDefinitionObject(parentDefinition, projectFeature);
         V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, definition, projectFeature);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
@@ -99,7 +99,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         return definition;
     }
 
-    private <T, V> T instantiateDefinitionObject(Object target, ProjectFeatureImplementation<T, V> projectFeature) {
+    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(Object target, ProjectFeatureImplementation<T, V> projectFeature) {
         Class<? extends T> dslType = projectFeature.getDefinitionImplementationType();
 
         if (Named.class.isAssignableFrom(dslType)) {

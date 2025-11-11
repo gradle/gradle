@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.software
 
 import org.gradle.api.Project
 import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
@@ -175,7 +176,7 @@ fun replaceProjectWithSchemaTopLevelType(bindingType: KClass<*>, rootSchemaType:
 
 
 private
-data class ProjectFeatureInfo<T : Any, V : Any>(
+data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
     val delegate: ProjectFeatureImplementation<T, V>,
     val accessorIdPrefix: String
 ) : ProjectFeatureImplementation<T, V> by delegate {
