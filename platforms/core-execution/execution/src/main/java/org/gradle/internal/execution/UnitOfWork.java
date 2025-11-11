@@ -150,13 +150,6 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Whether stale outputs should be cleanup up before execution.
-     */
-    default boolean shouldCleanupStaleOutputs() {
-        return false;
-    }
-
-    /**
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
      */
     default void markLegacySnapshottingInputsStarted() {}

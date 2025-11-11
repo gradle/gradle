@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.history.AfterExecutionState
@@ -30,6 +31,7 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
     def outputFilesRepository = Mock(OutputFilesRepository)
+    def work = Stub(MutableUnitOfWork)
 
     def step = new HandleStaleOutputsStep<>(
         buildOperationRunner,

@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
@@ -39,7 +40,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterExecutionResult> extends MutableStep<C, R> {
     @VisibleForTesting
     public static final String CLEAN_STALE_OUTPUTS_DISPLAY_NAME = "Clean stale outputs";
 
@@ -69,7 +70,7 @@ public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterE
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    protected R executeMutable(MutableUnitOfWork work, C context) {
         if (work.shouldCleanupStaleOutputs()) {
             cleanupStaleOutputs(work, context);
         }

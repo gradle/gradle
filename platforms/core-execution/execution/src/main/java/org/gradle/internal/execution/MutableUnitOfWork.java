@@ -42,6 +42,13 @@ public interface MutableUnitOfWork extends UnitOfWork {
     }
 
     /**
+     * Whether stale outputs should be cleanup up before execution.
+     */
+    default boolean shouldCleanupStaleOutputs() {
+        return false;
+    }
+
+    /**
      * The execution capability of the work: can be incremental, or non-incremental.
      * <p>
      * Note that incremental work can be executed non-incrementally if input changes
