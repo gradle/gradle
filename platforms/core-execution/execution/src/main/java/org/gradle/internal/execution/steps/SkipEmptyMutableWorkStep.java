@@ -42,13 +42,13 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class SkipEmptyIncrementalWorkStep extends AbstractSkipEmptyWorkStep<PreviousExecutionContext> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyIncrementalWorkStep.class);
+public class SkipEmptyMutableWorkStep extends AbstractSkipEmptyWorkStep<PreviousExecutionContext> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyMutableWorkStep.class);
 
     private final OutputChangeListener outputChangeListener;
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
 
-    public SkipEmptyIncrementalWorkStep(
+    public SkipEmptyMutableWorkStep(
         ExecutionProblemHandler problemHandler,
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners,

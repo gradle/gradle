@@ -28,14 +28,14 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.SHORT_CIRCUITED
 
-class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<PreviousExecutionContext> implements SnapshotterFixture {
+class SkipEmptyMutableWorkStepTest extends AbstractSkipEmptyWorkStepTest<PreviousExecutionContext> implements SnapshotterFixture {
     def problemHandler = Mock(ExecutionProblemHandler)
     def outputChangeListener = Mock(OutputChangeListener)
     def outputsCleaner = Mock(OutputsCleaner)
 
     @Override
     protected AbstractSkipEmptyWorkStep createStep() {
-        new SkipEmptyIncrementalWorkStep(
+        new SkipEmptyMutableWorkStep(
             problemHandler,
             outputChangeListener,
             workInputListeners,
