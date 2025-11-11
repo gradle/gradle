@@ -96,7 +96,7 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
                         }
                     }
                 };
-                work.visitIdentityInputs(visitor);
+                work.visitImmutableInputs(visitor);
                 work.visitRegularInputs(visitor);
                 return new DefaultIncrementalInputProperties(builder.build());
             default:

@@ -96,7 +96,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
 
     @Override
     @OverridingMethodsMustInvokeSuper
-    public void visitIdentityInputs(InputVisitor visitor) {
+    public void visitImmutableInputs(InputVisitor visitor) {
         visitor.visitInputProperty("isProviderUpgradeReportEnabled", propertyUpgradeReportConfig::isEnabled);
     }
 
@@ -115,9 +115,9 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     }
 
     @Override
-    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+    public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         Hasher hasher = Hashing.newHasher();
-        identityInputs.values().forEach(value -> requireNonNull(value).appendToHasher(hasher));
+        scalarInputs.values().forEach(value -> requireNonNull(value).appendToHasher(hasher));
         String identity = hasher.hash().toString();
         return () -> identity;
     }

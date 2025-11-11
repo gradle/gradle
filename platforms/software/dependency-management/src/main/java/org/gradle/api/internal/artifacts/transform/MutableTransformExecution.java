@@ -67,12 +67,12 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
     }
 
     @Override
-    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         return TransformWorkspaceIdentity.createMutable(
             normalizeAbsolutePath(inputArtifact.getAbsolutePath()),
             producerBuildTreePath,
-            identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
+            scalarInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+            fileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
         );
     }
 

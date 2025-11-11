@@ -159,7 +159,7 @@ class MutableUnitOfWorkBuilder {
             boolean executed
 
             @Override
-            Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+            Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
                 new SimpleIdentity("myId")
             }
 

@@ -37,7 +37,7 @@ public interface UnitOfWork extends Describable {
      * Determine the identity of the work unit that uniquely identifies it
      * among the other work units of the same type in the current build.
      */
-    Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
+    Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs);
 
     /**
      * Executes the work synchronously.
@@ -66,14 +66,13 @@ public interface UnitOfWork extends Describable {
      * Because of these reasons only capture inputs as identity if they are actually used to calculate the identity of the work.
      * Any non-identity inputs should be visited when calling {@link #visitRegularInputs(InputVisitor)}.
      */
-    // TODO Rename to visitImmutableInputs
-    default void visitIdentityInputs(InputVisitor visitor) {}
+    default void visitImmutableInputs(InputVisitor visitor) {}
 
     /**
      * Visit regular inputs of the work.
      *
      * Regular inputs are inputs that are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
-     * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} as well as this method.
+     * To visit all inputs one must call both {@link #visitImmutableInputs(InputVisitor)} as well as this method.
      */
     // TODO Rename to visitMutableInputs
     // TODO Move to MutableUnitOfWork

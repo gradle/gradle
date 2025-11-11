@@ -155,7 +155,7 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) =
+    override fun identify(scalarInputs: MutableMap<String, ValueSnapshot>, fileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) =
         Identity { "$classLoaderHash-$identitySuffix" }
 
     protected
@@ -170,7 +170,7 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
 
     override fun getInputFingerprinter() = inputFingerprinter
 
-    override fun visitIdentityInputs(visitor: InputVisitor) {
+    override fun visitImmutableInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY) { classLoaderHash }
     }
 

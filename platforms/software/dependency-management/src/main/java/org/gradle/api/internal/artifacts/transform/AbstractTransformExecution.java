@@ -129,13 +129,13 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
-    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-        TransformWorkspaceIdentity transformWorkspaceIdentity = createIdentity(identityInputs, identityFileInputs);
+    public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
+        TransformWorkspaceIdentity transformWorkspaceIdentity = createIdentity(scalarInputs, fileInputs);
         emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);
         return transformWorkspaceIdentity;
     }
 
-    protected abstract TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
+    protected abstract TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs);
 
     @Override
     public WorkOutput execute(ExecutionContext executionContext) {
@@ -215,7 +215,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     @Override
     @OverridingMethodsMustInvokeSuper
-    public void visitIdentityInputs(InputVisitor visitor) {
+    public void visitImmutableInputs(InputVisitor visitor) {
         // Emulate secondary inputs as a single property for now
         visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transform::getSecondaryInputHash);
         visitor.visitInputProperty(INPUT_ARTIFACT_PATH_PROPERTY_NAME, () ->

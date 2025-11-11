@@ -271,8 +271,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
-        public void visitIdentityInputs(InputVisitor visitor) {
-            super.visitIdentityInputs(visitor);
+        public void visitImmutableInputs(InputVisitor visitor) {
+            super.visitImmutableInputs(visitor);
             visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
             visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));

@@ -340,9 +340,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         private static final String OUT_CLASSES = "classes";
 
         @Override
-        public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+        public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
             Hasher hasher = Hashing.sha1().newHasher();
-            identityInputs.values().forEach(s -> s.appendToHasher(hasher));
+            scalarInputs.values().forEach(s -> s.appendToHasher(hasher));
             String identity = hasher.hash().toString();
             return () -> identity;
         }
@@ -427,7 +427,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public void visitIdentityInputs(InputVisitor visitor) {
+        public void visitImmutableInputs(InputVisitor visitor) {
             visitor.visitInputProperty(IN_LIBRARIES, model::getLibraryAliases);
             visitor.visitInputProperty(IN_BUNDLES, model::getBundleAliases);
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
@@ -477,7 +477,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public void visitIdentityInputs(InputVisitor visitor) {
+        public void visitImmutableInputs(InputVisitor visitor) {
             visitor.visitInputProperty(IN_PROJECTS, this::buildProjectTree);
         }
 

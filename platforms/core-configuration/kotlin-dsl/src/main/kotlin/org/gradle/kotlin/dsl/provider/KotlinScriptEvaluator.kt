@@ -423,8 +423,8 @@ class StandardKotlinScriptEvaluator(
             return super.shouldDisableCaching(detectedOverlappingOutputs)
         }
 
-        override fun visitIdentityInputs(visitor: InputVisitor) {
-            super.visitIdentityInputs(visitor)
+        override fun visitImmutableInputs(visitor: InputVisitor) {
+            super.visitImmutableInputs(visitor)
             visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
             visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
             visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }

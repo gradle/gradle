@@ -192,11 +192,11 @@ class GenerateProjectAccessors(
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
 
-    override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
+    override fun identify(scalarInputs: Map<String, ValueSnapshot>, fileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
         val hasher = Hashing.newHasher()
-        requireNotNull(identityInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
-        requireNotNull(identityInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
-        hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
+        requireNotNull(scalarInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
+        requireNotNull(scalarInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
+        hasher.putHash(requireNotNull(fileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
         val identityHash = hasher.hash().toString()
         return Identity { identityHash }
     }
@@ -207,7 +207,7 @@ class GenerateProjectAccessors(
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $scriptTarget"
 
-    override fun visitIdentityInputs(visitor: InputVisitor) {
+    override fun visitImmutableInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(TARGET_SCHEMA_INPUT_PROPERTY) { hashCodeFor(scriptTargetSchema) }
         visitor.visitInputProperty(DCL_ENABLED_INPUT_PROPERTY) { isDclEnabled }
         visitor.visitInputFileProperty(

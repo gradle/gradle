@@ -55,14 +55,14 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            work::visitIdentityInputs,
+            work::visitImmutableInputs,
             work.getInputDependencyChecker(context.getValidationContext())
         );
 
-        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
-        Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
+        ImmutableSortedMap<String, ValueSnapshot> scalarInputProperties = inputs.getValueSnapshots();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileInputProperties = inputs.getFileFingerprints();
+        Identity identity = work.identify(scalarInputProperties, fileInputProperties);
 
-        return new IdentityContext(context, identityInputProperties, identityInputFileProperties, identity);
+        return new IdentityContext(context, scalarInputProperties, fileInputProperties, identity);
     }
 }

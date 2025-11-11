@@ -67,22 +67,22 @@ class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransform
     }
 
     @Override
-    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         // This is a performance hack. We could use the regular fingerprint of the input artifact, but that takes longer than
         // capturing the normalized path and the snapshot of the raw contents, so we are using these to determine the identity.
         // We do this because external artifact transforms typically need to identify themselves redundantly many times during a build.
         // Once we migrate to all-scheduled transforms we should consider if we can avoid having this optimization and use only normalized inputs.
         //
         // Note that we are not capturing this value in the actual inputs of the work; doing so would cause unnecessary cache misses.
-        // This is why the hash is captured here and not in visitIdentityInputs().
+        // This is why the hash is captured here and not in visitImmutableInputs().
         FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath());
         HashCode inputArtifactSnapshotHash = inputArtifactSnapshot.getHash();
 
         return TransformWorkspaceIdentity.createNonNormalizedImmutable(
-            identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
+            scalarInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
             inputArtifactSnapshotHash,
-            identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
+            scalarInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+            fileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
         );
     }
 
