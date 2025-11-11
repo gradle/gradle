@@ -101,6 +101,7 @@ class MyNamedDomainObjectCollection<T> implements NamedDomainObjectCollection<T>
     }
 
     @Override
+    @Deprecated
     Collection<T> findAll(Closure spec) {
         return null
     }
