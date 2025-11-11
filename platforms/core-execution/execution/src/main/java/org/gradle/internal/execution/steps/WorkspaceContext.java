@@ -43,10 +43,12 @@ public class WorkspaceContext extends IdentityContext {
         return workspace;
     }
 
+    // TODO Move this to MutableUnitOfWork
     public boolean shouldCaptureBeforeExecutionState() {
         return captureBeforeExecutionState;
     }
 
+    // TODO Move this to MutableUnitOfWork
     public Optional<ExecutionHistoryStore> getHistory() {
         return Optional.ofNullable(history);
     }

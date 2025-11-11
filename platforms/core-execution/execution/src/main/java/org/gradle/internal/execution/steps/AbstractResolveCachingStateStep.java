@@ -77,6 +77,7 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
         CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(logger);
+        // TODO Move this to mutable case
         HashCode cacheKey = getPreviousCacheKeyIfApplicable(context)
             .orElseGet(() -> cachingStateFactory.calculateCacheKey(beforeExecutionState));
         ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
