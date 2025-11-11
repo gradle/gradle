@@ -29,7 +29,7 @@ import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DAT
 import static org.gradle.internal.execution.WorkOutput.WorkResult.DID_NO_WORK
 import static org.gradle.internal.execution.WorkOutput.WorkResult.DID_WORK
 
-class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
+class ExecuteStepTest extends StepSpec<InputChangesContext> {
     def workspace = Mock(File)
     def previousOutputs = ImmutableSortedMap.of()
     def previousExecutionState = Stub(PreviousExecutionState) {

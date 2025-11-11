@@ -44,7 +44,7 @@ import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
 
-public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Result> {
+public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
 
     private final BuildOperationRunner buildOperationRunner;
 

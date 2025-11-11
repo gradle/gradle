@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * When executed non-incrementally remove previous outputs owned by the work unit.
  */
-public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R extends Result> extends MutableStep<C, R> {
+public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends Result> extends MutableStep<C, R> {
 
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;

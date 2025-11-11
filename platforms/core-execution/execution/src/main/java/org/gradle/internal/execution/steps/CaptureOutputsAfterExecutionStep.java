@@ -40,7 +40,7 @@ import java.util.Optional;
  * Capture the outputs of the unit of work after its execution finished.
  *
  * All changes to the outputs must be done at this point, so this step needs to be around anything
- * which uses an {@link ChangingOutputsContext}.
+ * that changes the outputs.
  */
 // TODO Find better names for Result types
 @SuppressWarnings("SameNameButDifferent")

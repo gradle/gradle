@@ -51,7 +51,6 @@ import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
-import org.gradle.internal.execution.steps.ChangingOutputsContext;
 import org.gradle.internal.execution.steps.ChoosePipelineStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep;
@@ -59,6 +58,7 @@ import org.gradle.internal.execution.steps.HandleStaleOutputsStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.IdentityContext;
+import org.gradle.internal.execution.steps.InputChangesContext;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.NeverUpToDateStep;
 import org.gradle.internal.execution.steps.NoInputChangesStep;
@@ -169,14 +169,14 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
 
         // @formatter:off
         // CHECKSTYLE:OFF
-        Step<ChangingOutputsContext,Result> sharedExecutionPipeline =
+        Step<InputChangesContext, Result> sharedExecutionPipeline =
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
             new ExecuteStep<>(buildOperationRunner
         ))));
 
-        Step<IdentityContext,WorkspaceResult> immutablePipeline =
+        Step<IdentityContext, WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner,
@@ -191,7 +191,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             sharedExecutionPipeline
         )))))))))));
 
-        Step<IdentityContext,WorkspaceResult> mutablePipeline =
+        Step<IdentityContext, WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationRunner, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
