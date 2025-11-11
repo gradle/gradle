@@ -99,11 +99,6 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Returns the fingerprinter used to fingerprint inputs.
-     */
-    InputFingerprinter getInputFingerprinter();
-
-    /**
      * Visit identity inputs of the work.
      *
      * These are inputs that are passed to {@link #identify(Map, Map)} to calculate the identity of the work.
@@ -287,6 +282,11 @@ public interface UnitOfWork extends Describable {
      * Checks if outputs of the work are only consumed by inputs that declare a dependency on this unit of work.
      */
     default void checkOutputDependencies(WorkValidationContext validationContext) {}
+
+    /**
+     * Returns the fingerprinter used to fingerprint inputs.
+     */
+    InputFingerprinter getInputFingerprinter();
 
     /**
      * Returns a visitor that checks if inputs have declared dependencies on any consumed outputs.
