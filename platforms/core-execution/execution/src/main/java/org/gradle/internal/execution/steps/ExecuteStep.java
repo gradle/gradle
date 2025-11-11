@@ -113,7 +113,22 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         Duration duration = Duration.ofMillis(timer.getElapsedMillis());
         ExecutionOutcome mode = determineOutcome(context, workOutput);
 
-        return Result.success(duration, new ExecutionResultImpl(mode, workOutput));
+        return Result.success(duration, new Execution() {
+            @Override
+            public ExecutionOutcome getOutcome() {
+                return mode;
+            }
+
+            @Override
+            public Object getOutput(File workspace) {
+                return workOutput.getOutput(workspace);
+            }
+
+            @Override
+            public boolean canStoreOutputsInCache() {
+                return workOutput.canStoreInCache();
+            }
+        });
     }
 
     private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
@@ -142,31 +157,6 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         interface Result {
             Operation.Result INSTANCE = new Operation.Result() {
             };
-        }
-    }
-
-    private static final class ExecutionResultImpl implements Execution {
-        private final ExecutionOutcome mode;
-        private final UnitOfWork.WorkOutput workOutput;
-
-        public ExecutionResultImpl(ExecutionOutcome mode, UnitOfWork.WorkOutput workOutput) {
-            this.mode = mode;
-            this.workOutput = workOutput;
-        }
-
-        @Override
-        public ExecutionOutcome getOutcome() {
-            return mode;
-        }
-
-        @Override
-        public Object getOutput(File workspace) {
-            return workOutput.getOutput(workspace);
-        }
-
-        @Override
-        public boolean canStoreOutputsInCache() {
-            return workOutput.canStoreInCache();
         }
     }
 }
