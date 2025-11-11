@@ -87,6 +87,10 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getGroovyDslRoot();
 
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getKotlinDslRoot();
+
     @Optional @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getReleaseNotesFile();
@@ -291,7 +295,6 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 lineNumber++;
                 gatherDeadUserGuideLinksInLineSamples(line, lineNumber, errorsForFile);
                 gatherDeadJavadocLinksInLineSamples(sourceFile, line, lineNumber, errorsForFile);
-                // TODO: DSL checks
                 gatherMarkdownLinksInLineSamples(line, lineNumber, errorsForFile);
 
                 line = br.readLine();
@@ -390,6 +393,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 lineNumber++;
                 gatherDeadSamplesLinksInLineDocumentation(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadJavadocLinksInLineDocumentation(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadKotlinDslLinksInLineDocumentation(line, lineNumber, errorsForFile);
                 gatherDeadGroovyDslLinksInLineDocumentation(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadLinksInLineDocumentation(sourceFile, line, lineNumber, errorsForFile);
                 gatherMarkdownLinksInLineDocumentation(line, lineNumber, errorsForFile);
@@ -435,12 +439,12 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         }
     }
 
-    // Documentation: check javadoc links (link:{javadocPath}/.../SomeClass.html#method())
+    // Documentation: check javadoc links (link:{javadocPath}/.../SomeClass.html#method()[])
     private void gatherDeadJavadocLinksInLineDocumentation(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Pattern p = Pattern.compile(
             "link:\\{javadocPath\\}/" +         // literal prefix
-                "([^#\\s\\[]+\\.html)" +            // group(1): HTML file path (no #, whitespace or '[')
-                "(?:#([^\\[\\s]+))?"                // group(2): optional anchor = everything up to '[' or whitespace
+            "([^#\\s\\[]+\\.html)" +            // group(1): HTML file path (no #, whitespace or '[')
+            "(?:#([^\\[\\s]+))?"                // group(2): optional anchor = everything up to '[' or whitespace
         );
         Matcher matcher = p.matcher(line);
         while (matcher.find()) {
@@ -456,6 +460,25 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                         errorsForFile.add(new Error(lineNumber, line, "Missing Javadoc href fragment '#" + anchor + "' in " + referencedFile.getName()));
                     }
                 }
+            }
+        }
+    }
+
+    // Documentation: check kotlin dsl links (link:{kotlinDslPath}/gradle/.../index.html[register()])
+    private void gatherDeadKotlinDslLinksInLineDocumentation(String line, int lineNumber, List<Error> errorsForFile) {
+        Pattern p = Pattern.compile(
+            "link:\\{kotlinDslPath\\}/" +            // literal prefix
+                "([^#\\s\\[]+\\.html)" +             // group(1): HTML filename/path (with .html)
+                "(?:#([^\\[\\]\\s]+))?" +            // optional group(2): fragment (stop at '[' or ']' or whitespace)
+                "(?:\\[[^\\]]*\\])?"                 // optional bracketed label that may follow
+        );
+        Matcher matcher = p.matcher(line);
+        while (matcher.find()) {
+            String htmlPath = matcher.group(1);      // e.g. "gradle/org.gradle.kotlin.dsl/configure.html"
+            File referencedFile = new File(getKotlinDslRoot().get().getAsFile(), htmlPath);
+            if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                // Check html file exists in
+                errorsForFile.add(new Error(lineNumber, line, "Missing KOTLIN DSL HTML file for " + htmlPath + " (expected " + htmlPath + ")"));
             }
         }
     }
@@ -477,7 +500,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             if (!referencedFile.getName().equals("index.xml")) {
                 if (!referencedFile.exists() || referencedFile.isDirectory()) {
                     // Check xml file exists in
-                    errorsForFile.add(new Error(lineNumber, line, "Missing DSL XML file for " + htmlPath + " (expected " + xmlName + ")"));
+                    errorsForFile.add(new Error(lineNumber, line, "Missing GROOVY DSL XML file for " + htmlPath + " (expected " + xmlName + ")"));
                 }
             }
         }
