@@ -205,13 +205,6 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
-    public ExecutionBehavior getExecutionBehavior() {
-        return transform.requiresInputChanges()
-            ? ExecutionBehavior.INCREMENTAL
-            : ExecutionBehavior.NON_INCREMENTAL;
-    }
-
-    @Override
     public void visitImplementations(ImplementationVisitor visitor) {
         visitor.visitImplementation(transform.getImplementationClass());
     }

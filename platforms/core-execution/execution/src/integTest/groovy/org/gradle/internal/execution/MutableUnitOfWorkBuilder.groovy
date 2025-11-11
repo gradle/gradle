@@ -244,6 +244,11 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
+            ExecutionBehavior getExecutionBehavior() {
+                return ExecutionBehavior.NON_INCREMENTAL
+            }
+
+            @Override
             String getDisplayName() {
                 "Test unit of work"
             }

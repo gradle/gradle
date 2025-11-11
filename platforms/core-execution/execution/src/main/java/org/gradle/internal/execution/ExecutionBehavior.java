@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,23 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
+import org.gradle.internal.properties.InputBehavior;
 
 /**
- * A unit of work that can be executed multiple times in the same workspace.
- * Such work can reuse outputs from a previous execution.
+ * The execution capability of the work: can be incremental, or non-incremental.
+ * <p>
+ * Note that incremental work can be executed non-incrementally if input changes
+ * require it.
  */
-public interface MutableUnitOfWork extends UnitOfWork {
+public enum ExecutionBehavior {
     /**
-     * Returns the {@link MutableWorkspaceProvider} to allocate a workspace to execution this work in.
+     * Work can be executed incrementally, input changes for {@link InputBehavior#PRIMARY} and
+     * {@link InputBehavior#INCREMENTAL} properties should be tracked.
      */
-    MutableWorkspaceProvider getWorkspaceProvider();
+    INCREMENTAL,
 
     /**
-     * Whether the work should be executed incrementally (if possible) or not.
+     * Work is not capable of incremental execution, no need to track input changes.
      */
-    ExecutionBehavior getExecutionBehavior();
+    NON_INCREMENTAL
 }

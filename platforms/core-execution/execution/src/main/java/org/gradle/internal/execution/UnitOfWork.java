@@ -102,33 +102,6 @@ public interface UnitOfWork extends Describable {
         return Optional.empty();
     }
 
-    // TODO Move this to IncrementalUnitOfWork
-    /**
-     * Whether the work should be executed incrementally (if possible) or not.
-     */
-    default ExecutionBehavior getExecutionBehavior() {
-        return ExecutionBehavior.NON_INCREMENTAL;
-    }
-
-    /**
-     * The execution capability of the work: can be incremental, or non-incremental.
-     * <p>
-     * Note that incremental work can be executed non-incrementally if input changes
-     * require it.
-     */
-    enum ExecutionBehavior {
-        /**
-         * Work can be executed incrementally, input changes for {@link InputBehavior#PRIMARY} and
-         * {@link InputBehavior#INCREMENTAL} properties should be tracked.
-         */
-        INCREMENTAL,
-
-        /**
-         * Work is not capable of incremental execution, no need to track input changes.
-         */
-        NON_INCREMENTAL
-    }
-
     /**
      * Capture the classloader of the work's implementation type.
      * There can be more than one type reported by the work; additional types are considered in visitation order.

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.execution.ExecutionBehavior;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
@@ -86,5 +87,12 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
             return path.substring(rootProjectLocation.length());
         }
         return path;
+    }
+
+    @Override
+    public ExecutionBehavior getExecutionBehavior() {
+        return transform.requiresInputChanges()
+            ? ExecutionBehavior.INCREMENTAL
+            : ExecutionBehavior.NON_INCREMENTAL;
     }
 }
