@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import static java.util.Collections.singletonList;
 import static org.gradle.util.internal.CollectionUtils.collect;
@@ -508,10 +509,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
         }
 
-        public void instanceRealized(List<Class<?>> declaredServiceTypes, String displayName, Object instance) {
+        public void instanceRealized(List<Class<?>> declaredServiceTypes, Supplier<String> displayName, Object instance) {
             if (instance instanceof AnnotatedServiceLifecycleHandler && !isAssignableFromAnyType(AnnotatedServiceLifecycleHandler.class, declaredServiceTypes)) {
                 throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having %s.",
-                    displayName, AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
+                    displayName.get(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
             }
             if (instance instanceof AnnotatedServiceLifecycleHandler) {
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
@@ -522,7 +523,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                     boolean declaredWithAnnotation = anyTypeHasAnnotation(annotation, declaredServiceTypes);
                     if (implementationHasAnnotation && !declaredWithAnnotation) {
                         throw new IllegalStateException(String.format("%s is annotated with @%s but is not declared as a service with this annotation. This service is declared as having %s.",
-                            displayName, format(annotation), format("type", declaredServiceTypes)));
+                            displayName.get(), format(annotation), format("type", declaredServiceTypes)));
                     }
                 }
             }
@@ -609,7 +610,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         abstract List<Class<?>> getDeclaredServiceTypes();
 
         protected void instanceRealized(Object instance) {
-            owner.ownServices.instanceRealized(getDeclaredServiceTypes(), getDisplayName(), instance);
+            owner.ownServices.instanceRealized(getDeclaredServiceTypes(), this::getDisplayName, instance);
         }
 
         protected void setInstance(Object instance) {
@@ -959,7 +960,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         protected void instanceRealized(Object instance) {
-            owner.ownServices.instanceRealized(getDeclaredServiceTypes(), getDisplayNameImpl(instance), instance);
+            owner.ownServices.instanceRealized(getDeclaredServiceTypes(), () -> getDisplayNameImpl(instance), instance);
         }
 
         @Override
