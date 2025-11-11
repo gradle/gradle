@@ -38,11 +38,11 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 
 @CompileStatic
 class MutableUnitOfWorkBuilder {
-    private Supplier<UnitOfWork.WorkResult> work = { ->
+    private Supplier<WorkOutput.WorkResult> work = { ->
         create.each { it ->
             it.createFile()
         }
-        return UnitOfWork.WorkResult.DID_WORK
+        return WorkOutput.WorkResult.DID_WORK
     }
     private Map<String, Object> inputProperties
     private Map<String, ? extends Collection<? extends File>> inputFiles
@@ -76,7 +76,7 @@ class MutableUnitOfWorkBuilder {
         this.executionHistoryStore = executionHistoryStore
     }
 
-    MutableUnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
+    MutableUnitOfWorkBuilder withWork(Supplier<WorkOutput.WorkResult> closure) {
         work = closure
         return this
     }
@@ -179,12 +179,12 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            UnitOfWork.WorkOutput execute(UnitOfWork.ExecutionRequest executionRequest) {
+            WorkOutput execute(UnitOfWork.ExecutionRequest executionRequest) {
                 def didWork = work.get()
                 executed = true
-                return new UnitOfWork.WorkOutput() {
+                return new WorkOutput() {
                     @Override
-                    UnitOfWork.WorkResult getDidWork() {
+                    WorkOutput.WorkResult getDidWork() {
                         return didWork
                     }
 

@@ -51,6 +51,7 @@ import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.model.InputNormalizer;

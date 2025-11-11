@@ -91,35 +91,6 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * The result of executing the user code.
-     */
-    interface WorkOutput {
-        /**
-         * Whether any significant amount of work has happened while executing the user code.
-         * <p>
-         * What amounts to "significant work" is up to the type of work implementation.
-         */
-        WorkResult getDidWork();
-
-        /**
-         * Implementation-specific output of executing the user code.
-         */
-        Object getOutput(File workspace);
-
-        /**
-         * Whether this output should be stored in the build cache.
-         */
-        default boolean canStoreInCache() {
-            return true;
-        }
-    }
-
-    enum WorkResult {
-        DID_WORK,
-        DID_NO_WORK
-    }
-
-    /**
      * Loads output not produced during the current execution.
      * This can be output produced during a previous execution when the work is up-to-date,
      * or loaded from cache.

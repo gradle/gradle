@@ -135,7 +135,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             "file1": file("parent1/outFile"),
             "file2": file("parent2/outFile")
         ).withWork { ->
-            UnitOfWork.WorkResult.DID_WORK
+            WorkOutput.WorkResult.DID_WORK
         }.build()
 
         when:
@@ -616,7 +616,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         ]
         def unitOfWork = builder.withOutputDirs(outputDir).withWork { ->
             files.each { it.createFile() }
-            UnitOfWork.WorkResult.DID_WORK
+            WorkOutput.WorkResult.DID_WORK
         }.build()
         execute(unitOfWork)
 

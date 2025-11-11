@@ -22,6 +22,7 @@ import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -101,7 +102,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
                     .map(PreviousExecutionState::getOutputFilesProducedByWork);
             }
         };
-        UnitOfWork.WorkOutput workOutput;
+        WorkOutput workOutput;
 
         Timer timer = Time.startTimer();
         try {
@@ -131,7 +132,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         });
     }
 
-    private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
+    private static ExecutionOutcome determineOutcome(InputChangesContext context, WorkOutput workOutput) {
         switch (workOutput.getDidWork()) {
             case DID_NO_WORK:
                 return UP_TO_DATE;

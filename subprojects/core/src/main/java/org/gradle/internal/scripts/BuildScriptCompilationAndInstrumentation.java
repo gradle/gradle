@@ -26,7 +26,7 @@ import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -136,10 +136,10 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
         File workspace = executionRequest.getWorkspace();
         File compileOutput = compile(workspace);
         instrument(compileOutput, instrumentedOutput(workspace), propertyUpgradeReport(workspace));
-        return new UnitOfWork.WorkOutput() {
+        return new WorkOutput() {
             @Override
             public WorkResult getDidWork() {
-                return UnitOfWork.WorkResult.DID_WORK;
+                return WorkOutput.WorkResult.DID_WORK;
             }
 
             @Override

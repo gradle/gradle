@@ -56,6 +56,7 @@ import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -168,7 +169,7 @@ public class TaskExecution implements MutableUnitOfWork {
         TaskOutputsEnterpriseInternal outputs = (TaskOutputsEnterpriseInternal) task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
         try {
-            WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
+            WorkOutput.WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
             boolean storeInCache = outputs.getStoreInCache();
             return new WorkOutput() {
                 @Override
@@ -196,13 +197,13 @@ public class TaskExecution implements MutableUnitOfWork {
         return null;
     }
 
-    private WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {
+    private WorkOutput.WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {
         task.getState().setExecuting(true);
         try {
             LOGGER.debug("Executing actions for {}.", task);
             actionListener.beforeActions(task);
             executeActions(task, inputChanges);
-            return task.getState().getDidWork() ? WorkResult.DID_WORK : WorkResult.DID_NO_WORK;
+            return task.getState().getDidWork() ? WorkOutput.WorkResult.DID_WORK : WorkOutput.WorkResult.DID_NO_WORK;
         } finally {
             task.getState().setExecuting(false);
             actionListener.afterActions(task);
