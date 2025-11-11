@@ -28,6 +28,7 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.ImmutableUnitOfWork
@@ -36,7 +37,6 @@ import org.gradle.internal.execution.InputVisitor
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.OutputVisitor.OutputFileValueSupplier
-import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.file.TreeType.DIRECTORY
@@ -170,8 +170,8 @@ class GenerateProjectAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): WorkOutput {
-        val workspace = executionRequest.workspace
+    override fun execute(executionContext: ExecutionContext): WorkOutput {
+        val workspace = executionContext.workspace
         asyncIO.runBlocking {
             buildAccessorsFor(
                 scriptTargetSchema,

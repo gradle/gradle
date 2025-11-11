@@ -179,7 +179,7 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            WorkOutput execute(UnitOfWork.ExecutionRequest executionRequest) {
+            WorkOutput execute(ExecutionContext executionContext) {
                 def didWork = work.get()
                 executed = true
                 return new WorkOutput() {

@@ -16,16 +16,13 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
 
@@ -45,31 +42,7 @@ public interface UnitOfWork extends Describable {
     /**
      * Executes the work synchronously.
      */
-    WorkOutput execute(ExecutionRequest executionRequest);
-
-    /**
-     * Parameter object for {@link #execute(ExecutionRequest)}.
-     */
-    interface ExecutionRequest {
-        /**
-         * The directory to produce outputs into.
-         * <p>
-         * Note: it's {@code null} for tasks as they don't currently have their own workspace.
-         */
-        File getWorkspace();
-
-        /**
-         * For work capable of incremental execution this is the object to query per-property changes through;
-         * {@link Optional#empty()} for non-incremental-capable work.
-         */
-        Optional<InputChangesInternal> getInputChanges();
-
-        /**
-         * Output snapshots indexed by property from the previous execution;
-         * {@link Optional#empty()} is information about a previous execution is not available.
-         */
-        Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs();
-    }
+    WorkOutput execute(ExecutionContext executionContext);
 
     /**
      * Validate the work definition and configuration.

@@ -53,6 +53,7 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.ExecutionBehavior;
+import org.gradle.internal.execution.ExecutionContext;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -166,14 +167,14 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     @Override
-    public WorkOutput execute(ExecutionRequest executionRequest) {
-        FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
+    public WorkOutput execute(ExecutionContext executionContext) {
+        FileCollection previousFiles = executionContext.getPreviouslyProducedOutputs()
             .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs))
             .orElseGet(FileCollectionFactory::empty);
         TaskOutputsEnterpriseInternal outputs = (TaskOutputsEnterpriseInternal) task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
         try {
-            WorkOutput.WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
+            WorkOutput.WorkResult didWork = executeWithPreviousOutputFiles(executionContext.getInputChanges().orElse(null));
             boolean storeInCache = outputs.getStoreInCache();
             return new WorkOutput() {
                 @Override

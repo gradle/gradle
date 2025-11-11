@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.properties.DefaultInputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.execution.ExecutionContext;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -137,16 +138,16 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     protected abstract TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
 
     @Override
-    public WorkOutput execute(ExecutionRequest executionRequest) {
+    public WorkOutput execute(ExecutionContext executionContext) {
         transformExecutionListener.beforeTransformExecution(transform, subject);
         try {
-            return executeWithinTransformerListener(executionRequest);
+            return executeWithinTransformerListener(executionContext);
         } finally {
             transformExecutionListener.afterTransformExecution(transform, subject);
         }
     }
 
-    private WorkOutput executeWithinTransformerListener(ExecutionRequest executionRequest) {
+    private WorkOutput executeWithinTransformerListener(ExecutionContext executionRequest) {
         TransformExecutionResult result = buildOperationRunner.call(new CallableBuildOperation<TransformExecutionResult>() {
             @Override
             public TransformExecutionResult call(BuildOperationContext context) {

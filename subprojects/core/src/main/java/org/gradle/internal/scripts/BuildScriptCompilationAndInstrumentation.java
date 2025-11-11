@@ -23,6 +23,7 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
+import org.gradle.internal.execution.ExecutionContext;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -134,8 +135,8 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     }
 
     @Override
-    public WorkOutput execute(ExecutionRequest executionRequest) {
-        File workspace = executionRequest.getWorkspace();
+    public WorkOutput execute(ExecutionContext executionContext) {
+        File workspace = executionContext.getWorkspace();
         File compileOutput = compile(workspace);
         instrument(compileOutput, instrumentedOutput(workspace), propertyUpgradeReport(workspace));
         return new WorkOutput() {

@@ -23,8 +23,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.TypeOf
 import org.gradle.initialization.DependenciesAccessors.IN_PLUGINS_BLOCK_FACTORIES_SUFFIX
+import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.*
@@ -77,8 +77,8 @@ class GenerateVersionCatalogAccessors(
 
     override val identitySuffix: String = "VC"
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): WorkOutput {
-        val workspace = executionRequest.workspace
+    override fun execute(executionContext: ExecutionContext): WorkOutput {
+        val workspace = executionContext.workspace
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
                 buildVersionCatalogAccessorsFor(

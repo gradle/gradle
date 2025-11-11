@@ -46,6 +46,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.execution.ExecutionContext;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
@@ -359,8 +360,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         protected abstract List<ClassSource> getClassSources();
 
         @Override
-        public WorkOutput execute(ExecutionRequest executionRequest) {
-            File workspace = executionRequest.getWorkspace();
+        public WorkOutput execute(ExecutionContext executionContext) {
+            File workspace = executionContext.getWorkspace();
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             List<ClassSource> sources = getClassSources();
