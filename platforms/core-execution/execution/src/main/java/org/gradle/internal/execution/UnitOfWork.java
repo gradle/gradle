@@ -66,6 +66,7 @@ public interface UnitOfWork extends Describable {
      * Because of these reasons only capture inputs as identity if they are actually used to calculate the identity of the work.
      * Any non-identity inputs should be visited when calling {@link #visitRegularInputs(InputVisitor)}.
      */
+    // TODO Rename to visitImmutableInputs
     default void visitIdentityInputs(InputVisitor visitor) {}
 
     /**
@@ -74,6 +75,7 @@ public interface UnitOfWork extends Describable {
      * Regular inputs are inputs that are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
      * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} as well as this method.
      */
+    // TODO Rename to visitMutableInputs
     // TODO Move to MutableUnitOfWork
     default void visitRegularInputs(InputVisitor visitor) {}
 
