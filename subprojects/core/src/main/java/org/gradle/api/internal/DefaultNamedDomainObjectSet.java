@@ -98,6 +98,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     }
 
     @Override
+    @Deprecated
     public Set<T> findAll(Closure cl) {
         return findAll(cl, new LinkedHashSet<T>());
     }
