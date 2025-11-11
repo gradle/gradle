@@ -26,7 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -49,9 +49,9 @@ import java.util.Optional;
 public class ArtifactSetToFileCollectionFactory {
 
     private final BuildOperationExecutor buildOperationExecutor;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
-    public ArtifactSetToFileCollectionFactory(BuildOperationExecutor buildOperationExecutor, InternalProblems problemsService) {
+    public ArtifactSetToFileCollectionFactory(BuildOperationExecutor buildOperationExecutor, ProblemsInternal problemsService) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.problemsService = problemsService;
     }
@@ -157,10 +157,10 @@ public class ArtifactSetToFileCollectionFactory {
         };
     }
     private static class NameBackedResolutionHost implements ResolutionHost, DisplayName {
-        private final InternalProblems problemsService;
+        private final ProblemsInternal problemsService;
         private final String displayName;
 
-        public NameBackedResolutionHost(InternalProblems problemsService, String displayName) {
+        public NameBackedResolutionHost(ProblemsInternal problemsService, String displayName) {
             this.problemsService = problemsService;
             this.displayName = displayName;
         }
@@ -181,7 +181,7 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public InternalProblems getProblems() {
+        public ProblemsInternal getProblems() {
             return problemsService;
         }
 

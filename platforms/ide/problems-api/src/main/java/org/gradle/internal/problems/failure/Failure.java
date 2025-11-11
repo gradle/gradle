@@ -16,7 +16,7 @@
 
 package org.gradle.internal.problems.failure;
 
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -82,7 +82,7 @@ public interface Failure {
     /**
      * The problems associated with the failure.
      */
-    List<InternalProblem> getProblems();
+    List<ProblemInternal> getProblems();
 
     /**
      * Creates a new copy of this failure without problems.

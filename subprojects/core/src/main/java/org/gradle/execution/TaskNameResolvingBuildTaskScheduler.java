@@ -22,7 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -47,9 +47,9 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     private final CommandLineTaskParser commandLineTaskParser;
     private final BuildTaskSelector.BuildSpecificSelector taskSelector;
     private final List<BuiltInCommand> builtInCommands;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
-    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector taskSelector, List<BuiltInCommand> builtInCommands, InternalProblems problemsService) {
+    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector taskSelector, List<BuiltInCommand> builtInCommands, ProblemsInternal problemsService) {
         this.commandLineTaskParser = commandLineTaskParser;
         this.taskSelector = taskSelector;
         this.builtInCommands = builtInCommands;

@@ -28,9 +28,9 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -159,7 +159,7 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<? extends InternalProblem> problems = ValidationProblemSerialization.parseMessageList(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        List<? extends ProblemInternal> problems = ValidationProblemSerialization.parseMessageList(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
 
         Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
         if (problems.isEmpty()) {
@@ -184,7 +184,7 @@ public abstract class ValidatePlugins extends DefaultTask {
     }
 
     private void reportProblems(List<? extends Problem> problems) {
-        InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
+        ProblemReporterInternal reporter = getServices().get(ProblemsInternal.class).getInternalReporter();
         problems.forEach(reporter::report);
     }
 

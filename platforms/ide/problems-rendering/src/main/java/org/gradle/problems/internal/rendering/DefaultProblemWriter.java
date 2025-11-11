@@ -17,7 +17,7 @@
 package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
 
@@ -28,7 +28,7 @@ class DefaultProblemWriter implements SelectiveProblemWriter {
     private static final PartialProblemWriter BODY_WRITER = new ProblemBodyWriter();
 
     @Override
-    public void write(InternalProblem problem, RenderOptions options, PrintWriter output) {
+    public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
         HEADER_WRITER.write(problem, options, output);
         BODY_WRITER.write(problem, options, output);
     }

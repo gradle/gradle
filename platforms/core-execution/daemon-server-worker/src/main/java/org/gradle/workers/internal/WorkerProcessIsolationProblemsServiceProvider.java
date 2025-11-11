@@ -22,7 +22,7 @@ import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactor
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.event.ListenerManager;
@@ -104,7 +104,7 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
     }
 
     @Provides
-    InternalProblems createInternalProblems(
+    ProblemsInternal createInternalProblems(
         PayloadSerializer payloadSerializer,
         ServiceRegistry serviceRegistry,
         IsolatableFactory isolatableFactory,

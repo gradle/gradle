@@ -25,7 +25,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
@@ -50,7 +50,7 @@ public interface ConfigurationServicesBundle {
     CalculatedValueContainerFactory getCalculatedValueContainerFactory();
     FileCollectionFactory getFileCollectionFactory();
     CollectionCallbackActionDecorator getCollectionCallbackActionDecorator();
-    InternalProblems getProblems();
+    ProblemsInternal getProblems();
     AttributeDesugaring getAttributeDesugaring();
     ResolveExceptionMapper getExceptionMapper();
 }

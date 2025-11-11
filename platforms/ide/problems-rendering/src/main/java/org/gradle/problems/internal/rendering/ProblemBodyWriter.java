@@ -19,7 +19,7 @@ package org.gradle.problems.internal.rendering;
 import com.google.common.base.Strings;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 class ProblemBodyWriter implements PartialProblemWriter {
 
     @Override
-    public void write(InternalProblem problem, RenderOptions options, PrintWriter output) {
+    public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
         // contextual message, if any
         String problemSubMessage = getContextualMessage(problem);
         if (problemSubMessage != null) {
@@ -75,7 +75,7 @@ class ProblemBodyWriter implements PartialProblemWriter {
     }
 
     @Nullable
-    private static String getContextualMessage(InternalProblem problem) {
+    private static String getContextualMessage(ProblemInternal problem) {
         if (problem.getContextualLabel() != null) {
             return problem.getContextualLabel();
         } else if (problem.getException() != null) {

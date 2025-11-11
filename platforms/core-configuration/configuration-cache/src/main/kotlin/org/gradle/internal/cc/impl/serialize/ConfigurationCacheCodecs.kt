@@ -37,7 +37,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
@@ -194,7 +194,7 @@ class DefaultConfigurationCacheCodecs(
     taskDependencyFactory: TaskDependencyFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
-    problems: InternalProblems
+    problems: ProblemsInternal
 ) : ConfigurationCacheCodecs {
 
     private
