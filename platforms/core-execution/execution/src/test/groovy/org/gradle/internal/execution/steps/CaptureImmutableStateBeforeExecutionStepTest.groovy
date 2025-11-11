@@ -28,7 +28,7 @@ class CaptureImmutableStateBeforeExecutionStepTest extends StepSpec<WorkspaceCon
         step.execute(work, context)
 
         then:
-        1 * delegate.execute(work, _ as BeforeImmutableExecutionContext) >> { UnitOfWork work, BeforeImmutableExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as ImmutableBeforeExecutionContext) >> { UnitOfWork work, ImmutableBeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
             assert state.outputFileLocationSnapshots == ImmutableSortedMap.of()
         }

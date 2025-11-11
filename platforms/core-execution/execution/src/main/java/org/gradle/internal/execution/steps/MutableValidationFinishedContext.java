@@ -21,11 +21,11 @@ import org.gradle.api.problems.Problem;
 
 import java.util.List;
 
-public class MutableValidationFinishedContext extends BeforeMutableExecutionContext implements ValidationFinishedContext {
+public class MutableValidationFinishedContext extends MutableBeforeExecutionContext implements ValidationFinishedContext {
 
     private final ImmutableList<? extends Problem> validationProblems;
 
-    public MutableValidationFinishedContext(BeforeMutableExecutionContext parent, List<? extends Problem> validationProblems) {
+    public MutableValidationFinishedContext(MutableBeforeExecutionContext parent, List<? extends Problem> validationProblems) {
         super(parent);
         this.validationProblems = ImmutableList.copyOf(validationProblems);
     }

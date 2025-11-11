@@ -52,7 +52,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends StepSpec<PreviousEx
         then:
         assertNoOperation()
         _ * context.shouldCaptureBeforeExecutionState() >> false
-        1 * delegate.execute(work, _ as BeforeMutableExecutionContext) >> { UnitOfWork work, BeforeMutableExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as MutableBeforeExecutionContext) >> { UnitOfWork work, MutableBeforeExecutionContext delegateContext ->
             assert !delegateContext.beforeExecutionState.present
         }
         0 * _
@@ -86,7 +86,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends StepSpec<PreviousEx
             ImmutableSortedMap.of("input-file", inputFileFingerprint),
             ImmutableSet.of())
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeMutableExecutionContext) >> { UnitOfWork work, BeforeMutableExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as MutableBeforeExecutionContext) >> { UnitOfWork work, MutableBeforeExecutionContext delegateContext ->
             assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
             assert state.inputProperties as Map == ["known": knownSnapshot, "input": inputSnapshot]
@@ -131,7 +131,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends StepSpec<PreviousEx
         then:
         _ * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeMutableExecutionContext) >> { UnitOfWork work, BeforeMutableExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as MutableBeforeExecutionContext) >> { UnitOfWork work, MutableBeforeExecutionContext delegateContext ->
             assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
             assert state.outputFileLocationSnapshots == outputSnapshots
@@ -179,7 +179,7 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends StepSpec<PreviousEx
         1 * overlappingOutputDetector.detect(previousOutputSnapshots, beforeExecutionOutputSnapshots) >> null
 
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeMutableExecutionContext) >> { UnitOfWork work, BeforeMutableExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as MutableBeforeExecutionContext) >> { UnitOfWork work, MutableBeforeExecutionContext delegateContext ->
             assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
             assert state.outputFileLocationSnapshots == beforeExecutionOutputSnapshots

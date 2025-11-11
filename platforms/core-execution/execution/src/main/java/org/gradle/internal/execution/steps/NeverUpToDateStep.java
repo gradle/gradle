@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.UnitOfWork;
 
+// Immutable work is never up-to-date
 public class NeverUpToDateStep<C extends ImmutableCachingContext> implements Step<C, UpToDateResult> {
     // TODO Use a better explanation?
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");

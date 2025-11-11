@@ -23,9 +23,9 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filterOutputsAfterExecution;
 
-public class OverlappingOutputsFilter implements AfterExecutionOutputFilter<BeforeMutableExecutionContext> {
+public class OverlappingOutputsFilter implements AfterExecutionOutputFilter<MutableBeforeExecutionContext> {
     @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(BeforeMutableExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution) {
+    public ImmutableSortedMap<String, FileSystemSnapshot> filterOutputs(MutableBeforeExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution) {
         if (context.getDetectedOverlappingOutputs().isPresent()) {
             ImmutableSortedMap<String, FileSystemSnapshot> previousExecutionOutputSnapshots = context.getPreviousExecutionState()
                 .map(PreviousExecutionState::getOutputFilesProducedByWork)

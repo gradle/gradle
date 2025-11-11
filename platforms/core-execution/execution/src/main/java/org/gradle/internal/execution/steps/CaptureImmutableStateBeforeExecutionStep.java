@@ -22,17 +22,17 @@ import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 
 public class CaptureImmutableStateBeforeExecutionStep<C extends WorkspaceContext, R extends CachingResult> implements Step<C, R> {
 
-    private final Step<? super BeforeImmutableExecutionContext, ? extends R> delegate;
+    private final Step<? super ImmutableBeforeExecutionContext, ? extends R> delegate;
 
     public CaptureImmutableStateBeforeExecutionStep(
-        Step<? super BeforeImmutableExecutionContext, ? extends R> delegate
+        Step<? super ImmutableBeforeExecutionContext, ? extends R> delegate
     ) {
         this.delegate = delegate;
     }
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        return delegate.execute(work, new BeforeImmutableExecutionContext(
+        return delegate.execute(work, new ImmutableBeforeExecutionContext(
             context,
             new DefaultBeforeExecutionState(
                 context.getImplementation(),

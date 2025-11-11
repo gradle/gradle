@@ -46,7 +46,7 @@ public abstract class ValidateStep<
     R extends Result
     > implements Step<C, R> {
     public static class Immutable<R extends Result>
-        extends ValidateStep<BeforeImmutableExecutionContext, ImmutableValidationFinishedContext, R> {
+        extends ValidateStep<ImmutableBeforeExecutionContext, ImmutableValidationFinishedContext, R> {
         public Immutable(
             ExecutionProblemHandler problemHandler,
             Step<? super ImmutableValidationFinishedContext, ? extends R> delegate
@@ -55,13 +55,13 @@ public abstract class ValidateStep<
         }
 
         @Override
-        protected ImmutableValidationFinishedContext createDelegateContext(BeforeImmutableExecutionContext context, List<? extends InternalProblem> problems) {
+        protected ImmutableValidationFinishedContext createDelegateContext(ImmutableBeforeExecutionContext context, List<? extends InternalProblem> problems) {
             return new ImmutableValidationFinishedContext(context, problems);
         }
     }
 
     public static class Mutable<R extends Result>
-        extends ValidateStep<BeforeMutableExecutionContext, MutableValidationFinishedContext, R> {
+        extends ValidateStep<MutableBeforeExecutionContext, MutableValidationFinishedContext, R> {
         public Mutable(
             ExecutionProblemHandler problemHandler,
             Step<? super MutableValidationFinishedContext, ? extends R> delegate
@@ -70,7 +70,7 @@ public abstract class ValidateStep<
         }
 
         @Override
-        protected MutableValidationFinishedContext createDelegateContext(BeforeMutableExecutionContext context, List<? extends InternalProblem> problems) {
+        protected MutableValidationFinishedContext createDelegateContext(MutableBeforeExecutionContext context, List<? extends InternalProblem> problems) {
             return new MutableValidationFinishedContext(context, problems);
         }
     }

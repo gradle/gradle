@@ -45,13 +45,13 @@ import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputH
 public class CaptureIncrementalStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
-    private final Step<? super BeforeMutableExecutionContext, ? extends R> delegate;
+    private final Step<? super MutableBeforeExecutionContext, ? extends R> delegate;
 
     public CaptureIncrementalStateBeforeExecutionStep(
         BuildOperationRunner buildOperationRunner,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        Step<? super BeforeMutableExecutionContext, ? extends R> delegate
+        Step<? super MutableBeforeExecutionContext, ? extends R> delegate
     ) {
         super(buildOperationRunner);
         this.outputSnapshotter = outputSnapshotter;
@@ -77,7 +77,7 @@ public class CaptureIncrementalStateBeforeExecutionStep<C extends PreviousExecut
                 }
             });
         }
-        return delegate.execute(work, new BeforeMutableExecutionContext(context, beforeExecutionState, overlappingOutputs));
+        return delegate.execute(work, new MutableBeforeExecutionContext(context, beforeExecutionState, overlappingOutputs));
     }
 
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {

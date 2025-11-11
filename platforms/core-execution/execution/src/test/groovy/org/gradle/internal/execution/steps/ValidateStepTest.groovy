@@ -54,16 +54,16 @@ abstract class ValidateStepTest<C extends BeforeExecutionContext, D extends Vali
     }
 }
 
-class ImmutableValidateStepTest extends ValidateStepTest<BeforeImmutableExecutionContext, ImmutableValidationFinishedContext> {
+class ImmutableValidateStepTest extends ValidateStepTest<ImmutableBeforeExecutionContext, ImmutableValidationFinishedContext> {
     @Override
-    protected ValidateStep<BeforeImmutableExecutionContext, ImmutableValidationFinishedContext, Result> createStep() {
+    protected ValidateStep<ImmutableBeforeExecutionContext, ImmutableValidationFinishedContext, Result> createStep() {
         return new ValidateStep.Immutable<>(problemHandler, delegate)
     }
 }
 
-class MutableValidateStepTest extends ValidateStepTest<BeforeMutableExecutionContext, MutableValidationFinishedContext> {
+class MutableValidateStepTest extends ValidateStepTest<MutableBeforeExecutionContext, MutableValidationFinishedContext> {
     @Override
-    protected ValidateStep<BeforeMutableExecutionContext, MutableValidationFinishedContext, Result> createStep() {
+    protected ValidateStep<MutableBeforeExecutionContext, MutableValidationFinishedContext, Result> createStep() {
         return new ValidateStep.Mutable<>(problemHandler, delegate)
     }
 }

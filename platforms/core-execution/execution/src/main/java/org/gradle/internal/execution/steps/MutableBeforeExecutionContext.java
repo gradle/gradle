@@ -18,42 +18,53 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
-public class BeforeImmutableExecutionContext extends WorkspaceContext implements BeforeExecutionContext {
+public class MutableBeforeExecutionContext extends PreviousExecutionContext implements BeforeExecutionContext {
+    @Nullable
     private final BeforeExecutionState beforeExecutionState;
+    @Nullable
+    private final OverlappingOutputs detectedOverlappingOutputs;
 
-    public BeforeImmutableExecutionContext(
-        WorkspaceContext parent,
-        BeforeExecutionState beforeExecutionState
+    public MutableBeforeExecutionContext(
+        PreviousExecutionContext parent,
+        @Nullable BeforeExecutionState beforeExecutionState,
+        @Nullable OverlappingOutputs detectedOverlappingOutputs
     ) {
         super(parent);
         this.beforeExecutionState = beforeExecutionState;
+        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 
-    protected BeforeImmutableExecutionContext(BeforeImmutableExecutionContext parent) {
-        this(parent, parent.beforeExecutionState);
+    protected MutableBeforeExecutionContext(MutableBeforeExecutionContext parent) {
+        this(parent, parent.getBeforeExecutionState().orElse(null), parent.getDetectedOverlappingOutputs().orElse(null));
     }
 
-    /**
-     * Returns the execution state before execution.
-     * Empty if execution state was not observed before execution.
-     */
     @Override
     public Optional<BeforeExecutionState> getBeforeExecutionState() {
-        return Optional.of(beforeExecutionState);
+        return Optional.ofNullable(beforeExecutionState);
+    }
+
+    public Optional<OverlappingOutputs> getDetectedOverlappingOutputs() {
+        return Optional.ofNullable(detectedOverlappingOutputs);
     }
 
     @Override
     public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-        return beforeExecutionState.getInputProperties();
+        return getBeforeExecutionState()
+            .map(BeforeExecutionState::getInputProperties)
+            .orElseGet(super::getInputProperties);
     }
 
     @Override
     public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-        return beforeExecutionState.getInputFileProperties();
+        return getBeforeExecutionState()
+            .map(BeforeExecutionState::getInputFileProperties)
+            .orElseGet(super::getInputFileProperties);
     }
 }
