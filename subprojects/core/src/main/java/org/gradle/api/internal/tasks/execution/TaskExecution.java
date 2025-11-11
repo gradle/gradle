@@ -56,8 +56,10 @@ import org.gradle.internal.execution.ExecutionBehavior;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -338,7 +340,7 @@ public class TaskExecution implements MutableUnitOfWork {
                 visitor.visitInputFileProperty(
                     inputFileProperty.getPropertyName(),
                     inputFileProperty.getBehavior(),
-                    new InputFileValueSupplier(
+                    new InputVisitor.InputFileValueSupplier(
                         inputFileProperty.getValue(),
                         inputFileProperty.getNormalizer(),
                         inputFileProperty.getDirectorySensitivity(),
@@ -358,7 +360,7 @@ public class TaskExecution implements MutableUnitOfWork {
                 visitor.visitOutputProperty(
                     property.getPropertyName(),
                     property.getOutputType(),
-                    OutputFileValueSupplier.fromSupplier(property::getOutputFile, property.getPropertyFiles())
+                    OutputVisitor.OutputFileValueSupplier.fromSupplier(property::getOutputFile, property.getPropertyFiles())
                 );
             } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
                 throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());

@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionInputState;
@@ -66,9 +67,9 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         } else {
             beforeExecutionState = null;
             // We still need to visit the inputs to ensure that the dependencies are validated
-            work.visitRegularInputs(new UnitOfWork.InputVisitor() {
+            work.visitRegularInputs(new InputVisitor() {
                 @Override
-                public void visitInputFileProperty(String propertyName, InputBehavior behavior, UnitOfWork.InputFileValueSupplier value) {
+                public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                     ((FileCollectionInternal) value.getFiles()).visitStructure(work.getInputDependencyChecker(context.getValidationContext()));
                 }
             });

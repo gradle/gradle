@@ -27,6 +27,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
@@ -126,7 +127,7 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
     }
 
     private void cleanLocalState(File workspace, UnitOfWork work) {
-        work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(workspace, new OutputVisitor() {
             @Override
             public void visitLocalState(File localStateRoot) {
                 try {
@@ -219,9 +220,9 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
+            work.visitOutputs(workspace, new OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
                     visitor.visitOutputTree(propertyName, type, value.getValue());
                 }
             });

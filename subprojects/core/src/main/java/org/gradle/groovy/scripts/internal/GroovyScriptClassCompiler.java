@@ -35,6 +35,8 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -280,7 +282,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         public void visitOutputs(File workspace, OutputVisitor visitor) {
             super.visitOutputs(workspace, visitor);
             File metadataDir = metadataDir(workspace);
-            OutputFileValueSupplier metadataDirValue = OutputFileValueSupplier.fromStatic(metadataDir, fileCollectionFactory.fixed(metadataDir));
+            OutputVisitor.OutputFileValueSupplier metadataDirValue = OutputVisitor.OutputFileValueSupplier.fromStatic(metadataDir, fileCollectionFactory.fixed(metadataDir));
             visitor.visitOutputProperty("metadataDir", TreeType.DIRECTORY, metadataDirValue);
         }
 

@@ -18,19 +18,13 @@ package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.FileNormalizer;
-import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
@@ -39,7 +33,6 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
 
@@ -123,120 +116,6 @@ public interface UnitOfWork extends Describable {
      * Note: For tasks {@code workspace} is {@code null} for now.
      */
     void visitOutputs(File workspace, OutputVisitor visitor);
-
-    interface InputVisitor {
-        default void visitInputProperty(
-            String propertyName,
-            ValueSupplier value
-        ) {}
-
-        default void visitInputFileProperty(
-            String propertyName,
-            InputBehavior behavior,
-            InputFileValueSupplier value
-        ) {}
-    }
-
-    interface ValueSupplier {
-        @Nullable
-        Object getValue();
-    }
-
-    interface FileValueSupplier extends ValueSupplier {
-        FileCollection getFiles();
-    }
-
-    class InputFileValueSupplier implements FileValueSupplier {
-        @Nullable
-        private final Object value;
-        private final FileNormalizer normalizer;
-        private final DirectorySensitivity directorySensitivity;
-        private final LineEndingSensitivity lineEndingSensitivity;
-        private final Supplier<FileCollection> files;
-
-        public InputFileValueSupplier(
-            @Nullable Object value,
-            FileNormalizer normalizer,
-            DirectorySensitivity directorySensitivity,
-            LineEndingSensitivity lineEndingSensitivity,
-            Supplier<FileCollection> files
-        ) {
-            this.value = value;
-            this.normalizer = normalizer;
-            this.directorySensitivity = directorySensitivity;
-            this.lineEndingSensitivity = lineEndingSensitivity;
-            this.files = files;
-        }
-
-        @Nullable
-        @Override
-        public Object getValue() {
-            return value;
-        }
-
-        public FileNormalizer getNormalizer() {
-            return normalizer;
-        }
-
-        public DirectorySensitivity getDirectorySensitivity() {
-            return directorySensitivity;
-        }
-
-        public LineEndingSensitivity getLineEndingNormalization() {
-            return lineEndingSensitivity;
-        }
-
-        @Override
-        public FileCollection getFiles() {
-            return files.get();
-        }
-    }
-
-    abstract class OutputFileValueSupplier implements FileValueSupplier {
-        private final FileCollection files;
-
-        public OutputFileValueSupplier(FileCollection files) {
-            this.files = files;
-        }
-
-        public static OutputFileValueSupplier fromStatic(File root, FileCollection fileCollection) {
-            return new OutputFileValueSupplier(fileCollection) {
-                @Override
-                public File getValue() {
-                    return root;
-                }
-            };
-        }
-
-        public static OutputFileValueSupplier fromSupplier(Supplier<File> root, FileCollection fileCollection) {
-            return new OutputFileValueSupplier(fileCollection) {
-                @Override
-                public File getValue() {
-                    return root.get();
-                }
-            };
-        }
-
-        @Override
-        abstract public File getValue();
-
-        @Override
-        public FileCollection getFiles() {
-            return files;
-        }
-    }
-
-    interface OutputVisitor {
-        default void visitOutputProperty(
-            String propertyName,
-            TreeType type,
-            OutputFileValueSupplier value
-        ) {}
-
-        default void visitLocalState(File localStateRoot) {}
-
-        default void visitDestroyable(File destroyableRoot) {}
-    }
 
     /**
      * Return a reason to disable caching for this work.

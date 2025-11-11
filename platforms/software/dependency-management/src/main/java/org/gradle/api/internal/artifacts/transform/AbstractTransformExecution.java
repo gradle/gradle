@@ -28,6 +28,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -224,7 +226,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
                 ? inputArtifact.getAbsolutePath()
                 : inputArtifact.getName());
         visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
-            new InputFileValueSupplier(
+            new InputVisitor.InputFileValueSupplier(
                 dependencies,
                 transform.getInputArtifactDependenciesNormalizer(),
                 transform.getInputArtifactDependenciesDirectorySensitivity(),
@@ -243,7 +245,7 @@ abstract class AbstractTransformExecution implements UnitOfWork {
 
     protected void visitInputArtifact(InputVisitor visitor) {
         visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
-            new InputFileValueSupplier(
+            new InputVisitor.InputFileValueSupplier(
                 inputArtifactProvider,
                 transform.getInputArtifactNormalizer(),
                 transform.getInputArtifactDirectorySensitivity(),
@@ -256,9 +258,9 @@ abstract class AbstractTransformExecution implements UnitOfWork {
         File outputDir = getOutputDir(workspace);
         File resultsFile = getResultsFile(workspace);
         visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
-            OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
+            OutputVisitor.OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
         visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
-            OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
+            OutputVisitor.OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
     }
 
     @Override

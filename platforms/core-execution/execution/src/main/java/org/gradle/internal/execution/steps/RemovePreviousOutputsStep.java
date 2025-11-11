@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OutputsCleaner;
@@ -71,9 +72,9 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
-            work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+            work.visitOutputs(context.getWorkspace(), new OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
                     File root = value.getValue();
                     switch (type) {
                         case FILE:
@@ -108,9 +109,9 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
     }
 
     private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(context.getWorkspace(), new OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+            public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
                 File root = value.getValue();
                 if (root.exists()) {
                     try {

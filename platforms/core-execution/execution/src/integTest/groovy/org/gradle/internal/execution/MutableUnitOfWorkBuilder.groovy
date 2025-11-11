@@ -207,7 +207,7 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            void visitRegularInputs(UnitOfWork.InputVisitor visitor) {
+            void visitRegularInputs(InputVisitor visitor) {
                 inputProperties.each { propertyName, value ->
                     visitor.visitInputProperty(propertyName, () -> value)
                 }
@@ -215,7 +215,7 @@ class MutableUnitOfWorkBuilder {
                     visitor.visitInputFileProperty(
                         entry.key,
                         NON_INCREMENTAL,
-                        new UnitOfWork.InputFileValueSupplier(
+                        new InputVisitor.InputFileValueSupplier(
                             entry.value,
                             InputNormalizer.ABSOLUTE_PATH,
                             DirectorySensitivity.DEFAULT,
@@ -227,9 +227,9 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            void visitOutputs(File workspace, UnitOfWork.OutputVisitor visitor) {
+            void visitOutputs(File workspace, OutputVisitor visitor) {
                 outputs.forEach { name, spec ->
-                    visitor.visitOutputProperty(name, spec.treeType, UnitOfWork.OutputFileValueSupplier.fromStatic(spec.root, TestFiles.fixed(spec.root)))
+                    visitor.visitOutputProperty(name, spec.treeType, OutputVisitor.OutputFileValueSupplier.fromStatic(spec.root, TestFiles.fixed(spec.root)))
                 }
             }
 

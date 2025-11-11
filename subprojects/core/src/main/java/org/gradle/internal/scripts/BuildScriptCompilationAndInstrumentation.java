@@ -26,6 +26,8 @@ import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
@@ -123,11 +125,11 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     @OverridingMethodsMustInvokeSuper
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         File instrumentedOutput = instrumentedOutput(workspace);
-        OutputFileValueSupplier instrumentedOutputValue = OutputFileValueSupplier.fromStatic(instrumentedOutput, fileCollectionFactory.fixed(instrumentedOutput));
+        OutputVisitor.OutputFileValueSupplier instrumentedOutputValue = OutputVisitor.OutputFileValueSupplier.fromStatic(instrumentedOutput, fileCollectionFactory.fixed(instrumentedOutput));
         visitor.visitOutputProperty("instrumentedOutput", TreeType.DIRECTORY, instrumentedOutputValue);
 
         File propertyUpgradeReport = propertyUpgradeReport(workspace);
-        OutputFileValueSupplier propertyUpgradeReportOutputValue = OutputFileValueSupplier.fromStatic(propertyUpgradeReport, fileCollectionFactory.fixed(propertyUpgradeReport));
+        OutputVisitor.OutputFileValueSupplier propertyUpgradeReportOutputValue = OutputVisitor.OutputFileValueSupplier.fromStatic(propertyUpgradeReport, fileCollectionFactory.fixed(propertyUpgradeReport));
         visitor.visitOutputProperty("propertyUpgradeReportOutput", TreeType.FILE, propertyUpgradeReportOutputValue);
     }
 
