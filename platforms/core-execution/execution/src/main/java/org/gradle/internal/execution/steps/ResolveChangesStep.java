@@ -97,7 +97,7 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
                     }
                 };
                 work.visitImmutableInputs(visitor);
-                work.visitRegularInputs(visitor);
+                work.visitMutableInputs(visitor);
                 return new DefaultIncrementalInputProperties(builder.build());
             default:
                 throw new AssertionError();

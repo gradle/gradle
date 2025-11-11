@@ -87,7 +87,7 @@ class NonNormalizedIdentityImmutableTransformExecution extends AbstractTransform
     }
 
     @Override
-    public void visitRegularInputs(InputVisitor visitor) {
+    public void visitMutableInputs(InputVisitor visitor) {
         visitInputArtifact(visitor);
     }
 }

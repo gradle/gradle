@@ -77,7 +77,7 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
     }
 
     @Override
-    public void visitRegularInputs(InputVisitor visitor) {
+    public void visitMutableInputs(InputVisitor visitor) {
         visitInputArtifact(visitor);
     }
 

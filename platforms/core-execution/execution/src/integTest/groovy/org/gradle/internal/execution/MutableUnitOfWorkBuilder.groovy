@@ -207,7 +207,7 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            void visitRegularInputs(InputVisitor visitor) {
+            void visitMutableInputs(InputVisitor visitor) {
                 inputProperties.each { propertyName, value ->
                     visitor.visitInputProperty(propertyName, () -> value)
                 }

@@ -388,7 +388,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             getFiles() >> TestFiles.fixed(file)
         }
         inputListeners.broadcastFileSystemInputsOf(Stub(UnitOfWork) {
-            visitRegularInputs(_ as InputVisitor) >> { InputVisitor visitor ->
+            visitMutableInputs(_ as InputVisitor) >> { InputVisitor visitor ->
                 visitor.visitInputFileProperty("test", PRIMARY, valueSupplier)
             }
         }, EnumSet.allOf(InputBehavior))

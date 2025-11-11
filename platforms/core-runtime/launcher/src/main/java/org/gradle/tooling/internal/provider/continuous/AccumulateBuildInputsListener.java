@@ -44,7 +44,7 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
     public void onExecute(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors) {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
-        work.visitRegularInputs(new InputVisitor() {
+        work.visitMutableInputs(new InputVisitor() {
             @Override
             public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                 if (relevantBehaviors.contains(behavior)) {

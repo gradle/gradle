@@ -90,7 +90,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
 
     private static boolean hasEmptyInputFileCollections(UnitOfWork work, Predicate<String> propertyNameFilter) {
         EmptyCheckingVisitor visitor = new EmptyCheckingVisitor(propertyNameFilter);
-        work.visitRegularInputs(visitor);
+        work.visitMutableInputs(visitor);
         return visitor.isAllEmpty();
     }
 
@@ -100,7 +100,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
             getKnownInputFileProperties(context),
             knownValueSnapshots,
             knownFileFingerprints,
-            visitor -> work.visitRegularInputs(new InputVisitor() {
+            visitor -> work.visitMutableInputs(new InputVisitor() {
                 @Override
                 public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                     if (behavior.shouldSkipWhenEmpty()) {

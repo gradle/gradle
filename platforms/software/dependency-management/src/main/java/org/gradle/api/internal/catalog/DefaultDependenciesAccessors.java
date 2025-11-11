@@ -436,7 +436,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public void visitRegularInputs(InputVisitor visitor) {
+        public void visitMutableInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
                 new InputVisitor.InputFileValueSupplier(
                     classPath,

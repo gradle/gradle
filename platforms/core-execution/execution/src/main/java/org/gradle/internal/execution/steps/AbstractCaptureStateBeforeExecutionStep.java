@@ -67,7 +67,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         } else {
             beforeExecutionState = null;
             // We still need to visit the inputs to ensure that the dependencies are validated
-            work.visitRegularInputs(new InputVisitor() {
+            work.visitMutableInputs(new InputVisitor() {
                 @Override
                 public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                     ((FileCollectionInternal) value.getFiles()).visitStructure(work.getInputDependencyChecker(context.getValidationContext()));
@@ -125,7 +125,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
             previousInputFileFingerprints,
             context.getInputProperties(),
             context.getInputFileProperties(),
-            work::visitRegularInputs,
+            work::visitMutableInputs,
             work.getInputDependencyChecker(context.getValidationContext())
         );
 

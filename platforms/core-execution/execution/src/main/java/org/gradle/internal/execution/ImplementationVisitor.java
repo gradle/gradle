@@ -29,6 +29,6 @@ public interface ImplementationVisitor {
      * Visits additional implementations related to the work. This is only used for additional task
      * actions that are added via {@code Task.doLast()} etc.
      */
-    // TODO Make these additional implementations into identity inputs
+    // TODO Make these additional implementations into immutable inputs
     void visitAdditionalImplementation(ImplementationSnapshot implementation);
 }

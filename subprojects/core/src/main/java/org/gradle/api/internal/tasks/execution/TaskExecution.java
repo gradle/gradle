@@ -325,7 +325,7 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     @Override
-    public void visitRegularInputs(InputVisitor visitor) {
+    public void visitMutableInputs(InputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
         for (InputPropertySpec inputProperty : taskProperties.getInputProperties()) {
             visitor.visitInputProperty(

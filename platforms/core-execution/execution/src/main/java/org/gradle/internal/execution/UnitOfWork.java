@@ -58,25 +58,21 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Visit identity inputs of the work.
+     * Visit immutable inputs of the work.
      *
      * These are inputs that are passed to {@link #identify(Map, Map)} to calculate the identity of the work.
-     * These are more expensive to calculate than regular inputs as they need to be calculated even if the execution of the work is short-circuited by an identity cache.
-     * They also cannot reuse snapshots taken during previous executions.
-     * Because of these reasons only capture inputs as identity if they are actually used to calculate the identity of the work.
-     * Any non-identity inputs should be visited when calling {@link #visitRegularInputs(InputVisitor)}.
+     * Any mutable inputs should be visited when calling {@link #visitMutableInputs(InputVisitor)}.
      */
     default void visitImmutableInputs(InputVisitor visitor) {}
 
     /**
-     * Visit regular inputs of the work.
+     * Visit mutable inputs of the work.
      *
-     * Regular inputs are inputs that are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
+     * Mutable inputs are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
      * To visit all inputs one must call both {@link #visitImmutableInputs(InputVisitor)} as well as this method.
      */
-    // TODO Rename to visitMutableInputs
     // TODO Move to MutableUnitOfWork
-    default void visitRegularInputs(InputVisitor visitor) {}
+    default void visitMutableInputs(InputVisitor visitor) {}
 
     /**
      * Visit outputs of the work in the given workspace.
