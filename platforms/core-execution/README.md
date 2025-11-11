@@ -13,7 +13,7 @@ Tools used to execute work in the context of a Gradle build.
 The **execution engine** is used to manifest the outputs of **units of work** safely and efficiently.
 It is the main method of executing work in Gradle, while parts of the engine are used in the Develocity Maven and sbt extensions.
 
-The _execution engine_ optimizes and ensures the safety of execution and by tracking the **execution state** of different _units of work_ like tasks and artifact transforms.
+The _execution engine_ optimizes and ensures the safety of execution by tracking the **execution state** of different _units of work_ like tasks and artifact transforms.
 It is also used to execute internal work efficiently such as build script compilation and accessor-generation. 
 
 Optimizations employed by the engine include skipping execution when outputs are **up-to-date**, or when inputs are empty, reusing results from the **build cache**, and executing work **incrementally**.
