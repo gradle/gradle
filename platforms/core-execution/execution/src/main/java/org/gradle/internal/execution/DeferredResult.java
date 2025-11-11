@@ -16,13 +16,23 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
+
+import java.util.Optional;
 
 /**
- * Handles warnings and errors that occur during the execution of a unit of work.
+ * A deferred result of a unit of work execution.
  */
-@ServiceScope(Scope.Build.class)
-public interface ExecutionProblemHandler {
-    void handleReportedProblems(Identity identity, UnitOfWork work, WorkValidationContext validationContext);
+public interface DeferredResult<T> {
+
+    Try<T> getResult();
+
+    /**
+     * The origin metadata of the result.
+     *
+     * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
+     * If the output was produced in this request, then the current execution's origin metadata is returned.
+     */
+    Optional<OriginMetadata> getOriginMetadata();
 }

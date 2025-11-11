@@ -91,5 +91,6 @@ public interface TaskProperties {
     /**
      * Validations for the properties.
      */
+    // TODO Rename to validateProperties
     void validate(PropertyValidationContext validationContext);
 }

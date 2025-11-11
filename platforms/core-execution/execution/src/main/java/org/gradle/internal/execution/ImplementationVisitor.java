@@ -16,13 +16,19 @@
 
 package org.gradle.internal.execution;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-/**
- * Handles warnings and errors that occur during the execution of a unit of work.
- */
-@ServiceScope(Scope.Build.class)
-public interface ExecutionProblemHandler {
-    void handleReportedProblems(Identity identity, UnitOfWork work, WorkValidationContext validationContext);
+// TODO Move this to {@link InputVisitor}
+public interface ImplementationVisitor {
+    /**
+     * Visit the implementation of the work. This is the type of the task or transform being executed.
+     */
+    void visitImplementation(Class<?> implementation);
+
+    /**
+     * Visits additional implementations related to the work. This is only used for additional task
+     * actions that are added via {@code Task.doLast()} etc.
+     */
+    // TODO Make these additional implementations into immutable inputs
+    void visitAdditionalImplementation(ImplementationSnapshot implementation);
 }

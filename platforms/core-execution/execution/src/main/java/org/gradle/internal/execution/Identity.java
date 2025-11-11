@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
+package org.gradle.internal.execution;
 
-import org.gradle.cache.Cache;
-import org.gradle.internal.Deferrable;
-import org.gradle.internal.Try;
-import org.gradle.internal.execution.DeferredResult;
-import org.gradle.internal.execution.Identity;
-import org.gradle.internal.execution.UnitOfWork;
-
-public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {
-    <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache);
+public interface Identity {
+    /**
+     * The identity of the work unit that uniquely identifies it
+     * among the other work units of the same type in the current build.
+     */
+    String getUniqueId();
 }

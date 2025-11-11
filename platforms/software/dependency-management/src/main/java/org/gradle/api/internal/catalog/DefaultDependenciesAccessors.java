@@ -46,10 +46,15 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.execution.ExecutionContext;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -335,9 +340,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         private static final String OUT_CLASSES = "classes";
 
         @Override
-        public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+        public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
             Hasher hasher = Hashing.sha1().newHasher();
-            identityInputs.values().forEach(s -> s.appendToHasher(hasher));
+            scalarInputs.values().forEach(s -> s.appendToHasher(hasher));
             String identity = hasher.hash().toString();
             return () -> identity;
         }
@@ -355,8 +360,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         protected abstract List<ClassSource> getClassSources();
 
         @Override
-        public WorkOutput execute(ExecutionRequest executionRequest) {
-            File workspace = executionRequest.getWorkspace();
+        public WorkOutput execute(ExecutionContext executionContext) {
+            File workspace = executionContext.getWorkspace();
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             List<ClassSource> sources = getClassSources();
@@ -389,7 +394,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
+            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputVisitor.OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 
@@ -422,7 +427,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public void visitIdentityInputs(InputVisitor visitor) {
+        public void visitImmutableInputs(InputVisitor visitor) {
             visitor.visitInputProperty(IN_LIBRARIES, model::getLibraryAliases);
             visitor.visitInputProperty(IN_BUNDLES, model::getBundleAliases);
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
@@ -431,9 +436,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public void visitRegularInputs(InputVisitor visitor) {
+        public void visitMutableInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
-                new InputFileValueSupplier(
+                new InputVisitor.InputFileValueSupplier(
                     classPath,
                     InputNormalizer.RUNTIME_CLASSPATH,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
@@ -472,7 +477,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         @Override
-        public void visitIdentityInputs(InputVisitor visitor) {
+        public void visitImmutableInputs(InputVisitor visitor) {
             visitor.visitInputProperty(IN_PROJECTS, this::buildProjectTree);
         }
 

@@ -23,9 +23,13 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
+import org.gradle.internal.execution.ExecutionContext;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.InputVisitor;
+import org.gradle.internal.execution.OutputVisitor;
+import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
@@ -92,7 +96,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
 
     @Override
     @OverridingMethodsMustInvokeSuper
-    public void visitIdentityInputs(InputVisitor visitor) {
+    public void visitImmutableInputs(InputVisitor visitor) {
         visitor.visitInputProperty("isProviderUpgradeReportEnabled", propertyUpgradeReportConfig::isEnabled);
     }
 
@@ -111,9 +115,9 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     }
 
     @Override
-    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+    public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         Hasher hasher = Hashing.newHasher();
-        identityInputs.values().forEach(value -> requireNonNull(value).appendToHasher(hasher));
+        scalarInputs.values().forEach(value -> requireNonNull(value).appendToHasher(hasher));
         String identity = hasher.hash().toString();
         return () -> identity;
     }
@@ -122,23 +126,23 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     @OverridingMethodsMustInvokeSuper
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         File instrumentedOutput = instrumentedOutput(workspace);
-        OutputFileValueSupplier instrumentedOutputValue = OutputFileValueSupplier.fromStatic(instrumentedOutput, fileCollectionFactory.fixed(instrumentedOutput));
+        OutputVisitor.OutputFileValueSupplier instrumentedOutputValue = OutputVisitor.OutputFileValueSupplier.fromStatic(instrumentedOutput, fileCollectionFactory.fixed(instrumentedOutput));
         visitor.visitOutputProperty("instrumentedOutput", TreeType.DIRECTORY, instrumentedOutputValue);
 
         File propertyUpgradeReport = propertyUpgradeReport(workspace);
-        OutputFileValueSupplier propertyUpgradeReportOutputValue = OutputFileValueSupplier.fromStatic(propertyUpgradeReport, fileCollectionFactory.fixed(propertyUpgradeReport));
+        OutputVisitor.OutputFileValueSupplier propertyUpgradeReportOutputValue = OutputVisitor.OutputFileValueSupplier.fromStatic(propertyUpgradeReport, fileCollectionFactory.fixed(propertyUpgradeReport));
         visitor.visitOutputProperty("propertyUpgradeReportOutput", TreeType.FILE, propertyUpgradeReportOutputValue);
     }
 
     @Override
-    public WorkOutput execute(ExecutionRequest executionRequest) {
-        File workspace = executionRequest.getWorkspace();
+    public WorkOutput execute(ExecutionContext executionContext) {
+        File workspace = executionContext.getWorkspace();
         File compileOutput = compile(workspace);
         instrument(compileOutput, instrumentedOutput(workspace), propertyUpgradeReport(workspace));
-        return new UnitOfWork.WorkOutput() {
+        return new WorkOutput() {
             @Override
             public WorkResult getDidWork() {
-                return UnitOfWork.WorkResult.DID_WORK;
+                return WorkOutput.WorkResult.DID_WORK;
             }
 
             @Override
