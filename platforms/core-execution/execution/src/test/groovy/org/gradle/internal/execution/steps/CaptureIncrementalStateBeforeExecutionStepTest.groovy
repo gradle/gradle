@@ -41,8 +41,6 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
         _ * work.inputFingerprinter >> inputFingerprinter
     }
 
-
-
     def "output file properties are snapshotted"() {
         def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", Mock(FileSystemSnapshot))
 
@@ -53,8 +51,8 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
         _ * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+            assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
-            assert !state.detectedOverlappingOutputs.present
             assert state.outputFileLocationSnapshots == outputSnapshots
         }
         0 * _
@@ -101,8 +99,8 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
 
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+            assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
-            assert !state.detectedOverlappingOutputs.present
             assert state.outputFileLocationSnapshots == beforeExecutionOutputSnapshots
         }
         0 * _

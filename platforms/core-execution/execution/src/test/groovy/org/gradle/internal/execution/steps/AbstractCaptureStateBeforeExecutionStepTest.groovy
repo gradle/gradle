@@ -75,8 +75,8 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
             ImmutableSet.of())
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+            assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
-            assert !state.detectedOverlappingOutputs.present
             assert state.inputProperties as Map == ["known": knownSnapshot, "input": inputSnapshot]
             assert state.inputFileProperties as Map == ["known-file": knownFileFingerprint, "input-file": inputFileFingerprint]
         }

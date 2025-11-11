@@ -51,10 +51,13 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
     @Override
     public R execute(UnitOfWork work, C context) {
         BeforeExecutionState beforeExecutionState;
+        OverlappingOutputs overlappingOutputs;
         if (context.shouldCaptureBeforeExecutionState()) {
             beforeExecutionState = captureExecutionState(work, context);
+            overlappingOutputs = detectOverlappingOutputs(work, context, beforeExecutionState.getOutputFileLocationSnapshots());
         } else {
             beforeExecutionState = null;
+            overlappingOutputs = null;
             // We still need to visit the inputs to ensure that the dependencies are validated
             work.visitMutableInputs(new InputVisitor() {
                 @Override
@@ -63,7 +66,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
                 }
             });
         }
-        return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState));
+        return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState, overlappingOutputs));
     }
 
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
@@ -71,10 +74,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         //noinspection DataFlowIssue
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = captureOutputSnapshots(work, context);
-
-                OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(work, context, unfilteredOutputSnapshots);
-
-                BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots, overlappingOutputs);
+                BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return executionState;
             },
@@ -89,7 +89,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
     @Nullable
     abstract protected OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots);
 
-    private static BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
+    private static BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
         Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
         ImmutableSortedMap<String, ValueSnapshot> previousInputPropertySnapshots = previousExecutionState
             .map(ExecutionInputState::getInputProperties)
@@ -112,8 +112,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
             context.getAdditionalImplementations(),
             newInputs.getAllValueSnapshots(),
             newInputs.getAllFileFingerprints(),
-            unfilteredOutputSnapshots,
-            overlappingOutputs
+            unfilteredOutputSnapshots
         );
     }
 

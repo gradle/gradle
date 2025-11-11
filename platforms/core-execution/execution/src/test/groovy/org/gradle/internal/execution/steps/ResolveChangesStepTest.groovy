@@ -134,7 +134,7 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         _ * context.validationProblems >> ImmutableList.of()
         _ * work.executionBehavior >> MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL
-        1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
+        1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _, false) >> changes
         0 * _
     }
 

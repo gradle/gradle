@@ -87,7 +87,7 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
         if (!buildCache.isEnabled()) {
             cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
         }
-        OverlappingOutputs detectedOverlappingOutputs = beforeExecutionState.getDetectedOverlappingOutputs()
+        OverlappingOutputs detectedOverlappingOutputs = context.getDetectedOverlappingOutputs()
             .orElse(null);
         work.shouldDisableCaching(detectedOverlappingOutputs)
             .ifPresent(cachingDisabledReasonsBuilder::add);

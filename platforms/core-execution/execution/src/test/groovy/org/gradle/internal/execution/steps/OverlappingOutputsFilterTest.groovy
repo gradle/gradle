@@ -59,7 +59,6 @@ class OverlappingOutputsFilterTest extends Specification {
         def overlappingOutputs = Mock(OverlappingOutputs)
 
         def beforeExecutionState = Stub(BeforeExecutionState) {
-            detectedOverlappingOutputs >> Optional.of(overlappingOutputs)
             outputFileLocationSnapshots >> outputsBeforeExecution
         }
         def previousExecutionState = Stub(PreviousExecutionState) {
@@ -68,10 +67,11 @@ class OverlappingOutputsFilterTest extends Specification {
         def context = Stub(BeforeExecutionContext) {
             getBeforeExecutionState() >> Optional.of(beforeExecutionState)
             getPreviousExecutionState() >> Optional.of(previousExecutionState)
+            detectedOverlappingOutputs >> Optional.of(overlappingOutputs)
         }
 
         when:
-        def result = filter.filterOutputs(context, beforeExecutionState, outputsAfterExecution)
+        def result = filter.filterOutputs(context, outputsAfterExecution)
 
         then:
         result == filteredOutputs

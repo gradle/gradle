@@ -21,7 +21,6 @@ import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
@@ -57,9 +56,7 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
     protected R executeMutable(MutableUnitOfWork work, C context) {
         if (!context.isIncrementalExecution()) {
             if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
-                boolean hasOverlappingOutputs = context.getBeforeExecutionState()
-                    .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
-                    .isPresent();
+                boolean hasOverlappingOutputs = context.getDetectedOverlappingOutputs().isPresent();
                 if (hasOverlappingOutputs) {
                     cleanupOverlappingOutputs(context, work);
                 } else {

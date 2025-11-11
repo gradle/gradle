@@ -71,7 +71,7 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
             .map(nonIncrementalReason -> nonIncremental(nonIncrementalReason, beforeExecution, incrementalInputProperties))
             .orElseGet(() -> context.getPreviousExecutionState()
                 .map(previousExecution -> context.getValidationProblems().isEmpty()
-                    ? changeDetector.detectChanges(work, previousExecution, beforeExecution, incrementalInputProperties)
+                    ? changeDetector.detectChanges(work, previousExecution, beforeExecution, incrementalInputProperties, context.getDetectedOverlappingOutputs().isPresent())
                     : nonIncremental(VALIDATION_FAILED, beforeExecution, incrementalInputProperties)
                 )
                 .orElseGet(() -> nonIncremental(NO_HISTORY, beforeExecution, incrementalInputProperties))

@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
@@ -27,14 +28,21 @@ import java.util.Optional;
 public class BeforeExecutionContext extends PreviousExecutionContext {
     @Nullable
     private final BeforeExecutionState beforeExecutionState;
+    @Nullable
+    private final OverlappingOutputs detectedOverlappingOutputs;
 
-    public BeforeExecutionContext(PreviousExecutionContext parent, @Nullable BeforeExecutionState beforeExecutionState) {
+    public BeforeExecutionContext(
+        PreviousExecutionContext parent,
+        @Nullable BeforeExecutionState beforeExecutionState,
+        @Nullable OverlappingOutputs detectedOverlappingOutputs
+    ) {
         super(parent);
         this.beforeExecutionState = beforeExecutionState;
+        this.detectedOverlappingOutputs = detectedOverlappingOutputs;
     }
 
     protected BeforeExecutionContext(BeforeExecutionContext parent) {
-        this(parent, parent.getBeforeExecutionState().orElse(null));
+        this(parent, parent.getBeforeExecutionState().orElse(null), parent.getDetectedOverlappingOutputs().orElse(null));
     }
 
     /**
@@ -43,6 +51,10 @@ public class BeforeExecutionContext extends PreviousExecutionContext {
      */
     public Optional<BeforeExecutionState> getBeforeExecutionState() {
         return Optional.ofNullable(beforeExecutionState);
+    }
+
+    public Optional<OverlappingOutputs> getDetectedOverlappingOutputs() {
+        return Optional.ofNullable(detectedOverlappingOutputs);
     }
 
     @Override

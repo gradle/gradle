@@ -35,8 +35,8 @@ class CaptureNonIncrementalStateBeforeExecutionStepTest extends AbstractCaptureS
         then:
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+            assert !delegateContext.detectedOverlappingOutputs.present
             def state = delegateContext.beforeExecutionState.get()
-            assert !state.detectedOverlappingOutputs.present
             assert state.outputFileLocationSnapshots == ImmutableSortedMap.of()
         }
         0 * _
