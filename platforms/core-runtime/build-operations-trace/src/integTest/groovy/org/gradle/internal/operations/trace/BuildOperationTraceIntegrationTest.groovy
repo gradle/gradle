@@ -59,7 +59,7 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
 
     def "trace files are relative to the current directory when parameter is #description"() {
         when:
-        inDirectory"sub"
+        inDirectory "sub"
         run "help", "-D${BuildOperationTrace.TREE_SYSPROP}=true", "-D${BuildOperationTrace.SYSPROP}=$trace"
 
         then:

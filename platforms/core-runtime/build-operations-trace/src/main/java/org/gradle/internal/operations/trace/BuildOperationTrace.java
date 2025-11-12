@@ -298,10 +298,10 @@ public class BuildOperationTrace implements Stoppable {
         private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
             File outputFile = withSuffix(basePath, "-tree.json").toFile();
 
-            System.out.println("Writing build operation tree to " + outputFile.getAbsoluteFile().toPath());
+            System.out.println("Build operation trace: writing tree to " + outputFile.getAbsoluteFile().toPath());
             objectMapper.writerWithDefaultPrettyPrinter()
                 .writeValue(outputFile, BuildOperationTree.serialize(roots));
-            System.out.println("Finished writing build operation tree");
+            System.out.println("Build operation trace: finished writing tree");
         }
 
         private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
