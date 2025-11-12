@@ -17,8 +17,11 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
+import org.gradle.internal.file.TreeType;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public class CaptureImmutableStateBeforeExecutionStep<C extends WorkspaceContext, R extends CachingResult> implements Step<C, R> {
 
@@ -32,6 +35,13 @@ public class CaptureImmutableStateBeforeExecutionStep<C extends WorkspaceContext
 
     @Override
     public R execute(UnitOfWork work, C context) {
+        ImmutableSortedMap.Builder<String, FileSystemSnapshot> outputProperties = ImmutableSortedMap.naturalOrder();
+        work.visitOutputs(context.getWorkspace(), new OutputVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
+                outputProperties.put(propertyName, FileSystemSnapshot.EMPTY);
+            }
+        });
         return delegate.execute(work, new ImmutableBeforeExecutionContext(
             context,
             new DefaultBeforeExecutionState(
@@ -39,7 +49,7 @@ public class CaptureImmutableStateBeforeExecutionStep<C extends WorkspaceContext
                 context.getAdditionalImplementations(),
                 context.getInputProperties(),
                 context.getInputFileProperties(),
-                ImmutableSortedMap.of()
+                outputProperties.build()
             )
         ));
     }
