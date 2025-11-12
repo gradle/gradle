@@ -27,7 +27,10 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Utility methods for working with text.
@@ -38,6 +41,8 @@ import java.util.regex.Pattern;
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
+    private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
+    private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
 
     /**
      * Returns the line separator for Windows.
@@ -349,6 +354,61 @@ public class TextUtil {
     // TODO: This should probably also live in GUtil to be with other camel/kebab case methods
     public static String screamingSnakeToKebabCase(String text) {
         return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
+    }
+
+    /**
+     * Converts a camel case string to kebab case. E.g. fooBar -&gt; foo-bar
+     */
+    public static String camelToKebabCase(String camelCase) {
+        return Stream.of(UPPER_CASE.split(camelCase))
+            .map(s -> s.toLowerCase(Locale.ROOT))
+            .collect(Collectors.joining("-"));
+    }
+
+    /**
+     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
+     */
+    public static String toCamelCase(CharSequence string) {
+        return toCamelCase(string, false);
+    }
+
+    /**
+     * Converts an arbitrary string to a lower camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
+     */
+    public static String toLowerCamelCase(CharSequence string) {
+        return toCamelCase(string, true);
+    }
+
+    private static String toCamelCase(CharSequence string, boolean lower) {
+        if (string == null) {
+            return null;
+        }
+        StringBuilder builder = new StringBuilder();
+        Matcher matcher = WORD_SEPARATOR.matcher(string);
+        int pos = 0;
+        boolean first = true;
+        while (matcher.find()) {
+            String chunk = string.subSequence(pos, matcher.start()).toString();
+            pos = matcher.end();
+            if (chunk.isEmpty()) {
+                continue;
+            }
+            if (lower && first) {
+                chunk = StringUtils.uncapitalize(chunk);
+                first = false;
+            } else {
+                chunk = StringUtils.capitalize(chunk);
+            }
+            builder.append(chunk);
+        }
+        String rest = string.subSequence(pos, string.length()).toString();
+        if (lower && first) {
+            rest = StringUtils.uncapitalize(rest);
+        } else {
+            rest = StringUtils.capitalize(rest);
+        }
+        builder.append(rest);
+        return builder.toString();
     }
 
     public static String removeTrailing(String originalString, String suffix) {

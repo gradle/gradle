@@ -16,10 +16,10 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.util.internal.CamelCaseUtil;
+import org.gradle.util.internal.TextUtil;
 
 public class ModuleNameBuilder {
     public static String toModuleName(String name) {
-        return CamelCaseUtil.toCamelCase(name);
+        return TextUtil.toCamelCase(name);
     }
 }
