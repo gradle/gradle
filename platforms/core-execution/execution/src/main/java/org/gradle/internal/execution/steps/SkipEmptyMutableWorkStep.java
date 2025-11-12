@@ -201,19 +201,13 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
         problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
 
         CachingResult result = performSkip(work, context);
-        broadcastWorkInputs(work, true);
+        workInputListeners.broadcastFileSystemInputsOf(work, EnumSet.of(InputBehavior.PRIMARY));
         return result;
     }
 
     private CachingResult executeWithNonEmptySources(UnitOfWork work, PreviousExecutionContext context) {
-        broadcastWorkInputs(work, false);
+        workInputListeners.broadcastFileSystemInputsOf(work, EnumSet.allOf(InputBehavior.class));
         return delegate.execute(work, context);
-    }
-
-    private void broadcastWorkInputs(UnitOfWork work, boolean onlyPrimaryInputs) {
-        workInputListeners.broadcastFileSystemInputsOf(work, onlyPrimaryInputs
-            ? EnumSet.of(InputBehavior.PRIMARY)
-            : EnumSet.allOf(InputBehavior.class));
     }
 
     private static class EmptyCheckingVisitor implements InputVisitor {
