@@ -3,6 +3,14 @@
 > [!TIP]
 > For general information on the execution platform and a glossary of the main terms in the [platform readme](../README.md).
 
+> [!NOTE]
+> The terms "snapshot" and "fingerprint" both refer to similar concepts.
+> In essence they are both _fingerprints_ of a piece of data, but "snapshots" represent the verbatim state of the data,
+> while "fingerprints" represent its normalized state according to its intended use.
+> There _must_ be a better way to distinguish between these concepts of "non-normalized fingerprints" vs. "normalized fingerprints"
+> but so far we haven't found one that does not result in such overly-verbose terms.
+> So "snapshots" and "fingerprints" they remain until a better option is discovered.
+
 ## Snapshotting
 
 A **snapshot** is a terse representation of the state of some data that we can use to check if the corresponding data has changed at all.
