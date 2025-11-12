@@ -34,6 +34,9 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         file("trace-log.txt").exists()
         !file("trace-tree.txt").exists()
         !file("trace-tree.json").exists()
+
+        and:
+        postBuildOutputContains("Build operation trace:")
     }
 
     def "no trace files are produced when trace parameter is false"() {
@@ -42,6 +45,10 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         testDirectory.listFiles().findAll { it.name.endsWith("-log.txt") } == []
+
+        and:
+        outputDoesNotContain("Build operation trace:")
+        postBuildOutputDoesNotContain("Build operation trace:")
     }
 
     def "trace files are written to absolute path when absolute path is provided"() {
