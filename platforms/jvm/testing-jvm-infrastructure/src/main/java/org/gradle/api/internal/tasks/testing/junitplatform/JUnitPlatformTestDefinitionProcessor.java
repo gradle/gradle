@@ -75,7 +75,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
     private final JUnitPlatformSpec spec;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
-    private final TestSelectionMatcher matcher;
 
     @Nullable
     private CollectThenExecuteTestDefinitionConsumer testClassExecutor;
@@ -89,7 +88,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         this.spec = spec;
         this.idGenerator = idGenerator;
         this.clock = clock;
-        this.matcher = new TestSelectionMatcher(spec.getFilter());
     }
 
     @Override
