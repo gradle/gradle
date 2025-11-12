@@ -37,7 +37,15 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     private GradleProperties gradleProperties;
 
     @Nullable
-    private Map<String, Object> storage = null;
+    private Map<String, Object> storage;
+
+    public DefaultExtraPropertiesExtension() {
+        this.storage = null;
+    }
+
+    public DefaultExtraPropertiesExtension(Map<String, Object> storage) {
+        this.storage = storage;
+    }
 
     @Override
     public boolean has(String name) {
