@@ -19,28 +19,150 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.ExecutionProblemHandler
+import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.ValueSnapshot
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.SHORT_CIRCUITED
+import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
-class SkipEmptyMutableWorkStepTest extends AbstractSkipEmptyWorkStepTest<PreviousExecutionContext> implements SnapshotterFixture {
+class SkipEmptyMutableWorkStepTest extends StepSpec<PreviousExecutionContext> implements SnapshotterFixture {
     def problemHandler = Mock(ExecutionProblemHandler)
     def outputChangeListener = Mock(OutputChangeListener)
     def outputsCleaner = Mock(OutputsCleaner)
 
-    @Override
-    protected AbstractSkipEmptyWorkStep createStep() {
-        new SkipEmptyMutableWorkStep(
-            problemHandler,
-            outputChangeListener,
-            workInputListeners,
-            { -> outputsCleaner },
-            delegate)
+    def workInputListeners = Mock(WorkInputListeners)
+    def inputFingerprinter = Mock(InputFingerprinter)
+    def primaryFileInputs = EnumSet.of(PRIMARY)
+    def allFileInputs = EnumSet.allOf(InputBehavior)
+
+    def knownSnapshot = Mock(ValueSnapshot)
+    def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+    def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot> of()
+    def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of()
+    def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+    def work = Stub(MutableUnitOfWork)
+
+    def step = new SkipEmptyMutableWorkStep(
+        problemHandler,
+        outputChangeListener,
+        workInputListeners,
+        { -> outputsCleaner },
+        delegate)
+
+    def setup() {
+        _ * work.inputFingerprinter >> inputFingerprinter
+        context.getInputProperties() >> { knownInputProperties }
+        context.getInputFileProperties() >> { knownInputFileProperties }
+    }
+
+    def "delegates when work has no source properties"() {
+        def delegateResult = Mock(CachingResult)
+        knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        1 * inputFingerprinter.fingerprintInputProperties(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            knownInputProperties,
+            knownInputFileProperties,
+            _,
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
+            ImmutableSortedMap.of(),
+            knownInputFileProperties,
+            ImmutableSortedMap.of(),
+            ImmutableSet.of())
+
+        then:
+        1 * delegate.execute(work, {
+            it.inputProperties as Map == ["known": knownSnapshot]
+            it.inputFileProperties as Map == ["known-file": knownFileFingerprint]
+        }) >> delegateResult
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
+        0 * _
+
+        result == delegateResult
+    }
+
+    def "delegates when work has sources"() {
+        def delegateResult = Mock(CachingResult)
+        knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        1 * inputFingerprinter.fingerprintInputProperties(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            knownInputProperties,
+            knownInputFileProperties,
+            _,
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
+            ImmutableSortedMap.of(),
+            knownInputFileProperties,
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint),
+            ImmutableSet.of())
+
+        then:
+        1 * sourceFileFingerprint.empty >> false
+
+        then:
+        1 * delegate.execute(work, _ as WorkspaceContext) >> delegateResult
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
+        0 * _
+
+        then:
+        result == delegateResult
+    }
+
+    def "skips when work has empty sources"() {
+        knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        1 * inputFingerprinter.fingerprintInputProperties(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            knownInputProperties,
+            knownInputFileProperties,
+            _,
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
+            ImmutableSortedMap.of(),
+            knownInputFileProperties,
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint),
+            ImmutableSet.of())
+
+        then:
+        1 * sourceFileFingerprint.empty >> true
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
+
+        then:
+        result.execution.get().outcome == SHORT_CIRCUITED
+        assertExecutionStateWhenSkipped(result)
     }
 
     def "skips when work has empty sources and previous outputs (#description)"() {
@@ -105,8 +227,7 @@ class SkipEmptyMutableWorkStepTest extends AbstractSkipEmptyWorkStepTest<Previou
         ex.cause == ioException
     }
 
-    @Override
-    void assertExecutionStateWhenSkipped(CachingResult result) {
+    private static void assertExecutionStateWhenSkipped(CachingResult result) {
         assert !result.afterExecutionOutputState.present
     }
 
