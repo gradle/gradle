@@ -58,12 +58,11 @@ public class ResolveMutableCachingStateStep<C extends MutableChangesContext> ext
     }
 
     @Override
-    protected void calculateCachingState(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
+    protected void checkIfWorkIsCacheable(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
         OverlappingOutputs detectedOverlappingOutputs = context.getDetectedOverlappingOutputs()
             .orElse(null);
         work.shouldDisableCaching(detectedOverlappingOutputs)
             .ifPresent(cachingDisabledReasonsBuilder::add);
-        super.calculateCachingState(work, context, cachingDisabledReasonsBuilder);
     }
 
     @Override

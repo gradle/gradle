@@ -16,9 +16,10 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 
 public class ResolveImmutableCachingStateStep<C extends ImmutableValidationFinishedContext> extends AbstractResolveCachingStateStep<C> {
@@ -33,8 +34,10 @@ public class ResolveImmutableCachingStateStep<C extends ImmutableValidationFinis
         this.delegate = delegate;
     }
 
-    public ResolveImmutableCachingStateStep(Step<? super ImmutableCachingContext, ? extends UpToDateResult> delegate) {
-        this(NoOpBuildCacheController.INSTANCE, false, delegate);
+    @Override
+    protected void checkIfWorkIsCacheable(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
+        work.shouldDisableCaching(null)
+            .ifPresent(cachingDisabledReasonsBuilder::add);
     }
 
     @Override

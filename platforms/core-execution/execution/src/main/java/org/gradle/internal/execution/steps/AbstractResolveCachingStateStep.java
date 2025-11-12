@@ -78,7 +78,13 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
         HashCode cacheKey = calculateCacheKey(context, beforeExecutionState, cachingStateFactory);
 
         ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder = ImmutableList.builder();
-        calculateCachingState(work, context, cachingDisabledReasonsBuilder);
+        if (!context.getValidationProblems().isEmpty()) {
+            cachingDisabledReasonsBuilder.add(VALIDATION_FAILED_REASON);
+        }
+        if (!buildCache.isEnabled()) {
+            cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
+        }
+        checkIfWorkIsCacheable(work, context, cachingDisabledReasonsBuilder);
 
         return cachingStateFactory.createCachingState(beforeExecutionState, cacheKey, cachingDisabledReasonsBuilder.build());
     }
@@ -87,14 +93,7 @@ public abstract class AbstractResolveCachingStateStep<C extends ValidationFinish
         return cachingStateFactory.calculateCacheKey(beforeExecutionState);
     }
 
-    protected void calculateCachingState(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder) {
-        if (!context.getValidationProblems().isEmpty()) {
-            cachingDisabledReasonsBuilder.add(VALIDATION_FAILED_REASON);
-        }
-        if (!buildCache.isEnabled()) {
-            cachingDisabledReasonsBuilder.add(BUILD_CACHE_DISABLED_REASON);
-        }
-    }
+    protected abstract void checkIfWorkIsCacheable(UnitOfWork work, C context, ImmutableList.Builder<CachingDisabledReason> cachingDisabledReasonsBuilder);
 
     protected abstract UpToDateResult executeDelegate(UnitOfWork work, C context, CachingState cachingState);
 
