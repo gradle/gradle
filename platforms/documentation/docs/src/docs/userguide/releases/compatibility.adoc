@@ -40,15 +40,15 @@ See the table below for the Java version supported by a specific Gradle release:
 |===
 |Java version | Support for toolchains | Support for running Gradle
 
-| 8 | N/A | 2.0 to 8.14.*
-| 9 | N/A | 4.3 to 8.14.*
-| 10| N/A | 4.7 to 8.14.*
-| 11| N/A | 5.0 to 8.14.*
-| 12| N/A | 5.4 to 8.14.*
-| 13| N/A | 6.0 to 8.14.*
-| 14| N/A | 6.3 to 8.14.*
-| 15| 6.7 | 6.7 to 8.14.*
-| 16| 7.0 | 7.0 to 8.14.*
+| 8 | N/A | 2.0 to 8.14*
+| 9 | N/A | 4.3 to 8.14*
+| 10| N/A | 4.7 to 8.14*
+| 11| N/A | 5.0 to 8.14*
+| 12| N/A | 5.4 to 8.14*
+| 13| N/A | 6.0 to 8.14*
+| 14| N/A | 6.3 to 8.14*
+| 15| 6.7 | 6.7 to 8.14*
+| 16| 7.0 | 7.0 to 8.14*
 | 17| 7.3 | 7.3 and after
 | 18| 7.5 | 7.5 and after
 | 19| 7.6 | 7.6 and after
@@ -60,6 +60,8 @@ See the table below for the Java version supported by a specific Gradle release:
 | 25| 9.1.0 | 9.1.0 and after
 | 26| N/A | N/A
 |===
+
+* The asterisk (*) indicates versions that include partial support or specific caveats. Please refer to detailed notes above for more information.
 
 NOTE: We only list versions in the table above once we have tested that they work without any warnings.
 However, thanks to the toolchain support, Gradle will often work with the latest Java version before then.
