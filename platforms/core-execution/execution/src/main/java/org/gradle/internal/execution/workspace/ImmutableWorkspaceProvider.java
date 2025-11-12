@@ -48,10 +48,6 @@ public interface ImmutableWorkspaceProvider {
 
         boolean deleteStaleFiles();
 
-        boolean isMarkedComplete();
-
-        void markCompleted();
-
         void withDeletionLock(Runnable supplier);
     }
 }

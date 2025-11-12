@@ -111,24 +111,18 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
         // We are reading/invalidating snapshots, only one thread should do that at a time.
         return workspace.withThreadLock(() -> loadImmutableWorkspaceIfExists(work, workspace)
-            .orElseGet(() -> {
-                if (workspace.isStale()) {
-                    // Deletion could run right now, so we either need to wait for it to finish
-                    // or prevent it from deleting the workspace by unstaling it
-                    workspace.withDeletionLock(workspace::unstale);
-                }
-                return workspace.withProcessLock(() -> {
-                    // If the workspace is marked as completed, it means one process could already create/fix the workspace,
-                    // and we need to invalidate snapshots, since snapshots were cached, when we read it in loadImmutableWorkspaceIfExists step
-                    boolean invalidateSnapshotsIfCompleted = true;
-                    return loadImmutableWorkspaceIfCompleted(work, workspace, invalidateSnapshotsIfCompleted)
-                        .orElseGet(() -> {
-                            workspace.deleteStaleFiles();
-                            fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                            return executeInWorkspace(work, context, workspace);
-                        });
-                });
-            }));
+            .orElseGet(() -> workspace.withProcessLock(() -> loadImmutableWorkspaceIfCompleted(work, workspace)
+                .map(workspaceResult -> {
+                    // If the workspace is loaded, it means one process could already create/fix the workspace,
+                    // and we need to invalidate snapshots, since snapshots were cached when we read it in loadImmutableWorkspaceIfExists step
+                    fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+                    return workspaceResult;
+                })
+                .orElseGet(() -> {
+                    workspace.deleteStaleFiles();
+                    fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+                    return executeInWorkspace(work, context, workspace);
+                }))));
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, LockingImmutableWorkspace workspace) {
@@ -137,10 +131,13 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         switch (snapshot.getType()) {
             case Directory:
                 if (workspace.isStale()) {
-                    // If the workspace is stale, we need to use process lock
+                    // If the workspace is stale, we cannot load workspace.
+                    // Deletion could run right now, so let's first wait for deletion to finish if it's running
+                    // or prevent it from deleting the workspace by unstaling it.
+                    workspace.withDeletionLock(workspace::unstale);
                     return Optional.empty();
                 }
-                return loadImmutableWorkspaceIfCompleted(work, workspace, false);
+                return loadImmutableWorkspaceIfCompleted(work, workspace);
             case RegularFile:
                 throw new IllegalStateException(
                     "Immutable workspace is occupied by a file: " + immutableLocation.getAbsolutePath() + ". " +
@@ -152,16 +149,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         }
     }
 
-    private Optional<WorkspaceResult> loadImmutableWorkspaceIfCompleted(UnitOfWork work, LockingImmutableWorkspace workspace, boolean invalidateSnapshotsIfCompleted) {
-        if (!workspace.isMarkedComplete()) {
-            // Workspace is not complete, so there could be one process still writing to it, or it just doesn't exist
-            return Optional.empty();
-        }
-
-        if (invalidateSnapshotsIfCompleted) {
-            fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-        }
-
+    private Optional<WorkspaceResult> loadImmutableWorkspaceIfCompleted(UnitOfWork work, LockingImmutableWorkspace workspace) {
         File immutableLocation = workspace.getImmutableLocation();
         Optional<ImmutableWorkspaceMetadata> metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
 
@@ -217,7 +205,6 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(executionOutputState.getOutputFilesProducedByWork());
             ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
             workspaceMetadataStore.storeWorkspaceMetadata(workspace.getImmutableLocation(), metadata);
-            workspace.markCompleted();
 
             return new WorkspaceResult(delegateResult, workspace.getImmutableLocation());
         } else {

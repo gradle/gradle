@@ -153,7 +153,6 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
 
         @Override
         LockingImmutableWorkspace getLockingWorkspace(String path) {
-            File completeMarker = new File(immutableWorkspace, immutableWorkspace.name + ".complete")
             return new LockingImmutableWorkspace() {
                 @Override
                 File getImmutableLocation() {
@@ -185,16 +184,6 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 @Override
                 boolean deleteStaleFiles() {
                     return false
-                }
-
-                @Override
-                boolean isMarkedComplete() {
-                    return completeMarker.exists()
-                }
-
-                @Override
-                void markCompleted() {
-                    completeMarker.createNewFile()
                 }
 
                 @Override
