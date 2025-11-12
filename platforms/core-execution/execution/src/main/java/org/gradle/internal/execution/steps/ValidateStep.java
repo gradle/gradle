@@ -42,48 +42,48 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class ValidateStep<
     C extends BeforeExecutionContext,
-    D extends ValidationFinishedContext,
     R extends Result
     > implements Step<C, R> {
     public static class Immutable<R extends Result>
-        extends ValidateStep<ImmutableBeforeExecutionContext, ImmutableValidationFinishedContext, R> {
+        extends ValidateStep<ImmutableBeforeExecutionContext, R> {
+        private final Step<? super ImmutableValidationFinishedContext, ? extends R> delegate;
+
         public Immutable(
             ExecutionProblemHandler problemHandler,
             Step<? super ImmutableValidationFinishedContext, ? extends R> delegate
         ) {
-            super(problemHandler, delegate);
+            super(problemHandler);
+            this.delegate = delegate;
         }
 
         @Override
-        protected ImmutableValidationFinishedContext createDelegateContext(ImmutableBeforeExecutionContext context, List<? extends InternalProblem> problems) {
-            return new ImmutableValidationFinishedContext(context, problems);
+        protected R executeDelegate(UnitOfWork work, ImmutableBeforeExecutionContext context, List<InternalProblem> problems) {
+            return delegate.execute(work, new ImmutableValidationFinishedContext(context, problems));
         }
     }
 
     public static class Mutable<R extends Result>
-        extends ValidateStep<MutableBeforeExecutionContext, MutableValidationFinishedContext, R> {
+        extends ValidateStep<MutableBeforeExecutionContext, R> {
+        private final Step<? super MutableValidationFinishedContext, ? extends R> delegate;
+
         public Mutable(
             ExecutionProblemHandler problemHandler,
             Step<? super MutableValidationFinishedContext, ? extends R> delegate
         ) {
-            super(problemHandler, delegate);
+            super(problemHandler);
+            this.delegate = delegate;
         }
 
         @Override
-        protected MutableValidationFinishedContext createDelegateContext(MutableBeforeExecutionContext context, List<? extends InternalProblem> problems) {
-            return new MutableValidationFinishedContext(context, problems);
+        protected R executeDelegate(UnitOfWork work, MutableBeforeExecutionContext context, List<InternalProblem> problems) {
+            return delegate.execute(work, new MutableValidationFinishedContext(context, problems));
         }
     }
 
     private final ExecutionProblemHandler problemHandler;
-    private final Step<? super D, ? extends R> delegate;
 
-    protected ValidateStep(
-        ExecutionProblemHandler problemHandler,
-        Step<? super D, ? extends R> delegate
-    ) {
+    protected ValidateStep(ExecutionProblemHandler problemHandler) {
         this.problemHandler = problemHandler;
-        this.delegate = delegate;
     }
 
     @Override
@@ -96,10 +96,10 @@ public abstract class ValidateStep<
 
         problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
 
-        return delegate.execute(work, createDelegateContext(context, validationContext.getProblems()));
+        return executeDelegate(work, context, validationContext.getProblems());
     }
 
-    protected abstract D createDelegateContext(C context, List<? extends InternalProblem> problems);
+    protected abstract R executeDelegate(UnitOfWork work, C context, List<InternalProblem> problems);
 
     private static void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
         MutableReference<Class<?>> workClass = MutableReference.empty();

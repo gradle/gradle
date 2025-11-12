@@ -21,7 +21,7 @@ import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.util.TestUtil
 
-abstract class ValidateStepTest<C extends BeforeExecutionContext, D extends ValidationFinishedContext> extends StepSpec<C> {
+abstract class ValidateStepTest<C extends BeforeExecutionContext> extends StepSpec<C> {
 
     def problemHandler = Mock(ExecutionProblemHandler)
     def delegateResult = Mock(Result)
@@ -29,7 +29,7 @@ abstract class ValidateStepTest<C extends BeforeExecutionContext, D extends Vali
 
     def step = createStep()
 
-    protected abstract ValidateStep<C, D, Result> createStep()
+    protected abstract ValidateStep<C, Result> createStep()
 
     def setup() {
         def validationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
@@ -54,16 +54,16 @@ abstract class ValidateStepTest<C extends BeforeExecutionContext, D extends Vali
     }
 }
 
-class ImmutableValidateStepTest extends ValidateStepTest<ImmutableBeforeExecutionContext, ImmutableValidationFinishedContext> {
+class ImmutableValidateStepTest extends ValidateStepTest<ImmutableBeforeExecutionContext> {
     @Override
-    protected ValidateStep<ImmutableBeforeExecutionContext, ImmutableValidationFinishedContext, Result> createStep() {
+    protected ValidateStep<ImmutableBeforeExecutionContext, Result> createStep() {
         return new ValidateStep.Immutable<>(problemHandler, delegate)
     }
 }
 
-class MutableValidateStepTest extends ValidateStepTest<MutableBeforeExecutionContext, MutableValidationFinishedContext> {
+class MutableValidateStepTest extends ValidateStepTest<MutableBeforeExecutionContext> {
     @Override
-    protected ValidateStep<MutableBeforeExecutionContext, MutableValidationFinishedContext, Result> createStep() {
+    protected ValidateStep<MutableBeforeExecutionContext, Result> createStep() {
         return new ValidateStep.Mutable<>(problemHandler, delegate)
     }
 }
