@@ -52,6 +52,46 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
         """
     }
 
+    def "receives test metadata with multiple values from JUnit platform tests"() {
+        file("src/test/java/com/example/ReportEntryTest.java").java """
+            package com.example;
+            import org.junit.jupiter.api.AfterAll;
+            import org.junit.jupiter.api.AfterEach;
+            import org.junit.jupiter.api.BeforeAll;
+            import org.junit.jupiter.api.BeforeEach;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.TestReporter;
+            import java.util.Map;
+            import java.util.LinkedHashMap;
+            public class ReportEntryTest {
+                @Test
+                public void test(TestReporter testReporter) {
+                    Map<String, String> values = new LinkedHashMap<>();
+                    values.put("test1", "value1");
+                    values.put("test2", "value2");
+                    testReporter.publishEntry(values);
+                }
+            }
+        """
+        when:
+        runTests()
+
+        then:
+        testEvents {
+            task(":test") {
+                nested("Gradle Test Run :test") {
+                    nested("Gradle Test Executor") {
+                        nested("Test class com.example.ReportEntryTest") {
+                            test("Test test(TestReporter)(com.example.ReportEntryTest)") {
+                                metadata([test1: "value1", test2: "value2"])
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     def "receives test metadata from JUnit platform tests"() {
         file("src/test/java/com/example/ReportEntryTest.java").java """
             package com.example;
