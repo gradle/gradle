@@ -18,6 +18,7 @@ package org.gradle.internal.operations.trace
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
@@ -25,6 +26,23 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
+    def "produces a valid trace"() {
+        when:
+        run "help", "-D${BuildOperationTrace.SYSPROP}=trace"
+
+        then:
+        file("trace-log.txt").exists()
+
+        and:
+        postBuildOutputContains("Build operation trace:")
+
+        and:
+        def tree = BuildOperationTrace.readTree(file("trace").path)
+        def fixture = new BuildOperationTreeFixture(tree)
+        fixture.roots.first().displayName == "Run build"
+        fixture.only("Configure project :")
+    }
 
     def "no tree files are produced by default"() {
         when:
@@ -34,9 +52,6 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         file("trace-log.txt").exists()
         !file("trace-tree.txt").exists()
         !file("trace-tree.json").exists()
-
-        and:
-        postBuildOutputContains("Build operation trace:")
     }
 
     def "no trace files are produced when trace parameter is false"() {
