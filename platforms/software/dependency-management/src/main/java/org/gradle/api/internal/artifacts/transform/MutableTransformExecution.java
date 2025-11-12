@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.MutableUnitOfWork;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -29,11 +30,13 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
 
 class MutableTransformExecution extends AbstractTransformExecution implements MutableUnitOfWork {
     private final String rootProjectLocation;
     private final String producerBuildTreePath;
     private final MutableWorkspaceProvider workspaceProvider;
+    private final ExecutionHistoryStore history;
 
     public MutableTransformExecution(
         Transform transform,
@@ -48,6 +51,7 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
         FileCollectionFactory fileCollectionFactory,
         InputFingerprinter inputFingerprinter,
         MutableWorkspaceProvider workspaceProvider,
+        ExecutionHistoryStore history,
 
         boolean disableCachingByProperty
     ) {
@@ -59,11 +63,17 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
         this.rootProjectLocation = producerProject.getRootDir().getAbsolutePath() + File.separator;
         this.producerBuildTreePath = producerProject.getBuildTreePath();
         this.workspaceProvider = workspaceProvider;
+        this.history = history;
     }
 
     @Override
     public MutableWorkspaceProvider getWorkspaceProvider() {
         return workspaceProvider;
+    }
+
+    @Override
+    public Optional<ExecutionHistoryStore> getHistory() {
+        return Optional.of(history);
     }
 
     @Override

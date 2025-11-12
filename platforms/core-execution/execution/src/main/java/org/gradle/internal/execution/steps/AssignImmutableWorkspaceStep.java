@@ -248,7 +248,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     }
 
     private WorkspaceResult executeInWorkspace(UnitOfWork work, C context, File workspace) {
-        WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace, null, true);
+        WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace);
 
         // We don't need to invalidate the workspace, as there is surely nothing there yet,
         // but we still want to record that this build is writing to the given location, so that

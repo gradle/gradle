@@ -22,6 +22,7 @@ import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
@@ -37,10 +38,10 @@ class CaptureMutableStateBeforeExecutionStepTest extends StepSpec<PreviousExecut
     def inputFingerprinter = Mock(InputFingerprinter)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
+    def history = Mock(ExecutionHistoryStore)
     def work = Stub(MutableUnitOfWork)
 
-    final step
-        = new CaptureMutableStateBeforeExecutionStep(buildOperationRunner, outputSnapshotter, overlappingOutputDetector, delegate)
+    final step = new CaptureMutableStateBeforeExecutionStep(buildOperationRunner, outputSnapshotter, overlappingOutputDetector, delegate)
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter
@@ -51,7 +52,7 @@ class CaptureMutableStateBeforeExecutionStepTest extends StepSpec<PreviousExecut
         step.execute(work, context)
         then:
         assertNoOperation()
-        _ * context.shouldCaptureBeforeExecutionState() >> false
+        _ * work.history() >> Optional.empty()
         1 * delegate.execute(work, _ as MutableBeforeExecutionContext) >> { UnitOfWork work, MutableBeforeExecutionContext delegateContext ->
             assert !delegateContext.beforeExecutionState.present
         }
@@ -190,7 +191,7 @@ class CaptureMutableStateBeforeExecutionStepTest extends StepSpec<PreviousExecut
     }
 
     void snapshotState() {
-        _ * context.shouldCaptureBeforeExecutionState() >> true
+        _ * work.history >> Optional.of(history)
         _ * context.previousExecutionState >> Optional.empty()
         _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()

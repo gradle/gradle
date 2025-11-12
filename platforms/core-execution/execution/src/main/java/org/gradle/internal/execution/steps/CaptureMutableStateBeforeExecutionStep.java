@@ -61,9 +61,15 @@ public class CaptureMutableStateBeforeExecutionStep<C extends PreviousExecutionC
 
     @Override
     public R execute(UnitOfWork work, C context) {
+        // TODO Make steps generic over mutable and immutable work
+        return executeMutable((MutableUnitOfWork) work, context);
+    }
+
+    private R executeMutable(MutableUnitOfWork work, C context) {
         BeforeExecutionState beforeExecutionState;
         OverlappingOutputs overlappingOutputs;
-        if (context.shouldCaptureBeforeExecutionState()) {
+        boolean shouldCaptureBeforeExecutionState = work.getHistory().isPresent();
+        if (shouldCaptureBeforeExecutionState) {
             beforeExecutionState = captureExecutionState(work, context);
             overlappingOutputs = detectOverlappingOutputs(work, context, beforeExecutionState.getOutputFileLocationSnapshots());
         } else {
@@ -96,9 +102,8 @@ public class CaptureMutableStateBeforeExecutionStep<C extends PreviousExecutionC
     }
 
     @Nullable
-    private OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
-        MutableUnitOfWork mutableWork = (MutableUnitOfWork) work;
-        if (mutableWork.getOverlappingOutputHandling() == IGNORE_OVERLAPS) {
+    private OverlappingOutputs detectOverlappingOutputs(MutableUnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
+        if (work.getOverlappingOutputHandling() == IGNORE_OVERLAPS) {
             return null;
         }
         ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = context.getPreviousExecutionState()

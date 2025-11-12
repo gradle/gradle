@@ -275,7 +275,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableTransformWorkspaceServices() {
                 @Override
                 public MutableWorkspaceProvider getWorkspaceProvider() {
-                    return new NonLockingMutableWorkspaceProvider(executionHistoryStore, baseDirectory.get());
+                    return new NonLockingMutableWorkspaceProvider(baseDirectory.get());
+                }
+
+                @Override
+                public ExecutionHistoryStore getExecutionHistoryStore() {
+                    return executionHistoryStore;
                 }
 
                 @Override

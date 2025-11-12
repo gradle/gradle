@@ -156,6 +156,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                     fileCollectionFactory,
                     inputFingerprinter,
                     workspaceServices.getWorkspaceProvider(),
+                    workspaceServices.getExecutionHistoryStore(),
 
                     cachingDisabledByProperty
                 );
