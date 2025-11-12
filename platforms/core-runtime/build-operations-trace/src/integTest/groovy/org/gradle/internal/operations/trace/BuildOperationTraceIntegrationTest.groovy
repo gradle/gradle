@@ -59,12 +59,13 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
 
     def "trace files are relative to the current directory when parameter is #description"() {
         when:
+        inDirectory"sub"
         run "help", "-D${BuildOperationTrace.TREE_SYSPROP}=true", "-D${BuildOperationTrace.SYSPROP}=$trace"
 
         then:
-        file("$output-log.txt").exists()
-        file("$output-tree.txt").exists()
-        file("$output-tree.json").exists()
+        file("sub/$output-log.txt").exists()
+        file("sub/$output-tree.txt").exists()
+        file("sub/$output-tree.json").exists()
 
         where:
         description       | trace          | output
