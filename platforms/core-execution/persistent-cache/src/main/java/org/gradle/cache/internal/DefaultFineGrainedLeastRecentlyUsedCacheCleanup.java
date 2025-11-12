@@ -141,8 +141,7 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
             return staleMarker.exists() && (System.currentTimeMillis() - staleMarker.lastModified()) >= STALE_DURATION.toMillis();
         }
 
-        @Override
-        public File getStaleMarkerFile(File entry) {
+        private static File getStaleMarkerFile(File entry) {
             return new File(entry, ".stale");
         }
     }

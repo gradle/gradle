@@ -224,6 +224,12 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
         @Override
         public <T> T useCache(String key, Supplier<? extends T> action) {
+            return useCache(key, "", action);
+        }
+
+        @Override
+        public <T> T useCache(String key, String lockSuffix, Supplier<? extends T> action) {
+            // TODO
             String normalizedKey = DefaultFineGrainedPersistentCache.normalizeCacheKey(key);
             return guard.guardByKey(normalizedKey, action);
         }
@@ -234,6 +240,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
                 action.run();
                 return null;
             });
+        }
+
+        @Override
+        public void useCache(String key, String lockSuffix, Runnable action) {
+            // TODO
         }
 
         @Override

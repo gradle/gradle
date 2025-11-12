@@ -40,11 +40,6 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
     private final OriginMetadataSerializer originMetadataSerializer = new OriginMetadataSerializer();
 
     @Override
-    public boolean workspaceMetadataExists(File workspace) {
-        return new File(workspace, METADATA_FILE).exists();
-    }
-
-    @Override
     public Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace) {
         File metadataFile = new File(workspace, METADATA_FILE);
 
@@ -62,7 +57,8 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
                     outputPropertyHashes.put(outputProperty, hashCode);
                 }
             }
-            return Optional.of(new ImmutableWorkspaceMetadata(originMetadata, outputPropertyHashes.build()));
+            boolean isComplete = decoder.readBoolean();
+            return isComplete ? Optional.of(new ImmutableWorkspaceMetadata(originMetadata, outputPropertyHashes.build())) : Optional.empty();
         } catch (IOException e) {
             // If the metadata file does not exist or cannot be read, return empty
             return Optional.empty();
@@ -86,6 +82,8 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
                     hashCodeSerializer.write(encoder, hash);
                 }
             }
+            // Write controlling "is complete" byte
+            encoder.writeBoolean(true);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not write workspace metadata to " + metadataFile, e);
         }

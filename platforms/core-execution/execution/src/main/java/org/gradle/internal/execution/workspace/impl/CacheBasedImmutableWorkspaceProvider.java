@@ -25,12 +25,9 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
-import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheMarkAndSweepDeleter;
@@ -99,12 +96,8 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     @Override
     public LockingImmutableWorkspace getLockingWorkspace(String path) {
         File workspace = new File(baseDirectory, path);
-        File completeMarker = new File(workspace, "gradle.complete");
         fileAccessTracker.markAccessed(workspace);
         return new LockingImmutableWorkspace() {
-
-            @Nullable
-            private Boolean isStale;
 
             @Override
             public File getImmutableLocation() {
@@ -131,35 +124,17 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
             @Override
             public boolean isStale() {
-                if (isStale == null) {
-                    isStale = deleter.isStale(workspace);
-                }
-                return isStale;
+                return deleter.isStale(workspace);
             }
 
             @Override
             public void unstale() {
                 deleter.unstale(workspace);
-                isStale = false;
             }
 
             @Override
             public boolean deleteStaleFiles() {
                 return deleter.delete(workspace);
-            }
-
-            @Override
-            public boolean isMarkedComplete() {
-                return completeMarker.exists();
-            }
-
-            @Override
-            public void markCompleted() {
-                try {
-                    completeMarker.createNewFile();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
             }
         };
     }
