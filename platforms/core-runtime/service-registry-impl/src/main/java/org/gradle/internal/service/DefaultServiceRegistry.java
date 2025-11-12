@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import static java.util.Collections.singletonList;
 import static org.gradle.util.internal.CollectionUtils.collect;
@@ -508,11 +509,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
         }
 
-        public void instanceRealized(ManagedObjectServiceProvider serviceProvider, Object instance) {
-            List<Class<?>> declaredServiceTypes = serviceProvider.getDeclaredServiceTypes();
-            if (instance instanceof AnnotatedServiceLifecycleHandler && !isAssignableFromAnyType(AnnotatedServiceLifecycleHandler.class, serviceProvider.getDeclaredServiceTypes())) {
+        public void instanceRealized(List<Class<?>> declaredServiceTypes, Supplier<String> displayName, Object instance) {
+            if (instance instanceof AnnotatedServiceLifecycleHandler && !isAssignableFromAnyType(AnnotatedServiceLifecycleHandler.class, declaredServiceTypes)) {
                 throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having %s.",
-                    serviceProvider.getDisplayName(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
+                    displayName.get(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
             }
             if (instance instanceof AnnotatedServiceLifecycleHandler) {
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
@@ -523,7 +523,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                     boolean declaredWithAnnotation = anyTypeHasAnnotation(annotation, declaredServiceTypes);
                     if (implementationHasAnnotation && !declaredWithAnnotation) {
                         throw new IllegalStateException(String.format("%s is annotated with @%s but is not declared as a service with this annotation. This service is declared as having %s.",
-                            serviceProvider.getDisplayName(), format(annotation), format("type", declaredServiceTypes)));
+                            displayName.get(), format(annotation), format("type", declaredServiceTypes)));
                     }
                 }
             }
@@ -609,9 +609,14 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         abstract List<Class<?>> getDeclaredServiceTypes();
 
+        protected void instanceRealized(Object instance) {
+            owner.ownServices.instanceRealized(getDeclaredServiceTypes(), this::getDisplayName, instance);
+        }
+
         protected void setInstance(Object instance) {
+            instanceRealized(instance);
+            // Only expose the instance after we're done with initialization.
             this.instance = instance;
-            owner.ownServices.instanceRealized(this, instance);
         }
 
         public final Object getInstance() {
@@ -679,7 +684,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public List<Class<?>> getDeclaredServiceTypes() {
+        List<Class<?>> getDeclaredServiceTypes() {
             return serviceTypesAsClasses;
         }
 
@@ -949,9 +954,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             setInstance(serviceInstance);
         }
 
+        private String getDisplayNameImpl(Object serviceInstance) {
+            return format("Service", serviceTypes) + " with implementation " + format(serviceInstance.getClass());
+        }
+
+        @Override
+        protected void instanceRealized(Object instance) {
+            owner.ownServices.instanceRealized(getDeclaredServiceTypes(), () -> getDisplayNameImpl(instance), instance);
+        }
+
         @Override
         public String getDisplayName() {
-            return format("Service", serviceTypes) + " with implementation " + format(getInstance().getClass());
+            return getDisplayNameImpl(getInstance());
         }
 
         @Override
