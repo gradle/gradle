@@ -276,6 +276,7 @@ public class BuildOperationTrace implements Stoppable {
         @Override
         public void complete(boolean writeTree) {
             try {
+                System.out.println("Build operation trace: " + logFile(basePath));
                 if (writeTree) {
                     doWriteTreeJson();
                 }
