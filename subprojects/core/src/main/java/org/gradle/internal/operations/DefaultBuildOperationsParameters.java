@@ -16,11 +16,9 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.service.scopes.CrossBuildSessionParameters;
 
 public class DefaultBuildOperationsParameters implements BuildOperationsParameters {
 
@@ -32,8 +30,7 @@ public class DefaultBuildOperationsParameters implements BuildOperationsParamete
 
     private final boolean emitLockingOperations;
 
-    public DefaultBuildOperationsParameters(CrossBuildSessionParameters crossBuildSessionParameters) {
-        InternalOptions internalOptions = new DefaultInternalOptions(crossBuildSessionParameters.getStartParameter().getSystemPropertiesArgs());
+    public DefaultBuildOperationsParameters(InternalOptions internalOptions) {
         this.emitLockingOperations = internalOptions.getOption(VERBOSE_LOCKING_OPERATIONS_OPTION).get();
     }
 
