@@ -24,6 +24,7 @@ import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
+import org.gradle.util.internal.CamelCaseUtil;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -49,7 +50,7 @@ public abstract class DefaultSourceSet implements SourceSet {
     @Inject
     public DefaultSourceSet(String name, ObjectFactory objectFactory) {
         this.name = name;
-        this.baseName = name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : GUtil.toCamelCase(name);
+        this.baseName = name.equals(SourceSet.MAIN_SOURCE_SET_NAME) ? "" : CamelCaseUtil.toCamelCase(name);
         displayName = GUtil.toWords(this.name);
         namingScheme = new ClassDirectoryBinaryNamingScheme(name);
 

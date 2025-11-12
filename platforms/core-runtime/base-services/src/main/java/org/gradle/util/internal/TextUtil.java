@@ -16,9 +16,6 @@
 
 package org.gradle.util.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
@@ -28,21 +25,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+/**
+ * Utility methods for working with text.
+ * <p>
+ * To keep this class usable from Workers, do <strong>NOT</strong> add dependencies on Guava, which
+ * we don't want to make available at runtime in TestWorkers.
+ */
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
-    private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
-    private static final Joiner KEBAB_JOINER = Joiner.on("-");
-    private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-            return input.toLowerCase(Locale.ROOT);
-        }
-    };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
 
     /**
@@ -335,10 +329,6 @@ public class TextUtil {
         return normaliseLineSeparators(normaliseFileSeparators(in));
     }
 
-    public static String camelToKebabCase(String camelCase) {
-        return KEBAB_JOINER.join(Iterables.transform(Arrays.asList(UPPER_CASE.split(camelCase)), TO_LOWERCASE));
-    }
-
     /**
      * This method returns the plural ending for an english word for trivial cases depending on the number of elements a list has.
      *
@@ -356,6 +346,7 @@ public class TextUtil {
         return txt + ".";
     }
 
+    // TODO: This should probably also live in GUtil to be with other camel/kebab case methods
     public static String screamingSnakeToKebabCase(String text) {
         return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
     }

@@ -64,7 +64,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
         then:
         def result = resultsFor()
-        result.testPath("UnknownClass", "Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPathPreNormalized(":$testLocation/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
 
         where:
         testLocation << ["src/test/resources", AbstractNonClassBasedTestingIntegrationTest.DEFAULT_DEFINITIONS_LOCATION]
