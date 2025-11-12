@@ -16,16 +16,14 @@
 
 package org.gradle.util.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Utility methods for converting camel case strings to other formats.
@@ -36,17 +34,12 @@ import java.util.regex.Pattern;
 @NullMarked
 public class CamelCaseUtil {
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
-    private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-            return input.toLowerCase(Locale.ROOT);
-        }
-    };
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
-    private static final Joiner KEBAB_JOINER = Joiner.on("-");
 
     public static String camelToKebabCase(String camelCase) {
-        return KEBAB_JOINER.join(Iterables.transform(Arrays.asList(UPPER_CASE.split(camelCase)), TO_LOWERCASE));
+        return Stream.of(UPPER_CASE.split(camelCase))
+            .map(s -> s.toLowerCase(Locale.ROOT))
+            .collect(Collectors.joining("-"));
     }
 
     /**
