@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.console;
 
+import java.util.Locale;
+
 public interface ConsoleMetaData {
     /**
      * Returns true if the current process' stdout is attached to the console.
@@ -62,7 +64,7 @@ public interface ConsoleMetaData {
         // Check system property override first
         String unicodeProperty = System.getProperty("org.gradle.terminal.unicode");
         if (unicodeProperty != null) {
-            String normalizedValue = unicodeProperty.toLowerCase().trim();
+            String normalizedValue = unicodeProperty.toLowerCase(Locale.ROOT).trim();
             switch (normalizedValue) {
                 case "enabled":
                 case "force":
@@ -85,15 +87,15 @@ public interface ConsoleMetaData {
         // Check for UTF-8 encoding in locale
         String lang = System.getenv("LANG");
         String lcAll = System.getenv("LC_ALL");
-        if ((lang != null && lang.toUpperCase().contains("UTF-8")) ||
-            (lcAll != null && lcAll.toUpperCase().contains("UTF-8"))) {
+        if ((lang != null && lang.toUpperCase(Locale.ROOT).contains("UTF-8")) ||
+            (lcAll != null && lcAll.toUpperCase(Locale.ROOT).contains("UTF-8"))) {
             return true;
         }
 
         // Check for modern terminal types that support Unicode
         String term = System.getenv("TERM");
         if (term != null) {
-            String lowerTerm = term.toLowerCase();
+            String lowerTerm = term.toLowerCase(Locale.ROOT);
             // Modern terminals that support Unicode well
             if (lowerTerm.contains("xterm") ||
                 lowerTerm.contains("256color") ||
@@ -153,7 +155,7 @@ public interface ConsoleMetaData {
 
         // Ghostty supports OSC 9;4 sequences
         String term = System.getenv("TERM");
-        if (term != null && term.toLowerCase().contains("ghostty")) {
+        if (term != null && term.toLowerCase(Locale.ROOT).contains("ghostty")) {
             return true;
         }
 

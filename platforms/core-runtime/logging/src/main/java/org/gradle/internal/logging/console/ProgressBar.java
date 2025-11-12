@@ -233,14 +233,14 @@ public class ProgressBar {
         return "\u001B]9;4;" + state + ";" + progressPercent + "\u0007";
     }
 
-    /**
-     * Generates OSC 9;4 sequence to remove taskbar progress indicator.
-     */
-    private String clearTaskbarProgress() {
-        if (!useTaskbarProgress) {
-            return "";
-        }
-        // ESC ] 9 ; 4 ; 0 BEL (state 0 = remove progress)
-        return "\u001B]9;4;0\u0007";
-    }
+//    /**
+//     * Generates OSC 9;4 sequence to remove taskbar progress indicator.
+//     */
+//    private String clearTaskbarProgress() {
+//        if (!useTaskbarProgress) {
+//            return "";
+//        }
+//        // ESC ] 9 ; 4 ; 0 BEL (state 0 = remove progress)
+//        return "\u001B]9;4;0\u0007";
+//    }
 }
