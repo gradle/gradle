@@ -34,7 +34,7 @@ public final class SerializedMetadata {
     private final long logTime;
     private final ImmutableList<SerializedMetadataElement> metadatas;
 
-    public SerializedMetadata(long logTime, Map<String, Object> metadata) {
+    public SerializedMetadata(long logTime, Map<String, String> metadata) {
         this.logTime = logTime;
 
         ImmutableList.Builder<SerializedMetadataElement> builder = ImmutableList.builder();
