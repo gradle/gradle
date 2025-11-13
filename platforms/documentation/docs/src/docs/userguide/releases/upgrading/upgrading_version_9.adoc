@@ -159,6 +159,11 @@ To ease migration, Gradle has automatically mapped legacy `Usage` values to thei
 Starting with Gradle 10, this automatic mapping will no longer occur when legacy `Usage` values are added directly to an `AttributeContainer` in build logic.
 To maintain backward compatibility, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
 
+[[findAll_removal]]
+==== Deprecation of `DomainObjectCollection.findAll(Closure)`
+
+TBD
+
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 
