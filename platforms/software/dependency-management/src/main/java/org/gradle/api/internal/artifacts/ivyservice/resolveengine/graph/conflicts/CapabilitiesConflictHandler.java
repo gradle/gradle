@@ -26,6 +26,11 @@ import java.util.Collection;
 public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, ConflictResolutionResult> {
 
     /**
+     * Return true iff the given node is involved in a capability conflict.
+     */
+    boolean hasConflictFor(NodeState node);
+
+    /**
      * Has the given capability been seen as a non-default capability on a node?
      * This is needed to determine if default capabilities need to enter conflict detection.
      */
