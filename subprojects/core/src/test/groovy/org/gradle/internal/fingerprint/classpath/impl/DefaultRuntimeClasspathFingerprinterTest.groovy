@@ -37,7 +37,7 @@ import spock.lang.Specification
 
 @CleanupTestDirectory(fieldName = "tmpDir")
 @UsesNativeServices
-class DefaultClasspathFingerprinterTest extends Specification {
+class DefaultRuntimeClasspathFingerprinterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -48,7 +48,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
     TestInMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new TestInMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
-    def fingerprinter = new DefaultClasspathFingerprinter(
+    def fingerprinter = new DefaultRuntimeClasspathFingerprinter(
         cacheService,
         ResourceFilter.FILTER_NOTHING,
         ResourceEntryFilter.FILTER_NOTHING,
