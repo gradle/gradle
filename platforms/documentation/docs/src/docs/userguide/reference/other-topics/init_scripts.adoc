@@ -56,7 +56,7 @@ Like any Gradle script, an init script implements link:{groovyDslPath}/org.gradl
 
 NOTE: Properties from `gradle.properties` are available on `Settings`/`Project`, *not* on `Gradle`.
 
-Useful `Gradle` callbacks include: `settingsEvaluated {}`, `projectsLoaded {}`, `beforeProject {}`, `afterProject {}`.
+Useful `Gradle` callbacks include: `settingsEvaluated {}`, `projectsLoaded {}`, `beforeProject {}`, `afterProject {}`. You can see more in the <<build_lifecycle#lifecycle_api,Gradle LifeCycle API>>.
 
 [[sec:configuring_projects_from_an_init_script]]
 === Configuring projects from an init script
@@ -126,8 +126,8 @@ An init plugin is a Gradle plugin whose target type is `Plugin<Gradle>` and is a
 
 Unlike project (`Plugin<Project>`) or settings (`Plugin<Settings>`) plugins, an init plugin attaches to the Gradle object during the initialization phase, before the settings and projects are configured:
 
-- *Scope*: Runs at init; can access `settingsEvaluated`, `projectsLoaded`, `beforeProject`/`afterProject` callbacks to safely interact with settings/projects when they exist.
-- *Distribution*: Applied from an init script (`~/.gradle/init.d/*.init.gradle(.kts)` or `$GRADLE_HOME/init.d`) so it affects every build on that machine/agent.
+- *Scope*: Runs at init; can access `settingsEvaluated`, `projectsLoaded`, `beforeProject`, `afterProject` <<build_lifecycle#lifecycle_api,callbacks>> to safely interact with settings/projects when they exist.
+- **Distribution**: Applied from an init script (`~/.gradle/init.d/*.init.gradle(.kts)` or `$GRADLE_HOME/init.d`) so it affects every build on that machine/agent. However, this does not include **all** builds: for example, builds run via `TestKit` use an isolated <<directory_layout.adoc#dir:gradle_user_home,Gradle user home>>, and different users or build agents may each have their own init scripts.
 
 You can find a simple example in the next section.
 

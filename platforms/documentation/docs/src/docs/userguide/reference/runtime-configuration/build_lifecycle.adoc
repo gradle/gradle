@@ -105,3 +105,188 @@ Across all projects in the build, tasks form a http://en.wikipedia.org/wiki/Dire
 This diagram shows two example task graphs, one abstract and the other concrete, with dependencies between tasks represented as arrows:
 
 image::task-dag-examples.png[]
+
+[[lifecycle_api]]
+== Hooks into the Gradle Build LifeCycle
+
+Gradle exposes several APIs that allow you to listen to or react to key points in the build lifecycle.
+
+Some APIs let you hook into those phases in init scripts, `settings.gradle(.kts)` or `build.gradle(.kts)` to customize or inspect the build as Gradle configures it.
+These hooks let you:
+
+- react to the structure of the build (root + subprojects),
+- configure all projects before their own build scripts are evaluated,
+- debug or collect information during configuration.
+
+=== Gradle Lifecycle API
+
+The link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`] API accessible via `gradle` and newer link:{javadocPath}/org/gradle/api/invocation/GradleLifecycle.html[`GradleLifecycle`] API, accessible via `gradle.lifecycle`, can be used to register actions to be executed at certain points in the build lifecycle:
+
+[source,text]
+----
+buildStarted -> DEPRECATED in Gradle 6
+ └─ beforeSettings
+     └── settingsEvaluated
+          └── projectsLoaded
+               ├── beforeProject
+               ├── afterProject
+               └── projectsEvaluated
+                     └── buildFinished -> DEPRECATED in Gradle 7
+----
+
+[cols="~,~,~,~", options="header"]
+|===
+| # | Hook | Phase | Best for
+
+| <<#before_settings,1>>
+| link:{javadocPath}/org/gradle/api/invocation/Gradle.html#beforeSettings(groovy.lang.Closure)[`gradle.beforeSettings`]
+| Before the `settings.gradle(.kts)` is evaluated.
+| Early wiring from an init script: global logging/metrics, tweaking `gradle.startParameter`, choosing different settings files, or setting values on the `Settings` object before it’s evaluated.
+
+| <<#settings_evaluated,2>>
+| link:{javadocPath}/org/gradle/api/invocation/Gradle.html#settingsEvaluated(groovy.lang.Closure)[`gradle.settingsEvaluated`]
+| After evaluating `settings.gradle(.kts)`
+| Adjusting repositories, enabling build scans, reading environment variables, or changing build layout.
+
+| <<#projects_loaded,3>>
+| link:{javadocPath}/org/gradle/api/invocation/Gradle.html#projectsLoaded(groovy.lang.Closure)[`gradle.projectsLoaded`]
+| After all projects are discovered but before any are configured
+| Applying configuration to every project (for example, adding a plugin to all subprojects).
+
+| <<#before_project,4>>
+| link:{javadocPath}/org/gradle/api/invocation/GradleLifecycle.html#beforeProject(org.gradle.api.IsolatedAction)[`gradle.lifecycle.beforeProject`]
+| Before each project's `build.gradle(.kts)` is evaluated
+| Applying defaults, logging project configuration start.
+
+| <<#after_project,5>>
+| link:{javadocPath}/org/gradle/api/invocation/GradleLifecycle.html#afterProject(org.gradle.api.IsolatedAction)[`gradle.lifecycle.afterProject`]
+| After each project's `build.gradle(.kts)` is evaluated
+| Validating configuration or detecting missing plugins.
+
+| <<#projects_evaluated,6>>
+| link:{javadocPath}/org/gradle/api/invocation/Gradle.html#projectsEvaluated(org.gradle.api.Action)[`gradle.projectsEvaluated`]
+| After *all* projects have been evaluated
+| Performing cross-project validation, configuration summaries, or creating aggregated tasks.
+
+|===
+
+[[before_settings]]
+==== `beforeSettings`
+
+*Where*: init script. +
+*When*: By the time `settings.gradle(.kts)` is executing, `beforeSettings` has already fired.
+
+[source,kotlin]
+----
+gradle.beforeSettings { settings ->
+    // Safe to read/adjust things on Settings before it’s evaluated
+    settings.gradle.userHomeDir.mkdirs() // example side-effect
+    logger.lifecycle("beforeSettings: using settings in ${settings.settingsDir}")
+}
+----
+
+[[settings_evaluated]]
+==== `settingsEvaluated`
+
+*Where*: `settings.gradle(.kts)`. +
+*When*: After the settings file finishes evaluating.
+
+[source,kotlin]
+----
+settingsEvaluated {
+    println("Settings evaluated. Root project: ${rootProject.name}")
+}
+----
+
+[[projects_loaded]]
+==== `projectsLoaded`
+
+*Where*: `settings.gradle(.kts)`. +
+*When*: All projects have been discovered but not yet configured.
+
+[source,kotlin]
+----
+projectsLoaded {
+    gradle.rootProject {
+        subprojects {
+            // equivalent to using "allprojects {}"
+            apply(plugin = "java")
+        }
+    }
+}
+----
+
+[[before_project]]
+==== `beforeProject`
+
+*Where*: `build.gradle(.kts)` or anywhere you have access to the Gradle instance. +
+*When*: For each project as its build script is evaluated.
+
+[source,kotlin]
+----
+gradle.lifecycle.beforeProject {
+    apply(plugin = "base")
+    repositories {
+        mavenCentral()
+    }
+}
+----
+
+[[after_project]]
+==== `afterProject`
+
+*Where*: `build.gradle(.kts)` or anywhere you have access to the Gradle instance. +
+*When*: For each project as its build script is evaluated.
+
+[source,kotlin]
+----
+gradle.afterProject { project ->
+    if (!project.plugins.hasPlugin("java")) {
+        println("Project ${project.path} did not apply the Java plugin")
+    }
+}
+----
+
+[[projects_evaluated]]
+==== `projectsEvaluated`
+
+*Where*: `build.gradle(.kts)` or anywhere you have access to the Gradle instance. +
+*When*: After all projects have been evaluated (i.e., all `build.gradle(.kts)` files are read and configuration is complete), but before task graph is finalized and before execution starts.
+
+[source,kotlin]
+----
+gradle.projectsEvaluated {
+    subprojects {
+        tasks.matching { it.name == "test" }.configureEach {
+            // Will only run when 'test' is realized
+            dependsOn(rootProject.tasks.named("prepareTestEnv"))
+        }
+    }
+}
+----
+
+=== BuildListener API
+
+The legacy link:{javadocPath}/org/gradle/BuildListener.html[`BuildListener`] API is also available.
+This listener interface is supported for backward compatibility, but its callbacks have been gradually deprecated as equivalent events became available through the `Gradle` and `GradleLifecycle` APIs.
+
+[source,text]
+----
+beforeSettings
+    └── settingsEvaluated
+        └── projectsLoaded
+            └── projectsEvaluated
+                └── taskCompletion
+                    └── buildFinished -> DEPRECATED in Gradle 7
+----
+
+`BuildListeners` are best use to listen to task events using link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`].
+
+=== Build Services
+
+You can use the <<tooling_api.adoc#tooling_api,Tooling API’s>>
+link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[`OperationCompletionListener.onFinish`] or implement `AutoCloseable` in a <<build_services.adoc#build_services,Build Service>> and perform cleanup work in its `close()` method (invoked automatically at build completion).
+
+=== Flow API
+
+The <<dataflow_actions#dataflow_action,FlowAction API>> replaces ad-hoc listeners with a declarative, dependency-aware graph of “flows” which are actions that react to lifecycle transitions and produce well-defined outcomes.
