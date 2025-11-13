@@ -144,6 +144,8 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
+* [`useFileSystemPermissions()`](javadoc/org/gradle/api/tasks/bundling/AbstractArchiveTask.html#useFileSystemPermissions()) in `AbstractArchiveTask`
+
 <!--
 ### Example promoted
 -->
