@@ -87,15 +87,22 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         tmpDir.file("custom-trace-tree.json").exists()
     }
 
-    def "trace files are relative to the current directory when parameter is #description"() {
+    def "when running from subdirectory, trace files are relative to the root directory for #description parameter"() {
+        // Explicit settings file to ensure test directory is the root directory of the build
+        settingsFile """
+            rootProject.name = "root"
+            include("sub")
+        """
+        createDirs("sub")
+
         when:
         inDirectory "sub"
         run "help", "-D${BuildOperationTrace.TREE_SYSPROP}=true", "-D${BuildOperationTrace.SYSPROP}=$trace"
 
         then:
-        file("sub/$trace-log.txt").exists()
-        file("sub/$trace-tree.txt").exists()
-        file("sub/$trace-tree.json").exists()
+        file("$trace-log.txt").exists()
+        file("$trace-tree.txt").exists()
+        file("$trace-tree.json").exists()
 
         where:
         description       | trace
