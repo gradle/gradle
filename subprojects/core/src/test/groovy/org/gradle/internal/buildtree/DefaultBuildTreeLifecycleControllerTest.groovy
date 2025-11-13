@@ -22,6 +22,7 @@ import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.internal.RunDefaultTasksExecutionRequest
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.ExecutionResult
+import org.gradle.internal.operations.BuildOperationsParameters
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -35,7 +36,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def finishExecutor = Mock(BuildTreeFinishExecutor)
     def startParameter = Mock(StartParameter)
     def buildModelParameters = Mock(BuildModelParameters)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, workController, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory(), startParameter, buildModelParameters)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, workController, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory(Mock(BuildOperationsParameters)), startParameter, buildModelParameters)
     def reportableFailure = new RuntimeException()
 
     def setup() {
