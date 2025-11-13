@@ -17,7 +17,6 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -338,7 +337,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @since 9.0.0
      */
-    @Incubating
     public void useFileSystemPermissions() {
         getFilePermissions().set(getProject().getProviders().provider(() -> null));
         getDirPermissions().set(getProject().getProviders().provider(() -> null));
