@@ -856,6 +856,102 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/35625")
+    def "can detect Slf4J logger implementation conflicts"() {
+        given:
+        buildFile << """
+            plugins {
+                id("org.gradlex.jvm-dependency-conflict-resolution").version("2.4")
+            }
+
+            ${common}
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation("org.slf4j:slf4j-simple:1.7.27")
+                implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0")
+            }
+        """
+
+        when:
+        fails(':checkDeps')
+
+        then:
+        failure.assertHasCause("Component is the target of multiple version constraints with conflicting requirements")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35625")
+    def "can detect Slf4J logger vs JCL implementation conflicts"() {
+        given:
+        buildFile << """
+            plugins {
+                id("org.gradlex.jvm-dependency-conflict-resolution").version("2.4")
+            }
+
+            ${common}
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation("org.slf4j:jcl-over-slf4j:1.7.27")
+                implementation("org.slf4j:slf4j-jcl:1.7.27")
+            }
+        """
+
+        when:
+        fails(':checkDeps')
+
+        then:
+        failure.assertHasCause("Module 'org.slf4j:jcl-over-slf4j' has been rejected")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35625")
+    def "can detect Slf4J logger vs Log4J implementation conflicts 2"() {
+        given:
+        buildFile << """
+            plugins {
+                id("org.gradlex.jvm-dependency-conflict-resolution").version("2.4")
+            }
+
+            ${common}
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation("org.slf4j:log4j-over-slf4j:1.7.27")
+                implementation("org.slf4j:slf4j-log4j12:1.7.27")
+            }
+        """
+
+        when:
+        fails(':checkDeps')
+
+        then:
+        failure.assertHasCause("Module 'org.slf4j:log4j-over-slf4j' has been rejected")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35625")
+    def "can detect conflicting bridge implementations from Slf4J and Log4J2"() {
+        given:
+        buildFile << """
+            plugins {
+                id("org.gradlex.jvm-dependency-conflict-resolution").version("2.4")
+            }
+
+            ${common}
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation("org.slf4j:jcl-over-slf4j:1.7.27")
+                implementation("org.apache.logging.log4j:log4j-jcl:2.17.0")
+            }
+        """
+
+        when:
+        fails(':checkDeps')
+
+        then:
+        failure.assertHasCause("Module 'org.slf4j:jcl-over-slf4j' has been rejected")
+    }
+
     // region test fixtures
 
     class CapabilityClosure {

@@ -77,6 +77,11 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
         return !conflicts.isEmpty();
     }
 
+    @Override
+    public boolean hasConflictFor(CandidateModule candidate) {
+        return conflicts.hasConflictFor(candidate.getId());
+    }
+
     /**
      * Resolves the conflict by delegating to the conflict resolver who selects single version from given candidates.
      */
