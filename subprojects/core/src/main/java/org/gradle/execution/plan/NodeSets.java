@@ -167,8 +167,12 @@ public final class NodeSets {
         }
 
         private void removeIndex(int index) {
-            System.arraycopy(array, index + 1, array, index, size - index);
-            size--;
+            int numMoved = size - index - 1;
+            if (numMoved > 0) {
+                System.arraycopy(array, index + 1, array, index, numMoved);
+            }
+            //noinspection DataFlowIssue
+            array[--size] = null; // avoid memory leak
             version = version < 0 ? version - 1 : version + 1;
         }
 
@@ -178,7 +182,7 @@ public final class NodeSets {
             return grow;
         }
 
-        private static final int INITIAL_CAPACITY = 8;
+        static final int INITIAL_CAPACITY = 8; // package-private for tests
 
         private static final Object[] NO_ELEMENTS = {};
     }
