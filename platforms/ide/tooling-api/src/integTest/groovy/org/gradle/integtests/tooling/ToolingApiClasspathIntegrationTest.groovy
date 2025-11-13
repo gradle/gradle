@@ -68,11 +68,11 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
         def actualSize = extractShadedTapiJarSize(output)
         def actualSizeKB = (int) Math.ceil((double) actualSize / 1024)
 
-        def expectedSizeKB = 3200
+        def expectedSizeKB = 2900
         def marginKB = 50
 
         def message = { smaller ->
-            def changed = smaller == "smaller" ? "added" : "removed"
+            def changed = smaller == "smaller" ? "removed" : "added"
             "Shaded TAPI jar is unexpectedly ${smaller} and needs to be verified." +
                 "\nCurrent size: ${actualSizeKB} KiB. Expected size: ${expectedSizeKB} ± ${marginKB} KiB." +
                 "\nThe shaded jar is produced via tree-shaking. If this suddenly fails without an obvious reason, you likely have ${changed} some dependencies between classes."
