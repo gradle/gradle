@@ -46,7 +46,7 @@ abstract public class JUnitPlatformTestToolchain<T extends JUnitPlatformToolchai
 
     @Override
     public TestFramework createTestFramework(Test task) {
-        return getObjectFactory().newInstance(JUnitPlatformTestFramework.class, task.getFilter(), task.getDryRun());
+        return getObjectFactory().newInstance(JUnitPlatformTestFramework.class, task.getFilter(), task.getDryRun(), task.getWorkingDir());
     }
 
     @Override
