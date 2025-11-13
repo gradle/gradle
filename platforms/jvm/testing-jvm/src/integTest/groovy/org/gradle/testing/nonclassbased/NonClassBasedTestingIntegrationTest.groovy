@@ -196,8 +196,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         nonClassBasedTestsExecuted()
 
         ["INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]",
-        "INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]",
-        "INFO: Executing resource-based test: Test[file=subSomeOtherTestSpec.rbt, name=other]"].forEach {
+         "INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]",
+         "INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]"].forEach {
             result.getOutput().findAll(it).size() == 1
         }
     }
@@ -243,12 +243,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
         containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
 
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test subSomeOtherTestSpec.rbt : other()] [subSomeOtherTestSpec.rbt : other]")
-        containsLine(result.getOutput(), "FINISH [Test subSomeOtherTestSpec.rbt : other()] [subSomeOtherTestSpec.rbt : other] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other]")
+        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other] [SUCCESS] [1] [null]")
     }
 
     def "can listen for non-class-based tests using dry-run and tests are reported as skipped"() {
@@ -293,11 +293,215 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
         containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
 
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test subSomeOtherTestSpec.rbt : other()] [subSomeOtherTestSpec.rbt : other]")
-        containsLine(result.getOutput(), "FINISH [Test subSomeOtherTestSpec.rbt : other()] [subSomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other]")
+        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
     }
+
+    def "resource-based test engine can exclude test definitions"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            excludeTestsMatching "*SomeTestSpec*"
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions()
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
+        outputContains("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+    }
+
+    def "resource-based test engine can exclude test definitions in subdirectories"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            excludeTestsMatching "*Additional*"
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions()
+        file("$DEFAULT_DEFINITIONS_LOCATION/subdir1/AdditionalDefs.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="foo2" />
+            </tests>
+        """
+        file("$DEFAULT_DEFINITIONS_LOCATION/AdditionalDir/OtherTests.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="foo3" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=AdditionalDefs.rbt, name=foo2]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=OtherTests.rbt, name=foo3]")
+
+        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
+        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
+        outputContains("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+    }
+
+    def "resource-based test engine can include test definitions"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            includeTestsMatching "*SomeTestSpec*"
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions()
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
+        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+    }
+
+    def "resource-based test engine can include test definitions in subdirectories"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            includeTestsMatching "*subdir1/SomeTestSpec*"
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions()
+        writeTestDefinitions()
+        file("$DEFAULT_DEFINITIONS_LOCATION/subdir1/SomeTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="subfoo" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=subfoo]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+    }
+
+    def "resource-based test engine can include and exclude test definitions"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            includeTestsMatching "*SomeTestSpec*"
+                            excludeTestsMatching "*SomeTestSpecThatShoudlntRun*"
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions()
+        file("$DEFAULT_DEFINITIONS_LOCATION/SomeTestSpecThatShoudlntRun.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="dontrun" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
+        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpecThatShoudlntRun.rbt, name=dontrun]")
+    }
+
+    // TODO: Test filters using file separators to ensure they work on all platforms
 }
