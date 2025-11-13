@@ -277,7 +277,7 @@ class TaskNameResolverTest extends Specification {
 
     ProjectState projectState(Set<ProjectState> children = []) {
         def state = Mock(ProjectState) {
-            getChildProjects() >> children
+            getUnorderedChildProjects() >> children
         }
         def project = Mock(ProjectInternal) {
             getOwner() >> state

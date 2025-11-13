@@ -103,7 +103,7 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder {
     }
 
     private void findTasks(ProjectState p, Map<String, LaunchableGradleTaskSelector> taskSelectors, Collection<String> visibleTasks) {
-        for (ProjectState child : p.getChildProjects()) {
+        for (ProjectState child : p.getUnorderedChildProjects()) {
             findTasks(child, taskSelectors, visibleTasks);
         }
 

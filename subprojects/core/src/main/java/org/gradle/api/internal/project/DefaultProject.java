@@ -851,7 +851,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void evaluationDependsOnChildren() {
-        for (ProjectState project : owner.getChildProjects()) {
+        for (ProjectState project : owner.getUnorderedChildProjects()) {
             ProjectInternal defaultProjectToEvaluate = project.getMutableModel();
             evaluationDependsOn(defaultProjectToEvaluate);
         }

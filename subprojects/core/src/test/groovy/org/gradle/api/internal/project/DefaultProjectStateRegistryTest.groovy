@@ -69,7 +69,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         p1.parent.is(root)
         p1.componentIdentifier.projectPath == ":p1"
         p1.componentIdentifier.buildTreePath == ":p1"
-        p1.childProjects.empty
+        p1.unorderedChildProjects.empty
 
         def p2 = registry.stateFor(projectId("p2"))
         p2.name == "p2"
@@ -79,9 +79,9 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         p2.parent.is(root)
         p2.componentIdentifier.projectPath == ":p2"
         p2.componentIdentifier.buildTreePath == ":p2"
-        p2.childProjects.empty
+        p2.unorderedChildProjects.empty
 
-        root.childProjects.toList() == [p1, p2]
+        root.unorderedChildProjects.toList() == [p1, p2]
 
         registry.stateFor(root.componentIdentifier).is(root)
         registry.stateFor(p1.componentIdentifier).is(p1)

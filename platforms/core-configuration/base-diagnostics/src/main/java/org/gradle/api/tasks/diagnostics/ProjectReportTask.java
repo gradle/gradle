@@ -141,7 +141,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
         ProjectState owner = ((ProjectInternal) project).getOwner();
-        return Streams.stream(owner.getChildProjects())
+        return Streams.stream(owner.getUnorderedChildProjects())
             .sorted(ProjectOrderingUtil::compare)
             .map(state -> calculateReportModelFor(state.getMutableModel()))
             .collect(Collectors.toList());

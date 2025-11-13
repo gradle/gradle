@@ -289,7 +289,7 @@ class DefaultBuildTaskSelectorTest extends Specification {
         defaultProjectState.projectPath >> Path.path(":proj")
         defaultProjectState.identityPath >> Path.path(":proj")
         defaultProjectState.owner >> build
-        defaultProjectState.childProjects >> [defaultProjectState].toSet()
+        defaultProjectState.unorderedChildProjects >> [defaultProjectState].toSet()
 
         buildRegistry.rootBuild >> build
 
@@ -304,7 +304,7 @@ class DefaultBuildTaskSelectorTest extends Specification {
         rootProjectState.projectPath >> Path.ROOT
         rootProjectState.identityPath >> Path.ROOT
         rootProjectState.owner >> build
-        rootProjectState.childProjects >> rootChildProjects
+        rootProjectState.unorderedChildProjects >> rootChildProjects
         rootProjectState.created >> true
 
         return new RootBuildFixture(build, rootProjectState, rootChildProjects, defaultProjectState)

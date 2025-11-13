@@ -80,7 +80,7 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
 
     private DefaultGradleProject build(ProjectState root, ProjectState project, IsolatedGradleProjectInternal isolatedModel, IsolatedGradleProjectParameter parameter) {
         DefaultGradleProject model = buildWithoutChildren(project, isolatedModel);
-        List<ProjectState> children = ImmutableList.copyOf(project.getChildProjects());
+        List<ProjectState> children = ImmutableList.copyOf(project.getUnorderedChildProjects());
         List<IsolatedGradleProjectInternal> isolatedChildrenModels = getIsolatedModels(root, children, parameter);
         model.setChildren(buildChildren(root, model, parameter, children, isolatedChildrenModels));
         return model;

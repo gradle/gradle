@@ -99,12 +99,12 @@ class GradleBuildBuilderTest extends Specification {
         def includedBuild1 = Mock(IncludedBuildInternal)
         def includedBuild2 = Mock(IncludedBuildInternal)
 
-        rootProject.childProjects >> [].toSet()
+        rootProject.unorderedChildProjects >> [].toSet()
         rootProject.identityPath >> Path.path(":some:identity:path")
 
-        includedProject1.childProjects >> [].toSet()
+        includedProject1.unorderedChildProjects >> [].toSet()
         includedProject1.identityPath >> Path.path(":some:identity:path")
-        includedProject2.childProjects >> [].toSet()
+        includedProject2.unorderedChildProjects >> [].toSet()
         includedProject2.identityPath >> Path.path(":some:identity:path")
 
         rootBuild.includedBuilds() >> [includedBuild1]

@@ -85,7 +85,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
         });
 
         List<TaskDependency> buildDependencies = new ArrayList<>(currentElements);
-        for (ProjectState childProject : p.getChildProjects()) {
+        for (ProjectState childProject : p.getUnorderedChildProjects()) {
             buildDependencies.addAll(populate(childProject));
         }
         return buildDependencies;

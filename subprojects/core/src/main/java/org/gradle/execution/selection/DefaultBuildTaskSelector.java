@@ -159,7 +159,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
                 }
             });
         }
-        for (ProjectState child : project.getChildProjects()) {
+        for (ProjectState child : project.getUnorderedChildProjects()) {
             ProjectState previous = candidates.put(child.getIdentityPath().getName(), child);
             if (previous != null) {
                 throw new IllegalStateException("Duplicate child project names for " + project.getDisplayName());

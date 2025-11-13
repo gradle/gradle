@@ -52,9 +52,9 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     ProjectState getParent();
 
     /**
-     * Returns the direct children of this project in no particular order.
+     * Returns the direct children of this project in a deterministic, but unspecified, order.
      */
-    Iterable<ProjectState> getChildProjects();
+    Iterable<ProjectState> getUnorderedChildProjects();
 
     /**
      * Checks whether this project has child projects.

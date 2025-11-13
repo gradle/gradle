@@ -166,7 +166,7 @@ fun buildScriptModelsInHierarchy(
     }
 
     fun visit(projectState: ProjectState) {
-        val children = projectState.childProjects.toList()
+        val children = projectState.unorderedChildProjects.toList()
         val childrenModels = intermediateModelProvider.getIsolatedModels(projectState, children)
         childrenModels.forEach { collect(it) }
         children.forEach { visit(it) }

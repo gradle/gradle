@@ -66,7 +66,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal target) {
-        return Streams.stream(target.getOwner().getChildProjects()).collect(
+        return Streams.stream(target.getOwner().getUnorderedChildProjects()).collect(
             Collectors.toMap(
                 ProjectState::getName,
                 projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator, gradleLifecycleActionExecutor)

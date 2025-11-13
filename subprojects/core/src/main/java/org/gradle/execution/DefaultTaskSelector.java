@@ -119,7 +119,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
 
     @NonNull
     private static String getSearchContext(ProjectState targetProject, boolean includeSubprojects) {
-        if (includeSubprojects && !Iterables.isEmpty(targetProject.getChildProjects())) {
+        if (includeSubprojects && !Iterables.isEmpty(targetProject.getUnorderedChildProjects())) {
             return targetProject.getDisplayName() + " and its subprojects";
         }
         return targetProject.getDisplayName().getDisplayName();

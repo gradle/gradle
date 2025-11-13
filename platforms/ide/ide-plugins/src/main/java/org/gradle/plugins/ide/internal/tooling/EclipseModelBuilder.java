@@ -189,7 +189,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private DefaultEclipseProject buildHierarchy(ProjectState projectState) {
         List<DefaultEclipseProject> children = new ArrayList<>();
-        for (ProjectState child : projectState.getChildProjects()) {
+        for (ProjectState child : projectState.getUnorderedChildProjects()) {
             children.add(buildHierarchy(child));
         }
 
@@ -247,7 +247,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
         });
 
-        for (ProjectState childProject : p.getChildProjects()) {
+        for (ProjectState childProject : p.getUnorderedChildProjects()) {
             populate(childProject);
         }
     }

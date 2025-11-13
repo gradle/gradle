@@ -120,7 +120,7 @@ public class TaskNameResolver {
         ProjectInternal mutableProject = project.getMutableModel();
         discoverTasks(mutableProject);
         result.addAll(mutableProject.getTasks().getNames());
-        for (ProjectState subProject : project.getChildProjects()) {
+        for (ProjectState subProject : project.getUnorderedChildProjects()) {
             collectTaskNames(subProject, result);
         }
     }
@@ -181,7 +181,7 @@ public class TaskNameResolver {
                     return;
                 }
             }
-            for (ProjectState subProject : project.getChildProjects()) {
+            for (ProjectState subProject : project.getUnorderedChildProjects()) {
                 collect(subProject, tasks);
             }
         }

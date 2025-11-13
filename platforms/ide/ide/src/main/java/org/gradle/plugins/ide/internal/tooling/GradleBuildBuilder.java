@@ -123,7 +123,7 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             converted.setParent(convertedProjects.get(project.getParent()));
         }
         convertedProjects.put(project, converted);
-        for (ProjectState child : project.getChildProjects()) {
+        for (ProjectState child : project.getUnorderedChildProjects()) {
             converted.addChild(convert(owner, child, convertedProjects));
         }
         return converted;

@@ -49,7 +49,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
     private void setProjectProperties(ProjectState project) {
         addPropertiesToProject(project);
-        for (ProjectState childProject : project.getChildProjects()) {
+        for (ProjectState childProject : project.getUnorderedChildProjects()) {
             setProjectProperties(childProject);
         }
     }

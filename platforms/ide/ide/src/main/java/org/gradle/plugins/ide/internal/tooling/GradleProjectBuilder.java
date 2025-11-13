@@ -59,7 +59,7 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
      * When {@code realizeTasks} is false, the project's task graph will not be realized, and the task list in the model will be empty
      */
     private static DefaultGradleProject buildHierarchy(ProjectState project, boolean realizeTasks) {
-        List<DefaultGradleProject> children = Streams.stream(project.getChildProjects())
+        List<DefaultGradleProject> children = Streams.stream(project.getUnorderedChildProjects())
             .map(it -> buildHierarchy(it, realizeTasks))
             .collect(toList());
 

@@ -49,7 +49,7 @@ public class BuildStructureOperationProject implements LoadProjectsBuildOperatio
             project.getIdentity().getBuildTreePath().asString(),
             project.getProjectDir().getAbsolutePath(),
             project.getMutableModel().getBuildFile().getAbsolutePath(),
-            convertAll(project.getChildProjects())
+            convertAll(project.getUnorderedChildProjects())
         );
     }
 

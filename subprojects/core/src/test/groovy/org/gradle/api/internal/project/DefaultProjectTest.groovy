@@ -294,7 +294,7 @@ class DefaultProjectTest extends Specification {
         child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2", null))
         child2State.mutableModel >> child2
         child2State.name >> "child2"
-        projectState.childProjects >> ([child1State, child2State] as Set)
+        projectState.unorderedChildProjects >> ([child1State, child2State] as Set)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
         }

@@ -324,7 +324,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         @Override
-        public Iterable<ProjectState> getChildProjects() {
+        public Iterable<ProjectState> getUnorderedChildProjects() {
             return Iterables.transform(descriptor.children(), this::getStateForChild);
         }
 
