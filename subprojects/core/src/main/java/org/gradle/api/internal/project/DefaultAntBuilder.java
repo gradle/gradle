@@ -24,7 +24,6 @@ import org.apache.tools.ant.MagicNames;
 import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Target;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -34,6 +33,7 @@ import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.ant.AntTarget;
 import org.gradle.internal.Transformers;
 import org.jspecify.annotations.Nullable;
@@ -147,19 +147,23 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         for (String name : newAntTargets) {
             final Target target = getAntProject().getTargets().get(name);
             String taskName = taskNamer.transform(target.getName());
-            @SuppressWarnings("deprecation")
-            final AntTarget task = gradleProject.getTasks().create(taskName, AntTarget.class);
+            final TaskProvider<AntTarget> task = gradleProject.getTasks().register(taskName, AntTarget.class);
             configureTask(target, task, baseDir, taskNamer);
         }
     }
 
-    private static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
-        task.setTarget(target);
-        task.setBaseDir(baseDir);
+    private static void configureTask(Target target, TaskProvider<AntTarget> antTask, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
+        antTask.configure(task -> {
+            task.setTarget(target);
+            task.setBaseDir(baseDir);
+        });
 
         final List<String> taskDependencyNames = getTaskDependencyNames(target, taskNamer);
-        task.dependsOn(new AntTargetsTaskDependency(taskDependencyNames));
-        addDependencyOrdering(taskDependencyNames, task.getProject().getTasks());
+        // TODO find a way to do the following without the need to configure the task,
+        //  we run a tasks.all and that cannot happen inside the configuration of a lazy task
+        AntTarget realizedAntTask = antTask.get();
+        realizedAntTask.dependsOn(new AntTargetsTaskDependency(taskDependencyNames));
+        addDependencyOrdering(taskDependencyNames, realizedAntTask.getProject().getTasks());
     }
 
     private static List<String> getTaskDependencyNames(Target target, Transformer<? extends String, ? super String> taskNamer) {
@@ -178,12 +182,9 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         for (final String dependency : dependencies) {
             if (previous != null) {
                 final String finalPrevious = previous;
-                tasks.all(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        if (task.getName().equals(dependency)) {
-                            task.shouldRunAfter(finalPrevious);
-                        }
+                tasks.all(task -> {
+                    if (task.getName().equals(dependency)) {
+                        task.shouldRunAfter(finalPrevious);
                     }
                 });
             }
