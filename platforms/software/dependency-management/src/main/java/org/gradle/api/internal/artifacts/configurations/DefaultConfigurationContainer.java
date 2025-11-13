@@ -46,6 +46,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -114,15 +115,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public void visitConsumable(Consumer<ConfigurationInternal> visitor) {
         // Visit all configurations which are known to be consumable
-        withType(ConsumableConfiguration.class).forEach(configuration ->
+        Collection<ConsumableConfiguration> availableConsumableConfigurations = new ArrayList<>(withType(ConsumableConfiguration.class));
+        availableConsumableConfigurations.forEach(configuration ->
             visitor.accept((ConfigurationInternal) configuration)
         );
 
         // Then, visit any configuration with unknown role, checking if it is consumable
-        withType(LegacyConfiguration.class).forEach(configuration -> {
-            if (configuration.isCanBeConsumed()) {
-                visitor.accept((ConfigurationInternal) configuration);
-            }
+        Collection<LegacyConfiguration> availableLegacyConfigurations = new ArrayList<>(withType(LegacyConfiguration.class).matching(Configuration::isCanBeConsumed));
+        availableLegacyConfigurations.forEach(configuration -> {
+            visitor.accept((ConfigurationInternal) configuration);
         });
     }
 
