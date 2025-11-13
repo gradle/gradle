@@ -81,6 +81,94 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-strictly]"]
 ====
 
+[[sec:strictly-constraint-precedence]]
+== Behavior of `strictly` Constraints at Different Dependency Graph Depths
+
+When multiple `strictly` version constraints are declared for the same dependency at different levels of the dependency graph, Gradle honors the constraint that is *closest to the root* of the graph and ignores constraints further from the root.
+
+This means that a `strictly` constraint declared in your project's direct dependencies will take precedence over `strictly` constraints declared in transitive dependencies or subprojects.
+
+.Root-level `strictly` constraint takes precedence
+====
+In this example, the root project declares a `strictly` constraint for version 4.4, while a subproject declares a different `strictly` constraint for version 4.5.
+The root-level constraint (4.4) takes precedence.
+
+[tabs]
+=====
+Kotlin::
++
+[source,kotlin]
+----
+// Root project build.gradle.kts
+plugins {
+    `java-library`
+}
+
+dependencies {
+    api(project(":moduleA"))
+    api("org.apache.httpcomponents:httpclient") {
+        version {
+            strictly("4.4")  // This constraint is honored
+        }
+    }
+}
+
+// moduleA/build.gradle.kts
+plugins {
+    `java-library`
+}
+
+dependencies {
+    constraints {
+        api("org.apache.httpcomponents:httpclient") {
+            version {
+                strictly("4.5")  // This constraint is ignored
+            }
+        }
+    }
+}
+----
+
+Groovy::
++
+[source,groovy]
+----
+// Root project build.gradle
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api(project(':moduleA'))
+    api('org.apache.httpcomponents:httpclient') {
+        version {
+            strictly '4.4'  // This constraint is honored
+        }
+    }
+}
+
+// moduleA/build.gradle
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    constraints {
+        api('org.apache.httpcomponents:httpclient') {
+            version {
+                strictly '4.5'  // This constraint is ignored
+            }
+        }
+    }
+}
+----
+=====
+
+In this scenario, version *4.4* of `httpclient` will be selected because the constraint in the root project is closer to the root of the dependency graph than the constraint in `:moduleA`.
+====
+
+This behavior ensures that projects have control over their direct dependency versions and can override constraints from transitive dependencies.
+
 == Transitivity of constraints
 
 Dependency constraints are transitive.
