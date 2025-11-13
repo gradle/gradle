@@ -16,7 +16,9 @@ This patch release includes bug fixes and improvements.
 
 The following issues were resolved:
 
-* TODO
+* [#35521](https://github.com/gradle/gradle/issues/35521) Gradle 9.2.0 fails to start on arm32v7, ppc64le and s390x because of the change disabling the rich console on Windows ARM/AArch64 
+* [#35522](https://github.com/gradle/gradle/issues/35522) ArrayIndexOutOfBoundsException with a circular shouldRunAfter Task constraint
+* [#35526](https://github.com/gradle/gradle/issues/35526) org.gradle.internal.instantiation.ClassGenerationException: Could not generate a decorated class for type DirectoryProperty 
 
 We recommend upgrading to Gradle @version@.
 
