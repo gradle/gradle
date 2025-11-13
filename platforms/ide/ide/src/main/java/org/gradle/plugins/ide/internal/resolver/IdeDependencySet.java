@@ -115,7 +115,7 @@ public class IdeDependencySet {
         public void visit(IdeDependencyVisitor visitor) {
             resolvePlusConfigurations(visitor);
             resolveMinusConfigurations(visitor);
-            resolveAuxiliaryArtifacts(visitor);
+            // resolveAuxiliaryArtifacts(visitor);
             visitArtifacts(visitor);
             visitUnresolvedDependencies(visitor);
         }
