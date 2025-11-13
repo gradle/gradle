@@ -276,7 +276,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasScriptModelForFiles(model, /*"settings.gradle.kts"*/)
         assertHasErrorsInScriptModels(model,
                 Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
-                // Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*")
+                Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*")
         )
         // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
@@ -732,12 +732,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     private static void queryResilientKotlinDslScriptsModel(BuildController controller, GradleBuild build, Model target, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
-        try {
-            build.toString()
-        } catch (NullPointerException npe) {
-            return // TODO: a hacky fix until a GradleBuild related bug can be fixed
-        }
-
         def modelResult = controller.fetch(target, KotlinDslScriptsModel.class)
 
         assert modelResult.failures.size() <= 1 : "Expected a single failure, but got multiple ones"
