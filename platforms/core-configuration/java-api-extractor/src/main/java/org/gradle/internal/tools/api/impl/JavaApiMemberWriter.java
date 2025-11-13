@@ -88,6 +88,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
             method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
+        writeMethodAnnotations(mv, method.getTypeAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
 
         // In some cases ASM generates the wrong number of parameter annotation entries
@@ -142,6 +143,11 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
                 annotationVisitor = mv.visitParameterAnnotation(
                     ((ParameterAnnotationMember) annotation).getParameter(), annotation.getName(),
                     annotation.isVisible());
+            } else if (annotation instanceof TypeAnnotationMember) {
+                TypeAnnotationMember typeAnnotationMember = (TypeAnnotationMember) annotation;
+                annotationVisitor = mv.visitTypeAnnotation(
+                    typeAnnotationMember.getTypeRef(), typeAnnotationMember.getTypePath(),
+                    typeAnnotationMember.getName(), typeAnnotationMember.isVisible());
             } else {
                 annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
             }

@@ -23,6 +23,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -106,6 +107,13 @@ public class ApiMemberSelector extends ClassVisitor {
                 public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
                     methodMember.addAnnotation(ann);
+                    return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
+                }
+
+                @Override
+                public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+                    TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
+                    methodMember.addTypeAnnotation(ann);
                     return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
                 }
 
