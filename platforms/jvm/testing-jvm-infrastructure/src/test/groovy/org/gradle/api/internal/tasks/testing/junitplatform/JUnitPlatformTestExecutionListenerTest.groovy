@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform
 
-import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.Clock
@@ -73,8 +72,9 @@ class JUnitPlatformTestExecutionListenerTest extends Specification {
         listener.reportingEntryPublished(testIdentifier, entry)
 
         then:
-        DefaultTestMetadataEvent event = new DefaultTestMetadataEvent(entry.timestamp.toEpochSecond(ZoneOffset.UTC), ["key": "value"])
         1 * mockResultProcessor.published(id) { e ->
+            assert e.values.size() == 1
+            assert e.values["key"] == "value"
             assert e.logTime != startTime
             assert e.logTime == entry.timestamp.toEpochSecond(ZoneOffset.UTC)
         }
