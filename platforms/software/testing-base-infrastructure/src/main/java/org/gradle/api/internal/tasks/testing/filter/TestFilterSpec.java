@@ -19,7 +19,11 @@ import java.io.Serializable;
 import java.util.Set;
 
 /**
- * Specification describing a Test's filters. This class is serialized and used in test workers.
+ * Specification describing a Test task's filters.
+ * <p>
+ * This class is serialized and used in test workers.  It also stores the
+ * project directory of the test task being executed, to allow for relative path
+ * resolution of test definition directories.
  */
 public class TestFilterSpec implements Serializable {
     private final Set<String> includedTests;

@@ -52,7 +52,10 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
 
     @Override
     public boolean matches(TestSelectionMatcher matcher) {
-        // TODO: Implement filtering
+        // The only place this method is called is from PatternMatchTestDefinitionProcessor,
+        // where we want to let all candidate test definition dirs that have already
+        // been filtered in the Test task itself through to the workers.
+        // So we'll just let everything through here.
         return true;
     }
 
