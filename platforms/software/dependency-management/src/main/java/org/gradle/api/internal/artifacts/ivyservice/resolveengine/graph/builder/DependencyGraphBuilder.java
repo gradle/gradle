@@ -176,23 +176,35 @@ public class DependencyGraphBuilder {
         while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
                 final NodeState node = resolveState.pop();
-                LOGGER.debug("Visiting configuration {}.", node);
 
-                // TODO: Why is this not node.isSelected()?
-                // It seems that node.isSelected can return true while component.isSelected() returns false
-                if (!node.getComponent().isSelected()) {
-                    node.cleanupConstraints();
+                if (!node.isSelected()) {
+                    // This node has no incoming edges.
+                    // Remove any outgoing edges from this node, if any, so it no longer contributes to the graph.
+                    node.removeOutgoingEdges();
                     continue;
                 }
 
-                // Register capabilities for this node
+                if (!node.getComponent().isSelected()) {
+                    if (moduleConflictHandler.hasConflictFor(node.getComponent().getModule()) || capabilitiesConflictHandler.hasConflictFor(node)) {
+                        // The node is in conflict. Delay processing its outgoing edges for now.
+                        // If this node wins the conflict, it will be added to the queue again later.
+                        assert node.isDisconnected();
+                        continue;
+                    } else {
+                        assert node.getComponent().getNodes().stream().anyMatch(capabilitiesConflictHandler::hasConflictFor);
+                        // TODO: Some other node in this node's component is in conflict, but this node is not in conflict.
+                        // It is strange that we de-select the entire component in this case. We should probably not do this.
+                    }
+                }
+
+                // This node is part of the graph. Check if it conflicts with any other node in the graph.
                 if (capabilitiesConflictHandler.registerCandidate(node)) {
                     // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
                     // There is no reason to continue processing this node otherwise.
                     continue;
                 }
 
-                // Initialize and collect any new outgoing edges of this node
+                // This node is part of the graph and is not in conflict. Process its outgoing dependencies.
                 edges.clear();
                 node.visitOutgoingDependenciesAndCollectEdges(edges);
                 resolveEdges(node, edges, resolveState);
