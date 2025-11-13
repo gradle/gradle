@@ -54,7 +54,7 @@ import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
-import static org.gradle.util.internal.CamelCaseUtil.camelToKebabCase;
+import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
 /**
  * Helpers for Jvm plugins. They are in a separate class so that they don't leak

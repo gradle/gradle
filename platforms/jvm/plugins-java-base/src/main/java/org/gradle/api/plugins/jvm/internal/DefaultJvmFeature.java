@@ -39,7 +39,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.util.internal.CamelCaseUtil;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -315,7 +315,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
                 jar.setGroup(BasePlugin.BUILD_GROUP);
                 jar.from(sourceSet.getOutput());
                 if (!capabilities.isEmpty()) {
-                    jar.getArchiveClassifier().set(CamelCaseUtil.camelToKebabCase(name));
+                    jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name));
                 }
             });
         }

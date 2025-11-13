@@ -20,7 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.internal.CamelCaseUtil;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 public class ProjectDerivedCapability implements CapabilityInternal {
@@ -57,7 +57,7 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         if (featureName == null) {
             return projectName;
         }
-        return projectName + "-" + CamelCaseUtil.camelToKebabCase(featureName);
+        return projectName + "-" + TextUtil.camelToKebabCase(featureName);
     }
 
     @Override
