@@ -127,16 +127,16 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
-    private final File workingDir;
+    private final File baseDefinitionsDir;
 
     @Nullable
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File workingDir) {
+    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File baseDefinitionsDir) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
-        this.workingDir = workingDir;
+        this.baseDefinitionsDir = baseDefinitionsDir;
     }
 
     @Override
@@ -439,7 +439,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
 
         try {
-            Path rootDirPath = workingDir.toPath().toRealPath();
+            Path rootDirPath = baseDefinitionsDir.toPath().toRealPath();
             Path testDefPath = ((FileSource) source).getFile().toPath().toRealPath();
             String relativePath = TextUtil.normaliseFileSeparators(rootDirPath.relativize(testDefPath).toString());
             return Optional.of(relativePath);
