@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.jspecify.annotations.NullMarked;
 
@@ -37,7 +37,7 @@ public interface TaskOutputsInternal extends TaskOutputs {
 
     AndSpec<? super TaskInternal> getUpToDateSpec();
 
-    void setPreviousOutputFiles(FileCollection previousOutputFiles);
+    void setPreviousOutputFiles(Lazy<Set<File>> previousOutputFiles);
 
     /**
      * Returns the output files and directories recorded during the previous execution of the task.

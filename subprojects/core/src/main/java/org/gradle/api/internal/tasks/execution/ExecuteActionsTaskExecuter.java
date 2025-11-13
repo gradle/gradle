@@ -16,8 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -61,8 +60,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final TaskDependencyFactory taskDependencyFactory;
     private final PathToFileResolver fileResolver;
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
 
@@ -70,30 +67,24 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationRunner buildOperationRunner,
         AsyncWorkTracker asyncWorkTracker,
-        org.gradle.api.execution.TaskActionListener actionListener,
-        TaskCacheabilityResolver taskCacheabilityResolver,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        FileCollectionFactory fileCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        PathToFileResolver fileResolver,
+        FileResolver fileResolver,
         MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationRunner = buildOperationRunner;
         this.asyncWorkTracker = asyncWorkTracker;
-        this.actionListener = actionListener;
-        this.taskCacheabilityResolver = taskCacheabilityResolver;
+        this.actionListener = listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class);
+        this.taskCacheabilityResolver = new DefaultTaskCacheabilityResolver(fileResolver);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.executionEngine = executionEngine;
         this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.taskDependencyFactory = taskDependencyFactory;
         this.fileResolver = fileResolver;
         this.missingTaskDependencyDetector = missingTaskDependencyDetector;
     }
@@ -108,13 +99,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             buildOperationRunner,
             classLoaderHierarchyHasher,
             executionHistoryStore,
-            fileCollectionFactory,
             fileResolver,
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
             taskCacheabilityResolver,
-            taskDependencyFactory,
             missingTaskDependencyDetector
         );
         try {

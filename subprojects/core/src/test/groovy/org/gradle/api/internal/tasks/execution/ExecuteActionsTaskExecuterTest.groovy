@@ -18,11 +18,10 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -50,7 +49,6 @@ import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.ValidateStep
-import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
@@ -74,7 +72,6 @@ import spock.lang.Specification
 
 import static java.util.Collections.emptyList
 import static org.gradle.api.internal.file.TestFiles.deleter
-import static org.gradle.api.internal.file.TestFiles.fileCollectionFactory
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.api.internal.file.TestFiles.fileSystemAccess
 import static org.gradle.api.internal.file.TestFiles.virtualFileSystem
@@ -83,8 +80,8 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 
 class ExecuteActionsTaskExecuterTest extends Specification {
     def problems = TestUtil.problemsService()
-    def task = Mock(TaskInternal)
-    def taskOutputs = Mock(TaskOutputsEnterpriseInternal)
+    def task = Stub(TaskInternal)
+    def taskOutputs = Stub(TaskOutputsEnterpriseInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
         getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))
     }
@@ -122,14 +119,12 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
     def buildId = UniqueId.generate()
 
-    def actionListener = Stub(TaskActionListener)
     def outputChangeListener = Stub(OutputChangeListener)
     def changeDetector = new DefaultExecutionStateChangeDetector()
-    def taskCacheabilityResolver = Stub(TaskCacheabilityResolver) {
-        shouldDisableCaching(_) >> Optional.empty()
-    }
     def buildCacheController = Stub(BuildCacheController)
-    def listenerManager = Stub(ListenerManager)
+    def listenerManager = Stub(ListenerManager) {
+        getBroadcaster(TaskActionListener) >> Stub(TaskActionListener)
+    }
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
         @Override
         HashCode getClassLoaderHash(ClassLoader classLoader) {
@@ -140,7 +135,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionSnapshotter, fingerprinterRegistry, valueSnapshotter)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
-    def fileCollectionFactory = fileCollectionFactory()
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def missingTaskDependencyDetector = Stub(MissingTaskDependencyDetector)
@@ -165,16 +159,12 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionHistoryStore,
         buildOperationRunnerForTaskExecution,
         asyncWorkTracker,
-        actionListener,
-        taskCacheabilityResolver,
         classloaderHierarchyHasher,
         executionEngine,
         inputFingerprinter,
         listenerManager,
         reservedFileSystemLocationRegistry,
-        fileCollectionFactory,
-        TestFiles.taskDependencyFactory(),
-        Stub(PathToFileResolver),
+        Stub(FileResolver),
         missingTaskDependencyDetector
     )
 
@@ -184,7 +174,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         task.getState() >> state
         task.getOutputs() >> taskOutputs
         task.getPath() >> "task"
-        taskOutputs.setPreviousOutputFiles(_ as FileCollection)
         project.getBuildScriptSource() >> scriptSource
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getTaskExecutionMode() >> DefaultTaskExecutionMode.incremental()
