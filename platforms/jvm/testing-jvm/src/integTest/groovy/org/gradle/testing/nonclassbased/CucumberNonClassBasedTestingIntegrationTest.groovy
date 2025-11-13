@@ -74,14 +74,15 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
     def "can run Cucumber tests with a custom test workingDir and report names are relative to project dir"() {
         given:
-        File customWorkingDir = file("customWorkingDir")
-        customWorkingDir.mkdirs()
         buildFile << """
             plugins {
                 id 'java'
             }
 
             ${mavenCentralRepository()}
+
+            File customWorkingDir = file("custom/WorkingDir")
+            customWorkingDir.mkdirs()
 
             testing.suites.test {
                 useJUnitJupiter()
@@ -93,7 +94,8 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
                 targets.all {
                     testTask.configure {
-                        workingDir = "${customWorkingDir.absolutePath}"
+
+                        workingDir = customWorkingDir
                         testDefinitionDirs.from("src/test/resources")
                     }
                 }
