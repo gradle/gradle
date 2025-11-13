@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,23 @@
 
 package org.gradle.internal.tools.api.impl;
 
-import com.google.common.collect.ComparisonChain;
-import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.TypePath;
 
-public abstract class TypedMember extends AnnotatableMember {
+public class TypeAnnotationMember extends AnnotationMember {
+    private final int typeRef;
+    private final TypePath typePath;
 
-    private final String typeDesc;
-
-    public TypedMember(int access, String name, @Nullable String signature, String typeDesc) {
-        super(access, name, signature);
-        this.typeDesc = typeDesc;
+    public TypeAnnotationMember(String desc, boolean visible, int typeRef, TypePath typePath) {
+        super(desc, visible);
+        this.typeRef = typeRef;
+        this.typePath = typePath;
     }
 
-    public String getTypeDesc() {
-        return typeDesc;
+    public int getTypeRef() {
+        return typeRef;
     }
 
-    protected ComparisonChain compare(TypedMember o) {
-        return super.compare(o)
-            .compare(typeDesc, o.typeDesc);
+    public TypePath getTypePath() {
+        return typePath;
     }
 }
