@@ -117,7 +117,7 @@ version = "1.0.0"
 ----
 
 To avoid this deprecation, ensure that all project dependencies of published projects are also published.
-In the example above, applying the `maven-publish` plugin and configuring a publication in the `:other` project will resolve the deprecation.
+In the example above, applying the `maven-publish` plugin and configuring a publication in the `:other` project resolves the issue:
 
 .other/build.gradle.kts
 [source,kotlin]

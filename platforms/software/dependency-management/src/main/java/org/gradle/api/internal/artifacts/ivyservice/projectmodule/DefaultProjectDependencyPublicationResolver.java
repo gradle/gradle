@@ -140,7 +140,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
     private static <T> T getImplicitCoordinates(Class<T> coordsType, Project project) {
         if (coordsType.equals(ModuleVersionIdentifier.class)) {
             DeprecationLogger.deprecateAction("Declaring a dependency on an unpublished project")
-                .withContext("A dependency was declared on project " + project.getDisplayName() + ", but that project does not declare any publications.")
+                .withContext("A dependency was declared on " + project.getDisplayName() + ", but that project does not declare any publications.")
                 .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
