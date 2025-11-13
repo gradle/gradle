@@ -35,6 +35,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.buildDiscoveryImpl)
+    implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)

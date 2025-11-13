@@ -22,15 +22,15 @@ description = "Produces traces from build operations"
 
 dependencies {
     api(projects.buildOperations)
+    api(projects.buildOption)
     api(projects.concurrent)
-    api(projects.coreApi)
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
     api(libs.jspecify)
 
     implementation(projects.baseServices)
-    implementation(projects.buildOption)
+    implementation(projects.coreApi)
 
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
