@@ -25,21 +25,24 @@ import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelBuilder
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrar
 
 
-class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
+class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction, ToolingModelBuilderRegistrar {
 
     override fun execute(project: ProjectInternal) {
-        val registry = project.serviceOf<ToolingModelBuilderRegistry>()
+        if (project.isRootProject()) {
+            project.tasks.register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
+        }
+    }
 
+    override fun registerForProject(project: ProjectInternal, registry: ToolingModelBuilderRegistry) {
         registry.register(KotlinBuildScriptModelBuilder)
         registry.register(IsolatedScriptsModelBuilder)
 
-        val isRootProject = project.parent == null
-        if (isRootProject) {
+        if (project.isRootProject()) {
             val builder = getBuilder(project)
             registry.register(builder)
-            project.tasks.register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
         }
     }
 
@@ -54,4 +57,7 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
             else -> KotlinDslScriptsModelBuilder
         }
     }
+
+    private fun ProjectInternal.isRootProject(): Boolean =
+        parent == null
 }
