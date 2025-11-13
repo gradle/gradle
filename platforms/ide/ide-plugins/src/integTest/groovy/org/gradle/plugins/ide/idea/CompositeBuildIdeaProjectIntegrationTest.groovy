@@ -204,6 +204,14 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         dependency(buildA, "org.test:buildB:1.0")
         dependency(buildB, "org.test:buildA:1.0")
 
+        buildA.buildFile << """
+            configurations.configureEach {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org.test:buildA:1.0')).using(project(':'))
+                }
+            }
+        """
+
         when:
         idea()
 
