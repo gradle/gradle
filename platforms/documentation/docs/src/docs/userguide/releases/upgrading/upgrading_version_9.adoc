@@ -93,8 +93,8 @@ To maintain backward compatibility, Gradle will continue translating legacy `Usa
 [[module_identity_for_root_component]]
 ==== Deprecated depending on current project using module coordinates
 
-Starting in Gradle 10.0, depending on the current project using module coordinates (group, name, version) will no longer resolve to the current project.
-Instead, Gradle will attempt to resolve the dependency from a repository.
+Starting with Gradle 10, declaring a dependency on the current project using module coordinates (`group`, `name`, `version`) will no longer resolve to the current project.
+Instead, Gradle will attempt to resolve that dependency from a repository.
 
 The example below demonstrates the change in behavior:
 
@@ -121,7 +121,7 @@ dependencies {
 }
 ----
 
-To continue depending on the current project, use a `project` dependency instead:
+To continue depending on the current project, use a `project` dependency:
 
 .build.gradle.kts
 [source,kotlin]
