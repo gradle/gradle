@@ -118,8 +118,8 @@ Default retention for unused build cache entries is 7 days.
 The retention period for each category can be configured independently via an <<init_scripts.adoc#init_scripts,init script>> in the Gradle User Home:
 
 ====
-include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.init.gradle"]
 ====
 
 The frequency at which cache cleanup is invoked is also configurable.
@@ -139,8 +139,8 @@ However, this performs cache cleanup during the build (rather than in the backgr
 To disable cache cleanup:
 
 ====
-include::sample[dir="snippets/initScripts/disableCacheCleanup/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/disableCacheCleanup/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.init.gradle"]
 ====
 
 NOTE: Cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home.
@@ -178,15 +178,15 @@ NOTE: The version-compliant script should reside somewhere other than the `init.
 To configure cache cleanup in a version-safe manner:
 
 ====
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.init.gradle"]
 ====
 
 Version-compliant cache configuration script:
 
 ====
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/gradle8/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/gradle8/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.init.gradle"]
 ====
 
 [[dir:gradle_user_home:cache_marking]]
