@@ -107,4 +107,8 @@ public final class OutputEntry {
         this.startStderr = startStderr;
         this.end = end;
     }
+
+    public boolean hasOutput() {
+        return startStdout != NO_OUTPUT || startStderr != NO_OUTPUT;
+    }
 }
