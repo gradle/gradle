@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -34,6 +36,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
@@ -68,7 +71,8 @@ public class JUnitXmlResultWriter {
                 .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 
             writer.startElement("properties");
-            writeProperties(writer, result.getMetadatas());
+            List<DefaultTestKeyValueDataEvent> keyValues = result.getMetadatas().stream().filter(DefaultTestKeyValueDataEvent.class::isInstance).map(DefaultTestKeyValueDataEvent.class::cast).collect(Collectors.toList());
+            writeProperties(writer, keyValues);
             writer.endElement();
 
             Iterable<TestMethodResult> methodResults = result.getResults();
@@ -80,15 +84,16 @@ public class JUnitXmlResultWriter {
                 writeTestCasesWithDiscreteRerunHandling(writer, methodResults, className, classId);
             }
 
+            List<DefaultTestFileAttachmentDataEvent> fileAttachments = result.getMetadatas().stream().filter(DefaultTestFileAttachmentDataEvent.class::isInstance).map(DefaultTestFileAttachmentDataEvent.class::cast).collect(Collectors.toList());
             if (options.includeSystemOutLog) {
                 writer.startElement("system-out");
-                writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut);
+                writeOutputs(writer, classId, options.includeSystemOutLog, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut, fileAttachments);
                 writer.endElement();
             }
 
             if (options.includeSystemErrLog) {
                 writer.startElement("system-err");
-                writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr);
+                writeOutputs(writer, classId, options.includeSystemErrLog, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr, Collections.emptyList());
                 writer.endElement();
             }
 
@@ -98,14 +103,19 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private void writeOutputs(SimpleXmlWriter writer, long classId, boolean allClassOutput, TestOutputEvent.Destination destination) throws IOException {
-        writer.startCDATA();
-        if (allClassOutput) {
-            testResultsProvider.writeAllOutput(classId, destination, writer);
-        } else {
-            testResultsProvider.writeNonTestOutput(classId, destination, writer);
+    private void writeOutputs(SimpleXmlWriter writer, long classId, boolean includeRawOutput, boolean allClassOutput, TestOutputEvent.Destination destination, List<DefaultTestFileAttachmentDataEvent> fileAttachments) throws IOException {
+        boolean mayWrite = includeRawOutput || !fileAttachments.isEmpty();
+
+        if (mayWrite) {
+            writer.startCDATA();
+            if (allClassOutput) {
+                testResultsProvider.writeAllOutput(classId, destination, writer);
+            } else {
+                testResultsProvider.writeNonTestOutput(classId, destination, writer);
+            }
+            writeFileAttachments(writer, fileAttachments);
+            writer.endCDATA();
         }
-        writer.endCDATA();
     }
 
     /**
@@ -256,18 +266,24 @@ public class JUnitXmlResultWriter {
         }
 
         protected void write(SimpleXmlWriter writer) throws IOException {
-            if (!metadatas.isEmpty()) {
+            List<DefaultTestKeyValueDataEvent> keyValues = metadatas.stream().filter(DefaultTestKeyValueDataEvent.class::isInstance).map(DefaultTestKeyValueDataEvent.class::cast).collect(Collectors.toList());
+            if (!keyValues.isEmpty()) {
                 writer.startElement("properties");
-                writeProperties(writer, metadatas);
+                writeProperties(writer, keyValues);
                 writer.endElement();
             }
         }
 
         protected void writeOutput(SimpleXmlWriter writer) throws IOException {
-            if (options.includeSystemOutLog && outputProvider.has(TestOutputEvent.Destination.StdOut)) {
+            List<DefaultTestFileAttachmentDataEvent> fileAttachments = metadatas.stream().filter(DefaultTestFileAttachmentDataEvent.class::isInstance).map(DefaultTestFileAttachmentDataEvent.class::cast).collect(Collectors.toList());
+            boolean mayWrite = (options.includeSystemOutLog && outputProvider.has(TestOutputEvent.Destination.StdOut)) || !fileAttachments.isEmpty();
+            if (mayWrite) {
                 writer.startElement("system-out");
                 writer.startCDATA();
-                outputProvider.write(TestOutputEvent.Destination.StdOut, writer);
+                if (options.includeSystemOutLog && outputProvider.has(TestOutputEvent.Destination.StdOut)) {
+                    outputProvider.write(TestOutputEvent.Destination.StdOut, writer);
+                }
+                writeFileAttachments(writer, fileAttachments);
                 writer.endCDATA();
                 writer.endElement();
             }
@@ -278,6 +294,15 @@ public class JUnitXmlResultWriter {
                 outputProvider.write(TestOutputEvent.Destination.StdErr, writer);
                 writer.endCDATA();
                 writer.endElement();
+            }
+        }
+    }
+
+    private static void writeFileAttachments(SimpleXmlWriter writer, List<DefaultTestFileAttachmentDataEvent> fileAttachments) throws IOException {
+        if (!fileAttachments.isEmpty()) {
+            writer.write('\n');
+            for (DefaultTestFileAttachmentDataEvent fileAttachment : fileAttachments) {
+                writer.write("[[ATTACHMENT|" + fileAttachment.getPath().toAbsolutePath() + "]]\n");
             }
         }
     }
@@ -408,8 +433,8 @@ public class JUnitXmlResultWriter {
         });
     }
 
-    private static void writeProperties(SimpleXmlWriter writer, List<TestMetadataEvent> metadatas) throws IOException {
-        for (TestMetadataEvent metadata : metadatas) {
+    private static void writeProperties(SimpleXmlWriter writer, List<DefaultTestKeyValueDataEvent> metadatas) throws IOException {
+        for (DefaultTestKeyValueDataEvent metadata : metadatas) {
             for (Map.Entry<String, String> element : metadata.getValues().entrySet()) {
                 writer.startElement("property")
                     .attribute("name", element.getKey())

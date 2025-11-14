@@ -153,7 +153,8 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     }
                 }
                 if (!info.getMetadatas().isEmpty()) {
-                    perRootInfoTabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, perRootInfoIndex));
+                    perRootInfoTabsRenderer.add("data", new PerRootTabRenderer.ForKeyValues(rootIndex, perRootInfoIndex));
+                    perRootInfoTabsRenderer.add("attachments", new PerRootTabRenderer.ForFileAttachments(rootIndex, perRootInfoIndex));
                 }
 
                 perRootInfoTabsRenderers.add(perRootInfoTabsRenderer);

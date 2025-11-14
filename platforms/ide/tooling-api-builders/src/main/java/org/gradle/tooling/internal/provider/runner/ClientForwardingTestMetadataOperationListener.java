@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.internal.Cast;
@@ -30,6 +32,9 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.jspecify.annotations.NullMarked;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Test listener that forwards the test metadata events.
@@ -57,7 +62,18 @@ import org.jspecify.annotations.NullMarked;
             ExecuteTestBuildOperationType.Metadata metadata = (ExecuteTestBuildOperationType.Metadata) details;
             InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             TestMetadataEvent metadataMetadataEvent = metadata.getMetadata();
-            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, Cast.uncheckedNonnullCast(metadataMetadataEvent.getValues())));
+            if (metadataMetadataEvent instanceof DefaultTestKeyValueDataEvent) {
+                DefaultTestKeyValueDataEvent keyValueData = (DefaultTestKeyValueDataEvent) metadataMetadataEvent;
+                eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, Cast.uncheckedNonnullCast(keyValueData.getValues())));
+            } else if (metadataMetadataEvent instanceof DefaultTestFileAttachmentDataEvent) {
+                // TODO:
+                Map<String, Object> values = new LinkedHashMap<>();
+                values.put("path", ((DefaultTestFileAttachmentDataEvent) metadataMetadataEvent).getPath().toAbsolutePath().toString());
+                values.put("mediaType", ((DefaultTestFileAttachmentDataEvent) metadataMetadataEvent).getMediaType());
+                eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, values));
+            } else {
+                throw new IllegalStateException("Unexpected test metadata event type: " + metadataMetadataEvent.getClass());
+            }
         }
     }
 

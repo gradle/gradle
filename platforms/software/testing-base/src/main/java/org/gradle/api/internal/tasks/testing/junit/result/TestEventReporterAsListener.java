@@ -121,7 +121,7 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
         if (reporter == null) {
             throw new IllegalStateException("No reporter found for test descriptor: " + testDescriptor);
         }
-        reporter.metadata(Instant.ofEpochMilli(event.getLogTime()), event.getValues());
+        ((TestEventReporterInternal)reporter).metadata(event);
     }
 
     @Override

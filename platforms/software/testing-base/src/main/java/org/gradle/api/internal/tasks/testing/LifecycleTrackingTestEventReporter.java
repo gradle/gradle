@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -64,6 +65,12 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> im
     public void metadata(Instant logTime, Map<String, String> values) {
         requireRunning();
         delegate.metadata(logTime, values);
+    }
+
+    @Override
+    public void metadata(TestMetadataEvent metadataEvent) {
+        requireRunning();
+        delegate.metadata(metadataEvent);
     }
 
     @Override
