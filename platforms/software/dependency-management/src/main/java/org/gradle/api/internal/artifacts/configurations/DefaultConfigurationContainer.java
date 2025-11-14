@@ -114,13 +114,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public void visitConsumable(Consumer<ConfigurationInternal> visitor) {
-        // Visit all configurations which are known to be consumable
+        // Copy and visit all configurations which are known to be consumable
+        // We need to copy the configurations in case visiting the configuration causes more configurations to be realized.
         Collection<ConsumableConfiguration> availableConsumableConfigurations = new ArrayList<>(withType(ConsumableConfiguration.class));
         availableConsumableConfigurations.forEach(configuration ->
             visitor.accept((ConfigurationInternal) configuration)
         );
 
-        // Then, visit any configuration with unknown role, checking if it is consumable
+        // Then, copy and visit any configuration with unknown role, checking if it is consumable
+        // We need to copy the configurations in case visiting the configuration causes more configurations to be realized.
         Collection<LegacyConfiguration> availableLegacyConfigurations = new ArrayList<>(withType(LegacyConfiguration.class).matching(Configuration::isCanBeConsumed));
         availableLegacyConfigurations.forEach(configuration -> {
             visitor.accept((ConfigurationInternal) configuration);
