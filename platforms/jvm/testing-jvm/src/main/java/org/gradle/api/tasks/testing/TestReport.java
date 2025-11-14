@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegi
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -70,6 +71,7 @@ public abstract class TestReport extends DefaultTask {
     // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
     @Deprecated
+    @Internal
     protected MetadataRendererRegistry getMetadataRendererRegistry() {
         return new MetadataRendererRegistry();
     }
