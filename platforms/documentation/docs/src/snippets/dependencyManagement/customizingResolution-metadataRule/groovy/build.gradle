@@ -27,14 +27,14 @@ abstract class TargetJvmVersionRule implements ComponentMetadataRule {
 }
 dependencies {
     components {
-        withModule("commons-io:commons-io", TargetJvmVersionRule) {
+        withModule("commons-io:commons-io:2.15.1", TargetJvmVersionRule) {
             params(7)
         }
         withModule("commons-collections:commons-collections", TargetJvmVersionRule) {
             params(8)
         }
     }
-    implementation("commons-io:commons-io:2.6")
+    implementation("commons-io:commons-io:2.15.1")
     implementation("commons-collections:commons-collections:3.2.2")
 }
 // end::config-component-metadata-rule[]

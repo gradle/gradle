@@ -106,7 +106,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         given:
         createBuildFileThatPrintsClasspathURLs("""
             classpath(":test:1.3-BUILD-SNAPSHOT")
-            classpath 'commons-io:commons-io:1.4@jar'
+            classpath 'commons-io:commons-io:2.15.1@jar'
         """)
         ArtifactBuilder builder = artifactBuilder()
         File jarFile = file("repo/test-1.3-BUILD-SNAPSHOT.jar")

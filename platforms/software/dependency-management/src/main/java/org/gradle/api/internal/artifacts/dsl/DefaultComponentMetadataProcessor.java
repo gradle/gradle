@@ -59,10 +59,11 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class DefaultComponentMetadataProcessor implements ComponentMetadataProcessor {
 
@@ -103,17 +104,11 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            try {
-                byteArrayOutputStream.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            closeQuietly(byteArrayOutputStream);
         }
         try {
-            ModuleComponentResolveMetadata forceRead = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
             // TODO: CC cannot enable this assertion because moduleSource is not serialized, so doesn't appear in the deserialized form
-            //assert metadata.equals(forceRead);
-            metadata = forceRead;
+            metadata = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(bytes)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

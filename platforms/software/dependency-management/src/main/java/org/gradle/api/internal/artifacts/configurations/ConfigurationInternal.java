@@ -126,7 +126,7 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      * @return {@code true} if so; {@code false} otherwise
      */
     default boolean isDeclarableByExtension() {
-        return isDeclarableByExtension(this);
+        return isDeclarableByExtensionRecursion(this);
     }
 
     /**
@@ -142,14 +142,9 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      * @param configuration the configuration to test
      * @return {@code true} if so; {@code false} otherwise
      */
-    static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
-        if (configuration.isCanBeDeclared()) {
-            return true;
-        } else {
-            return configuration.getExtendsFrom().stream()
-                    .map(ConfigurationInternal.class::cast)
-                    .anyMatch(ci -> ci.isDeclarableByExtension());
-        }
+    static boolean isDeclarableByExtensionRecursion(ConfigurationInternal configuration) {
+        return configuration.isCanBeDeclared()
+            || configuration.getExtendsFrom().stream().map(ConfigurationInternal.class::cast).anyMatch(ConfigurationInternal::isDeclarableByExtensionRecursion);
     }
 
     interface VariantVisitor {

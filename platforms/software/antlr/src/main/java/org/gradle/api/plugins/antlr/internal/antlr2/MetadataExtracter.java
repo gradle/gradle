@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
-import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -30,6 +29,7 @@ import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newBufferedReader;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
@@ -100,11 +100,7 @@ public class MetadataExtracter {
 
             }
         } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            closeQuietly(in);
         }
         return grammarPackageName;
     }

@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
@@ -39,11 +38,11 @@ import org.xml.sax.ext.DefaultHandler2;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
@@ -78,8 +77,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 public class DependencyVerificationsXmlReader {
     public static void readFromXml(InputStream in, DependencyVerifierBuilder builder) {
         try {
-            SAXParser saxParser = createSecureParser();
-            XMLReader xmlReader = saxParser.getXMLReader();
+            XMLReader xmlReader = createSecureParser().getXMLReader();
             VerifiersHandler handler = new VerifiersHandler(builder);
             xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
             xmlReader.setContentHandler(handler);
@@ -87,11 +85,7 @@ public class DependencyVerificationsXmlReader {
         } catch (Exception e) {
             throw new DependencyVerificationException("Unable to read dependency verification metadata", e);
         } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            closeQuietly(in);
         }
     }
 

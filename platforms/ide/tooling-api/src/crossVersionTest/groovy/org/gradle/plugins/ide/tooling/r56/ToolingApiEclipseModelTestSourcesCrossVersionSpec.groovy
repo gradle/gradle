@@ -100,7 +100,7 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
                 dependencies {
                     implementation project(':c')
                     api 'org.apache.commons:commons-lang3:3.9'
-                    implementation 'commons-io:commons-io:1.4'
+                    implementation 'commons-io:commons-io:2.15.1'
                 }
             }
             project(':c') {

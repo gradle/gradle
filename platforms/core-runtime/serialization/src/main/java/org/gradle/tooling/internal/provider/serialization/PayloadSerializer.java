@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import org.apache.commons.io.IOUtils;
-import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.service.scopes.Scope;
@@ -26,15 +24,17 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 @ThreadSafe
 @ServiceScope(Scope.UserHome.class)
 public class PayloadSerializer {
+
     private final PayloadClassLoaderRegistry classLoaderRegistry;
 
     public PayloadSerializer(PayloadClassLoaderRegistry registry) {
@@ -43,20 +43,14 @@ public class PayloadSerializer {
 
     public SerializedPayload serialize(@Nullable Object payload) {
         if (payload == null) {
-            return new SerializedPayload(null, Collections.<byte[]>emptyList());
+            return new SerializedPayload(null, Collections.emptyList());
         }
-
         final SerializeMap map = classLoaderRegistry.newSerializeSession();
         try {
             StreamByteBuffer buffer = new StreamByteBuffer();
-            final ObjectOutputStream objectStream = new PayloadSerializerObjectOutputStream(buffer.getOutputStream(), map);
-
-            try {
-                objectStream.writeObject(payload);
-            } finally {
-                IOUtils.closeQuietly(objectStream);
+            try (ObjectOutputStream out = new PayloadSerializerObjectOutputStream(buffer.getOutputStream(), map)) {
+                out.writeObject(payload);
             }
-
             Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();
             map.collectClassLoaderDefinitions(classLoaders);
             return new SerializedPayload(classLoaders, buffer.readAsListOfByteArrays());
@@ -69,13 +63,13 @@ public class PayloadSerializer {
         if (payload.getSerializedModel().isEmpty()) {
             return null;
         }
-
-        final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
-            final Map<Short, ClassLoaderDetails> classLoaderDetails = Cast.uncheckedNonnullCast(payload.getHeader());
-            StreamByteBuffer buffer = StreamByteBuffer.of(payload.getSerializedModel());
-            final ObjectInputStream objectStream = new PayloadSerializerObjectInputStream(buffer.getInputStream(), getClass().getClassLoader(), classLoaderDetails, map);
-            return objectStream.readObject();
+            return new PayloadSerializerObjectInputStream(
+                    StreamByteBuffer.of(payload.getSerializedModel()).getInputStream(),
+                    getClass().getClassLoader(),
+                    uncheckedNonnullCast(payload.getHeader()),
+                    classLoaderRegistry.newDeserializeSession()
+            ).readObject();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

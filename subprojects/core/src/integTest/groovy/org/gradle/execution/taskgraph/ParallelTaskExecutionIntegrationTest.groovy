@@ -610,7 +610,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
                 dependencies {
                     api 'org.apache.commons:commons-math3:3.6.1'
-                    api 'org.apache.commons:commons-io:1.3.2'
+                    api 'org.apache.commons:commons-io:2.15.1'
                 }
             }
         """)
