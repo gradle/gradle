@@ -59,16 +59,13 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
     private final List<TestOutputReader> outputReaders;
     private final List<String> rootDisplayNames;
-    private final MetadataRendererRegistry metadataRendererRegistry;
 
     GenericPageRenderer(
         List<TestOutputReader> outputReaders,
-        List<String> rootDisplayNames,
-        MetadataRendererRegistry metadataRendererRegistry
+        List<String> rootDisplayNames
     ) {
         this.outputReaders = outputReaders;
         this.rootDisplayNames = rootDisplayNames;
-        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     private void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
@@ -156,7 +153,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     }
                 }
                 if (!info.getMetadatas().isEmpty()) {
-                    perRootInfoTabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, perRootInfoIndex, metadataRendererRegistry));
+                    perRootInfoTabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, perRootInfoIndex));
                 }
 
                 perRootInfoTabsRenderers.add(perRootInfoTabsRenderer);

@@ -108,7 +108,7 @@ public final class SerializableTestResultStore {
         private long nextId = 1;
 
         // Map from testDescriptor -> Serialized metadata associated with that descriptor
-        private final Multimap<TestDescriptorInternal, SerializedMetadata> metadatas = LinkedHashMultimap.create();
+        private final Multimap<TestDescriptorInternal, TestMetadataEvent> metadatas = LinkedHashMultimap.create();
 
         private Writer(Path serializedResultsFile, Path outputEventsFile, int diskSkipLevels) throws IOException {
             this.serializedResultsFile = serializedResultsFile;
@@ -182,7 +182,7 @@ public final class SerializableTestResultStore {
                 testNodeBuilder.addFailure(convertToSerializableFailure(failure));
             }
 
-            for (SerializedMetadata metadata : metadatas.removeAll(testDescriptor)) {
+            for (TestMetadataEvent metadata : metadatas.removeAll(testDescriptor)) {
                 testNodeBuilder.addMetadata(metadata);
             }
 
@@ -206,7 +206,7 @@ public final class SerializableTestResultStore {
                 extraFlattenedResults.clear();
 
                 for (TestDescriptorInternal flattenedDescriptor : extraFlattenedDescriptors) {
-                    for (SerializedMetadata metadata : metadatas.removeAll(flattenedDescriptor)) {
+                    for (TestMetadataEvent metadata : metadatas.removeAll(flattenedDescriptor)) {
                         testNodeBuilder.addMetadata(metadata);
                     }
                 }
@@ -285,7 +285,7 @@ public final class SerializableTestResultStore {
 
         @Override
         public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-            metadatas.put(testDescriptor, new SerializedMetadata(event.getLogTime(), event.getValues()));
+            metadatas.put(testDescriptor, event);
         }
 
         @Override
@@ -326,7 +326,7 @@ public final class SerializableTestResultStore {
      * @param action the action to perform on each result
      * @throws IOException if an error occurs while reading the results
      */
-    public void forEachResult(Consumer<? super OutputTrackedResult> action) throws IOException {
+    public void forEachResult(Consumer<? super OutputTrackedResult> action) throws Exception {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
             while (true) {
                 OutputEntry entry;

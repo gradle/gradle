@@ -55,20 +55,24 @@ public abstract class TestReport extends DefaultTask {
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
     @Inject
+    @Deprecated
     protected abstract BuildOperationRunner getBuildOperationRunner();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
     @Inject
+    @Deprecated
     protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
-    @Inject
-    protected abstract MetadataRendererRegistry getMetadataRendererRegistry();
+    @Deprecated
+    protected MetadataRendererRegistry getMetadataRendererRegistry() {
+        return new MetadataRendererRegistry();
+    }
 
     /**
      * Returns the directory to write the HTML report to.

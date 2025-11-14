@@ -93,7 +93,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -694,7 +693,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                         }
                     }
                 });
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
             return previousFailedTestClasses;

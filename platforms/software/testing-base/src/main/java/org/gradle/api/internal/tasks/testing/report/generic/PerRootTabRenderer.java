@@ -19,12 +19,11 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.stream.Streams;
-import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.Pair;
@@ -42,8 +41,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -386,11 +387,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
     @SuppressWarnings({"MethodMayBeStatic", "UnusedReturnValue"})
     public static final class ForMetadata extends PerRootTabRenderer {
-        private final MetadataRendererRegistry metadataRendererRegistry;
 
-        public ForMetadata(int rootIndex, int perRootInfoIndex, MetadataRendererRegistry metadataRendererRegistry) {
+        public ForMetadata(int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
-            this.metadataRendererRegistry = metadataRendererRegistry;
         }
 
         @Override
@@ -425,13 +424,13 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataTableBody(List<SerializedMetadata> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+        private SimpleHtmlWriter renderMetadataTableBody(List<TestMetadataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
             for (int metadataIdx = 0; metadataIdx < metadatas.size(); metadataIdx++) {
-                SerializedMetadata metadata = metadatas.get(metadataIdx);
+                TestMetadataEvent metadata = metadatas.get(metadataIdx);
                 renderFirstMetadataElement(metadata, metadataIdx, htmlWriter);
-                if (metadata.getEntries().size() > 1) {
-                    List<SerializedMetadata.SerializedMetadataElement> additionalEntries = metadata.getEntries().subList(1, metadata.getEntries().size());
+                if (metadata.getValues().size() > 1) {
+                    Map<String, String> additionalEntries = metadata.getValues();
                     renderAdditionalMetadataElements(additionalEntries, metadataIdx, htmlWriter);
                 }
             }
@@ -440,17 +439,20 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderFirstMetadataElement(SerializedMetadata metadata, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
+        private SimpleHtmlWriter renderFirstMetadataElement(TestMetadataEvent metadata, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
                 renderMetadataTimeCell(metadata, htmlWriter);
-                renderMetadataKeyValueCells(metadata.getEntries().get(0), htmlWriter)
+                renderMetadataKeyValueCells(metadata.getValues().entrySet().iterator().next(), htmlWriter)
             .endElement();
 
             return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderAdditionalMetadataElements(List<SerializedMetadata.SerializedMetadataElement> elements, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
-            for (SerializedMetadata.SerializedMetadataElement element : elements) {
+        private SimpleHtmlWriter renderAdditionalMetadataElements(Map<String, String> elements, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
+            Iterator<Map.Entry<String, String>> it = elements.entrySet().iterator();
+            it.next(); // skip first element
+            while (it.hasNext()) {
+                Map.Entry<String, String> element = it.next();
                 htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 1 ? "even" : "odd");
                     renderMetadataKeyValueCells(element, htmlWriter);
                 htmlWriter.endElement();
@@ -459,8 +461,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataTimeCell(SerializedMetadata metadata, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("td").attribute("rowspan", Integer.toString(metadata.getEntries().size()))
+        private SimpleHtmlWriter renderMetadataTimeCell(TestMetadataEvent metadata, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("td").attribute("rowspan", Integer.toString(metadata.getValues().size()))
                 .startElement("span").attribute("class", "time")
                     .characters(formatLogTime(metadata.getLogTime()))
                 .endElement()
@@ -469,29 +471,16 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataKeyValueCells(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
+        private SimpleHtmlWriter renderMetadataKeyValueCells(Map.Entry<String, String> element, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter
                 .startElement("td").attribute("class", "key")
                     .characters(element.getKey())
                 .endElement()
-                .startElement("td").attribute("class", "value");
-                    renderMetadataValue(element, htmlWriter)
+                .startElement("td").attribute("class", "value")
+                    .characters(element.getValue())
                 .endElement();
 
             return htmlWriter;
-        }
-
-        private SimpleHtmlWriter renderMetadataValue(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
-            MetadataRenderer renderer = metadataRendererRegistry.getRenderer(element.getValueType());
-
-            try {
-                return renderer.render(element.getValue(), htmlWriter);
-            } catch (Exception e) {
-                return (SimpleHtmlWriter) htmlWriter
-                    .startElement("span").attribute("class", "unrenderable")
-                        .characters("[error rendering value]")
-                    .endElement();
-            }
         }
 
         private String formatLogTime(long logTime) {

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
@@ -247,9 +247,9 @@ public class JUnitXmlResultWriter {
     abstract static class TestCaseExecution {
         private final OutputProvider outputProvider;
         private final JUnitXmlResultOptions options;
-        private final List<SerializedMetadata> metadatas;
+        private final List<TestMetadataEvent> metadatas;
 
-        TestCaseExecution(OutputProvider outputProvider, JUnitXmlResultOptions options, List<SerializedMetadata> metadatas) {
+        TestCaseExecution(OutputProvider outputProvider, JUnitXmlResultOptions options, List<TestMetadataEvent> metadatas) {
             this.outputProvider = outputProvider;
             this.options = options;
             this.metadatas = metadatas;
@@ -297,7 +297,7 @@ public class JUnitXmlResultWriter {
     }
 
     private static class TestCaseExecutionSuccess extends TestCaseExecution {
-        TestCaseExecutionSuccess(OutputProvider outputProvider, JUnitXmlResultOptions options, List<SerializedMetadata> metadatas) {
+        TestCaseExecutionSuccess(OutputProvider outputProvider, JUnitXmlResultOptions options, List<TestMetadataEvent> metadatas) {
             super(outputProvider, options, metadatas);
         }
 
@@ -316,7 +316,7 @@ public class JUnitXmlResultWriter {
             OutputProvider outputProvider,
             JUnitXmlResultOptions options,
             SerializableFailure assumptionFailure,
-            List<SerializedMetadata> metadatas
+            List<TestMetadataEvent> metadatas
         ) {
             super(outputProvider, options, metadatas);
             this.assumptionFailure = assumptionFailure;
@@ -355,7 +355,7 @@ public class JUnitXmlResultWriter {
         private final SerializableFailure failure;
         private final FailureType type;
 
-        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, SerializableFailure failure, List<SerializedMetadata> metadatas) {
+        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, SerializableFailure failure, List<TestMetadataEvent> metadatas) {
             super(outputProvider, options, metadatas);
             this.failure = failure;
             this.type = type;
@@ -383,11 +383,11 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private TestCaseExecution success(long classId, long id, List<SerializedMetadata> metadatas) {
+    private TestCaseExecution success(long classId, long id, List<TestMetadataEvent> metadatas) {
         return new TestCaseExecutionSuccess(outputProvider(classId, id), options, metadatas);
     }
 
-    private TestCaseExecution skipped(long classId, long id, SerializableFailure assumptionFailure, List<SerializedMetadata> metadatas) {
+    private TestCaseExecution skipped(long classId, long id, SerializableFailure assumptionFailure, List<TestMetadataEvent> metadatas) {
         return new TestCaseExecutionSkipped(outputProvider(classId, id), options, assumptionFailure, metadatas);
     }
 
@@ -408,12 +408,12 @@ public class JUnitXmlResultWriter {
         });
     }
 
-    private static void writeProperties(SimpleXmlWriter writer, List<SerializedMetadata> metadatas) throws IOException {
-        for (SerializedMetadata metadata : metadatas) {
-            for (SerializedMetadata.SerializedMetadataElement element : metadata.getEntries()) {
+    private static void writeProperties(SimpleXmlWriter writer, List<TestMetadataEvent> metadatas) throws IOException {
+        for (TestMetadataEvent metadata : metadatas) {
+            for (Map.Entry<String, String> element : metadata.getValues().entrySet()) {
                 writer.startElement("property")
                     .attribute("name", element.getKey())
-                    .attribute("value", String.valueOf(element.getValue()))
+                    .attribute("value", element.getValue())
                     .endElement();
             }
         }
