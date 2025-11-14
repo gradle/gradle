@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
+import org.jspecify.annotations.NullMarked;
 
 /**
- * Metadata captured during the execution of a test.
- *
- * @since 8.13
+ * Default implementation of the {@code TestMetadataEvent} interface.
  */
-@Incubating
-public interface TestMetadataEvent {
-    /**
-     * The time the message was logged.
-     * <p>
-     * Producers can supply the same value as the test start time to indicate that the metadata is "timeless", such
-     * as environment information that isn't tied to a specific point during test execution.
-     *
-     * @return log time, in milliseconds since UNIX epoch
-     * @since 8.13
-     */
-    long getLogTime();
+@NullMarked
+public abstract class AbstractTestDataEvent implements TestMetadataEvent {
+    private final long logTime;
+
+    public AbstractTestDataEvent(long logTime) {
+        this.logTime = logTime;
+    }
+
+    @Override
+    public long getLogTime() {
+        return logTime;
+    }
 }

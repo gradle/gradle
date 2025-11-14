@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,26 +21,15 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
-/**
- * Default implementation of the {@code TestMetadataEvent} interface.
- */
 @NullMarked
-public final class DefaultTestMetadataEvent implements TestMetadataEvent {
-    private final long logTime;
-
+public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent implements TestMetadataEvent {
     private final Map<String, String> values;
 
-    public DefaultTestMetadataEvent(long logTime, Map<String, String> values) {
-        this.logTime = logTime;
+    public DefaultTestKeyValueDataEvent(long logTime, Map<String, String> values) {
+        super(logTime);
         this.values = values;
     }
 
-    @Override
-    public long getLogTime() {
-        return logTime;
-    }
-
-    @Override
     public Map<String, String> getValues() {
         return values;
     }

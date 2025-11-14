@@ -146,6 +146,74 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
         }
     }
 
+    def "receives file entry test metadata from JUnit platform tests"() {
+        file("src/test/java/com/example/ReportEntryTest.java").java """
+            package com.example;
+
+            import org.junit.jupiter.api.AfterAll;
+            import org.junit.jupiter.api.AfterEach;
+            import org.junit.jupiter.api.BeforeAll;
+            import org.junit.jupiter.api.BeforeEach;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.TestReporter;
+            import org.junit.jupiter.api.extension.MediaType;
+            import org.junit.jupiter.api.io.TempDir;
+            import java.io.IOException;
+            import java.nio.file.Files;
+            import java.nio.file.Path;
+            import java.util.Collections;
+
+            public class ReportEntryTest {
+                private final Path tempDir;
+                ReportEntryTest(TestReporter testReporter, @TempDir Path tempDir) throws IOException {
+                    this.tempDir = tempDir;
+                    Path constructor = tempDir.resolve("constructor.json");
+                    Files.write(constructor, Collections.singletonList("{ constructor: [] }"));
+                    testReporter.publishFile(constructor, MediaType.APPLICATION_JSON);
+                }
+                @BeforeEach
+                public void beforeEach(TestReporter testReporter) throws IOException {
+                    Path beforeEach = tempDir.resolve("beforeEach.json");
+                    Files.write(beforeEach, Collections.singletonList("{ beforeEach: [] }"));
+                    testReporter.publishFile(beforeEach, MediaType.APPLICATION_JSON);
+                }
+                @AfterEach
+                public void afterEach(TestReporter testReporter) throws IOException {
+                    Path afterEach = tempDir.resolve("afterEach.json");
+                    Files.write(afterEach,Collections.singletonList("{ afterEach: [] }"));
+                    testReporter.publishFile(afterEach, MediaType.APPLICATION_JSON);
+                }
+                @Test
+                public void test(TestReporter testReporter) throws IOException {
+                    Path test = tempDir.resolve("test.json");
+                    Files.write(test, Collections.singletonList("{ test: [] }"));
+                    testReporter.publishFile(test, MediaType.APPLICATION_JSON);
+                }
+            }
+        """
+        when:
+        runTests()
+
+        then:
+        testEvents {
+            task(":test") {
+                nested("Gradle Test Run :test") {
+                    nested("Gradle Test Executor") {
+                        nested("Test class com.example.ReportEntryTest") {
+                            metadata([path: file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor.json").absolutePath, mediaType: "application/json"])
+
+                            test("Test test(TestReporter)(com.example.ReportEntryTest)") {
+                                metadata([path: file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach.json").absolutePath, mediaType: "application/json"])
+                                metadata([path: file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test.json").absolutePath, mediaType: "application/json"])
+                                metadata([path: file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach.json").absolutePath, mediaType: "application/json"])
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private Object runTests() {
         withConnection {
             ProjectConnection connection ->

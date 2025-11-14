@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -47,4 +48,9 @@ public interface TestEventReporterInternal extends TestEventReporter {
      * @param assumptionFailure the assumption failure that caused the test to be skipped
      */
     void skipped(Instant endTime, @Nullable TestFailure assumptionFailure);
+
+    /**
+     * Internal method to send already formed metadata events
+     */
+    void metadata(TestMetadataEvent metadataEvent);
 }

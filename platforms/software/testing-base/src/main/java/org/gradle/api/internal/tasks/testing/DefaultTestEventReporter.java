@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.jspecify.annotations.NullMarked;
@@ -74,7 +75,7 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         Preconditions.checkNotNull(logTime, "logTime can not be null!");
         Preconditions.checkNotNull(key, "Metadata key can not be null!");
         Preconditions.checkNotNull(value, "Metadata value can not be null!");
-        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), Collections.singletonMap(key, value)));
+        listener.metadata(testDescriptor, new DefaultTestKeyValueDataEvent(logTime.toEpochMilli(), Collections.singletonMap(key, value)));
     }
 
     @Override
@@ -83,8 +84,13 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         Preconditions.checkNotNull(values, "Metadata can not be null!");
         Preconditions.checkArgument(!values.isEmpty(), "Metadata can not be empty!");
 
-        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), new LinkedHashMap<>(values)));
-}
+        listener.metadata(testDescriptor, new DefaultTestKeyValueDataEvent(logTime.toEpochMilli(), new LinkedHashMap<>(values)));
+    }
+
+    @Override
+    public void metadata(TestMetadataEvent metadataEvent) {
+        listener.metadata(testDescriptor, metadataEvent);
+    }
 
     @Override
     public void succeeded(Instant endTime) {
