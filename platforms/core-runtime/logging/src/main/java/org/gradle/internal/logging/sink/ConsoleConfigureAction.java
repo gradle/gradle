@@ -67,7 +67,13 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if ("windows-aarch64".equals(Platform.current().getId())) {
+        boolean isWindowsAArch64 = false;
+        try { // fixing https://github.com/gradle/gradle/issues/35521 for 9.2.1 to be removed for 9.3.0 because https://github.com/gradle/gradle/pull/35402 makes this obsolete again
+            isWindowsAArch64 = "windows-aarch64".equals(Platform.current().getId());
+        } catch (UnsupportedOperationException unsupportedOperationException) {
+            // unknown os / arch
+        }
+        if (isWindowsAArch64) {
             renderer.addPlainConsole(stdout, stderr);
         } else if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
@@ -113,7 +119,13 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
-        if ("windows-aarch64".equals(Platform.current().getId())) {
+        boolean isWindowsAArch64 = false;
+        try { // fixing https://github.com/gradle/gradle/issues/35521 for 9.2.1 to be removed for 9.3.0 because https://github.com/gradle/gradle/pull/35402 makes this obsolete again
+            isWindowsAArch64 = "windows-aarch64".equals(Platform.current().getId());
+        } catch (UnsupportedOperationException unsupportedOperationException) {
+            // unknown os / arch
+        }
+        if (isWindowsAArch64) {
             LOGGER.warn("Rich console output is not supported on Windows ARM64. Falling back to plain console output.");
             renderer.addPlainConsole(stdout, stderr);
         } else if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
