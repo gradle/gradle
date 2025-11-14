@@ -801,24 +801,3 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.runtime.*
 
 """
-
-
-/**
- * Location of the discontinued project schema snapshot, relative to the root project.
- */
-internal
-const val PROJECT_SCHEMA_RESOURCE_PATH =
-    "gradle/project-schema.json"
-
-
-internal
-const val PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING =
-    "Support for $PROJECT_SCHEMA_RESOURCE_PATH was removed in Gradle 5.0. The file is no longer used and it can be safely deleted."
-
-
-fun Project.warnAboutDiscontinuedJsonProjectSchema() {
-    if (file(PROJECT_SCHEMA_RESOURCE_PATH).isFile) {
-        logger.warn(PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING)
-    }
-}
-
