@@ -116,7 +116,7 @@ public class ApiMemberSelector extends ClassVisitor {
                 public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
                     TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
                     methodMember.addTypeAnnotation(ann);
-                    return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
+                    return new SortingAnnotationVisitor(ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
                 }
 
                 @Override
