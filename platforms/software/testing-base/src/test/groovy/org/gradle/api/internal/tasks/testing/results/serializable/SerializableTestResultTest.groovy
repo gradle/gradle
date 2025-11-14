@@ -41,11 +41,10 @@ final class SerializableTestResultTest extends Specification {
         def result = builder.build()
 
         then:
-        result.metadatas[0].entries.size() == 1
+        result.metadatas.size() == 1
         result.metadatas[0].logTime == metadataTime
-        result.metadatas[0].entries[0].key == "key"
-        result.metadatas[0].entries[0].value == "value"
-        result.metadatas[0].entries[0].serializedValue == serialize("value")
+        result.metadatas[0].values.size() == 1
+        result.metadatas[0].values["key"] == "value"
 
     }
 }
