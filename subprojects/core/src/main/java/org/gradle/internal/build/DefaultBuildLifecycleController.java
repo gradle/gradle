@@ -129,8 +129,13 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public boolean isBuildConfigured() {
-        return modelController.isBuildConfigured();
+    public void configureProjectsIgnoringLaterFailures() {
+        state.notInStateIgnoringFailures(State.Finished, () -> {
+            if (!state.inStateOrLaterIgnoringFailures(State.ReadyToRun)) {
+                modelController.getConfiguredModel();
+            }
+            return Void.class;
+        });
     }
 
     @Override

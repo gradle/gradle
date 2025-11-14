@@ -394,7 +394,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        boolean isBuildConfigured() {
+        void configureProjectsIgnoringLaterFailures() {
             throw new UnsupportedOperationException()
         }
 

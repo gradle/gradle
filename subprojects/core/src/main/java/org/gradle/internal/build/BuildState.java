@@ -88,13 +88,6 @@ public interface BuildState {
     boolean isProjectsCreated();
 
     /**
-     * Returns true if build was successfully configured.
-     *
-     * Note: this will return an incorrect value with configure-on-demand.
-     */
-    boolean isBuildConfigured();
-
-    /**
      * Ensures all projects in this build are configured, if not already done.
      */
     void ensureProjectsConfigured();

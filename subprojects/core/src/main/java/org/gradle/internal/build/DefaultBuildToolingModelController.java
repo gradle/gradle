@@ -29,7 +29,7 @@ import java.util.Objects;
 
 public class DefaultBuildToolingModelController implements BuildToolingModelController {
 
-    private final BuildLifecycleController buildController;
+    protected final BuildLifecycleController buildController;
     private final BuildState buildState;
     private final ToolingModelBuilderLookup buildScopeLookup;
 
@@ -68,8 +68,12 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         }
 
         // Force configuration of the containing build and then locate the builder for target project
-        ConfigurationResult configurationResult = tryRunConfiguration(buildController::configureProjects);
+        ConfigurationResult configurationResult = configureProjects();
         return doLocate(target, modelName, param, configurationResult);
+    }
+
+    protected ConfigurationResult configureProjects() {
+        return tryRunConfiguration(buildController::configureProjects);
     }
 
     protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param, ConfigurationResult configurationResult) {

@@ -158,6 +158,24 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
+     * Runs the given action, verifying the current state is not the forbidden state.
+     * Fails if the current state is the given state, the current thread is transitioning the state, but doesn't fail if previous operation has failed.
+     * Blocks until other operations are complete.
+     */
+    public <S> S notInStateIgnoringFailures(T forbidden, Supplier<S> action) {
+        return synchronizer.withLock(() -> {
+            CurrentState<T> current = state;
+            current.assertNotInStateIgnoringTransitionsOrFailures(forbidden);
+            try {
+                return action.get();
+            } catch (Throwable t) {
+                state = current.failed(ExecutionResult.failed(t));
+                throw state.rethrow();
+            }
+        });
+    }
+
+    /**
      * Resets the state to the given state.
      * Fails if the current state is not the given state, ignores failures from previous operations.
      * Blocks until other operations are complete.
@@ -308,6 +326,8 @@ public class StateTransitionController<T extends StateTransitionController.State
 
         public abstract void assertNotInState(T forbidden);
 
+        public abstract void assertNotInStateIgnoringTransitionsOrFailures(T forbidden);
+
         public void assertCanTransition(T fromState, T toState) {
             assertCanTransition(fromState, toState, false);
         }
@@ -369,6 +389,11 @@ public class StateTransitionController<T extends StateTransitionController.State
             if (state == forbidden) {
                 throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should not be in state " + forbidden + ".");
             }
+        }
+
+        @Override
+        public void assertNotInStateIgnoringTransitionsOrFailures(T forbidden) {
+            assertNotInState(forbidden);
         }
 
         @Override
@@ -465,6 +490,11 @@ public class StateTransitionController<T extends StateTransitionController.State
         }
 
         @Override
+        public void assertNotInStateIgnoringTransitionsOrFailures(T forbidden) {
+            fromState.assertNotInStateIgnoringTransitionsOrFailures(forbidden);
+        }
+
+        @Override
         public void assertCanTransition(T fromState, T toState, boolean ignoreFailures) {
             failDueToTransition(toState);
         }
@@ -528,6 +558,11 @@ public class StateTransitionController<T extends StateTransitionController.State
         @Override
         public void assertNotInState(T forbidden) {
             throwFailure();
+        }
+
+        @Override
+        public void assertNotInStateIgnoringTransitionsOrFailures(T forbidden) {
+            failureState.assertNotInStateIgnoringTransitionsOrFailures(forbidden);
         }
 
         @Override

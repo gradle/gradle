@@ -140,8 +140,8 @@ class CustomPlugin implements Plugin<Project> {
         }
 
         then:
-        result.successfullyQueriedProjects == expectedSuccesfulProjects
         result.failedToQueryProjects == expectedFailedProjects
+        result.successfullyQueriedProjects == expectedSuccesfulProjects
 
         where:
         description                     | extraGradleProperties        | expectedSuccesfulProjects         | expectedFailedProjects
@@ -232,6 +232,8 @@ class CustomPlugin implements Plugin<Project> {
                 assert result.model.value == 'greetings'
                 successfulQueriedProjects.add(project.name)
             } else {
+                println "Failed to query 'CustomModel' for project '${project.name}' with: ${result.failures.collect { it.message }.join('\n')}"
+                assert result.model == null
                 failedQueriedProjects.add(project.name)
             }
         }
