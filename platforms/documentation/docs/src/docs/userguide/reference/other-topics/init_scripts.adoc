@@ -129,12 +129,7 @@ Unlike project (`Plugin<Project>`) or settings (`Plugin<Settings>`) plugins, an 
 - *Scope*: Runs at init; can access `settingsEvaluated`, `projectsLoaded`, `beforeProject`, `afterProject` <<build_lifecycle#lifecycle_api,callbacks>> to safely interact with settings/projects when they exist.
 - **Distribution**: Applied from an init script (`~/.gradle/init.d/*.init.gradle(.kts)` or `$GRADLE_HOME/init.d`) so it affects every build on that machine/agent. However, this does not include **all** builds: for example, builds run via `TestKit` use an isolated <<directory_layout.adoc#dir:gradle_user_home,Gradle user home>>, and different users or build agents may each have their own init scripts.
 
-You can find a simple example in the next section.
-
-[[sec:init_script_plugins]]
-== Applying plugins from an init script
-
-You can apply plugins in an init script just like in `build.gradle(.kts)`/`settings.gradle(.kts)`:
+The init plugin in the init script ensures that only a specified repository is used when running the build:
 
 ====
 include::sample[dir="snippets/initScripts/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
@@ -152,9 +147,40 @@ include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts
 include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
 ----
 
-The plugin in the init script ensures that only a specified repository is used when running the build.
+[[sec:init_script_plugins]]
+== Applying plugins from an init script
+
+You can apply plugins in an init script just like in `build.gradle(.kts)`/`settings.gradle(.kts)`.
 
 When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[`Plugin.apply(T)`] method.
 
 The `gradle` object is passed as a parameter, which can be used to configure all aspects of a build.
 Of course, the applied plugin can be resolved as an external dependency as described in <<#sec:custom_classpath,External dependencies for the init script>>.
+
+In this example, the init script is its own project called `baseline-init-plugin`:
+
+====
+include::sample[dir="snippets/plugins/init-kotlin/kotlin",files="baseline-init-plugin/src/main/kotlin/com/example/BaselineInitPlugin.kt[]"]
+include::sample[dir="snippets/plugins/init-groovy/groovy",files="baseline-init-plugin/src/main/groovy/com/example/BaselineInitPlugin.groovy[]"]
+====
+
+You can publish it to a local Maven repository by running:
+
+[source,bash]
+----
+$ ./gradlew :baseline-init-plugin:publishPluginMavenPublicationToMavenRepoInLocalBuildRepository
+----
+
+Here it is applied in an init script of the `app` project:
+
+====
+include::sample[dir="snippets/plugins/init-kotlin/kotlin",files="init.gradle.kts[]"]
+include::sample[dir="snippets/plugins/init-groovy/groovy",files="init.gradle[]"]
+====
+
+Then you can run the app with:
+
+[source,bash]
+----
+$ ./gradlew :app:build -I init.gradle(.kts)
+----

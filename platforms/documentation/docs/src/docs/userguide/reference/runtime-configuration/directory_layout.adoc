@@ -205,8 +205,8 @@ By default, the directories `caches`, `wrapper/dists`, `daemon`, and `jdks` in t
 The cache marking feature can be configured via an init script in the Gradle User Home:
 
 ====
-include::sample[dir="snippets/initScripts/cacheMarking/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/cacheMarking/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUserHome/init.d/cache-settings.init.gradle"]
 ====
 
 NOTE: Cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home. This effectively couples the configuration of cache marking to the Gradle User Home to which those settings apply and limits the possibility of different conflicting settings from different projects being applied to the same directory.
