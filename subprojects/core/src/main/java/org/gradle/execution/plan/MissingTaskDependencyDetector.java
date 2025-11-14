@@ -22,6 +22,8 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayDeque;
@@ -49,6 +51,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * consuming a parent directory of the produced output.
  * </p>
  */
+@ServiceScope(Scope.Build.class)
 public class MissingTaskDependencyDetector {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy;
