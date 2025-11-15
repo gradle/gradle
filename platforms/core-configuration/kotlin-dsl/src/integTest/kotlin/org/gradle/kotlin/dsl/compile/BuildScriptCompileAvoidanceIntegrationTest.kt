@@ -56,7 +56,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
 
         withSettings(
             """
-                rootProject.buildFileName = "build2.gradle.kts"
+            rootProject.buildFileName = "build2.gradle.kts"
             """
         )
         withFile("build2.gradle.kts", buildScript)
