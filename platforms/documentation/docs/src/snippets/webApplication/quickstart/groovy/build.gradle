@@ -9,6 +9,6 @@ repositories {
 }
 
 dependencies {
-    implementation("commons-io:commons-io:1.4")
+    implementation("commons-io:commons-io:2.15.1")
     implementation("log4j:log4j:1.2.15@jar")
 }

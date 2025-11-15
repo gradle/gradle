@@ -16,7 +16,7 @@ dependencies {
 
     implementation("com.google.guava:guava")
     implementation("com.google.code.gson:gson")
-    implementation("commons-io:commons-io")
+    implementation("commons-io:commons-io:2.15.1")
     implementation("jakarta.xml.bind:jakarta.xml.bind-api")
     implementation("com.gradle:develocity-gradle-plugin")
 

@@ -662,7 +662,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
-                implementation("org.apache.commons:commons-io:1.3.2")
+                implementation("org.apache.commons:commons-io:2.15.1")
             }
             """
         )

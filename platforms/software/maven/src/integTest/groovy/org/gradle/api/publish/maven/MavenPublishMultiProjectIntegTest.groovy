@@ -227,7 +227,7 @@ project(":project2") {
 
             dependencies {
                 api "commons-collections:commons-collections:3.2.2"
-                api "commons-io:commons-io:1.4"
+                api "commons-io:commons-io:2.15.1"
             }
 
             publishing {

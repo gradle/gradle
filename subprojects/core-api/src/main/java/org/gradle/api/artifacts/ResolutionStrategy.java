@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  *
  *     // force certain versions of dependencies (including transitive)
  *     //  *append new forced modules:
- *     force 'asm:asm-all:3.3.1', 'commons-io:commons-io:1.4'
+ *     force 'asm:asm-all:3.3.1', 'commons-io:commons-io:2.15.1'
  *     //  *replace existing forced modules with new ones:
  *     forcedModules = ['asm:asm-all:3.3.1']
  *
@@ -196,7 +196,7 @@ public interface ResolutionStrategy {
      * }
      *
      * configurations.all {
-     *   resolutionStrategy.force 'asm:asm-all:3.3.1', 'commons-io:commons-io:1.4'
+     *   resolutionStrategy.force 'asm:asm-all:3.3.1', 'commons-io:commons-io:2.15.1'
      * }
      * </pre>
      *
@@ -219,7 +219,7 @@ public interface ResolutionStrategy {
      * }
      *
      * configurations.all {
-     *   resolutionStrategy.forcedModules = ['asm:asm-all:3.3.1', 'commons-io:commons-io:1.4']
+     *   resolutionStrategy.forcedModules = ['asm:asm-all:3.3.1', 'commons-io:commons-io:2.15.1']
      * }
      * </pre>
      *
