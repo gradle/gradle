@@ -39,6 +39,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInternal> {
@@ -364,6 +365,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     public static class DevelocityUrlOption extends StringBuildOption<StartParameterInternal> {
        public static final String LONG_OPTION = "develocity-url";
         public static final String GRADLE_PROPERTY = "org.gradle.develocity.url";
+        public static final String ENVIRONMENT_VARIABLE = "ORG_GRADLE_DEVELOCITY_URL";
 
         public DevelocityUrlOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
@@ -373,6 +375,14 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(String value, StartParameterInternal settings, Origin origin) {
             settings.setDevelocityUrl(value);
+        }
+
+        @Override
+        public void applyFromEnvVar(Map<String, String> envVars, StartParameterInternal settings) {
+            String develocityUrlEnvVar = envVars.get(ENVIRONMENT_VARIABLE);
+            if (develocityUrlEnvVar != null) {
+                settings.setDevelocityUrl(develocityUrlEnvVar);
+            }
         }
     }
 

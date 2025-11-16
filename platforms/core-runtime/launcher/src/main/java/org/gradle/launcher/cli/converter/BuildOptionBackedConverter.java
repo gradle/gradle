@@ -33,7 +33,8 @@ public class BuildOptionBackedConverter<T> {
         buildOptions.commandLineConverter().configure(parser);
     }
 
-    public void convert(ParsedCommandLine commandLine, Map<String, String> properties, T target) {
+    public void convert(ParsedCommandLine commandLine, Map<String, String> properties, Map<String, String> environment, T target) {
+        buildOptions.envVarConverter().convert(environment, target);
         buildOptions.propertiesConverter().convert(properties, target);
         buildOptions.commandLineConverter().convert(commandLine, target);
     }
