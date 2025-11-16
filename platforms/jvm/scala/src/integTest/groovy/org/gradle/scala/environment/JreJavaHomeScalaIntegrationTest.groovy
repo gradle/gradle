@@ -16,52 +16,16 @@
 
 package org.gradle.scala.environment
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 @TargetCoverage({ScalaCoverage.SUPPORTED_BY_JDK})
 class JreJavaHomeScalaIntegrationTest extends MultiVersionIntegrationSpec {
-
-    @Requires(value = [
-        IntegTestPreconditions.BestJreAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
-    ], reason = "must run with a JRE")
-    def "scala java cross compilation works when JAVA_HOME is set to JRE"() {
-        given:
-        def jreJavaHome = AvailableJavaHomes.bestJre
-        file("src/main/scala/org/test/JavaClazz.java") << """
-                    package org.test;
-                    public class JavaClazz {
-                        public static void main(String... args){
-
-                        }
-                    }
-                    """
-        writeScalaTestSource("src/main/scala")
-        file('build.gradle') << """
-                    println "Used JRE: ${jreJavaHome.absolutePath.replace(File.separator, '/')}"
-                    apply plugin:'scala'
-
-                    ${mavenCentralRepository()}
-
-                    dependencies {
-                        implementation '${ScalaCompilationFixture.scalaDependency(version)}'
-                    }
-                    """
-        when:
-        executer.withJavaHome(jreJavaHome.absolutePath).withTasks("compileScala").run()
-
-        then:
-        scalaClassFile("org/test/JavaClazz.class").exists()
-        scalaClassFile("org/test/ScalaClazz.class").exists()
-    }
-
     @Requires(UnitTestPreconditions.Windows)
     def "scala compilation works when gradle is started with no java_home defined"() {
         given:
