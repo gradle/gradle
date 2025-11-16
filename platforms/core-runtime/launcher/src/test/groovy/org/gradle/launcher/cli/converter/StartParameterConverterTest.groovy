@@ -143,6 +143,6 @@ class StartParameterConverterTest extends Specification {
         }
         def properties = propertiesConverter.convert(initialProperties, buildLayout)
 
-        return converter.convert(parsedCommandLine, buildLayout, properties, new StartParameterInternal())
+        return converter.convert(parsedCommandLine, buildLayout, properties, [:], new StartParameterInternal())
     }
 }

@@ -347,7 +347,8 @@ public class ProviderConnection {
 
         AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
-        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), operationParameters.getEnvironmentVariables(null));
+        Map<String, String> environmentVariables = operationParameters.getEnvironmentVariables(null);
+        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), environmentVariables);
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
@@ -408,7 +409,7 @@ public class ProviderConnection {
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
-        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
+        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, environmentVariables, daemonParams.getToolchainConfiguration());
 
         return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
