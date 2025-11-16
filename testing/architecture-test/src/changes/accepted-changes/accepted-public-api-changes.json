@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
-       {
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.sourceSets(org.gradle.api.Action)",
+            "acceptation": "faulty @since detection",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.CompileOptions",
             "member": "Constructor org.gradle.api.tasks.compile.CompileOptions()",
             "acceptation": "Migrate task to dependency injection",
@@ -52,14 +60,6 @@
             "acceptation": "Migrate task to dependency injection",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.JavaPluginExtension",
-            "member": "Method org.gradle.api.plugins.JavaPluginExtension.sourceSets(org.gradle.api.Action)",
-            "acceptation": "faulty @since detection",
-            "changes": [
-                "Method added to interface"
             ]
         },
         {
