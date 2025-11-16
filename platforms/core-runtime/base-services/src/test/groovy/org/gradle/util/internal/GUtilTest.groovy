@@ -26,59 +26,14 @@ import static org.gradle.util.internal.GUtil.endsWith
 import static org.gradle.util.internal.GUtil.flatten
 import static org.gradle.util.internal.GUtil.flattenElements
 import static org.gradle.util.internal.GUtil.isSecureUrl
-import static org.gradle.util.internal.GUtil.toCamelCase
 import static org.gradle.util.internal.GUtil.toConstant
 import static org.gradle.util.internal.GUtil.toEnum
 import static org.gradle.util.internal.GUtil.toEnumSet
-import static org.gradle.util.internal.GUtil.toLowerCamelCase
 import static org.gradle.util.internal.GUtil.toWords
 
 class GUtilTest extends Specification {
     static sep = File.pathSeparator
 
-    def convertStringToCamelCase() {
-        expect:
-        toCamelCase(null) == null
-        toCamelCase("") == ""
-        toCamelCase("word") == "Word"
-        toCamelCase("twoWords") == "TwoWords"
-        toCamelCase("TwoWords") == "TwoWords"
-        toCamelCase("two-words") == "TwoWords"
-        toCamelCase("two.words") == "TwoWords"
-        toCamelCase("two words") == "TwoWords"
-        toCamelCase("two Words") == "TwoWords"
-        toCamelCase("Two Words") == "TwoWords"
-        toCamelCase(" Two  \t words\n") == "TwoWords"
-        toCamelCase("four or so Words") == "FourOrSoWords"
-        toCamelCase("123-project") == "123Project"
-        toCamelCase("i18n-admin") == "I18nAdmin"
-        toCamelCase("trailing-") == "Trailing"
-        toCamelCase("ABC") == "ABC"
-        toCamelCase(".") == ""
-        toCamelCase("-") == ""
-    }
-
-    def convertStringToLowerCamelCase() {
-        expect:
-        toLowerCamelCase(null) == null
-        toLowerCamelCase("") == ""
-        toLowerCamelCase("word") == "word"
-        toLowerCamelCase("twoWords") == "twoWords"
-        toLowerCamelCase("TwoWords") == "twoWords"
-        toLowerCamelCase("two-words") == "twoWords"
-        toLowerCamelCase("two.words") == "twoWords"
-        toLowerCamelCase("two words") == "twoWords"
-        toLowerCamelCase("two Words") == "twoWords"
-        toLowerCamelCase("Two Words") == "twoWords"
-        toLowerCamelCase(" Two  \t words\n") == "twoWords"
-        toLowerCamelCase("four or so Words") == "fourOrSoWords"
-        toLowerCamelCase("123-project") == "123Project"
-        toLowerCamelCase("i18n-admin") == "i18nAdmin"
-        toLowerCamelCase("trailing-") == "trailing"
-        toLowerCamelCase("ABC") == "aBC"
-        toLowerCamelCase(".") == ""
-        toLowerCamelCase("-") == ""
-    }
 
     def convertStringToConstantName() {
         expect:

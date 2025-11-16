@@ -74,6 +74,9 @@ dependencies {
     testImplementation(libs.junit) {
         because("To provide an implementation during testing")
     }
+    testImplementation(libs.junitPlatform) {
+        because("Platform types are used in tests")
+    }
     testImplementation(libs.testng) {
         because("To provide an implementation during testing")
     }

@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.file.TreeType
 
 class PreCreateOutputParentsStepTest extends StepSpec<ChangingOutputsContext> {
@@ -34,9 +34,9 @@ class PreCreateOutputParentsStepTest extends StepSpec<ChangingOutputsContext> {
         step.execute(work, context)
 
         then:
-        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, UnitOfWork.OutputFileValueSupplier.fromStatic(outputDir, TestFiles.fixed(outputDir)))
-            visitor.visitOutputProperty("file", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(outputFile, TestFiles.fixed(outputFile)))
+        _ * work.visitOutputs(_ as File, _ as OutputVisitor) >> { File workspace, OutputVisitor visitor ->
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, OutputVisitor.OutputFileValueSupplier.fromStatic(outputDir, TestFiles.fixed(outputDir)))
+            visitor.visitOutputProperty("file", TreeType.FILE, OutputVisitor.OutputFileValueSupplier.fromStatic(outputFile, TestFiles.fixed(outputFile)))
             visitor.visitLocalState(localStateFile)
             visitor.visitDestroyable(destroyableFile)
         }
@@ -60,7 +60,7 @@ class PreCreateOutputParentsStepTest extends StepSpec<ChangingOutputsContext> {
         then:
         result == expected
 
-        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor)
+        _ * work.visitOutputs(_ as File, _ as OutputVisitor)
         1 * delegate.execute(work, context) >> expected
         0 * _
     }
