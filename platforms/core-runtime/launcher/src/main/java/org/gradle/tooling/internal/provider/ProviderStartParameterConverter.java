@@ -85,7 +85,7 @@ class ProviderStartParameterConverter {
                     + "\nExamples of unsupported build options: '--daemon', '-?', '-v'."
                     + "\nPlease find more information in the javadoc for the BuildLauncher class.", e);
         }
-        converter.convert(parsedCommandLine, buildLayout, properties, startParameter);
+        converter.convert(parsedCommandLine, buildLayout, properties, parameters.getEnvironmentVariables(null), startParameter);
 
         if (parameters.getBuildLogLevel() != null) {
             startParameter.setLogLevel(parameters.getBuildLogLevel());

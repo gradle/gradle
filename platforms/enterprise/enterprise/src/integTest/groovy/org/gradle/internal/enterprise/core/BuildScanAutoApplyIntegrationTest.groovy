@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.core
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
