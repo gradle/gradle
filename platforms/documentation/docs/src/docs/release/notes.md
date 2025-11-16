@@ -84,10 +84,10 @@ This method makes attribute assignment more concise while preserving the same se
 configurations.resolvable("foo") {
     attributes {
         // Before: 
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "red"))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named("red"))
         
         // After:
-        attribute(Usage.USAGE_ATTRIBUTE, named(Usage::class.java, "red"))
+        attribute(Usage.USAGE_ATTRIBUTE, named("red"))
     }
 }
 ```
