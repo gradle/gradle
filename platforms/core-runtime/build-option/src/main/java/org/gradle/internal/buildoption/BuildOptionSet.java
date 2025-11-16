@@ -67,4 +67,16 @@ public abstract class BuildOptionSet<T> {
             }
         };
     }
+
+    public PropertiesConverter<T> envVarConverter() {
+        return new PropertiesConverter<T>() {;
+            @Override
+            public T convert(Map<String, String> envVars, T target) throws CommandLineArgumentException {
+                for (BuildOption<? super T> option : getAllOptions()) {
+                        option.applyFromEnvVar(envVars, target);
+                }
+                return target;
+            }
+        };
+    }
 }
