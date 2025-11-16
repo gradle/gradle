@@ -219,7 +219,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 8.11
      */
     public void debugOptions(Action<? super DebugOptions> action) {
-        action.execute(debugOptions);
+        action.execute(getDebugOptions());
     }
 
     /**
