@@ -382,12 +382,14 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     @Issue("https://github.com/gradle/gradle/issues/34989")
     def "can set module-version"() {
+        File file = new File('/src/other')
+        def fc = [file]
         when:
         spec.compileOptions.javaModuleVersion = "1.0.0"
-        spec.modulePath = [new File('/src/other')]
+        spec.modulePath = fc
 
         then:
-        builder.build() == ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-version", "1.0.0",  "--module-path", "/src/other"]
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-version", "1.0.0",  "--module-path", GUtil.asPath(fc)]
 
         when:
         spec.modulePath = []
