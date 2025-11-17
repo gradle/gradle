@@ -70,7 +70,7 @@ public class CompositeStoppable implements Stoppable {
 
     public CompositeStoppable add(Object closeable) {
         Stoppable stoppable = toStoppable(closeable);
-        if (null != stoppable) {
+        if (stoppable != null) {
             add(stoppable);
         }
         return this;
