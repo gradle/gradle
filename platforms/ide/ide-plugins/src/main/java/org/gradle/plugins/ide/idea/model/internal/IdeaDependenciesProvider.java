@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -102,14 +101,13 @@ public class IdeaDependenciesProvider {
 
     private IdeaDependenciesVisitor visitDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         ProjectInternal projectInternal = (ProjectInternal) ideaModule.getProject();
-        final DependencyHandler handler = projectInternal.getDependencies();
         final Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         final Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
         final JavaModuleDetector javaModuleDetector = projectInternal.getServices().get(JavaModuleDetector.class);
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
         return projectInternal.getOwner().fromMutableState(p -> {
-            new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
+            new IdeDependencySet(javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver, Collections.emptySet()).visit(visitor);
             return visitor;
         });
     }
