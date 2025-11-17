@@ -82,16 +82,19 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 ====
 
 [[sec:strictly-constraint-precedence]]
-== Behavior of `strictly` Constraints at Different Dependency Graph Depths
+=== Behavior of `strictly` Constraints at Different Dependency Graph Depths
 
-When multiple `strictly` version constraints are declared for the same dependency at different levels of the dependency graph, Gradle honors the constraint that is *closest to the root* of the graph and ignores constraints further from the root.
+When multiple `strictly` version constraints are declared for the same dependency at different points in the dependency graph, Gradle always selects the constraint that is *closest to the root* of the graph.
+Constraints declared deeper in the graph, such as in transitive dependencies or subprojects, cannot override a parent project's `strictly` constraint.
 
-This means that a `strictly` constraint declared in your project's direct dependencies will take precedence over `strictly` constraints declared in transitive dependencies or subprojects.
 
-.Root-level `strictly` constraint takes precedence
-====
-In this example, the root project declares a `strictly` constraint for version 4.4, while a subproject declares a different `strictly` constraint for version 4.5.
-The root-level constraint (4.4) takes precedence.
+In other words, a `strictly` constraint declared directly in your project's dependency declarations takes precedence over any `strictly` constraints declared by the components you depend on.
+
+
+In this example, the root project declares a `strictly` constraint on version 4.4, while a subproject declares a `strictly` constraint on version 4.5:
+
+Because the root project sits higher in the dependency graph, its constraint (4.4) takes precedence, and the subproject's constraint is ignored.
+
 
 [tabs]
 =====
@@ -164,12 +167,12 @@ dependencies {
 ----
 =====
 
-In this scenario, version *4.4* of `httpclient` will be selected because the constraint in the root project is closer to the root of the dependency graph than the constraint in `:moduleA`.
+
 ====
 
-This behavior ensures that projects have control over their direct dependency versions and can override constraints from transitive dependencies.
+This behavior ensures that projects maintain control over the versions of their direct dependencies and can override any constraints introduced by transitive dependencies.
 
-== Transitivity of constraints
+== Transitivity and precedence of constraints
 
 Dependency constraints are transitive.
 
