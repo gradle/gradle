@@ -194,6 +194,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
             FunctionSemanticsInternal.DefaultAccessAndConfigure(
                 ConfigureAccessorInternal.DefaultCustom(containerTypeRef, accessorId(host)),
                 DefaultUnit,
+                host.modelTypeRef(elementType),
                 DefaultRequired
             )
         )
@@ -267,6 +268,7 @@ private fun elementFactoryFunction(
         FunctionSemanticsInternal.DefaultAccessAndConfigure(
             ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(elementTypeRef),
             FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject,
+            elementTypeRef,
             DefaultRequired
         ),
         metadata = listOf(DefaultContainerElementFactory(elementTypeRef))

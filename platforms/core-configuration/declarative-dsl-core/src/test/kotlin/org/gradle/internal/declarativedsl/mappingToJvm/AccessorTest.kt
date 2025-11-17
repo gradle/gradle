@@ -93,6 +93,7 @@ class AccessorTest {
     val functionContributorWithCustomAccessor = object : FunctionExtractor {
         override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
             if (kClass == MyReceiver::class) {
+                val objectType = host.containerTypeRef(Configured::class)
                 listOf(
                     DefaultDataMemberFunction(
                         host.modelTypeRef(typeOf<MyReceiver>()),
@@ -100,8 +101,9 @@ class AccessorTest {
                         emptyList(),
                         false,
                         FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                            ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(Configured::class), "test"),
+                            ConfigureAccessorInternal.DefaultCustom(objectType, "test"),
                             FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                            objectType,
                             FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
                         )
                     )

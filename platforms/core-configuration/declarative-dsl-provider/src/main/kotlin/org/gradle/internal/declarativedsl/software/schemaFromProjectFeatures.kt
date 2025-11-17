@@ -184,14 +184,16 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
 
     fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
         val receiverTypeRef = host.containerTypeRef(schemaTypeToExtend)
+        val definitionType = host.containerTypeRef(definitionPublicType.kotlin)
         DefaultDataMemberFunction(
             receiverTypeRef,
             delegate.featureName,
             emptyList(),
             isDirectAccessOnly = true,
             semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(definitionPublicType.kotlin), customAccessorId),
+                accessor = ConfigureAccessorInternal.DefaultCustom(definitionType, customAccessorId),
                 FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                definitionType,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
             ),
             metadata = listOf(DefaultProjectFeatureOrigin(
