@@ -166,21 +166,22 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
                 }
                 @BeforeEach
                 public void beforeEach(TestReporter testReporter) throws IOException {
-                    Path beforeEach = tempDir.resolve("beforeEach.json");
-                    Files.writeString(beforeEach, "{ beforeEach: [] }");
-                    testReporter.publishFile(beforeEach, MediaType.APPLICATION_JSON);
+                    Path beforeEach = tempDir.resolve("beforeEach.svg");
+                    Files.writeString(beforeEach, "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 800 600\\"><rect width=\\"800\\" height=\\"600\\" fill=\\"#F5F5F0\\"/><rect width=\\"350\\" height=\\"600\\" fill=\\"#D4292E\\"/><rect x=\\"350\\" width=\\"450\\" height=\\"250\\" fill=\\"#1356A3\\"/><rect x=\\"350\\" y=\\"250\\" width=\\"200\\" height=\\"350\\" fill=\\"#F7D838\\"/><rect x=\\"550\\" y=\\"250\\" width=\\"250\\" height=\\"350\\" fill=\\"#F5F5F0\\"/><line x1=\\"350\\" y1=\\"0\\" x2=\\"350\\" y2=\\"600\\" stroke=\\"#1A1A1A\\" stroke-width=\\"12\\"/><line x1=\\"350\\" y1=\\"250\\" x2=\\"800\\" y2=\\"250\\" stroke=\\"#1A1A1A\\" stroke-width=\\"12\\"/><line x1=\\"550\\" y1=\\"250\\" x2=\\"550\\" y2=\\"600\\" stroke=\\"#1A1A1A\\" stroke-width=\\"12\\"/><rect width=\\"800\\" height=\\"600\\" fill=\\"none\\" stroke=\\"#1A1A1A\\" stroke-width=\\"14\\"/></svg>");
+                    testReporter.publishFile(beforeEach, MediaType.create("image", "svg+xml"));
                 }
                 @AfterEach
                 public void afterEach(TestReporter testReporter) throws IOException {
-                    Path afterEach = tempDir.resolve("afterEach.json");
+                    Path afterEach = tempDir.resolve("afterEach.mp4");
                     Files.writeString(afterEach, "{ afterEach: [] }");
-                    testReporter.publishFile(afterEach, MediaType.APPLICATION_JSON);
+                    testReporter.publishFile(afterEach, MediaType.create("video", "mp4"));
                 }
                 @Test
                 public void test(TestReporter testReporter) throws IOException {
-                    Path test = tempDir.resolve("test.json");
-                    Files.writeString(test, "{ test: [] }");
-                    testReporter.publishFile(test, MediaType.APPLICATION_JSON);
+                    Path test = tempDir.resolve("test.txt");
+                    Files.writeString(test, "hello world");
+                    testReporter.publishFile(test, MediaType.TEXT_PLAIN);
+                    assert false;
                 }
             }
         """
@@ -188,15 +189,34 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
+
+        def constructorFile = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor.json").assertExists()
+        def beforeEachFile = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach.svg").assertExists()
+        def testFile = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test.txt").assertExists()
+        def afterEachFile = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach.mp4").assertExists()
+
         results.testPath('com.example.ReportEntryTest').onlyRoot()
-            .assertMetadata([(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor.json").absolutePath): "application/json"])
+            .assertMetadata([(constructorFile.name): link(constructorFile)])
             .assertChildrenExecuted("test(TestReporter)")
+
         results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot()
             .assertMetadata([
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach.json").absolutePath): "application/json",
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test.json").absolutePath): "application/json",
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach.json").absolutePath): "application/json"
+                (beforeEachFile.name): image(beforeEachFile),
+                (testFile.name): link(testFile),
+                (afterEachFile.name): video(afterEachFile)
             ])
+    }
+
+    private static String link(File path) {
+        '<a href="' + path.toPath().toUri().toASCIIString() + '">' + path.toPath().toAbsolutePath().toString() + '</a>'
+    }
+
+    private static String image(File path) {
+        '<img src="' + path.toPath().toUri().toASCIIString() + '" alt="' + path.name + '">'
+    }
+
+    private static String video(File path) {
+        '<video src="' + path.toPath().toUri().toASCIIString() + '" controls=""><a href="' + path.toPath().toUri().toASCIIString() + '">Download video</a>\n</video>'
     }
 
     def "captures dir entry emitted by tests"() {
@@ -253,13 +273,19 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         succeeds("test")
         then:
         def results = resultsFor(testDirectory)
+
+        def constructorDir = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor").assertIsDir()
+        def beforeEachDir = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach").assertIsDir()
+        def testDir = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test").assertIsDir()
+        def afterEachDir = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach").assertIsDir()
+
         results.testPath('com.example.ReportEntryTest').onlyRoot()
-            .assertMetadata([(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor").absolutePath): ''])
+            .assertMetadata([(constructorDir.name): link(constructorDir)])
             .assertChildrenExecuted("test(TestReporter)")
         results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach").absolutePath): '',
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test").absolutePath): '',
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach").absolutePath): ''
+            (beforeEachDir.name): link(beforeEachDir),
+            (testDir.name): link(testDir),
+            (afterEachDir.name): link(afterEachDir)
             ])
     }
 

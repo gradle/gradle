@@ -61,6 +61,7 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
         "body",
         "h1", "h2", "h3", "h4", "h5",
         "table", "thead", "tbody", "th", "td", "tr",
+        "img", "video",
         "ul", "li",
         "a", "p",
         "pre", "div", "span",

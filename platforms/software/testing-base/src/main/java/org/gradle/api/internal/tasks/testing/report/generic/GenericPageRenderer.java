@@ -17,6 +17,8 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -152,8 +154,11 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                         perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
                     }
                 }
-                if (!info.getMetadatas().isEmpty()) {
+                // TODO: This should be handled differently so that the renders know what to expect vs the GenericPageRenderer doing something special
+                if (info.getMetadatas().stream().anyMatch(event -> event instanceof DefaultTestKeyValueDataEvent)) {
                     perRootInfoTabsRenderer.add("data", new PerRootTabRenderer.ForKeyValues(rootIndex, perRootInfoIndex));
+                }
+                if (info.getMetadatas().stream().anyMatch(event -> event instanceof DefaultTestFileAttachmentDataEvent)) {
                     perRootInfoTabsRenderer.add("attachments", new PerRootTabRenderer.ForFileAttachments(rootIndex, perRootInfoIndex));
                 }
 

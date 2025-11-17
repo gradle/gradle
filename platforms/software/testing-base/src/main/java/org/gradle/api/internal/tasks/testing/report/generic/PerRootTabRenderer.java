@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.net.MediaType;
 import org.apache.commons.lang3.stream.Streams;
 import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
@@ -32,7 +33,6 @@ import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabsRenderer;
-import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -52,6 +52,8 @@ import java.util.stream.Collectors;
 import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
 
 public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
+    private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z").withZone(ZoneId.systemDefault());
+
     protected final int rootIndex;
     // Should be private unlike rootIndex, as subclass access should use the passed-in `info` parameter
     private final int perRootInfoIndex;
@@ -78,6 +80,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     protected abstract void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException;
+
+    private static String formatLogTime(long logTime) {
+        Instant instant = Instant.ofEpochMilli(logTime);
+        return FORMATTER.format(instant);
+    }
 
     public static final class ForSummary extends PerRootTabRenderer {
         public ForSummary(int rootIndex, int perRootInfoIndex) {
@@ -386,10 +393,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
     }
 
-    @SuppressWarnings({"MethodMayBeStatic", "UnusedReturnValue"})
     public static final class ForKeyValues extends PerRootTabRenderer {
-        private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z").withZone(ZoneId.systemDefault());
-
         public ForKeyValues(int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
         }
@@ -398,18 +402,18 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div").attribute("class", "metadata");
             List<DefaultTestKeyValueDataEvent> keyValues = info.getMetadatas().stream().filter(DefaultTestKeyValueDataEvent.class::isInstance).map(DefaultTestKeyValueDataEvent.class::cast).collect(Collectors.toList());
-            renderMetadataTable(keyValues, htmlWriter);
+            renderKeyValueTable(keyValues, htmlWriter);
             htmlWriter.endElement();
         }
 
-        private void renderMetadataTable(List<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueTable(List<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("table");
-                renderMetadataTableHeader(htmlWriter);
-                renderMetadataTableBody(metadatas, htmlWriter);
+                renderKeyValueHeader(htmlWriter);
+                renderKeyValueValues(metadatas, htmlWriter);
             htmlWriter.endElement();
         }
 
-        private SimpleHtmlWriter renderMetadataTableHeader(SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueHeader(SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("thead")
                 .startElement("tr")
                     .startElement("th")
@@ -423,11 +427,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     .endElement()
                 .endElement()
             .endElement();
-
-            return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataTableBody(List<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueValues(List<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
             for (int metadataIdx = 0; metadataIdx < metadatas.size(); metadataIdx++) {
                 DefaultTestKeyValueDataEvent metadata = metadatas.get(metadataIdx);
@@ -454,18 +456,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 }
             }
             htmlWriter.endElement();
-
-            return htmlWriter;
-        }
-
-        private String formatLogTime(long logTime) {
-            Instant instant = Instant.ofEpochMilli(logTime);
-            return FORMATTER.format(instant);
         }
     }
 
 
-    @SuppressWarnings({"MethodMayBeStatic", "UnusedReturnValue"})
     public static final class ForFileAttachments extends PerRootTabRenderer {
         public ForFileAttachments(int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
@@ -475,49 +469,75 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div").attribute("class", "metadata");
             List<DefaultTestFileAttachmentDataEvent> keyValues = info.getMetadatas().stream().filter(DefaultTestFileAttachmentDataEvent.class::isInstance).map(DefaultTestFileAttachmentDataEvent.class::cast).collect(Collectors.toList());
-            renderMetadataTable(keyValues, htmlWriter);
+            renderFileAttachments(keyValues, htmlWriter);
             htmlWriter.endElement();
         }
 
-        private void renderMetadataTable(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderFileAttachments(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("table");
-            renderMetadataTableHeader(htmlWriter);
-            renderMetadataTableBody(metadatas, htmlWriter);
+            renderFileAttachmentHeader(htmlWriter);
+            renderFileAttachmentValues(metadatas, htmlWriter);
             htmlWriter.endElement();
         }
 
-        private SimpleHtmlWriter renderMetadataTableHeader(SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderFileAttachmentHeader(SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("thead")
                 .startElement("tr")
                     .startElement("th")
-                        .characters("Path")
+                        .characters("Name")
                     .endElement()
                     .startElement("th")
-                        .characters("Media type")
+                        .characters("Content")
                     .endElement()
                 .endElement()
             .endElement();
-
-            return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataTableBody(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderFileAttachmentValues(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
             for (int metadataIdx = 0; metadataIdx < metadatas.size(); metadataIdx++) {
                 DefaultTestFileAttachmentDataEvent metadata = metadatas.get(metadataIdx);
                 htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
-                htmlWriter
-                    .startElement("td").attribute("class", "key")
-                        .characters(metadata.getPath().toAbsolutePath().toString())
-                    .endElement()
-                    .startElement("td").attribute("class", "value")
-                        .characters(GUtil.elvis(metadata.getMediaType(), ""))
-                    .endElement();
+                htmlWriter.startElement("td").attribute("class", "key").characters(metadata.getPath().getFileName().toString()).endElement();
+
+                htmlWriter.startElement("td").attribute("class", "value");
+                String possibleMediaType = metadata.getMediaType();
+                if (possibleMediaType == null) {
+                    // Might be a directory, just render this as a link
+                    renderLink(htmlWriter, metadata);
+                } else {
+                    MediaType mediaType = MediaType.parse(possibleMediaType);
+                    if (mediaType.is(MediaType.ANY_IMAGE_TYPE)) {
+                        // render as image
+                        renderImage(htmlWriter, metadata);
+                    } else if (mediaType.is(MediaType.ANY_VIDEO_TYPE)) {
+                        // render as video
+                        renderVideo(htmlWriter, metadata);
+                    } else {
+                        // render as a link
+                        renderLink(htmlWriter, metadata);
+                    }
+                }
+                htmlWriter.endElement();
+
                 htmlWriter.endElement();
             }
             htmlWriter.endElement();
+        }
 
-            return htmlWriter;
+        private static void renderLink(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
+            htmlWriter.startElement("a").attribute("href", metadata.getPath().toUri().toASCIIString()).characters(metadata.getPath().toString()).endElement();
+        }
+
+        private static void renderImage(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
+            htmlWriter.startElement("img").attribute("src", metadata.getPath().toUri().toASCIIString()).attribute("alt", metadata.getPath().getFileName().toString()).endElement();
+        }
+        private static void renderVideo(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
+            htmlWriter.startElement("video")
+                .attribute("src", metadata.getPath().toUri().toASCIIString()).attribute("controls", "")
+                // If the browser doesn't support this video format, fallback to a link
+                .startElement("a").attribute("href", metadata.getPath().toUri().toASCIIString()).characters("Download video").endElement()
+            .endElement();
         }
     }
 }
