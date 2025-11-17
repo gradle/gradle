@@ -17,15 +17,16 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
 
 @NullMarked
 public class DefaultTestFileAttachmentDataEvent extends AbstractTestDataEvent {
     private final Path path;
-    private final String mediaType;
+    private final @Nullable String mediaType;
 
-    public DefaultTestFileAttachmentDataEvent(long logTime, Path path, String mediaType) {
+    public DefaultTestFileAttachmentDataEvent(long logTime, Path path, @Nullable String mediaType) {
         super(logTime);
 
         this.path = path;
@@ -36,6 +37,7 @@ public class DefaultTestFileAttachmentDataEvent extends AbstractTestDataEvent {
         return path;
     }
 
+    @Nullable
     public String getMediaType() {
         return mediaType;
     }

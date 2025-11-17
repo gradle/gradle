@@ -32,6 +32,7 @@ import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabsRenderer;
+import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -510,7 +511,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                         .characters(metadata.getPath().toAbsolutePath().toString())
                     .endElement()
                     .startElement("td").attribute("class", "value")
-                        .characters(metadata.getMediaType())
+                        .characters(GUtil.elvis(metadata.getMediaType(), ""))
                     .endElement();
                 htmlWriter.endElement();
             }

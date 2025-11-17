@@ -18,6 +18,7 @@ package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -42,8 +43,9 @@ public interface FileAttachment {
     /**
      * <a href="https://www.iana.org/assignments/media-types/media-types.xhtml">Media type</a> of the file.
      *
-     * @return media type of the file
+     * @return media type of the file attachment or {@code null} if the file attachment represents a directory
      * @since 9.3.0
      */
+    @Nullable
     String getMediaType();
 }

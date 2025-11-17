@@ -184,7 +184,7 @@ public class TestEventSerializer {
                     Map<String, String> keyValues = mapSerializer.read(decoder);
                     return new DefaultTestKeyValueDataEvent(logTime, keyValues);
                 case FILE_ATTACHMENT_TYPE:
-                    return new DefaultTestFileAttachmentDataEvent(logTime, pathSerializer.read(decoder), decoder.readString());
+                    return new DefaultTestFileAttachmentDataEvent(logTime, pathSerializer.read(decoder), decoder.readNullableString());
             }
             throw new IllegalStateException("Unknown type of test metadata: " + type);
         }
@@ -199,7 +199,7 @@ public class TestEventSerializer {
             } else if (value instanceof DefaultTestFileAttachmentDataEvent) {
                 encoder.writeInt(FILE_ATTACHMENT_TYPE);
                 pathSerializer.write(encoder, ((DefaultTestFileAttachmentDataEvent) value).getPath());
-                encoder.writeString(((DefaultTestFileAttachmentDataEvent) value).getMediaType());
+                encoder.writeNullableString(((DefaultTestFileAttachmentDataEvent) value).getMediaType());
             }
         }
     }

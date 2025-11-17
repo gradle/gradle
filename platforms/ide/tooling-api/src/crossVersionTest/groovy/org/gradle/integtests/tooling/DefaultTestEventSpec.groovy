@@ -24,6 +24,7 @@ import org.gradle.tooling.events.test.TestMetadataEvent
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestOutputDescriptor
 import org.gradle.tooling.events.test.TestOutputEvent
+import org.jspecify.annotations.Nullable
 
 @CompileStatic
 class DefaultTestEventSpec implements GroupTestEventSpec {
@@ -67,7 +68,7 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     }
 
     @Override
-    void fileAttachment(File path, String mediaType) {
+    void fileAttachment(File path, @Nullable String mediaType) {
         assert actualMetadata.removeIf {
             it instanceof FileAttachment && path == it.path && mediaType == it.mediaType
         }

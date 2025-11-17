@@ -254,12 +254,12 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         then:
         def results = resultsFor(testDirectory)
         results.testPath('com.example.ReportEntryTest').onlyRoot()
-            .assertMetadata([(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor").absolutePath): "application/octet-stream"])
+            .assertMetadata([(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor").absolutePath): ''])
             .assertChildrenExecuted("test(TestReporter)")
         results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach").absolutePath): "application/octet-stream",
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test").absolutePath): "application/octet-stream",
-                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach").absolutePath): "application/octet-stream"
+                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach").absolutePath): '',
+                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test").absolutePath): '',
+                (file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach").absolutePath): ''
             ])
     }
 
