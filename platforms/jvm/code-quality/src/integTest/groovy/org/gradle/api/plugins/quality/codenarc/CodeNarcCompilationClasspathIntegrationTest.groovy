@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.junit.Assume
+import spock.lang.Issue
 
 class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
@@ -67,6 +68,67 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
 
         then:
         failure.assertHasCause("The compilationClasspath property of CodeNarc task can only be non-empty when using CodeNarc $MIN_SUPPORTED_COMPILATION_CLASSPATH_VERSION or newer.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35494")
+    def "automatically adds the source set compile classpath to the compilationClasspath on CodeNarc task"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'codenarc'
+                id 'groovy'
+                id 'jvm-test-suite'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                testImplementation 'org.spockframework:spock-core:2.4-M6-groovy-4.0'
+            }
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                    }
+                }
+            }
+        """
+        file("src/test/groovy/UsesAnnotationTest.groovy") << """
+            import spock.lang.Shared
+            import spock.lang.Specification
+
+            class UsesAnnotationTest extends Specification {
+
+                @Shared
+                Object object = new Object()
+
+                void 'a test'() {
+                    expect:
+                    true
+                }
+
+            }
+        """
+        file("config/codenarc/codenarc.xml") << """
+            <ruleset xmlns="http://codenarc.org/ruleset/1.0"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
+                     xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
+
+                <ruleset-ref path='rulesets/basic.xml'/>
+                <ruleset-ref path='rulesets/serialization.xml'/>
+
+            </ruleset>
+        """
+
+        when:
+        succeeds("check")
+
+        then:
+        outputDoesNotContain("WARNING: Compilation error for non-default compiler phase (semantic analysis). Consider removing \"enhanced\" rules from your ruleset.")
     }
 
     private void buildFileWithCodeNarcAndCompilationClasspath(String codeNarcVersion) {
