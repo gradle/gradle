@@ -42,7 +42,7 @@ public interface TestMetadataEvent {
      * Retrieves the recorded metadata values for this event.
      *
      * @return the event metadata values
-     * @since 9.3.0
+     * @since 8.13
      */
     Map<String, String> getValues();
 }

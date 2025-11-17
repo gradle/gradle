@@ -61,7 +61,7 @@ public interface TestEventReporter extends AutoCloseable {
      * @param logTime the time the metadata was logged, should be between the start and end times of the test (inclusive)
      * @param key a key to identify the metadata
      * @param value the metadata value
-     * @since 9.3.0
+     * @since 9.4.0
      */
     void metadata(Instant logTime, String key, String value);
 
@@ -76,8 +76,8 @@ public interface TestEventReporter extends AutoCloseable {
      * Keys should usually be unique within the scope of a single test, but this is not enforced.
      *
      * @param logTime the time the metadata was logged, should be between the start and end times of the test (inclusive)
-     * @param values the metadata values, containing in a map which must be serializable by the Tooling API
-     * @since 9.3.0
+     * @param values the key-value pairs
+     * @since 8.13
      */
     void metadata(Instant logTime, Map<String, String> values);
 
