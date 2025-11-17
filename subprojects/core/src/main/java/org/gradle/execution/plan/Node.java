@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.execution.plan.edges.DependencyNodesSet;
 import org.gradle.execution.plan.edges.DependentNodesSet;
@@ -605,18 +606,21 @@ public abstract class Node {
     }
 
     /**
-     * Returns the project state that this node requires mutable access to, if any.
+     * Returns the lock controlling access to the mutable state that this node operates on, if any.
      */
     @Nullable
-    public ResourceLock getProjectToLock() {
+    public ResourceLock getAccessLock() {
         return null;
     }
 
     /**
      * Returns the project which this node belongs to, and requires access to the execution services of.
-     * Returning non-null does not imply that the project must be locked when this node executes. Use {@link #getProjectToLock()} instead for that.
-     *
-     * TODO - this should return some kind of abstract 'action context' instead of a mutable project.
+     * <p>
+     * Returning non-null ideally does not imply any kind of exclusive access to the project, however in some cases this property
+     * may be used to acquire project-level locks. In general, {@link #getAccessLock()} should be preferred for determining exclusive
+     * access requirements.
+     * <p>
+     * TODO: The execution engine should know nothing about `Project`s. We should work to remove this method.
      */
     @Nullable
     public ProjectInternal getOwningProject() {
