@@ -16,7 +16,6 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Produces traces from build operations"
@@ -37,4 +36,6 @@ dependencies {
     implementation(libs.jacksonDatabind)
     implementation(libs.jacksonDatatypeJdk8)
     implementation(libs.jacksonDatatypeJsr310)
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

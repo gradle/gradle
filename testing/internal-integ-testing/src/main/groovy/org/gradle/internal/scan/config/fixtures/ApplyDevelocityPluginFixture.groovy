@@ -18,15 +18,17 @@ package org.gradle.internal.scan.config.fixtures
 
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 
+import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.CONVENTIONS_PLUGIN_VERSION
 import static org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin.VERSION
 
 /**
  * Applies the Develocity plugin via the `settings.gradle` script.
  */
 class ApplyDevelocityPluginFixture {
-    private static final String APPLY_DEVELOCITY_PLUGIN = """plugins {
-        |    id("${AutoAppliedDevelocityPlugin.ID}") version("${VERSION}")
-        |}""".stripMargin()
+    private static final String APPLY_DEVELOCITY_PLUGIN = """
+        |    id("${AutoAppliedDevelocityPlugin.ID}").version("${VERSION}")
+        |    id("${AutoAppliedDevelocityPlugin.CONVENTIONS_PLUGIN_ID}").version("${CONVENTIONS_PLUGIN_VERSION}")
+        |""".stripMargin()
 
     static void applyDevelocityPlugin(File settingsFile) {
         def settingsText = settingsFile.text
@@ -41,22 +43,23 @@ class ApplyDevelocityPluginFixture {
     private static void insertIntoFile(File settingsFile, String pluginBlock) {
         def settingsText = settingsFile.text
 
-        def pluginManagementBlock
-        def pluginManagementMatcher = settingsText =~ /(?s)pluginManagement [{].*[}]/
-        if (pluginManagementMatcher.find()) {
-            def start = pluginManagementMatcher.start(0)
-            def end = pluginManagementMatcher.end(0)
-            pluginManagementBlock = settingsText.substring(start, end)
-            settingsText = settingsText.substring(0, start) + settingsText.substring(end)
+        def pluginsBlockMatcher = settingsText =~ /(?s)plugins ([{]).*?[}]/
+        if (pluginsBlockMatcher.find()) {
+           settingsText =
+               settingsText.substring(0, pluginsBlockMatcher.end(1)) +
+                   pluginBlock +
+                   settingsText.substring(pluginsBlockMatcher.end(1))
         } else {
-            pluginManagementBlock = null
+            def pluginManagementMatcher = settingsText =~ /(?s)pluginManagement [{].*[}]/
+            if (pluginManagementMatcher.find()) {
+                settingsText =
+                    settingsText.substring(0, pluginManagementMatcher.end(0)) +
+                        "\nplugins {" + pluginBlock + "}" +
+                        settingsText.substring(pluginManagementMatcher.end(0))
+            } else {
+                settingsText = "plugins {$pluginBlock}\n$settingsText"
+            }
         }
-
-        // todo: handle more special blocks, when actually needed
-
-        settingsFile.text =
-            (pluginManagementBlock == null ? "" : pluginManagementBlock + "\n\n") +
-            pluginBlock + "\n\n" +
-            settingsText.trim()
+        settingsFile.text = settingsText
     }
 }

@@ -110,4 +110,43 @@ class LazySortedReferenceHashSetTest extends Specification {
         and:
         set.toList() == initialSet.drop(1)
     }
+
+    def "iterator.remove before next throws IllegalStateException"() {
+        given:
+        set.addAll(["a", "b"]) // ensure we use the non-empty iterator from our implementation
+        def it = set.iterator()
+
+        when:
+        it.remove()
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "iterator.remove called twice without next throws IllegalStateException"() {
+        given:
+        set.addAll(["1", "2", "3"])
+        def it = set.iterator()
+        assert it.next() == "1"
+        it.remove()
+
+        when:
+        it.remove()
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "next past end throws NoSuchElementException"() {
+        given:
+        set.addAll(["x"])
+        def it = set.iterator()
+        assert it.next() == "x"
+
+        when:
+        it.next()
+
+        then:
+        thrown(NoSuchElementException)
+    }
 }

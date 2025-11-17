@@ -25,7 +25,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.snapshot.ValueSnapshot
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
 abstract class AbstractSkipEmptyWorkStepTest<C extends WorkspaceContext> extends StepSpec<C> {

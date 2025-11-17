@@ -119,6 +119,20 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-discovery",
+    "path": "platforms/core-runtime/build-discovery",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-discovery-impl",
+    "path": "platforms/core-runtime/build-discovery-impl",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
@@ -157,7 +171,7 @@
     "name": "build-operations-trace",
     "path": "platforms/core-runtime/build-operations-trace",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -1113,6 +1127,27 @@
     "crossVersionTests": false
   },
   {
+    "name": "project-features",
+    "path": "platforms/core-configuration/project-features",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "project-features-api",
+    "path": "platforms/core-configuration/project-features-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "project-features-demos",
+    "path": "platforms/core-configuration/project-features-demos",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "public-api",
     "path": "packaging/public-api",
     "unitTests": false,
@@ -1295,27 +1330,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "software-features",
-    "path": "platforms/core-configuration/software-features",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "software-features-api",
-    "path": "platforms/core-configuration/software-features-api",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "software-features-demos",
-    "path": "platforms/core-configuration/software-features-demos",
-    "unitTests": false,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "name": "stdlib-java-extensions",
     "path": "platforms/core-runtime/stdlib-java-extensions",
     "unitTests": true,
@@ -1362,13 +1376,6 @@
     "path": "platforms/software/testing-base-infrastructure",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "testing-junit-platform",
-    "path": "platforms/jvm/testing-junit-platform",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

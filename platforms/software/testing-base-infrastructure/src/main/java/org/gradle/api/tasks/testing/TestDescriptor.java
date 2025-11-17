@@ -45,6 +45,8 @@ public interface TestDescriptor {
 
     /**
      * Returns the test class name for this test, if any.
+     * <p>
+     * Note that as of Gradle 9.3, this method may return a value that is not a class name for non-class-based testing.
      *
      * @return The class name. May return null.
      */

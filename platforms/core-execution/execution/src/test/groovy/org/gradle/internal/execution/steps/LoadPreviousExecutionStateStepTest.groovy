@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.PreviousExecutionState
@@ -25,7 +26,7 @@ class LoadPreviousExecutionStateStepTest extends StepSpec<WorkspaceContext> {
 
     def step = new LoadPreviousExecutionStateStep(delegate)
     def uniqueId = "test"
-    def identity = Stub(UnitOfWork.Identity) {
+    def identity = Stub(Identity) {
         getUniqueId() >> uniqueId
     }
     def previousExecutionState = Stub(PreviousExecutionState)

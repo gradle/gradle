@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
@@ -57,6 +58,11 @@ trait JUnitJupiterMultiVersionTest {
     }
 
     static class JUnitJupiterTestSourceConfiguration implements AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration {
+        @Override
+        GenericTestExecutionResult.TestFramework getTestFramework() {
+            return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
+        }
+
         @Override
         String getTestFrameworkImports() {
             return """

@@ -37,8 +37,8 @@ import org.gradle.util.TestUtil
 final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerTest {
 
     @Override
-    protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator(), TestUtil.propertyFactory())
+    protected AttributeContainerInternal createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
+        AttributeContainerInternal container = AttributeTestUtil.attributesFactory().mutable()
         attributes.forEach {key, value ->
             container.attribute(key, value)
         }
@@ -359,8 +359,8 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def container = createContainer()
 
         when:
-        container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
-        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, TestUtil.objectInstantiator().named(LibraryElements, "aar"))
+        container.attribute(Usage.USAGE_ATTRIBUTE, container.named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
+        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, container.named(LibraryElements, "aar"))
 
         then:
         def immutable = container.asImmutable()
@@ -373,8 +373,8 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         def container = createContainer()
 
         when:
-        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, TestUtil.objectInstantiator().named(LibraryElements, "aar"))
-        container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
+        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, container.named(LibraryElements, "aar"))
+        container.attribute(Usage.USAGE_ATTRIBUTE, container.named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
 
         then:
         def immutable = container.asImmutable()
@@ -551,5 +551,42 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         then:
         container.getAttribute(a) == "other-a"
         container.getAttribute(b) == "other-b"
+    }
+
+    def "translates deprecated usage values"() {
+        def container = createContainer()
+        container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, legacyUsage))
+
+        expect:
+        container.getAttribute(Usage.USAGE_ATTRIBUTE).name == legacyUsage
+        container.asImmutable().findEntry(Usage.USAGE_ATTRIBUTE).getIsolatedValue().name == replacedUsage
+        container.asImmutable().findEntry(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).getIsolatedValue().name == replacedLibraryElements
+
+        where:
+        legacyUsage                                            | replacedUsage      | replacedLibraryElements
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS          | Usage.JAVA_API     | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES       | Usage.JAVA_API     | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME | LibraryElements.RESOURCES
+    }
+
+    def "translates deprecated string-typed usage values"() {
+        def container = createContainer()
+        def attr = Attribute.of(Usage.USAGE_ATTRIBUTE.name, String)
+        container.attribute(attr, legacyUsage)
+
+        expect:
+        container.getAttribute(attr) == legacyUsage
+        container.asImmutable().findEntry(Usage.USAGE_ATTRIBUTE.name).getIsolatedValue() == replacedUsage
+        container.asImmutable().findEntry(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name).getIsolatedValue() == replacedLibraryElements
+
+        where:
+        legacyUsage                                            | replacedUsage      | replacedLibraryElements
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS          | Usage.JAVA_API     | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES       | Usage.JAVA_API     | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME | LibraryElements.JAR
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME | LibraryElements.CLASSES
+        JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME | LibraryElements.RESOURCES
     }
 }

@@ -16,30 +16,15 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
+import org.fusesource.jansi.internal.OSInfo;
+
 public class JansiLibraryFactory {
-
-    public final static String MAC_OSX_LIB_FILENAME = "libjansi.jnilib";
-    public final static String LINUX_LIB_FILENAME = "libjansi.so";
-    public final static String WINDOWS_LIB_FILENAME = "jansi.dll";
-    private JansiRuntimeResolver jansiRuntimeResolver = new DefaultJansiRuntimeResolver();
-
-    void setJansiRuntimeResolver(JansiRuntimeResolver jansiRuntimeResolver) {
-        this.jansiRuntimeResolver = jansiRuntimeResolver;
-    }
-
     public JansiLibrary create() {
-        String os = jansiRuntimeResolver.getOperatingSystem();
-        JansiOperatingSystemSupport osSupport = JansiOperatingSystemSupport.forIdentifier(os);
-
-        if (osSupport == null) {
-            return null;
+        // From https://github.com/fusesource/jansi/blob/3d2a9788fa48e4cecbbe28279d01111a125d2f66/src/main/java/org/fusesource/jansi/internal/JansiLoader.java#L294-L298
+        String jansiNativeLibraryName = System.mapLibraryName("jansi");
+        if (jansiNativeLibraryName.endsWith(".dylib")) {
+            jansiNativeLibraryName = jansiNativeLibraryName.replace(".dylib", ".jnilib");
         }
-
-        switch (osSupport) {
-            case MAC_OS_X: return new JansiLibrary(os, MAC_OSX_LIB_FILENAME);
-            case LINUX: return new JansiLibrary(jansiRuntimeResolver.getPlatform(), LINUX_LIB_FILENAME);
-            case WINDOWS: return new JansiLibrary(jansiRuntimeResolver.getPlatform(), WINDOWS_LIB_FILENAME);
-            default: return null;
-        }
+        return new JansiLibrary(OSInfo.getNativeLibFolderPathForCurrentOS(), jansiNativeLibraryName);
     }
 }

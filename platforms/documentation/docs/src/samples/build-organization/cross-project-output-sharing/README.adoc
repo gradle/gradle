@@ -43,7 +43,7 @@ A frequent anti-pattern to declare cross-project dependencies is below.
 This publication model is unsafe and can lead to non-reproducible and hard to parallelize builds.
 By declaring a dependency in this way, the task ordering between consumers and producers is not known to Gradle at the time when it is deciding the order of tasks for a given build.
 This means that potentially, consumers of the file "someOtherJar" can execute before the producer task that creates the jar!
-This would lead to builds that are either totally broken, or worse, broken is a way that is subtle, flaky, and difficult to debug.
+This would lead to builds that are either totally broken, or worse, broken in a way that is subtle, flaky, and difficult to debug.
 
 [source,groovy]
 dependencies {

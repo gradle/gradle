@@ -385,7 +385,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
     }
 
     private def fetchAllModels() {
-        executer.withArguments(ENABLE_CLI)
+        withIsolatedProjects()
         return runBuildAction(new FetchCustomModelForEachProject())
     }
 

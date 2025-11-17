@@ -102,6 +102,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
         }
 
+        @SuppressWarnings("unused") // reflection
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
                                       @MapKey("version") String version) {
@@ -115,6 +116,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
         }
 
+        @SuppressWarnings("unused") // reflection
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
                                       @MapKey("version") @Nullable String version) {

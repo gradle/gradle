@@ -20,9 +20,9 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Handles warnings and errors that occurr during the execution of a unit of work.
+ * Handles warnings and errors that occur during the execution of a unit of work.
  */
 @ServiceScope(Scope.Build.class)
 public interface ExecutionProblemHandler {
-    void handleReportedProblems(UnitOfWork.Identity identity, UnitOfWork work, WorkValidationContext validationContext);
+    void handleReportedProblems(Identity identity, UnitOfWork work, WorkValidationContext validationContext);
 }

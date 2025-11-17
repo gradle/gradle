@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import net.rubygrapefruit.platform.internal.Platform;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
@@ -25,16 +24,13 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.function.Supplier;
 
 public class ConsoleConfigureAction {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleConfigureAction.class);
 
     private ConsoleConfigureAction() {
     }
@@ -67,26 +63,18 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        boolean isWindowsAArch64 = false;
-        try { // fixing https://github.com/gradle/gradle/issues/35521 for 9.2.1 to be removed for 9.3.0 because https://github.com/gradle/gradle/pull/35402 makes this obsolete again
-            isWindowsAArch64 = "windows-aarch64".equals(Platform.current().getId());
-        } catch (UnsupportedOperationException unsupportedOperationException) {
-            // unknown os / arch
-        }
-        if (isWindowsAArch64) {
-            renderer.addPlainConsole(stdout, stderr);
-        } else if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
-            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false);
         } else if (consoleMetaData.isStdOut()) {
             // Write rich content to stdout and plain content to stderr
-            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdoutConsole, stderr, consoleMetaData, false);
         } else if (consoleMetaData.isStdErr()) {
             // Write plain content to stdout and rich content to stderr
-            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdout, stderrConsole, true);
         } else {
             renderer.addPlainConsole(stdout, stderr);
@@ -108,43 +96,42 @@ public class ConsoleConfigureAction {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
-            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addColoredConsoleWithErrorOutputOnStdout(console);
         } else {
             // Write colored content to both stdout and stderr
-            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
-            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addColoredConsole(stdoutConsole, stderrConsole);
         }
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
-        boolean isWindowsAArch64 = false;
-        try { // fixing https://github.com/gradle/gradle/issues/35521 for 9.2.1 to be removed for 9.3.0 because https://github.com/gradle/gradle/pull/35402 makes this obsolete again
-            isWindowsAArch64 = "windows-aarch64".equals(Platform.current().getId());
-        } catch (UnsupportedOperationException unsupportedOperationException) {
-            // unknown os / arch
-        }
-        if (isWindowsAArch64) {
-            LOGGER.warn("Rich console output is not supported on Windows ARM64. Falling back to plain console output.");
-            renderer.addPlainConsole(stdout, stderr);
-        } else if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
-            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, verbose);
         } else {
             // Write rich content to both stdout and stderr
-            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
-            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdoutConsole, stderrConsole, consoleMetaData, verbose);
         }
     }
 
-    private static Console consoleFor(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+    private static Console consoleFor(OutputStream stream, Supplier<OutputStream> jansiFallback, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
         boolean force = !consoleMetaData.isWrapStreams();
-        OutputStreamWriter outStr = new OutputStreamWriter(force ? stdout : AnsiConsoleUtil.wrapOutputStream(stdout), Charset.defaultCharset());
-        return new AnsiConsole(outStr, outStr, colourMap, consoleMetaData, force);
+        OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), Charset.defaultCharset());
+        return new AnsiConsole(writer, writer, colourMap, consoleMetaData, force);
+    }
+
+    private static Console consoleForStdOut(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        return consoleFor(stdout, org.fusesource.jansi.AnsiConsole::out, consoleMetaData, colourMap);
+    }
+
+    private static Console consoleForStdErr(OutputStream stderr, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        return consoleFor(stderr, org.fusesource.jansi.AnsiConsole::err, consoleMetaData, colourMap);
     }
 }

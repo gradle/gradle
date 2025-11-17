@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 class ModuleForcingResolveRuleSpec extends Specification {
 
@@ -45,9 +45,8 @@ class ModuleForcingResolveRuleSpec extends Specification {
         ]).execute(details)
 
         then:
-        _ * details.requested >> DefaultModuleComponentSelector.newSelector(requested)
-        _ * details.getOldRequested() >> requested
-        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(mid(requested.group, requested.name), forcedVersion), ComponentSelectionReasons.FORCED)
+        _ * details.requested >> requested
+        1 * details.useTarget(DefaultModuleComponentSelector.newSelector(requested.moduleIdentifier, forcedVersion), ComponentSelectionReasons.FORCED)
         0 * details._
 
         where:
@@ -96,6 +95,6 @@ class ModuleForcingResolveRuleSpec extends Specification {
     }
 
     static newComponentSelector(String group, String name, String version) {
-        DefaultModuleComponentSelector.newSelector(mid(group, name), version)
+        newSelector(mid(group, name), version)
     }
 }

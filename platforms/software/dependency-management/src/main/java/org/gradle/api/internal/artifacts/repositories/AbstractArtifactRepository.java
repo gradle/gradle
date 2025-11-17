@@ -42,12 +42,14 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
 import org.gradle.internal.resource.local.FileStore;
-import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.UnknownServiceException;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Map;
 import java.util.Set;
@@ -173,26 +175,70 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
      * @param transport the transport used to create the repository accessor
      * @return a dependency injecting instantiator, aware of services we want to expose
      */
-    ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(final RepositoryTransport transport, InstantiatorFactory instantiatorFactory, final URI rootUri, final FileStore<String> externalResourcesFileStore) {
-        ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
-            .displayName("implicit inputs capturing instantiator services")
-            .provider(new ServiceRegistrationProvider() {
-                @Provides
-                RepositoryResourceAccessor createResourceAccessor() {
-                    return createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
-                }
-            })
-            .provider(registration -> {
-                registration.add(ObjectFactory.class, objectFactory);
-            })
-            .build();
-        return new ImplicitInputsCapturingInstantiator(serviceRegistry, instantiatorFactory);
+    ImplicitInputsCapturingInstantiator createInjectorForMetadataSuppliers(
+        RepositoryTransport transport,
+        InstantiatorFactory instantiatorFactory,
+        @Nullable URI rootUri,
+        FileStore<String> externalResourcesFileStore
+    ) {
+        RepositoryResourceAccessor repositoryResourceAccessor = createRepositoryAccessor(transport, rootUri, externalResourcesFileStore);
+        ServiceLookup services = new RepositoryRuleServiceLookup(objectFactory, repositoryResourceAccessor);
+        return new ImplicitInputsCapturingInstantiator(services, instantiatorFactory);
     }
 
-    protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
+    protected @Nullable RepositoryResourceAccessor createRepositoryAccessor(
+        RepositoryTransport transport,
+        @Nullable URI rootUri,
+        FileStore<String> externalResourcesFileStore
+    ) {
+        if (rootUri == null) {
+            return null;
+        }
         return new ExternalRepositoryResourceAccessor(rootUri, transport.getResourceAccessor(), externalResourcesFileStore);
     }
 
+    private static class RepositoryRuleServiceLookup implements ServiceLookup {
+
+        private final ObjectFactory objectFactory;
+        private final @Nullable RepositoryResourceAccessor repositoryResourceAccessor;
+
+        public RepositoryRuleServiceLookup(
+            ObjectFactory objectFactory,
+            @Nullable RepositoryResourceAccessor repositoryResourceAccessor
+        ) {
+            this.objectFactory = objectFactory;
+            this.repositoryResourceAccessor = repositoryResourceAccessor;
+        }
+
+        @Override
+        public @Nullable Object find(Type serviceType) throws ServiceLookupException {
+            if (serviceType == RepositoryResourceAccessor.class) {
+                if (repositoryResourceAccessor == null) {
+                    throw new ServiceLookupException("Can not inject RepositoryResourceAccessor since repository has no URL.");
+                } else {
+                    return repositoryResourceAccessor;
+                }
+            } else if (serviceType == ObjectFactory.class) {
+                return objectFactory;
+            }
+
+            return null;
+        }
+
+        @Override
+        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+            Object service = find(serviceType);
+            if (service != null) {
+                return service;
+            }
+            return ServiceRegistry.EMPTY.get(serviceType);
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            return ServiceRegistry.EMPTY.get(serviceType, annotatedWith);
+        }
+    }
 
     private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
         return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, (target, throwable) -> {

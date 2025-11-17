@@ -38,7 +38,7 @@ class CommandLineOutputIntegrationTest extends AbstractIntegrationSpec implement
         succeeds("--version")
 
         then:
-        outputContains("Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no JDK specified, using current Java home)")
+        outputContains("Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no Daemon JVM specified, using current Java home)")
     }
 
     def "displays version message appropriately for daemon JVM requested by org.gradle.java.home"() {

@@ -32,7 +32,6 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     private final ComponentSelectionReason reason;
     private final ModuleVersionResolveException failure;
     private final boolean constraint;
-    private final long fromVariant;
     private final Long targetVariant;
 
     public DetachedResolvedGraphDependency(ComponentSelector requested,
@@ -40,7 +39,6 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
                                            ComponentSelectionReason reason,
                                            ModuleVersionResolveException failure,
                                            boolean constraint,
-                                           long fromVariant,
                                            Long targetVariant
     ) {
         assert requested != null;
@@ -51,7 +49,6 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
         this.selected = selected;
         this.failure = failure;
         this.constraint = constraint;
-        this.fromVariant = fromVariant;
         this.targetVariant = targetVariant;
     }
 
@@ -78,11 +75,6 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     @Override
     public boolean isConstraint() {
         return constraint;
-    }
-
-    @Override
-    public long getFromVariant() {
-        return fromVariant;
     }
 
     @Override

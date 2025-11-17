@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.redirector.StandardOutputRedirector;
 import org.gradle.api.internal.tasks.testing.redirector.TestOutputRedirector;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.time.Clock;
 
@@ -95,4 +96,10 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     public void failure(Object testId, TestFailure result) {
         processor.failure(testId, result);
     }
+
+    @Override
+    public void published(Object testId, TestMetadataEvent keyValueEvent) {
+        processor.published(testId, keyValueEvent);
+    }
+
 }

@@ -102,7 +102,7 @@ task deleteCacheFiles(type: Delete) {
             repositories {
                 ivy { url = "${repo2.uri}" }
             }
-            retrieve.dependsOn(':a:retrieve')
+            tasks.retrieve.dependsOn(':a:retrieve')
         """
 
         when:

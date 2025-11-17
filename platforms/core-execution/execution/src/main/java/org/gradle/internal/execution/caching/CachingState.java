@@ -120,6 +120,7 @@ public class CachingState {
      */
     public static class Disabled {
         private final ImmutableList<CachingDisabledReason> disabledReasons;
+        @Nullable
         private final CacheKeyCalculatedState cacheKeyCalculatedState;
 
         private Disabled(ImmutableList<CachingDisabledReason> disabledReasons, @Nullable CacheKeyCalculatedState cacheKeyCalculatedState) {

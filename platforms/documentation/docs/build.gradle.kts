@@ -645,82 +645,85 @@ tasks.named<Test>("docsTest") {
     filter {
         // Only execute C++ sample tests on Linux because it is the configured target
         if (!OperatingSystem.current().isLinux) {
-            excludeTestsMatching("org.gradle.docs.samples.*.building-cpp-*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.building-cpp-*")
         }
         // Only execute Swift sample tests on OS X because it is the configured target
         if (!OperatingSystem.current().isMacOsX) {
-            excludeTestsMatching("org.gradle.docs.samples.*.building-swift-*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.building-swift-*")
         }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
         if (javaVersion.isJava9Compatible) {
-            excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*")
         }
 
         if (OperatingSystem.current().isWindows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task")
         }
 
         if (!javaVersion.isJava11Compatible) {
             // This test sets source and target compatibility to 11
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution")
         }
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
             // Android requires Java 17+
-            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*")
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app")
             // Umbrella build project also contains Android projects
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build")
             // AGP AND KMP are tested on Java 17 only
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-*")
             // Spring Boot requires Java 17+
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application")
         }
 
         if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
             // Sample requests Java 21
-            excludeTestsMatching("org.gradle.docs.samples.*.custom-test-task_*_consumer.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.custom-test-task_*_consumer")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
-            // Does not work due to JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
-            excludeTestsMatching("org.gradle.docs.samples.*.building-kotlin-*")
             // Incompatible for unknown reasons, investigation ongoing
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-android-app")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
             // SpotBugs doesn't support Java 23
             excludeTestsMatching("org.gradle.docs.samples.*.publishing-convention-plugins*")
             excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*")
-            // PMD doesn't support Java 23
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
+            // Kotlin does not yet support 25 JDK target
+            excludeTestsMatching("org.gradle.docs.samples.*.building-kotlin-*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-use-convention-plugins-do_kotlin*")
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
+            // PMD doesn't support Java 26
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
         }
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            // Kotlin does not yet support 24 JDK target
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
-        }
-
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-native*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-swift*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.building-swift*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-native*")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-swift*")
+            excludeTestsMatching("org.gradle.docs.samples.*.building-swift*")
             // We don't have Android SDK installed on Mac M1 now
-            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.building-android-*")
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app")
         }
     }
 
     filter {
         // TODO(https://github.com/gradle/gradle/issues/22538)
-        excludeTestsMatching("org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation.sample")
+        excludeTestsMatching("org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation")
     }
 
     if (project.configurationCacheEnabledForDocsTests) {
@@ -729,111 +732,111 @@ tasks.named<Test>("docsTest") {
 
         filter {
             // Configuration cache samples enable configuration cache explicitly. We're not going to run them with the configuration cache executer.
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-configuration-cache-*.sample")
-            excludeTestsMatching("*WithoutCC*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-configuration-cache-*")
+            excludeTestsMatching("*WithoutCC*")
 
             // Projects generated by gradle init enable configuration cache by default, no need to run them again.
-            excludeTestsMatching("org.gradle.docs.samples.*building-*.sample")
+            excludeTestsMatching("org.gradle.docs.samples.*building-*")
 
             // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
             val testsForUnsupportedFeatures = listOf(
-                "snippet-ant-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget.sample",
-                "snippet-ant-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget.sample",
-                "snippet-ant-depends-on-ant-target_groovy_dependsOnAntTarget.sample",
-                "snippet-ant-depends-on-ant-target_kotlin_dependsOnAntTarget.sample",
-                "snippet-ant-depends-on-task_groovy_dependsOnTask.sample",
-                "snippet-ant-depends-on-task_kotlin_dependsOnTask.sample",
-                "snippet-ant-hello_groovy_antHello.sample",
-                "snippet-ant-hello_kotlin_antHello.sample",
-                "snippet-ant-rename-task_groovy_renameAntDelegate.sample",
-                "snippet-ant-rename-task_kotlin_renameAntDelegate.sample",
-                "snippet-ant-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig.sample",
-                "snippet-ant-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig.sample",
-                "snippet-ant-ant-logging_groovy_antLogging.sample",
-                "snippet-ant-ant-logging_kotlin_antLogging.sample",
-                "snippet-buildlifecycle-task-execution-events_groovy_sanityCheck.sample",
-                "snippet-buildlifecycle-task-execution-events_groovy_taskExecutionEvents.groovy.sample",
-                "snippet-buildlifecycle-task-execution-events_kotlin_sanityCheck.sample",
-                "snippet-buildlifecycle-task-execution-events_kotlin_taskExecutionEvents.kotlin.sample",
-                "snippet-custom-model-internal-views_groovy_softwareModelExtend-iv-model.sample",
-                "snippet-custom-model-language-type_groovy_softwareModelExtend-components.sample",
+                "snippet-ant-add-behaviour-to-ant-target_groovy_addBehaviourToAntTarget",
+                "snippet-ant-add-behaviour-to-ant-target_kotlin_addBehaviourToAntTarget",
+                "snippet-ant-depends-on-ant-target_groovy_dependsOnAntTarget",
+                "snippet-ant-depends-on-ant-target_kotlin_dependsOnAntTarget",
+                "snippet-ant-depends-on-task_groovy_dependsOnTask",
+                "snippet-ant-depends-on-task_kotlin_dependsOnTask",
+                "snippet-ant-hello_groovy_antHello",
+                "snippet-ant-hello_kotlin_antHello",
+                "snippet-ant-rename-task_groovy_renameAntDelegate",
+                "snippet-ant-rename-task_kotlin_renameAntDelegate",
+                "snippet-ant-use-external-ant-task-with-config_groovy_useExternalAntTaskWithConfig",
+                "snippet-ant-use-external-ant-task-with-config_kotlin_useExternalAntTaskWithConfig",
+                "snippet-ant-ant-logging_groovy_antLogging",
+                "snippet-ant-ant-logging_kotlin_antLogging",
+                "snippet-buildlifecycle-task-execution-events_groovy_sanityCheck",
+                "snippet-buildlifecycle-task-execution-events_groovy_taskExecutionEvents.groovy",
+                "snippet-buildlifecycle-task-execution-events_kotlin_sanityCheck",
+                "snippet-buildlifecycle-task-execution-events_kotlin_taskExecutionEvents.kotlin",
+                "snippet-custom-model-internal-views_groovy_softwareModelExtend-iv-model",
+                "snippet-custom-model-language-type_groovy_softwareModelExtend-components",
 
                 // These snippets are not used in the documentation, but only in the integration tests.
-                "snippet-dependency-management-working-with-dependencies-access-metadata-artifact_groovy_accessingMetadataArtifact.sample",
-                "snippet-dependency-management-working-with-dependencies-access-metadata-artifact_kotlin_accessingMetadataArtifact.sample",
-                "snippet-dependency-management-working-with-dependencies-iterate-artifacts_kotlin_iterating-artifacts.sample",
-                "snippet-dependency-management-working-with-dependencies-walk-graph_groovy_walking-dependency-graph.sample",
-                "snippet-dependency-management-working-with-dependencies-walk-graph_kotlin_walking-dependency-graph.sample",
+                "snippet-dependency-management-working-with-dependencies-access-metadata-artifact_groovy_accessingMetadataArtifact",
+                "snippet-dependency-management-working-with-dependencies-access-metadata-artifact_kotlin_accessingMetadataArtifact",
+                "snippet-dependency-management-working-with-dependencies-iterate-artifacts_kotlin_iterating-artifacts",
+                "snippet-dependency-management-working-with-dependencies-walk-graph_groovy_walking-dependency-graph",
+                "snippet-dependency-management-working-with-dependencies-walk-graph_kotlin_walking-dependency-graph",
 
-                "snippet-ide-eclipse_groovy_wtpWithXml.sample",
-                "snippet-ide-eclipse_kotlin_wtpWithXml.sample",
-                "snippet-ide-idea-additional-test-sources_groovy_ideaAdditionalTestSources.sample",
-                "snippet-ide-idea-additional-test-sources_kotlin_ideaAdditionalTestSources.sample",
-                "snippet-ide-idea_groovy_projectWithXml.sample",
-                "snippet-ide-idea_kotlin_projectWithXml.sample",
-                "snippet-init-scripts-custom-logger_groovy_customLogger.groovy.sample",
-                "snippet-init-scripts-custom-logger_kotlin_customLogger.kotlin.sample",
-                "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-all.sample",
-                "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-model-task.sample",
-                "snippet-model-rules-configure-as-required_groovy_modelDslConfigureRuleRunWhenRequired.sample",
-                "snippet-model-rules-configure-elements-of-map_groovy_modelDslModelMapNestedAll.sample",
-                "snippet-model-rules-initialization-rule-runs-before-configuration-rules_groovy_modelDslInitializationRuleRunsBeforeConfigurationRule.sample",
-                "snippet-native-binaries-cpp_groovy_nativeComponentReport.sample",
-                "snippet-native-binaries-cunit_groovy_assembleDependentComponents.sample",
-                "snippet-native-binaries-cunit_groovy_assembleDependentComponentsReport.sample",
-                "snippet-native-binaries-cunit_groovy_buildDependentComponents.sample",
-                "snippet-native-binaries-cunit_groovy_buildDependentComponentsReport.sample",
-                "snippet-native-binaries-cunit_groovy_completeCUnitExample.sample",
-                "snippet-native-binaries-cunit_groovy_dependentComponentsReport.sample",
-                "snippet-native-binaries-cunit_groovy_dependentComponentsReportAll.sample",
+                "snippet-ide-eclipse_groovy_wtpWithXml",
+                "snippet-ide-eclipse_kotlin_wtpWithXml",
+                "snippet-ide-idea-additional-test-sources_groovy_ideaAdditionalTestSources",
+                "snippet-ide-idea-additional-test-sources_kotlin_ideaAdditionalTestSources",
+                "snippet-ide-idea_groovy_projectWithXml",
+                "snippet-ide-idea_kotlin_projectWithXml",
+                "snippet-init-scripts-custom-logger_groovy_customLogger.groovy",
+                "snippet-init-scripts-custom-logger_kotlin_customLogger.kotlin",
+                "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-all",
+                "snippet-model-rules-basic-rule-source-plugin_groovy_basicRuleSourcePlugin-model-task",
+                "snippet-model-rules-configure-as-required_groovy_modelDslConfigureRuleRunWhenRequired",
+                "snippet-model-rules-configure-elements-of-map_groovy_modelDslModelMapNestedAll",
+                "snippet-model-rules-initialization-rule-runs-before-configuration-rules_groovy_modelDslInitializationRuleRunsBeforeConfigurationRule",
+                "snippet-native-binaries-cpp_groovy_nativeComponentReport",
+                "snippet-native-binaries-cunit_groovy_assembleDependentComponents",
+                "snippet-native-binaries-cunit_groovy_assembleDependentComponentsReport",
+                "snippet-native-binaries-cunit_groovy_buildDependentComponents",
+                "snippet-native-binaries-cunit_groovy_buildDependentComponentsReport",
+                "snippet-native-binaries-cunit_groovy_completeCUnitExample",
+                "snippet-native-binaries-cunit_groovy_dependentComponentsReport",
+                "snippet-native-binaries-cunit_groovy_dependentComponentsReportAll",
             )
 
             // These tests use third-party plugins at versions that may not support the configuration cache properly.
             // The tests should be removed from this list when the plugin is updated to the version that works with the configuration cache properly.
             val testsWithThirdPartyFailures = listOf(
-                "structuring-software-projects_groovy_aggregate-reports.sample",
-                "structuring-software-projects_groovy_build-android-app.sample",
-                "structuring-software-projects_groovy_build-server-application.sample",
-                "structuring-software-projects_groovy_umbrella-build.sample",
-                "structuring-software-projects_kotlin_aggregate-reports.sample",
-                "structuring-software-projects_kotlin_build-android-app.sample",
-                "structuring-software-projects_kotlin_build-server-application.sample",
-                "structuring-software-projects_kotlin_umbrella-build.sample",
+                "structuring-software-projects_groovy_aggregate-reports",
+                "structuring-software-projects_groovy_build-android-app",
+                "structuring-software-projects_groovy_build-server-application",
+                "structuring-software-projects_groovy_umbrella-build",
+                "structuring-software-projects_kotlin_aggregate-reports",
+                "structuring-software-projects_kotlin_build-android-app",
+                "structuring-software-projects_kotlin_build-server-application",
+                "structuring-software-projects_kotlin_umbrella-build",
             )
 
             // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
             // The tests should be removed from this list when the feature becomes supported.
             val testsForNotYetSupportedFeatures = listOf(
                 // TODO(https://github.com/gradle/gradle/issues/14880)
-                "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
-                "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
+                "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies",
+                "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies",
 
                 // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
-                "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
-                "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
+                "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod",
+                "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod",
             )
 
             // Tests that can and has to be fixed to run with the configuration cache enabled.
             // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
             val testsToBeFixedForConfigurationCache = listOf(
-                "snippet-build-cache-configure-task_groovy_configureTask.sample",
-                "snippet-build-cache-configure-task_kotlin_configureTask.sample",
+                "snippet-build-cache-configure-task_groovy_configureTask",
+                "snippet-build-cache-configure-task_kotlin_configureTask",
                 // TODO(mlopatkin) These snippets use bintray plugin which is not fully CC-compatible. Remove bintray plugin from samples.
-                "snippet-plugins-buildscript_groovy_sanityCheck.sample",
-                "snippet-plugins-buildscript_kotlin_sanityCheck.sample",
-                "snippet-plugins-dsl_groovy_sanityCheck.sample",
-                "snippet-plugins-dsl_kotlin_sanityCheck.sample",
+                "snippet-plugins-buildscript_groovy_sanityCheck",
+                "snippet-plugins-buildscript_kotlin_sanityCheck",
+                "snippet-plugins-dsl_groovy_sanityCheck",
+                "snippet-plugins-dsl_kotlin_sanityCheck",
                 // TODO(lkasso) remove this when config cache is working later but needed to merge for now.
-                "snippet-dependency-management-introduction-core-dependencies_groovy_sanityCheck.sample",
-                "snippet-dependency-management-introduction-core-dependencies_kotlin_sanityCheck.sample",
-                "snippet-dependency-management-introduction-core-dependencies_groovy_dependencyIntroReport.sample",
-                "snippet-dependency-management-introduction-core-dependencies_kotlin_dependencyIntroReport.sample",
-                "snippet-dependency-management-catalogs-toml-simple_groovy_sanityCheck.sample",
-                "snippet-dependency-management-catalogs-toml-simple_kotlin_sanityCheck.sample",
-                "snippet-dependency-management-catalogs-toml-simple_groovy_resolve.sample",
-                "snippet-dependency-management-catalogs-toml-simple_kotlin_resolve.sample",
-                "snippet-dependency-management-catalogs-platforms_groovy_sanityCheck.sample",
-                "snippet-dependency-management-catalogs-platforms_kotlin_sanityCheck.sample",
+                "snippet-dependency-management-introduction-core-dependencies_groovy_sanityCheck",
+                "snippet-dependency-management-introduction-core-dependencies_kotlin_sanityCheck",
+                "snippet-dependency-management-introduction-core-dependencies_groovy_dependencyIntroReport",
+                "snippet-dependency-management-introduction-core-dependencies_kotlin_dependencyIntroReport",
+                "snippet-dependency-management-catalogs-toml-simple_groovy_sanityCheck",
+                "snippet-dependency-management-catalogs-toml-simple_kotlin_sanityCheck",
+                "snippet-dependency-management-catalogs-toml-simple_groovy_resolve",
+                "snippet-dependency-management-catalogs-toml-simple_kotlin_resolve",
+                "snippet-dependency-management-catalogs-platforms_groovy_sanityCheck",
+                "snippet-dependency-management-catalogs-platforms_kotlin_sanityCheck",
             )
 
             val brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
@@ -848,13 +851,13 @@ tasks.named<Test>("docsTest") {
         }
     } else {
         filter {
-            excludeTestsMatching("*WithCC*.sample")
+            excludeTestsMatching("*WithCC*")
             // samples generated by init tasks explicitly enable configuration cache,
             // so we don't need to run them again
-            excludeTestsMatching("*building-*-applications_groovy_build*.sample")
-            excludeTestsMatching("*building-*-applications_kotlin_build*.sample")
-            excludeTestsMatching("*building-*-libraries_groovy_build*.sample")
-            excludeTestsMatching("*building-*-libraries_kotlin_build*.sample")
+            excludeTestsMatching("*building-*-applications_groovy_build*")
+            excludeTestsMatching("*building-*-applications_kotlin_build*")
+            excludeTestsMatching("*building-*-libraries_groovy_build*")
+            excludeTestsMatching("*building-*-libraries_kotlin_build*")
         }
     }
 }

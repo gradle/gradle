@@ -19,8 +19,7 @@ package org.gradle.internal.buildoption;
 /**
  * A boolean internal option.
  */
-public class InternalFlag implements InternalOption<Boolean> {
-    private final String systemPropertyName;
+public class InternalFlag extends InternalOption<Boolean> {
     private final boolean defaultValue;
 
     public InternalFlag(String systemPropertyName) {
@@ -28,7 +27,7 @@ public class InternalFlag implements InternalOption<Boolean> {
     }
 
     public InternalFlag(String systemPropertyName, boolean defaultValue) {
-        this.systemPropertyName = systemPropertyName;
+        super(systemPropertyName);
         this.defaultValue = defaultValue;
     }
 
@@ -38,12 +37,7 @@ public class InternalFlag implements InternalOption<Boolean> {
     }
 
     @Override
-    public String getSystemPropertyName() {
-        return systemPropertyName;
-    }
-
-    @Override
     public Boolean convert(String value) {
-        return !value.equalsIgnoreCase("false");
+        return BooleanOptionUtil.isTrue(value);
     }
 }

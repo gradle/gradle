@@ -21,7 +21,7 @@ import spock.lang.Specification
 class UpdateKotlinVersionsTest extends Specification {
 
     def previousVersions = [
-        "1.9.25", "1.9.24", "1.9.20", "1.9.20-RC2", "1.9.0", "1.9.0-Beta",
+        "1.9.10", "1.9.25", "1.9.24", "1.9.20", "1.9.20-RC2", "1.9.0", "1.9.0-Beta",
         "1.8.22, 1.8.0, 1.8.0-Beta",
     ]
     def minimumSupported = "1.9.10"
@@ -34,7 +34,7 @@ class UpdateKotlinVersionsTest extends Specification {
         def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
 
         then:
-        selected == ["1.9.10", "1.9.25", "2.0.0", "2.0.30"]
+        selected == ["1.9.10", "1.9.25", "2.0.30"]
     }
 
     def "beta of latest patch version"() {
@@ -50,7 +50,7 @@ class UpdateKotlinVersionsTest extends Specification {
         def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
 
         then:
-        selected == ["1.9.10", "1.9.25", "2.0.0", "2.0.20", "2.0.30-Beta2"]
+        selected == ["1.9.10", "1.9.25", "2.0.20", "2.0.30-Beta2"]
     }
 
 
@@ -67,7 +67,7 @@ class UpdateKotlinVersionsTest extends Specification {
         def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
 
         then:
-        selected == ["1.9.10", "1.9.25", "2.0.0", "2.0.20", "2.0.30-RC1"]
+        selected == ["1.9.10", "1.9.25", "2.0.20", "2.0.30-RC1"]
     }
 
     def "beta and rc of two latest patch versions"() {
@@ -84,6 +84,18 @@ class UpdateKotlinVersionsTest extends Specification {
         def selected = UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
 
         then:
-        selected == ["1.9.10", "1.9.25", "2.0.0", "2.0.20", "2.0.30-RC1", "2.0.40-Beta2"]
+        selected == ["1.9.10", "1.9.25", "2.0.20", "2.0.30-RC1", "2.0.40-Beta2"]
+    }
+
+    def "fails is minimumSupported is not available"() {
+        given:
+        def allVersions = ["2.0.0", "2.0.0-RC1", "2.0.0-Beta1"]
+
+        when:
+        UpdateKotlinVersions.selectVersionsFrom(minimumSupported, allVersions)
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Minimum supported '1.9.10' was not found in available versions: [2.0.0, 2.0.0-RC1, 2.0.0-Beta1]"
     }
 }

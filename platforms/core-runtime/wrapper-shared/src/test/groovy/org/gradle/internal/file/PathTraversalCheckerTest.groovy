@@ -16,21 +16,16 @@
 
 package org.gradle.internal.file
 
-import org.gradle.internal.os.OperatingSystem
+
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
 import static org.gradle.internal.file.PathTraversalChecker.isUnsafePathName
-import static org.junit.Assume.assumeFalse
 
 class PathTraversalCheckerTest extends Specification {
 
     def "identifies potentially unsafe zip entry names"() {
-        setup:
-        assumeFalse(
-            ": is only unsafe on Windows systems",
-            unsafePath.contains(':') && !isWindows()
-        )
-
         expect:
         isUnsafePathName(unsafePath)
         !isUnsafePathName(safePath)
@@ -43,14 +38,65 @@ class PathTraversalCheckerTest extends Specification {
         "\\foo"        | "foo"
         "foo/.."       | "foo/bar"
         "foo\\.."      | "foo\\bar"
-        "C:/foo"       | "foo"
         "../foo"       | "..foo"
         "..\\foo"      | "..foo"
         "foo/../bar"   | "foo/..bar"
         "foo\\..\\bar" | "foo\\..bar"
+        // Technically, this is not a path traversal, but we consider it unsafe due to
+        // code that might merge '\' and '/' later, thus introducing a path traversal.
+        "foo\\../bar"  | "foo\\..bar"
     }
 
-    private static boolean isWindows() {
-        OperatingSystem.current().isWindows()
+    @Requires(
+        value = UnitTestPreconditions.Windows,
+        reason = "These path patterns are only unsafe on Windows systems"
+    )
+    def "identifies potentially unsafe zip entry names (windows only)"() {
+        expect:
+        isUnsafePathName(unsafePath)
+        !isUnsafePathName(safePath)
+
+        where:
+        unsafePath     | safePath
+        "C:/foo"       | "foo"
+        "foo."         | "foo.txt"
+        "foo.\\bar.txt"| "foo\\bar.txt"
+        "foo./bar.txt" | "foo/bar.txt"
+        "foo..\\bar"   | "..foo\\bar"
+    }
+
+    def "does not reject safe zip entry names with similar patterns"() {
+        expect:
+        !isUnsafePathName(safePath)
+
+        where:
+        safePath << [
+            ".hidden",
+            "foo/..bar",
+            "foo\\..bar",
+            "./..foo",
+            ".\\..foo",
+        ]
+    }
+
+    @Requires(
+        value = UnitTestPreconditions.NotWindows,
+        reason = "These path patterns are unsafe on Windows systems"
+    )
+    def "identifies potentially unsafe zip entry names (not windows)"() {
+        expect:
+        !isUnsafePathName(safePath)
+
+        where:
+        safePath << [
+            "foo../bar",
+            "foo..\\bar",
+            ".../bar",
+            "...\\bar",
+            "foo...//",
+            "foo...\\\\",
+            "foo...//bar",
+            "foo...\\\\bar"
+        ]
     }
 }

@@ -16,15 +16,12 @@
 
 package com.example;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 public class LumberJackTest {
     @Test
     public void singsTheSong() {
-        LumberJack jack = new LumberJack();
-        jack.sing();
+        new LumberJack().sing();
     }
 }

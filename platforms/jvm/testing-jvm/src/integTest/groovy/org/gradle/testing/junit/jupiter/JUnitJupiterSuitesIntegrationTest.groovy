@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitSuitesIntegrationTest
@@ -46,5 +47,10 @@ class JUnitJupiterSuitesIntegrationTest extends AbstractJUnitSuitesIntegrationTe
             testCompileOnly 'org.junit.platform:junit-platform-suite-api:${JUnitCoverage.LATEST_PLATFORM_VERSION}'
             testRuntimeOnly 'org.junit.platform:junit-platform-suite-engine:${JUnitCoverage.LATEST_PLATFORM_VERSION}'
         """.stripIndent()
+    }
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
     }
 }

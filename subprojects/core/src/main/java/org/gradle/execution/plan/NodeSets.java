@@ -84,7 +84,11 @@ public final class NodeSets {
         @Override
         public boolean remove(Object o) {
             if (set.remove(o)) {
-                removeIndex(indexOf(o));
+                int index = indexOf(o);
+                if (index < 0) {
+                    throw new ConcurrentModificationException();
+                }
+                removeIndex(index);
                 return true;
             }
             return false;
@@ -98,20 +102,9 @@ public final class NodeSets {
 
             sort();
             return new Iterator<E>() {
-
                 int iteratorVersion = version;
                 int index = 0;
-
-                @Override
-                public void remove() {
-                    E e = uncheckedCast(array[index - 1]);
-                    if (!set.remove(e)) {
-                        throw new ConcurrentModificationException();
-                    }
-                    removeIndex(index - 1);
-                    index--;
-                    iteratorVersion = version;
-                }
+                int lastReturned = -1; // index of last element returned by next(), -1 if none or already removed
 
                 @Override
                 public boolean hasNext() {
@@ -123,7 +116,31 @@ public final class NodeSets {
                     if (version != iteratorVersion) {
                         throw new ConcurrentModificationException();
                     }
+                    if (index >= size) {
+                        throw new java.util.NoSuchElementException();
+                    }
+                    lastReturned = index;
                     return uncheckedCast(array[index++]);
+                }
+
+                @Override
+                public void remove() {
+                    if (version != iteratorVersion) {
+                        throw new ConcurrentModificationException();
+                    }
+                    if (lastReturned < 0) {
+                        throw new IllegalStateException();
+                    }
+                    E e = uncheckedCast(array[lastReturned]);
+                    if (!set.remove(e)) {
+                        throw new ConcurrentModificationException();
+                    }
+                    removeIndex(lastReturned);
+                    if (lastReturned < index) {
+                        index--;
+                    }
+                    lastReturned = -1;
+                    iteratorVersion = version;
                 }
             };
         }

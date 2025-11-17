@@ -67,7 +67,7 @@ class CIConfigIntegrationTests {
                 stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + stage.docsTests.size +
                     (if (prevStage != null) 1 else 0) +
                     // flakyTestQuarantineTriggers
-                    if (stage.stageName == StageName.READY_FOR_RELEASE) 2 else 0,
+                    if (stage.stageName == StageName.READY_FOR_RELEASE) 3 else 0,
                 it.dependencies.items.size,
                 stage.stageName.stageName,
             )

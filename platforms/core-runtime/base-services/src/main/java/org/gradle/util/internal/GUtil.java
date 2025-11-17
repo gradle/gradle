@@ -16,7 +16,6 @@
 
 package org.gradle.util.internal;
 
-import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -53,8 +52,13 @@ import java.util.regex.Pattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
+/**
+ * Various utility methods.
+ * <p>
+ * To keep this class usable from Workers, do <strong>NOT</strong> add dependencies on Guava, which
+ * we don't want to make available at runtime in TestWorkers.
+ */
 public class GUtil {
-    private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");
 
     public static <T extends Collection<?>> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
@@ -287,49 +291,6 @@ public class GUtil {
             }
         }
         return formatter.toString();
-    }
-
-    /**
-     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
-     */
-    public static String toCamelCase(CharSequence string) {
-        return toCamelCase(string, false);
-    }
-
-    public static String toLowerCamelCase(CharSequence string) {
-        return toCamelCase(string, true);
-    }
-
-    private static String toCamelCase(CharSequence string, boolean lower) {
-        if (string == null) {
-            return null;
-        }
-        StringBuilder builder = new StringBuilder();
-        Matcher matcher = WORD_SEPARATOR.matcher(string);
-        int pos = 0;
-        boolean first = true;
-        while (matcher.find()) {
-            String chunk = string.subSequence(pos, matcher.start()).toString();
-            pos = matcher.end();
-            if (chunk.isEmpty()) {
-                continue;
-            }
-            if (lower && first) {
-                chunk = StringUtils.uncapitalize(chunk);
-                first = false;
-            } else {
-                chunk = StringUtils.capitalize(chunk);
-            }
-            builder.append(chunk);
-        }
-        String rest = string.subSequence(pos, string.length()).toString();
-        if (lower && first) {
-            rest = StringUtils.uncapitalize(rest);
-        } else {
-            rest = StringUtils.capitalize(rest);
-        }
-        builder.append(rest);
-        return builder.toString();
     }
 
     /**
