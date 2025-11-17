@@ -183,9 +183,8 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                             myTest.started(Instant.now())
                             myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout" + System.lineSeparator())
                             myTest.metadata(Instant.now(), "mykey1", "apple")
-                            myTest.metadata(Instant.now(), "mykey2", 10)
+                            myTest.metadata(Instant.now(), "mykey2", "10")
                             myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "More output on stdout" + System.lineSeparator())
-                            myTest.metadata(Instant.now(), "mykey3", ["banana", "cherry"])
                             myTest.succeeded(Instant.now())
                         }
                         reporter.succeeded(Instant.now())
@@ -213,8 +212,7 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                         output("This is a test output on stdout")
                         output("More output on stdout")
                         metadata("mykey1", "apple")
-                        metadata("mykey2", 10)
-                        metadata("mykey3", ["banana", "cherry"])
+                        metadata("mykey2", "10")
                     }
                 }
             }

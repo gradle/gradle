@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.time.Clock;
 
@@ -27,13 +27,13 @@ public class TestClassResult {
     private final List<TestMethodResult> methodResults;
     private final String className;
     private final String classDisplayName;
-    private final List<SerializedMetadata> metadatas;
+    private final List<TestMetadataEvent> metadatas;
     private long startTime;
     private int failuresCount;
     private int skippedCount;
     private long id;
 
-    public TestClassResult(long id, String className, String classDisplayName, long startTime, List<SerializedMetadata> metadatas) {
+    public TestClassResult(long id, String className, String classDisplayName, long startTime, List<TestMetadataEvent> metadatas) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
@@ -117,7 +117,7 @@ public class TestClassResult {
         return className.endsWith("." + classDisplayName) || className.endsWith("$" + classDisplayName);
     }
 
-    public List<SerializedMetadata> getMetadatas() {
+    public List<TestMetadataEvent> getMetadatas() {
         return metadatas;
     }
 }

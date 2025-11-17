@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputTrackedResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -166,7 +166,7 @@ public final class PerRootInfo {
         return skippedLeafCount;
     }
 
-    public List<SerializedMetadata> getMetadatas() {
+    public List<TestMetadataEvent> getMetadatas() {
         return result.getMetadatas();
     }
 }
