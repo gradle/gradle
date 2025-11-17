@@ -214,6 +214,81 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
         }
     }
 
+    @ToolingApiVersion(">=9.3.0")
+    def "receives file entry test metadata with directories from JUnit platform tests"() {
+        file("src/test/java/com/example/ReportEntryTest.java").java """
+            package com.example;
+            import org.junit.jupiter.api.AfterAll;
+            import org.junit.jupiter.api.AfterEach;
+            import org.junit.jupiter.api.BeforeAll;
+            import org.junit.jupiter.api.BeforeEach;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.TestReporter;
+            import org.junit.jupiter.api.extension.MediaType;
+            import org.junit.jupiter.api.io.TempDir;
+            import java.nio.file.Files;
+            import java.nio.file.Path;
+            import java.io.IOException;
+            import java.util.Collections;
+
+            public class ReportEntryTest {
+                private final Path tempDir;
+                ReportEntryTest(TestReporter testReporter, @TempDir Path tempDir) throws IOException {
+                    this.tempDir = tempDir;
+                    Path dir = tempDir.resolve("constructor");
+                    Files.createDirectory(dir);
+                    Path constructor = dir.resolve("constructor.json");
+                    Files.write(constructor, Collections.singleton("{ constructor: [] }"));
+                    testReporter.publishDirectory(dir);
+                }
+                @BeforeEach
+                public void beforeEach(TestReporter testReporter) throws IOException {
+                    Path dir = tempDir.resolve("beforeEach");
+                    Files.createDirectory(dir);
+                    Path beforeEach = dir.resolve("beforeEach.json");
+                    Files.write(beforeEach, Collections.singleton("{ beforeEach: [] }"));
+                    testReporter.publishDirectory(dir);
+                }
+                @AfterEach
+                public void afterEach(TestReporter testReporter) throws IOException {
+                    Path dir = tempDir.resolve("afterEach");
+                    Files.createDirectory(dir);
+                    Path afterEach = dir.resolve("afterEach.json");
+                    Files.write(afterEach, Collections.singleton("{ afterEach: [] }"));
+                    testReporter.publishDirectory(dir);
+                }
+                @Test
+                public void test(TestReporter testReporter) throws IOException {
+                    Path dir = tempDir.resolve("test");
+                    Files.createDirectory(dir);
+                    Path test = dir.resolve("test.json");
+                    Files.write(test, Collections.singleton("{ test: [] }"));
+                    testReporter.publishDirectory(dir);
+                }
+            }
+        """
+        when:
+        runTests()
+
+        then:
+        testEvents {
+            task(":test") {
+                nested("Gradle Test Run :test") {
+                    nested("Gradle Test Executor") {
+                        nested("Test class com.example.ReportEntryTest") {
+                            fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor"), null)
+                            test("Test test(TestReporter)(com.example.ReportEntryTest)") {
+                                fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach"), null)
+                                fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test"), null)
+                                fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach"), null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private Object runTests() {
         withConnection {
             ProjectConnection connection ->

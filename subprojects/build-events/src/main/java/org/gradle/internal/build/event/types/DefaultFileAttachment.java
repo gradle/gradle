@@ -16,6 +16,8 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Path;
@@ -23,9 +25,9 @@ import java.nio.file.Path;
 @SuppressWarnings("unused")
 public class DefaultFileAttachment implements Serializable {
     private final File file;
-    private final String mediaType;
+    private final @Nullable String mediaType;
 
-    public DefaultFileAttachment(Path path, String mediaType) {
+    public DefaultFileAttachment(Path path, @Nullable String mediaType) {
         this.file = path.toFile();
         this.mediaType = mediaType;
     }
@@ -34,7 +36,16 @@ public class DefaultFileAttachment implements Serializable {
         return file;
     }
 
+    @Nullable
     public String getMediaType() {
         return mediaType;
+    }
+
+    @Override
+    public String toString() {
+        return "FileAttachment{" +
+            "file=" + file +
+            ", mediaType='" + mediaType + '\'' +
+            '}';
     }
 }

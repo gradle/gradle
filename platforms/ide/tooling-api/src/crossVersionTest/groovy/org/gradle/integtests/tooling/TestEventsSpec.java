@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Map;
@@ -71,7 +72,7 @@ interface TestEventSpec {
     /**
      * Expect a file attachment
      */
-    void fileAttachment(File path, String mediaType);
+    void fileAttachment(File path, @Nullable String mediaType);
 
     /**
      * Set the expected test display name

@@ -157,8 +157,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @Override
     public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry entry) {
-        // JUnit Jupiter suggests to use application/octet-stream if media type is unknown
-        String mediaType = entry.getMediaType().orElse("application/octet-stream");
+        // media type can be null if the file is a directory
+        String mediaType = entry.getMediaType().orElse(null);
 
         // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class constructor.
         if (wasStarted(testIdentifier)) {
