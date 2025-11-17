@@ -667,8 +667,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
+        Set<File> candidateTestDefinitionDirs = getTestDefinitionDirs().getAsFileTree().matching(patternSet).getFiles();
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), getTestDefinitionDirs().getFiles(),
+            getCandidateClassFiles(), isScanForTestClasses(), candidateTestDefinitionDirs,
             getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
