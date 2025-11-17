@@ -72,6 +72,11 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
 
     @Issue("https://github.com/gradle/gradle/issues/35494")
     def "automatically adds the source set compile classpath to the compilationClasspath on CodeNarc task"() {
+        // Groovy 4 includes a shadowed version of ASM that can only read up to Java 24 class files
+        def jvm = AvailableJavaHomes.getJdkInRange(Range.atMost(24))
+        withInstallations(jvm)
+        println "Using JDK ${jvm.javaVersionMajor} at ${jvm.javaHome}"
+
         given:
         buildFile << """
             plugins {
@@ -86,6 +91,12 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
 
             dependencies {
                 testImplementation 'org.spockframework:spock-core:2.4-M6-groovy-4.0'
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersionMajor})
+                }
             }
 
             testing {
