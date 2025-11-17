@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -53,19 +54,24 @@ interface GroupTestEventSpec extends TestEventSpec {
  */
 interface TestEventSpec {
     /**
-     * Some output to expect
+     * Expect some output
      */
     void output(String msg);
 
     /**
-     * Some metadata to expect
+     * Expect some metadata with a singleton key-value
      */
     void metadata(String key, Object value);
 
     /**
-     * Some metadata to expect
+     * Expect some metadata with multiple key-values
      */
-    void metadata(Map<String, String> values);
+    void metadata(Map<String, Object> values);
+
+    /**
+     * Expect a file attachment
+     */
+    void fileAttachment(File path, String mediaType);
 
     /**
      * Set the expected test display name

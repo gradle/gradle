@@ -18,6 +18,7 @@ package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -32,9 +33,25 @@ import java.util.Map;
 @Incubating
 public interface TestMetadataEvent extends ProgressEvent {
     /**
-     * Returns the metadata itself.
+     * Returns the key-value data if this event represents a key-value event.
      *
+     * @apiNote Since Gradle 9.3.0, this will only return {@code Map<String, String>}.
+     *
+     * @return map of key-values or an empty collection if this data is some other type
      * @since 8.13
      */
     Map<String, Object> getValues();
+
+    /**
+     * Request the data associated with this event as the given type.
+     *
+     * @apiNote Builds older than Gradle 9.3.0 will never produce events with non-Map data. Check {@link #getValues()} first.
+     *
+     * @param viewType the type to view the data as
+     * @return the data as the given type or null if the data cannot be represented as the given type
+     * @param <T> view type
+     * @since 9.3.0
+     */
+    @Nullable
+    <T> T get(Class<T> viewType);
 }
