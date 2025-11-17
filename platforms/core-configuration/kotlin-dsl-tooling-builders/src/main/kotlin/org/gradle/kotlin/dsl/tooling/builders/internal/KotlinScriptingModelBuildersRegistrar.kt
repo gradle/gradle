@@ -18,8 +18,6 @@ package org.gradle.kotlin.dsl.tooling.builders.internal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.project.ProjectConfigureAction
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelBuilder
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
@@ -28,36 +26,38 @@ import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvid
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrar
 
 
-class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction, ToolingModelBuilderRegistrar {
+/**
+ * Tooling Model Builder registrar for Kotlin DSL scripts support. Used to register builders without need for project configuration.
+ */
+class KotlinScriptingModelBuildersRegistrar(
+    private val modelParameters: BuildModelParameters,
+    private val intermediateModelProvider: IntermediateToolingModelProvider
+) : ToolingModelBuilderRegistrar {
 
-    override fun execute(project: ProjectInternal) {
-        if (project.isRootProject()) {
-            project.tasks.register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
-        }
-    }
-
-    override fun registerForProject(project: ProjectInternal, registry: ToolingModelBuilderRegistry) {
+    override fun registerForProject(registry: ToolingModelBuilderRegistry, isRootProject: Boolean) {
         registry.register(KotlinBuildScriptModelBuilder)
         registry.register(IsolatedScriptsModelBuilder)
 
-        if (project.isRootProject()) {
-            val builder = getBuilder(project)
+        if (isRootProject) {
+            val builder = when {
+                modelParameters.isIsolatedProjects -> IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider)
+                else -> KotlinDslScriptsModelBuilder
+            }
             registry.register(builder)
         }
     }
 
-    private fun getBuilder(project: ProjectInternal): AbstractKotlinDslScriptsModelBuilder {
-        val modelParameters = project.serviceOf<BuildModelParameters>()
-        val isolatedProjects = modelParameters.isIsolatedProjects
-        return when {
-            isolatedProjects -> {
-                val intermediateModelProvider = project.serviceOf<IntermediateToolingModelProvider>()
-                IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider)
+    /**
+     * A [ProjectConfigureAction] that registers the [KotlinDslModelsParameters.PREPARATION_TASK_NAME] task required for Kotlin DSL scripts models.
+     */
+    class KotlinScriptingModelBuildersTaskRegisterAction : ProjectConfigureAction {
+        override fun execute(project: ProjectInternal) {
+            if (project.isRootProject()) {
+                project.tasks.register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
             }
-            else -> KotlinDslScriptsModelBuilder
         }
-    }
 
-    private fun ProjectInternal.isRootProject(): Boolean =
-        parent == null
+        private fun ProjectInternal.isRootProject(): Boolean =
+            parent == null
+    }
 }

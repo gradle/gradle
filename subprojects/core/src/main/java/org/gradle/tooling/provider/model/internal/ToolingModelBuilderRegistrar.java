@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
@@ -33,5 +32,5 @@ import org.jspecify.annotations.NullMarked;
 @ServiceScope(Scope.Project.class)
 public interface ToolingModelBuilderRegistrar {
 
-    void registerForProject(ProjectInternal project, ToolingModelBuilderRegistry registry);
+    void registerForProject(ToolingModelBuilderRegistry registry, boolean isRootProject);
 }

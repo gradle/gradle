@@ -16,12 +16,14 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrar
 
 class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
@@ -47,8 +49,11 @@ class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
 
     private object ProjectScopeToolingServices : ServiceRegistrationProvider {
         @Provides
-        fun createToolingModelBuilderRegistrar(): ToolingModelBuilderRegistrar {
-            return KotlinScriptingModelBuildersRegistrationAction()
+        fun createToolingModelBuilderRegistrar(
+            modelParameters: BuildModelParameters,
+            intermediateModelProvider: IntermediateToolingModelProvider
+        ): ToolingModelBuilderRegistrar {
+            return KotlinScriptingModelBuildersRegistrar(modelParameters, intermediateModelProvider)
         }
     }
 }

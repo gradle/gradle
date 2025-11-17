@@ -226,7 +226,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         List<ToolingModelBuilderRegistrar> toolingModelBuilderRegistrars
     ) {
         DefaultToolingModelBuilderRegistry registry = buildScopedToolingModelBuilders.createChild();
-        toolingModelBuilderRegistrars.forEach(registrar -> registrar.registerForProject(project, registry));
+        boolean isRootProject = project.getParent() == null;
+        toolingModelBuilderRegistrars.forEach(registrar -> registrar.registerForProject(registry, isRootProject));
         return registry;
     }
 
