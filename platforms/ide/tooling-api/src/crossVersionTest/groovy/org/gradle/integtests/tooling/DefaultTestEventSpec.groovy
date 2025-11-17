@@ -19,10 +19,11 @@ package org.gradle.integtests.tooling
 import groovy.transform.CompileStatic
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.internal.SystemProperties
+import org.gradle.tooling.events.test.FileAttachment
 import org.gradle.tooling.events.test.TestMetadataEvent
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestOutputDescriptor
-import org.gradle.tooling.events.test.TestOutputEvent;
+import org.gradle.tooling.events.test.TestOutputEvent
 
 @CompileStatic
 class DefaultTestEventSpec implements GroupTestEventSpec {
@@ -30,7 +31,7 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     private final List<ProgressEvents.Operation> verifiedOperations
 
     private final List<String> actualOutput;
-    private final List<Map<String, Object>> actualMetadata;
+    private final List<Object> actualMetadata;
 
     DefaultTestEventSpec(ProgressEvents.Operation self, List<ProgressEvents.Operation> verifiedOperations) {
         this.self = self
@@ -39,9 +40,13 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
         def outputs = self.statusEvents.findAll { it.event instanceof TestOutputEvent }
         actualOutput = new ArrayList<>(outputs.collect { ((TestOutputDescriptor) it.event.descriptor).message })
 
-        def metadatas = self.statusEvents.findAll { it.event instanceof TestMetadataEvent }
+        def metadatas = self.statusEvents.findAll { it.event instanceof TestMetadataEvent }.collect { (TestMetadataEvent) it.event }
         actualMetadata = new ArrayList<>(metadatas.collect {
-            ((TestMetadataEvent) it.event).getValues()
+            if (it.respondsTo("get") && it.values.isEmpty()) {
+                it.get(FileAttachment)
+            } else {
+                it.getValues()
+            }
         })
     }
 
@@ -57,8 +62,15 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     }
 
     @Override
-    void metadata(Map<String, String> values) {
-        assert actualMetadata.remove(values): "expected to find $values in $self, available $actualMetadata"
+    void metadata(Map<String, Object> values) {
+        assert actualMetadata.remove(values): "expected to find $values in $self"
+    }
+
+    @Override
+    void fileAttachment(File path, String mediaType) {
+        assert actualMetadata.removeIf {
+            it instanceof FileAttachment && path == it.path && mediaType == it.mediaType
+        }
     }
 
     @Override

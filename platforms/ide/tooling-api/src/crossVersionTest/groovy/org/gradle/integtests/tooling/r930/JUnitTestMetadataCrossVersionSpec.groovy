@@ -146,6 +146,7 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
         }
     }
 
+    @ToolingApiVersion(">=9.3.0")
     def "receives file entry test metadata from JUnit platform tests"() {
         file("src/test/java/com/example/ReportEntryTest.java").java """
             package com.example;
@@ -200,12 +201,11 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
                 nested("Gradle Test Run :test") {
                     nested("Gradle Test Executor") {
                         nested("Test class com.example.ReportEntryTest") {
-                            metadata([path: file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor.json").absolutePath, mediaType: "application/json"])
-
+                            fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/constructor.json"), "application/json")
                             test("Test test(TestReporter)(com.example.ReportEntryTest)") {
-                                metadata([path: file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach.json").absolutePath, mediaType: "application/json"])
-                                metadata([path: file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test.json").absolutePath, mediaType: "application/json"])
-                                metadata([path: file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach.json").absolutePath, mediaType: "application/json"])
+                                fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach.json"), "application/json")
+                                fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test.json"), "application/json")
+                                fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach.json"), "application/json")
                             }
                         }
                     }
