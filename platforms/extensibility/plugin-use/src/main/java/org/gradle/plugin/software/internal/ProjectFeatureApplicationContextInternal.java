@@ -21,6 +21,8 @@ import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
 import org.gradle.internal.Cast;
+import org.gradle.internal.inspection.DefaultTypeParameterInspection;
+import org.gradle.internal.inspection.TypeParameterInspection;
 
 import javax.inject.Inject;
 
@@ -50,5 +52,17 @@ public interface ProjectFeatureApplicationContextInternal extends ProjectFeature
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModel, getProjectFeatureApplicator(), getProjectFeatureRegistry(), getObjectFactory());
 
         return buildModel;
+    }
+
+    @Override
+    default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition) {
+        @SuppressWarnings("rawtypes")
+        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
+        Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
+        if (modelType == null) {
+            throw new IllegalArgumentException("Cannot determine build model type for " + definition.getClass());
+        }
+
+        return registerBuildModel(definition, modelType);
     }
 }
