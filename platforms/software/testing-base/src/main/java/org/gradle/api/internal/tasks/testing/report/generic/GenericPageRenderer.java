@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.html.SimpleHtmlWriter;
@@ -146,16 +147,28 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
                 perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex));
                 TestOutputReader outputReader = outputReaders.get(rootIndex);
-                OutputEntry outputEntry = info.getOutputEntry();
-                if (outputEntry != null) {
+                boolean hasStdout = false;
+                boolean hasStderr = false;
+                for (OutputEntry outputEntry : info.getOutputEntries()) {
                     if (outputReader.hasOutput(outputEntry, TestOutputEvent.Destination.StdOut)) {
-                        perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
+                        hasStdout = true;
                     }
                     if (outputReader.hasOutput(outputEntry, TestOutputEvent.Destination.StdErr)) {
-                        perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
+                        hasStderr = true;
+                    }
+
+                    // Early exit if we have both
+                    if (hasStdout && hasStderr) {
+                        break;
                     }
                 }
-                if (!info.getMetadatas().isEmpty()) {
+                if (hasStdout) {
+                    perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
+                }
+                if (hasStderr) {
+                    perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
+                }
+                if (info.getMetadatas().iterator().hasNext()) {
                     perRootInfoTabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, perRootInfoIndex, metadataRendererRegistry));
                 }
 
@@ -175,8 +188,8 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
             rootTabsRenderer.add(rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
                 @Override
                 public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
-                    // Assume all runs share the same display name, it's probably not materially relevant if they don't.
-                    output.startElement("h1").characters(infos.get(0).getResult().getDisplayName()).endElement();
+                    String displayName = SerializableTestResult.getCombinedDisplayName(infos.get(0).getResults());
+                    output.startElement("h1").characters(displayName).endElement();
                     directlyBelowRootTabsRenderer.render(model, output);
                 }
             });
