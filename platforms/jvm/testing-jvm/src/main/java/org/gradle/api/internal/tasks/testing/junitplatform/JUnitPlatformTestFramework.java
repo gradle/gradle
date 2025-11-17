@@ -34,7 +34,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,19 +44,13 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
 
     private final DefaultTestFilter filter;
     private final Provider<Boolean> dryRun;
-    private final File baseDefinitionsDir;
+    private final ProjectLayout projectLayout;
 
     @Inject
     public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun, ProjectLayout projectLayout) {
         this.filter = filter;
         this.dryRun = dryRun;
-        this.baseDefinitionsDir = projectLayout.getProjectDirectory().getAsFile();
-    }
-
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun, File baseDefinitionsDir) {
-        this.filter = filter;
-        this.dryRun = dryRun;
-        this.baseDefinitionsDir = baseDefinitionsDir;
+        this.projectLayout = projectLayout;
     }
 
     @UsedByScanPlugin("test-retry")
@@ -66,7 +59,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
         JUnitPlatformTestFramework newTestFramework = getObjectFactory().newInstance(JUnitPlatformTestFramework.class,
             newTestFilters,
             dryRun,
-            baseDefinitionsDir);
+            projectLayout);
 
         newTestFramework.getOptions().copyFrom(getOptions());
         return newTestFramework;
@@ -80,7 +73,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
         validateOptions();
         return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
-            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), baseDefinitionsDir
+            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), projectLayout.getProjectDirectory().getAsFile()
         ));
     }
 
