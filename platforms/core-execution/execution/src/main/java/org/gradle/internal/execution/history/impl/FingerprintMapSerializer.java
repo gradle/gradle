@@ -88,7 +88,7 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
         }
     }
 
-    private FileType readFileType(Decoder decoder) throws IOException {
+    private static FileType readFileType(Decoder decoder) throws IOException {
         byte fileKind = decoder.readByte();
         switch (fileKind) {
             case DIR_FINGERPRINT:

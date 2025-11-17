@@ -25,14 +25,20 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Issue
 
 class IvyDynamicRevisionRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements DependencyDeclarationFixture {
-    ResolveTestFixture resolve
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        settingsFile << "rootProject.name = 'test' "
+        settingsFile << """
+            rootProject.name = 'test'
+        """
 
-        resolve = new ResolveTestFixture(buildFile, "compile")
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
+        buildFile << """
+            plugins {
+                id("jvm-ecosystem")
+            }
+
+            ${resolve.configureProject("compile")}
+        """
     }
 
     @Issue("GRADLE-3264")
@@ -809,18 +815,24 @@ dependencies {
 
         when:
         buildFile.text = """
-repositories {
-    maven { url = '${mavenRepo.uri}' }
-}
+            plugins {
+                id("jvm-ecosystem")
+            }
 
-configurations { compile }
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
 
-dependencies {
-    compile 'org.test:a:[1.0,2.0)'
-}
-"""
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'org.test:a:[1.0,2.0)'
+            }
+        """
 
         and:
         mavenRepo.getModuleMetaData("org.test", "a").expectGet()

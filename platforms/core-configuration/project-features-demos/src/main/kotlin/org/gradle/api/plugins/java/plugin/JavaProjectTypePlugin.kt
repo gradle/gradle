@@ -21,7 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.ProjectTypeBindingRegistration
+import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.features.dsl.bindProjectType
 import org.gradle.api.plugins.internal.java.DefaultJavaProjectType
 import org.gradle.api.plugins.java.JavaClasses.DefaultJavaClasses
@@ -40,8 +40,8 @@ class JavaProjectTypePlugin : Plugin<Project> {
      *     }
      * }
      */
-    class Binding : ProjectTypeBindingRegistration {
-        override fun register(builder: ProjectTypeBindingBuilder) {
+    class Binding : ProjectTypeBinding {
+        override fun bind(builder: ProjectTypeBindingBuilder) {
             builder.bindProjectType("javaLibrary") { definition: JavaProjectType, model ->
                 definition.sources.register("main")
                 definition.sources.register("test")

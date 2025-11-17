@@ -16,30 +16,32 @@
 
 package org.gradle.internal.buildoption;
 
+import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
-public class StringInternalOption implements InternalOption<String> {
-    private final String systemPropertyName;
-    private final String defaultValue;
+public class StringInternalOption<T extends @Nullable String> extends InternalOption<String> {
+    private final T defaultValue;
 
-    public StringInternalOption(String systemPropertyName, String defaultValue) {
-        this.systemPropertyName = systemPropertyName;
+    private StringInternalOption(String systemPropertyName, T defaultValue) {
+        super(systemPropertyName);
         this.defaultValue = defaultValue;
     }
 
-    @Nullable
     @Override
-    public String getSystemPropertyName() {
-        return systemPropertyName;
-    }
-
-    @Override
-    public String getDefaultValue() {
+    public T getDefaultValue() {
         return defaultValue;
     }
 
     @Override
-    public String convert(String value) {
-        return value;
+    public T convert(String value) {
+        return Cast.uncheckedNonnullCast(value);
+    }
+
+    public static InternalOption<String> of(String systemPropertyName, String defaultValue) {
+        return new StringInternalOption<>(systemPropertyName, defaultValue);
+    }
+
+    public static InternalOption<@Nullable String> of(String systemPropertyName) {
+        return new StringInternalOption<@Nullable String>(systemPropertyName, null);
     }
 }

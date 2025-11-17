@@ -33,6 +33,7 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
@@ -74,14 +75,16 @@ fun eval(
  * A simplified Service Registry, suitable for cheaper testing of the DSL outside of Gradle.
  */
 private
-class SimplifiedKotlinDefaultServiceRegistry(
-    private val baseTempDir: File,
-) : DefaultServiceRegistry() {
-    init {
-        register {
-            add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
+fun simplifiedKotlinDefaultServiceRegistry(
+    baseTempDir: File,
+): ServiceRegistry {
+
+    return ServiceRegistryBuilder.builder()
+        .displayName("test registry")
+        .provider {
+            it.add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
         }
-    }
+        .build()
 }
 
 
@@ -93,7 +96,7 @@ class SimplifiedKotlinScriptEvaluator(
     private val baseCacheDir: File,
     private val baseTempDir: File,
     private val scriptCompilationClassPath: ClassPath,
-    private val serviceRegistry: ServiceRegistry = SimplifiedKotlinDefaultServiceRegistry(baseTempDir),
+    private val serviceRegistry: ServiceRegistry = simplifiedKotlinDefaultServiceRegistry(baseTempDir),
     private val scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) : AutoCloseable {
 

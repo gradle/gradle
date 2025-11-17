@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.util.internal.ToBeImplemented
 
 class CompositeBuildConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
-    def resolve = new ResolveTestFixture(buildFile)
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
@@ -33,9 +33,10 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
     def "context travels to transitive dependencies"() {
         given:
         createDirs("a", "b", "includedBuild")
-        file('settings.gradle') << """
+        settingsFile << """
             include 'a', 'b'
             includeBuild 'includedBuild'
+            ${resolve.configureSettings("_compileFreeDebug", "_compileFreeRelease")}
         """
         buildFile << '''
             def buildType = Attribute.of('buildType', String)
@@ -68,10 +69,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 }
             }
         '''
-        resolve.prepare {
-            config('_compileFreeDebug', 'checkDebug')
-            config('_compileFreeRelease', 'checkRelease')
-        }
 
         file('includedBuild/build.gradle') << """
 
@@ -99,12 +96,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         '''
 
         when:
-        run ':a:checkDebug'
+        run ':a:check_compileFreeDebug'
 
         then:
         executedAndNotSkipped ':includedBuild:fooJar'
         notExecuted ':includedBuild:barJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -117,12 +114,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
 
         when:
-        run ':a:checkRelease'
+        run ':a:check_compileFreeRelease'
 
         then:
         executedAndNotSkipped ':includedBuild:barJar'
         notExecuted ':includedBuild:fooJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -144,6 +141,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
+            ${resolve.configureSettings("_compileFreeDebug", "_compileFreeRelease")}
         """
         buildFile << """
             def buildType = Attribute.of('buildType', String)
@@ -179,10 +177,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 }
             }
         """
-        resolve.prepare {
-            config('_compileFreeDebug', 'checkDebug')
-            config('_compileFreeRelease', 'checkRelease')
-        }
 
         file('includedBuild/build.gradle') << """
 
@@ -210,12 +204,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         '''
 
         when:
-        run ':a:checkDebug'
+        run ':a:check_compileFreeDebug'
 
         then:
         executedAndNotSkipped ':includedBuild:fooJar'
         notExecuted ':includedBuild:barJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -230,12 +224,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
 
         when:
-        run ':a:checkRelease'
+        run ':a:check_compileFreeRelease'
 
         then:
         executedAndNotSkipped ':includedBuild:barJar'
         notExecuted ':includedBuild:fooJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -259,6 +253,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
+            ${resolve.configureSettings("_compileFreeDebug", "_compileFreeRelease")}
         """
         buildFile << """
             def buildType = Attribute.of('buildType', String)
@@ -294,10 +289,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 }
             }
         """
-        resolve.prepare {
-            config('_compileFreeDebug', 'checkDebug')
-            config('_compileFreeRelease', 'checkRelease')
-        }
 
         file('includedBuild/build.gradle') << """
 
@@ -325,8 +316,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         '''
 
         when:
-        run ':a:checkDebug'
-        resolve.expectGraph {
+        run ':a:check_compileFreeDebug'
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -345,12 +336,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         notExecuted ':includedBuild:barJar'
 
         when:
-        run ':a:checkRelease'
+        run ':a:check_compileFreeRelease'
 
         then:
         executedAndNotSkipped ':includedBuild:barJar'
         notExecuted ':includedBuild:fooJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -371,6 +362,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
+            ${resolve.configureSettings("_compileFree", "_compilePaid")}
         """
         buildFile << """
             enum SomeEnum { free, paid }
@@ -406,10 +398,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
                 }
             }
         """
-        resolve.prepare {
-            config('_compileFree', 'checkFree')
-            config('_compilePaid', 'checkPaid')
-        }
 
         file('includedBuild/build.gradle') << """
             enum SomeEnum { free, paid }
@@ -439,12 +427,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         '''
 
         when:
-        run ':a:checkFree'
+        run ':a:check_compileFree'
 
         then:
         executedAndNotSkipped ':includedBuild:fooJar'
         notExecuted ':includedBuild:barJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -457,12 +445,12 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
 
         when:
-        run ':a:checkPaid'
+        run ':a:check_compilePaid'
 
         then:
         executedAndNotSkipped ':includedBuild:barJar'
         notExecuted ':includedBuild:fooJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -537,19 +525,17 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                _compileFree.attributes { attribute(flavor, objects.named(Thing, 'free')) }
-                _compilePaid.attributes { attribute(flavor, objects.named(Thing, 'paid')) }
+                _compileFree.attributes { attribute(flavor, named(Thing, 'free')) }
+                _compilePaid.attributes { attribute(flavor, named(Thing, 'paid')) }
             }
+
+            ${resolve.configureProject("_compileFree", "_compilePaid")}
+
             dependencies {
                 _compileFree 'com.acme.external:external:1.0'
                 _compilePaid 'com.acme.external:external:1.0'
             }
         """
-
-        resolve.prepare {
-            config('_compileFree', 'checkFree')
-            config('_compilePaid', 'checkPaid')
-        }
 
         file('external/build.gradle') << """
             interface Thing extends Named { }
@@ -565,15 +551,15 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
-                bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
+                foo.attributes { attribute(flavor, named(Thing, 'red')) }
+                bar.attributes { attribute(flavor, named(Thing, 'blue')) }
             }
 
             ${fooAndBarJars()}
         """
 
         when:
-        run ':checkFree'
+        run ':check_compileFree'
 
         then:
         executedAndNotSkipped ':external:fooJar'
@@ -588,7 +574,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         }
 
         when:
-        run ':checkPaid'
+        run ':check_compilePaid'
 
         then:
         executedAndNotSkipped ':external:barJar'
@@ -620,19 +606,17 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                _compileFree.attributes { attribute(flavor, objects.named(Thing, 'free')) }
-                _compilePaid.attributes { attribute(flavor, objects.named(Thing, 'paid')) }
+                _compileFree.attributes { attribute(flavor, named(Thing, 'free')) }
+                _compilePaid.attributes { attribute(flavor, named(Thing, 'paid')) }
             }
+
+            ${resolve.configureProject("_compileFree", "_compilePaid")}
+
             dependencies {
                 _compileFree 'com.acme.external:external:1.0'
                 _compilePaid 'com.acme.external:external:1.0'
             }
         """
-
-        resolve.prepare {
-            config('_compileFree', 'checkFree')
-            config('_compilePaid', 'checkPaid')
-        }
 
         file('external/build.gradle') << """
             interface Thing extends Named { }
@@ -668,20 +652,20 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
-                bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
+                foo.attributes { attribute(flavor, named(Thing, 'red')) }
+                bar.attributes { attribute(flavor, named(Thing, 'blue')) }
             }
 
             ${fooAndBarJars()}
         """
 
         expect:
-        fails(":checkFree")
-        fails(":checkPaid")
+        fails(":check_compileFree")
+        fails(":check_compilePaid")
 
         // TODO: Restore proper expectations when this passes
 //        when:
-//        run ':checkFree'
+//        run ':check_compileFree'
 //
 //        then:
 //        executedAndNotSkipped ':external:fooJar'
@@ -696,7 +680,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 //        }
 //
 //        when:
-//        run ':checkPaid'
+//        run ':check_compilePaid'
 //
 //        then:
 //        executedAndNotSkipped ':external:barJar'
@@ -717,6 +701,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         file('settings.gradle') << """
             include 'a', 'b'
             includeBuild 'includedBuild'
+            ${resolve.configureSettings("_compileFree", "_compilePaid")}
         """
         buildFile << """
             interface Thing extends Named { }
@@ -739,8 +724,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
             project(':a') {
                 configurations {
-                    _compileFree.attributes { attribute(flavor, objects.named(Thing, 'free')) }
-                    _compilePaid.attributes { attribute(flavor, objects.named(Thing, 'paid')) }
+                    _compileFree.attributes { attribute(flavor, named(Thing, 'free')) }
+                    _compilePaid.attributes { attribute(flavor, named(Thing, 'paid')) }
                 }
                 dependencies {
                     _compileFree project(':b')
@@ -782,8 +767,8 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             }
 
             configurations {
-                foo.attributes { attribute(flavor, objects.named(Thing, 'red')) }
-                bar.attributes { attribute(flavor, objects.named(Thing, 'blue')) }
+                foo.attributes { attribute(flavor, named(Thing, 'red')) }
+                bar.attributes { attribute(flavor, named(Thing, 'blue')) }
             }
 
             ${fooAndBarJars()}
@@ -793,7 +778,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         '''
 
         when:
-        fails ':a:checkFree'
+        fails ':a:check_compileFree'
 
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
@@ -804,7 +789,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
       - Incompatible because this component declares attribute 'flavor' with value 'red' and the consumer needed attribute 'flavor' with value 'free'""")
 
         when:
-        fails ':a:checkPaid'
+        fails ':a:check_compilePaid'
 
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
@@ -817,7 +802,7 @@ All of them match the consumer attributes:
     }
 
     def "context travels down to transitive dependencies with typed attributes using plugin"() {
-        def resolve = new ResolveTestFixture(buildFile)
+        def resolve = new ResolveTestFixture(testDirectory)
 
         buildTypedAttributesPlugin('1.0')
         buildTypedAttributesPlugin('1.1')
@@ -833,6 +818,7 @@ All of them match the consumer attributes:
             include 'a', 'b'
             includeBuild 'includedBuild'
             rootProject.name = 'test'
+            ${resolve.configureSettings("_compileFreeDebug", "_compileFreeRelease")}
         """
         buildFile << """
             ${usesTypedAttributesPlugin(v1, usePluginsDSL)}
@@ -878,10 +864,6 @@ All of them match the consumer attributes:
                 }
             }
         """
-        resolve.prepare {
-            config("_compileFreeDebug", "checkDebug")
-            config("_compileFreeRelease", "checkRelease")
-        }
 
         file('includedBuild/build.gradle') << """
             ${usesTypedAttributesPlugin(v2, usePluginsDSL)}
@@ -914,12 +896,12 @@ All of them match the consumer attributes:
         """
 
         when:
-        run ':a:checkDebug'
+        run ':a:check_compileFreeDebug'
 
         then:
         executedAndNotSkipped ':includedBuild:fooJar'
         notExecuted ':includedBuild:barJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')
@@ -932,12 +914,12 @@ All of them match the consumer attributes:
         }
 
         when:
-        run ':a:checkRelease'
+        run ':a:check_compileFreeRelease'
 
         then:
         executedAndNotSkipped ':includedBuild:barJar'
         notExecuted ':includedBuild:fooJar'
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(':a', 'test:a:') {
                 project(':b', 'test:b:') {
                     artifact(name: 'b-transitive')

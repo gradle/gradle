@@ -30,7 +30,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -54,6 +53,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closeable {
     private final WorkerLeaseService workerLeaseService;
@@ -266,7 +266,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
         private final ProjectLifecycleController controller;
-        private final Lazy<Integer> depth = Lazy.unsafe().of(() -> getParent() != null ? getParent().getDepth() + 1 : 0);
 
         ProjectStateImpl(
             BuildState owner,
@@ -309,13 +308,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Nullable
         @Override
         public ProjectState getParent() {
-            Path identityPath = identity.getBuildTreePath();
-            return identityPath.getParent() == null ? null : projectsByPath.get(identityPath.getParent());
-        }
-
-        @Nullable
-        @Override
-        public ProjectState getBuildParent() {
             if (descriptor.getParent() != null) {
                 // Identity path of parent can be different to identity path parent, if the names are tweaked in the settings file
                 // Ideally they would be exactly the same, always
@@ -383,7 +375,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public int getDepth() {
-            return depth.get();
+            return getProjectPath().segmentCount();
         }
 
         @Override
@@ -402,9 +394,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         @Override
+        public ProjectInternal getMutableModelEvenAfterFailure() {
+            return controller.getMutableModelEvenAfterFailure();
+        }
+
+        @Override
         public void ensureConfigured() {
             // Need to configure intermediate parent projects for configure-on-demand
-            ProjectState parent = getBuildParent();
+            ProjectState parent = getParent();
             if (parent != null) {
                 parent.ensureConfigured();
             }
@@ -413,7 +410,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public void ensureSelfConfigured() {
-            ProjectState parent = getBuildParent();
+            ProjectState parent = getParent();
             if (parent != null) {
                 ((ProjectStateImpl) parent).controller.assertConfigured();
             }
@@ -450,23 +447,28 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public <S> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
+            return runWithModelLock(() -> function.apply(getMutableModel()));
+        }
+
+        @Override
+        public <S> S runWithModelLock(Supplier<S> action) {
             Thread currentThread = Thread.currentThread();
             if (workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || canDoAnythingToThisProject.contains(currentThread)) {
-                // Current thread is allowed to access anything at any time, so run the function
-                return function.apply(getMutableModel());
+                // Current thread is allowed to access anything at any time, so run the action
+                return action.get();
             }
 
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
             if (currentLocks.contains(projectLock) || currentLocks.contains(allProjectsLock)) {
                 // if we already hold the project lock for this project
                 if (currentLocks.size() == 1) {
-                    // the lock for this project is the only lock we hold, can run the function
-                    return function.apply(getMutableModel());
+                    // the lock for this project is the only lock we hold, can run the action
+                    return action.get();
                 } else {
                     throw new IllegalStateException("Current thread holds more than one project lock. It should hold only one project lock at any given time.");
                 }
             } else {
-                return workerLeaseService.withReplacedLocks(currentLocks, projectLock, () -> function.apply(getMutableModel()));
+                return workerLeaseService.withReplacedLocks(currentLocks, projectLock, action::get);
             }
         }
 

@@ -123,7 +123,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.gradle.plugin.software.internal.ProjectFeatureSupportInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
@@ -193,8 +193,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private AntBuilder ant;
 
-    private final int depth;
-
     private final TaskContainerInternal taskContainer;
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = newProjectEvaluationListenerBroadcast();
@@ -236,12 +234,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
 
-        if (parent == null) {
-            depth = 0;
-        } else {
-            depth = parent.getDepth() + 1;
-        }
-
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
@@ -252,7 +244,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
-        ProjectFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(ProjectFeatureApplicator.class), services.get(ProjectFeatureRegistry.class), getObjects());
+        ProjectFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(ProjectFeatureApplicator.class), services.get(ProjectFeatureDeclarations.class), getObjects());
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
@@ -592,7 +584,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public int getDepth() {
-        return depth;
+        return owner.getDepth();
     }
 
     @Inject
@@ -883,6 +875,15 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return projectToEvaluate;
     }
 
+    /**
+     * Returns the display name of this project in a human-readable format.
+     * <p>
+     * Currently:
+     * <ul>
+     *     <li>For the root project: {@code root project 'projectName'}</li>
+     *     <li>For subprojects: {@code project ':identity:path:of:project'}</li>
+     * </ul>
+     */
     @Override
     public String getDisplayName() {
         return owner.getDisplayName().getDisplayName();
@@ -1217,11 +1218,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ServiceRegistry getServices() {
         return services;
-    }
-
-    @Override
-    public ServiceRegistryFactory getServiceRegistryFactory() {
-        return services.get(ServiceRegistryFactory.class);
     }
 
     @Override

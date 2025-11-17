@@ -458,17 +458,37 @@ class MavenPublishResolvedVersionsJavaIntegTest extends MavenPublishResolvedVers
         """
         file("a/build.gradle") << """
             plugins {
-                id 'java-library'
+                id("java-library")
+                id("maven-publish")
             }
+
             group = 'com.first'
             version = '1.1'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
         """
         file("b/build.gradle") << """
             plugins {
-                id 'java-library'
+                id("java-library")
+                id("maven-publish")
             }
+
             group = 'com.second'
             version = '1.2'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
         """
 
         when:
@@ -521,10 +541,21 @@ class MavenPublishResolvedVersionsJavaIntegTest extends MavenPublishResolvedVers
         """)
 
         file("lib/build.gradle") << """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'com.acme'
             version = '1.45'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
         """
 
         when:

@@ -147,7 +147,7 @@ public abstract class EclipsePlugin extends IdePlugin {
     private void configureEclipseProject(final ProjectInternal project, final EclipseModel model) {
         final EclipseProject projectModel = model.getProject();
 
-        projectModel.setName(uniqueProjectNameProvider.getUniqueName(project));
+        projectModel.setName(uniqueProjectNameProvider.getUniqueName(project.getProjectIdentity()));
 
         final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
         convention.map("comment", new Callable<String>() {

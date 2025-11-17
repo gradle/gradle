@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures.timeout;
 
-import org.gradle.internal.jvm.Jvm;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -43,8 +41,8 @@ import java.util.stream.Stream;
 
 
 /**
- * NOTICE: This class is used in LifeCyclePlugin so you must:
- * 1. NOT DEPENDS ON ANY 3RD-PARTY LIBRARIES except JDK 11.
+ * NOTICE: This class is called directly via CLI in PrintStackTracesOnTimeoutBuildService so you must:
+ * 1. NOT DEPENDS ON ANY 3RD-PARTY LIBRARIES except JDK 17.
  * 2. UPDATE build-logic/lifecycle/src/main/kotlin/PrintStackTracesOnTimeoutBuildService.kt if this class is moved to another package.
  *
  * Used to print all JVMs' thread dumps on the machine. When it starts working, the process/machine might be in a bad state (e.g. deadlock),
@@ -59,6 +57,7 @@ public class JavaProcessStackTracesMonitor {
     private static final Pattern WINDOWS_JAVA_COMMAND_PATTERN = Pattern.compile("(?i)(?m)^\"?(.*[/\\\\]bin[/\\\\]java\\.exe)");
     private static final Pattern WINDOWS_PID_PATTERN = Pattern.compile("([0-9]+)\\s*$");
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("^(?:1\\.)?(\\d+)");
 
     private final File outputFile;
     private final PrintStream output;
@@ -270,9 +269,13 @@ public class JavaProcessStackTracesMonitor {
         return os;
     }
 
+    public static boolean isJavaVersionAtLeast(int targetMajorVersion) {
+        Matcher matcher = VERSION_PATTERN.matcher(System.getProperty("java.version"));
+        return matcher.find() && Integer.parseInt(matcher.group(1)) >= targetMajorVersion;
+    }
 
     public File printAllStackTracesByJstack() {
-        if (Jvm.current().getJavaVersionMajor() >= 25) {
+        if (isJavaVersionAtLeast(25)) {
             output.println("Java 25+ has issues with jstack, avoiding printing stack traces.");
             return outputFile;
         }

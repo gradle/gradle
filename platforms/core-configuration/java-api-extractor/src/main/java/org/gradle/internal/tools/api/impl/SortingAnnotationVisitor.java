@@ -16,6 +16,7 @@
 
 package org.gradle.internal.tools.api.impl;
 
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -28,7 +29,9 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     private final AnnotationMember annotation;
 
     private SortingAnnotationVisitor parentVisitor;
+    @Nullable
     private String annotationValueName;
+    @Nullable
     private String arrayValueName;
 
     public SortingAnnotationVisitor(AnnotationMember parentAnnotation, AnnotationVisitor av) {
@@ -53,7 +56,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     }
 
     @Override
-    public AnnotationVisitor visitArray(String name) {
+    public AnnotationVisitor visitArray(@Nullable String name) {
         SortingAnnotationVisitor visitor = new SortingAnnotationVisitor(annotation, super.visitArray(name));
         visitor.arrayValueName = name;
         return visitor;
@@ -82,7 +85,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
         super.visitEnd();
     }
 
-    private String nameOrValue(String name) {
+    private static String nameOrValue(@Nullable String name) {
         return name == null ? "value" : name;
     }
 }

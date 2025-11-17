@@ -115,7 +115,7 @@ class ForceRealizedMetadataIntegrationTest extends AbstractHttpDependencyResolut
         direct.publish()
 
         buildFile << """
-            resolveSources {
+            tasks.resolveSources {
                 expectedFiles = ['direct-1.0-sources.jar', 'transitive-1.0-sources.jar']
             }
         """

@@ -80,13 +80,20 @@ class DocsTest(
             }
         }
 
+        if (os == Os.WINDOWS) {
+            failureConditions {
+                // Disabled due to https://github.com/gradle/gradle-private/issues/4927
+                javaCrash = false
+            }
+        }
+
         applyTestDefaults(
             model,
             this,
             "docs:docsTest docs:checkSamples",
             os = os,
             arch = os.defaultArch,
-            timeout = 60,
+            timeout = if (os == Os.WINDOWS) 90 else 60,
             extraParameters =
                 listOf(
                     buildScanTagParam(docsTestType.docsTestName),

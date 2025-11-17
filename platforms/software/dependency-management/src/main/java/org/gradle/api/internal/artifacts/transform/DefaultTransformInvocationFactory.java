@@ -26,13 +26,14 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildoption.StringInternalOption;
+import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -43,7 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DefaultTransformInvocationFactory implements TransformInvocationFactory {
-    private static final StringInternalOption CACHING_DISABLED_PROPERTY = new StringInternalOption("org.gradle.internal.transform-caching-disabled", null);
+    private static final InternalOption<@Nullable String> CACHING_DISABLED_PROPERTY = StringInternalOption.of("org.gradle.internal.transform-caching-disabled");
 
     private final ExecutionEngine executionEngine;
     private final FileSystemAccess fileSystemAccess;
@@ -87,7 +88,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<Identity, IdentityCacheResult<TransformWorkspaceResult>> identityCache;
+        Cache<Identity, DeferredResult<TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
 
         boolean cachingDisabledByProperty = isCachingDisabledByProperty(transform);

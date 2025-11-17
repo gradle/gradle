@@ -8,6 +8,7 @@ import common.KillProcessMode.KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS
 import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.VersionedSettingsBranch
+import common.addEc2PostBuild
 import common.applyDefaultSettings
 import common.buildScanTagParam
 import common.buildToolGradleParameters
@@ -96,6 +97,11 @@ fun BaseGradleBuildType.tcParallelTests(numberOfBatches: Int) {
 }
 
 fun BuildFeatures.publishBuildStatusToGithub() {
+    if (VersionedSettingsBranch.fromDslContext().isExperimental) {
+        // don't publish xperimental commit status that might bother developer
+        return
+    }
+
     commitStatusPublisher {
         vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         publisher =
@@ -194,6 +200,7 @@ fun applyDefaults(
         extraSteps()
         killProcessStep(buildType, KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
         checkCleanM2AndAndroidUserHome(os, buildType)
+        buildType.addEc2PostBuild(os)
     }
 
     applyDefaultDependencies(model, buildType)

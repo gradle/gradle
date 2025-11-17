@@ -16,26 +16,49 @@
 
 package org.gradle.testing.cucumberjvm
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
 
-class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest {
+class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
 
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.CUCUMBER
+    }
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
+
+    @Issue("https://github.com/gradle/gradle/issues/35570")
+    def junit5Suite() {
+        when:
+        run "test"
+
+        then:
+        executedAndNotSkipped(":test")
+
+        and:
+        def result = resultsFor()
+        result.assertTestPathsExecuted(
+            ":RunCukesTest:feature_classpath_features/helloworld.feature:Say hello /two/three",
+            ":RunCukesTest:feature_classpath_features/secondhello.feature:Say hi /two/three",
+        )
+    }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2739")
     def testReportingSupportsCucumberStepsWithSlashes() {
         when:
         run "test"
+
         then:
         executedAndNotSkipped(":test")
+
         and:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("RunCukesTest", "Hello World /one")
-        result.testClass("Hello World /one").assertTestPassed("Say hello /two/three")
+        def result = resultsFor()
+        result.testPath("RunCukesTest", "Hello World /one", "Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

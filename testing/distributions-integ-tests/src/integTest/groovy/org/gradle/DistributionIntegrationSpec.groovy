@@ -51,6 +51,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-cache-packaging",
         "build-cache-spi",
         "build-configuration",
+        "build-discovery",
+        "build-discovery-impl",
         "build-events",
         "build-init-specs",
         "build-init-specs-api",
@@ -168,7 +170,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        80
+        79
     }
 
     /**
@@ -330,7 +332,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 515 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 519 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

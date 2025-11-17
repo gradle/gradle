@@ -32,13 +32,13 @@ class ConfigurationCacheFixture {
     private final AbstractIntegrationSpec spec
     final BuildOperationsFixture buildOperations
     final ConfigurationCacheBuildOperationsFixture configurationCacheBuildOperations
-    final ConfigurationCacheProblemsFixture problems
+    final ConfigurationCacheProblemsExecutionResultFixture problems
 
     ConfigurationCacheFixture(AbstractIntegrationSpec spec) {
         this.spec = spec
         buildOperations = new BuildOperationsFixture(spec.executer, spec.temporaryFolder)
         configurationCacheBuildOperations = new ConfigurationCacheBuildOperationsFixture(buildOperations)
-        problems = new ConfigurationCacheProblemsFixture(spec.testDirectory)
+        problems = new ConfigurationCacheProblemsExecutionResultFixture(spec.testDirectory)
     }
 
     /**
@@ -357,6 +357,10 @@ class ConfigurationCacheFixture {
             reasons.add("an input to task '${invalidationDetails.changedTask}' has changed")
         }
 
+        if (invalidationDetails.changedPlugin != null) {
+            reasons.add("an input to plugin '${invalidationDetails.changedPlugin}' has changed")
+        }
+
         assert details.createsModels || details.runsTasks
         def messages = reasons.collect { reason ->
             if (details.createsModels) {
@@ -466,6 +470,7 @@ class ConfigurationCacheFixture {
         String changedGradleProperty
         String changedSystemProperty
         String changedTask
+        String changedPlugin
 
         void fileChanged(String name) {
             changedFiles.add(name)
@@ -473,6 +478,10 @@ class ConfigurationCacheFixture {
 
         void taskInputChanged(String name) {
             changedTask = name
+        }
+
+        void pluginInputChanged(String name) {
+            changedPlugin = name
         }
 
         void startParameterProjectPropertiesChanged(String message) {

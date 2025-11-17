@@ -21,7 +21,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
-import org.gradle.plugin.software.internal.ProjectFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
 
 
@@ -37,9 +37,9 @@ internal
 object BuildScopeToolingServices : ServiceRegistrationProvider {
 
     @Provides
-    fun createIdeBuildScopeToolingModelBuilderRegistryAction(projectFeatureRegistry: ProjectFeatureRegistry): BuildScopeToolingModelBuilderRegistryAction {
+    fun createIdeBuildScopeToolingModelBuilderRegistryAction(projectFeatureDeclarations: ProjectFeatureDeclarations): BuildScopeToolingModelBuilderRegistryAction {
         return BuildScopeToolingModelBuilderRegistryAction {
-            it.register(DeclarativeSchemaModelBuilder(projectFeatureRegistry))
+            it.register(DeclarativeSchemaModelBuilder(projectFeatureDeclarations))
         }
     }
 }

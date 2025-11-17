@@ -17,28 +17,39 @@
 package org.gradle.api.internal.tasks.testing.report
 
 import groovy.transform.SelfType
-import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.test.fixtures.file.TestFile
 
 /**
- * A trait to be applied to tests that verify the results of the {@link GenericTestReportGenerator}.
+ * A trait to be applied to tests that verify the results of the {@link GenericHtmlTestReportGenerator}.
  */
 @SelfType(AbstractIntegrationSpec)
 trait VerifiesGenericTestReportResults {
-    String resultsUrlFor(String name) {
-        def expectedReportFile = file("build/reports/tests/${name}/index.html")
-        String renderedUrl = new ConsoleRenderer().asClickableFileUrl(expectedReportFile);
+    String resultsUrlFor(String testTaskName = "test") {
+        def expectedReportFile = file("build/reports/tests/${testTaskName}/index.html")
+        String renderedUrl = new ConsoleRenderer().asClickableFileUrl(expectedReportFile)
         renderedUrl
     }
 
-    GenericTestExecutionResult resultsFor(String name) {
-        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/${name}")
+    abstract TestFramework getTestFramework()
+
+    GenericHtmlTestExecutionResult resultsFor(String testTaskReportsDirPath = 'tests/test', TestFramework testFramework = null) {
+        return resultsFor(testDirectory, testTaskReportsDirPath, testFramework ?: getTestFramework())
     }
 
-    GenericTestExecutionResult aggregateResults() {
-        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/aggregate-test-results")
+    GenericHtmlTestExecutionResult resultsFor(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', TestFramework testFramework = null) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/${testTaskReportsDirPath}", testFramework ?: getTestFramework())
+    }
+
+    GenericHtmlTestExecutionResult aggregateResults(String testTaskReportsDirPath = '', TestFramework testFramework = null) {
+        return aggregateResults(testDirectory, testTaskReportsDirPath, 'aggregate-test-results', testFramework ?: getTestFramework())
+    }
+
+    GenericHtmlTestExecutionResult aggregateResults(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', String reportName = 'aggregate-test-results', TestFramework testFramework = null) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/$testTaskReportsDirPath/$reportName", testFramework ?: getTestFramework())
     }
 }

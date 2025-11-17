@@ -160,7 +160,9 @@ class ProgressEvents implements ProgressListener {
                 assert event.result.startTime == startEvent.eventTime
                 assert event.result.endTime == event.eventTime
             } else if (event instanceof TestOutputEvent || event instanceof TestMetadataEvent) {
-                // Do nothing - these are treated differently, their contents are stored separately from the events
+                assert running.containsKey(event.descriptor.parent)
+                def operation = operations.find { it.descriptor == event.descriptor.parent }
+                operation.statusEvents << new OperationStatus(event)
             } else {
                 def descriptor = event.descriptor
                 // operation should still be running

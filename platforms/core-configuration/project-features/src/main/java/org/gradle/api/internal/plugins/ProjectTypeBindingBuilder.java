@@ -26,18 +26,18 @@ public interface ProjectTypeBindingBuilder {
      * The supplied transform is used to implement the build logic associated with the binding.
      *
      * @param name the name of the binding.  This is how it will be referenced in the DSL.
-     * @param dslType the class of the project type definition object
-     * @param buildModelType the class of the build model object for this project type
+     * @param definitionClass the class of the project type definition object
+     * @param buildModelClass the class of the build model object for this project type
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
-     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
-     * @param <T> the type of the project type definition object
-     * @param <V> the type of the build model object for this project type
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
+     * @param <OwnDefinition> the type of the project type definition object
+     * @param <OwnBuildModel> the type of the build model object for this project type
      */
-    <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindProjectType(
+    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
         String name,
-        Class<T> dslType,
-        Class<V> buildModelType,
-        ProjectTypeApplyAction<T, V> transform
+        Class<OwnDefinition> definitionClass,
+        Class<OwnBuildModel> buildModelClass,
+        ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
     );
 
     /**
@@ -45,15 +45,15 @@ public interface ProjectTypeBindingBuilder {
      * The supplied transform is used to implement the build logic associated with the binding.
      *
      * @param name the name of the binding.  This is how it will be referenced in the DSL.
-     * @param dslType the class of the project type definition object
+     * @param definitionClass the class of the project type definition object
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
-     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
-     * @param <T> the type of the project type definition object
-     * @param <V> the type of the build model object for this project type
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
+     * @param <OwnDefinition> the type of the project type definition object
+     * @param <OwnBuildModel> the type of the build model object for this project type
      */
-    <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindProjectType(
+    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
         String name,
-        Class<T> dslType,
-        ProjectTypeApplyAction<T, V> transform
+        Class<OwnDefinition> definitionClass,
+        ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
     );
 }

@@ -19,9 +19,9 @@ package org.gradle.internal.declarativedsl.settings
 import groovy.transform.SelfType
 import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.ProjectTypeBindingRegistration
+import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType // codenarc-disable-line UnusedImport
@@ -240,7 +240,7 @@ trait ProjectTypeFixture {
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.tasks.Nested;
                 import ${SoftwareType.class.name};
-                import ${ProjectTypeBindingRegistration.class.name};
+                import ${ProjectTypeBinding.class.name};
                 import ${BindsProjectType.class.name};
                 import ${ProjectTypeBindingBuilder.class.name};
                 import javax.inject.Inject;
@@ -248,8 +248,8 @@ trait ProjectTypeFixture {
                 @${BindsProjectType.class.simpleName}(${projectTypePluginClassName}.Binding.class)
                 abstract public class ${projectTypePluginClassName} implements Plugin<Project> {
 
-                    static class Binding implements ProjectTypeBindingRegistration {
-                        public void register(ProjectTypeBindingBuilder builder) {
+                    static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                        public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                             builder.bindProjectType("${name}", ${dslTypeClassName}.class, ${dslTypeClassName}.ModelType.class, (context, definition, model) -> {
                                 System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
                                 ${conventions == null ? "" : conventions}
@@ -304,8 +304,8 @@ trait ProjectTypeFixture {
 
             @${BindsProjectType.class.simpleName}(${projectTypePluginClassName}.Binding.class)
             abstract public class ${projectTypePluginClassName} implements Plugin<Project> {
-                static class Binding implements ${ProjectTypeBindingRegistration.class.name} {
-                    public void register(${ProjectTypeBindingBuilder.class.name} builder) {
+                static class Binding implements ${ProjectTypeBinding.class.name} {
+                    public void bind(${ProjectTypeBindingBuilder.class.name} builder) {
                         builder.bindProjectType("testProjectType", ${definitionImplementationTypeClassName}.class, (context, definition, model) -> {
                             System.out.println("Binding " + ${definitionImplementationTypeClassName}.class.getSimpleName());
                             definition.getId().convention("<no id>");
@@ -463,13 +463,13 @@ trait ProjectTypeFixture {
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
                     private final Foo foo;
                     private boolean isFooConfigured = false;
 
@@ -491,7 +491,7 @@ trait ProjectTypeFixture {
                         action.execute(foo);
                     }
 
-                    public abstract static class Foo implements HasBuildModel<FooBuildModel> {
+                    public abstract static class Foo implements ${Definition.class.simpleName}<FooBuildModel> {
                         public Foo() { }
 
                         @Restricted
@@ -530,12 +530,12 @@ trait ProjectTypeFixture {
                 import org.gradle.api.Named;
                 import org.gradle.api.NamedDomainObjectContainer;
                 import org.gradle.api.provider.Property;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import java.util.stream.Collectors;
 
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
                     public abstract NamedDomainObjectContainer<Foo> getFoos();
 
                     public abstract static class Foo implements Named {
@@ -629,11 +629,11 @@ trait ProjectTypeFixture {
 
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.Action;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${publicTypeClassName} extends HasBuildModel<${publicTypeClassName}.ModelType> {
+                public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
                     @Restricted
                     Property<String> getId();
 
@@ -684,13 +684,13 @@ trait ProjectTypeFixture {
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.tasks.Nested;
-                import ${HasBuildModel.class.name};
+                import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
                     @Inject
                     public ${implementationTypeClassName}() { }
 

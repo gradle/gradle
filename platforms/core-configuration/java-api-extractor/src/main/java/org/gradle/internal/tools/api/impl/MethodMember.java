@@ -18,6 +18,7 @@ package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
 
 import java.lang.reflect.Modifier;
@@ -30,9 +31,11 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
     private static final Ordering<Iterable<String>> LEXICOGRAPHICAL_ORDERING = Ordering.<String>natural().lexicographical();
     private final SortedSet<String> exceptions = new TreeSet<>();
     private final SortedSet<AnnotationMember> parameterAnnotations = new TreeSet<>();
+    private final SortedSet<AnnotationMember> typeAnnotations = new TreeSet<>();
+    @Nullable
     private AnnotationValue<?> annotationDefaultValue;
 
-    public MethodMember(int access, String name, String typeDesc, String signature, String[] exceptions) {
+    public MethodMember(int access, String name, String typeDesc, String signature, String @Nullable [] exceptions) {
         super(access, name, signature, typeDesc);
         if (exceptions != null && exceptions.length > 0) {
             this.exceptions.addAll(Arrays.asList(exceptions));
@@ -51,7 +54,15 @@ public class MethodMember extends TypedMember implements Comparable<MethodMember
         parameterAnnotations.add(parameterAnnotationMember);
     }
 
-    public Optional<AnnotationValue<?>> getAnnotationDefaultValue() {
+    public SortedSet<AnnotationMember> getTypeAnnotations() {
+        return ImmutableSortedSet.copyOf(typeAnnotations);
+    }
+
+    public void addTypeAnnotation(TypeAnnotationMember typeAnnotationMember) {
+        typeAnnotations.add(typeAnnotationMember);
+    }
+
+    public Optional<@Nullable AnnotationValue<?>> getAnnotationDefaultValue() {
         return Optional.ofNullable(annotationDefaultValue);
     }
 

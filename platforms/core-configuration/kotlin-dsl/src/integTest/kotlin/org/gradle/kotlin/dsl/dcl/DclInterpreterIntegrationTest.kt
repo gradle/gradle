@@ -19,11 +19,11 @@ package org.gradle.kotlin.dsl.dcl
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
-import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration
+import org.gradle.api.internal.plugins.ProjectFeatureBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.ProjectTypeBindingRegistration
+import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
@@ -99,7 +99,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
             assertOutputContains(
                 """
                 |    @Incubating
-                |    fun org.gradle.api.internal.plugins.HasBuildModel<out com.example.MyFeatureBuildModel>.`myNestedFeature`(configure: Action<in com.example.MyNestedFeatureDefinition>) {
+                |    fun org.gradle.api.internal.plugins.Definition<out com.example.MyFeatureBuildModel>.`myNestedFeature`(configure: Action<in com.example.MyNestedFeatureDefinition>) {
                 |        applyProjectType(this, "myNestedFeature", configure)
                 |    }
                 """.trimMargin()
@@ -125,11 +125,11 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 import javax.inject.Inject
                 import ${BindsProjectType::class.qualifiedName}
                 import ${BindsProjectFeature::class.qualifiedName}
-                import ${HasBuildModel::class.qualifiedName}
+                import ${Definition::class.qualifiedName}
                 import ${BuildModel::class.qualifiedName}
-                import ${ProjectTypeBindingRegistration::class.qualifiedName}
+                import ${ProjectTypeBinding::class.qualifiedName}
                 import ${ProjectTypeBindingBuilder::class.qualifiedName}
-                import ${ProjectFeatureBindingRegistration::class.qualifiedName}
+                import ${ProjectFeatureBinding::class.qualifiedName}
                 import ${ProjectFeatureBindingBuilder::class.qualifiedName}
                 import org.gradle.api.internal.plugins.features.dsl.bindProjectType
                 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
@@ -141,8 +141,8 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
 
                     override fun apply(project: Project) = Unit
 
-                    class Binding : ${ProjectTypeBindingRegistration::class.simpleName} {
-                        override fun register(builder: ProjectTypeBindingBuilder) {
+                    class Binding : ${ProjectTypeBinding::class.simpleName} {
+                        override fun bind(builder: ProjectTypeBindingBuilder) {
                             builder.bindProjectType("myProjectType") { definition: MyExtension, model ->
                                 project.tasks.register("printNames") {
                                     val names = definition.myElements.names
@@ -153,8 +153,8 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                             }
                         }
                     }
-                    class FeatureBinding : ${ProjectFeatureBindingRegistration::class.simpleName} {
-                        override fun register(builder: ProjectFeatureBindingBuilder) {
+                    class FeatureBinding : ${ProjectFeatureBinding::class.simpleName} {
+                        override fun bind(builder: ProjectFeatureBindingBuilder) {
                             builder.bindProjectFeatureToDefinition(
                                 "myFeature",
                                 MyFeatureDefinition::class,
@@ -175,13 +175,13 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
 
                 interface MyExtensionBuildModel : BuildModel
-                abstract class MyExtension : HasBuildModel<MyExtensionBuildModel> {
+                abstract class MyExtension : ${Definition::class.simpleName}<MyExtensionBuildModel> {
                     abstract val myElements: NamedDomainObjectContainer<MyElement>
                 }
 
                 interface MyFeatureBuildModel : BuildModel
 
-                abstract class MyFeatureDefinition : HasBuildModel<MyFeatureBuildModel>
+                abstract class MyFeatureDefinition : ${Definition::class.simpleName}<MyFeatureBuildModel>
 
                 abstract class MyNestedFeatureDefinition : MyFeatureDefinition()
 

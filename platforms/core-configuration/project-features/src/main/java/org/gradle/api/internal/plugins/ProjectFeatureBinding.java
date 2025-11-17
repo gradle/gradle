@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.plugins;
 
-import java.util.Optional;
-
-public interface ProjectFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
-    TargetTypeInformation<?> targetDefinitionType();
-    Class<T> getDslType();
-    Optional<Class<? extends T>> getDslImplementationType();
-    Class<V> getBuildModelType();
-    Optional<Class<? extends V>> getBuildModelImplementationType();
-    String getName();
-    ProjectFeatureApplyAction<T, ?, V> getTransform();
-
-    String MODEL = "model";
+/**
+ * A registration action for configuring a project feature binding.  Instances of this interface should be
+ * registered with the {@link BindsProjectFeature} annotation
+ * on a project plugin.
+ */
+public interface ProjectFeatureBinding {
+    /**
+     * Configure the project feature binding.
+     *
+     * @param builder the builder to use to configure the binding
+     */
+    void bind(ProjectFeatureBindingBuilder builder);
 }

@@ -47,7 +47,7 @@ public interface TargetTypeInformation<T> {
         }
     }
 
-    class BuildModelTargetTypeInformation<T extends BuildModel> implements TargetTypeInformation<HasBuildModel<T>> {
+    class BuildModelTargetTypeInformation<T extends BuildModel> implements TargetTypeInformation<Definition<T>> {
         public final Class<T> buildModelType;
 
         public BuildModelTargetTypeInformation(Class<T> buildModelType) {

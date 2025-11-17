@@ -142,7 +142,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    protected final S getSupplier(@SuppressWarnings("unused") EvaluationScopeContext context) {
+    protected final S getSupplier(EvaluationScopeContext ignored) {
         // context serves as a token here to ensure that the scope is opened.
         return value;
     }

@@ -157,7 +157,9 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         "4.0.2",
         "4.1",
         "4.1.1",
-        "4.2"
+        "4.2",
+        "4.2.1",
+        "4.2.2"
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above

@@ -39,7 +39,7 @@ class ProjectBuilderTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     @Rule
-    public final Resources resources = new Resources()
+    public final Resources resources = new Resources(null)
 
     def "can create a root project"() {
         when:
@@ -188,5 +188,3 @@ class ProjectBuilderTest extends Specification {
         IncubationLogger.reset()
     }
 }
-
-
