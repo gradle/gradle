@@ -325,6 +325,9 @@ class DefaultFunctionExtractor(
                 FunctionSemanticsInternal.DefaultAccessAndConfigure(
                     accessor,
                     returnType,
+                    host.withTag(SchemaBuildingTags.configuredType(function.returnType)) {
+                        host.modelTypeRef(configuredType)
+                    },
                     blockRequirement
                 )
             }

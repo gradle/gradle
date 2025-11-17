@@ -222,7 +222,8 @@ object FunctionSemanticsInternal {
     data class DefaultAccessAndConfigure(
         override val accessor: ConfigureAccessor,
         override val returnType: ReturnType,
-        override val configureBlockRequirement: ConfigureBlockRequirement
+        override val configuredType: DataTypeRef,
+        override val configureBlockRequirement: ConfigureBlockRequirement,
     ) : AccessAndConfigure {
         override val returnValueType: DataTypeRef
             get() = when (returnType) {

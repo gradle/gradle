@@ -113,14 +113,16 @@ data class ExtensionInfo(
 
     fun schemaFunction(host: SchemaBuildingHost) =
         host.withTag(extensionTag(name)) {
+            val objectType = host.containerTypeRef(type)
             DefaultDataMemberFunction(
                 host.containerTypeRef(ProjectTopLevelReceiver::class),
                 name,
                 emptyList(),
                 isDirectAccessOnly = true,
                 semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                    accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(type), customAccessorId),
+                    accessor = ConfigureAccessorInternal.DefaultCustom(objectType, customAccessorId),
                     FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                    objectType,
                     FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
                 )
             )
