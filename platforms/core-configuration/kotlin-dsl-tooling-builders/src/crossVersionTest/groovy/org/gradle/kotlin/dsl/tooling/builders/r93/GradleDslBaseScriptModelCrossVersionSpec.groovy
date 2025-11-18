@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.builders.r92
+package org.gradle.kotlin.dsl.tooling.builders.r93
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel
 
-@TargetGradleVersion(">=9.2 <9.3")
+@TargetGradleVersion(">=9.3")
 class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "GradleDslBaseScriptModel is obtained without configuring projects"() {
@@ -59,6 +59,7 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
         and: "Kotlin DSL script templates classpath"
         !kotlinModel.templateClassNames.isEmpty()
+        loadClassesFrom(kotlinModel.scriptTemplatesClassPath, ["org.gradle.api.HasImplicitReceiver"])
         loadClassesFrom(kotlinModel.scriptTemplatesClassPath, kotlinModel.templateClassNames)
 
         def legacyScriptTemplateAndResolverClassNames = Arrays.asList(
