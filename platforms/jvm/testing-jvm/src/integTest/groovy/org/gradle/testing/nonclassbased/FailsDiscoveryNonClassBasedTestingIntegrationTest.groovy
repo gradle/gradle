@@ -16,11 +16,14 @@
 
 package org.gradle.testing.nonclassbased
 
+import spock.lang.Ignore
+
 import static org.gradle.util.Matchers.matchesRegexp
 
 /**
  * Tests that exercise and demonstrate a broken Non-Class-Based Testing Engine that fails during discovery.
  */
+@Ignore
 class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {

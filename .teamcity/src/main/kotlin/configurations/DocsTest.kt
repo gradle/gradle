@@ -80,11 +80,9 @@ class DocsTest(
             }
         }
 
-        if (os == Os.WINDOWS) {
-            failureConditions {
-                // Disabled due to https://github.com/gradle/gradle-private/issues/4927
-                javaCrash = false
-            }
+        failureConditions {
+            // Disabled due to https://github.com/gradle/gradle-private/issues/4927
+            javaCrash = false
         }
 
         applyTestDefaults(

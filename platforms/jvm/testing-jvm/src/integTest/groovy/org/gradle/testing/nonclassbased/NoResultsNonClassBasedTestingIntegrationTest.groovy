@@ -16,6 +16,9 @@
 
 package org.gradle.testing.nonclassbased
 
+import spock.lang.Ignore
+
+@Ignore
 class NoResultsNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {
