@@ -250,4 +250,54 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), "START [Test subSomeOtherTestSpec.rbt : other(UnknownClass)] [subSomeOtherTestSpec.rbt : other]")
         containsLine(result.getOutput(), "FINISH [Test subSomeOtherTestSpec.rbt : other(UnknownClass)] [subSomeOtherTestSpec.rbt : other] [SUCCESS] [1] [null]")
     }
+
+    def "can listen for non-class-based tests using dry-run and tests are reported as skipped"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            class TestListenerImpl implements TestListener {
+                void beforeSuite(TestDescriptor suite) { println "START [\$suite] [\$suite.name]" }
+                void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH [\$suite] [\$suite.name] [\$result.resultType] [\$result.testCount]" }
+                void beforeTest(TestDescriptor test) { println "START [\$test] [\$test.name]" }
+                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [\$test] [\$test.name] [\$result.resultType] [\$result.testCount] [\$result.exception]" }
+            }
+            def listener = new TestListenerImpl()
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        dryRun = true
+                        addTestListener(listener)
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
+
+        when:
+        def result = succeeds("test")
+
+        then:
+        containsLine(result.getOutput(), "START [Gradle Test Run :test] [Gradle Test Run :test]")
+        containsLine(result.getOutput(), "FINISH [Gradle Test Run :test] [Gradle Test Run :test] [SUCCESS] [3]")
+
+        containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
+        containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
+
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test subSomeOtherTestSpec.rbt : other(UnknownClass)] [subSomeOtherTestSpec.rbt : other]")
+        containsLine(result.getOutput(), "FINISH [Test subSomeOtherTestSpec.rbt : other(UnknownClass)] [subSomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
+    }
 }
