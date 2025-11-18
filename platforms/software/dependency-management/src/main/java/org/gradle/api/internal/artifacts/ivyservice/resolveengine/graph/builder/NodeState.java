@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import io.usethesource.capsule.Set.Immutable;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -426,7 +426,7 @@ public class NodeState implements DependencyGraphNode {
         this.upcomingNoLongerPendingConstraints = null;
 
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
-        Set<ModuleIdentifier> strictVersionsSet = null;
+        Immutable<ModuleIdentifier> strictVersionsSet = Immutable.<ModuleIdentifier>of();
         for (DependencyState dependencyState : dependencies(resolutionFilter)) {
             PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
             if (dependencyState.getDependency().isConstraint()) {
@@ -840,22 +840,18 @@ public class NodeState implements DependencyGraphNode {
 
     private void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
         List<DependencyState> dependencies = dependencies(moduleResolutionFilter);
-        Set<ModuleIdentifier> constraintsSet = null;
+        Immutable<ModuleIdentifier> constraintsSet = Immutable.<ModuleIdentifier>of();
         for (DependencyState dependencyState : dependencies) {
             constraintsSet = maybeCollectStrictVersions(constraintsSet, dependencyState);
         }
         storeOwnStrictVersions(constraintsSet);
     }
 
-    @Nullable
-    private Set<ModuleIdentifier> maybeCollectStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
+    private Immutable<ModuleIdentifier> maybeCollectStrictVersions(Immutable<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
         if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
             if (!StringUtils.isEmpty(selector.getVersionConstraint().getStrictVersion())) {
-                if (constraintsSet == null) {
-                    constraintsSet = new HashSet<>();
-                }
-                constraintsSet.add(selector.getModuleIdentifier());
+                constraintsSet = constraintsSet.__insert(selector.getModuleIdentifier());
             }
         }
         return constraintsSet;
@@ -864,7 +860,7 @@ public class NodeState implements DependencyGraphNode {
     private void storeOwnStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet) {
         StrictVersionConstraints newStrictVersions = constraintsSet == null
             ? StrictVersionConstraints.EMPTY
-            : StrictVersionConstraints.of(ImmutableSet.copyOf(constraintsSet));
+            : StrictVersionConstraints.of(constraintsSet);
 
         if (ownStrictVersions != null && !ownStrictVersions.equals(newStrictVersions)) {
             // Our strict versions were already computed, and they just changed.

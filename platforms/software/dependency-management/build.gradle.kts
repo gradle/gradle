@@ -9,6 +9,10 @@ description = """This project contains most of the dependency management logic o
     |
     |DSL facing APIs are to be found in 'core-api'""".trimMargin()
 
+repositories {
+    maven(url = "https://releases.usethesource.io/maven/")
+}
+
 errorprone {
     disabledChecks.addAll(
         "AmbiguousMethodReference", // 1 occurrences
@@ -74,6 +78,7 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
+    implementation("io.usethesource:capsule:0.7.1")
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.fileOperations)
     implementation(projects.time)
