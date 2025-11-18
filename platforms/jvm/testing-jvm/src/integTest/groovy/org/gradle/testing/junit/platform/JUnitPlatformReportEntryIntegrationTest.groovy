@@ -181,7 +181,6 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
                     Path test = tempDir.resolve("test.txt");
                     Files.writeString(test, "hello world");
                     testReporter.publishFile(test, MediaType.TEXT_PLAIN);
-                    assert false;
                 }
             }
         """
@@ -205,6 +204,11 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
                 (testFile.name): link(testFile),
                 (afterEachFile.name): video(afterEachFile)
             ])
+
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def clazz = xmlReport.testClass("com.example.ReportEntryTest")
+        clazz.assertHasFileAttachments(constructorFile)
+        clazz.assertTestHasFileAttachments('test(TestReporter)', beforeEachFile, testFile, afterEachFile)
     }
 
     private static String link(File path) {
@@ -287,6 +291,11 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
             (testDir.name): link(testDir),
             (afterEachDir.name): link(afterEachDir)
             ])
+
+        def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
+        def clazz = xmlReport.testClass("com.example.ReportEntryTest")
+        clazz.assertHasFileAttachments(constructorDir)
+        clazz.assertTestHasFileAttachments('test(TestReporter)', beforeEachDir, testDir, afterEachDir)
     }
 
     @Override

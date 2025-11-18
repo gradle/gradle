@@ -98,6 +98,23 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    @Override
+    TestClassExecutionResult assertHasFileAttachments(File... files) {
+        def systemOut = testClassNode.'system-out'[0].text()
+        def found = files.every {systemOut.contains(it.absolutePath) }
+        assert found
+        this
+    }
+
+    @Override
+    TestClassExecutionResult assertTestHasFileAttachments(String name, File... files) {
+        def test = testCase(name)
+        def systemOut = test.'system-out'[0].text()
+        def found = files.every {systemOut.contains(it.absolutePath) }
+        assert found
+        this
+    }
+
     int getTestCount() {
         return testClassNode.@tests.toInteger()
     }
