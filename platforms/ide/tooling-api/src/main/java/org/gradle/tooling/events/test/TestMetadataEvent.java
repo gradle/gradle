@@ -23,10 +23,34 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 /**
- * An event that informs about a test capturing metadata while running.
+ * An event emitted by tests that contain additional data about the test.
  * <p>
- * A new test metadata event instance is created for each metadata reporting event, which
- * might involve multiple values.
+ * An event may contain a Map of key-values or a structured type.
+ *
+ * To access data from the event:
+ * <pre>
+ *         TestLauncher launcher = ...
+ *         launcher.addProgressListener(new ProgressListener() {
+ *             void statusChanged(ProgressEvent event) {
+ *                 if (event instanceof TestMetadataEvent) {
+ *                     if (!event.getValues().isEmpty()) {
+ *                         // Test emitted a Map of key-values
+ *                         // do something with event.getValues()
+ *                     } else {
+ *                         // Test emitted a structured type
+ *                         FileAttachment fileAttachment = event.get(FileAttachment.class);
+ *                         if (fileAttachment != null) {
+ *                             // Test emitted a FileAttachment
+ *                             // do something with fileAttachment
+ *                         } else {
+ *                             // This is an unrecognized/new type of data
+ *                             // Just ignore it
+ *                         }
+ *                     }
+ *                 }
+ *             }
+ *         });
+ * </pre>
  *
  * @since 8.13
  */
@@ -35,7 +59,7 @@ public interface TestMetadataEvent extends ProgressEvent {
     /**
      * Returns the key-value data if this event represents a key-value event.
      *
-     * @apiNote Since Gradle 9.4.0, this will only return {@code Map<String, String>}.
+     * @apiNote Builds using Gradle 9.4.0 and newer will only produce {@code Map<String,String>}.
      *
      * @return map of key-values or an empty collection if this data is some other type
      * @since 8.13
@@ -51,6 +75,7 @@ public interface TestMetadataEvent extends ProgressEvent {
      * @return the data as the given type or null if the data cannot be represented as the given type
      * @param <T> view type
      * @since 9.4.0
+     * @see FileAttachment File attachments are supported after 9.4.0
      */
     @Nullable
     <T> T get(Class<T> viewType);

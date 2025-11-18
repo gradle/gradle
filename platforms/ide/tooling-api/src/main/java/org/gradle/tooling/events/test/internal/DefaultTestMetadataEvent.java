@@ -20,6 +20,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.TestMetadataEvent;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -31,9 +32,9 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
     private final long eventTime;
     private final OperationDescriptor descriptor;
     private final Map<String, Object> values;
-    private final Object payload;
+    private final @Nullable Object payload;
 
-    public DefaultTestMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, Object> values, Object payload) {
+    public DefaultTestMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, Object> values, @Nullable Object payload) {
         this.eventTime = eventTime;
         this.descriptor = descriptor;
         this.values = values;
@@ -67,6 +68,9 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
 
     @Override
     public <T> T get(Class<T> viewType) {
+        if (payload == null) {
+            return null;
+        }
         return new ProtocolToModelAdapter().adapt(viewType, payload);
     }
 }
