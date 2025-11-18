@@ -204,13 +204,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private static String getFormattedDuration(PerRootInfo info) {
-            long minStartTime = Long.MAX_VALUE;
-            long maxEndTime = Long.MIN_VALUE;
-            for (SerializableTestResult result : info.getResults()) {
-                minStartTime = Math.min(minStartTime, result.getStartTime());
-                maxEndTime = Math.max(maxEndTime, result.getEndTime());
-            }
-            return TimeFormatting.formatDurationVeryTerse(maxEndTime - minStartTime);
+            return info.getResults().stream()
+                .map(r -> TimeFormatting.formatDurationVeryTerse(r.getDuration()))
+                .collect(Collectors.joining(" / "));
         }
 
         private void renderLeafDetails(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
