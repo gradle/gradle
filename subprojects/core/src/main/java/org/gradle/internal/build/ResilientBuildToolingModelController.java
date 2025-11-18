@@ -46,18 +46,21 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     protected void configureProjectsForModel(String modelName) {
         try {
             super.configureProjectsForModel(modelName);
-        } catch (ProjectConfigurationException | TaskExecutionException e) {
+        } catch (GradleException e) {
             rethrowExceptionIfNotResilientModel(modelName, e);
-        } catch (RuntimeException re) {
-            throw re;
         }
     }
 
     private static void rethrowExceptionIfNotResilientModel(String modelName, GradleException e) {
-        // For resilient models, ignore configuration failures
-        if (!RESILIENT_MODELS.contains(modelName)) {
-            throw e;
+        // For resilient models, ignore SOME configuration failures
+        if (RESILIENT_MODELS.contains(modelName)) {
+            if (e instanceof ProjectConfigurationException) {
+                return; // swallow exception
+            } else if (e instanceof TaskExecutionException) {
+                return; // swallow exception
+            }
         }
+        throw e;
     }
 
     @Override
