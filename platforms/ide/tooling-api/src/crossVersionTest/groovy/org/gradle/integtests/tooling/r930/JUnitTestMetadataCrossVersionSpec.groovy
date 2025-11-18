@@ -23,9 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import spock.lang.Ignore
 
-@Ignore
 @ToolingApiVersion(">=8.13")
 @TargetGradleVersion(">=9.3.0")
 class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implements TestEventsFixture {

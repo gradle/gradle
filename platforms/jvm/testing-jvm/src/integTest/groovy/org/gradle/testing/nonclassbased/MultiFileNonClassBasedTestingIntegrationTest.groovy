@@ -16,14 +16,11 @@
 
 package org.gradle.testing.nonclassbased
 
-import spock.lang.Ignore
-
 /**
  * Tests that exercise and demonstrate Non-Class-Based Testing using the {@code Test} task
  * and a sample resource-based JUnit Platform Test Engine that defines tests across multiple files
  * in a directory.
  */
-@Ignore
 class MultiFileNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {
