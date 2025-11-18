@@ -16,6 +16,7 @@
 
 package org.gradle.util.internal;
 
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
@@ -353,7 +354,7 @@ public class TextUtil {
 
     // TODO: This should probably also live in GUtil to be with other camel/kebab case methods
     public static String screamingSnakeToKebabCase(String text) {
-        return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
+        return Strings.CS.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
     }
 
     /**
