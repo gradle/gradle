@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r930
+package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.tooling.TestEventsFixture
 import org.gradle.integtests.tooling.fixture.ProgressEvents
@@ -146,7 +146,7 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
         }
     }
 
-    @ToolingApiVersion(">=9.3.0")
+    @ToolingApiVersion(">=9.4.0")
     def "receives file entry test metadata from JUnit platform tests"() {
         file("src/test/java/com/example/ReportEntryTest.java").java """
             package com.example;
@@ -214,7 +214,7 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
         }
     }
 
-    @ToolingApiVersion(">=9.3.0")
+    @ToolingApiVersion(">=9.4.0")
     def "receives file entry test metadata with directories from JUnit platform tests"() {
         file("src/test/java/com/example/ReportEntryTest.java").java """
             package com.example;
