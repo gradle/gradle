@@ -77,10 +77,10 @@ class ResolutionResultsStoreFactoryTest extends Specification {
         [store.file, store2.file, store3.file].each { it.exists() }
 
         when:
-        new CompositeStoppable().add(store, store2, store3)
+        CompositeStoppable.stopAll(store, store2, store3)
 
         then:
-        [store.file, store2.file, store3.file].each { !it.exists() }
+        [store.file, store2.file, store3.file].each { it === null }
     }
 
     def "provides stores"() {

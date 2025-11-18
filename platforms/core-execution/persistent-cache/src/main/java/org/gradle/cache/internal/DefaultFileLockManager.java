@@ -251,8 +251,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         @Override
         public void close() {
-            CompositeStoppable stoppable = new CompositeStoppable();
-            stoppable.add((Stoppable) () -> {
+            CompositeStoppable.stopAll((Stoppable) () -> {
                 if (lockFileAccess == null) {
                     return;
                 }
@@ -281,20 +280,17 @@ public class DefaultFileLockManager implements FileLockManager {
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to release lock on " + displayName, e);
                 }
-            });
-            stoppable.add((Stoppable) () -> {
+            }, (Stoppable) () -> {
                 try {
                     fileLockContentionHandler.stop(lockId);
                 } catch (Exception e) {
                     throw new RuntimeException("Unable to stop listening for file lock requests for " + displayName, e);
                 }
-            });
-            stoppable.add((Stoppable) () -> {
+            }, (Stoppable) () -> {
                 lock = null;
                 lockFileAccess = null;
                 lockedFiles.remove(target);
             });
-            stoppable.stop();
         }
 
         @Override
@@ -373,7 +369,7 @@ public class DefaultFileLockManager implements FileLockManager {
             if (fileLockOutcome == FileLockOutcome.LOCKED_BY_ANOTHER_PROCESS) {
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by another process.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.pid, thisProcessPid, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
-            } else if (fileLockOutcome == FileLockOutcome.LOCKED_BY_THIS_PROCESS){
+            } else if (fileLockOutcome == FileLockOutcome.LOCKED_BY_THIS_PROCESS) {
                 String message = String.format("Timeout waiting to lock %s. It is currently in use by this process. Owner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
             } else {

@@ -178,7 +178,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         subscribed.stream()
             .flatMap(it -> it.getListeners().stream())
             .forEach(this::unsubscribe);
-        CompositeStoppable.stoppable(subscribed).stop();
+        CompositeStoppable.stopAll(subscribed);
     }
 
     private void unsubscribe(Object listener) {

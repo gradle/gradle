@@ -58,6 +58,7 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.id.UniqueId;
@@ -89,8 +90,6 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 import java.util.function.Function;
-
-import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
@@ -202,7 +201,7 @@ public class ProjectBuilderImpl {
 
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
-            stoppable(
+            new CompositeStoppable().add(
                 (Stoppable) workerLeaseService::runAsIsolatedTask,
                 (Stoppable) workerLease::leaseFinish,
                 buildServices,

@@ -126,7 +126,7 @@ public class DaemonMain extends EntryPoint {
             DaemonStopState stopState = daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
             daemonProcessState.stopped(stopState);
         } finally {
-            CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
+            CompositeStoppable.stopAll(daemon, daemonProcessState);
             //TODO This should actually be used in `GradleUserHomeCleanupService`, but this is in core and core can't use the classes to get the proper daemon log dir name.
             cleanupOldLogFiles(daemonBaseDir);
         }

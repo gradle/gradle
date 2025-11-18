@@ -45,6 +45,6 @@ public class AllResultsStore implements ResultsStore, Closeable {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(crossVersion, crossBuild, gradleVsMaven).stop();
+        CompositeStoppable.stopAll(crossVersion, crossBuild, gradleVsMaven);
     }
 }

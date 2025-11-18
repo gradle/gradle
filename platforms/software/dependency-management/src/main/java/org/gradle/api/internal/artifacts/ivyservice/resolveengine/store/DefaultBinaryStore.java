@@ -130,7 +130,7 @@ class DefaultBinaryStore implements BinaryStore, Closeable {
                     RandomAccessFile randomAccess = new RandomAccessFile(inputFile, "r");
                     randomAccess.seek(offset);
                     decoder = new StringDeduplicatingKryoBackedDecoder(new RandomAccessFileInputStream(randomAccess));
-                    resources = new CompositeStoppable().add(randomAccess, decoder);
+                    resources = new CompositeStoppable().add(randomAccess).add(decoder);
                 }
                 return readAction.read(decoder);
             } catch (Exception e) {

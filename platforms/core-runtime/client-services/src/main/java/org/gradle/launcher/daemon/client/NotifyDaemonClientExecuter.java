@@ -44,7 +44,7 @@ public class NotifyDaemonClientExecuter {
             NotifyDaemonAboutChangedPathsClient daemonStopClient = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
             action.accept(daemonStopClient);
         } finally {
-            CompositeStoppable.stoppable(clientServices).stop();
+            CompositeStoppable.stopAll(clientServices);
         }
     }
 }

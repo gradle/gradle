@@ -41,7 +41,7 @@ class CurrentGradleInstallationLocatorTest extends Specification {
     }
 
     def cleanup() {
-        CompositeStoppable.stoppable(loaders).stop()
+        CompositeStoppable.stopAll(loaders)
     }
 
     def "determines Gradle home by class bundled in JAR located in valid distribution subdirectory '#jarDirectory'"() {

@@ -181,7 +181,7 @@ public class SftpClientFactory implements Stoppable {
     public void stop() {
         synchronized (lock) {
             try {
-                CompositeStoppable.stoppable(allClients).stop();
+                CompositeStoppable.stopAll(allClients);
             } finally {
                 allClients.clear();
                 idleClients.clear();

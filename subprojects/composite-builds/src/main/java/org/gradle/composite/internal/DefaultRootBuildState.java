@@ -75,7 +75,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
                 new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController));
             this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createRootBuildController(buildLifecycleController, workExecutor, finishExecutor);
         } catch (Throwable t) {
-            CompositeStoppable.stoppable().addFailure(t).add(buildScopeServices).stop();
+            new CompositeStoppable().addFailure(t).add(buildScopeServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
         }
     }

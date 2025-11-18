@@ -271,7 +271,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void stop() {
-        CompositeStoppable.stoppable(buildsByPath.values()).stop();
+        CompositeStoppable.stopAll(buildsByPath.values());
     }
 
     private void assertNameDoesNotClashWithRootSubproject(IncludedBuildState includedBuild) {

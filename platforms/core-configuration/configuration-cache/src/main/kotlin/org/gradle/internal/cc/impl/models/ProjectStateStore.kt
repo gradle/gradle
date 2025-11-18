@@ -177,6 +177,6 @@ abstract class ProjectStateStore<K, V>(
     }
 
     override fun close() {
-        CompositeStoppable.stoppable(valuesStore).stop()
+        CompositeStoppable.stopAll(valuesStore)
     }
 }

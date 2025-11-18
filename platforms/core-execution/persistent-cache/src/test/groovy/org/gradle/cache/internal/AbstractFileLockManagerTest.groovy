@@ -67,7 +67,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
     }
 
     def cleanup() {
-        CompositeStoppable.stoppable(openedLocks.toArray()).stop()
+        CompositeStoppable.stopAll(openedLocks)
     }
 
     def "readFile throws integrity exception when not cleanly unlocked file"() {

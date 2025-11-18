@@ -56,7 +56,7 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(projectRegistries.asMap().values()).stop();
+        CompositeStoppable.stopAll(projectRegistries.asMap().values());
     }
 
     private static class DefaultNodeExecutionContext implements NodeExecutionContext, Closeable {

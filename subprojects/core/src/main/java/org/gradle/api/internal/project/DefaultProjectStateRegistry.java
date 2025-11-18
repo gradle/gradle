@@ -105,7 +105,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
                 projectsById.remove(project.getComponentIdentifier());
                 projectsByPath.remove(project.getIdentityPath());
             }
-            CompositeStoppable.stoppable(registry.projectsByPath.values()).stop();
+            CompositeStoppable.stopAll(registry.projectsByPath.values());
             registry.projectsByPath.clear();
         }
     }
@@ -198,7 +198,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(projectsByPath.values()).stop();
+        CompositeStoppable.stopAll(projectsByPath.values());
     }
 
     private static class DefaultBuildProjectRegistry implements BuildProjectRegistry {

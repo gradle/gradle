@@ -215,7 +215,7 @@ public class Daemon implements Stoppable {
             // 3. stop accepting new connections
             // 4. wait for commands in progress to finish (except for abandoned long running commands, like running a build)
 
-            CompositeStoppable.stoppable(stateCoordinator, registryUpdater, connector, connectionHandler).stop();
+            CompositeStoppable.stopAll(stateCoordinator, registryUpdater, connector, connectionHandler);
         } finally {
             lifecycleLock.unlock();
         }

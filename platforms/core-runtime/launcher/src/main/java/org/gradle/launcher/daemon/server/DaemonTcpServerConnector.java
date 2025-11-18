@@ -101,7 +101,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
             lifecycleLock.unlock();
         }
 
-        CompositeStoppable.stoppable(acceptor, incomingConnector).stop();
+        CompositeStoppable.stopAll(acceptor, incomingConnector);
     }
 
 }

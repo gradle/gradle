@@ -75,6 +75,6 @@ public class BuildSessionState implements Closeable {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(sessionScopeServices, (Closeable) () -> userHomeScopeServiceRegistry.release(userHomeServices)).stop();
+        CompositeStoppable.stopAll(sessionScopeServices, (Closeable) () -> userHomeScopeServiceRegistry.release(userHomeServices));
     }
 }

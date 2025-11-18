@@ -67,7 +67,7 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
             BuildTreeFinishExecutor finishExecutor = new DoNothingBuildFinishExecutor(exceptionAnalyser);
             buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(getBuildController(), workExecutor, finishExecutor);
         } catch (Throwable t) {
-            CompositeStoppable.stoppable().addFailure(t).add(buildScopeServices).stop();
+            new CompositeStoppable().addFailure(t).add(buildScopeServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
         }
     }

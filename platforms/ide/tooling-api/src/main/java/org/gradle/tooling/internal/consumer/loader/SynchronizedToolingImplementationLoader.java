@@ -62,7 +62,7 @@ public class SynchronizedToolingImplementationLoader implements ToolingImplement
     public void close() {
         lock.lock();
         try {
-            CompositeStoppable.stoppable(delegate).stop();
+            CompositeStoppable.stopAll(delegate);
         } finally {
             lock.unlock();
         }

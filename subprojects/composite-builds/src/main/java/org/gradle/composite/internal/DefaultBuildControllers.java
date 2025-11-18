@@ -126,7 +126,7 @@ class DefaultBuildControllers implements BuildControllers {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(controllers.values()).stop();
+        CompositeStoppable.stopAll(controllers.values());
     }
 
     private static Comparator<BuildIdentifier> idComparator() {

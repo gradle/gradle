@@ -59,7 +59,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     List<Closeable> openedLocks = []
 
     def cleanup() {
-        CompositeStoppable.stoppable(openedLocks).add(contentionHandler, contentionHandler2).stop()
+        new CompositeStoppable().add(openedLocks).add(contentionHandler).add(contentionHandler2).stop()
     }
 
     def "lock manager is notified while holding an exclusive lock when another lock manager in same process requires lock with mode #lockMode"() {

@@ -303,7 +303,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             compilerGroovyLoader.discardTypesFrom(astTransformClassLoader);
             //Discard the compile loader
             compileClasspathLoader.shutdown();
-            CompositeStoppable.stoppable(classPathLoader, astTransformClassLoader).stop();
+            CompositeStoppable.stopAll(classPathLoader, astTransformClassLoader);
         }
     }
 

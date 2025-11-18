@@ -41,7 +41,7 @@ public class SplitFileContentCacheFactory implements FileContentCacheFactory, Cl
 
     @Override
     public void close() throws IOException {
-        CompositeStoppable.stoppable(localFactory).stop();
+        CompositeStoppable.stopAll(localFactory);
     }
 
     @Override

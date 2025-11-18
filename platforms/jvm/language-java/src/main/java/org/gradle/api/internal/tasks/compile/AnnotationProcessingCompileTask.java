@@ -166,6 +166,6 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     }
 
     private void cleanupProcessors() {
-        CompositeStoppable.stoppable(processorClassloader).stop();
+        CompositeStoppable.stopAll(processorClassloader);
     }
 }

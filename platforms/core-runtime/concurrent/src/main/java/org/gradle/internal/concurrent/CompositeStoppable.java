@@ -16,14 +16,15 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
  * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
@@ -34,22 +35,48 @@ import java.util.List;
  * <p>Attempts to stop as many elements as possible in the presence of failures.</p>
  */
 public class CompositeStoppable implements Stoppable {
-    private final List<Stoppable> elements = new ArrayList<>();
+
+    public static void stopAll(Object service) {
+        try {
+            stopOne(service);
+        } catch (IOException e) {
+            throw throwAsUncheckedException(e);
+        }
+    }
+
+    public static void stopAll(Object... services) {
+        stopAll(Arrays.asList(services));
+    }
+
+    public static void stopAll(Iterable<?> services) {
+        List<Throwable> failures = null;
+        for (Object service : services) {
+            try {
+                stopOne(service);
+            } catch (Throwable throwable) {
+                if (failures == null) {
+                    failures = new ArrayList<>();
+                }
+                failures.add(throwable);
+            }
+        }
+        if (failures != null) {
+            if (failures.size() == 1) {
+                throw throwAsUncheckedException(failures.get(0));
+            } else {
+                throw new DefaultMultiCauseException("Could not stop all services.", failures);
+            }
+        }
+    }
+
+    private final List<Object> elements = new ArrayList<>();
 
     public CompositeStoppable() {
     }
 
-    public static CompositeStoppable stoppable(Object... elements) {
-        return new CompositeStoppable().add(elements);
-    }
-
-    public static CompositeStoppable stoppable(Iterable<?> elements) {
-        return new CompositeStoppable().add(elements);
-    }
-
     public CompositeStoppable addFailure(final Throwable failure) {
-        add((Closeable) () -> {
-            throw UncheckedException.throwAsUncheckedException(failure);
+        add((Stoppable) () -> {
+            throw throwAsUncheckedException(failure);
         });
         return this;
     }
@@ -68,69 +95,28 @@ public class CompositeStoppable implements Stoppable {
         return this;
     }
 
-    public CompositeStoppable add(Object closeable) {
-        Stoppable stoppable = toStoppable(closeable);
-        if (stoppable != null) {
-            add(stoppable);
+    public synchronized CompositeStoppable add(Object stoppable) {
+        if (stoppable instanceof Stoppable || stoppable instanceof Closeable) {
+            elements.add(stoppable);
         }
         return this;
-    }
-
-    public synchronized CompositeStoppable add(Stoppable stoppable) {
-        this.elements.add(stoppable);
-        return this;
-    }
-
-    @Nullable
-    private static Stoppable toStoppable(final Object object) {
-        if (object instanceof Stoppable) {
-            return (Stoppable) object;
-        }
-        if (object instanceof Closeable) {
-            final Closeable closeable = (Closeable) object;
-            return new Stoppable() {
-                @Override
-                public String toString() {
-                    return closeable.toString();
-                }
-
-                @Override
-                public void stop() {
-                    try {
-                        closeable.close();
-                    } catch (IOException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-            };
-        }
-        return null;
     }
 
     @Override
     public synchronized void stop() {
-        List<Throwable> failures = null;
         try {
-            for (Stoppable element : elements) {
-                try {
-                    element.stop();
-                } catch (Throwable throwable) {
-                    if (failures == null) {
-                        failures = new ArrayList<>();
-                    }
-                    failures.add(throwable);
-                }
-            }
+            stopAll(elements);
         } finally {
             elements.clear();
         }
+    }
 
-        if (failures != null) {
-            if (failures.size() == 1) {
-                throw UncheckedException.throwAsUncheckedException(failures.get(0));
-            } else {
-                throw new DefaultMultiCauseException("Could not stop all services.", failures);
-            }
+    private static void stopOne(Object service) throws IOException {
+        if (service instanceof Stoppable) {
+            ((Stoppable) service).stop();
+        } else if (service instanceof Closeable) {
+            ((Closeable) service).close();
         }
     }
+
 }

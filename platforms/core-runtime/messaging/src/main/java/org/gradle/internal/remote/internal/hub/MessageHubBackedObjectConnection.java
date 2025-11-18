@@ -147,7 +147,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     @Override
     public void stop() {
         // TODO:ADAM - need to cleanup completion too, if not used
-        CompositeStoppable.stoppable(hub, connection).stop();
+        CompositeStoppable.stopAll(hub, connection);
     }
 
     @Override

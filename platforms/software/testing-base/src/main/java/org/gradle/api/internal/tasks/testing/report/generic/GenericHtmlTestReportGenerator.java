@@ -133,7 +133,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            CompositeStoppable.stoppable(outputReaders).stop();
+            CompositeStoppable.stopAll(outputReaders);
         }
         return reportsDirectory.resolve("index.html");
     }

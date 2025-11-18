@@ -32,7 +32,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.System.getProperty;
-import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
+import static org.gradle.internal.concurrent.CompositeStoppable.stopAll;
 
 /**
  * Reuses the services for the most recent Gradle user home dir. Could instead cache several most recent and clean these up on memory pressure, however in practise there is only a single user home dir associated with a given build process.
@@ -78,7 +78,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                     Services otherServices = servicesForHomeDir.values().iterator().next();
                     if (otherServices.count == 0) {
                         // Other home dir cached and not in use, clean it up
-                        stoppable(otherServices.registry).stop();
+                        stopAll(otherServices.registry);
                         servicesForHomeDir.clear();
                     }
                 }
@@ -130,7 +130,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                 );
 
             if (--activeService.getValue().count == 0 && (servicesForHomeDir.size() > 1 || !getProperty(REUSE_USER_HOME_SERVICES, "true").equals("true"))) {
-                stoppable(activeService.getValue().registry).stop();
+                stopAll(activeService.getValue().registry);
                 servicesForHomeDir.remove(activeService.getKey());
             }
         } finally {

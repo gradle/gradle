@@ -43,7 +43,7 @@ public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionEx
 
     @Override
     public void stop() {
-        CompositeStoppable.stoppable(lifecycle, executor, actionExecutor).stop();
+        CompositeStoppable.stopAll(lifecycle, executor, actionExecutor);
     }
 
     @Override

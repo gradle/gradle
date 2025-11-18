@@ -65,7 +65,7 @@ public class CrossBuildSessionState implements Closeable {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(services).stop();
+        CompositeStoppable.stopAll(services);
     }
 
     private class Services implements ServiceRegistrationProvider {

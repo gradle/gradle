@@ -159,7 +159,7 @@ public class DefaultDaemonConnection implements DaemonConnection {
         // 3. Stop receiving incoming messages. Blocks until the receive thread has finished. This will notify the stdin and receive queues to signal end of input.
         // 4. Stop the receive queue, to unblock any threads blocked in receive().
         // 5. Stop handling stdin. Blocks until the handler has finished. Discards any queued input.
-        CompositeStoppable.stoppable(disconnectQueue, connection, executor, receiveQueue, stdinQueue, cancelQueue).stop();
+        CompositeStoppable.stopAll(disconnectQueue, connection, executor, receiveQueue, stdinQueue, cancelQueue);
     }
 
     @Override

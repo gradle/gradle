@@ -47,6 +47,6 @@ public class BuildTreeState implements Closeable {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(services).stop();
+        CompositeStoppable.stopAll(services);
     }
 }

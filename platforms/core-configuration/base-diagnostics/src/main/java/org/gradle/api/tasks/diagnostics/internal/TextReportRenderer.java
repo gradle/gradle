@@ -83,7 +83,7 @@ public class TextReportRenderer implements ReportRenderer {
         try {
             if (close) {
                 //noinspection DataFlowIssue
-                CompositeStoppable.stoppable(textOutput).stop();
+                CompositeStoppable.stopAll(textOutput);
             }
         } finally {
             textOutput = null;

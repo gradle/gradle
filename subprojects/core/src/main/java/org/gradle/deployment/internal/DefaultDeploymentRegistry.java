@@ -168,7 +168,7 @@ public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, Pe
         lock.lock();
         try {
             LOGGER.debug("Stopping {} deployment handles", deployments.size());
-            CompositeStoppable.stoppable(deployments.values()).stop();
+            CompositeStoppable.stopAll(deployments.values());
         } finally {
             LOGGER.debug("Stopped deployment handles");
             stopped = true;

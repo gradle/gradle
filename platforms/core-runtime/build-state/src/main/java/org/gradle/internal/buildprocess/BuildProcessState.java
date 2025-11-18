@@ -63,6 +63,6 @@ public class BuildProcessState implements Closeable {
     @Override
     public void close() {
         // Force the user home services to be stopped first, because the dependencies between the user home services and the global services are not preserved currently
-        CompositeStoppable.stoppable(services.get(GradleUserHomeScopeServiceRegistry.class), services).stop();
+        CompositeStoppable.stopAll(services.get(GradleUserHomeScopeServiceRegistry.class), services);
     }
 }

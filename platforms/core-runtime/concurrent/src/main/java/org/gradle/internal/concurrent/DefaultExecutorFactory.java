@@ -45,7 +45,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
     @Override
     public void stop() {
         try {
-            CompositeStoppable.stoppable(executors).stop();
+            CompositeStoppable.stopAll(executors);
         } finally {
             executors.clear();
         }

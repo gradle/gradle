@@ -24,8 +24,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleListener;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
@@ -239,15 +239,13 @@ public class DefaultWorkerProcess implements WorkerProcess {
     }
 
     private void cleanup() {
-        CompositeStoppable stoppable;
+        CompositeStoppable stoppable = new CompositeStoppable();
         lock.lock();
         try {
-            stoppable = CompositeStoppable.stoppable(connection, new Stoppable() {
-                @Override
-                public void stop() {
-                    execHandle.abort();
-                }
-            }, acceptor);
+            stoppable
+                .add(connection)
+                .add((Stoppable) () -> execHandle.abort())
+                .add(acceptor);
         } finally {
             this.connection = null;
             this.acceptor = null;

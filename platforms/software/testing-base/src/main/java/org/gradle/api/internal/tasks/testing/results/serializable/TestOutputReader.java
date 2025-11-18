@@ -211,6 +211,6 @@ public final class TestOutputReader implements Closeable {
 
     @Override
     public void close() throws IOException {
-        CompositeStoppable.stoppable(channelPool).stop();
+        CompositeStoppable.stopAll(channelPool);
     }
 }

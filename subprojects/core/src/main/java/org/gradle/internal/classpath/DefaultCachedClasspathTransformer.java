@@ -90,7 +90,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(executor, cache).stop();
+        CompositeStoppable.stopAll(executor, cache);
     }
 
     @Override

@@ -49,7 +49,7 @@ public abstract class ClassLoaderUtils {
 
     public static void tryClose(@Nullable ClassLoader classLoader) {
         if (classLoader != null) {
-            CompositeStoppable.stoppable(classLoader).stop();
+            CompositeStoppable.stopAll(classLoader);
         }
     }
 

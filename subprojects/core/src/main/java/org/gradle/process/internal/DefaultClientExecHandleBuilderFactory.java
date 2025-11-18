@@ -91,7 +91,7 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
 
         @Override
         public void stop() {
-            CompositeStoppable.stoppable(delegate.executor).stop();
+            CompositeStoppable.stopAll(delegate.executor);
         }
 
         /**

@@ -131,7 +131,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
     @Override
     public void close() throws IOException {
-        CompositeStoppable.stoppable(executorService);
+        CompositeStoppable.stopAll(executorService);
     }
 
     private <T> T withState(Function<DefaultBuildTreeWorkGraph, T> action) {

@@ -145,12 +145,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
     @Override
     public void stop() {
-        CompositeStoppable.stoppable(new Closeable() {
-            @Override
-            public void close() throws IOException {
-                flush();
-            }
-        }, instr, outstr, socket).stop();
+        CompositeStoppable.stopAll((Closeable) () -> flush(), instr, outstr, socket);
     }
 
     private static class SocketInputStream extends InputStream {

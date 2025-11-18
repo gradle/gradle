@@ -66,7 +66,7 @@ class RedirectStdinExtension implements IAnnotationDrivenExtension<RedirectStdIn
         }
 
         private void closePipe() {
-            CompositeStoppable.stoppable(stdinPipe, emulatedSystemIn).stop();
+            CompositeStoppable.stopAll(stdinPipe, emulatedSystemIn);
             stdinPipe = null;
             emulatedSystemIn = null;
         }

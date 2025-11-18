@@ -473,7 +473,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         void stop() {
-            CompositeStoppable.stoppable(buildTaskGraph, planExecutor, workerLeaseService, coordinationService, execFactory).stop()
+            CompositeStoppable.stopAll(buildTaskGraph, planExecutor, workerLeaseService, coordinationService, execFactory)
         }
     }
 

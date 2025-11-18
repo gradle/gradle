@@ -56,7 +56,7 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
     @Override
     public void close() {
         try {
-            CompositeStoppable.stoppable(connections.asMap().values()).stop();
+            CompositeStoppable.stopAll(connections.asMap().values());
         } finally {
             connections.invalidateAll();
         }

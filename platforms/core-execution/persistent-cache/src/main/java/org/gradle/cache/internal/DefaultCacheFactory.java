@@ -75,7 +75,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     public void close() {
         lock.lock();
         try {
-            CompositeStoppable.stoppable(dirCaches.values()).stop();
+            CompositeStoppable.stopAll(dirCaches.values());
         } finally {
             dirCaches.clear();
             lock.unlock();

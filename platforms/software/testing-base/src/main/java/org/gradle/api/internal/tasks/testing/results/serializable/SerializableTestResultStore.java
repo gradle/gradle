@@ -295,7 +295,7 @@ public final class SerializableTestResultStore {
                 // Write a 0 id to terminate the file
                 resultsEncoder.writeSmallLong(0);
             } finally {
-                CompositeStoppable.stoppable(resultsEncoder, outputWriter).stop();
+                CompositeStoppable.stopAll(resultsEncoder, outputWriter);
             }
             // Move the temporary results file to the final location, if successful
             Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);

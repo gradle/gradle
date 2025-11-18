@@ -86,7 +86,7 @@ public class TcpIncomingConnector implements IncomingConnector {
 
             @Override
             public void requestStop() {
-                CompositeStoppable.stoppable(serverSocket).stop();
+                CompositeStoppable.stopAll(serverSocket);
             }
 
             @Override
@@ -144,7 +144,7 @@ public class TcpIncomingConnector implements IncomingConnector {
                     LOGGER.error("Could not accept remote connection.", e);
                 }
             } finally {
-                CompositeStoppable.stoppable(serverSocket).stop();
+                CompositeStoppable.stopAll(serverSocket);
             }
         }
 

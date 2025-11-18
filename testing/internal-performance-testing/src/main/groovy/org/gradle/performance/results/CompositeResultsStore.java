@@ -76,6 +76,6 @@ public class CompositeResultsStore implements ResultsStore {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(stores).stop();
+        CompositeStoppable.stopAll(stores);
     }
 }

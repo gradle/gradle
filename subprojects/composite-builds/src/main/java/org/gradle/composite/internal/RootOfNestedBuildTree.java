@@ -76,7 +76,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
             BuildTreeFinishExecutor buildTreeFinishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
             buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(buildLifecycleController, buildTreeWorkExecutor, buildTreeFinishExecutor);
         } catch (Throwable t) {
-            CompositeStoppable.stoppable().addFailure(t).add(buildServices).stop();
+            new CompositeStoppable().addFailure(t).add(buildServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
         }
     }

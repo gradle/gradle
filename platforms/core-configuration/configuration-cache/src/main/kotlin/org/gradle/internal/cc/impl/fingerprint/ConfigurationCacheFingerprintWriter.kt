@@ -277,7 +277,7 @@ class ConfigurationCacheFingerprintWriter(
                 buildScopedSink.write(it)
             }
         }
-        CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
+        CompositeStoppable.stopAll(buildScopedWriter, projectScopedWriter)
     }
 
     private

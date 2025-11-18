@@ -87,7 +87,7 @@ public class MaxNParallelTestDefinitionProcessor<D extends TestDefinition> imple
     @Override
     public void stop() {
         try {
-            CompositeStoppable.stoppable(processors).add(actors).add(resultProcessorActor).stop();
+            new CompositeStoppable().add(processors).add(actors).add(resultProcessorActor).stop();
         } catch (DispatchException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }

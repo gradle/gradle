@@ -51,7 +51,7 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
             workerClasspathGroovy.shutdown();
             // TODO: we should just cache these classloaders and eject/stop them when they are no longer in use
             if (!reuseClassloader) {
-                CompositeStoppable.stoppable(workerClassLoader).stop();
+                CompositeStoppable.stopAll(workerClassLoader);
                 this.workerClassLoader = null;
             }
         }

@@ -57,7 +57,7 @@ import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
-import org.gradle.internal.concurrent.CompositeStoppable.stoppable
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.TextFileResourceLoader
@@ -220,7 +220,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 yield(loader.scriptPluginPluginsFor(plugin))
             }
         } finally {
-            stoppable(loader).stop()
+            CompositeStoppable.stopAll(loader)
         }
     }
 

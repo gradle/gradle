@@ -111,7 +111,7 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
     @Override
     public void close() throws IOException {
         try {
-            CompositeStoppable.stoppable().add(sinks).add(availableSources.values()).stop();
+            new CompositeStoppable().add(sinks).add(availableSources.values()).stop();
         } finally {
             sinks.clear();
             availableSinks.clear();

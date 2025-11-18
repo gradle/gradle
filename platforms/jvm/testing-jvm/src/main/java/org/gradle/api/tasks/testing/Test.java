@@ -754,7 +754,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         try {
             super.executeTests();
         } finally {
-            CompositeStoppable.stoppable(getTestFramework()).stop();
+            CompositeStoppable.stopAll(getTestFramework());
         }
     }
 

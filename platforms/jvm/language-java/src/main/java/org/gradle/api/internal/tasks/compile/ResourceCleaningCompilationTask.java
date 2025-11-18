@@ -56,7 +56,7 @@ class ResourceCleaningCompilationTask implements JavaCompiler.CompilationTask {
         try {
             return delegate.call();
         } finally {
-            CompositeStoppable.stoppable(fileManager).stop();
+            CompositeStoppable.stopAll(fileManager);
             cleanupZipCache();
         }
     }

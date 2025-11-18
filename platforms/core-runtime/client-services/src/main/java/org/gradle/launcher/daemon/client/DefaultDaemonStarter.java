@@ -260,7 +260,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
                 handle.waitForFinish();
                 LOGGER.debug("Gradle daemon process is now detached.");
             } finally {
-                CompositeStoppable.stoppable(execActionFactory).stop();
+                CompositeStoppable.stopAll(execActionFactory);
             }
 
             return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput(), args);

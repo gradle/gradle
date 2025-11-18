@@ -44,7 +44,7 @@ public class DaemonStopClientExecuter {
             DaemonStopClient daemonStopClient = clientServices.get(DaemonStopClient.class);
             action.accept(daemonStopClient);
         } finally {
-            CompositeStoppable.stoppable(clientServices).stop();
+            CompositeStoppable.stopAll(clientServices);
         }
     }
 }

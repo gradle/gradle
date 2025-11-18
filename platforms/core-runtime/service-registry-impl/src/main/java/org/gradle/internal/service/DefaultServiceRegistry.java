@@ -297,7 +297,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     public void close() {
         noLongerMutable();
         if (state.compareAndSet(State.STARTED, State.CLOSED)) {
-            CompositeStoppable.stoppable(allServices).stop();
+            CompositeStoppable.stopAll(allServices);
         }
     }
 
@@ -392,7 +392,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private class OwnServices implements ServiceProvider {
         private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
-        private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
         private final List<SingletonService> services = new ArrayList<SingletonService>();
         private final List<AnnotatedServiceLifecycleHandler> lifecycleHandlers = new ArrayList<AnnotatedServiceLifecycleHandler>();
 
@@ -454,12 +453,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         public void stop() {
-            stoppable.stop();
+            CompositeStoppable.stopAll(services);
         }
 
         public void add(SingletonService serviceProvider) {
             assertMutable();
-            stoppable.add(serviceProvider);
             collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
             services.add(serviceProvider);
             for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
@@ -641,7 +639,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         public final synchronized void stop() {
             try {
                 if (instance != null) {
-                    CompositeStoppable.stoppable(dependents).add(instance).stop();
+                    new CompositeStoppable().add(dependents).add(instance).stop();
                 }
             } finally {
                 dependents.clear();
@@ -1080,7 +1078,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         @Override
         public void stop() {
             try {
-                CompositeStoppable.stoppable(Arrays.asList(serviceProviders)).stop();
+                CompositeStoppable.stopAll((Object[]) serviceProviders);
             } finally {
                 Arrays.fill(serviceProviders, null);
             }

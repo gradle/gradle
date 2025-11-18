@@ -264,7 +264,7 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
             }
         } finally {
             // Stop cancelling before sending end-of-input
-            CompositeStoppable.stoppable(cancelForwarder, inputForwarder).stop();
+            CompositeStoppable.stopAll(cancelForwarder, inputForwarder);
         }
     }
 

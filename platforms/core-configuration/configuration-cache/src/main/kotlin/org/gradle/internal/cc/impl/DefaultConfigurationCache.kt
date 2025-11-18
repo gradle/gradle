@@ -498,20 +498,21 @@ class DefaultConfigurationCache internal constructor(
         StructuredMessage.forText(String.format(Locale.US, message, *args))
 
     override fun stop() {
-        val stoppable = CompositeStoppable.stoppable()
-        stoppable.addIfInitialized(lazyBuildTreeModelSideEffects)
-        stoppable.addIfInitialized(lazyIntermediateModels)
-        stoppable.addIfInitialized(lazyProjectMetadata)
-        stoppable.addIfInitialized(storeDelegate)
-        stoppable.addIfInitialized(entryStoreDelegate)
-        stoppable.stop()
+        CompositeStoppable()
+            .addIfInitialized(lazyBuildTreeModelSideEffects)
+            .addIfInitialized(lazyIntermediateModels)
+            .addIfInitialized(lazyProjectMetadata)
+            .addIfInitialized(storeDelegate)
+            .addIfInitialized(entryStoreDelegate)
+            .stop()
     }
 
     private
-    fun CompositeStoppable.addIfInitialized(closeable: Lazy<*>) {
+    fun CompositeStoppable.addIfInitialized(closeable: Lazy<*>): CompositeStoppable {
         if (closeable.isInitialized()) {
-            add(closeable.value!!)
+            return add(closeable.value!!)
         }
+        return this
     }
 
     private

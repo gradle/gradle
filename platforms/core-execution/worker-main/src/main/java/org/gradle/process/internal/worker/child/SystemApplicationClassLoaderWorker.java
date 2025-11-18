@@ -123,7 +123,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         } finally {
             try {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
-                CompositeStoppable.stoppable(connection, basicWorkerServices).stop();
+                CompositeStoppable.stopAll(connection, basicWorkerServices);
                 loggingManager.stop();
             } catch (Throwable t) {
                 // We're failing while shutting down, so log whatever might have happened.

@@ -91,7 +91,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     @Override
     public void stop() {
         try {
-            CompositeStoppable.stoppable(queue, executor).stop();
+            CompositeStoppable.stopAll(queue, executor);
         } finally {
             stats.report();
         }
