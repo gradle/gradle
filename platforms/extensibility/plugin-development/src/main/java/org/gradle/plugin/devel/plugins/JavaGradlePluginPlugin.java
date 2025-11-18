@@ -99,7 +99,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String CLASSES_PATTERN = "**/*.class";
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "%s: A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "%s: A plugin descriptor was found for %s but it was invalid.";
-    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
+    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS;
     static final String DECLARED_PLUGIN_MISSING_MESSAGE = "%s: Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
     static final String DECLARATION_MISSING_ID_MESSAGE = "Missing id for %s";
     static final String DECLARATION_MISSING_IMPLEMENTATION_MESSAGE = "Missing implementationClass for %s";
@@ -280,6 +280,16 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
+
+        // Published plugins get stricter validation by default
+        project.getPluginManager().withPlugin("publishing", p -> enableStricterValidation(validatorTask));
+        project.getPluginManager().withPlugin("com.gradle.plugin-publish", p -> enableStricterValidation(validatorTask));
+    }
+
+    private static void enableStricterValidation(TaskProvider<ValidatePlugins> validatePlugins) {
+        validatePlugins.configure(task -> {
+            task.getEnableStricterValidation().convention(true);
+        });
     }
 
     private void configureDependencyGradlePluginsResolution(Project project) {
