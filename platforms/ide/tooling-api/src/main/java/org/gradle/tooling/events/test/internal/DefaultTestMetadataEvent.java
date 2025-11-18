@@ -68,9 +68,6 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
 
     @Override
     public <T> T get(Class<T> viewType) {
-        if (payload == null) {
-            return null;
-        }
         return new ProtocolToModelAdapter().adapt(viewType, payload);
     }
 }
