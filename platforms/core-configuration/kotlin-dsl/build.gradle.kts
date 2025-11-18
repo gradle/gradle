@@ -166,7 +166,14 @@ tasks.shadowJar {
     configurations = setOf(project.configurations.shadow.get())
     relocate("kotlin.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata")
     relocate("kotlinx.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlinx.metadata")
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     mergeServiceFiles()
+    filesMatching("META-INF/services/**") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
     exclude("META-INF/kotlin-metadata-jvm.kotlin_module")
     exclude("META-INF/kotlin-metadata.kotlin_module")
     exclude("META-INF/metadata.jvm.kotlin_module")
