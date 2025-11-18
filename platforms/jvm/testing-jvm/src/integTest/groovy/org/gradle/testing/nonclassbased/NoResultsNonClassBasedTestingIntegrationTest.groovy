@@ -31,14 +31,12 @@ class NoResultsNonClassBasedTestingIntegrationTest extends AbstractNonClassBased
 
             ${mavenCentralRepository()}
 
-            testing.suites {
-                integrationTest(JvmTestSuite) {
-                    ${enableEngineForSuite()}
+            testing.suites.test {
+                ${enableEngineForSuite()}
 
-                    targets.all {
-                        testTask.configure {
-                            testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
-                        }
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
                     }
                 }
             }
@@ -47,7 +45,7 @@ class NoResultsNonClassBasedTestingIntegrationTest extends AbstractNonClassBased
         writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
 
         when:
-        fails("integrationTest", "--info")
+        fails("test", "--info")
 
         then:
         sourcesPresentAndNoTestsFound()

@@ -332,14 +332,12 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
             ${mavenCentralRepository()}
 
-            testing.suites {
-                integrationTest(JvmTestSuite) {
-                    ${enableEngineForSuite()}
+            testing.suites.test {
+                ${enableEngineForSuite()}
 
-                    targets.all {
-                        testTask.configure {
-                            testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
-                        }
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
                     }
                 }
             }
@@ -348,7 +346,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         file("$DEFAULT_DEFINITIONS_LOCATION/plain-text-file.txt") << "I'm a distractor!"
 
         when:
-        fails("integrationTest", "--info")
+        fails("test", "--info")
 
         then:
         sourcesPresentAndNoTestsFound()
