@@ -20,6 +20,7 @@ import org.gradle.internal.xml.SimpleMarkupWriter;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,13 +31,15 @@ import java.util.Set;
  * <p>A streaming HTML writer.</p>
  */
 public class SimpleHtmlWriter extends SimpleMarkupWriter {
+    private final Path rootPath;
 
     public SimpleHtmlWriter(Writer writer) throws IOException {
-        this(writer, null);
+        this(writer, null, null);
     }
 
-    public SimpleHtmlWriter(Writer writer, String indent) throws IOException {
+    public SimpleHtmlWriter(Writer writer, Path rootPath, String indent) throws IOException {
         super(writer, indent);
+        this.rootPath = rootPath;
         writeHtmlHeader();
     }
 
@@ -50,6 +53,16 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
             throw new IllegalArgumentException(String.format("Invalid HTML tag: '%s'", name));
         }
         return super.startElement(name);
+    }
+
+    /**
+     * Create a reference to another file that is relative to this HTML file.
+     */
+    public String relativeLink(Path otherFile) {
+        if (rootPath == null) {
+            throw new UnsupportedOperationException();
+        }
+        return rootPath.relativize(otherFile).toString();
     }
 
     // All valid tags should be in lowercase
