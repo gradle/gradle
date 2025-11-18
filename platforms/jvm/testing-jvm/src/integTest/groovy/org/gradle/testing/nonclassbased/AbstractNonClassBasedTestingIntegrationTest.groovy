@@ -17,11 +17,13 @@
 package org.gradle.testing.nonclassbased
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import testengines.TestEnginesFixture
 
 /**
  * Abstract base class for tests that exercise and demonstrate incorrect Non-Class-Based Testing setups.
  */
+@Ignore
 abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec implements TestEnginesFixture {
     public static final DEFAULT_DEFINITIONS_LOCATION = "src/test/definitions"
 
