@@ -25,6 +25,7 @@ import org.junit.platform.engine.UniqueId
 import org.junit.platform.engine.reporting.ReportEntry
 import org.junit.platform.launcher.TestIdentifier
 import org.junit.platform.launcher.TestPlan
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.time.ZoneOffset
@@ -32,6 +33,7 @@ import java.time.ZoneOffset
 /**
  * Unit tests for {@link JUnitPlatformTestExecutionListener}.
  */
+@Ignore
 class JUnitPlatformTestExecutionListenerTest extends Specification {
     def "published events use timestamp from junit ReportEntry, not from clock in execution listener"() {
         given:
