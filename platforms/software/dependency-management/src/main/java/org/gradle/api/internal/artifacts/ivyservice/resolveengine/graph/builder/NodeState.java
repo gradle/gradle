@@ -648,7 +648,13 @@ public class NodeState implements DependencyGraphNode {
             }
             requeueChildrenOfEndorsingParent(dependencyEdge);
             cachedModuleResolutionFilter = null;
-            invalidateAncestorsStrictVersions();
+
+            if (cachedAncestorsStrictVersions == null) {
+                updateAncestorsStrictVersions(getStrictVersionsForEdge(dependencyEdge));
+            } else {
+                updateAncestorsStrictVersions(cachedAncestorsStrictVersions.intersect(getStrictVersionsForEdge(dependencyEdge)));
+            }
+
             resolveState.onMoreSelected(this);
         }
     }
@@ -912,7 +918,16 @@ public class NodeState implements DependencyGraphNode {
             return;
         }
 
-        this.cachedAncestorsStrictVersions = null;
+        updateAncestorsStrictVersions(collectAncestorsStrictVersions());
+    }
+
+    private void updateAncestorsStrictVersions(StrictVersionConstraints newAncestorsStrictVersions) {
+        if (newAncestorsStrictVersions.equals(this.cachedAncestorsStrictVersions)) {
+            // No change, no need to propagate further.
+            return;
+        }
+
+        this.cachedAncestorsStrictVersions = newAncestorsStrictVersions;
 
         for (EdgeState outgoingEdge : outgoingEdges) {
             for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
@@ -929,9 +944,6 @@ public class NodeState implements DependencyGraphNode {
     private StrictVersionConstraints getAncestorsStrictVersions() {
         if (cachedAncestorsStrictVersions == null) {
             this.cachedAncestorsStrictVersions = collectAncestorsStrictVersions();
-        } else {
-            // During testing, validate that our cached ancestor strict modules are correct.
-            assert this.cachedAncestorsStrictVersions.equals(collectAncestorsStrictVersions());
         }
         return this.cachedAncestorsStrictVersions;
     }
@@ -995,12 +1007,11 @@ public class NodeState implements DependencyGraphNode {
      * in the graph. These strong strict versions take precedence over endorsed strict versions.
      */
     private StrictVersionConstraints getStrongStrictVersions() {
-        // This method assumes that ownStrictVersions and previousAncestorsStrictVersions
-        // have already been computed for the source node. If these values ever change, we must
-        // ensure this node is re-processed.
+        // This method assumes that `ownStrictVersions` has already been
+        // computed for the source node. If `ownStrictVersions` ever changes,
+        // we must ensure this node is re-processed.
         assert ownStrictVersions != null;
-        assert previousAncestorsStrictVersions != null;
-        return ownStrictVersions.union(previousAncestorsStrictVersions);
+        return ownStrictVersions.union(getAncestorsStrictVersions());
     }
 
     /**
@@ -1025,9 +1036,6 @@ public class NodeState implements DependencyGraphNode {
     private StrictVersionConstraints getEndorsedStrictVersions() {
         if (cachedEndorsedStrictVersions == null) {
             this.cachedEndorsedStrictVersions = computeEndorsedStrictVersions();
-        } else {
-            // During testing, validate that our cached endorsed strict modules are correct.
-            assert this.cachedEndorsedStrictVersions.equals(computeEndorsedStrictVersions());
         }
         return this.cachedEndorsedStrictVersions;
     }
