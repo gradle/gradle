@@ -20,6 +20,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -32,6 +33,11 @@ public class DefaultTestFilter implements TestFilter {
     private final Set<String> excludeTestNames = new HashSet<String>();
     private final Set<String> commandLineIncludeTestNames = new HashSet<String>();
     private boolean failOnNoMatching = true;
+    private final File projectDir;
+
+    public DefaultTestFilter(File projectDir) {
+        this.projectDir = projectDir;
+    }
 
     private void validateName(String name) {
         if (name == null || name.length() == 0) {
@@ -132,6 +138,6 @@ public class DefaultTestFilter implements TestFilter {
     }
 
     public TestFilterSpec toSpec() {
-        return new TestFilterSpec(getIncludePatterns(), getExcludePatterns(), getCommandLineIncludePatterns());
+        return new TestFilterSpec(getIncludePatterns(), getExcludePatterns(), getCommandLineIncludePatterns(), projectDir);
     }
 }

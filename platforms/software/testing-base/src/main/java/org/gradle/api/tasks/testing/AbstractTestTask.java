@@ -190,7 +190,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 
-        filter = objectFactory.newInstance(DefaultTestFilter.class);
+        filter = objectFactory.newInstance(DefaultTestFilter.class, getProject().getProjectDir());
         getFailOnNoDiscoveredTests().convention(true);
     }
 

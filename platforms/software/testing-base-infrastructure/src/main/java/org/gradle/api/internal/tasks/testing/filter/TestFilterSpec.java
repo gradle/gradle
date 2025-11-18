@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Set;
 
@@ -25,15 +26,18 @@ public class TestFilterSpec implements Serializable {
     private final Set<String> includedTests;
     private final Set<String> excludedTests;
     private final Set<String> includedTestsCommandLine;
+    private final File projectDir;
 
     public TestFilterSpec(
         Set<String> includedTests,
         Set<String> excludedTests,
-        Set<String> includedTestsCommandLine
+        Set<String> includedTestsCommandLine,
+        File projectDir
     ) {
         this.includedTests = includedTests;
         this.excludedTests = excludedTests;
         this.includedTestsCommandLine = includedTestsCommandLine;
+        this.projectDir = projectDir;
     }
 
     public Set<String> getIncludedTests() {
@@ -46,5 +50,9 @@ public class TestFilterSpec implements Serializable {
 
     public Set<String> getIncludedTestsCommandLine() {
         return includedTestsCommandLine;
+    }
+
+    public File getProjectDir() {
+        return projectDir;
     }
 }

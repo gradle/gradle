@@ -52,8 +52,7 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
 
     @Override
     public boolean matches(TestSelectionMatcher matcher) {
-        // TODO: Implement filtering
-        return true;
+        return matcher.matchesPath(dir.toPath());
     }
 
     @Override
