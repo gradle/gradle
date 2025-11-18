@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.collect.Iterables;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
@@ -168,7 +169,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 if (hasStderr) {
                     perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
                 }
-                if (info.getMetadatas().iterator().hasNext()) {
+                if (!Iterables.isEmpty(info.getMetadatas())) {
                     perRootInfoTabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, perRootInfoIndex, metadataRendererRegistry));
                 }
 

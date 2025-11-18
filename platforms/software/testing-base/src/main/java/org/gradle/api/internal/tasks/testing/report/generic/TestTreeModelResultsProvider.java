@@ -205,7 +205,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             // This can happen for a variety of cases, e.g. parameterized tests or multiple test frameworks.
             // Therefore, we shouldn't fail, as a slightly broken report is better than a task failure.
             if (!result.getDisplayName().equals(displayName)) {
-                LOGGER.info(
+                LOGGER.warn(
                     "Expected all results for grouping node {} to have the same display name, but found: {} and {}",
                     groupingNode.getPath(), displayName, result.getDisplayName()
                 );
