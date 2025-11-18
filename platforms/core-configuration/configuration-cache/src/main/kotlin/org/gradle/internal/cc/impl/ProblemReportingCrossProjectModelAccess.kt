@@ -73,7 +73,6 @@ import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
@@ -173,13 +172,24 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getExtensions(): ExtensionContainerInternal {
             if (delegate.projectIdentity.isParentOf(referrer.projectIdentity)) {
                 onProjectsCoupled()
-                val owner = IsolateOwners.OwnerGradle(delegate.gradle)
-                return IsolatedExtensionsContainer(
-                    IsolatedActionSerializer(owner, delegate.serviceOf(), delegate.serviceOf()),
-                    IsolatedActionDeserializer(owner, delegate.serviceOf(), delegate.serviceOf()),
-                    delegate.extensions,
-                    delegate.serviceOf()
-                )
+                return delegate.owner.fromMutableState {
+                    // TODO too coarse grained lock?
+                    IsolatedExtensionsContainer(
+                        it.serviceOf(),
+                        super.extensions,
+                    ) { isolationException ->
+                        val problem = problemFactory.problem(
+                            message = StructuredMessage.build {
+                                text("Extension of ")
+                                reference(delegate)
+                                text(" cannot be serialized ")
+                                // TODO Add a name and a type of the extension
+                            },
+                            exception = isolationException
+                        )
+                        problems.onProblem(problem)
+                    }
+                }
             } else {
                 onIsolationViolation("extensions") // TODO: Lets print a more descriptive error here
                 return super.extensions

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.extensibility;
 
+import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
@@ -155,6 +156,11 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
     @Override
     public Map<String, Object> getAsMap() {
         return extensionsStorage.getAsMap();
+    }
+
+    @Override
+    public ImmutableMap<String, ExtensionsStorage.ExtensionHolder<?>> getHoldersAsMap() {
+        return extensionsStorage.getHoldersAsMap();
     }
 
     public Object propertyMissing(String name) {

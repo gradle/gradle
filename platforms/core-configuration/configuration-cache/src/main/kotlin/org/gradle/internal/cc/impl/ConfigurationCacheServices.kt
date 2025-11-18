@@ -90,6 +90,12 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         }
     }
 
+    override fun registerProjectServices(registration: ServiceRegistration) {
+        registration.run {
+            add(IsolatedExtensionsProvider::class.java, DefaultIsolatedExtensionsProvider::class.java)
+        }
+    }
+
     private
     object RemoteScriptUpToDateCheckerProvider : ServiceRegistrationProvider {
         @Provides
