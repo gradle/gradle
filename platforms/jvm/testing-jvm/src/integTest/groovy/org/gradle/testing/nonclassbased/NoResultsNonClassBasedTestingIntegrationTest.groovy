@@ -22,7 +22,7 @@ class NoResultsNonClassBasedTestingIntegrationTest extends AbstractNonClassBased
         return [TestEngines.MATCHES_NOTHING_ENGINE]
     }
 
-    def "when TestEngine matches nothing then "() {
+    def "when TestEngine matches nothing then task fails, even if test defs are present"() {
         given:
         buildFile << """
             plugins {
