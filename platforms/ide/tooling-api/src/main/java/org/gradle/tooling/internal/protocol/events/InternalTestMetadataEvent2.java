@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.protocol.events;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * @since 9.3.0
+ * @since 9.4.0
  */
 public interface InternalTestMetadataEvent2 extends InternalProgressEvent {
     @Override
