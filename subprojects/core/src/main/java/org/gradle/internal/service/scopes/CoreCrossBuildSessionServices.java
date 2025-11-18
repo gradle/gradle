@@ -113,8 +113,8 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager, CrossBuildSessionParameters buildSessionParameters) {
-        return new BuildOperationTrace(buildSessionParameters.getStartParameter(), buildOperationListenerManager);
+    BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager, CrossBuildSessionParameters parameters) {
+        return new BuildOperationTrace(parameters.getUserActionRootDirectory(), parameters.getStartParameter(), buildOperationListenerManager);
     }
 
     @Provides

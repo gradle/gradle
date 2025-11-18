@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportRes
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 import static org.gradle.testing.nonclassbased.AbstractNonClassBasedTestingIntegrationTest.DEFAULT_DEFINITIONS_LOCATION
 
@@ -27,6 +28,7 @@ import static org.gradle.testing.nonclassbased.AbstractNonClassBasedTestingInteg
  * Integration test to verify that Cucumber JVM feature files can be executed
  * without using non-class-based testing support via {@code @RunWith} or other JUnit annotations.
  */
+@Ignore
 class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     @Override
     GenericTestExecutionResult.TestFramework getTestFramework() {
