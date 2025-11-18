@@ -30,6 +30,7 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,11 +43,13 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 public class JUnitXmlResultWriter {
 
+    private final Path rootDir;
     private final String hostName;
     private final TestResultsProvider testResultsProvider;
     private final JUnitXmlResultOptions options;
 
-    public JUnitXmlResultWriter(String hostName, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options) {
+    public JUnitXmlResultWriter(Path rootDir, String hostName, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options) {
+        this.rootDir = rootDir;
         this.hostName = hostName;
         this.testResultsProvider = testResultsProvider;
         this.options = options;
@@ -254,7 +257,7 @@ public class JUnitXmlResultWriter {
         writer.endElement();
     }
 
-    abstract static class TestCaseExecution {
+    abstract class TestCaseExecution {
         private final OutputProvider outputProvider;
         private final JUnitXmlResultOptions options;
         private final List<TestMetadataEvent> metadatas;
@@ -298,11 +301,11 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private static void writeFileAttachments(SimpleXmlWriter writer, List<DefaultTestFileAttachmentDataEvent> fileAttachments) throws IOException {
+    private void writeFileAttachments(SimpleXmlWriter writer, List<DefaultTestFileAttachmentDataEvent> fileAttachments) throws IOException {
         if (!fileAttachments.isEmpty()) {
             writer.write('\n');
             for (DefaultTestFileAttachmentDataEvent fileAttachment : fileAttachments) {
-                writer.write("[[ATTACHMENT|" + fileAttachment.getPath().toAbsolutePath() + "]]\n");
+                writer.write("[[ATTACHMENT|" + rootDir.relativize(fileAttachment.getPath()) + "]]\n");
             }
         }
     }
@@ -321,7 +324,7 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private static class TestCaseExecutionSuccess extends TestCaseExecution {
+    private class TestCaseExecutionSuccess extends TestCaseExecution {
         TestCaseExecutionSuccess(OutputProvider outputProvider, JUnitXmlResultOptions options, List<TestMetadataEvent> metadatas) {
             super(outputProvider, options, metadatas);
         }
@@ -335,7 +338,7 @@ public class JUnitXmlResultWriter {
     }
 
 
-    private static class TestCaseExecutionSkipped extends TestCaseExecution {
+    private class TestCaseExecutionSkipped extends TestCaseExecution {
         private final SerializableFailure assumptionFailure;
         TestCaseExecutionSkipped(
             OutputProvider outputProvider,
@@ -376,7 +379,7 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private static class TestCaseExecutionFailure extends TestCaseExecution {
+    private class TestCaseExecutionFailure extends TestCaseExecution {
         private final SerializableFailure failure;
         private final FailureType type;
 

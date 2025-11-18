@@ -18,6 +18,7 @@ package org.gradle.testing.junit.platform
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.TestPathRootExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 
@@ -195,32 +196,20 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         def afterEachFile = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach.mp4").assertExists()
 
         results.testPath('com.example.ReportEntryTest').onlyRoot()
-            .assertMetadata([(constructorFile.name): link(constructorFile)])
+            .assertFileAttachments([ (constructorFile.name): TestPathRootExecutionResult.ShowAs.LINK ])
             .assertChildrenExecuted("test(TestReporter)")
 
         results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot()
-            .assertMetadata([
-                (beforeEachFile.name): image(beforeEachFile),
-                (testFile.name): link(testFile),
-                (afterEachFile.name): video(afterEachFile)
+            .assertFileAttachments([
+                (beforeEachFile.name): TestPathRootExecutionResult.ShowAs.IMAGE,
+                (testFile.name): TestPathRootExecutionResult.ShowAs.LINK,
+                (afterEachFile.name): TestPathRootExecutionResult.ShowAs.VIDEO
             ])
 
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
         def clazz = xmlReport.testClass("com.example.ReportEntryTest")
         clazz.assertHasFileAttachments(constructorFile)
         clazz.assertTestHasFileAttachments('test(TestReporter)', beforeEachFile, testFile, afterEachFile)
-    }
-
-    private static String link(File path) {
-        '<a href="' + path.toPath().toUri().toASCIIString() + '">' + path.toPath().toAbsolutePath().toString() + '</a>'
-    }
-
-    private static String image(File path) {
-        '<img src="' + path.toPath().toUri().toASCIIString() + '" alt="' + path.name + '">'
-    }
-
-    private static String video(File path) {
-        '<video src="' + path.toPath().toUri().toASCIIString() + '" controls=""><a href="' + path.toPath().toUri().toASCIIString() + '">Download video</a>\n</video>'
     }
 
     def "captures dir entry emitted by tests"() {
@@ -284,12 +273,12 @@ class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec im
         def afterEachDir = file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach").assertIsDir()
 
         results.testPath('com.example.ReportEntryTest').onlyRoot()
-            .assertMetadata([(constructorDir.name): link(constructorDir)])
+            .assertFileAttachments([(constructorDir.name): TestPathRootExecutionResult.ShowAs.LINK])
             .assertChildrenExecuted("test(TestReporter)")
-        results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertMetadata([
-            (beforeEachDir.name): link(beforeEachDir),
-            (testDir.name): link(testDir),
-            (afterEachDir.name): link(afterEachDir)
+        results.testPath('com.example.ReportEntryTest:test(TestReporter)').onlyRoot().assertFileAttachments([
+            (beforeEachDir.name): TestPathRootExecutionResult.ShowAs.LINK,
+            (testDir.name): TestPathRootExecutionResult.ShowAs.LINK,
+            (afterEachDir.name): TestPathRootExecutionResult.ShowAs.LINK
             ])
 
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)

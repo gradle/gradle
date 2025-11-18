@@ -467,7 +467,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         @Override
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("div").attribute("class", "metadata");
+            htmlWriter.startElement("div").attribute("class", "attachments");
             List<DefaultTestFileAttachmentDataEvent> keyValues = info.getMetadatas().stream().filter(DefaultTestFileAttachmentDataEvent.class::isInstance).map(DefaultTestFileAttachmentDataEvent.class::cast).collect(Collectors.toList());
             renderFileAttachments(keyValues, htmlWriter);
             htmlWriter.endElement();
@@ -526,17 +526,17 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private static void renderLink(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
-            htmlWriter.startElement("a").attribute("href", metadata.getPath().toUri().toASCIIString()).characters(metadata.getPath().toString()).endElement();
+            htmlWriter.startElement("a").attribute("href", htmlWriter.relativeLink(metadata.getPath())).characters(htmlWriter.relativeLink(metadata.getPath())).endElement();
         }
 
         private static void renderImage(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
-            htmlWriter.startElement("img").attribute("src", metadata.getPath().toUri().toASCIIString()).attribute("alt", metadata.getPath().getFileName().toString()).endElement();
+            htmlWriter.startElement("img").attribute("src", htmlWriter.relativeLink(metadata.getPath())).attribute("alt", metadata.getPath().getFileName().toString()).endElement();
         }
         private static void renderVideo(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
             htmlWriter.startElement("video")
-                .attribute("src", metadata.getPath().toUri().toASCIIString()).attribute("controls", "")
+                .attribute("src", htmlWriter.relativeLink(metadata.getPath())).attribute("controls", "")
                 // If the browser doesn't support this video format, fallback to a link
-                .startElement("a").attribute("href", metadata.getPath().toUri().toASCIIString()).characters("Download video").endElement()
+                .startElement("a").attribute("href", htmlWriter.relativeLink(metadata.getPath())).characters("Download video").endElement()
             .endElement();
         }
     }

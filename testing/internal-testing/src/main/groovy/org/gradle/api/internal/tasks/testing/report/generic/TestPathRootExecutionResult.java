@@ -125,4 +125,10 @@ public interface TestPathRootExecutionResult {
      * @return {@code this}
      */
     TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata);
+
+    enum ShowAs {
+        LINK, IMAGE, VIDEO;
+    }
+
+    TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedMetadata);
 }

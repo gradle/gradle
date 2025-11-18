@@ -145,8 +145,8 @@ class JUnitXmlResultWriterSpec extends Specification {
     def "writes file attachments into XML"() {
         given:
         def options = new JUnitXmlResultOptions(false, false, true, true)
-        def classFile = new File("class.file").toPath()
-        def testFile = new File("test.file").toPath()
+        def classFile = new File("sub/class.file").toPath()
+        def testFile = new File("sub/sub/test.file").toPath()
 
         and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestFileAttachmentDataEvent(0, classFile, "application/json")])
@@ -162,11 +162,11 @@ class JUnitXmlResultWriterSpec extends Specification {
   <properties/>
   <testcase name="some test" classname="com.foo.FooTest" time="0.1">
     <system-out><![CDATA[
-[[ATTACHMENT|${testFile.toAbsolutePath().toString()}]]
+[[ATTACHMENT|sub/sub/test.file]]
 ]]></system-out>
   </testcase>
   <system-out><![CDATA[
-[[ATTACHMENT|${classFile.toAbsolutePath().toString()}]]
+[[ATTACHMENT|sub/class.file]]
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
@@ -422,7 +422,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     private JUnitXmlResultWriter getGenerator(JUnitXmlResultOptions options) {
-        return new JUnitXmlResultWriter("localhost", provider, options)
+        return new JUnitXmlResultWriter(new File("").toPath(), "localhost", provider, options)
     }
 
     private BuildableTestResultsProvider.BuildableTestClassResult generateTestClassWithOutput(BuildableTestResultsProvider provider) {
