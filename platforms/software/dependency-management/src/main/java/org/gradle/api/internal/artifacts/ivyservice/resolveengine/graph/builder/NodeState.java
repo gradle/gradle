@@ -21,6 +21,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import io.usethesource.capsule.Set.Immutable;
+import io.usethesource.capsule.Set.Transient;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -426,7 +427,7 @@ public class NodeState implements DependencyGraphNode {
         this.upcomingNoLongerPendingConstraints = null;
 
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
-        Immutable<ModuleIdentifier> strictVersionsSet = Immutable.<ModuleIdentifier>of();
+        Transient<ModuleIdentifier> strictVersionsSet = Immutable.<ModuleIdentifier>of().asTransient();
         for (DependencyState dependencyState : dependencies(resolutionFilter)) {
             PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
             if (dependencyState.getDependency().isConstraint()) {
@@ -435,13 +436,13 @@ public class NodeState implements DependencyGraphNode {
             if (!pendingState.isPending()) {
                 createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
             }
-            strictVersionsSet = maybeCollectStrictVersions(strictVersionsSet, dependencyState);
+            maybeCollectStrictVersions(strictVersionsSet, dependencyState);
         }
         // If there are 'pending' dependencies that share a target with any of these outgoing edges,
         // then reset the state of the node that owns those dependencies.
         // This way, all edges of the node will be re-processed.
         pendingDepsVisitor.complete();
-        storeOwnStrictVersions(strictVersionsSet);
+        storeOwnStrictVersions(strictVersionsSet.freeze());
 
         this.visitedDependencies = true;
     }
@@ -840,27 +841,24 @@ public class NodeState implements DependencyGraphNode {
 
     private void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
         List<DependencyState> dependencies = dependencies(moduleResolutionFilter);
-        Immutable<ModuleIdentifier> constraintsSet = Immutable.<ModuleIdentifier>of();
+        Transient<ModuleIdentifier> constraintsSet = Immutable.<ModuleIdentifier>of().asTransient();
         for (DependencyState dependencyState : dependencies) {
-            constraintsSet = maybeCollectStrictVersions(constraintsSet, dependencyState);
+            maybeCollectStrictVersions(constraintsSet, dependencyState);
         }
-        storeOwnStrictVersions(constraintsSet);
+        storeOwnStrictVersions(constraintsSet.freeze());
     }
 
-    private Immutable<ModuleIdentifier> maybeCollectStrictVersions(Immutable<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
+    private void maybeCollectStrictVersions(Transient<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
         if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
             if (!StringUtils.isEmpty(selector.getVersionConstraint().getStrictVersion())) {
-                constraintsSet = constraintsSet.__insert(selector.getModuleIdentifier());
+                constraintsSet.__insert(selector.getModuleIdentifier());
             }
         }
-        return constraintsSet;
     }
 
-    private void storeOwnStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet) {
-        StrictVersionConstraints newStrictVersions = constraintsSet == null
-            ? StrictVersionConstraints.EMPTY
-            : StrictVersionConstraints.of(constraintsSet);
+    private void storeOwnStrictVersions(Immutable<ModuleIdentifier> constraintsSet) {
+        StrictVersionConstraints newStrictVersions = StrictVersionConstraints.of(constraintsSet);
 
         if (ownStrictVersions != null && !ownStrictVersions.equals(newStrictVersions)) {
             // Our strict versions were already computed, and they just changed.
