@@ -136,6 +136,12 @@ public class NodeState implements DependencyGraphNode {
     private @Nullable StrictVersionConstraints previousAncestorsStrictVersions;
 
     /**
+     * The transitive strict versions from inherited from parents,
+     * or null if this value needs to be recomputed.
+     */
+    private @Nullable StrictVersionConstraints cachedAncestorsStrictVersions;
+
+    /**
      * Our own strict version constraints, from the previous graph traversal.
      */
     private @Nullable StrictVersionConstraints ownStrictVersions;
@@ -260,7 +266,7 @@ public class NodeState implements DependencyGraphNode {
      */
     void visitOutgoingDependenciesAndCollectEdges(Collection<EdgeState> discoveredEdges) {
         ExcludeSpec resolutionFilter = computeModuleResolutionFilter(incomingEdges);
-        StrictVersionConstraints ancestorsStrictVersions = collectAncestorsStrictVersions();
+        StrictVersionConstraints ancestorsStrictVersions = getAncestorsStrictVersions();
 
         doVisitDependencies(resolutionFilter, ancestorsStrictVersions, discoveredEdges);
 
@@ -642,6 +648,7 @@ public class NodeState implements DependencyGraphNode {
             }
             requeueChildrenOfEndorsingParent(dependencyEdge);
             cachedModuleResolutionFilter = null;
+            invalidateAncestorsStrictVersions();
             resolveState.onMoreSelected(this);
         }
     }
@@ -654,6 +661,7 @@ public class NodeState implements DependencyGraphNode {
             }
             requeueChildrenOfEndorsingParent(dependencyEdge);
             cachedModuleResolutionFilter = null;
+            invalidateAncestorsStrictVersions();
             resolveState.onFewerSelected(this);
         }
     }
@@ -667,7 +675,7 @@ public class NodeState implements DependencyGraphNode {
     private void requeueChildrenOfEndorsingParent(EdgeState incomingEdge) {
         if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
             NodeState sourceNode = incomingEdge.getFrom();
-            sourceNode.cachedEndorsedStrictVersions = null;
+            sourceNode.invalidateEndorsedStrictVersions();
             for (EdgeState edge : sourceNode.getOutgoingEdges()) {
                 for (NodeState node : edge.getTargetNodes()) {
                     if (node != this) {
@@ -871,12 +879,61 @@ public class NodeState implements DependencyGraphNode {
             // Invalidate any nodes that computed their endorsed strict versions based on our previous value.
             for (EdgeState incomingEdge : incomingEdges) {
                 if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
-                    incomingEdge.getFrom().cachedEndorsedStrictVersions = null;
+                    incomingEdge.getFrom().invalidateEndorsedStrictVersions();
+                }
+            }
+        }
+
+        if (!newStrictVersions.equals(ownStrictVersions)) {
+            for (EdgeState incomingEdge : incomingEdges) {
+                if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
+                    // Our own strict versions contribute to our ancestors strict versions
+                    // if our ancestor endorses us.
+                    invalidateAncestorsStrictVersions();
+                }
+            }
+            for (EdgeState outgoingEdge : outgoingEdges) {
+                for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
+                    // Our own strict versions contribute to our descendants strict versions.
+                    targetNode.invalidateAncestorsStrictVersions();
                 }
             }
         }
 
         this.ownStrictVersions = newStrictVersions;
+    }
+
+    /**
+     * Invalidate the cached strict versions inherited from ancestors,
+     * propagating the invalidation to all descendants.
+     */
+    private void invalidateAncestorsStrictVersions() {
+        if (this.cachedAncestorsStrictVersions == null) {
+            return;
+        }
+
+        this.cachedAncestorsStrictVersions = null;
+
+        for (EdgeState outgoingEdge : outgoingEdges) {
+            for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
+                // The ancestors strict versions of this node contribute to the
+                // ancestors strict versions of our children.
+                targetNode.invalidateAncestorsStrictVersions();
+            }
+        }
+    }
+
+    /**
+     * Get all strict versions inherited from ancestors, calculating the value if necessary.
+     */
+    private StrictVersionConstraints getAncestorsStrictVersions() {
+        if (cachedAncestorsStrictVersions == null) {
+            this.cachedAncestorsStrictVersions = collectAncestorsStrictVersions();
+        } else {
+            // During testing, validate that our cached ancestor strict modules are correct.
+            assert this.cachedAncestorsStrictVersions.equals(collectAncestorsStrictVersions());
+        }
+        return this.cachedAncestorsStrictVersions;
     }
 
     /**
@@ -946,9 +1003,31 @@ public class NodeState implements DependencyGraphNode {
         return ownStrictVersions.union(previousAncestorsStrictVersions);
     }
 
+    /**
+     * Invalidate the cached strict versions endorsed by this node,
+     * propagating the invalidation to all descendants.
+     */
+    private void invalidateEndorsedStrictVersions() {
+        this.cachedEndorsedStrictVersions = null;
+
+        for (EdgeState outgoingEdge : outgoingEdges) {
+            for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
+                // The endorsed strict versions of this node contribute to the
+                // ancestors strict versions of our children.
+                targetNode.invalidateAncestorsStrictVersions();
+            }
+        }
+    }
+
+    /**
+     * Get the strict versions endorsed by this node, calculating the value if necessary.
+     */
     private StrictVersionConstraints getEndorsedStrictVersions() {
         if (cachedEndorsedStrictVersions == null) {
             this.cachedEndorsedStrictVersions = computeEndorsedStrictVersions();
+        } else {
+            // During testing, validate that our cached endorsed strict modules are correct.
+            assert this.cachedEndorsedStrictVersions.equals(computeEndorsedStrictVersions());
         }
         return this.cachedEndorsedStrictVersions;
     }
@@ -1079,6 +1158,8 @@ public class NodeState implements DependencyGraphNode {
         incomingEdges.clear();
         incomingHash = 0;
         transitiveEdgeCount = 0;
+        cachedModuleResolutionFilter = null;
+        invalidateAncestorsStrictVersions();
     }
 
     public void deselect() {
