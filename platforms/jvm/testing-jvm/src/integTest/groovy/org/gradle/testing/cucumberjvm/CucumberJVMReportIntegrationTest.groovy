@@ -75,12 +75,17 @@ Feature: Another Thing
         executedAndNotSkipped(":test")
 
         and:
-        def result = resultsFor()
-        result.assertTestPathsExecuted(
+        // Output from XML report generation:
+        outputContains(
+            "Expected all results for grouping node :RunCukesTest:feature_classpath_features/my_thing.feature" +
+                " to have the same display name, but found: Another Thing and My Thing"
+        )
+        def testResults = resultsFor()
+        testResults.assertTestPathsExecuted(
             ":RunCukesTest:feature_classpath_features/my_thing.feature:A Scenario",
         )
         // "Another Thing" comes first due to lexical ordering of '_' vs ':'
-        result.testPath(":RunCukesTest:feature_classpath_features/my_thing.feature").onlyRoot()
+        testResults.testPath(":RunCukesTest:feature_classpath_features/my_thing.feature").onlyRoot()
             .assertDisplayName(Matchers.is("Another Thing / My Thing"))
     }
 
