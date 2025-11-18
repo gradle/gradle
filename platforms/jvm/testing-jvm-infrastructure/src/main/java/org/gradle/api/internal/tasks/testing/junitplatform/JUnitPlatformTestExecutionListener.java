@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
-import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -37,7 +36,6 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFai
 import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
-import org.gradle.internal.Cast;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -47,8 +45,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.UniqueId;
-import org.junit.platform.engine.reporting.FileEntry;
-import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
@@ -61,7 +57,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -137,27 +132,6 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         this.clock = clock;
         this.idGenerator = idGenerator;
         this.baseDefinitionsDir = baseDefinitionsDir;
-    }
-
-    @Override
-    public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
-        // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class constructor.
-        if (wasStarted(testIdentifier)) {
-            resultProcessor.published(getId(testIdentifier), new DefaultTestMetadataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
-        } else {
-            // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with it
-            Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
-            if (closestStartedAncestor != null) {
-                resultProcessor.published(closestStartedAncestor, new DefaultTestMetadataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
-            }
-            // otherwise, we don't know what to associate this ReportEntry with
-            LOGGER.debug("report entry published for unknown test identifier {}", testIdentifier);
-        }
-    }
-
-    @Override
-    public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry file) {
-        // TODO: Capture this as well
     }
 
     @Override
