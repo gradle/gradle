@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * A file attachment was published by an executed test.
  *
- * @since 9.3.0
+ * @since 9.4.0
  */
 @Incubating
 @NullMarked
@@ -36,7 +36,7 @@ public interface FileAttachment {
      * The path may represent a single file or a directory.
      *
      * @return path to the file
-     * @since 9.3.0
+     * @since 9.4.0
      */
     File getPath();
 
@@ -44,7 +44,7 @@ public interface FileAttachment {
      * <a href="https://www.iana.org/assignments/media-types/media-types.xhtml">Media type</a> of the file.
      *
      * @return media type of the file attachment or {@code null} if the file attachment represents a directory
-     * @since 9.3.0
+     * @since 9.4.0
      */
     @Nullable
     String getMediaType();
