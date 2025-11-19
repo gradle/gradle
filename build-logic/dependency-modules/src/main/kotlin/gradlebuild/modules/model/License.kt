@@ -19,6 +19,7 @@ package gradlebuild.modules.model
 
 enum class License(val displayName: String) {
     Apache2("Apache 2.0"),
+    BSD2("2-Clause BSD"),
     BSD3("3-Clause BSD"),
     BSDStyle("BSD-style"),
     CDDL("CDDL"),
