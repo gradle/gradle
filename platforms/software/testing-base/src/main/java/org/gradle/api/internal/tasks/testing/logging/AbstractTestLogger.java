@@ -72,6 +72,8 @@ public abstract class AbstractTestLogger {
                 // but we nevertheless want to see the class name. We use "." rather than
                 // " > " as a separator to make it clear that the class is not a separate
                 // level. This matters when configuring granularity.
+                // For non-class-based testing, the className should be an empty
+                // string, so we just use the display name.
                 String name;
                 if (!Strings.isNullOrEmpty(current.getClassName())) {
                     name = current.getClassName() + "." + current.getDisplayName();
