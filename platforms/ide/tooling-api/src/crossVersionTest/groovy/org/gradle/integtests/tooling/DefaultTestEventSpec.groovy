@@ -16,10 +16,13 @@
 
 package org.gradle.integtests.tooling
 
+
 import groovy.transform.CompileStatic
+import groovy.transform.RecordType
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.internal.SystemProperties
-import org.gradle.tooling.events.test.FileAttachment
+import org.gradle.tooling.events.test.TestFileAttachmentMetadataEvent
+import org.gradle.tooling.events.test.TestKeyValueMetadataEvent
 import org.gradle.tooling.events.test.TestMetadataEvent
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestOutputDescriptor
@@ -34,6 +37,12 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     private final List<String> actualOutput;
     private final List<Object> actualMetadata;
 
+    @RecordType
+    private static class FileAttachment {
+        File file
+        String mediaType
+    }
+
     DefaultTestEventSpec(ProgressEvents.Operation self, List<ProgressEvents.Operation> verifiedOperations) {
         this.self = self
         this.verifiedOperations = verifiedOperations
@@ -43,10 +52,16 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
 
         def metadatas = self.statusEvents.findAll { it.event instanceof TestMetadataEvent }.collect { (TestMetadataEvent) it.event }
         actualMetadata = new ArrayList<>(metadatas.collect {
-            if (it.respondsTo("get") && it.values.isEmpty()) {
-                it.get(FileAttachment)
+            if (it instanceof TestMetadataEvent && it.respondsTo("getValues")) {
+                // Older versions of TAPI (before 9.4.0) have a TestMetadataEvent that has a getValues method
+                it.invokeMethod("getValues", null)
+            } else if (it instanceof TestKeyValueMetadataEvent) {
+                it.values
+            } else if (it instanceof TestFileAttachmentMetadataEvent) {
+                new FileAttachment(it.file, it.mediaType)
             } else {
-                it.getValues()
+                // Don't recognize what kind of metadata this is, just return the event and let checks later fail
+                it
             }
         })
     }

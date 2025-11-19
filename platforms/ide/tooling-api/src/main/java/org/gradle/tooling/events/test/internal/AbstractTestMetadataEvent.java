@@ -18,27 +18,19 @@ package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.TestMetadataEvent;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
 
 /**
- * Implementation of the {@code TestMetadataEvent} interface.
+ * Base implementation of the {@code TestMetadataEvent} interface.
  */
 @NullMarked
-public class DefaultTestMetadataEvent implements TestMetadataEvent {
+abstract class AbstractTestMetadataEvent implements TestMetadataEvent {
     private final long eventTime;
     private final OperationDescriptor descriptor;
-    private final Map<String, Object> values;
-    private final @Nullable Object payload;
 
-    public DefaultTestMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, Object> values, @Nullable Object payload) {
+    public AbstractTestMetadataEvent(long eventTime, OperationDescriptor descriptor) {
         this.eventTime = eventTime;
         this.descriptor = descriptor;
-        this.values = values;
-        this.payload = payload;
     }
 
     @Override
@@ -59,15 +51,5 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
     @Override
     public String toString() {
         return getDisplayName(); // This must == displayName, see TestEventsFixture
-    }
-
-    @Override
-    public Map<String, Object> getValues() {
-        return values;
-    }
-
-    @Override
-    public <T> T get(Class<T> viewType) {
-        return new ProtocolToModelAdapter().adapt(viewType, payload);
     }
 }

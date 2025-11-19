@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.tooling.events.test;
 
-import org.gradle.api.tasks.testing.TestMetadataEvent;
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
 /**
- * Key-value data published by a test
- *
- * This implementation is intended to be kept within the build process and workers.
+ * An event emitted by tests that contains additional data in the form of key-values.
+ * @since 9.4.0
  */
+@Incubating
 @NullMarked
-public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent implements TestMetadataEvent {
-    private final Map<String, String> values;
-
-    public DefaultTestKeyValueDataEvent(long logTime, Map<String, String> values) {
-        super(logTime);
-        this.values = values;
-    }
-
-    public Map<String, String> getValues() {
-        return values;
-    }
+public interface TestKeyValueMetadataEvent extends TestMetadataEvent {
+    /**
+     * Key-value data reported by the associated test.
+     *
+     * @apiNote Builds using Gradle 9.4.0 and newer will only produce {@code Map<String,String>}.
+     *
+     * @return map of key-values
+     * @since 9.4.0
+     */
+    Map<String, Object> getValues();
 }

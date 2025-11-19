@@ -271,7 +271,6 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                     .forTasks('customTest')
                     .run()
         }
-
         then:
         testEvents {
             task(":customTest") {

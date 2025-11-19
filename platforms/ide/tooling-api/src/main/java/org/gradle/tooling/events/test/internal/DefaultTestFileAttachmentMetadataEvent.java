@@ -14,38 +14,37 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build.event.types;
+package org.gradle.tooling.events.test.internal;
 
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.test.TestFileAttachmentMetadataEvent;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
-import java.nio.file.Path;
 
-@SuppressWarnings("unused")
-public class DefaultFileAttachment implements Serializable {
+/**
+ * Consumer implementation of file attachment event
+ */
+@NullMarked
+public class DefaultTestFileAttachmentMetadataEvent extends AbstractTestMetadataEvent implements TestFileAttachmentMetadataEvent {
     private final File file;
-    private final @Nullable String mediaType;
+    @Nullable
+    private final String mediaType;
 
-    public DefaultFileAttachment(Path path, @Nullable String mediaType) {
-        this.file = path.toFile();
+    public DefaultTestFileAttachmentMetadataEvent(long eventTime, OperationDescriptor descriptor, File file, @Nullable String mediaType) {
+        super(eventTime, descriptor);
+        this.file = file;
         this.mediaType = mediaType;
     }
 
+    @Override
     public File getFile() {
         return file;
     }
 
-    @Nullable
-    public String getMediaType() {
-        return mediaType;
-    }
-
     @Override
-    public String toString() {
-        return "FileAttachment{" +
-            "file=" + file +
-            ", mediaType='" + mediaType + '\'' +
-            '}';
+    public @Nullable String getMediaType() {
+        return mediaType;
     }
 }

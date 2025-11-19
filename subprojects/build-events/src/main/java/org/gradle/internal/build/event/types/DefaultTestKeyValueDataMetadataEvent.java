@@ -22,14 +22,12 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
 import java.util.Map;
 
 /**
- * Default implementation of the {@code InternalTestMetadataEvent} interface.
- *
- * This is created by the provider side of the tooling API.
+ * Provider-side implementation of test metadata event that carries key-values to the consumer.
  */
-public final class DefaultKeyValueDataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent {
+public final class DefaultTestKeyValueDataMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent {
     private final Map<String, Object> values;
 
-    public DefaultKeyValueDataEvent(long startTime, InternalTestMetadataDescriptor descriptor, Map<String, Object> values) {
+    public DefaultTestKeyValueDataMetadataEvent(long startTime, InternalTestMetadataDescriptor descriptor, Map<String, Object> values) {
         super(startTime, descriptor);
         this.values = values;
     }
