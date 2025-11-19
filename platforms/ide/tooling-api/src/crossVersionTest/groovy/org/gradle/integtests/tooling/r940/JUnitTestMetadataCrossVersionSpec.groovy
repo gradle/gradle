@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r940
 
+
 import org.gradle.integtests.tooling.TestEventsFixture
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -281,6 +282,44 @@ class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implemen
                                 fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/beforeEach"), null)
                                 fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/test"), null)
                                 fileAttachment(file("build/junit-jupiter/com.example.ReportEntryTest/test(org.junit.jupiter.api.TestReporter)/afterEach"), null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ToolingApiVersion(">=8.13 <9.4.0")
+    def "older clients do not fail if file attachments are sent"() {
+        file("src/test/java/com/example/ReportEntryTest.java").java """
+            package com.example;
+
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.TestReporter;
+            import org.junit.jupiter.api.extension.MediaType;
+            import java.nio.file.Files;
+            import java.util.Collections;
+
+            public class ReportEntryTest {
+                @Test
+                public void test(TestReporter testReporter) {
+                    testReporter.publishFile("test.json", MediaType.APPLICATION_JSON, path -> Files.write(path, Collections.singletonList("{ test: [] }")));
+                }
+            }
+        """
+        when:
+        runTests()
+        then:
+        // sanity check that the file attachment was recorded in the result
+        file("build/test-results/test/TEST-com.example.ReportEntryTest.xml").text.contains("test.json]]")
+        testEvents {
+            task(":test") {
+                nested("Gradle Test Run :test") {
+                    nested("Gradle Test Executor") {
+                        nested("Test class com.example.ReportEntryTest") {
+                            test("Test test(TestReporter)(com.example.ReportEntryTest)") {
+                                // File attachments are not seen by older clients
                             }
                         }
                     }
