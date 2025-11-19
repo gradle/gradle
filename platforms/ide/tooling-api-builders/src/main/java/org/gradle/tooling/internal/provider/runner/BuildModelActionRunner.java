@@ -79,7 +79,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         public Object fromBuildModel(BuildTreeModelController controller) {
             String modelName = buildModelAction.getModelName();
             try {
-                return controller.getModel(BuildTreeModelTarget.ofDefault(), modelName, null);
+                return controller.getModel(BuildTreeModelTarget.ofDefault(), modelName, null, false);
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;
                 throw e;

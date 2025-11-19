@@ -52,7 +52,6 @@ import java.util.function.Function;
 
 import static org.gradle.util.Path.path;
 
-@SuppressWarnings("deprecation")
 public class DefaultBuildLifecycleController implements BuildLifecycleController {
     private enum State implements StateTransitionController.State {
         // Configuring the build, can access build model
@@ -323,8 +322,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
-        return action.apply(toolingModelControllerFactory.createController(targetBuild(), this));
+    public <T> T withToolingModels(boolean isFetch, Function<? super BuildToolingModelController, T> action) {
+        return action.apply(toolingModelControllerFactory.createController(targetBuild(), this, isFetch));
     }
 
     private BuildState targetBuild() {
@@ -332,6 +331,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ExecutionResult<Void> finishBuild(@Nullable Throwable failure) {
         return state.transition(CONFIGURATION_STATES, State.BuildFinishHooks, stageFailures -> {
             // Fire the build finished events even if nothing has happened to this build, because quite a lot of internal infrastructure

@@ -69,19 +69,19 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
         @Override
         public GradleInternal getConfiguredModel() {
-            return defaultTarget.withToolingModels(BuildToolingModelController::getConfiguredModel);
+            return defaultTarget.withToolingModels(false, BuildToolingModelController::getConfiguredModel);
         }
 
         @Override
         @Nullable
-        public Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException {
+        public Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter, boolean isFetch) throws UnknownModelException {
             // Include target resolution into the operation to identify all work (including build configuration)
             // that is executed to provide the requested model
             return buildOperationRunner.call(new CallableBuildOperation<Object>() {
                 @Override
                 @Nullable
                 public Object call(BuildOperationContext context) {
-                    ToolingModelScope scope = locateBuilderForTarget(target, modelName, parameter != null);
+                    ToolingModelScope scope = locateBuilderForTarget(target, modelName, parameter != null, isFetch);
                     return getModelForScope(scope, modelName, parameter);
                 }
 
@@ -115,20 +115,20 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
             });
         }
 
-        private ToolingModelScope locateBuilderForTarget(BuildTreeModelTarget target, String modelName, boolean parameter) {
+        private ToolingModelScope locateBuilderForTarget(BuildTreeModelTarget target, String modelName, boolean hasParameter, boolean isFetch) {
             if (target instanceof BuildTreeModelTarget.Default) {
-                return locateBuilderForDefaultTarget(modelName, parameter);
+                return locateBuilderForDefaultTarget(modelName, hasParameter, isFetch);
             } else if (target instanceof BuildTreeModelTarget.Build) {
-                return locateBuilderForBuildTarget((BuildTreeModelTarget.Build) target, modelName, parameter);
+                return locateBuilderForBuildTarget((BuildTreeModelTarget.Build) target, modelName, hasParameter);
             } else if (target instanceof BuildTreeModelTarget.Project) {
-                return locateBuilderForProjectTarget((BuildTreeModelTarget.Project) target, modelName, parameter);
+                return locateBuilderForProjectTarget((BuildTreeModelTarget.Project) target, modelName, hasParameter);
             } else {
                 throw new IllegalStateException("Unknown target: " + target);
             }
         }
 
-        private ToolingModelScope locateBuilderForDefaultTarget(String modelName, boolean param) {
-            return locateBuilderForBuildTarget(defaultTarget, modelName, param);
+        private ToolingModelScope locateBuilderForDefaultTarget(String modelName, boolean hasParameter, boolean isFetch) {
+            return locateBuilderForBuildTarget(defaultTarget, modelName, hasParameter, isFetch);
         }
 
         private ToolingModelScope locateBuilderForProjectTarget(BuildTreeModelTarget.Project projectTarget, String modelName, boolean parameter) {
@@ -139,15 +139,15 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
         private ToolingModelScope locateBuilderForBuildTarget(BuildTreeModelTarget.Build buildTarget, String modelName, boolean parameter) {
             BuildState build = findBuild(buildTarget.getBuildRootDir());
-            return locateBuilderForBuildTarget(build, modelName, parameter);
+            return locateBuilderForBuildTarget(build, modelName, parameter, false);
         }
 
-        private ToolingModelScope locateBuilderForBuildTarget(BuildState target, String modelName, boolean param) {
-            return target.withToolingModels(controller -> controller.locateBuilderForTarget(modelName, param));
+        private ToolingModelScope locateBuilderForBuildTarget(BuildState target, String modelName, boolean hasParameter, boolean isFetch) {
+            return target.withToolingModels(isFetch, controller -> controller.locateBuilderForTarget(modelName, hasParameter));
         }
 
         private ToolingModelScope locateBuilderForProjectTarget(ProjectState target, String modelName, boolean param) {
-            return target.getOwner().withToolingModels(controller -> controller.locateBuilderForTarget(target, modelName, param));
+            return target.getOwner().withToolingModels(false, controller -> controller.locateBuilderForTarget(target, modelName, param));
         }
 
         @Nullable

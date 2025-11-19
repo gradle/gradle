@@ -36,7 +36,8 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     public ResilientBuildToolingModelController(
         BuildState buildState,
         BuildLifecycleController buildController,
-        ToolingModelBuilderLookup buildScopeLookup) {
+        ToolingModelBuilderLookup buildScopeLookup
+    ) {
         super(buildState, buildController, buildScopeLookup);
     }
 

@@ -38,7 +38,7 @@ public interface BuildTreeModelController {
      * @throws UnknownModelException when the model builder cannot be found
      */
     @Nullable
-    Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException;
+    Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter, boolean isFetch) throws UnknownModelException;
 
     boolean queryModelActionsRunInParallel();
 

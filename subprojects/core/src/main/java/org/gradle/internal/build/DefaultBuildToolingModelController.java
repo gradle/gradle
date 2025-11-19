@@ -48,26 +48,26 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     @Override
-    public ToolingModelScope locateBuilderForTarget(String modelName, boolean param) {
+    public ToolingModelScope locateBuilderForTarget(String modelName, boolean hasParameter) {
         // Look for a build scoped builder
-        ToolingModelBuilderLookup.Builder builder = buildScopeLookup.maybeLocateForBuildScope(modelName, param, buildState);
+        ToolingModelBuilderLookup.Builder builder = buildScopeLookup.maybeLocateForBuildScope(modelName, hasParameter, buildState);
         if (builder != null) {
             return new BuildToolingScope(builder);
         }
 
         // Force configuration of the build and locate builder for default project
         ProjectState targetProject = buildController.withProjectsConfigured(gradle -> gradle.getDefaultProject().getOwner());
-        return doLocate(targetProject, modelName, param);
+        return doLocate(targetProject, modelName, hasParameter);
     }
 
     @Override
-    public ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param) {
+    public ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean hasParameter) {
         if (target.getOwner() != buildState) {
             throw new IllegalArgumentException("Project has unexpected owner.");
         }
         // Force configuration of the containing build and then locate the builder for target project
         configureProjectsForModel(modelName);
-        return doLocate(target, modelName, param);
+        return doLocate(target, modelName, hasParameter);
     }
 
     protected void configureProjectsForModel(String modelName) {
