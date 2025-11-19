@@ -22,6 +22,9 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
  */
 public interface JUnitPlatformSupport {
     String UNKNOWN_CLASS = "UnknownClass";
-    String UNKNOWN_FILE = ""; // Empty string for file-based tests
+    /**
+     * An empty string for file-based tests.
+     */
+    String UNKNOWN_FILE = "";
     String UNKNOWN = "Unknown";
 }
