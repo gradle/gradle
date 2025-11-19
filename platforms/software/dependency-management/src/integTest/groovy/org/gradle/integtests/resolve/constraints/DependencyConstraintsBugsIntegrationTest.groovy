@@ -25,7 +25,7 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
     // Ideally this should be a reproducer using generated dependencies but I wasn't able
     // to figure out a reproducer
     @Issue("https://github.com/gradle/gradle/issues/13960")
-    def "should resolve dependency which version is provided by an upgraded transitive platform"() {
+    def "should resolve dependency which version is provided by an upgraded transitive platform"() { //
         given:
         // io.ktor:ktor-bom:1.3.2 is not available in mavenCentral() and the original issue this test covers
         // is only reproducible with io.micronaut:micronaut-bom:2.0.1 which depends on io.ktor:ktor-bom:1.3.2
@@ -46,8 +46,9 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
                 id 'java-library'
             }
 
+            ${mavenCentralRepository()}
+
             repositories {
-                ${mavenCentralRepository()}
                 maven {
                    url = file("./ktor-repo/")
                 }

@@ -96,7 +96,7 @@ public class CapabilityConflictResolver {
             for (Candidate candidate : candidates) {
                 if (candidate.node.getComponent().getComponentId().equals(winner.node.getComponent().getComponentId())) {
                     if (candidate.node != winner.node) {
-                        candidate.node.evict();
+                        candidate.node.evictedBy(winner.node);
                     }
                 }
             }

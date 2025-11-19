@@ -42,7 +42,7 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
                                            Long targetVariant
     ) {
         assert requested != null;
-        assert failure != null || selected != null;
+        assert failure != null || (selected != null && targetVariant != null);
 
         this.requested = requested;
         this.reason = reason;

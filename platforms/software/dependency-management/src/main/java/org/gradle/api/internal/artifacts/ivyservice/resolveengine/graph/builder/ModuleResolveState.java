@@ -194,6 +194,10 @@ public class ModuleResolveState implements CandidateModule {
         this.replaced = false;
 
         selectComponentAndEvictOthers(selected);
+
+//        if (!unattachedEdges.isEmpty()) {
+//            restartUnattachedEdges();
+//        }
     }
 
     private void selectComponentAndEvictOthers(ComponentState selected) {
@@ -286,9 +290,9 @@ public class ModuleResolveState implements CandidateModule {
         for (SelectorState selector : selectors) {
             selector.overrideSelection(selected);
         }
-        if (!unattachedEdges.isEmpty()) {
-            restartUnattachedEdges();
-        }
+//        if (!unattachedEdges.isEmpty()) {
+//            restartUnattachedEdges();
+//        }
     }
 
     private void restartUnattachedEdges() {

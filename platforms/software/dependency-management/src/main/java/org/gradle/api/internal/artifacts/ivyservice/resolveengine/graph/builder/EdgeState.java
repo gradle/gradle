@@ -81,17 +81,17 @@ class EdgeState implements DependencyGraphEdge {
         this.isConstraint = dependencyMetadata.isConstraint();
     }
 
-    void computeSelector(StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges, boolean deferSelection) {
+    boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions, boolean deferSelection) {
         boolean ignoreVersion = !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
         SelectorState newSelector = resolveState.computeSelectorFor(dependencyState, ignoreVersion);
         if (this.selector != newSelector) {
             clearSelector();
             newSelector.use(deferSelection);
             this.selector = newSelector;
-
-            // The selector changed. We need to perform selection.
-            discoveredEdges.add(this);
+            return true;
         }
+
+        return false;
     }
 
     public void clearSelector() {
@@ -145,6 +145,8 @@ class EdgeState implements DependencyGraphEdge {
             // The selector failed or the module has been deselected or the edge source has been deselected. Do not attach.
             return;
         }
+
+        // TODO: Also attach other unattached edges
 
         if (isConstraint) {
             // Need to double check that the target still has hard edges to it
@@ -232,7 +234,7 @@ class EdgeState implements DependencyGraphEdge {
                     targetNodes.add(node);
                 }
             }
-            if (targetNodes.isEmpty()) {
+            if (targetNodes.isEmpty()) { // TODO: Get rid of this
                 // There is a chance we could not attach target configurations previously
                 List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
                 if (!unattachedEdges.isEmpty()) {
@@ -276,6 +278,9 @@ class EdgeState implements DependencyGraphEdge {
 
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
+            while (targetNodeState.replacement != null) {
+                targetNodeState = targetNodeState.replacement;
+            }
             this.targetNodes.add(targetNodeState);
         }
     }
@@ -433,47 +438,29 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public Long getSelectedVariant() {
         NodeState node = getSelectedNode();
-        if (node == null) {
-            return null;
-        } else {
-            assert node.getComponent() == getSelectedComponent();
-            return node.getNodeId();
-        }
+        assert node.getComponent() == getSelectedComponent();
+        return node.getNodeId();
     }
 
     public Collection<NodeState> getTargetNodes() {
         return targetNodes;
     }
 
-    @Nullable
-    public NodeState getSelectedNode() {
+    NodeState getSelectedNode() {
         if (resolvedVariant != null) {
             return resolvedVariant;
         }
 
         List<NodeState> targetNodes = this.targetNodes;
-        if (targetNodes.isEmpty()) {
-            // TODO: This code is not correct. At the end of graph traversal,
-            // all edges that are part of the graph should have target nodes.
-            // Going to the target component and grabbing all of its nodes
-            // is certainly not the right thing to do here.
-            ComponentState targetComponent = getTargetComponent();
-            if (targetComponent != null) {
-                targetNodes = targetComponent.getNodes();
-            }
-        }
-
         assert !targetNodes.isEmpty();
 
         for (NodeState targetNode : targetNodes) {
-            // TODO: The target node should _always_ be selected. By definition, since we are an edge
-            // and the node is our target, the node is selected.
-            if (targetNode.isSelected()) {
-                resolvedVariant = targetNode;
-                return resolvedVariant;
-            }
+            assert targetNode.isSelected();
+            resolvedVariant = targetNode;
+            return resolvedVariant;
         }
-        return null;
+
+        throw new IllegalStateException("Expected at least one selected target node");
     }
 
     @Override
@@ -512,7 +499,11 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     void recomputeSelectorAndRequeueTargetNodes(StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
-        computeSelector(ancestorsStrictVersions, discoveredEdges, false);
+        if (computeSelector(ancestorsStrictVersions, false)) {
+            // The selector changed. We need to perform selection.
+            discoveredEdges.add(this);
+        }
+
         // TODO: If we compute the selector for this edge and it changes, we shouldn't add the (potentially) invalid target nodes to the queue.
         // If we added this edge to `discoveredEdges`, then we will recompute target nodes and there is no point in adding the current target nodes to the queue.
         for (NodeState targetNode : targetNodes) {

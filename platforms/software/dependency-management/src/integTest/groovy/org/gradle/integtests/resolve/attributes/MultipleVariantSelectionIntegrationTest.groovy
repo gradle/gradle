@@ -200,7 +200,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
-    void "can select distinct variants of the same component by using different attributes with capabilities"() {
+    void "can select distinct variants of the same component by using different attributes with capabilities"() { // TODO: Test both scenarios 1. With compatibility rule 2. Without (expect failure)
         given:
         repository {
             'org:test:1.0' {

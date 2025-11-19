@@ -91,7 +91,7 @@ public class NodeState implements DependencyGraphNode {
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
     private @Nullable List<EdgeState> virtualEdges;
     private boolean queued;
-    private boolean evicted;
+    public @Nullable NodeState replacement;
     private int transitiveEdgeCount;
     private @Nullable Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
 
@@ -526,7 +526,8 @@ public class NodeState implements DependencyGraphNode {
     ) {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolveState));
         dependencyEdge.updateTransitiveExcludes(resolutionFilter);
-        dependencyEdge.computeSelector(ancestorsStrictVersions, discoveredEdges, deferSelection);
+        dependencyEdge.computeSelector(ancestorsStrictVersions, deferSelection);
+        discoveredEdges.add(dependencyEdge);
         outgoingEdges.add(dependencyEdge);
         dependencyEdge.markUsed();
     }
@@ -598,7 +599,8 @@ public class NodeState implements DependencyGraphNode {
         DependencyState dependencyState = resolveState.getDependencySubstitutionApplicator().applySubstitutions(dependencyMetadata);
         EdgeState edge = new EdgeState(this, dependencyState, resolveState);
         edge.updateTransitiveExcludes(resolutionFilter);
-        edge.computeSelector(ancestorsStrictVersions, discoveredEdges, false);
+        edge.computeSelector(ancestorsStrictVersions, false);
+        discoveredEdges.add(edge);
         if (virtualEdges == null) {
             virtualEdges = new ArrayList<>();
         }
@@ -689,8 +691,8 @@ public class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
-    public void evict() {
-        evicted = true;
+    public void evictedBy(NodeState winner) {
+        replacement = winner;
     }
 
     boolean shouldIncludedInGraphResult() {
@@ -1016,7 +1018,7 @@ public class NodeState implements DependencyGraphNode {
                 }
                 if (targetComponent != null && targetComponent.getModule().isChangingSelection()) {
                     // don't requeue something which is already changing selection
-                    continue;
+                    continue; //
                 }
 
                 disconnectOutgoingEdge(outgoingEdge);
@@ -1051,7 +1053,7 @@ public class NodeState implements DependencyGraphNode {
         // If this configuration belongs to the select version, queue ourselves up for traversal.
         // If not, then remove our incoming edges, which triggers them to be moved across to the selected configuration
         if (component == selected) {
-            if (!evicted) {
+            if (replacement == null) {
                 resolveState.onMoreSelected(this);
                 return;
             }
@@ -1070,9 +1072,7 @@ public class NodeState implements DependencyGraphNode {
                 edge.retarget();
             }
         }
-        // TODO: Restarting incoming edges should ensure they are pointing to the correct node.
-        // If they end up pointing to us after restart, we should not remove them.
-        clearIncomingEdges();
+        assert incomingEdges.isEmpty();
     }
 
     private void clearIncomingEdges() {
@@ -1208,7 +1208,7 @@ public class NodeState implements DependencyGraphNode {
         try {
             for (EdgeState outgoingEdge : outgoingEdges) {
                 //noinspection ConstantConditions
-                return outgoingEdge.getSelectedNode();
+                return outgoingEdge.getSelectedNode(); // TODO
             }
             return null;
         } finally {

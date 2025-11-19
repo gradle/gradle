@@ -232,7 +232,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkDebugDuplicateClasses")
     }
 
-    @NotYetImplemented
     @UnsupportedWithConfigurationCache(because = "Uses allDependencies")
     @Issue("https://github.com/gradle/gradle/pull/26016#issuecomment-1795491970")
     def "conflict between two nodes in the same component causes edge without target node"() {
