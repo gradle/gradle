@@ -43,13 +43,13 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 public class JUnitXmlResultWriter {
 
-    private final Path rootDir;
+    private final Path reportDirectory;
     private final String hostName;
     private final TestResultsProvider testResultsProvider;
     private final JUnitXmlResultOptions options;
 
-    public JUnitXmlResultWriter(Path rootDir, String hostName, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options) {
-        this.rootDir = rootDir;
+    public JUnitXmlResultWriter(Path reportDirectory, String hostName, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options) {
+        this.reportDirectory = reportDirectory;
         this.hostName = hostName;
         this.testResultsProvider = testResultsProvider;
         this.options = options;
@@ -305,7 +305,7 @@ public class JUnitXmlResultWriter {
         if (!fileAttachments.isEmpty()) {
             writer.write('\n');
             for (DefaultTestFileAttachmentDataEvent fileAttachment : fileAttachments) {
-                writer.write("[[ATTACHMENT|" + rootDir.relativize(fileAttachment.getPath()) + "]]\n");
+                writer.write("[[ATTACHMENT|" + reportDirectory.relativize(fileAttachment.getPath()) + "]]\n");
             }
         }
     }

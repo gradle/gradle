@@ -32,7 +32,7 @@ public class DefaultFileAttachment implements Serializable {
         this.mediaType = mediaType;
     }
 
-    public File getPath() {
+    public File getFile() {
         return file;
     }
 

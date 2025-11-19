@@ -72,7 +72,7 @@ interface TestEventSpec {
     /**
      * Expect a file attachment
      */
-    void fileAttachment(File path, @Nullable String mediaType);
+    void fileAttachment(File file, @Nullable String mediaType);
 
     /**
      * Set the expected test display name

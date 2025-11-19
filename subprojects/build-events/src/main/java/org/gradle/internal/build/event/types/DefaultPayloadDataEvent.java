@@ -17,9 +17,12 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent2;
+import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEventVersion2;
 
-public class DefaultPayloadDataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent2 {
+/**
+ * Test metadata event that carries arbitrary payloads.
+ */
+public class DefaultPayloadDataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEventVersion2 {
     private final Object payload;
 
     public DefaultPayloadDataEvent(long startTime, InternalTestMetadataDescriptor descriptor, Object payload) {

@@ -79,6 +79,4 @@ import org.jspecify.annotations.NullMarked;
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
     }
-
-
 }

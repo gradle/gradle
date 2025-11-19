@@ -68,9 +68,9 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     }
 
     @Override
-    void fileAttachment(File path, @Nullable String mediaType) {
+    void fileAttachment(File file, @Nullable String mediaType) {
         assert actualMetadata.removeIf {
-            it instanceof FileAttachment && path == it.path && mediaType == it.mediaType
+            it instanceof FileAttachment && file == it.file && mediaType == it.mediaType
         }
     }
 

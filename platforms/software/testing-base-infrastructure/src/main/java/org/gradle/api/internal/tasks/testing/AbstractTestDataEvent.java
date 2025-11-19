@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * Default implementation of the {@code TestMetadataEvent} interface.
+ * Base implementation of the {@code TestMetadataEvent} interface.
  */
 @NullMarked
 public abstract class AbstractTestDataEvent implements TestMetadataEvent {
