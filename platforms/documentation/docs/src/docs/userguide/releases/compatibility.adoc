@@ -107,7 +107,7 @@ Beta and RC versions may or may not work.
 | 2.2.21 | 9.3.0 | 2.2
 |===
 
-// TODO: 2.3.0-Beta2
+// TODO: 2.3.0-RC
 
 == Groovy
 
