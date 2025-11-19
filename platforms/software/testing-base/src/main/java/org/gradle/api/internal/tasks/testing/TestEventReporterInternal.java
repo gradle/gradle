@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestFailure;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 

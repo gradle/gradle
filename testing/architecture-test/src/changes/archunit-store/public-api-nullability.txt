@@ -147,7 +147,6 @@ Class <org.gradle.api.tasks.testing.TestFailureDetails> is not annotated (direct
 Class <org.gradle.api.tasks.testing.TestFilter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestFilter.java:0)
 Class <org.gradle.api.tasks.testing.TestFrameworkOptions> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestFrameworkOptions.java:0)
 Class <org.gradle.api.tasks.testing.TestListener> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestListener.java:0)
-Class <org.gradle.api.tasks.testing.TestMetadataEvent> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestMetadataEvent.java:0)
 Class <org.gradle.api.tasks.testing.TestOutputEvent$Destination> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestOutputEvent.java:0)
 Class <org.gradle.api.tasks.testing.TestOutputEvent> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestOutputEvent.java:0)
 Class <org.gradle.api.tasks.testing.TestOutputListener> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestOutputListener.java:0)
