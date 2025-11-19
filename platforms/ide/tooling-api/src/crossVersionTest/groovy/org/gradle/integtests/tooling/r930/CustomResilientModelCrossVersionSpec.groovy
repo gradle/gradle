@@ -26,6 +26,9 @@ import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
+import static org.gradle.integtests.tooling.r930.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
+import static org.gradle.integtests.tooling.r930.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.ROOT_BUILD_FIRST
+
 @ToolingApiVersion('>=9.3')
 @TargetGradleVersion('>=9.3')
 class CustomResilientModelCrossVersionSpec extends ToolingApiSpecification {
@@ -80,7 +83,7 @@ class CustomPlugin implements Plugin<Project> {
 """
     }
 
-    def "can query custom model for included build without build configuration errors, even if main project configuration fails#description"() {
+    def "can query custom model for included build without build configuration errors, even if main project configuration fails#description #queryStrategy"() {
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -92,20 +95,12 @@ class CustomPlugin implements Plugin<Project> {
             rootProject.name = "build-logic"
 
             pluginManagement {
-                repositories {
-                    mavenCentral()
-                    gradlePluginPortal()
-                }
+               $repositoriesBlock
             }
         """
         included.file("build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
-            }
-
-            repositories {
-                mavenCentral()
-                gradlePluginPortal()
             }
         """
         included.file("src/main/kotlin/build-logic.gradle.kts") << """
@@ -130,7 +125,7 @@ class CustomPlugin implements Plugin<Project> {
 
         when:
         def result = succeeds {
-            action(new ModelAction())
+            action(new ModelAction(queryStrategy))
                 .withArguments(
                     "--init-script=${file('init.gradle').absolutePath}",
                     "-Dorg.gradle.internal.resilient-model-building=true",
@@ -144,20 +139,22 @@ class CustomPlugin implements Plugin<Project> {
         result.successfullyQueriedProjects == expectedSuccesfulProjects
 
         where:
-        description                     | extraGradleProperties        | expectedSuccesfulProjects         | expectedFailedProjects
-        ""                              | [""]                         | ['build-logic']                   | ['root', 'a', 'b', 'c']
-        " with configuration-on-demand" | IP_CONFIGURE_ON_DEMAND_FLAGS | ['root', 'a', 'c', 'build-logic'] | ['b']
+        description                 | queryStrategy         | extraGradleProperties        | expectedSuccesfulProjects         | expectedFailedProjects
+        ""                          | ROOT_BUILD_FIRST      | []                           | ['build-logic']                   | ['root', 'a', 'b', 'c']
+        ""                          | EDITABLE_BUILDS_FIRST | []                           | ['build-logic']                   | ['root', 'a', 'b', 'c']
+        " with configure-on-demand" | ROOT_BUILD_FIRST      | IP_CONFIGURE_ON_DEMAND_FLAGS | ['root', 'a', 'c', 'build-logic'] | ['b']
+        " with configure-on-demand" | EDITABLE_BUILDS_FIRST | IP_CONFIGURE_ON_DEMAND_FLAGS | ['build-logic', 'root', 'a', 'c'] | ['b']
     }
 
-    def "can query custom model for included build without build configuration errors, even if main settings fail"() {
+    def "can query custom model for included build without build configuration errors, even if main settings fail#description #queryStrategy"() {
         settingsKotlinFile << """
             pluginManagement {
                 includeBuild("build-logic")
             }
-            rootProject.name = "root"
             plugins {
                 id("build-logic")
             }
+            rootProject.name = "root"
             include("a")
         """
 
@@ -166,20 +163,12 @@ class CustomPlugin implements Plugin<Project> {
             rootProject.name = "build-logic"
 
             pluginManagement {
-                repositories {
-                    mavenCentral()
-                    gradlePluginPortal()
-                }
+                $repositoriesBlock
             }
         """
         included.file("build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
-            }
-
-            repositories {
-                mavenCentral()
-                gradlePluginPortal()
             }
         """
         included.file("src/main/kotlin/build-logic.gradle.kts") << """
@@ -189,15 +178,15 @@ class CustomPlugin implements Plugin<Project> {
             plugins {
                 id("java")
             }
-
         """
 
         when:
         def result = succeeds {
-            action(new ModelAction())
+            action(new ModelAction(queryStrategy))
                 .withArguments(
                     "--init-script=${file('init.gradle').absolutePath}",
                     "-Dorg.gradle.internal.resilient-model-building=true",
+                    *extraGradleProperties
                 )
                 .run()
         }
@@ -206,24 +195,54 @@ class CustomPlugin implements Plugin<Project> {
         result.successfullyQueriedProjects == ['build-logic']
         // Since the settings file fails to configure, only root of main project can be seen
         result.failedToQueryProjects == [settingsKotlinFile.parentFile.name]
+
+        where:
+        description                 | queryStrategy         | extraGradleProperties
+        ""                          | ROOT_BUILD_FIRST      | []
+        ""                          | EDITABLE_BUILDS_FIRST | []
+        " with configure-on-demand" | ROOT_BUILD_FIRST      | IP_CONFIGURE_ON_DEMAND_FLAGS
+        " with configure-on-demand" | EDITABLE_BUILDS_FIRST | IP_CONFIGURE_ON_DEMAND_FLAGS
     }
 
     static class ModelAction implements BuildAction<ModelResult>, Serializable {
+        static enum QueryStrategy {
+            ROOT_BUILD_FIRST,
+            EDITABLE_BUILDS_FIRST
+        }
+
+        QueryStrategy queryStrategy
+
+        ModelAction(QueryStrategy queryStrategy) {
+            this.queryStrategy = queryStrategy
+        }
 
         @Override
         ModelResult execute(BuildController controller) {
             GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
             List<String> successfulQueriedProjects = []
             List<String> failedQueriedProjects = []
+            if (queryStrategy == ROOT_BUILD_FIRST) {
+                queryRootBuild(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects)
+                queryEditableBuilds(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects)
+            } else {
+                queryEditableBuilds(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects)
+                queryRootBuild(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects)
+            }
+            return new ModelResult(successfulQueriedProjects, failedQueriedProjects)
+        }
+
+        private void queryRootBuild(BuildController controller, GradleBuild gradleBuild, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
             for (BasicGradleProject project : gradleBuild.projects) {
                 queryModelForProject(controller, project, successfulQueriedProjects, failedQueriedProjects)
             }
+        }
+
+        private void queryEditableBuilds(BuildController controller, GradleBuild gradleBuild, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
             for (GradleBuild includedBuild : gradleBuild.editableBuilds) {
                 for (BasicGradleProject project : includedBuild.projects) {
                     queryModelForProject(controller, project, successfulQueriedProjects, failedQueriedProjects)
                 }
             }
-            return new ModelResult(successfulQueriedProjects, failedQueriedProjects)
         }
 
         void queryModelForProject(BuildController controller, BasicGradleProject project, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
