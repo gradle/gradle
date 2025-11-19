@@ -515,7 +515,7 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         @Override
-        TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedMetadata) {
+        TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedAttachments) {
             def fileAttachments = html.select('.attachments tr').findAll { it.getElementsByTag('td').size() > 0 }
             Map<String, ShowAs> actual = fileAttachments.collectEntries {
                 def columns = it.getElementsByTag("td")
@@ -535,7 +535,7 @@ Unexpected paths: ${unexpectedPaths}""")
                 [key.text(), shownAs]
             }
 
-            assertThat("in " + displayName, actual, equalTo(expectedMetadata))
+            assertThat("in " + displayName, actual, equalTo(expectedAttachments))
             return this
         }
     }
