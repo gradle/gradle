@@ -342,7 +342,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private String createUnknownName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
         if (node.getSource().orElse(null) instanceof FileSource) {
-            return JUnitPlatformSupport.UNKNOWN_FILE;
+            return JUnitPlatformSupport.NON_CLASS;
         } else {
             if (parentDescriptor == null) {
                 return JUnitPlatformSupport.UNKNOWN_CLASS;
