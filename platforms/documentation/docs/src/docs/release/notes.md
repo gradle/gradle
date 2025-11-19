@@ -83,18 +83,18 @@ A general grouping of tests is instead referred to as a "container".
 #### Nested test changes
 For JUnit 4 and Jupiter, nested test classes are now represented as nested under their enclosing class in the HTML report.
 For example, if you had an `OuterClass` with an `InnerClass` nested inside it, it would previously be shown as:
-```
+```text
 + OuterClass$InnerClass
 |-- someTestMethodInInnerClass
 ```
 It will now be reported in the HTML report as:
-```
+```text
 + OuterClass
 |-+ InnerClass (or OuterClass$InnerClass for JUnit 4)
   |-- someTestMethodInInnerClass
 ```
 And for multiple inner classes:
-```
+```text
 + OuterClass
 |-+ InnerClass1 (or OuterClass$InnerClass1 for JUnit 4)
   |-- someTestMethodInInnerClass1
@@ -106,7 +106,7 @@ In the XML report, nested classes remain the same, emitting `TEST-OuterClass$Inn
 #### Parameterized test changes
 Parameterized tests now create a suite that contains all the parameterized test cases for a given method.
 For example, if you had a class `TestClass` with two parameterized `paramTest1/2` methods, it would previously be shown as:
-```
+```text
 + TestClass
 |-- paramTest1[0]
 |-- paramTest1[1]
@@ -116,7 +116,7 @@ For example, if you had a class `TestClass` with two parameterized `paramTest1/2
 |-- paramTest2[c]
 ```
 It will now be reported in the HTML report as:
-```
+```text
 + TestClass
 |-+ paramTest1
   |-- paramTest1[0]
@@ -131,7 +131,7 @@ It will now be reported in the HTML report as:
 #### Suite changes
 Suites now contain the classes they run, rather than those classes being shown as siblings.
 For example, if you had a suite `AllTests` that ran `TestClass1` and `TestClass2`, it would previously be shown as:
-```
+```text
 + AllTests
 + TestClass1
 |-- someTestMethodInClass1
@@ -139,7 +139,7 @@ For example, if you had a suite `AllTests` that ran `TestClass1` and `TestClass2
 |-- someTestMethodInClass2
 ```
 It will now be reported in the HTML report as:
-```
+```text
 + AllTests
 |-+ TestClass1
   |-- someTestMethodInClass1
