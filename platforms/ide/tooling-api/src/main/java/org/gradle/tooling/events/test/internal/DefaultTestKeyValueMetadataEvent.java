@@ -27,15 +27,15 @@ import java.util.Map;
  */
 @NullMarked
 public class DefaultTestKeyValueMetadataEvent extends AbstractTestMetadataEvent implements TestKeyValueMetadataEvent {
-    private final Map<String, Object> values;
+    private final Map<String, String> values;
 
-    public DefaultTestKeyValueMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, Object> values) {
+    public DefaultTestKeyValueMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, String> values) {
         super(eventTime, descriptor);
         this.values = values;
     }
 
     @Override
-    public Map<String, Object> getValues() {
+    public Map<String, String> getValues() {
         return values;
     }
 }

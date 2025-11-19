@@ -18,6 +18,7 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEventVersion2;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -25,6 +26,7 @@ import java.io.File;
 /**
  * Provider-side implementation of test metadata event that carries file attachments to the consumer.
  */
+@NullMarked
 public class DefaultTestFileAttachmentMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEventVersion2 {
     private final File file;
     @Nullable

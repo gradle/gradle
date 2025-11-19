@@ -18,12 +18,14 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
 /**
  * Provider-side implementation of test metadata event that carries key-values to the consumer.
  */
+@NullMarked
 public final class DefaultTestKeyValueDataMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent {
     private final Map<String, Object> values;
 

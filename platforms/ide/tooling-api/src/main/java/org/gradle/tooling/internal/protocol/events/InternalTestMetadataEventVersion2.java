@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -28,6 +29,7 @@ import java.io.File;
  *
  * @since 9.4.0
  */
+@NullMarked
 public interface InternalTestMetadataEventVersion2 extends InternalProgressEvent {
     @Override
     InternalTestMetadataDescriptor getDescriptor();

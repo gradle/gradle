@@ -31,10 +31,8 @@ public interface TestKeyValueMetadataEvent extends TestMetadataEvent {
     /**
      * Key-value data reported by the associated test.
      *
-     * @apiNote Builds using Gradle 9.4.0 and newer will only produce {@code Map<String,String>}.
-     *
      * @return map of key-values
      * @since 9.4.0
      */
-    Map<String, Object> getValues();
+    Map<String, String> getValues();
 }
