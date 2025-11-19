@@ -23,18 +23,18 @@ import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelBuilder
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrar
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrationProvider
 
 
 /**
  * Tooling Model Builder registrar for Kotlin DSL scripts support. Used to register builders without need for project configuration.
  */
-class KotlinScriptingModelBuildersRegistrar(
+class KotlinScriptingModelBuildersRegistrationProvider(
     private val modelParameters: BuildModelParameters,
     private val intermediateModelProvider: IntermediateToolingModelProvider
-) : ToolingModelBuilderRegistrar {
+) : ToolingModelBuilderRegistrationProvider {
 
-    override fun registerForProject(registry: ToolingModelBuilderRegistry, isRootProject: Boolean) {
+    override fun provideForProject(registry: ToolingModelBuilderRegistry, isRootProject: Boolean) {
         registry.register(KotlinBuildScriptModelBuilder)
         registry.register(IsolatedScriptsModelBuilder)
 

@@ -24,13 +24,13 @@ import org.jspecify.annotations.NullMarked;
 /**
  * Registrar that registers one or more {@link org.gradle.tooling.provider.model.ToolingModelBuilder} to {@link ToolingModelBuilderRegistry}.
  *
- * It's used to register internal builders at project scope that can run even if the project is not configured (e.g., Kotlin DSL scripts model).
+ * It's used to register internal builders at the project scope that can run even if the project is not configured (e.g., Kotlin DSL scripts model).
  *
- * Normally builders should be registered at project configuration time and {@link ToolingModelBuilderRegistrar} should be used just for exceptional cases.
+ * Normally builders should be registered at project configuration time and {@link ToolingModelBuilderRegistrationProvider} should be used just for exceptional cases.
  */
 @NullMarked
 @ServiceScope(Scope.Project.class)
-public interface ToolingModelBuilderRegistrar {
+public interface ToolingModelBuilderRegistrationProvider {
 
-    void registerForProject(ToolingModelBuilderRegistry registry, boolean isRootProject);
+    void provideForProject(ToolingModelBuilderRegistry registry, boolean isRootProject);
 }

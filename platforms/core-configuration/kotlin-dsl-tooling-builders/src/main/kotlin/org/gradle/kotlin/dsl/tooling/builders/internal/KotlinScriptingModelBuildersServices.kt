@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrar
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrationProvider
 
 class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
 
@@ -52,8 +52,8 @@ class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
         fun createToolingModelBuilderRegistrar(
             modelParameters: BuildModelParameters,
             intermediateModelProvider: IntermediateToolingModelProvider
-        ): ToolingModelBuilderRegistrar {
-            return KotlinScriptingModelBuildersRegistrar(modelParameters, intermediateModelProvider)
+        ): ToolingModelBuilderRegistrationProvider {
+            return KotlinScriptingModelBuildersRegistrationProvider(modelParameters, intermediateModelProvider)
         }
     }
 }
