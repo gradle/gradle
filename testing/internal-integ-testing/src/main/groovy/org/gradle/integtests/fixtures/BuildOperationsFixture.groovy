@@ -125,7 +125,7 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
 
     private BuildOperationTreeFixture getTree() {
         if (tree == null) {
-            tree = new BuildOperationTreeFixture(BuildOperationTrace.read(path))
+            tree = new BuildOperationTreeFixture(BuildOperationTrace.readTree(path))
         }
         return tree
     }

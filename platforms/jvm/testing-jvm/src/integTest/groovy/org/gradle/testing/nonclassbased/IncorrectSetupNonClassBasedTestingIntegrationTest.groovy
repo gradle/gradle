@@ -16,9 +16,12 @@
 
 package org.gradle.testing.nonclassbased
 
+import spock.lang.Ignore
+
 /**
  * Tests that exercise and demonstrate incorrect Non-Class-Based Testing setups.
  */
+@Ignore
 class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {

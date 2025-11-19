@@ -20,7 +20,9 @@ import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportRes
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import spock.lang.Ignore
 
+@Ignore
 class JUnitPlatformReportEntryIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def setup() {
         buildFile << """

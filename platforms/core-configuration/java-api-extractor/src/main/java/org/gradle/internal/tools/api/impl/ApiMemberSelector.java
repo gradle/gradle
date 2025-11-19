@@ -17,12 +17,14 @@
 package org.gradle.internal.tools.api.impl;
 
 import org.gradle.internal.tools.api.ApiMemberWriter;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -67,14 +69,14 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     @Override
-    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+    public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, @Nullable String[] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         classMember = new ClassMember(version, access, name, signature, superName, interfaces);
         isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
     }
 
     @Override
-    public ModuleVisitor visitModule(String name, int access, String version) {
+    public ModuleVisitor visitModule(String name, int access, @Nullable String version) {
         return apiMemberWriter.writeModule(name, access, version);
     }
 
@@ -92,8 +94,9 @@ public class ApiMemberSelector extends ClassVisitor {
         return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
     }
 
+    @Nullable
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+    public MethodVisitor visitMethod(int access, String name, String desc, @Nullable String signature, @Nullable String[] exceptions) {
         if ("<clinit>".equals(name)) {
             // discard static initializers
             return null;
@@ -107,6 +110,13 @@ public class ApiMemberSelector extends ClassVisitor {
                     AnnotationMember ann = new AnnotationMember(desc, visible);
                     methodMember.addAnnotation(ann);
                     return new SortingAnnotationVisitor(ann, super.visitAnnotation(desc, visible));
+                }
+
+                @Override
+                public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String desc, boolean visible) {
+                    TypeAnnotationMember ann = new TypeAnnotationMember(desc, visible, typeRef, typePath);
+                    methodMember.addTypeAnnotation(ann);
+                    return new SortingAnnotationVisitor(ann, super.visitTypeAnnotation(typeRef, typePath, desc, visible));
                 }
 
                 @Override
@@ -125,8 +135,9 @@ public class ApiMemberSelector extends ClassVisitor {
         return null;
     }
 
+    @Nullable
     @Override
-    public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+    public FieldVisitor visitField(int access, String name, String desc, @Nullable String signature, @Nullable Object value) {
         if (isCandidateApiMember(access, apiIncludesPackagePrivateMembers)) {
             Object keepValue = (access & ACC_STATIC) == ACC_STATIC && ((access & ACC_FINAL) == ACC_FINAL) ? value : null;
             final FieldMember fieldMember = new FieldMember(access, name, signature, desc, keepValue);
@@ -144,7 +155,7 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     @Override
-    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+    public void visitInnerClass(String name, @Nullable String outerName, @Nullable String innerName, int access) {
         boolean privateInnerClass = (access & ACC_PRIVATE) != 0;
         if (name.equals(className) && privateInnerClass) {
             thisClassIsPrivateInnerClass = true;
@@ -186,7 +197,7 @@ public class ApiMemberSelector extends ClassVisitor {
         return (access & (ACC_PUBLIC | ACC_PROTECTED | ACC_PRIVATE)) == 0;
     }
 
-    private static String nameOrValue(String name) {
+    private static String nameOrValue(@Nullable String name) {
         return name == null ? "value" : name;
     }
 
@@ -221,7 +232,7 @@ public class ApiMemberSelector extends ClassVisitor {
 
         @Override
         @SuppressWarnings("rawtypes")
-        public AnnotationVisitor visitArray(String name) {
+        public AnnotationVisitor visitArray(@Nullable String name) {
             methodMember.setAnnotationDefaultValue(new ArrayAnnotationValue(nameOrValue(name), new AnnotationValue[0]));
             return super.visitArray(name);
         }

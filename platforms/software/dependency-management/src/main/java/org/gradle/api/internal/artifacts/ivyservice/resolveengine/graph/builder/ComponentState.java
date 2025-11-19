@@ -292,6 +292,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.root = true;
     }
 
+    public boolean isRoot() {
+        return root;
+    }
+
     @Override
     public List<ResolvedGraphVariant> getSelectedVariants() {
         ImmutableList.Builder<ResolvedGraphVariant> builder = ImmutableList.builder();

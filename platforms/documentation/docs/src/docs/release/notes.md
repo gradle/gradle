@@ -84,10 +84,10 @@ This method makes attribute assignment more concise while preserving the same se
 configurations.resolvable("foo") {
     attributes {
         // Before: 
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "red"))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named("red"))
         
         // After:
-        attribute(Usage.USAGE_ATTRIBUTE, named(Usage::class.java, "red"))
+        attribute(Usage.USAGE_ATTRIBUTE, named("red"))
     }
 }
 ```
@@ -143,6 +143,8 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
 
 The following are the features that have been promoted in this Gradle release.
+
+* [`useFileSystemPermissions()`](javadoc/org/gradle/api/tasks/bundling/AbstractArchiveTask.html#useFileSystemPermissions()) in `AbstractArchiveTask`
 
 <!--
 ### Example promoted
