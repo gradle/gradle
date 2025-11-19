@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
@@ -27,7 +26,7 @@ import java.util.Map;
  * This implementation is intended to be kept within the build process and workers.
  */
 @NullMarked
-public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent implements TestMetadataEvent {
+public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent {
     private final Map<String, String> values;
 
     public DefaultTestKeyValueDataEvent(long logTime, Map<String, String> values) {
