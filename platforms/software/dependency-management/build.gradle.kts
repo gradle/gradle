@@ -9,10 +9,6 @@ description = """This project contains most of the dependency management logic o
     |
     |DSL facing APIs are to be found in 'core-api'""".trimMargin()
 
-repositories {
-    maven(url = "https://releases.usethesource.io/maven/")
-}
-
 errorprone {
     disabledChecks.addAll(
         "AmbiguousMethodReference", // 1 occurrences
