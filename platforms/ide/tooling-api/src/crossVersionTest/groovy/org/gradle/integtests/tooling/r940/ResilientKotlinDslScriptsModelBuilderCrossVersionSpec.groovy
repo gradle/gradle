@@ -27,8 +27,10 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.Failure
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
@@ -64,7 +66,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -72,9 +74,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def resilientModels = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -99,7 +99,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         fails {
-            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -109,9 +109,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -139,9 +137,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -162,9 +158,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -197,9 +191,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -227,9 +219,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -258,7 +248,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         fails {
-            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -268,9 +258,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -311,7 +299,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -319,9 +307,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def resilientModels = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -368,7 +354,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(KotlinModelAction.originalModel(queryStrategy)).run()
+            KotlinModelAction.originalModel(it, queryStrategy)
         }
 
         then:
@@ -377,9 +363,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         c << """$breakage"""
         def resilientModels = succeeds {
-            action(KotlinModelAction.resilientModel(queryStrategy))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, queryStrategy)
         }
 
         then:
@@ -460,7 +444,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(KotlinModelAction.originalModel(queryStrategy)).run()
+            KotlinModelAction.originalModel(it, queryStrategy)
         }
 
         then:
@@ -469,9 +453,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         projectPlugin << "throw RuntimeException(\"Failing script\")"
         def resilientModels = succeeds {
-            action(KotlinModelAction.resilientModel(queryStrategy))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+            KotlinModelAction.resilientModel(it, queryStrategy)
         }
 
         then:
@@ -553,7 +535,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(KotlinModelAction.originalModel(queryStrategy)).run()
+            KotlinModelAction.originalModel(it, queryStrategy)
         }
 
         then:
@@ -562,7 +544,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         projectPlugin << """ broken !!! """
         def resilientModels = succeeds {
-            action(KotlinModelAction.resilientModel(queryStrategy)).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
+            KotlinModelAction.resilientModel(it, queryStrategy)
         }
 
         then:
@@ -638,7 +620,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -647,7 +629,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         settingsPlugin << """ broken !!! """
         def model = succeeds {
-            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST)).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST)
         }
 
         then:
@@ -811,12 +793,17 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
 
-        static KotlinModelAction resilientModel(QueryStrategy queryStrategy) {
-            return new KotlinModelAction(queryStrategy, true)
+        static KotlinModel resilientModel(ProjectConnection conn, QueryStrategy queryStrategy) {
+            conn.action(new KotlinModelAction(queryStrategy, true))
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
+                    .run()
         }
 
-        static KotlinModelAction originalModel(QueryStrategy queryStrategy) {
-            return new KotlinModelAction(queryStrategy, false)
+        static KotlinModel originalModel(ProjectConnection conn, QueryStrategy queryStrategy) {
+            conn.action(new KotlinModelAction(queryStrategy, false))
+                    .forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
+                    .run()
         }
     }
 
