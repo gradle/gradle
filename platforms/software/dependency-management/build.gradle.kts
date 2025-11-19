@@ -67,6 +67,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.versionedCache)
 
+    api(libs.capsule)
     api(libs.bouncycastlePgp)
     api(libs.groovy)
     api(libs.guava)
@@ -78,7 +79,6 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
-    implementation("io.usethesource:capsule:0.7.1")
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.fileOperations)
     implementation(projects.time)
