@@ -48,17 +48,19 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
     }
 
     @Override
-    public DefaultGradleBuild create(BuildState target) {
-        return new GradleBuildCreator(target).create();
+    public DefaultGradleBuild create(BuildState target, boolean isFetch) {
+        return new GradleBuildCreator(target, buildStateRegistry).create();
     }
 
     @NullMarked
-    protected class GradleBuildCreator {
+    public static class GradleBuildCreator {
         private final BuildState target;
+        private final BuildStateRegistry buildStateRegistry;
         private final Map<BuildState, DefaultGradleBuild> all = new LinkedHashMap<>();
 
-        GradleBuildCreator(BuildState target) {
+        GradleBuildCreator(BuildState target, BuildStateRegistry buildStateRegistry) {
             this.target = target;
+            this.buildStateRegistry = buildStateRegistry;
         }
 
         DefaultGradleBuild create() {

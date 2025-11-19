@@ -29,7 +29,7 @@ public interface BuildToolingModelController {
      */
     GradleInternal getConfiguredModel();
 
-    ToolingModelScope locateBuilderForTarget(String modelName, boolean hasParameter);
+    ToolingModelScope locateBuilderForTarget(String modelName, boolean hasParameter, boolean isFetch);
 
     ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean hasParameter);
 }

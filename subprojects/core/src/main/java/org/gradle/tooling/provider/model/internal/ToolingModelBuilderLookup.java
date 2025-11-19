@@ -52,6 +52,6 @@ public interface ToolingModelBuilderLookup {
         @Nullable
         Class<?> getParameterType();
 
-        Object build(@Nullable Object parameter);
+        Object build(@Nullable Object parameter, boolean isFetch);
     }
 }

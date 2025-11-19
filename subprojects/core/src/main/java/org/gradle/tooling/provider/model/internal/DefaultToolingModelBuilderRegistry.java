@@ -210,8 +210,8 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
-        public Object build(@Nullable Object parameter) {
-            return buildScopeModelBuilder.create(target);
+        public Object build(@Nullable Object parameter, boolean isFetch) {
+            return buildScopeModelBuilder.create(target, isFetch);
         }
     }
 
@@ -265,7 +265,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
-        public Object build(Object parameter) {
+        public Object build(Object parameter, boolean isFetch) {
             if (parameter != null) {
                 throw new IllegalArgumentException("Expected a null parameter");
             }
@@ -290,7 +290,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
-        public Object build(Object parameter) {
+        public Object build(Object parameter, boolean isFetch) {
             if (parameter == null) {
                 return delegate.buildAll(modelName, project);
             } else {
@@ -308,8 +308,8 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
-        public Object build(Object parameter) {
-            return target.runWithModelLock(() -> delegate.build(parameter));
+        public Object build(Object parameter, boolean isFetch) {
+            return target.runWithModelLock(() -> delegate.build(parameter, isFetch));
         }
     }
 
@@ -338,11 +338,11 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
-        public Object build(Object parameter) {
+        public Object build(Object parameter, boolean isFetch) {
             return buildOperationRunner.call(new CallableBuildOperation<Object>() {
                 @Override
                 public Object call(BuildOperationContext context) {
-                    return delegate.build(parameter);
+                    return delegate.build(parameter, isFetch);
                 }
 
                 @Override
@@ -378,8 +378,8 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
-        public Object build(@Nullable Object parameter) {
-            return registeredBy.reapply(() -> delegate.build(parameter));
+        public Object build(@Nullable Object parameter, boolean isFetch) {
+            return registeredBy.reapply(() -> delegate.build(parameter, false));
         }
     }
 

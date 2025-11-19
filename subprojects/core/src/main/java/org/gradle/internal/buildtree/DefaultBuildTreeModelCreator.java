@@ -82,7 +82,7 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 @Nullable
                 public Object call(BuildOperationContext context) {
                     ToolingModelScope scope = locateBuilderForTarget(target, modelName, parameter != null, isFetch);
-                    return getModelForScope(scope, modelName, parameter);
+                    return getModelForScope(scope, modelName, parameter, isFetch);
                 }
 
                 @Override
@@ -143,7 +143,7 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         private ToolingModelScope locateBuilderForBuildTarget(BuildState target, String modelName, boolean hasParameter, boolean isFetch) {
-            return target.withToolingModels(isFetch, controller -> controller.locateBuilderForTarget(modelName, hasParameter));
+            return target.withToolingModels(isFetch, controller -> controller.locateBuilderForTarget(modelName, hasParameter, isFetch));
         }
 
         private ToolingModelScope locateBuilderForProjectTarget(ProjectState target, String modelName, boolean param) {
@@ -151,11 +151,11 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Nullable
-        private Object getModelForScope(ToolingModelScope scope, String modelName, @Nullable Object parameter) {
+        private Object getModelForScope(ToolingModelScope scope, String modelName, @Nullable Object parameter, boolean isFetch) {
             if (parameter == null) {
-                return scope.getModel(modelName, null);
+                return scope.getModel(modelName, null, isFetch);
             } else {
-                return scope.getModel(modelName, parameterCarrierFactory.createCarrier(parameter));
+                return scope.getModel(modelName, parameterCarrierFactory.createCarrier(parameter), isFetch);
             }
         }
 

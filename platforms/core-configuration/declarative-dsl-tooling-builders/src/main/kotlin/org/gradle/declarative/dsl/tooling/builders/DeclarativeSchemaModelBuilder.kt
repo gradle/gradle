@@ -36,7 +36,7 @@ class DeclarativeSchemaModelBuilder(
     private val projectFeatureDeclarations: ProjectFeatureDeclarations
 ) : BuildScopeModelBuilder {
 
-    override fun create(target: BuildState): Any {
+    override fun create(target: BuildState, isFetch: Boolean): Any {
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
         target.ensureProjectsLoaded()
 

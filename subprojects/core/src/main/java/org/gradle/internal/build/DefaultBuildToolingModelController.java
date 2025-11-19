@@ -48,7 +48,7 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     @Override
-    public ToolingModelScope locateBuilderForTarget(String modelName, boolean hasParameter) {
+    public ToolingModelScope locateBuilderForTarget(String modelName, boolean hasParameter, boolean isFetch) {
         // Look for a build scoped builder
         ToolingModelBuilderLookup.Builder builder = buildScopeLookup.maybeLocateForBuildScope(modelName, hasParameter, buildState);
         if (builder != null) {
@@ -82,14 +82,14 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         abstract ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException;
 
         @Override
-        public Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+        public Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter, boolean isFetch) {
             ToolingModelBuilderLookup.Builder builder = locateBuilder();
             if (parameter == null) {
-                return builder.build(null);
+                return builder.build(null, isFetch);
             } else {
                 Class<?> expectedParameterType = Objects.requireNonNull(builder.getParameterType(), "Expected builder with parameter support");
                 Object parameterValue = parameter.getView(expectedParameterType);
-                return builder.build(parameterValue);
+                return builder.build(parameterValue, isFetch);
             }
         }
     }

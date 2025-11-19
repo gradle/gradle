@@ -24,11 +24,12 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
+import spock.lang.IgnoreRest
 
 import java.util.function.Consumer
 
-@ToolingApiVersion('>=9.3')
-@TargetGradleVersion('>=9.3')
+@ToolingApiVersion('>=9.4')
+@TargetGradleVersion('>=9.4')
 class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
     static final String RESILIENT_MODEL_TRUE = "-Dorg.gradle.internal.resilient-model-building=true"
     static final String BROKEN_SETTINGS_CONTENT = "broken settings file content!!!"
@@ -43,7 +44,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
     BuildActionResult runFetchModelAction(Consumer<BuildActionExecuter<BuildActionResult>> configurer = {}) {
         succeeds {
             def action = action(new FetchModelAction())
-                .withArguments(RESILIENT_MODEL_TRUE)
+//                .withArguments(RESILIENT_MODEL_TRUE)
             configurer.accept(action)
             action.run()
         }
@@ -61,6 +62,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.failures.toString().contains("Script compilation error")
     }
 
+//    @IgnoreRest
     def "should fetch root project model despite settings file throwing exception"() {
         given:
         settingsKotlinFile << """

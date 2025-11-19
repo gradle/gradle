@@ -39,7 +39,7 @@ object KotlinBuildScriptTemplateModelBuilder : BuildScopeModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel"
 
-    override fun create(target: BuildState): KotlinBuildScriptTemplateModel =
+    override fun create(target: BuildState, isFetch: Boolean): KotlinBuildScriptTemplateModel =
         target.mutableModel.serviceOf<ModuleRegistry>().run {
             StandardKotlinBuildScriptTemplateModel(
                 gradleModules
