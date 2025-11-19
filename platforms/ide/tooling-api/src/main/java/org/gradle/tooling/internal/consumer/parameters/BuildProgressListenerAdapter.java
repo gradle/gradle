@@ -215,7 +215,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent2;
+import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEventVersion2;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
@@ -627,23 +627,15 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private @Nullable TestMetadataEvent toTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
-        if (event instanceof InternalTestMetadataEvent2) {
-            return transformTestMetadata2((InternalTestMetadataEvent2) event, descriptor);
+        if (event instanceof InternalTestMetadataEventVersion2) {
+            OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
+            return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, Collections.emptyMap(), ((InternalTestMetadataEventVersion2)event).getPayload());
         } else if (event instanceof InternalTestMetadataEvent) {
-            return transformTestMetadata((InternalTestMetadataEvent) event, descriptor);
+            OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
+            return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, ((InternalTestMetadataEvent)event).getValues(), null);
         } else {
             return null;
         }
-    }
-
-    private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
-        OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, event.getValues(), null);
-    }
-
-    private TestMetadataEvent transformTestMetadata2(InternalTestMetadataEvent2 event, InternalTestMetadataDescriptor descriptor) {
-        OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, Collections.emptyMap(), event.getPayload());
     }
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {

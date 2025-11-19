@@ -21,6 +21,9 @@ import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
 
+/**
+ * File attachment data published by a test
+ */
 @NullMarked
 public class DefaultTestFileAttachmentDataEvent extends AbstractTestDataEvent {
     private final Path path;

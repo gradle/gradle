@@ -31,15 +31,15 @@ import java.util.Set;
  * <p>A streaming HTML writer.</p>
  */
 public class SimpleHtmlWriter extends SimpleMarkupWriter {
-    private final Path rootPath;
+    private final Path htmlDirectory;
 
     public SimpleHtmlWriter(Writer writer) throws IOException {
         this(writer, null, null);
     }
 
-    public SimpleHtmlWriter(Writer writer, Path rootPath, String indent) throws IOException {
+    public SimpleHtmlWriter(Writer writer, Path htmlDirectory, String indent) throws IOException {
         super(writer, indent);
-        this.rootPath = rootPath;
+        this.htmlDirectory = htmlDirectory;
         writeHtmlHeader();
     }
 
@@ -56,13 +56,16 @@ public class SimpleHtmlWriter extends SimpleMarkupWriter {
     }
 
     /**
-     * Create a reference to another file that is relative to this HTML file.
+     * Construct a path to another file that is relative to the directory of this HTML file.
+     *
+     * This can be used to create links to other files without requiring absolute paths to be
+     * embedded in the HTML file.
      */
     public String relativeLink(Path otherFile) {
-        if (rootPath == null) {
+        if (htmlDirectory == null) {
             throw new UnsupportedOperationException();
         }
-        return rootPath.relativize(otherFile).toString();
+        return htmlDirectory.relativize(otherFile).toString();
     }
 
     // All valid tags should be in lowercase

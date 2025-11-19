@@ -31,19 +31,23 @@ import java.io.File;
 @NullMarked
 public interface FileAttachment {
     /**
-     * Path to the published file attachment.
+     * The published file attachment.
      *
      * The path may represent a single file or a directory.
      *
      * @return path to the file
      * @since 9.4.0
      */
-    File getPath();
+    File getFile();
 
     /**
-     * <a href="https://www.iana.org/assignments/media-types/media-types.xhtml">Media type</a> of the file.
+     * <a href="https://www.iana.org/assignments/media-types/media-types.xhtml">Media type</a> of the file, if known.
+     * This is used to declare the general type of data provided by the file.
+     * <p>
+     * A media type may be provided by the publishing test or omitted. Some files, like directories, do not have a conventional media type.
+     * </p>
      *
-     * @return media type of the file attachment or {@code null} if the file attachment represents a directory
+     * @return media type, may be {@code null}
      * @since 9.4.0
      */
     @Nullable

@@ -21,6 +21,9 @@ import java.util.Map;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
+ * This is the original message sent from Gradle 8.12 and newer when sending key-values.
+ * Both new and old clients use this message.
+ *
  * @since 8.12
  */
 public interface InternalTestMetadataEvent extends InternalProgressEvent {

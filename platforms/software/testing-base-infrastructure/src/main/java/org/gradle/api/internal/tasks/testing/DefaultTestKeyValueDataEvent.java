@@ -21,6 +21,9 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
+/**
+ * Key-value data published by a test
+ */
 @NullMarked
 public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent implements TestMetadataEvent {
     private final Map<String, String> values;
