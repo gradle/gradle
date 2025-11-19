@@ -251,6 +251,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -633,7 +634,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultTestFileAttachmentMetadataEvent(event.getEventTime(), clientDescriptor, ((InternalTestMetadataEventVersion2)event).getFile(), ((InternalTestMetadataEventVersion2)event).getMediaType());
         } else if (event instanceof InternalTestMetadataEvent) {
             OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-            return new DefaultTestKeyValueMetadataEvent(event.getEventTime(), clientDescriptor, ((InternalTestMetadataEvent)event).getValues());
+            Map<String, Object> values = ((InternalTestMetadataEvent) event).getValues();
+            Map<String, String> keyValues = new LinkedHashMap<>();
+            values.forEach((key, value) -> keyValues.put(key, String.valueOf(value)));
+            return new DefaultTestKeyValueMetadataEvent(event.getEventTime(), clientDescriptor, keyValues);
         } else {
             return null;
         }
