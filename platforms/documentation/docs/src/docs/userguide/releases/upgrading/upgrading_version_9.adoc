@@ -44,7 +44,9 @@ The previous step will help you identify potential problems by issuing deprecati
 ==== TestNG output may be different when using a version before 6.9.13.3
 As a part of the `AbstractTestTask` refactoring, the integration with TestNG has been updated.
 Gradle now relies on a correctly functioning `IClassListener` integration to report the correct hierarchy of test classes and methods.
-This may lead to different output when using TestNG versions before 6.9.13.3.
+This may lead to different output when using TestNG versions before 6.9.13.3, for example, if you had `org.gradle > TestClass > ok` before, it will now emit just `ok`, without any class information.
+Additionally, when using TestNG versions starting with 6.9.10 and before 6.9.13.3, the `IClassListener` exists but is broken, which may lead to even worse output, such as an empty name.
+It is recommended to update to at least TestNG 6.9.13.3 to get the correct output.
 
 ==== Upgrade to Kotlin 2.2.21
 
