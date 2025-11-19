@@ -44,6 +44,7 @@ dependencies {
     api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation("io.usethesource:capsule:0.7.1")
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildEvents)
