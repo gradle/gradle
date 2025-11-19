@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
 
+import java.time.Instant;
+
 /**
  * Metadata captured during the execution of a test.
  *
@@ -31,8 +33,7 @@ public interface TestMetadataEvent {
      * Producers can supply the same value as the test start time to indicate that the metadata is "timeless", such
      * as environment information that isn't tied to a specific point during test execution.
      *
-     * @return log time, in milliseconds since UNIX epoch
-     * @since 8.13
+     * @return log time
      */
-    long getLogTime();
+    Instant getLogTime();
 }

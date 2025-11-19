@@ -55,6 +55,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -177,7 +178,7 @@ public class TestEventSerializer {
 
         @Override
         public TestMetadataEvent read(Decoder decoder) throws Exception {
-            long logTime = decoder.readLong();
+            Instant logTime = Instant.ofEpochMilli(decoder.readLong());
             int type = decoder.readInt();
             switch (type) {
                 case MAP_TYPE:
@@ -191,7 +192,7 @@ public class TestEventSerializer {
 
         @Override
         public void write(Encoder encoder, TestMetadataEvent value) throws Exception {
-            encoder.writeLong(value.getLogTime());
+            encoder.writeLong(value.getLogTime().toEpochMilli());
 
             if (value instanceof DefaultTestKeyValueDataEvent) {
                 encoder.writeInt(MAP_TYPE);

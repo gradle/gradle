@@ -20,6 +20,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.time.Instant;
 
 /**
  * File attachment data published by a test.
@@ -31,7 +32,7 @@ public class DefaultTestFileAttachmentDataEvent extends AbstractTestDataEvent {
     private final Path path;
     private final @Nullable String mediaType;
 
-    public DefaultTestFileAttachmentDataEvent(long logTime, Path path, @Nullable String mediaType) {
+    public DefaultTestFileAttachmentDataEvent(Instant logTime, Path path, @Nullable String mediaType) {
         super(logTime);
 
         this.path = path;

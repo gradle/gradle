@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
 
+import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -29,7 +30,7 @@ import java.util.Map;
 public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent {
     private final Map<String, String> values;
 
-    public DefaultTestKeyValueDataEvent(long logTime, Map<String, String> values) {
+    public DefaultTestKeyValueDataEvent(Instant logTime, Map<String, String> values) {
         super(logTime);
         this.values = values;
     }

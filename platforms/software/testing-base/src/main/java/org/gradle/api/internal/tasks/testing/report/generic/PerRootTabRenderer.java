@@ -40,6 +40,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -81,9 +82,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
     protected abstract void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException;
 
-    private static String formatLogTime(long logTime) {
-        Instant instant = Instant.ofEpochMilli(logTime);
-        return FORMATTER.format(instant);
+    private static String formatLogTime(Instant logTime) {
+        return FORMATTER.format(logTime.atOffset(ZoneOffset.UTC));
     }
 
     public static final class ForSummary extends PerRootTabRenderer {
