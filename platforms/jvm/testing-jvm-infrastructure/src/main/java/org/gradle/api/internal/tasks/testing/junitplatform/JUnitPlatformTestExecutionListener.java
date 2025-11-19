@@ -34,7 +34,6 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAsse
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
-import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
 import org.gradle.internal.Cast;
@@ -306,7 +305,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         Optional<MethodSource> methodSource = getMethodSource(node);
         if (methodSource.isPresent()) {
             TestDescriptorInternal parentDescriptor = findTestParentDescriptor(node);
-            String className = parentDescriptor == null ? JUnitSupport.UNKNOWN_CLASS : parentDescriptor.getName();
+            String className = createUnknownClassName(node, parentDescriptor);
             return new DefaultParameterizedTestDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), className, displayName, candidateId);
         } else {
             return new DefaultNestedTestSuiteDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), displayName, candidateId);
@@ -328,9 +327,30 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private TestDescriptorInternal createTestDescriptor(TestIdentifier test, String name, String displayName) {
         TestDescriptorInternal parentDescriptor = findTestParentDescriptor(test);
-        String className = parentDescriptor == null ? JUnitSupport.UNKNOWN_CLASS : parentDescriptor.getName();
-        String classDisplayName = parentDescriptor == null ? JUnitSupport.UNKNOWN_CLASS : parentDescriptor.getClassDisplayName();
+        String className = createUnknownClassName(test, parentDescriptor);
+        String classDisplayName = createUnknownClassDisplayName(test, parentDescriptor);
         return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
+    }
+
+    private String createUnknownClassName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
+        return createUnknownName(node, parentDescriptor, TestDescriptorInternal::getName);
+    }
+
+    private String createUnknownClassDisplayName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
+        return createUnknownName(node, parentDescriptor, TestDescriptorInternal::getClassDisplayName);
+    }
+
+    private String createUnknownName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
+        if (node.getSource().orElse(null) instanceof FileSource) {
+            return JUnitPlatformSupport.UNKNOWN_FILE;
+        } else {
+            if (parentDescriptor == null) {
+                return JUnitPlatformSupport.UNKNOWN_CLASS;
+            } else {
+                String result = nameGetter.apply(parentDescriptor);
+                return result != null ? result : JUnitPlatformSupport.UNKNOWN;
+            }
+        }
     }
 
     private Object getId(TestIdentifier testIdentifier) {

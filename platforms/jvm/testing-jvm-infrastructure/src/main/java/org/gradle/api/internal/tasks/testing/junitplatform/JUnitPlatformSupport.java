@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.junit;
+package org.gradle.api.internal.tasks.testing.junitplatform;
 
-public abstract class JUnitSupport {
-    public static final String UNKNOWN_CLASS = "UnknownClass";
+/**
+ * This interfaces defines static values used when creating JUnit Platform test descriptors.
+ * <p>
+ * Changes here affect how tests are displayed in the console.
+ */
+public interface JUnitPlatformSupport {
+    String UNKNOWN_CLASS = "UnknownClass";
+    String UNKNOWN_FILE = ""; // Empty string for file-based tests
+    String UNKNOWN = "Unknown";
 }
