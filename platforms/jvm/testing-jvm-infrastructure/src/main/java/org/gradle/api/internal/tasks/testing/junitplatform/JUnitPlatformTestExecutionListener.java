@@ -45,6 +45,7 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.reporting.FileEntry;
 import org.junit.platform.engine.reporting.ReportEntry;
@@ -341,15 +342,16 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private String createUnknownName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
-        if (node.getSource().orElse(null) instanceof FileSource) {
-            return JUnitPlatformSupport.NON_CLASS;
-        } else {
+        TestSource source = node.getSource().orElse(null);
+        if (source instanceof ClassSource || source instanceof MethodSource) {
             if (parentDescriptor == null) {
                 return JUnitPlatformSupport.UNKNOWN_CLASS;
             } else {
                 String result = nameGetter.apply(parentDescriptor);
                 return result != null ? result : JUnitPlatformSupport.UNKNOWN;
             }
+        } else {
+            return JUnitPlatformSupport.NON_CLASS;
         }
     }
 
