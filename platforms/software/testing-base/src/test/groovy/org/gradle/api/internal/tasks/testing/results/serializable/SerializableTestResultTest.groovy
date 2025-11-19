@@ -34,7 +34,7 @@ final class SerializableTestResultTest extends Specification {
         builder.displayName("Test 1")
         builder.startTime(Instant.now().toEpochMilli())
 
-        def metadataTime = Instant.now().toEpochMilli();
+        def metadataTime = Instant.now()
         builder.addMetadata(new DefaultTestKeyValueDataEvent(metadataTime, Collections.singletonMap("key", "value")))
 
         builder.resultType(TestResult.ResultType.SUCCESS)

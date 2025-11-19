@@ -61,7 +61,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -143,16 +145,20 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
         // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class constructor.
         if (wasStarted(testIdentifier)) {
-            resultProcessor.published(getId(testIdentifier), new DefaultTestKeyValueDataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), entry.getKeyValuePairs()));
+            resultProcessor.published(getId(testIdentifier), new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
         } else {
             // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with it
             Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
             if (closestStartedAncestor != null) {
-                resultProcessor.published(closestStartedAncestor, new DefaultTestKeyValueDataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), entry.getKeyValuePairs()));
+                resultProcessor.published(closestStartedAncestor, new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
             }
             // otherwise, we don't know what to associate this ReportEntry with
             LOGGER.debug("report entry published for unknown test identifier {}", testIdentifier);
         }
+    }
+
+    private static Instant convertToInstant(LocalDateTime dateTime) {
+        return dateTime.atZone(ZoneId.systemDefault()).toInstant();
     }
 
     @Override
@@ -162,12 +168,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
         // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class constructor.
         if (wasStarted(testIdentifier)) {
-            resultProcessor.published(getId(testIdentifier), new DefaultTestFileAttachmentDataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), entry.getPath(), mediaType));
+            resultProcessor.published(getId(testIdentifier), new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath(), mediaType));
         } else {
             // The test has not started yet, so see if we can find a close ancestor and associate the FileEntry with it
             Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
             if (closestStartedAncestor != null) {
-                resultProcessor.published(closestStartedAncestor, new DefaultTestFileAttachmentDataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), entry.getPath(), mediaType));
+                resultProcessor.published(closestStartedAncestor, new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath(), mediaType));
             }
             // otherwise, we don't know what to associate this FileEntry with
         }

@@ -18,19 +18,21 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
 
+import java.time.Instant;
+
 /**
  * Base implementation of the {@code TestMetadataEvent} interface.
  */
 @NullMarked
 public abstract class AbstractTestDataEvent implements TestMetadataEvent {
-    private final long logTime;
+    private final Instant logTime;
 
-    public AbstractTestDataEvent(long logTime) {
+    public AbstractTestDataEvent(Instant logTime) {
         this.logTime = logTime;
     }
 
     @Override
-    public long getLogTime() {
+    public Instant getLogTime() {
         return logTime;
     }
 }
