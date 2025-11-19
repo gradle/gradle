@@ -87,8 +87,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
 
     public GroovyCompile() {
         this.stableSources = getObjectFactory().fileCollection().from((Callable<FileTree>) this::getSource);
-
-        getOptions().setIncremental(false);
+        getOptions().getIncremental().convention(false);
         getOptions().getIncrementalAfterFailure().convention(true);
 
         getJavaLauncher().convention(getJavaToolchainService().launcherFor(it -> {}));
@@ -235,7 +234,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         spec.setCompileOptions(getOptions());
         spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(getGroovyOptions()));
         spec.getCompileOptions().setSupportsCompilerApi(true);
-        if (getOptions().isIncremental()) {
+        if (getOptions().getIncremental().getOrElse(false)) {
             validateIncrementalCompilationOptions(sourceRoots, spec.annotationProcessingConfigured());
             spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
         }
