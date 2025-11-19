@@ -754,7 +754,6 @@ Class <org.gradle.tooling.events.test.JvmTestKind> is not annotated (directly or
 Class <org.gradle.tooling.events.test.JvmTestOperationDescriptor> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JvmTestOperationDescriptor.java:0)
 Class <org.gradle.tooling.events.test.TestFailureResult> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestFailureResult.java:0)
 Class <org.gradle.tooling.events.test.TestFinishEvent> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestFinishEvent.java:0)
-Class <org.gradle.tooling.events.test.TestMetadataEvent> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestMetadataEvent.java:0)
 Class <org.gradle.tooling.events.test.TestOperationDescriptor> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestOperationDescriptor.java:0)
 Class <org.gradle.tooling.events.test.TestOperationResult> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestOperationResult.java:0)
 Class <org.gradle.tooling.events.test.TestOutputDescriptor> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestOutputDescriptor.java:0)

@@ -18,65 +18,35 @@ package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * An event emitted by tests that contain additional data about the test.
  * <p>
- * An event may contain a Map of key-values or a structured type.
- *
  * To access data from the event:
  * <pre>
- *         TestLauncher launcher = ...
+ *         TestLauncher launcher = ...;
  *         launcher.addProgressListener(new ProgressListener() {
  *             void statusChanged(ProgressEvent event) {
  *                 if (event instanceof TestMetadataEvent) {
- *                     if (!event.getValues().isEmpty()) {
- *                         // Test emitted a Map of key-values
- *                         // do something with event.getValues()
+ *                     if (event instanceof TestFileAttachmentMetadataEvent) {
+ *                         // Do something with file attachment
+ *                     } else if (event instanceof TestKeyValueMetadataEvent) {
+ *                         // Do something with key-values
  *                     } else {
- *                         // Test emitted a structured type
- *                         FileAttachment fileAttachment = event.get(FileAttachment.class);
- *                         if (fileAttachment != null) {
- *                             // Test emitted a FileAttachment
- *                             // do something with fileAttachment
- *                         } else {
- *                             // This is an unrecognized/new type of data
- *                             // Just ignore it
- *                         }
+ *                         // ignore unrecognized events
  *                     }
  *                 }
  *             }
  *         });
  * </pre>
  *
+ * @see TestKeyValueMetadataEvent
+ * @see TestFileAttachmentMetadataEvent
  * @since 8.13
  */
 @Incubating
+@NullMarked
 public interface TestMetadataEvent extends ProgressEvent {
-    /**
-     * Returns the key-value data if this event represents a key-value event.
-     *
-     * @apiNote Builds using Gradle 9.4.0 and newer will only produce {@code Map<String,String>}.
-     *
-     * @return map of key-values or an empty collection if this data is some other type
-     * @since 8.13
-     */
-    Map<String, Object> getValues();
 
-    /**
-     * Request the data associated with this event as the given type.
-     *
-     * @apiNote Builds older than Gradle 9.4.0 will never produce events with non-Map data. Check {@link #getValues()} first.
-     *
-     * @param viewType the type to view the data as
-     * @return the data as the given type or null if the data cannot be represented as the given type
-     * @param <T> view type
-     * @since 9.4.0
-     * @see FileAttachment File attachments are supported after 9.4.0
-     */
-    @Nullable
-    <T> T get(Class<T> viewType);
 }

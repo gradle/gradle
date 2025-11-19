@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.tooling.events.test.internal;
 
-import org.gradle.api.tasks.testing.TestMetadataEvent;
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.test.TestKeyValueMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
 /**
- * Key-value data published by a test
- *
- * This implementation is intended to be kept within the build process and workers.
+ * Consumer implementation of key-value metadata event
  */
 @NullMarked
-public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent implements TestMetadataEvent {
-    private final Map<String, String> values;
+public class DefaultTestKeyValueMetadataEvent extends AbstractTestMetadataEvent implements TestKeyValueMetadataEvent {
+    private final Map<String, Object> values;
 
-    public DefaultTestKeyValueDataEvent(long logTime, Map<String, String> values) {
-        super(logTime);
+    public DefaultTestKeyValueMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, Object> values) {
+        super(eventTime, descriptor);
         this.values = values;
     }
 
-    public Map<String, String> getValues() {
+    @Override
+    public Map<String, Object> getValues() {
         return values;
     }
 }

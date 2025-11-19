@@ -18,25 +18,36 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEventVersion2;
+import org.jspecify.annotations.Nullable;
+
+import java.io.File;
 
 /**
- * Test metadata event that carries arbitrary payloads.
+ * Provider-side implementation of test metadata event that carries file attachments to the consumer.
  */
-public class DefaultPayloadDataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEventVersion2 {
-    private final Object payload;
+public class DefaultTestFileAttachmentMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEventVersion2 {
+    private final File file;
+    @Nullable
+    private final String mediaType;
 
-    public DefaultPayloadDataEvent(long startTime, InternalTestMetadataDescriptor descriptor, Object payload) {
+    public DefaultTestFileAttachmentMetadataEvent(long startTime, InternalTestMetadataDescriptor descriptor, File file, @Nullable String mediaType) {
         super(startTime, descriptor);
-        this.payload = payload;
+        this.file = file;
+        this.mediaType = mediaType;
     }
 
     @Override
     public String getDisplayName() {
-        return getDescriptor().getDisplayName() + " containing: " + payload.getClass();
+        return getDescriptor().getDisplayName();
     }
 
     @Override
-    public Object getPayload() {
-        return payload;
+    public File getFile() {
+        return file;
+    }
+
+    @Override
+    public @Nullable String getMediaType() {
+        return mediaType;
     }
 }

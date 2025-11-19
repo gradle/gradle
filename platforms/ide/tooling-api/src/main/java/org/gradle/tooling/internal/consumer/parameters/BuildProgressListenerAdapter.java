@@ -128,8 +128,9 @@ import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
+import org.gradle.tooling.events.test.internal.DefaultTestFileAttachmentMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestMetadataEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestKeyValueMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
@@ -629,10 +630,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private @Nullable TestMetadataEvent toTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
         if (event instanceof InternalTestMetadataEventVersion2) {
             OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-            return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, Collections.emptyMap(), ((InternalTestMetadataEventVersion2)event).getPayload());
+            return new DefaultTestFileAttachmentMetadataEvent(event.getEventTime(), clientDescriptor, ((InternalTestMetadataEventVersion2)event).getFile(), ((InternalTestMetadataEventVersion2)event).getMediaType());
         } else if (event instanceof InternalTestMetadataEvent) {
             OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-            return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, ((InternalTestMetadataEvent)event).getValues(), null);
+            return new DefaultTestKeyValueMetadataEvent(event.getEventTime(), clientDescriptor, ((InternalTestMetadataEvent)event).getValues());
         } else {
             return null;
         }

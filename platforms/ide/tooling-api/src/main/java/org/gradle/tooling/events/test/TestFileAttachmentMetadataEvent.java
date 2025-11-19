@@ -23,19 +23,19 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 
 /**
- * A file attachment was published by an executed test.
+ * An event emitted by tests that contains file attachment data.
  *
  * @since 9.4.0
  */
-@Incubating
 @NullMarked
-public interface FileAttachment {
+@Incubating
+public interface TestFileAttachmentMetadataEvent extends TestMetadataEvent {
     /**
      * The published file attachment.
      *
      * The path may represent a single file or a directory.
      *
-     * @return path to the file
+     * @return the file
      * @since 9.4.0
      */
     File getFile();

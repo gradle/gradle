@@ -21,9 +21,8 @@ import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.internal.Cast;
-import org.gradle.internal.build.event.types.DefaultFileAttachment;
-import org.gradle.internal.build.event.types.DefaultKeyValueDataEvent;
-import org.gradle.internal.build.event.types.DefaultPayloadDataEvent;
+import org.gradle.internal.build.event.types.DefaultTestFileAttachmentMetadataEvent;
+import org.gradle.internal.build.event.types.DefaultTestKeyValueDataMetadataEvent;
 import org.gradle.internal.build.event.types.DefaultTestMetadataDescriptor;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
@@ -58,20 +57,17 @@ import org.jspecify.annotations.NullMarked;
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
         if (details instanceof ExecuteTestBuildOperationType.Metadata) {
-            ExecuteTestBuildOperationType.Metadata metadata = (ExecuteTestBuildOperationType.Metadata) details;
+            ExecuteTestBuildOperationType.Metadata dataEvent = (ExecuteTestBuildOperationType.Metadata) details;
             InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
-            TestMetadataEvent metadataMetadataEvent = metadata.getMetadata();
-            if (metadataMetadataEvent instanceof DefaultTestKeyValueDataEvent) {
-                DefaultTestKeyValueDataEvent keyValueData = (DefaultTestKeyValueDataEvent) metadataMetadataEvent;
-                eventConsumer.progress(new DefaultKeyValueDataEvent(progressEvent.getTime(), descriptor, Cast.uncheckedNonnullCast(keyValueData.getValues())));
-            } else if (metadataMetadataEvent instanceof DefaultTestFileAttachmentDataEvent) {
-                DefaultTestFileAttachmentDataEvent fileAttachment = (DefaultTestFileAttachmentDataEvent) metadataMetadataEvent;
-                eventConsumer.progress(
-                    new DefaultPayloadDataEvent(progressEvent.getTime(), descriptor,
-                        new DefaultFileAttachment(fileAttachment.getPath(), fileAttachment.getMediaType()))
-                );
+            TestMetadataEvent data = dataEvent.getMetadata();
+            if (data instanceof DefaultTestKeyValueDataEvent) {
+                DefaultTestKeyValueDataEvent keyValueData = (DefaultTestKeyValueDataEvent) data;
+                eventConsumer.progress(new DefaultTestKeyValueDataMetadataEvent(progressEvent.getTime(), descriptor, Cast.uncheckedNonnullCast(keyValueData.getValues())));
+            } else if (data instanceof DefaultTestFileAttachmentDataEvent) {
+                DefaultTestFileAttachmentDataEvent fileAttachment = (DefaultTestFileAttachmentDataEvent) data;
+                eventConsumer.progress(new DefaultTestFileAttachmentMetadataEvent(progressEvent.getTime(), descriptor, fileAttachment.getPath().toFile(), fileAttachment.getMediaType()));
             } else {
-                throw new IllegalStateException("Unexpected test metadata event type: " + metadataMetadataEvent.getClass());
+                throw new IllegalStateException("Unexpected test metadata event type: " + data.getClass());
             }
         }
     }

@@ -16,6 +16,10 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import org.jspecify.annotations.Nullable;
+
+import java.io.File;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
@@ -28,5 +32,8 @@ public interface InternalTestMetadataEventVersion2 extends InternalProgressEvent
     @Override
     InternalTestMetadataDescriptor getDescriptor();
 
-    Object getPayload();
+    File getFile();
+
+    @Nullable
+    String getMediaType();
 }
