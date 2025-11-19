@@ -23,11 +23,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import spock.lang.Ignore
 
 @ToolingApiVersion(">=8.13")
-@TargetGradleVersion(">=9.3.0")
-@Ignore("https://github.com/gradle/gradle-private/issues/4946")
+@TargetGradleVersion(">=9.4.0")
 class JUnitTestMetadataCrossVersionSpec extends ToolingApiSpecification implements TestEventsFixture {
     ProgressEvents events = ProgressEvents.create()
 
