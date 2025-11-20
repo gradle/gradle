@@ -152,8 +152,7 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
     /**
      * Return any failure to resolve the component selector to id, or failure to resolve component metadata for id.
      */
-    @Nullable
-    ModuleVersionResolveException getFailure() {
+    @Nullable ModuleVersionResolveException getFailure() {
         return failure;
     }
 

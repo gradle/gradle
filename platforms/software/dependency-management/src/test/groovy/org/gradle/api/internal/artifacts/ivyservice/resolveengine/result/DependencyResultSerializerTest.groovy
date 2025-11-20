@@ -53,8 +53,8 @@ class DependencyResultSerializerTest extends Specification {
         def successful = Mock(DependencyGraphEdge) {
             getRequested() >> requested
             getFailure() >> null
-            getSelected() >> 12L
-            getSelectedVariant() >> 123L
+            getSelectedComponentId() >> 12L
+            getSelectedVariantId() >> 123L
             getReason() >> ComponentSelectionReasons.requested()
         }
 
@@ -68,8 +68,8 @@ class DependencyResultSerializerTest extends Specification {
         then:
         out.requested == requested
         out.failure == null
-        out.selected == 12L
-        out.selectedVariant == 123L
+        out.selectedComponentId == 12L
+        out.selectedVariantId == 123L
     }
 
     def "serializes failed dependency result"() {
@@ -95,8 +95,18 @@ class DependencyResultSerializerTest extends Specification {
         then:
         out.requested == requested
         out.failure.cause.message == "Boo!"
-        out.selected == null
-        out.selectedVariant == null
         out.reason.conflictResolution
+
+        when:
+        out.selectedComponentId
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        out.selectedVariantId
+
+        then:
+        thrown(IllegalStateException)
     }
 }

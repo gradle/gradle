@@ -32,29 +32,38 @@ public interface ResolvedGraphDependency {
      */
     ComponentSelector getRequested();
 
-    @Nullable
-    ModuleVersionResolveException getFailure();
+    /**
+     * Get the failure that occurred when trying to resolve this dependency, if any.
+     * <p>
+     * If this is null, then the dependency was successfully resolved and
+     * {@link #getSelectedComponentId()} and {@link #getSelectedVariantId()} are valid.
+     */
+    @Nullable ModuleVersionResolveException getFailure();
+
+    /**
+     * Get the reason for the failure.
+     *
+     * @throws IllegalStateException if {@link #getFailure()} is null.
+     */
+    ComponentSelectionReason getReason();
 
     /**
      * Returns the simple id of the selected component, as per {@link ResolvedGraphComponent#getResultId()}.
+     *
+     * @throws IllegalStateException if {@link #getFailure()} is not null.
      */
-    @Nullable
-    Long getSelected();
-
-    /**
-     * Not null only when failure is not null.
-     */
-    @Nullable
-    ComponentSelectionReason getReason();
-
-    boolean isConstraint();
+    long getSelectedComponentId();
 
     /**
      * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
-     * <p>
-     * If at the end of graph traversal this method returns null, <strong>the graph is broken and a bug
-     * in the dependency resolution has been encountered.</strong>
+     *
+     * @throws IllegalStateException if {@link #getFailure()} is not null.
      */
-    @Nullable
-    Long getSelectedVariant();
+    long getSelectedVariantId();
+
+    /**
+     * True if this dependency represents a constraint, false otherwise.
+     */
+    boolean isConstraint();
+
 }

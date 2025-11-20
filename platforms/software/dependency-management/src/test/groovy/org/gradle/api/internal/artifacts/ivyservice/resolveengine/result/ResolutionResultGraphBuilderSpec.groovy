@@ -259,8 +259,8 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         failure = failure == null ? null : new ModuleVersionResolveException(selector, failure)
         return Stub(ResolvedGraphDependency) {
             getRequested() >> selector
-            getSelected() >> id(selected)
-            getSelectedVariant() >> id(selected)
+            getSelectedComponentId() >> id(selected)
+            getSelectedVariantId() >> id(selected)
             getFailure() >> failure
         }
     }

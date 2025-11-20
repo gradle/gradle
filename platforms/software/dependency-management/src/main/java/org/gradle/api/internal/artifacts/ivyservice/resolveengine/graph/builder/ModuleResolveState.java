@@ -194,6 +194,10 @@ public class ModuleResolveState implements CandidateModule {
         this.replaced = false;
 
         selectComponentAndEvictOthers(selected);
+
+        if (!unattachedEdges.isEmpty()) {
+            restartUnattachedEdges();
+        }
     }
 
     private void selectComponentAndEvictOthers(ComponentState selected) {
