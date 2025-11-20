@@ -32,10 +32,6 @@ import java.util.Map;
  * as a list of absolute paths separated by <code>|</code>.
  * If none are provided, then the model is built for all the Kotlin DSL scripts known to belong to this build.
  * See {@link KotlinDslScriptsModel#SCRIPTS_GRADLE_PROPERTY_NAME}.
- * <p>
- * Optionally, an identifier can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.cid</code>,
- * it can then be used to correlate Gradle and TAPI client log statements.
- * See {@link KotlinDslModelsParameters#CORRELATION_ID_GRADLE_PROPERTY_NAME}.
  *
  * @since 6.0
  */

@@ -189,6 +189,7 @@ fun ProjectConnection.modelBuilderFor(parameters: FetchParameters) =
         forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
 
         val arguments = parameters.options.toMutableList()
+        @Suppress("DEPRECATION")
         arguments += "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${parameters.correlationId}"
 
         parameters.scriptFile?.let {

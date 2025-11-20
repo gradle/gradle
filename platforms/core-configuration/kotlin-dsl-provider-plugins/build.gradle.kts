@@ -16,7 +16,6 @@ dependencies {
     api(projects.declarativeDslToolingModels)
     api(projects.projectFeatures)
 
-    api(libs.inject)
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
@@ -35,6 +34,7 @@ dependencies {
     implementation(projects.declarativeDslProvider)
     implementation(projects.declarativeDslCore)
 
+    implementation(libs.inject)
     implementation(libs.kotlinCompilerEmbeddable)
 
     compileOnly(libs.kotlinReflect)

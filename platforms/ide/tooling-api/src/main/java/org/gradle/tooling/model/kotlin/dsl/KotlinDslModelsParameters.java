@@ -26,6 +26,11 @@ public final class KotlinDslModelsParameters {
 
     public static final String PREPARATION_TASK_NAME = "prepareKotlinBuildScriptModel";
 
+    /**
+     * Do not use.
+     * @deprecated This has no effect since Gradle 9.4. This will be removed in Gradle 10.
+     */
+    @Deprecated
     public static final String CORRELATION_ID_GRADLE_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.cid";
 
     /**
