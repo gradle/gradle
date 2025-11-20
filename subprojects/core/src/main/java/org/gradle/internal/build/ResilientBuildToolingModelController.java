@@ -18,10 +18,8 @@ package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.GradleException;
-import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
@@ -43,24 +41,26 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     @Override
-    protected void configureProjectsForModel(String modelName) {
+    protected void configureProjectsForModel(ProjectState target, String modelName) {
         try {
-            super.configureProjectsForModel(modelName);
+            super.configureProjectsForModel(target, modelName);
         } catch (GradleException e) {
-            rethrowExceptionIfNotResilientModel(modelName, e);
+            rethrowExceptionIfNotResilientModel(target, modelName, e);
         }
     }
 
-    private static void rethrowExceptionIfNotResilientModel(String modelName, GradleException e) {
-        // For resilient models, ignore SOME configuration failures
-        if (RESILIENT_MODELS.contains(modelName)) {
-            if (e instanceof ProjectConfigurationException) {
-                return; // swallow exception
-            } else if (e instanceof TaskExecutionException) {
-                return; // swallow exception
-            }
+    private static void rethrowExceptionIfNotResilientModel(ProjectState target, String modelName, GradleException e) {
+        if (!target.isCreated()) {
+            // mutable models weren't created, no point in pushing further
+            throw e;
         }
-        throw e;
+
+        if (!RESILIENT_MODELS.contains(modelName)) {
+            // the model we are building is not a resilient one, no point in pushing further
+            throw e;
+        }
+
+        // swallowing the exception, there is hope of going further
     }
 
     @Override
@@ -79,7 +79,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             try {
                 targetProject.ensureConfigured();
             } catch (GradleException e) {
-                rethrowExceptionIfNotResilientModel(modelName, e);
+                rethrowExceptionIfNotResilientModel(targetProject, modelName, e);
             }
 
             ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
