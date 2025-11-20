@@ -31,7 +31,7 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     private final BuildOperationListener broadcaster = new BuildOperationListener() {
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners.get();
+            List<? extends BuildOperationListener> listeners = getListeners();
             //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < listeners.size(); ++i) {
                 listeners.get(i).started(buildOperation, startEvent);
@@ -40,7 +40,7 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
         @Override
         public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners.get();
+            List<? extends BuildOperationListener> listeners = getListeners();
             //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < listeners.size(); ++i) {
                 listeners.get(i).progress(operationIdentifier, progressEvent);
@@ -49,12 +49,17 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners.get();
+            List<? extends BuildOperationListener> listeners = getListeners();
             for (int i = listeners.size() - 1; i >= 0; --i) {
                 listeners.get(i).finished(buildOperation, finishEvent);
             }
         }
     };
+
+    @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
+    private ImmutableList<ProgressShieldingBuildOperationListener> getListeners() {
+        return DefaultBuildOperationListenerManager.this.listeners.get();
+    }
 
     @Override
     public void addListener(BuildOperationListener listener) {

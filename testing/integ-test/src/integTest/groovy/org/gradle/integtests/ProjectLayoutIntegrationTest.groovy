@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ScalaCoverage
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -27,10 +27,6 @@ import org.junit.Rule
 import org.junit.Test
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
-
-    @Rule
-    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
-
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -197,7 +193,7 @@ sourceSets.main.java {
 
         file('build').assertDoesNotExist()
 
-        def results = new DefaultTestExecutionResult(file(), 'target')
+        def results = new DefaultTestExecutionResult(file(), 'target', '', '', 'test', GenericTestExecutionResult.TestFramework.SPOCK)
         results.assertTestClassesExecuted('PersonTest')
         results.testClass('PersonTest').assertTestsExecuted('ok')
     }

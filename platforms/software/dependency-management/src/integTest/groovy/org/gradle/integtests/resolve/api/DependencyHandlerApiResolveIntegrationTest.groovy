@@ -36,7 +36,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
             }
 
             task verifyTestKitJars {
-                dependsOn resolveLibs
+                dependsOn tasks.resolveLibs
             }
         """
 
@@ -50,7 +50,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
                 testImplementation gradleTestKit()
             }
 
-            verifyTestKitJars {
+            tasks.verifyTestKitJars {
                 doLast {
                     def jarFiles = libsDir.listFiles()
                     def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }
@@ -75,7 +75,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         ExecutionResult result = succeeds('verifyTestKitJars', 'compileTestJava')
 
         then:
-        result.assertTaskNotSkipped(':compileTestJava')
+        result.assertTaskExecuted(':compileTestJava')
     }
 
     def "gradleApi dependency API does not include test-kit JAR"() {
@@ -84,7 +84,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
             dependencies {
                 testImplementation gradleApi()
             }
-            verifyTestKitJars {
+            tasks.verifyTestKitJars {
                 doLast {
                     def jarFiles = libsDir.listFiles()
                     def testKitFunctionalJar = jarFiles.find { it.name.startsWith('$GRADLE_TEST_KIT_JAR_BASE_NAME') }
@@ -109,7 +109,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         ExecutionResult result = fails('compileTestJava')
 
         then:
-        result.assertTaskNotSkipped(':compileTestJava')
+        result.assertTaskExecuted(':compileTestJava')
         result.assertHasErrorOutput('package org.gradle.testkit.runner does not exist')
     }
 
@@ -149,7 +149,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         def gradleBaseVersion = GradleVersion.current().baseVersion.version
         def groovyVersion = GroovySystem.version
         def kotlinVersion = getGradleKotlinVersion()
-        def groovyModules = ["groovy-${groovyVersion}.jar", "groovy-ant-${groovyVersion}.jar", "groovy-astbuilder-${groovyVersion}.jar", "groovy-datetime-${groovyVersion}.jar", "groovy-dateutil-${groovyVersion}.jar", "groovy-groovydoc-${groovyVersion}.jar", "groovy-json-${groovyVersion}.jar", "groovy-nio-${groovyVersion}.jar", "groovy-templates-${groovyVersion}.jar", "groovy-xml-${groovyVersion}.jar", "javaparser-core-3.26.4.jar"]
+        def groovyModules = ["groovy-${groovyVersion}.jar", "groovy-ant-${groovyVersion}.jar", "groovy-astbuilder-${groovyVersion}.jar", "groovy-datetime-${groovyVersion}.jar", "groovy-dateutil-${groovyVersion}.jar", "groovy-groovydoc-${groovyVersion}.jar", "groovy-json-${groovyVersion}.jar", "groovy-nio-${groovyVersion}.jar", "groovy-templates-${groovyVersion}.jar", "groovy-xml-${groovyVersion}.jar", "javaparser-core-3.27.1.jar"]
         def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, ${groovyModules.join(", ")}, kotlin-stdlib-${kotlinVersion}.jar, kotlin-reflect-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
         def expectedGradleApiIds = { id ->
             "gradle-api-${gradleVersion}.jar ($id), ${groovyModules.collect({ it + " ($id)" }).join(", ")}, kotlin-stdlib-${kotlinVersion}.jar ($id), kotlin-reflect-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"

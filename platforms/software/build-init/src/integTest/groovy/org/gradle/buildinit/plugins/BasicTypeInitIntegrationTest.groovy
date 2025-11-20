@@ -87,6 +87,9 @@ existingIgnores
 
 # Ignore Gradle build output directory
 build
+
+# Ignore Kotlin plugin data
+.kotlin
 """)
 
         where:

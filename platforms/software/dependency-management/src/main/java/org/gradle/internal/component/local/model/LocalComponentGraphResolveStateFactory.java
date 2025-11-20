@@ -73,7 +73,6 @@ public class LocalComponentGraphResolveStateFactory {
      * Creates state for a variant loaded from the configuration cache.
      */
     public LocalVariantGraphResolveState realizedVariantStateFor(
-        ComponentIdentifier componentId,
         LocalVariantGraphResolveMetadata metadata,
         DefaultLocalVariantGraphResolveState.VariantDependencyMetadata dependencyMetadata,
         Set<LocalVariantMetadata> variants
@@ -83,7 +82,6 @@ public class LocalComponentGraphResolveStateFactory {
 
         return new DefaultLocalVariantGraphResolveState(
             idGenerator.nextVariantId(),
-            componentId,
             metadata,
             calculatedDependencies,
             variants

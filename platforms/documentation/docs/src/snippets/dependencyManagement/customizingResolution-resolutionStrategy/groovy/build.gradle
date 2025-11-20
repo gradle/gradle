@@ -1,5 +1,5 @@
 // tag::resolve-rules[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         eachDependency {
             if (requested.group == "com.example" && requested.name == "old-library") {
@@ -12,7 +12,7 @@ configurations.all {
 // end::resolve-rules[]
 
 // tag::custom-versioning-scheme[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.version == 'default') {
             def version = findDefaultVersionInCatalog(details.requested.group, details.requested.name)
@@ -29,7 +29,7 @@ def findDefaultVersionInCatalog(String group, String name) {
 // end::custom-versioning-scheme[]
 
 // tag::denying_version[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.group == 'org.software' && details.requested.name == 'some-library' && details.requested.version == '1.2') {
             details.useVersion '1.2.1'
@@ -40,7 +40,7 @@ configurations.all {
 // end::denying_version[]
 
 // tag::module_substitution[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.eachDependency { DependencyResolveDetails details ->
         if (details.requested.name == 'groovy-all') {
             details.useTarget group: details.requested.group, name: 'groovy', version: details.requested.version

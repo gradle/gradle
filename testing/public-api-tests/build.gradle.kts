@@ -60,3 +60,7 @@ tasks.withType<IntegrationTest>() {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+errorprone {
+    nullawayEnabled = true
+}

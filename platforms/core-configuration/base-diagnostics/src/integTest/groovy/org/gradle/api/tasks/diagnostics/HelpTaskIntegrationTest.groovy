@@ -276,7 +276,7 @@ Group
 BUILD SUCCESSFUL"""
     }
 
-    @ToBeFixedForIsolatedProjects
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "help for tasks same type different descriptions"() {
         setup:
         createDirs("someproj")
@@ -319,7 +319,7 @@ Group
 BUILD SUCCESSFUL"""
     }
 
-    @ToBeFixedForIsolatedProjects
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "help for tasks same type different groups"() {
         setup:
         createDirs("someproj1", "someproj2")
@@ -370,7 +370,7 @@ Groups
 BUILD SUCCESSFUL"""
     }
 
-    @ToBeFixedForIsolatedProjects
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "matchingTasksOfSameType"() {
         setup:
         createDirs("subproj1")
@@ -425,7 +425,7 @@ BUILD SUCCESSFUL"""
 
     }
 
-    @ToBeFixedForIsolatedProjects
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "multipleMatchingTasksOfDifferentType"() {
         setup:
         createDirs("subproj1")
@@ -557,7 +557,7 @@ BUILD SUCCESSFUL"""
         )
     }
 
-    @ToBeFixedForIsolatedProjects
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "listsEnumAndBooleanCmdOptionValues"() {
         createDirs("proj1", "proj2")
         when:
@@ -596,7 +596,7 @@ Group
 BUILD SUCCESSFUL"""
     }
 
-    @ToBeFixedForIsolatedProjects
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.task for another project")
     def "listsCommonDynamicAvailableValues"() {
         createDirs("sub1", "sub2")
         when:

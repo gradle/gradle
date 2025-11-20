@@ -141,7 +141,7 @@ task block2 {
 
         then:
         result1.assertTaskSkipped(':a')
-        result2.assertTaskNotSkipped(':a')
+        result2.assertTaskExecuted(':a')
         result3.assertTaskSkipped(':a')
     }
 
@@ -199,9 +199,9 @@ block2.mustRunAfter b
         def result2 = build2.waitForFinish()
 
         then:
-        result1.assertTaskNotSkipped(':a')
+        result1.assertTaskExecuted(':a')
         result1.assertTaskSkipped(':b')
         result2.assertTaskSkipped(':a')
-        result2.assertTaskNotSkipped(':b')
+        result2.assertTaskExecuted(':b')
     }
 }

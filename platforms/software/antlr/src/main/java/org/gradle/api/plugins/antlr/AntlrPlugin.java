@@ -90,6 +90,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     // 4) Register a source-generating task, and
                     TaskProvider<AntlrTask> antlrTask = project.getTasks().register(taskName, AntlrTask.class, task -> {
                         task.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
+                        task.setGroup("antlr");
                         // 4.1) set up convention mapping for default sources (allows user to not have to specify)
                         task.setSource(antlrSourceSet);
                         task.setOutputDirectory(outputDirectory);

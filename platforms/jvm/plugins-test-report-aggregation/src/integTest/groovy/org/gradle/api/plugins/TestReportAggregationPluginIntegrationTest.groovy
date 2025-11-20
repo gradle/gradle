@@ -16,13 +16,20 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
-class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec {
+class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
 
     def setup() {
         multiProjectBuild("root", ["application", "direct", "transitive"]) {
@@ -156,22 +163,22 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         succeeds(':application:testAggregateTestReport')
 
         then:
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskExecuted(":transitive:test")
-        result.assertTaskExecuted(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:test")
+        result.assertTaskScheduled(":direct:test")
+        result.assertTaskScheduled(":transitive:test")
+        result.assertTaskScheduled(":application:testAggregateTestReport")
 
-        def transitiveTestResults = new HtmlTestExecutionResult(testDirectory.file('transitive'))
-        transitiveTestResults.assertTestClassesExecuted('transitive.PowerizeTest')
+        def transitiveResults = resultsFor(testDirectory.file('transitive'), 'tests/test')
+        transitiveResults.assertAtLeastTestPathsExecuted('transitive.PowerizeTest')
 
-        def directTestResults = new HtmlTestExecutionResult(testDirectory.file('direct'))
-        directTestResults.assertTestClassesExecuted('direct.MultiplierTest')
+        def directResults = resultsFor(testDirectory.file('direct'), 'tests/test')
+        directResults.assertAtLeastTestPathsExecuted('direct.MultiplierTest')
 
-        def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
-        applicationTestResults.assertTestClassesExecuted('application.AdderTest')
+        def applicationResults = resultsFor(testDirectory.file('application'), 'tests/test')
+        applicationResults.assertAtLeastTestPathsExecuted('application.AdderTest')
 
-        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/reports/tests/test/aggregated-results")
-        aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
+        def aggregatedResults = aggregateResults(testDirectory.file('application'), 'tests/test', 'aggregated-results')
+        aggregatedResults.assertAtLeastTestPathsExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
     def 'multiple test suites create multiple aggregation tasks'() {
@@ -250,34 +257,34 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         succeeds(":application:testAggregateTestReport", ":application:integTestAggregateTestReport")
 
         then:
-        result.assertTaskExecuted(":transitive:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":transitive:integTest")
-        result.assertTaskExecuted(":application:integTest")
-        result.assertTaskExecuted(":application:testAggregateTestReport")
-        result.assertTaskExecuted(":application:integTestAggregateTestReport")
+        result.assertTaskScheduled(":transitive:test")
+        result.assertTaskScheduled(":direct:test")
+        result.assertTaskScheduled(":application:test")
+        result.assertTaskScheduled(":transitive:integTest")
+        result.assertTaskScheduled(":application:integTest")
+        result.assertTaskScheduled(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:integTestAggregateTestReport")
 
-        def transitiveTestResults = new HtmlTestExecutionResult(testDirectory.file('transitive'))
-        transitiveTestResults.assertTestClassesExecuted('transitive.PowerizeTest')
+        def transitiveTestResults = resultsFor(testDirectory.file('transitive'), 'tests/test')
+        transitiveTestResults.assertAtLeastTestPathsExecuted('transitive.PowerizeTest')
 
-        def directTestResults = new HtmlTestExecutionResult(testDirectory.file('direct'))
-        directTestResults.assertTestClassesExecuted('direct.MultiplierTest')
+        def directTestResults = resultsFor(testDirectory.file('direct'), 'tests/test')
+        directTestResults.assertAtLeastTestPathsExecuted('direct.MultiplierTest')
 
-        def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
-        applicationTestResults.assertTestClassesExecuted('application.AdderTest')
+        def applicationTestResults = resultsFor(testDirectory.file('application'), 'tests/test')
+        applicationTestResults.assertAtLeastTestPathsExecuted('application.AdderTest')
 
-        def transitiveIntegTestResults = new HtmlTestExecutionResult(testDirectory.file('transitive'), 'build/reports/tests/integTest')
-        transitiveIntegTestResults.assertTestClassesExecuted('transitive.ModTest')
+        def transitiveIntegTestResults = resultsFor(testDirectory.file('transitive'), 'tests/integTest')
+        transitiveIntegTestResults.assertAtLeastTestPathsExecuted('transitive.ModTest')
 
-        def applicationIntegTestResults = new HtmlTestExecutionResult(testDirectory.file('application'), 'build/reports/tests/integTest')
-        applicationIntegTestResults.assertTestClassesExecuted('application.DivTest')
+        def applicationIntegTestResults = resultsFor(testDirectory.file('application'), 'tests/integTest')
+        applicationIntegTestResults.assertAtLeastTestPathsExecuted('application.DivTest')
 
-        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'application/build/reports/tests/test/aggregated-results')
-        aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest', 'transitive.PowerizeTest')
+        def aggregatedTestResults = aggregateResults(testDirectory.file('application'), 'tests/test', 'aggregated-results')
+        aggregatedTestResults.assertAtLeastTestPathsExecuted('application.AdderTest', 'direct.MultiplierTest', 'transitive.PowerizeTest')
 
-        def aggregatedIntegTestResults = new HtmlTestExecutionResult(testDirectory, 'application/build/reports/tests/integTest/aggregated-results')
-        aggregatedIntegTestResults.assertTestClassesExecuted('transitive.ModTest', 'application.DivTest')
+        def aggregatedIntegTestResults = aggregateResults(testDirectory.file('application'), 'tests/integTest', 'aggregated-results')
+        aggregatedIntegTestResults.assertAtLeastTestPathsExecuted('transitive.ModTest', 'application.DivTest')
     }
 
     def 'can aggregate tests from root project'() {
@@ -341,8 +348,8 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         succeeds(':testAggregateTestReport')
 
         then:
-        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/test/aggregated-results')
-        aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest')
+        def aggregatedTestResults = aggregateResults(testDirectory, 'tests/test', 'aggregated-results')
+        aggregatedTestResults.assertAtLeastTestPathsExecuted('application.AdderTest', 'direct.MultiplierTest')
     }
 
     def 'test verification failure prevents creation of aggregated report'() {
@@ -369,7 +376,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
                .assertThatCause(startsWith("There were failing tests"))
-        result.assertTaskNotExecuted(':application:testAggregateTestReport')
+        result.assertTasksNotScheduled(':application:testAggregateTestReport')
 
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
     }
@@ -396,22 +403,22 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         fails(":application:testAggregateTestReport", "--continue")
 
         then:
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskExecuted(":transitive:test")
-        result.assertTaskExecuted(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:test")
+        result.assertTaskScheduled(":direct:test")
+        result.assertTaskScheduled(":transitive:test")
+        result.assertTaskScheduled(":application:testAggregateTestReport")
 
-        def transitiveTestResults = new HtmlTestExecutionResult(testDirectory.file('transitive'))
-        transitiveTestResults.assertTestClassesExecuted('transitive.PowerizeTest')
+        def transitiveTestResults = resultsFor(testDirectory.file('transitive'))
+        transitiveTestResults.assertAtLeastTestPathsExecuted('transitive.PowerizeTest')
 
-        def directTestResults = new HtmlTestExecutionResult(testDirectory.file('direct'))
-        directTestResults.assertTestClassesExecuted('direct.MultiplierTest')
+        def directTestResults = resultsFor(testDirectory.file('direct'))
+        directTestResults.assertAtLeastTestPathsExecuted('direct.MultiplierTest')
 
-        def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
-        applicationTestResults.assertTestClassesExecuted('application.AdderTest')
+        def applicationTestResults = resultsFor(testDirectory.file('application'))
+        applicationTestResults.assertAtLeastTestPathsExecuted('application.AdderTest')
 
-        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/reports/tests/test/aggregated-results")
-        aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
+        def aggregatedResults = aggregateResults(testDirectory.file("application"), "tests/test", "aggregated-results")
+        aggregatedResults.assertAtLeastTestPathsExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
     def 'test aggregated report can be put into a custom location'() {
@@ -435,7 +442,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         succeeds(":application:testAggregateTestReport", "--continue")
 
         then:
-        result.assertTaskExecuted(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:testAggregateTestReport")
 
         def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/non-default-location/test/aggregated-results")
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
@@ -466,10 +473,10 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
         then:
         // despite --continue flag, :application:testAggregateTestReport will not execute due to catastrophic failure in :direct:test
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskExecuted(":transitive:test")
-        result.assertTaskNotExecuted(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:test")
+        result.assertTaskScheduled(":direct:test")
+        result.assertTaskScheduled(":transitive:test")
+        result.assertTasksNotScheduled(":application:testAggregateTestReport")
 
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
 
@@ -501,10 +508,10 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
         then:
         // despite --continue flag, :application:testAggregateTestReport will not execute due to catastrophic failures
-        result.assertTaskNotExecuted(":application:test")
-        result.assertTaskNotExecuted(":direct:test")
-        result.assertTaskNotExecuted(":transitive:test")
-        result.assertTaskNotExecuted(":application:testAggregateTestReport")
+        result.assertTasksNotScheduled(":application:test")
+        result.assertTasksNotScheduled(":direct:test")
+        result.assertTasksNotScheduled(":transitive:test")
+        result.assertTasksNotScheduled(":application:testAggregateTestReport")
 
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
     }

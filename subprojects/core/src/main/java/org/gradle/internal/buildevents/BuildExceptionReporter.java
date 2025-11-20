@@ -38,7 +38,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
-import org.gradle.problems.internal.rendering.ProblemRenderer;
+import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
@@ -46,7 +46,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.StringWriter;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
@@ -417,7 +416,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to generate a Build Scan (Powered by Develocity)."));
+        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to generate a Build Scan (powered by Develocity)."));
     }
 
     private boolean isGradleEnterprisePluginApplied() {
@@ -442,7 +441,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     builder.append(System.lineSeparator());
                 }
                 StringWriter problemWriter = new StringWriter();
-                new ProblemRenderer(problemWriter).render(new ArrayList<>(problems));
+                ProblemWriter.grouping().write(problems, problemWriter);
                 builder.append(problemWriter);
 
                 // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.

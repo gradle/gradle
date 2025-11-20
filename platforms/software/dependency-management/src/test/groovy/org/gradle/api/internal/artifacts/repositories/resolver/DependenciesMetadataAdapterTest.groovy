@@ -24,6 +24,7 @@ import org.gradle.api.internal.notations.DependencyMetadataNotationParser
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
@@ -86,10 +87,8 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].selector.version == "1.0"
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "add via map id propagate to the underlying dependency list"() {
-        given:
-        TestUtil.initDeprecationLogger("We are testing a deprecated method")
-
         when:
         adapter.add group: "org.gradle.test", name: "module1", version: "1.0"
 
@@ -115,10 +114,8 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].isEndorsingStrictVersions()
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "add via map id with action propagate to the underlying dependency list"() {
-        given:
-        TestUtil.initDeprecationLogger("We are testing a deprecated method")
-
         when:
         adapter.add(group: "org.gradle.test", name: "module1") {
             it.version { it.require '1.0' }

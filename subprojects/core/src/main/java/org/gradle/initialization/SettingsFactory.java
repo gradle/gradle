@@ -66,7 +66,7 @@ public class SettingsFactory {
             startParameter
         );
         ((ExtraPropertiesExtensionInternal) settings.getExtensions().getExtraProperties())
-            .setGradleProperties(gradleProperties.getProperties());
+            .setGradleProperties(gradleProperties);
         return new SettingsState(settings, serviceRegistryFactory.services);
     }
 

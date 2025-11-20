@@ -46,7 +46,7 @@ class BuildSessionScopeFileTimeStampInspectorTest extends Specification {
         when:
         timestampInspector.afterStart()
         def afterStartTimestamp = timestampInspector.lastBuildTimestamp
-        timestampInspector.beforeComplete()
+        timestampInspector.beforeComplete(null)
         def beforeCompleteTimestamp = timestampInspector.lastBuildTimestamp
 
         then:
@@ -57,7 +57,7 @@ class BuildSessionScopeFileTimeStampInspectorTest extends Specification {
     def "last build timestamp is equal to minimum of timestamps of the marker file"() {
         given:
         timestampInspector.afterStart()
-        timestampInspector.beforeComplete()
+        timestampInspector.beforeComplete(null)
         def markerFile = new File(workDir, "last-build.bin")
         // File.lastModified() and Files.getLastModifiedTime() uses different resolution on some JDKs < 11
         def markerFileTimestamp = Math.min(markerFile.lastModified(), Files.getLastModifiedTime(markerFile.toPath()).toMillis())
@@ -73,7 +73,7 @@ class BuildSessionScopeFileTimeStampInspectorTest extends Specification {
     def "timestamp cannot be used to detect file changes if it's equal to the last build timestamp"() {
         given:
         timestampInspector.afterStart()
-        timestampInspector.beforeComplete()
+        timestampInspector.beforeComplete(null)
         def lastBuildTimestamp = timestampInspector.lastBuildTimestamp
 
         when:
@@ -87,7 +87,7 @@ class BuildSessionScopeFileTimeStampInspectorTest extends Specification {
     def "timestamp can be used to detect file changes if it's not equal to the last build timestamp"() {
         given:
         timestampInspector.afterStart()
-        timestampInspector.beforeComplete()
+        timestampInspector.beforeComplete(null)
         def lastBuildTimestamp = timestampInspector.lastBuildTimestamp
 
         when:

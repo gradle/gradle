@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.attributes.matching;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.CompatibilityCheckResult;
-import org.gradle.api.internal.attributes.CompatibilityRule;
-import org.gradle.api.internal.attributes.DisambiguationRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
@@ -59,12 +61,14 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
 
     @Override
     public <T> Set<T> disambiguate(Attribute<T> attribute, @Nullable T requested, Set<T> candidates) {
-        DisambiguationRule<T> rules = schema.disambiguationRules(attribute);
-        if (rules.doesSomething()) {
+        ImmutableList<Action<? super MultipleCandidatesDetails<T>>> rules = schema.disambiguationRules(attribute);
+        if (!rules.isEmpty()) {
             DefaultMultipleCandidateResult<T> result = new DefaultMultipleCandidateResult<>(requested, candidates);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return result.getMatches();
+            for (Action<? super MultipleCandidatesDetails<T>> rule : rules) {
+                rule.execute(result);
+                if (result.hasResult()) {
+                    return result.getMatches();
+                }
             }
         }
 
@@ -81,12 +85,14 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
             return true;
         }
 
-        CompatibilityRule<T> rules = schema.compatibilityRules(attribute);
-        if (rules.doesSomething()) {
+        ImmutableList<Action<? super CompatibilityCheckDetails<T>>> rules = schema.compatibilityRules(attribute);
+        if (!rules.isEmpty()) {
             CompatibilityCheckResult<T> result = new DefaultCompatibilityCheckResult<>(requested, candidate);
-            rules.execute(result);
-            if (result.hasResult()) {
-                return result.isCompatible();
+            for (Action<? super CompatibilityCheckDetails<T>> rule : rules) {
+                rule.execute(result);
+                if (result.hasResult()) {
+                    return result.isCompatible();
+                }
             }
         }
 

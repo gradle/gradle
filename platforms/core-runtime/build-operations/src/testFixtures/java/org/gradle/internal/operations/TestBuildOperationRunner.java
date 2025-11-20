@@ -54,7 +54,7 @@ public class TestBuildOperationRunner implements BuildOperationRunner {
     }
 
     @Override
-    public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+    public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker) {
         log.execute(buildOperation, worker);
     }
 

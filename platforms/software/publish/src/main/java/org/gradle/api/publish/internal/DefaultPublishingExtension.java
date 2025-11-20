@@ -21,10 +21,13 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 
-public class DefaultPublishingExtension implements PublishingExtension {
+import javax.inject.Inject;
+
+public abstract class DefaultPublishingExtension implements PublishingExtension {
     private final RepositoryHandler repositories;
     private final PublicationContainer publications;
 
+    @Inject
     public DefaultPublishingExtension(RepositoryHandler repositories, PublicationContainer publications) {
         this.repositories = repositories;
         this.publications = publications;

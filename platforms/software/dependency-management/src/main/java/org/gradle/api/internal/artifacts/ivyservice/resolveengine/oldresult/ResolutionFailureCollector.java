@@ -18,11 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Describable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -81,8 +83,9 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
             Collection<List<Describable>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root, owner);
 
             ComponentSelector key = entry.getKey();
-            ModuleVersionSelector moduleVersionSelector = componentSelectorConverter.getSelector(key);
-            builder.add(new DefaultUnresolvedDependency(moduleVersionSelector, entry.getValue().failure.withIncomingPaths(paths)));
+            ModuleVersionIdentifier moduleVersionId = componentSelectorConverter.getModuleVersionId(key);
+            ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(moduleVersionId);
+            builder.add(new DefaultUnresolvedDependency(selector, entry.getValue().failure.withIncomingPaths(paths)));
         }
         return builder.build();
     }

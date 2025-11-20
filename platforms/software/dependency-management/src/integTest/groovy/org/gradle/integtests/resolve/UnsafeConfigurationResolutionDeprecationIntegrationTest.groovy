@@ -61,7 +61,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         expect:
         fails(":resolve")
         failure.assertHasCause("Resolution of the configuration ':bar:bar' was attempted without an exclusive lock. This is unsafe and not allowed.")
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 
     private String declareRunInAnotherThread() {
@@ -126,7 +126,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Resolution of the configuration ':bar' was attempted without an exclusive lock. This is unsafe and not allowed.")
         }
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
 
         where:
         expression << [
@@ -199,7 +199,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         then:
         if (shouldSucceed) {
-            result.assertTaskExecuted(":resolve")
+            result.assertTaskScheduled(":resolve")
         } else {
             result.assertHasErrorOutput(ccMessage as String)
         }
@@ -393,7 +393,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":help")
     }
 
-    def "fails when configuration is resolved while evaluating lifecycle.beforeProject block"() {
+    def "no deprecation warning when configuration is resolved while evaluating lifecycle.beforeProject block"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -420,8 +420,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         expect:
         executer.withArguments("--parallel", "-I", "init-script.gradle")
-        fails(":help")
-        failureDescriptionContains("Resolution of the configuration ':foo' was attempted without an exclusive lock. This is unsafe and not allowed.")
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        succeeds(":help")
     }
 }

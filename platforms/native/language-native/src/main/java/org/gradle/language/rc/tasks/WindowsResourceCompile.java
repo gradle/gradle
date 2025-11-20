@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -66,30 +65,20 @@ import java.util.concurrent.Callable;
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class WindowsResourceCompile extends DefaultTask {
 
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
     private File outputDir;
-    private ConfigurableFileCollection includes;
-    private ConfigurableFileCollection source;
     private Map<String, String> macros = new LinkedHashMap<String, String>();
-    private final ListProperty<String> compilerArgs;
+
     // Don't serialize the compiler. It holds state that is mostly only required at execution time and that can be calculated from the other fields of this task
     // after being deserialized. However, it is also required to calculate the producers of the header files to calculate the work graph.
     // It would be better to provide some way for a task to express these things separately.
     private transient IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public WindowsResourceCompile() {
-        ObjectFactory objectFactory = getProject().getObjects();
-        includes = getProject().files();
-        source = getProject().files();
-        this.compilerArgs = getProject().getObjects().listProperty(String.class);
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
         getInputs().property("outputType", new Callable<String>() {
             @Override
             public String call() {
-                NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
-                NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+                NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) getToolChain().get();
+                NativePlatformInternal nativePlatform = (NativePlatformInternal) getTargetPlatform().get();
                 return NativeToolChainInternal.Identifier.identify(nativeToolChain, nativePlatform);
             }
         });
@@ -97,7 +86,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
 
     private IncrementalCompilerBuilder.IncrementalCompiler getIncrementalCompiler() {
         if (incrementalCompiler == null) {
-            incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, macros, Providers.FALSE);
+            incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, getSource(), getIncludes(), macros, Providers.FALSE);
         }
         return incrementalCompiler;
     }
@@ -122,8 +111,8 @@ public abstract class WindowsResourceCompile extends DefaultTask {
         spec.setIncrementalCompile(inputs.isIncremental());
         spec.setOperationLogger(operationLogger);
 
-        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
-        NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) getToolChain().get();
+        NativePlatformInternal nativePlatform = (NativePlatformInternal) getTargetPlatform().get();
         PlatformToolProvider platformToolProvider = nativeToolChain.select(nativePlatform);
         WorkResult result = doCompile(spec, platformToolProvider);
         setDidWork(result.getDidWork());
@@ -143,9 +132,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
      * @since 4.7
      */
     @Internal
-    public Property<NativeToolChain> getToolChain() {
-        return toolChain;
-    }
+    public abstract Property<NativeToolChain> getToolChain();
 
     /**
      * The platform being compiled for.
@@ -153,9 +140,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
      * @since 4.7
      */
     @Nested
-    public Property<NativePlatform> getTargetPlatform() {
-        return targetPlatform;
-    }
+    public abstract Property<NativePlatform> getTargetPlatform();
 
     /**
      * The directory where object files will be generated.
@@ -175,15 +160,13 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     @Incremental
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    public ConfigurableFileCollection getIncludes() {
-        return includes;
-    }
+    public abstract ConfigurableFileCollection getIncludes();
 
     /**
      * Add directories where the compiler should search for header files.
      */
     public void includes(Object includeRoots) {
-        includes.from(includeRoots);
+        getIncludes().from(includeRoots);
     }
 
     /**
@@ -193,15 +176,13 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    public ConfigurableFileCollection getSource() {
-        return source;
-    }
+    public abstract ConfigurableFileCollection getSource();
 
     /**
      * Adds a set of source files to be compiled. The provided sourceFiles object is evaluated as per {@link Project#files(Object...)}.
      */
     public void source(Object sourceFiles) {
-        source.from(sourceFiles);
+        getSource().from(sourceFiles);
     }
 
     /**
@@ -222,9 +203,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
      * @since 5.1
      */
     @Input
-    public ListProperty<String> getCompilerArgs() {
-        return compilerArgs;
-    }
+    public abstract ListProperty<String> getCompilerArgs();
 
 
     /**

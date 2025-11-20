@@ -22,15 +22,16 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -47,16 +48,19 @@ class DefaultResolutionResultTest extends Specification {
 
     def "provides all modules and dependencies including unresolved"() {
         given:
-        def dep1 = newDependency('dep1')
+        DependencyResult dep1 = newDependency('dep1')
         def dep2 = newDependency('dep2')
 
         def root = newModule('root')
-        root.addDependencies(ImmutableSet.of(dep1, dep2))
+        def rootVariant = root.getVariant(1L)
+        root.setVariantDependencies(rootVariant, ImmutableSet.of(dep1, dep2))
 
         def dep3 = newDependency('dep3')
         def dep4 = newUnresolvedDependency('dep4')
 
-        (dep2.selected as DefaultResolvedComponentResult).addDependencies(ImmutableSet.of(dep3, dep4))
+        def selected = dep2.selected as DefaultResolvedComponentResult
+        def selectedVariant = selected.getVariant(1L)
+        selected.setVariantDependencies(selectedVariant, ImmutableSet.of(dep3, dep4))
 
         when:
         def deps = newResolutionResult(root).allDependencies
@@ -77,8 +81,12 @@ class DefaultResolutionResultTest extends Specification {
         def dep3 = newDependency('dep3')
 
         def root = newModule('root')
-        root.addDependencies(ImmutableSet.of(dep, newDependency('dep2'), dep3))
-        (dep.selected as DefaultResolvedComponentResult).addDependencies(ImmutableSet.of(dep3))
+        def rootVariant = root.getVariant(1L)
+        root.setVariantDependencies(rootVariant, ImmutableSet.of(dep, newDependency('dep2'), dep3))
+
+        def selected = dep.selected as DefaultResolvedComponentResult
+        def selectedVariant = selected.getVariant(1L)
+        selected.setVariantDependencies(selectedVariant, ImmutableSet.of(dep3))
 
         def result = newResolutionResult(root)
 
@@ -99,11 +107,19 @@ class DefaultResolutionResultTest extends Specification {
         given:
         // a->b->a
         def root = newModule('a', 'a', '1')
+        def rootVariant = root.getVariant(1L)
         def dep1 = newDependency('b', 'b', '1')
-        root.addDependencies(ImmutableSet.of(dep1))
-
-        def dep2 = new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, ResolutionResultDataBuilder.newVariant(), dep1.selected)
-        (dep1.selected as DefaultResolvedComponentResult).addDependencies(ImmutableSet.of(dep2))
+        def dep2 = new DefaultResolvedDependencyResult(
+            DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'),
+            false,
+            root,
+            ResolutionResultDataBuilder.newVariant(),
+            dep1.selected
+        )
+        root.setVariantDependencies(rootVariant, ImmutableSet.of(dep1))
+        def selected = dep1.selected as DefaultResolvedComponentResult
+        def selectedVariant = selected.getVariant(1L)
+        selected.setVariantDependencies(selectedVariant, ImmutableSet.of(dep2))
 
         when:
         def deps = newResolutionResult(root).allDependencies
@@ -120,7 +136,8 @@ class DefaultResolutionResultTest extends Specification {
         def dep2 = newDependency('dep2')
 
         def root = newModule('root')
-        root.addDependencies(ImmutableSet.of(dep1, dep2))
+        def rootVariant = root.getVariant(1L)
+        root.setVariantDependencies(rootVariant, ImmutableSet.of(dep1, dep2))
 
         when:
         def result = newResolutionResult(root)
@@ -140,10 +157,7 @@ class DefaultResolutionResultTest extends Specification {
 
     def "doesn't throw class cast exception when the source of the edge is a project"() {
         def projectId = new DefaultProjectComponentIdentifier(
-            DefaultBuildIdentifier.ROOT,
-            Stub(Path),
-            Stub(Path),
-            'test project'
+            ProjectIdentity.forRootProject(Path.ROOT, "bar")
         )
         def mid = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
         org.gradle.internal.Factory<String> broken = { "too bad" }

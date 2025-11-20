@@ -21,12 +21,11 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
-import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueSource;
-import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
 import org.gradle.api.internal.provider.sources.process.DefaultExecOutput;
@@ -38,6 +37,8 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
+import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.Describables;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
@@ -48,6 +49,10 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
+import static org.gradle.api.internal.provider.Providers.changing;
+import static org.gradle.api.internal.provider.Providers.memoizing;
+
 public class DefaultProviderFactory implements ProviderFactory {
     @Nullable
     private final ValueSourceProviderFactory valueSourceProviderFactory;
@@ -55,20 +60,24 @@ public class DefaultProviderFactory implements ProviderFactory {
     private final ProcessOutputProviderFactory processOutputProviderFactory;
 
     private final CredentialsProviderFactory credentialsProviderFactory;
+    @Nullable
+    private final GradleProperties gradleProperties;
 
     public DefaultProviderFactory() {
-        this(null, null, null, null);
+        this(null, null, null, null, null);
     }
 
     public DefaultProviderFactory(
         @Nullable ValueSourceProviderFactory valueSourceProviderFactory,
         @Nullable ProcessOutputProviderFactory processOutputProviderFactory,
         @Nullable ListenerManager listenerManager,
-        @Nullable ObjectFactory objectFactory
+        @Nullable ObjectFactory objectFactory,
+        @Nullable GradleProperties gradleProperties
     ) {
         this.valueSourceProviderFactory = valueSourceProviderFactory;
         this.processOutputProviderFactory = processOutputProviderFactory;
         this.credentialsProviderFactory = new CredentialsProviderFactory(this, objectFactory);
+        this.gradleProperties = gradleProperties;
         if (listenerManager != null) {
             listenerManager.addListener(credentialsProviderFactory);
         }
@@ -136,28 +145,52 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<String> gradleProperty(String propertyName) {
-        return gradleProperty(Providers.of(propertyName));
+        GradleProperties gradleProperties = getGradleProperties();
+        return memoizing(
+            changing(() -> gradleProperties.find(propertyName)),
+            () -> Describables.quoted("Gradle property", propertyName)
+        );
     }
 
     @Override
     public Provider<String> gradleProperty(Provider<String> propertyName) {
-        return of(
-            GradlePropertyValueSource.class,
-            spec -> spec.getParameters().getPropertyName().set(propertyName)
+        GradleProperties gradleProperties = getGradleProperties();
+        return memoizing(
+            new BiProvider<>(
+                String.class,
+                changing(() -> gradleProperties),
+                propertyName,
+                bifunction(GradleProperties::find)
+            ),
+            () -> Describables.quoted("Gradle property", propertyName)
         );
     }
 
     @Override
-    public Provider<Map<String, String>> gradlePropertiesPrefixedBy(String variableNamePrefix) {
-        return gradlePropertiesPrefixedBy(Providers.of(variableNamePrefix));
+    public Provider<Map<String, String>> gradlePropertiesPrefixedBy(String propertyNamePrefix) {
+        GradleProperties gradleProperties = getGradleProperties();
+        return memoizing(changing(() -> gradleProperties.getPropertiesWithPrefix(propertyNamePrefix)));
     }
 
     @Override
-    public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> variableNamePrefix) {
-        return of(
-            GradlePropertiesPrefixedByValueSource.class,
-            spec -> spec.getParameters().getPrefix().set(variableNamePrefix)
+    public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> propertyNamePrefix) {
+        GradleProperties gradleProperties = getGradleProperties();
+        return memoizing(
+            new BiProvider<>(
+                new TypeOf<Map<String, String>>() {}.getConcreteClass(),
+                changing(() -> gradleProperties),
+                propertyNamePrefix,
+                bifunction(GradleProperties::getPropertiesWithPrefix)
+            )
         );
+    }
+
+    private GradleProperties getGradleProperties() {
+        GradleProperties gradleProperties = this.gradleProperties;
+        if (gradleProperties == null) {
+            throw new UnsupportedOperationException();
+        }
+        return gradleProperties;
     }
 
     @Override

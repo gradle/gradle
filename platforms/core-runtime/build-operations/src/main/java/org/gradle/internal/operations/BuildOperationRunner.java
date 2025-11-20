@@ -42,7 +42,7 @@ public interface BuildOperationRunner {
      * Runtime exceptions are rethrown as is.
      * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
-    <T> T call(CallableBuildOperation<T> buildOperation);
+    <T extends @Nullable Object> T call(CallableBuildOperation<T> buildOperation);
 
     /**
      * Starts an operation that can be finished later.
@@ -54,7 +54,7 @@ public interface BuildOperationRunner {
     /**
      * Executes the given build operation with the given worker, returns the result.
      */
-    <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent);
+    <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker);
 
     /**
      * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation

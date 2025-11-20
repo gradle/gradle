@@ -26,8 +26,15 @@ import org.gradle.internal.operations.BuildOperationType;
 public final class RealizeTaskBuildOperationType implements BuildOperationType<RealizeTaskBuildOperationType.Details, RealizeTaskBuildOperationType.Result> {
 
     public interface Details {
+
+        /**
+         * The path of the build this task belongs to.
+         */
         String getBuildPath();
 
+        /**
+         * Get the path of this task within the build.
+         */
         String getTaskPath();
 
         /**
@@ -38,6 +45,7 @@ public final class RealizeTaskBuildOperationType implements BuildOperationType<R
         boolean isReplacement();
 
         boolean isEager();
+
     }
 
     public interface Result {

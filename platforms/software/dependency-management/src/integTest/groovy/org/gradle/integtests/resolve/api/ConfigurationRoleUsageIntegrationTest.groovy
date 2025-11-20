@@ -67,7 +67,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        configuration << ["legacy", "consumable", "resolvable", "consumableLocked", "resolvableLocked", "dependencyScopeUnlocked"]
+        configuration << ["legacy", "consumable", "resolvable", "resolvableLocked", "dependencyScopeUnlocked"]
     }
 
     def "can prevent usage mutation of roleless configurations"() {
@@ -282,7 +282,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
-        executer.noDeprecationChecks() // These are checked in the other tests, and there would be many of them here
         succeeds 'help'
     }
 
@@ -420,7 +419,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             }
         """                                                                             | ConfigurationRoles.ALL        | "legacy configuration with explicit set consumed = true"
         "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | "role-based configuration"
-        "configurations.consumableLocked('additionalRuntimeClasspath')"                 | ConfigurationRoles.CONSUMABLE | "internal locked role-based configuration"
     }
 
     def "redundantly changing usage on a legacy configuration does not warn even if flag is set"() {
@@ -456,9 +454,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails"
-        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
-        // a post-execution error that a deprecation warning may appear in the output
-        executer.noDeprecationChecks()
+        if (configuration == "archives") {
+            executer.noDeprecationChecks() // False positive since failure message contains "deprecated"
+        }
         fails 'help'
 
         then:
@@ -490,9 +488,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails because the configuration is not allowed to change"
-        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
-        // a post-execution error that a deprecation warning may appear in the output
-        executer.noDeprecationChecks()
+        if (configuration == "archives") {
+            executer.noDeprecationChecks() // False positive since failure message contains "deprecated"
+        }
         fails 'help'
 
         then:
@@ -602,7 +600,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 canBeResolved = !canBeResolved
             }
         """
-        executer.noDeprecationChecks()
 
         expect:
         fails 'help'

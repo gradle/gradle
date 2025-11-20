@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.file.TreeType;
@@ -38,9 +39,9 @@ public class CaptureNonIncrementalStateBeforeExecutionStep<C extends PreviousExe
     @Override
     protected ImmutableSortedMap<String, FileSystemSnapshot> captureOutputSnapshots(UnitOfWork work, WorkspaceContext context) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(context.getWorkspace(), new OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+            public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
                 builder.put(propertyName, FileSystemSnapshot.EMPTY);
             }
         });

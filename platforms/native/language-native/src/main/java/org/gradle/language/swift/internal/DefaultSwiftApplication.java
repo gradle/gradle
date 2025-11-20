@@ -34,13 +34,11 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 
 public abstract class DefaultSwiftApplication extends DefaultSwiftComponent<SwiftBinary> implements SwiftApplication {
-    private final Property<SwiftExecutable> developmentBinary;
     private final DefaultComponentDependencies dependencies;
 
     @Inject
     public DefaultSwiftApplication(String name) {
         super(name);
-        this.developmentBinary = getObjectFactory().property(SwiftExecutable.class);
         this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
@@ -70,7 +68,5 @@ public abstract class DefaultSwiftApplication extends DefaultSwiftComponent<Swif
     }
 
     @Override
-    public Property<SwiftExecutable> getDevelopmentBinary() {
-        return developmentBinary;
-    }
+    public abstract Property<SwiftExecutable> getDevelopmentBinary();
 }

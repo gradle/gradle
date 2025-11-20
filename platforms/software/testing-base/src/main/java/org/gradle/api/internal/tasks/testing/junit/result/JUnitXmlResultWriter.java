@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
@@ -67,6 +68,7 @@ public class JUnitXmlResultWriter {
                 .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 
             writer.startElement("properties");
+            writeProperties(writer, result.getMetadatas());
             writer.endElement();
 
             Iterable<TestMethodResult> methodResults = result.getResults();
@@ -153,9 +155,9 @@ public class JUnitXmlResultWriter {
             public Iterable<? extends TestCaseExecution> apply(final TestMethodResult execution) {
                 switch (execution.getResultType()) {
                     case SUCCESS:
-                        return Collections.singleton(success(classId, execution.getId()));
+                        return Collections.singleton(success(classId, execution.getId(), execution.getMetadatas()));
                     case SKIPPED:
-                        return Collections.singleton(skipped(classId, execution.getId(), execution.getAssumptionFailure()));
+                        return Collections.singleton(skipped(classId, execution.getId(), execution.getAssumptionFailure(), execution.getMetadatas()));
                     case FAILURE:
                         return failures(classId, execution, allFailed
                             ? execution == firstExecution ? FailureType.FAILURE : FailureType.RERUN_FAILURE
@@ -220,9 +222,9 @@ public class JUnitXmlResultWriter {
             case FAILURE:
                 return failures(classId, methodResult, FailureType.FAILURE);
             case SKIPPED:
-                return Collections.singleton(skipped(classId, methodResult.getId(), methodResult.getAssumptionFailure()));
+                return Collections.singleton(skipped(classId, methodResult.getId(), methodResult.getAssumptionFailure(), methodResult.getMetadatas()));
             case SUCCESS:
-                return Collections.singleton(success(classId, methodResult.getId()));
+                return Collections.singleton(success(classId, methodResult.getId(), methodResult.getMetadatas()));
             default:
                 throw new IllegalStateException("Unexpected result type: " + methodResult.getResultType());
         }
@@ -245,13 +247,21 @@ public class JUnitXmlResultWriter {
     abstract static class TestCaseExecution {
         private final OutputProvider outputProvider;
         private final JUnitXmlResultOptions options;
+        private final List<TestMetadataEvent> metadatas;
 
-        TestCaseExecution(OutputProvider outputProvider, JUnitXmlResultOptions options) {
+        TestCaseExecution(OutputProvider outputProvider, JUnitXmlResultOptions options, List<TestMetadataEvent> metadatas) {
             this.outputProvider = outputProvider;
             this.options = options;
+            this.metadatas = metadatas;
         }
 
-        abstract void write(SimpleXmlWriter writer) throws IOException;
+        protected void write(SimpleXmlWriter writer) throws IOException {
+            if (!metadatas.isEmpty()) {
+                writer.startElement("properties");
+                writeProperties(writer, metadatas);
+                writer.endElement();
+            }
+        }
 
         protected void writeOutput(SimpleXmlWriter writer) throws IOException {
             if (options.includeSystemOutLog && outputProvider.has(TestOutputEvent.Destination.StdOut)) {
@@ -287,12 +297,14 @@ public class JUnitXmlResultWriter {
     }
 
     private static class TestCaseExecutionSuccess extends TestCaseExecution {
-        TestCaseExecutionSuccess(OutputProvider outputProvider, JUnitXmlResultOptions options) {
-            super(outputProvider, options);
+        TestCaseExecutionSuccess(OutputProvider outputProvider, JUnitXmlResultOptions options, List<TestMetadataEvent> metadatas) {
+            super(outputProvider, options, metadatas);
         }
 
         @Override
         public void write(SimpleXmlWriter writer) throws IOException {
+            super.write(writer);
+
             writeOutput(writer);
         }
     }
@@ -303,14 +315,17 @@ public class JUnitXmlResultWriter {
         TestCaseExecutionSkipped(
             OutputProvider outputProvider,
             JUnitXmlResultOptions options,
-            SerializableFailure assumptionFailure
+            SerializableFailure assumptionFailure,
+            List<TestMetadataEvent> metadatas
         ) {
-            super(outputProvider, options);
+            super(outputProvider, options, metadatas);
             this.assumptionFailure = assumptionFailure;
         }
 
         @Override
         public void write(SimpleXmlWriter writer) throws IOException {
+            super.write(writer);
+
             writer.startElement("skipped");
             if (assumptionFailure != null) {
                 writer.attribute("message", assumptionFailure.getMessage());
@@ -340,14 +355,16 @@ public class JUnitXmlResultWriter {
         private final SerializableFailure failure;
         private final FailureType type;
 
-        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, SerializableFailure failure) {
-            super(outputProvider, options);
+        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, SerializableFailure failure, List<TestMetadataEvent> metadatas) {
+            super(outputProvider, options, metadatas);
             this.failure = failure;
             this.type = type;
         }
 
         @Override
         public void write(SimpleXmlWriter writer) throws IOException {
+            super.write(writer);
+
             writer.startElement(type.elementName)
                 .attribute("message", failure.getMessage())
                 .attribute("type", failure.getExceptionType());
@@ -366,12 +383,12 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private TestCaseExecution success(long classId, long id) {
-        return new TestCaseExecutionSuccess(outputProvider(classId, id), options);
+    private TestCaseExecution success(long classId, long id, List<TestMetadataEvent> metadatas) {
+        return new TestCaseExecutionSuccess(outputProvider(classId, id), options, metadatas);
     }
 
-    private TestCaseExecution skipped(long classId, long id, SerializableFailure assumptionFailure) {
-        return new TestCaseExecutionSkipped(outputProvider(classId, id), options, assumptionFailure);
+    private TestCaseExecution skipped(long classId, long id, SerializableFailure assumptionFailure, List<TestMetadataEvent> metadatas) {
+        return new TestCaseExecutionSkipped(outputProvider(classId, id), options, assumptionFailure, metadatas);
     }
 
     private Iterable<TestCaseExecution> failures(final long classId, final TestMethodResult methodResult, final FailureType failureType) {
@@ -386,9 +403,20 @@ public class JUnitXmlResultWriter {
             public TestCaseExecution apply(final SerializableFailure failure) {
                 boolean isFirst = failure == firstFailure;
                 OutputProvider outputProvider = isFirst ? outputProvider(classId, methodResult.getId()) : NullOutputProvider.INSTANCE;
-                return new TestCaseExecutionFailure(outputProvider, options, failureType, failure);
+                return new TestCaseExecutionFailure(outputProvider, options, failureType, failure, methodResult.getMetadatas());
             }
         });
+    }
+
+    private static void writeProperties(SimpleXmlWriter writer, List<TestMetadataEvent> metadatas) throws IOException {
+        for (TestMetadataEvent metadata : metadatas) {
+            for (Map.Entry<String, String> element : metadata.getValues().entrySet()) {
+                writer.startElement("property")
+                    .attribute("name", element.getKey())
+                    .attribute("value", element.getValue())
+                    .endElement();
+            }
+        }
     }
 
     private OutputProvider outputProvider(long classId, long id) {

@@ -16,30 +16,37 @@
 
 package org.gradle.internal.declarativedsl.provider
 
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.initialization.SharedModelDefaults
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.model.ObjectFactory
-import org.gradle.initialization.layout.BuildLayoutConfiguration
 import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.DeclarativeKotlinScriptEvaluator
 import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.MemoizedInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.StoringInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.defaultDeclarativeScriptEvaluator
+import org.gradle.internal.declarativedsl.interpreter.defaults.ActionBasedModelDefaultsHandler
 import org.gradle.internal.declarativedsl.interpreter.defaults.DeclarativeModelDefaultsHandler
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import java.io.File
 
 
 class DeclarativeDslServices : AbstractGradleModuleServices() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildServices)
+    }
+
+    override fun registerProjectServices(registration: ServiceRegistration) {
+        registration.addProvider(ProjectServices)
     }
 }
 
@@ -53,33 +60,49 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createDeclarativeKotlinScriptEvaluator(
-        softwareTypeRegistry: SoftwareTypeRegistry,
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
         schemaBuilder: InterpretationSchemaBuilder
     ): DeclarativeKotlinScriptEvaluator {
-        return defaultDeclarativeScriptEvaluator(schemaBuilder, softwareTypeRegistry)
+        return defaultDeclarativeScriptEvaluator(schemaBuilder, projectFeatureDeclarations)
     }
 
     @Provides
     fun createInterpretationSchemaBuilder(
-        softwareTypeRegistry: SoftwareTypeRegistry,
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
         buildLayoutFactory: BuildLayoutFactory,
         settingsUnderInitialization: SettingsUnderInitialization,
         gradleInternal: GradleInternal
     ): InterpretationSchemaBuilder =
         MemoizedInterpretationSchemaBuilder(
-            StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, softwareTypeRegistry), buildLayoutFactory.settingsDir(gradleInternal))
+            StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, projectFeatureDeclarations), buildLayoutFactory.settingsDir(gradleInternal))
         )
 
     @Provides
     fun createDeclarativeModelDefaultsHandler(
-        softwareTypeRegistry: SoftwareTypeRegistry,
+        projectFeatureDeclarations: ProjectFeatureDeclarations,
         interpretationSchemaBuilder: InterpretationSchemaBuilder,
         objectFactory: ObjectFactory
     ): ModelDefaultsHandler {
-        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, softwareTypeRegistry, interpretationSchemaBuilder)
+        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, projectFeatureDeclarations, interpretationSchemaBuilder)
     }
 
     private
     fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
-        getLayoutFor(BuildLayoutConfiguration(gradle.startParameter)).settingsDir
+        getLayoutFor(gradle.startParameter.toBuildLayoutConfiguration()).settingsDir
+}
+
+internal object ProjectServices : ServiceRegistrationProvider {
+
+    @Provides
+    fun createActionBasedModelDefaultsHandler(
+        sharedModelDefaults: SharedModelDefaults,
+        projectLayout: ProjectLayout,
+        projectFeatureDeclarations: ProjectFeatureDeclarations
+    ): ModelDefaultsHandler {
+        return ActionBasedModelDefaultsHandler(
+            sharedModelDefaults as SharedModelDefaultsInternal,
+            projectLayout,
+            projectFeatureDeclarations,
+        )
+    }
 }

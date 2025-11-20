@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -60,18 +61,18 @@ class NormalizedIdentityImmutableTransformExecution extends AbstractTransformExe
     }
 
     @Override
-    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         return TransformWorkspaceIdentity.createNormalizedImmutable(
-            identityInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
-            identityFileInputs.get(INPUT_ARTIFACT_PROPERTY_NAME),
-            identityInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            identityFileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
+            scalarInputs.get(INPUT_ARTIFACT_PATH_PROPERTY_NAME),
+            fileInputs.get(INPUT_ARTIFACT_PROPERTY_NAME),
+            scalarInputs.get(SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+            fileInputs.get(DEPENDENCIES_PROPERTY_NAME).getHash()
         );
     }
 
     @Override
-    public void visitIdentityInputs(InputVisitor visitor) {
-        super.visitIdentityInputs(visitor);
+    public void visitImmutableInputs(InputVisitor visitor) {
+        super.visitImmutableInputs(visitor);
         visitInputArtifact(visitor);
     }
 }

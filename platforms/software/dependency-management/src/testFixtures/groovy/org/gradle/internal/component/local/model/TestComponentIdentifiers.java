@@ -18,7 +18,6 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectIdentity;
@@ -30,12 +29,8 @@ public class TestComponentIdentifiers {
     }
 
     public static ProjectComponentIdentifier newProjectId(String buildPath, String projectPath) {
-        Path path = Path.path(projectPath);
-        String name = path.getName();
-        if (name == null) {
-            name = "root";
-        }
-        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(Path.path(buildPath)), path, path, name);
+        ProjectIdentity id = projectIdFor(Path.path(buildPath), Path.path(projectPath));
+        return new DefaultProjectComponentIdentifier(id);
     }
 
     public static ProjectComponentSelector newSelector(String projectPath) {
@@ -43,11 +38,17 @@ public class TestComponentIdentifiers {
     }
 
     public static ProjectComponentSelector newSelector(String buildPath, String projectPath) {
-        Path path = Path.path(projectPath);
-        String name = path.getName();
-        if (name == null) {
-            name = "root";
+        ProjectIdentity id = projectIdFor(Path.path(buildPath), Path.path(projectPath));
+        return new DefaultProjectComponentSelector(id, ImmutableAttributes.EMPTY, ImmutableSet.of());
+    }
+
+    private static ProjectIdentity projectIdFor(Path buildPath, Path projectPath) {
+        ProjectIdentity id;
+        if (projectPath.getName() == null) {
+            id = ProjectIdentity.forRootProject(buildPath, "root");
+        } else {
+            id = ProjectIdentity.forSubproject(buildPath, projectPath);
         }
-        return new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(Path.path(buildPath)), path, path, name), ImmutableAttributes.EMPTY, ImmutableSet.of());
+        return id;
     }
 }

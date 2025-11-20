@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.tooling.r34
 
-import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -29,17 +27,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @Issue("https://github.com/gradle/gradle/issues/1180")
     def "can load custom action from url containing whitespaces"() {
         setup:
-        toolingApi.requireIsolatedDaemons()
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder).withWarningMode(null), temporaryFolder.testDirectory.file("action"))
-        builder.sourceFile('ActionImpl.java') << """
-            public class ActionImpl implements ${BuildAction.name}<Void> {
-                public Void execute(${BuildController.name} controller) {
-                    return null;
-                }
-            }
-        """
-        def jar = temporaryFolder.file("work folder", "action-impl.jar")
-        builder.buildJar(jar)
+        def jar = getActionJarWithSpacesInPath()
 
         when:
         def classloader = new URLClassLoader([jar.toURL()] as URL[], getClass().classLoader)
@@ -53,5 +41,37 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         cleanup:
         classloader?.close()
+    }
+
+    private File getActionJarWithSpacesInPath() {
+        file("other/settings.gradle") << """
+            rootProject.name = 'other'
+        """
+        file("other/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(gradleApi())
+            }
+            base {
+                libsDirectory = layout.buildDirectory.dir("li bs")
+            }
+        """
+        file('other/src/main/java/ActionImpl.java') << """
+            public class ActionImpl implements ${BuildAction.name}<Void> {
+                public Void execute(${BuildController.name} controller) {
+                    return null;
+                }
+            }
+        """
+
+        connector(file("other"))
+            .connect()
+            .newBuild()
+            .forTasks("jar")
+            .run()
+
+        return file("other/build/li bs/other.jar")
     }
 }

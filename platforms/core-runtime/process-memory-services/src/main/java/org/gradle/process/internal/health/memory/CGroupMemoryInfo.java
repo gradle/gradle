@@ -24,18 +24,28 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 public class CGroupMemoryInfo implements OsMemoryInfo {
-    private static final String CGROUP_MEM_USAGE_FILE = "/sys/fs/cgroup/memory/memory.usage_in_bytes";
-    private static final String CGROUP_MEM_TOTAL_FILE = "/sys/fs/cgroup/memory/memory.limit_in_bytes";
+    private static final String CG1_MEM_USAGE_FILE = "/sys/fs/cgroup/memory/memory.usage_in_bytes";
+    private static final String CG1_MEM_TOTAL_FILE = "/sys/fs/cgroup/memory/memory.limit_in_bytes";
+    private static final String CG2_MEM_USAGE_FILE = "/sys/fs/cgroup/memory.current";
+    private static final String CG2_MEM_TOTAL_FILE = "/sys/fs/cgroup/memory.max";
 
     @Override
     public OsMemoryStatus getOsSnapshot() {
-        String memUsageString = readStringFromFile(new File(CGROUP_MEM_USAGE_FILE));
-        String memTotalString = readStringFromFile(new File(CGROUP_MEM_TOTAL_FILE));
-
-        return getOsSnapshotFromCgroup(memUsageString, memTotalString);
+        File cg2Usage = new File(CG2_MEM_USAGE_FILE);
+        File cg2Total = new File(CG2_MEM_TOTAL_FILE);
+        if (cg2Usage.exists() && cg2Total.exists()) {
+            return getOsSnapshotFromCgroup(
+                readStringFromFile(cg2Usage),
+                readStringFromFile(cg2Total)
+            );
+        }
+        return getOsSnapshotFromCgroup(
+            readStringFromFile(new File(CG1_MEM_USAGE_FILE)),
+            readStringFromFile(new File(CG1_MEM_TOTAL_FILE))
+        );
     }
 
-    private String readStringFromFile(File file) {
+    private static String readStringFromFile(File file) {
         try {
             return Files.asCharSource(file, Charset.defaultCharset()).readFirstLine();
         } catch (IOException e) {
@@ -51,6 +61,7 @@ public class CGroupMemoryInfo implements OsMemoryInfo {
 
         try {
             memUsage = Long.parseLong(memUsageString);
+            // cgroup v2 unlimited case where memory.max == "max" is also covered by this
             memTotal = Long.parseLong(memTotalString);
             memAvailable = Math.max(0, memTotal - memUsage);
         } catch (NumberFormatException e) {

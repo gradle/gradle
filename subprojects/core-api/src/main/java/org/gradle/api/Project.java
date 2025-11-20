@@ -50,7 +50,6 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.jspecify.annotations.Nullable;
@@ -394,8 +393,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return A map from child project name to child project. Returns an empty map if this project does not have
      * any children.
      */
-    @ForExternalUse
-    // See ProjectInternal#getChildProjects
     Map<String, Project> getChildProjects();
 
     /**
@@ -571,7 +568,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Task task(String name, Action<? super Task> configureAction);
 
     /**
-     * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
+     * <p>Returns the path of this project, starting with ':'. See {@link org.gradle.api.initialization.Settings#include(String...)}
+     * for more information about project paths.</p>
      *
      * @return The path. Never returns null.
      */
@@ -1012,10 +1010,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>This provider is always <a href="provider/Provider.html#configuration-cache">computed and its value is cached</a> by the Configuration Cache.
      * If this provider is created at configuration time, the {@link Callable} may call configuration-time only APIs and capture objects of arbitrary types.
      * <p>This can be useful when you need to lazily compute some value to use at execution time based on configuration-time only data. For example, you can compute an archive name based on the name
-     * of the project:
+     * and the version of the project:
      * <pre class='autoTested'>
      *   tasks.register("createArchive") {
-     *       def archiveNameProvider = project.provider { project.name + ".jar" }
+     *       def archiveNameProvider = project.provider { project.name + "-" + project.version + ".jar" }
      *       doLast {
      *           def archiveName = new File(archiveNameProvider.get())
      *           // ... create the archive and put in its contents.
@@ -1731,7 +1729,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param type The type of objects for the container to contain.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type);
 
     /**
@@ -1743,7 +1744,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param factory The factory to use to create object instances.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class, NamedDomainObjectFactory)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory);
 
     /**
@@ -1756,7 +1760,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param factoryClosure The closure to use to create object instances.
      * @param <T> The type of objects for the container to contain.
      * @return The container.
+     *
+     * @deprecated Use {@link ObjectFactory#domainObjectContainer(Class, NamedDomainObjectFactory)} instead.
      */
+    @Deprecated
     <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
 
     /**

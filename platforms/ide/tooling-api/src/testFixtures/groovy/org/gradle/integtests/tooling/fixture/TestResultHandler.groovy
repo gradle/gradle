@@ -38,11 +38,11 @@ class TestResultHandler implements ResultHandler<Object>, BlockingHttpServer.Fai
         latch.countDown()
     }
 
-    def finished() {
+    void finished() {
         finished(20)
     }
 
-    def finished(int seconds) {
+    void finished(int seconds) {
         if (!latch.await(seconds, TimeUnit.SECONDS)) {
             throw new AssertionError("Timeout waiting for operation to complete.")
         }

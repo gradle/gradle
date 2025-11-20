@@ -22,19 +22,15 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.ListProperty
-
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
-
 import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
-
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.NameUtils
-
 import java.io.File
 import java.util.Locale
 
@@ -119,7 +115,7 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
     }
 
     val hashString by lazy {
-        PrecompiledScriptDependenciesResolver.hashOfNormalisedString(scriptText)
+        KotlinScriptHashing.hashOfNormalisedString(scriptText)
     }
 
     val scriptText: String
@@ -236,6 +232,28 @@ private
 val packageParsingAbortIdentifiers = setOf("import", "buildscript", "plugins", "pluginManagement", "initscript")
 
 
+// Set of tokens that indicate we've gone too far past where a package declaration could appear.
+// Extracted as a module-level constant to avoid creating a new Set instance on every method call.
+private
+val tokensToStopAt = setOf(
+    KtTokens.IMPORT_KEYWORD,
+    // Using LBRACE instead of CLASS_KEYWORD/INTERFACE_KEYWORD/OBJECT_KEYWORD because:
+    // 1. File annotations (like @file:OptIn(SomeClass::class)) can contain the keyword "class"
+    //    without representing an actual class declaration
+    // 2. All meaningful declarations (class, interface, object, function) that indicate
+    //    we're past the package declaration will have a left brace '{' token
+    // 3. File annotations cannot contain brace tokens, so this reliably distinguishes
+    //    between keywords in annotations vs actual declarations
+    KtTokens.LBRACE,
+    KtTokens.VAL_KEYWORD,
+    KtTokens.VAR_KEYWORD,
+    KtTokens.WHILE_KEYWORD,
+    KtTokens.FOR_KEYWORD,
+    KtTokens.DO_KEYWORD,
+    KtTokens.TYPE_ALIAS_KEYWORD,
+)
+
+
 private
 fun KotlinLexer.tooLateForPackageStatement(): Boolean {
     // based on https://kotlinlang.org/docs/reference/grammar.html#script
@@ -244,19 +262,7 @@ fun KotlinLexer.tooLateForPackageStatement(): Boolean {
         return true
     }
 
-    return tokenType in setOf(
-        KtTokens.IMPORT_KEYWORD,
-        KtTokens.CLASS_KEYWORD,
-        KtTokens.INTERFACE_KEYWORD,
-        KtTokens.OBJECT_KEYWORD,
-        KtTokens.FUN_KEYWORD,
-        KtTokens.VAL_KEYWORD,
-        KtTokens.VAR_KEYWORD,
-        KtTokens.WHILE_KEYWORD,
-        KtTokens.FOR_KEYWORD,
-        KtTokens.DO_KEYWORD,
-        KtTokens.TYPE_ALIAS_KEYWORD,
-    )
+    return tokenType in tokensToStopAt
 }
 
 

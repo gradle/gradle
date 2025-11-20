@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 
 class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    ResolveTestFixture resolve
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
     MavenHttpModule module
 
     def setup() {
@@ -35,13 +35,12 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
                 maven { url = '${mavenHttpRepo.uri}' }
             }
 
+            ${resolve.configureProject("compileClasspath")}
+
             dependencies {
                 api 'org:producer:1.0'
             }
         """
-
-        resolve = new ResolveTestFixture(buildFile, 'compileClasspath')
-        resolve.prepare()
 
         module = mavenHttpRepo.module('org', 'producer', '1.0')
                 .withModuleMetadata()

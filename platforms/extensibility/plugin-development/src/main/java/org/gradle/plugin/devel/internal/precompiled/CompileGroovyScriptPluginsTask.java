@@ -17,11 +17,11 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -55,8 +55,7 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
     private final Provider<Directory> intermediatePluginMetadataDirectory;
 
     public CompileGroovyScriptPluginsTask() {
-        Project project = getProject();
-        DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
+        DirectoryProperty buildDir = getProjectLayout().getBuildDirectory();
         this.intermediatePluginClassesDirectory = buildDir.dir("groovy-dsl-plugins/work/classes");
         this.intermediatePluginMetadataDirectory = buildDir.dir("groovy-dsl-plugins/work/metadata");
     }
@@ -72,6 +71,9 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
 
     @Inject
     abstract protected CompileOperationFactory getCompileOperationFactory();
+
+    @Inject
+    abstract protected ProjectLayout getProjectLayout();
 
     @InputFiles
     @SkipWhenEmpty

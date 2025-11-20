@@ -76,7 +76,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     BuildCacheController getController(boolean disableRemoteOnError = true) {
         new DefaultBuildCacheController(
             new BuildCacheServicesConfiguration(
-                Path.ROOT.path,
+                Path.ROOT.asString(),
                 local,
                 localPush,
                 remote,

@@ -22,15 +22,22 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
-    private ResolveTestFixture resolve
 
     def setup() {
         settingsFile << 'rootProject.name = "test"'
         buildFile << """
-            configurations { conf }
+            plugins {
+                id("jvm-ecosystem")
+            }
+
+            configurations {
+                conf
+            }
+
             repositories {
                 maven { url = "${mavenRepo.uri}" }
             }
+
             task resolvedFiles {
                 dependsOn 'dependencies'
                 def files = configurations.conf
@@ -40,8 +47,6 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        resolve = new ResolveTestFixture(buildFile)
-        resolve.addDefaultVariantDerivationStrategy()
     }
 
     //publishes and declares the dependencies
@@ -417,6 +422,12 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can provide custom replacement reason"() {
+        ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
+
+        buildFile << """
+            ${resolve.configureProject("conf")}
+        """
+
         declaredDependencies 'a', 'b'
         if (custom) {
             declaredReplacementWithReason('a->b', 'A replaced with B')
@@ -438,11 +449,9 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
 org:a:1 -> org:b:1""")
 
         when:
-        resolve.prepare("conf")
         run "checkDeps"
 
         then:
-        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:a:1", "org:b:1") {

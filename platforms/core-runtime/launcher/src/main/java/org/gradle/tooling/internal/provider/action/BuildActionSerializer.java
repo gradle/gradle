@@ -119,7 +119,7 @@ public class BuildActionSerializer {
             fileListSerializer.write(encoder, startParameter.getIncludedBuilds());
 
             // Other stuff
-            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectProperties());
+            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectPropertiesUntracked());
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getSystemPropertiesArgs());
             fileListSerializer.write(encoder, startParameter.getInitScripts());
             stringListSerializer.write(encoder, startParameter.getLockedDependenciesToUpdate());
@@ -146,9 +146,12 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
             encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
             encoder.writeBoolean(startParameter.isConfigurationCacheParallel());
+            encoder.writeBoolean(startParameter.isConfigurationCacheReadOnly());
             encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
             encoder.writeBoolean(startParameter.isConfigurationCacheIntegrityCheckEnabled());
             encoder.writeSmallInt(startParameter.getConfigurationCacheEntriesPerKey());
+            encoder.writeNullableString(startParameter.getConfigurationCacheHeapDumpDir());
+            encoder.writeBoolean(startParameter.isConfigurationCacheFineGrainedPropertyTracking());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeLong(startParameter.getContinuousBuildQuietPeriod().toMillis());
@@ -163,6 +166,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isPropertyUpgradeReportEnabled());
             encoder.writeBoolean(startParameter.isProblemReportGenerationEnabled());
             encoder.writeBoolean(startParameter.isTaskGraph());
+            encoder.writeBoolean(startParameter.isDaemonJvmCriteriaConfigured());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -237,9 +241,12 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCacheDebug(decoder.readBoolean());
             startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
             startParameter.setConfigurationCacheParallel(decoder.readBoolean());
+            startParameter.setConfigurationCacheReadOnly(decoder.readBoolean());
             startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
             startParameter.setConfigurationCacheIntegrityCheckEnabled(decoder.readBoolean());
             startParameter.setConfigurationCacheEntriesPerKey(decoder.readSmallInt());
+            startParameter.setConfigurationCacheHeapDumpDir(decoder.readNullableString());
+            startParameter.setConfigurationCacheFineGrainedPropertyTracking(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(decoder.readLong()));
@@ -257,6 +264,7 @@ public class BuildActionSerializer {
             startParameter.setPropertyUpgradeReportEnabled(decoder.readBoolean());
             startParameter.enableProblemReportGeneration(decoder.readBoolean());
             startParameter.setTaskGraph(decoder.readBoolean());
+            startParameter.setDaemonJvmCriteriaConfigured(decoder.readBoolean());
 
             return startParameter;
         }

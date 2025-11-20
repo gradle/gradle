@@ -24,9 +24,10 @@ dependencies {
     api(projects.toolingApi)
 
     implementation(projects.baseServices)
+    implementation(projects.buildDiscovery)
+    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
-    implementation(projects.coreApi)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.launcher)
     implementation(projects.logging)
@@ -36,6 +37,7 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
 
-    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.jspecify)
 }

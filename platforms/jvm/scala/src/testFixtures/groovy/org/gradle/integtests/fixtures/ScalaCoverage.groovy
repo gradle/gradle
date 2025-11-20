@@ -27,14 +27,14 @@ class ScalaCoverage {
 
     static final List<String> SCALA_2 = [
         "2.11.12",
-        "2.12.19",
+        "2.12.20",
         "2.13.16",
     ]
     static final List<String> SCALA_3 = [
         "3.1.3",
         "3.2.2",
-        "3.3.5",
-        "3.6.3",
+        "3.3.6",
+        "3.7.1",
     ]
 
 
@@ -80,6 +80,9 @@ class ScalaCoverage {
     }
 
     private static Set<String> scala3VersionsSupportedByJdk(JavaVersion javaVersion) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
+            return VersionCoverage.versionsAtLeast(SCALA_3, "3.7.1")
+        }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
             return VersionCoverage.versionsAtLeast(SCALA_3, "3.6.4") // The version here also needs to not trigger the Unsafe warnings (https://openjdk.org/jeps/498).
         }

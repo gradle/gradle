@@ -27,7 +27,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, Capability>> {
@@ -58,7 +57,6 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         };
     }
 
-    @NonNull
     @Override
     public CapabilityNotationParser create() {
         // Currently the converter is stateless, doesn't need any external context, so for performance we return a singleton
@@ -104,6 +102,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
         }
 
+        @SuppressWarnings("unused") // reflection
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
                                       @MapKey("version") String version) {
@@ -117,6 +116,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
         }
 
+        @SuppressWarnings("unused") // reflection
         protected Capability parseMap(@MapKey("group") String group,
                                       @MapKey("name") String name,
                                       @MapKey("version") @Nullable String version) {

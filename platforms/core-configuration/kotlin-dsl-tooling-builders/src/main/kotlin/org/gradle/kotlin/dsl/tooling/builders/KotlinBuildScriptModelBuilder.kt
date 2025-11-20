@@ -40,22 +40,21 @@ import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.execution.EvalOption
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import org.gradle.kotlin.dsl.provider.runCatching
 import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 import java.io.PrintWriter
@@ -156,7 +155,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
             (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
-            modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
+            modelRequestProject.resolveCorrelationIdParameter()
         )
 }
 
@@ -242,7 +241,7 @@ fun implicitImportsFrom(file: File): List<String> =
 
 private
 fun hashOf(scriptFile: File) =
-    PrecompiledScriptDependenciesResolver.hashOf(scriptFile.readText())
+    KotlinScriptHashing.hashOf(scriptFile.readText())
 
 
 private

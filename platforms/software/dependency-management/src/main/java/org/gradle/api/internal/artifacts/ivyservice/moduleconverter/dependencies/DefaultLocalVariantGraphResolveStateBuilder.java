@@ -27,11 +27,12 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -48,6 +49,7 @@ import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -106,8 +108,10 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         // However, changing this prevents conflicts between code being compiled and its
         // dependencies from being detected during compilation -- though this also
         // can lead to some false positives.
+        VariantIdentifier id = new NamedVariantIdentifier(componentId, configuration.getName());
         ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
         LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
+            id,
             configuration.getName(),
             configuration.isTransitive(),
             attributes,
@@ -117,7 +121,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
 
         return new DefaultLocalVariantGraphResolveState(
             idGenerator.nextVariantId(),
-            componentId,
             metadata,
             dependencies,
             Collections.emptySet()
@@ -165,7 +168,9 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             calculatedValueContainerFactory
         );
 
+        VariantIdentifier id = new NamedVariantIdentifier(componentId, configuration.getName());
         LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
+            id,
             configurationName,
             configuration.isTransitive(),
             attributes,
@@ -175,7 +180,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
 
         return new DefaultLocalVariantGraphResolveState(
             idGenerator.nextVariantId(),
-            componentId,
             metadata,
             dependencies,
             artifactSets.build()
@@ -308,8 +312,8 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ImmutableList<LocalOriginDependencyMetadata> dependencies,
         ImmutableAttributes attributes
     ) {
-        AttributeValue<Category> attributeValue = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
-        if (!attributeValue.isPresent() || !attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
+        ImmutableAttributesEntry<Category> entry = attributes.findEntry(Category.CATEGORY_ATTRIBUTE);
+        if (entry == null || !entry.getIsolatedValue().getName().equals(Category.ENFORCED_PLATFORM)) {
             return dependencies;
         }
 
@@ -362,10 +366,10 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
     /**
      * Default implementation of {@link LocalFileDependencyMetadata}.
      */
-    private static class DefaultLocalFileDependencyMetadata implements LocalFileDependencyMetadata {
+    public static class DefaultLocalFileDependencyMetadata implements LocalFileDependencyMetadata {
         private final FileCollectionDependency fileDependency;
 
-        DefaultLocalFileDependencyMetadata(FileCollectionDependency fileDependency) {
+        public DefaultLocalFileDependencyMetadata(FileCollectionDependency fileDependency) {
             this.fileDependency = fileDependency;
         }
 

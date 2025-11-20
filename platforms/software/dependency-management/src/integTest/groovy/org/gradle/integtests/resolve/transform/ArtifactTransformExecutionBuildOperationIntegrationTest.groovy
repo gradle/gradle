@@ -470,7 +470,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                         }
                     }
                 }
-                resolve.dependsOn(':consumer1:resolve')
+                tasks.resolve.dependsOn(':consumer1:resolve')
             }
         """
 
@@ -535,7 +535,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                         }
                     }
                 }
-                resolve.dependsOn(':consumer1:resolve')
+                tasks.resolve.dependsOn(':consumer1:resolve')
             }
         """
 
@@ -599,7 +599,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                         }
                     }
                 }
-                resolve.dependsOn(':consumer1:resolve')
+                tasks.resolve.dependsOn(':consumer1:resolve')
             }
         """
 

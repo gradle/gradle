@@ -156,7 +156,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         run("merge")
 
         then:
-        result.assertTasksExecuted(":produce1", ":produce2", ":merge")
+        result.assertTasksScheduled(":produce1", ":produce2", ":merge")
         file("merge.txt").text == "one,two"
     }
 
@@ -281,7 +281,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         run 'copy'
 
         then:
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'three.txt'
@@ -323,7 +323,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         run 'copy'
 
         then:
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'three.txt'
@@ -365,7 +365,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         run "sync"
 
         then:
-        result.assertTaskNotSkipped(":sync")
+        result.assertTaskExecuted(":sync")
         file("output").assertHasDescendants("file1.txt", "file3.txt")
     }
 
@@ -406,7 +406,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         run "sync"
 
         then:
-        result.assertTaskNotSkipped(":sync")
+        result.assertTaskExecuted(":sync")
         file("output").assertHasDescendants("file1.txt", "file3.txt")
     }
 
@@ -556,7 +556,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         then:
         outputContains 'Transforming p1.zip'
         outputContains 'Transforming p2.zip'
-        result.assertTasksExecuted ':p1:produce', ':p1:zip', ':p2:produce', ':p2:zip', ':merge'
+        result.assertTasksScheduled ':p1:produce', ':p1:zip', ':p2:produce', ':p2:zip', ':merge'
         file('merge.txt').text == 'p1.zip,p2.zip'
     }
 
@@ -603,7 +603,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         then:
         outputContains 'Transforming p1.zip'
         outputContains 'Transforming p2.zip'
-        result.assertTasksExecuted ':p1:produce', ':p1:zip', ':p2:produce', ':p2:zip', ':merge'
+        result.assertTasksScheduled ':p1:produce', ':p1:zip', ':p2:produce', ':p2:zip', ':merge'
         file('merge.txt').text == 'p1.zip,p2.zip'
     }
 

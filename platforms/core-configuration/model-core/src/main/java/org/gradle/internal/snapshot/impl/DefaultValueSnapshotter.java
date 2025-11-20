@@ -71,7 +71,7 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
 
         @Override
         public ValueSnapshot booleanValue(Boolean value) {
-            return value.equals(Boolean.TRUE) ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
+            return value ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
         }
 
         @Override

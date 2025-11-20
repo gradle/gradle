@@ -35,7 +35,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDependencyResolveTest implements PluginDslSupport {
+class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDependencyResolveTest {
     boolean isDeclareRepositoriesInSettings() {
         true
     }
@@ -272,8 +272,14 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 
         """
 
-        withPlugins(['org.gradle.repo-conventions': '1.0'])
-        buildFile << """
+        def buildFileText = buildFile.text
+        buildFile.text = """
+            plugins {
+                id("org.gradle.repo-conventions").version("1.0")
+            }
+
+            ${buildFileText}
+
             dependencies {
                 conf 'org:module:1.0'
             }
@@ -601,8 +607,8 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         fails ':help'
 
         then:
-        result.assertTaskExecuted(':buildSrc:jar')
-        result.assertTaskNotExecuted(':help')
+        result.assertTaskScheduled(':buildSrc:jar')
+        result.assertTasksNotScheduled(':help')
         failure.assertHasCause('Cannot resolve external dependency org:module:1.0 because no repositories are defined.')
     }
 
@@ -767,7 +773,14 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             'org:module:1.0'()
         }
 
-        withPlugins(['org.gradle.test.hello-world': '1.0'])
+        def buildFileText = buildFile.text
+        buildFile.text = """
+            plugins {
+                id("org.gradle.test.hello-world").version("1.0")
+            }
+
+            ${buildFileText}
+        """
 
         when:
         plugin.allowAll()

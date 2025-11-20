@@ -112,6 +112,22 @@ fun Requirements.requiresNotSharedHost() {
  */
 const val HIDDEN_ARTIFACT_DESTINATION = ".teamcity/gradle-logs"
 
+fun BuildType.addEc2PostBuild(os: Os = Os.LINUX) {
+    if (os !in listOf(Os.WINDOWS, Os.MACOS)) {
+        steps {
+            exec {
+                name = "EC2_POST_BUILD"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                path = ".teamcity/scripts/post_build_on_ec2.sh"
+
+                conditions {
+                    requiresEc2Agent()
+                }
+            }
+        }
+    }
+}
+
 fun BuildType.applyDefaultSettings(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -126,6 +142,8 @@ fun BuildType.applyDefaultSettings(
         build/report-* => $HIDDEN_ARTIFACT_DESTINATION
         build/tmp/teŝt files/** => $HIDDEN_ARTIFACT_DESTINATION/teŝt-files
         build/errorLogs/** => $HIDDEN_ARTIFACT_DESTINATION/errorLogs
+        artifact-cache-metrics => artifact-cache-metrics
+        artifact-cache-report => artifact-cache-report
         build/reports/configuration-cache/**/configuration-cache-report.html
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         testing/architecture-test/build/reports/binary-compatibility/report.html => binary-compatibility-reports
@@ -205,8 +223,6 @@ fun BuildType.paramsForBuildToolBuild(
 ) {
     params {
         param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
-        param("env.GRADLE_CACHE_REMOTE_SERVER", "%gradle.cache.remote.server%")
-
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
@@ -332,10 +348,11 @@ fun functionalTestParameters(
 ): List<String> =
     listOf(
         "-PteamCityBuildId=%teamcity.build.id%",
-        os.javaInstallationLocations(arch),
+        "-Dorg.gradle.java.installations.auto-download=false",
         "-Porg.gradle.java.installations.auto-download=false",
+        "-Dorg.gradle.java.installations.auto-detect=false",
         "-Porg.gradle.java.installations.auto-detect=false",
-    )
+    ) + os.javaInstallationLocations(arch)
 
 fun promotionBuildParameters(
     dependencyBuildId: RelativeId,
@@ -380,7 +397,13 @@ fun BuildSteps.killProcessStep(
                     arch,
                 )
             }/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
-            if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
+            if (os ==
+                Os.WINDOWS
+            ) {
+                "\npowershell -Command \"Get-CimInstance -ClassName Win32_Process -Filter \\\"Name = 'java.exe'\\\" | Select-Object ProcessId, Name, CommandLine | Format-List\""
+            } else {
+                ""
+            }
         skipConditionally(buildType)
         if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
             onlyRunOnGitHubMergeQueueBranch()

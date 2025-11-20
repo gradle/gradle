@@ -45,7 +45,7 @@ class JavaCompilerDaemonFailureIntegrationTest extends AbstractIntegrationSpec {
         fails("compileJava")
 
         then:
-        failure.assertTasksExecuted(":compileJava")
+        failure.assertTasksScheduled(":compileJava")
 
         and:
         def compileJavaOperation = buildOperations.first(CompileJavaBuildOperationType)

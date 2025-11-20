@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -34,11 +33,11 @@ public class ModuleForcingResolveRule implements Action<DependencySubstitutionIn
 
     private final Map<ModuleIdentifier, String> forcedModules;
 
-    public ModuleForcingResolveRule(Collection<? extends ModuleVersionSelector> forcedModules) {
+    public ModuleForcingResolveRule(Collection<? extends ModuleComponentSelector> forcedModules) {
         if (!forcedModules.isEmpty()) {
             this.forcedModules = new HashMap<>();
-            for (ModuleVersionSelector module : forcedModules) {
-                this.forcedModules.put(module.getModule(), module.getVersion());
+            for (ModuleComponentSelector module : forcedModules) {
+                this.forcedModules.put(module.getModuleIdentifier(), module.getVersion());
             }
         } else {
             this.forcedModules = null;

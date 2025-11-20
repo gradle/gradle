@@ -1,3 +1,20 @@
 ++++
-<meta http-equiv="refresh" content="0;URL=getting_started_dep_man.html#dependency-management-in-gradle">
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+  "dependency_management_in_gradle": "getting_started_dep_man.html#dependency-management-in-gradle",
+  "sec:dependency-mgmt-in-gradle": "getting_started_dep_man.html#dependency-management-in-gradle"
+};
+
+const defaultRedirect = "getting_started_dep_man.html#dependency-management-in-gradle";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
 ++++

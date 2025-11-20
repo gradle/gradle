@@ -17,7 +17,7 @@
 package org.gradle.performance
 
 import groovy.transform.CompileStatic
-import org.apache.mina.util.AvailablePortFinder
+import org.eclipse.jetty.server.NetworkConnector
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.resource.Resource
 import org.eclipse.jetty.webapp.WebAppContext
@@ -27,7 +27,6 @@ import org.gradle.performance.fixture.TestProjectLocator
 @CompileStatic
 trait WithExternalRepository {
     Server server
-    int serverPort
 
     File getRepoDir() {
         new File(TestProjectLocator.findProjectDir(runner.testProject), 'repository')
@@ -44,8 +43,7 @@ trait WithExternalRepository {
 
     void startServer() {
         try {
-            serverPort = AvailablePortFinder.getNextAvailable(5000)
-            server = new Server(serverPort)
+            server = new Server(0)
             WebAppContext context = createContext()
             context.setContextPath("/")
             context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
@@ -58,5 +56,15 @@ trait WithExternalRepository {
 
     void stopServer() {
         server?.stop()
+    }
+
+    int getServerPort() {
+        Objects.requireNonNull(server?.connectors, "No server connectors available to search for a local port")
+        for (var c in server.connectors) {
+            if (c instanceof NetworkConnector) {
+                return c.localPort
+            }
+        }
+        throw new IllegalStateException("No connector has a local port: " + server.connectors)
     }
 }

@@ -59,20 +59,18 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Composit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolutionFailureCollector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
@@ -289,11 +287,9 @@ public class ResolutionExecutor {
         BinaryStore oldModelStore = stores.nextBinaryStore();
         Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
         TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache, moduleIdentifierFactory, buildOperationExecutor, params.getResolutionHost());
-        DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-        ResolvedConfigurationDependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
 
         BinaryStore newModelStore = stores.nextBinaryStore();
-        Store<ResolvedComponentResultInternal> newModelCache = stores.newModelCache();
+        Store<ResolvedDependencyGraph> newModelCache = stores.newModelCache();
         StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, attributeContainerSerializer, capabilitySelectorSerializer, componentResultSerializer, componentSelectionDescriptorFactory, params.getIncludeAllSelectableVariantResults());
 
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
@@ -313,7 +309,7 @@ public class ResolutionExecutor {
 
         ComponentResolvers resolvers = getResolvers(params, legacyParams, repositories);
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
-            oldModelVisitor, artifactsBuilder
+            oldTransientModelBuilder, artifactsBuilder
         ));
         graphVisitors.add(artifactVisitorFor(artifactVisitors, params.getArtifactTypeRegistry()));
 

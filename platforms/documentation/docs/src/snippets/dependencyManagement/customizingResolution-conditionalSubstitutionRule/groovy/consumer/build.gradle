@@ -14,7 +14,7 @@ plugins {
 }
 
 // tag::project_substitution[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.dependencySubstitution.all { DependencySubstitution dependency ->
         if (dependency.requested instanceof ModuleComponentSelector && dependency.requested.group == "org.example") {
             def targetProject = findProject(":${dependency.requested.module}")

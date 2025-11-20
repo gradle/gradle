@@ -18,7 +18,7 @@ package org.gradle.internal.instrumentation.extensions.property
 
 import com.google.testing.compile.Compilation
 import org.gradle.internal.instrumentation.InstrumentationCodeGenTest
-import org.gradle.util.TestUtil
+import org.gradle.test.fixtures.ExpectDeprecation
 import spock.lang.Issue
 
 import static com.google.testing.compile.CompilationSubject.assertThat
@@ -70,6 +70,7 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
              import org.gradle.api.Generated;
 
              @Generated
+             @SuppressWarnings("deprecation")
              public final class \$\$BridgeFor\$\$Task\$\$MaxErrorsAdapter {
                  public static int access_get_getMaxErrors(Task task) {
                      ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
@@ -341,9 +342,8 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
         assertThat(compilation).hadErrorContaining("Adapter method 'org.gradle.test.Task.MaxErrorsAdapter.fifthMethod(int)' should have first parameter of type 'org.gradle.test.Task', but first parameter is of type 'int'.")
     }
 
+    @ExpectDeprecation("The Task.maxErrors property has been deprecated.")
     def "should correctly intercept Java code"() {
-        TestUtil.initDeprecationLogger("because the property is deprecated after provider API migration.")
-
         given:
         def newTask = source """
             package org.gradle.test;
@@ -419,9 +419,8 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29539")
+    @ExpectDeprecation("The Task.maxErrors property has been deprecated.")
     def "should intercept and bridge a method with any new return type"() {
-        TestUtil.initDeprecationLogger("because the property is deprecated after provider API migration.")
-
         given:
         def newTask = source """
             package org.gradle.test;

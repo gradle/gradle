@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -66,17 +67,17 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
     }
 
     @Override
-    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+    protected TransformWorkspaceIdentity createIdentity(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         return TransformWorkspaceIdentity.createMutable(
             normalizeAbsolutePath(inputArtifact.getAbsolutePath()),
             producerBuildTreePath,
-            identityInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
-            identityFileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
+            scalarInputs.get(AbstractTransformExecution.SECONDARY_INPUTS_HASH_PROPERTY_NAME),
+            fileInputs.get(AbstractTransformExecution.DEPENDENCIES_PROPERTY_NAME).getHash()
         );
     }
 
     @Override
-    public void visitRegularInputs(InputVisitor visitor) {
+    public void visitMutableInputs(InputVisitor visitor) {
         visitInputArtifact(visitor);
     }
 
@@ -86,5 +87,12 @@ class MutableTransformExecution extends AbstractTransformExecution implements Mu
             return path.substring(rootProjectLocation.length());
         }
         return path;
+    }
+
+    @Override
+    public ExecutionBehavior getExecutionBehavior() {
+        return transform.requiresInputChanges()
+            ? ExecutionBehavior.INCREMENTAL
+            : ExecutionBehavior.NON_INCREMENTAL;
     }
 }

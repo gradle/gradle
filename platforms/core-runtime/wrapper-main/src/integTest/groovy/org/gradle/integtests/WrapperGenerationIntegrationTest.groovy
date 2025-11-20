@@ -35,7 +35,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("76805e32c009c0cf0dd5d206bddc9fb22ea42e84db904b764f3047de095493f3")
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13")
 
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -124,7 +124,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         run "wrapper", "--gradle-version", "2.2.1", "--rerun-tasks", "--no-validate-url"
 
         then:
-        result.assertTasksExecuted(":wrapper")
+        result.assertTasksScheduled(":wrapper")
         wrapperJar.md5Hash == old(wrapperJar.md5Hash)
         wrapperProperties.text == old(wrapperProperties.text)
     }

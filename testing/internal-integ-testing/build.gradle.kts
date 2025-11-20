@@ -33,7 +33,6 @@ dependencies {
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.dependencyManagement)
     api(projects.hashing)
     api(projects.internalTesting) {
         because("Part of the public API")
@@ -66,6 +65,7 @@ dependencies {
     api(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.junit) {
         because("Part of the public API, used by spock AST transformer")
@@ -85,6 +85,8 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildCache)
+    implementation(projects.buildDiscovery)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
@@ -93,6 +95,7 @@ dependencies {
     implementation(projects.cli)
     implementation(projects.clientServices)
     implementation(projects.daemonServices)
+    implementation(projects.dependencyManagement)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
     implementation(projects.fileCollections)
@@ -116,6 +119,7 @@ dependencies {
     implementation(testFixtures(projects.buildOperations))
     implementation(testFixtures(projects.buildProcessServices))
     implementation(testFixtures(projects.core))
+    implementation(testFixtures(projects.enterpriseLogging))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)
@@ -129,7 +133,6 @@ dependencies {
     implementation(libs.jetty)
     implementation(libs.jettyServlet)
     implementation(libs.littleproxy)
-    implementation(libs.jspecify)
     implementation(libs.mavenResolverSupplier) {
         because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
     }
@@ -148,7 +151,7 @@ dependencies {
     implementation(libs.sshdSftp)
     implementation(platform(libs.sshdSftp))
 
-    compileOnly(projects.configurationCache) {
+    compileOnly(libs.kotlinStdlib) {
         because("""Fixes:
             compiler message file broken: key=compiler.misc.msg.bug arguments=11.0.21, {1}, {2}, {3}, {4}, {5}, {6}, {7}
             java.lang.AssertionError: typeSig ERROR""")
@@ -190,6 +193,7 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
 val copyTestedVersionsInfo by tasks.registering(Copy::class) {
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
+    from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/smoke-tested-plugins.properties"))
     into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }
 

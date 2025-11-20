@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//file:noinspection GrMethodMayBeStatic
 
 package org.gradle.integtests.fixtures.resolve
 
@@ -22,158 +21,311 @@ import groovy.transform.Canonical
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Path
 import org.junit.ComparisonFailure
 
 /**
- * A test fixture that injects a "checkDeps" task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
- * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
+ * A test fixture that produces Groovy build logic that resolves a configuration
+ * and records the state of the dependency graph and resolved artifacts to a file.
+ * After execution, this test fixture can validate the result of resolution against
+ * an expected graph shape.
  */
 class ResolveTestFixture {
-    private static final START_MARKER = "// RESOLVE_TEST_FIXTURE_START"
-    private static final END_MARKER = "// RESOLVE_TEST_FIXTURE_END"
-    final TestFile buildFile
-    String config
-    private String defaultConfig = "default"
-    private boolean buildArtifacts = true
 
-    ResolveTestFixture(TestFile buildFile, String config = "runtimeClasspath") {
-        this.config = config
-        this.buildFile = buildFile
-    }
-
-    ResolveTestFixture withoutBuildingArtifacts() {
-        buildArtifacts = false
-        return this
-    }
-
-    ResolveTestFixture expectDefaultConfiguration(String config) {
-        defaultConfig = config
-        return this
-    }
+    private final TestFile rootDir
 
     /**
-     * Creates a 'checkDeps' task that resolves the given configuration.
+     * @param rootDir The root directory of the build that this test fixture will be used in.
      */
-    void prepare(String configToCheck) {
-        prepare {
-            config(configToCheck, "checkDeps")
-        }
+    ResolveTestFixture(TestFile rootDir) {
+        this.rootDir = rootDir
     }
 
     /**
-     * Injects the appropriate stuff into the build script. By default, creates a 'checkDeps' task that resolves the configuration provided in the constructor.
+     * Create a Groovy code snippet that creates tasks to resolve the
+     * given configurations. The code snippet is intended to be inlined
+     * into a Groovy project buildscript.
+     */
+    static String configureProject(String first, String... rest) {
+        return """
+            ${configureCheckTask()}
+            ${configureProjectTasks(first, rest)}
+        """
+    }
+
+    /**
+     * Create a Groovy code snippet that creates tasks to resolve the
+     * given configurations in all projects of a build. The code snippet
+     * is intended to be inlined into a Groovy settings script.
      *
-     * Prefer {@link #configureSettings()}.
+     * @deprecated Prefer {@link #configureProject(String, String...)}. This method
+     * should only be used when the test setup otherwise prevents the more targeted
+     * project-specific method, for example when a parent project configures child
+     * projects inline, and a configuration in the child project is being resolved.
      */
-    void prepare(@DelegatesTo(CheckTaskBuilder) Closure closure = {}) {
-        Map<String, String> configs = getTaskConfigs(closure)
-
-        def existingScript = buildFile.exists() ? buildFile.text : ""
-        def start = existingScript.indexOf(START_MARKER)
-        def end = existingScript.indexOf(END_MARKER) + END_MARKER.length()
-        if (start >= 0) {
-            existingScript = existingScript.substring(0, start) + existingScript.substring(end, existingScript.length())
-        }
-
-        buildFile.text = """
-            ${buildscriptBlock()}
-            $existingScript
-            $START_MARKER
-            allprojects {
-                ${generateResolveTasks(configs)}
-            }
-            $END_MARKER
-        """
-    }
-
-    private Map<String, String> getTaskConfigs(Closure closure) {
-        def builder = new CheckTaskBuilder()
-        closure.delegate = builder
-        closure.run()
-        if (builder.configs.isEmpty()) {
-            builder.config(config, "checkDeps")
-        }
-        builder.configs
-    }
-
-    private String generateResolveTasks(Map<String, String> configs) {
-        return configs.entrySet().collect {
-            String config = it.key
-            String taskName = it.value
-            """
-                tasks.register("${taskName}", ${GenerateGraphTask.name}) {
-                    it.outputFile = rootProject.file("\${rootProject.buildDir}/last-graph.txt")
-                    it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
-                    it.files.from(configurations.${config})
-
-                    it.incomingFiles = configurations.${config}.incoming.files
-                    it.incomingArtifacts = configurations.${config}.incoming.artifacts
-
-                    it.artifactViewFiles = configurations.${config}.incoming.artifactView { }.files
-                    it.artifactViewArtifacts = configurations.${config}.incoming.artifactView { }.artifacts
-
-                    it.lenientArtifactViewFiles = configurations.${config}.incoming.artifactView { it.lenient = true }.files
-                    it.lenientArtifactViewArtifacts = configurations.${config}.incoming.artifactView { it.lenient = true }.artifacts
-
-                    it.buildArtifacts = ${buildArtifacts}
-                    ${registerInputs(config)}
-                }
-            """
-        }.join("\n")
-    }
-
-    private String buildscriptBlock() {
-        """
-            buildscript {
-                dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
-            }
-        """
-    }
-
-    /**
-     * Returns Groovy code which when added to the Settings file, enables
-     * the resolve test fixture for all projects.
-     */
-    String configureSettings(@DelegatesTo(CheckTaskBuilder) Closure closure = {}) {
-        def configs = getTaskConfigs(closure)
-        """
-            ${buildscriptBlock()}
+    @Deprecated
+    static String configureSettings(String first, String... rest) {
+        return """
+            ${configureCheckTask()}
             gradle.lifecycle.beforeProject {
-                ${generateResolveTasks(configs)}
+                ${configureProjectTasks(first, rest)}
             }
         """
     }
 
-    /**
-     * We only want to add give configuration as a task input if we're building artifacts.
-     *
-     * Some tests, such as {@link CompositeBuildDependencyCycleIntegrationTest}, have a dependency cycle between two projects, and if we add this input, then
-     * the build will fail because of a circular task dependency.  These tests are set up to <strong>NOT</strong> build artifacts, and thus avoid this problem.
-     *
-     * @param config the configuration to add as an input
-     */
-    @SuppressWarnings('GroovyDocCheck')
-    private String registerInputs(Object config) {
-        return buildArtifacts ? "it.inputs.files configurations." + config : ""
+    private static String configureProjectTasks(String first, String... rest) {
+        List<String> allTaskDefinitions = []
+
+        if (rest.length == 0) {
+            allTaskDefinitions << configureTask(first, "checkDeps")
+        } else {
+            allTaskDefinitions << configureTask(first)
+            for (String configurationName : rest) {
+                allTaskDefinitions << configureTask(configurationName)
+            }
+        }
+
+        allTaskDefinitions.join("\n")
     }
 
-    def getResultFile() {
-        buildFile.parentFile.file("build/last-graph.txt")
+    private static String configureTask(
+        String configurationName,
+        String taskName = "check${configurationName.capitalize()}"
+    ) {
+        """
+            tasks.register("${taskName}", GenerateGraphTask) {
+                def configuration = configurations.${configurationName}
+
+                it.outputFile = file("\${buildDir}/last-graph.txt")
+                it.rootComponent = configuration.incoming.resolutionResult.rootComponent
+                it.files.from(configuration)
+
+                it.incomingFiles = configuration.incoming.files
+                it.incomingArtifacts = configuration.incoming.artifacts
+
+                it.artifactViewFiles = configuration.incoming.artifactView { }.files
+                it.artifactViewArtifacts = configuration.incoming.artifactView { }.artifacts
+
+                it.lenientArtifactViewFiles = configuration.incoming.artifactView { it.lenient = true }.files
+                it.lenientArtifactViewArtifacts = configuration.incoming.artifactView { it.lenient = true }.artifacts
+
+                it.inputs.files configuration
+            }
+        """
+    }
+
+    private static String configureCheckTask() {
+        @GroovyBuildScriptLanguage
+        String text = '''
+            abstract class GenerateGraphTask extends DefaultTask {
+                @Internal
+                File outputFile
+
+                @Internal
+                abstract Property<ResolvedComponentResult> getRootComponent()
+
+                @Internal
+                abstract ConfigurableFileCollection getFiles()
+
+                @Internal
+                FileCollection incomingFiles
+
+                @Internal
+                ArtifactCollection incomingArtifacts
+
+                @Internal
+                FileCollection artifactViewFiles
+
+                @Internal
+                ArtifactCollection artifactViewArtifacts
+
+                @Internal
+                FileCollection lenientArtifactViewFiles
+
+                @Internal
+                ArtifactCollection lenientArtifactViewArtifacts
+
+                GenerateGraphTask() {
+                    outputs.upToDateWhen { false }
+                }
+
+                @TaskAction
+                void generateOutput() {
+                    outputFile.parentFile.mkdirs()
+                    //noinspection GroovyMissingReturnStatement
+                    outputFile.withPrintWriter { writer ->
+                        def root = rootComponent.get()
+
+                        def components = new LinkedHashSet()
+                        def dependencies = new LinkedHashSet()
+                        collectAllComponentsAndEdges(root, components, dependencies)
+
+                        // These are always checked regardless of whether or not building artifacts is requested
+                        writeGraphStructure(writer, root, components, dependencies)
+
+                        incomingArtifacts.artifacts.each {
+                            writeArtifact("incoming-artifact-artifact", writer, it)
+                        }
+
+                        files.each {
+                            writeFile("file-file", writer, it)
+                        }
+                        files.filter { true }.each {
+                            writeFile("file-filtered", writer, it)
+                        }
+
+                        incomingFiles.each {
+                            writeFile("incoming-file", writer, it)
+                        }
+                        incomingArtifacts.each {
+                            writeArtifact("incoming-artifact", writer, it)
+                        }
+                        incomingArtifacts.resolvedArtifacts.get().each {
+                            writeArtifact("incoming-resolved-artifact", writer, it)
+                        }
+                        incomingArtifacts.artifactFiles.each {
+                            writeFile("incoming-artifact-file", writer, it)
+                        }
+
+                        artifactViewFiles.each {
+                            writeFile("artifact-view-file", writer, it)
+                        }
+                        artifactViewArtifacts.each {
+                            writeArtifact("artifact-view-artifact", writer, it)
+                        }
+                        artifactViewFiles.files.each {
+                            writeFile("artifact-view-file-file", writer, it)
+                        }
+                        artifactViewArtifacts.artifacts.each {
+                            writeArtifact("artifact-view-artifact-artifact", writer, it)
+                        }
+                        artifactViewArtifacts.resolvedArtifacts.get().each {
+                            writeArtifact("artifact-view-resolved-artifact", writer, it)
+                        }
+                        artifactViewArtifacts.artifactFiles.each {
+                            writeFile("artifact-view-artifact-file", writer, it)
+                        }
+
+                        lenientArtifactViewFiles.each {
+                            writeFile("lenient-artifact-view-file", writer, it)
+                        }
+                        lenientArtifactViewArtifacts.each {
+                            writeArtifact("lenient-artifact-view-artifact", writer, it)
+                        }
+                        lenientArtifactViewFiles.files.each {
+                            writeFile("lenient-artifact-view-file-file", writer, it)
+                        }
+                        lenientArtifactViewArtifacts.artifacts.each {
+                            writeArtifact("lenient-artifact-view-artifact-artifact", writer, it)
+                        }
+                        lenientArtifactViewArtifacts.resolvedArtifacts.get().each {
+                            writeArtifact("lenient-artifact-view-resolved-artifact", writer, it)
+                        }
+                        lenientArtifactViewArtifacts.artifactFiles.each {
+                            writeFile("lenient-artifact-view-artifact-file", writer, it)
+                        }
+                    }
+                }
+
+                protected void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+                    def queue = [root]
+                    def seen = new HashSet()
+
+                    while (!queue.isEmpty()) {
+                        def node = queue.remove(0)
+                        if (seen.add(node)) {
+                            components.add(node)
+                            for (final def dep in node.getDependencies()) {
+                                dependencies.add(dep)
+                                if (dep instanceof ResolvedDependencyResult) {
+                                    queue.add(dep.selected)
+                                }
+                            }
+                        } // else, already seen
+                    }
+                }
+
+                protected void writeGraphStructure(PrintWriter writer, ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+                    writer.println("root:${formatComponent(root)}")
+                    components.each {
+                        writer.println("component:${formatComponent(it)}")
+                    }
+                    dependencies.each {
+                        writer.println("dependency:${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]")
+                    }
+                }
+
+                protected String formatComponent(ResolvedComponentResult result) {
+                    String type
+                    if (result.id instanceof ProjectComponentIdentifier) {
+                        type = "project:${org.gradle.util.Path.path(result.id.build.buildPath).append(org.gradle.util.Path.path(result.id.projectPath))}"
+                    } else if (result.id instanceof ModuleComponentIdentifier) {
+                        type = "module:${result.id.group}:${result.id.module}:${result.id.version},${result.id.moduleIdentifier.group}:${result.id.moduleIdentifier.name}"
+                    } else {
+                        type = "other"
+                    }
+                    String variants = result.variants.collect { variant ->
+                        "variant:${formatVariant(variant)}"
+                    }.join('@@')
+                    "[$type][id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][$variants]"
+                }
+
+                protected String formatVariant(ResolvedVariantResult variant) {
+                    return "name:${variant.displayName} attributes:${formatAttributes(variant.attributes)}"
+                }
+
+                protected String formatAttributes(AttributeContainer attributes) {
+                    attributes.keySet().collect {
+                        "$it.name=${attributes.getAttribute(it as Attribute<Object>)}"
+                    }.sort().join(',')
+                }
+
+                protected String formatReason(ComponentSelectionReason reason) {
+                    def reasons = reason.descriptions.collect {
+                        def message
+                        if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
+                            message = "${it.cause.defaultReason}: ${it.description}"
+                        } else {
+                            message = it.description
+                        }
+                        message.readLines().join(" ")
+                    }.join('!!')
+                    return reasons
+                }
+
+                protected void writeFile(String linePrefix, PrintWriter writer, File file) {
+                    writer.println("$linePrefix:${file.name}")
+                }
+
+                protected void writeArtifact(String linePrefix, PrintWriter writer, ResolvedArtifactResult artifact) {
+                    writer.println("$linePrefix:${artifact.file.name} (${artifact.id.componentIdentifier.displayName})")
+                }
+            }
+        '''
+        return text
+    }
+
+    def getResultFile(Path projectPath) {
+        def currentDir = rootDir
+        for (String part : projectPath.segments()) {
+            currentDir = currentDir.file(part)
+        }
+        currentDir.file("build/last-graph.txt")
     }
 
     /**
-     * Verifies the result of executing the {@link GenerateGraphTask} injected by {@link #prepare()}.
+     * Verifies the result of executing tasks created by this test fixture.
      *
-     * That task writes information about the graph, files and artifacts to a flat file accessible here via {@link #getResultFile()}.
+     * That task writes information about the graph, files and artifacts to a flat file accessible here via {@link #getResultFile(Path)}.
      * This method reads that file (the actual result) and compares it to the expected result - the graph info provided to this fixture via
      * the DSL supplied as an argument.
      *
+     * @param path The path to the project containing the result file, e.g. ":" or ":subproject"
      * @param closure a closure containing DSL that configures the expected graph
      */
-    void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
+    void expectGraph(String path= ":", @DelegatesTo(GraphBuilder) Closure closure) {
         def graph = new GraphBuilder()
         closure.resolveStrategy = Closure.DELEGATE_ONLY
         closure.delegate = graph
@@ -184,7 +336,7 @@ class ResolveTestFixture {
             throw new IllegalArgumentException("No root node defined")
         }
 
-        def configDetailsFile = getResultFile()
+        def configDetailsFile = getResultFile(Path.path(path))
         def configDetails = configDetailsFile.text.readLines()
 
         def actualRoot = findLines(configDetails, 'root').first()
@@ -214,61 +366,59 @@ class ResolveTestFixture {
         def actualArtifacts = findLines(configDetails, 'incoming-artifact-artifact')
         compare("incoming.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
-        if (buildArtifacts) {
-            def actualFiles = findLines(configDetails, 'file-file')
-            compare("files", actualFiles, expectedFiles)
+        def actualFiles = findLines(configDetails, 'file-file')
+        compare("files", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'file-filtered')
-            compare("files (filtered)", actualFiles, expectedFiles)
+        actualFiles = findLines(configDetails, 'file-filtered')
+        compare("files (filtered)", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'incoming-file')
-            compare("incoming.files", actualFiles, expectedFiles)
+        actualFiles = findLines(configDetails, 'incoming-file')
+        compare("incoming.files", actualFiles, expectedFiles)
 
-            actualArtifacts = findLines(configDetails, 'incoming-artifact')
-            compare("incoming.artifacts", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'incoming-artifact')
+        compare("incoming.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualArtifacts = findLines(configDetails, 'incoming-resolved-artifact')
-            compare("incoming.resolvedArtifacts", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'incoming-resolved-artifact')
+        compare("incoming.resolvedArtifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'incoming-artifact-file')
-            compare("incoming.artifacts.artifactFiles", actualFiles, expectedFiles)
+        actualFiles = findLines(configDetails, 'incoming-artifact-file')
+        compare("incoming.artifacts.artifactFiles", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'artifact-view-file')
-            compare("artifactView.files", actualFiles, expectedFiles)
+        actualFiles = findLines(configDetails, 'artifact-view-file')
+        compare("artifactView.files", actualFiles, expectedFiles)
 
-            actualArtifacts = findLines(configDetails, 'artifact-view-artifact')
-            compare("artifactView.artifacts", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'artifact-view-artifact')
+        compare("artifactView.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'artifact-view-file-file')
-            compare("artifactView.files.files", actualFiles, expectedFiles)
+        actualFiles = findLines(configDetails, 'artifact-view-file-file')
+        compare("artifactView.files.files", actualFiles, expectedFiles)
 
-            actualArtifacts = findLines(configDetails, 'artifact-view-artifact-artifact')
-            compare("artifactView.artifacts.artifacts", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'artifact-view-artifact-artifact')
+        compare("artifactView.artifacts.artifacts", actualArtifacts, expectedArtifacts)
 
-            actualArtifacts = findLines(configDetails, 'artifact-view-resolved-artifact')
-            compare("artifactView.resolvedArtifacts", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'artifact-view-resolved-artifact')
+        compare("artifactView.resolvedArtifacts", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'artifact-view-artifact-file')
-            compare("artifactView.artifacts.artifactFiles", actualFiles, expectedFiles)
+        actualFiles = findLines(configDetails, 'artifact-view-artifact-file')
+        compare("artifactView.artifacts.artifactFiles", actualFiles, expectedFiles)
 
-            actualFiles = findLines(configDetails, 'lenient-artifact-view-file')
-            compare("artifactView.files (lenient)", actualFiles, expectedFiles)
+        actualFiles = findLines(configDetails, 'lenient-artifact-view-file')
+        compare("artifactView.files (lenient)", actualFiles, expectedFiles)
 
-            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact')
-            compare("artifactView.artifacts (lenient)", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact')
+        compare("artifactView.artifacts (lenient)", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'lenient-artifact-view-file-file')
-            compare("artifactView.files.files (lenient)", actualFiles, expectedFiles)
+        actualFiles = findLines(configDetails, 'lenient-artifact-view-file-file')
+        compare("artifactView.files.files (lenient)", actualFiles, expectedFiles)
 
-            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact-artifact')
-            compare("artifactView.artifacts.artifacts (lenient)", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'lenient-artifact-view-artifact-artifact')
+        compare("artifactView.artifacts.artifacts (lenient)", actualArtifacts, expectedArtifacts)
 
-            actualArtifacts = findLines(configDetails, 'lenient-artifact-view-resolved-artifact')
-            compare("artifactView.resolvedArtifacts (lenient)", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'lenient-artifact-view-resolved-artifact')
+        compare("artifactView.resolvedArtifacts (lenient)", actualArtifacts, expectedArtifacts)
 
-            actualFiles = findLines(configDetails, 'lenient-artifact-view-artifact-file')
-            compare("artifactView.artifacts.artifactFiles (lenient)", actualFiles, expectedFiles)
-        }
+        actualFiles = findLines(configDetails, 'lenient-artifact-view-artifact-file')
+        compare("artifactView.artifacts.artifactFiles (lenient)", actualFiles, expectedFiles)
     }
 
     List<String> findLines(List<String> lines, String prefix) {
@@ -1017,20 +1167,4 @@ class ResolveTestFixture {
         }
     }
 
-    /**
-     * Enables Maven derived variants, as if the Java plugin was applied
-     */
-    void addDefaultVariantDerivationStrategy() {
-        buildFile << """
-            allprojects { dependencies.components.variantDerivationStrategy = new org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy() }
-        """
-    }
-
-    void addJavaEcosystem() {
-        buildFile << """
-            allprojects {
-                apply plugin: 'org.gradle.jvm-ecosystem'
-            }
-        """
-    }
 }

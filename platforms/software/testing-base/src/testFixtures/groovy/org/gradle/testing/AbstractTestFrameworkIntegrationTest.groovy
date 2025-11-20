@@ -16,14 +16,15 @@
 
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
 
-import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
-
-abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
     abstract void createPassingFailingTest()
 
@@ -33,9 +34,29 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
     abstract String getTestTaskName()
 
-    abstract String getPassingTestCaseName()
+    /**
+     * The name of the passing test method, without any parentheses.
+     *
+     * @return the name of the passing test method
+     */
+    abstract String getPassingTestMethodName()
 
-    abstract String getFailingTestCaseName()
+    /**
+     * The name of the failing test method, without any parentheses.
+     *
+     * @return the name of the failing test method
+     */
+    abstract String getFailingTestMethodName()
+
+    private final String getPassingTestCaseName() {
+        return getTestFramework().getTestCaseName(getPassingTestMethodName())
+    }
+
+    private final String getFailingTestCaseName() {
+        return getTestFramework().getTestCaseName(getFailingTestMethodName())
+    }
+
+    abstract TestFramework getTestFramework()
 
     String testSuite(String testSuite) {
         return testSuite
@@ -119,9 +140,13 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         succeeds "check"
 
         then:
-        testResult.assertTestClassesExecuted('SomeTest', 'SomeOtherTest')
-        testResult.testClass('SomeTest').assertTestFailed(failingTestCaseName, CoreMatchers.containsString("test failure message"))
-        testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
+        testResult.assertAtLeastTestPathsExecuted('SomeTest', 'SomeTest', 'SomeOtherTest')
+        def failingTestPath = testResult.testPath('SomeTest', failingTestMethodName).onlyRoot()
+        failingTestPath.assertHasResult(TestResult.ResultType.FAILURE)
+        if (capturesTestOutput()) {
+            failingTestPath.assertStderr(CoreMatchers.containsString("some error output"))
+        }
+        testResult.testPath('SomeOtherTest', passingTestMethodName).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "test results capture test output"() {
@@ -139,7 +164,8 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         succeeds "check"
 
         then:
-        testResult.testClass('SomeTest').assertStderr(CoreMatchers.containsString("some error output"))
+        testResult.assertAtLeastTestPathsExecuted('SomeTest')
+            .testPath('SomeTest', failingTestMethodName).onlyRoot().assertStderr(CoreMatchers.containsString("some error output"))
     }
 
     def "failing tests cause report url to be printed"() {
@@ -172,7 +198,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         renameTests()
         fails("check")
         then:
-        testResult.assertTestClassesExecuted('SomeTest', 'NewTest')
+        testResult.assertAtLeastTestPathsExecuted('SomeTest', 'NewTest')
     }
 
     def "honors test case filter from --tests flag"() {
@@ -180,11 +206,11 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         createPassingFailingTest()
 
         when:
-        run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.${removeParentheses(passingTestCaseName)}"
+        run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.${passingTestMethodName}"
 
         then:
-        testResult.assertTestClassesExecuted('SomeOtherTest')
-        testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
+        testResult.assertAtLeastTestPathsExecuted('SomeOtherTest')
+        testResult.testPath('SomeOtherTest', passingTestMethodName).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "honors test suite filter from --tests flag"() {
@@ -195,8 +221,8 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         run testTaskName, '--tests', "${testSuite('SomeOtherTest')}.*"
 
         then:
-        testResult.assertTestClassesExecuted('SomeOtherTest')
-        testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
+        testResult.assertAtLeastTestPathsExecuted('SomeOtherTest')
+        testResult.testPath('SomeOtherTest', passingTestMethodName).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "reports when no matching methods found"() {
@@ -223,25 +249,27 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.${removeParentheses(passingTestCaseName)}")
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.${passingTestMethodName}")
 
         then:
-        testResult.testClass("SomeOtherTest").assertTestsExecuted(passingTestCaseName)
+        testResult.assertAtLeastTestPathsExecuted('SomeOtherTest')
+        testResult.testPath('SomeOtherTest', passingTestMethodName).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.${removeParentheses(passingTestCaseName)}")
+        run(testTaskName, "--tests", "${testSuite('SomeOtherTest')}.${passingTestMethodName}")
 
         then:
         result.assertTaskSkipped(":$testTaskName") //up-to-date
 
 
         when:
-        run(testTaskName, "--tests", "${testSuite('SomeTest')}.${removeParentheses(passingTestCaseName)}")
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.${passingTestMethodName}")
 
         then:
-        result.assertTaskNotSkipped(":$testTaskName")
-        testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName)
+        result.assertTaskExecuted(":$testTaskName")
+        testResult.assertAtLeastTestPathsExecuted('SomeTest')
+        testResult.testPath('SomeTest', passingTestMethodName).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "can select multiple tests from command line #scenario"() {
@@ -252,16 +280,17 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         runAndFail(toTestArgs(desiredTestFilters))
 
         then:
-        def results = testResult
-        results.assertTestClassesExecuted(desiredTestFilters.keySet().toArray(new String[0]))
+        testResult.assertAtLeastTestPathsExecuted(desiredTestFilters.keySet().toArray(new String[0]))
         desiredTestFilters.each { testClass, testCases ->
-            results.testClass(testClass).assertTestsExecuted(*testCases)
+            testCases.each { testCase ->
+                testResult.assertAtLeastTestPathsExecuted(testClass + ":" + testCase)
+            }
         }
 
         where:
         scenario                      | desiredTestFilters
-        "fail and SomeTest.pass"      | ['SomeTest': [failingTestCaseName, passingTestCaseName]]
-        "fail and SomeOtherTest.pass" | ['SomeTest': [failingTestCaseName], 'SomeOtherTest': [passingTestCaseName]]
+        "fail and SomeTest.pass"      | ['SomeTest': [failingTestMethodName, passingTestMethodName]]
+        "fail and SomeOtherTest.pass" | ['SomeTest': [failingTestMethodName], 'SomeOtherTest': [passingTestMethodName]]
     }
 
     private String[] toTestArgs(Map<String, List<String>> desiredTestFilters) {
@@ -270,7 +299,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         desiredTestFilters.each { testClass, testCases ->
             testCases.collect { testCase ->
-                command.addAll(['--tests', testSuite(testClass) + "." + removeParentheses(testCase)])
+                command.addAll(['--tests', testSuite(testClass) + "." + testCase])
             }
         }
         return command.toArray()
@@ -284,8 +313,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         runAndFail(*command)
 
         then:
-        testResult.assertTestClassesExecuted('SomeTest')
-        testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName, failingTestCaseName)
+        testResult.testPath('SomeTest').onlyRoot().assertChildrenExecuted(passingTestCaseName, failingTestCaseName)
 
         where:
         scenario                             | command
@@ -293,8 +321,8 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         "test suite appear after test case"  | [testTaskName, "--tests", "${testSuite('SomeTest')}.$passingTestCaseName", "--tests", "${testSuite('SomeTest')}.*"]
     }
 
-    protected DefaultTestExecutionResult getTestResult() {
-        new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
+    protected GenericHtmlTestExecutionResult getTestResult() {
+        resultsFor(testDirectory, "tests/$testTaskName", testFramework)
     }
 
     protected boolean capturesTestOutput() {

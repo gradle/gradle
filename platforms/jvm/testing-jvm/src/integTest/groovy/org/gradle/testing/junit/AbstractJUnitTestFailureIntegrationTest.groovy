@@ -16,22 +16,22 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.startsWith
 
 abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract void writeBrokenRunnerOrExtension(String className)
     abstract void writeClassUsingBrokenRunnerOrExtension(String className, String runnerOrExtensionName)
-    abstract String getInitializationErrorTestName()
+    abstract String getInitializationErrorTestPath()
     abstract String getAssertionFailureClassName()
     abstract String getBeforeClassErrorTestName()
     abstract String getAfterClassErrorTestName()
@@ -253,40 +253,79 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         """.stripIndent()
 
         when:
-        executer.withTasks('build').runWithFailure().assertTestsFailed()
+        def failure = executer.withTasks('build').runWithFailure()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted(
-            'org.gradle.ClassWithBrokenRunnerOrExtension',
-            'org.gradle.CustomException',
-            'org.gradle.BrokenTest',
-            'org.gradle.BrokenBefore',
-            'org.gradle.BrokenAfter',
-            'org.gradle.BrokenBeforeClass',
-            'org.gradle.BrokenAfterClass',
-            'org.gradle.BrokenBeforeAndAfter',
-            'org.gradle.BrokenConstructor',
-            'org.gradle.BrokenException',
-            'org.gradle.Unloadable',
-            'org.gradle.UnserializableException')
-        result.testClass('org.gradle.ClassWithBrokenRunnerOrExtension').assertTestFailed(initializationErrorTestName, equalTo('java.lang.UnsupportedOperationException: broken'))
-        result.testClass('org.gradle.BrokenTest')
-            .assertTestCount(2, 2, 0)
-            .assertTestFailed('failure', equalTo(failureAssertionError('failed')))
-            .assertTestFailed('broken', equalTo('java.lang.IllegalStateException: html: <> cdata: ]]>'))
-        result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed(beforeClassErrorTestName, equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.BrokenAfterClass').assertTestFailed(afterClassErrorTestName, equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', brokenBeforeAndAfterMatchers)
-        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
-        result.testClass('org.gradle.CustomException').assertTestFailed('custom', startsWith('Exception with a custom toString implementation'))
-        result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
-        if (hasStableInitializationErrors()) {
-            result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
-            result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
-            result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+        if (VersionNumber.parse(version) > VersionNumber.parse("4.4")) {
+            failure.assertTestsFailed()
+            def results = resultsFor(testDirectory)
+            results.assertAtLeastTestPathsExecuted(
+                'org.gradle.ClassWithBrokenRunnerOrExtension',
+                'org.gradle.CustomException',
+                'org.gradle.BrokenTest',
+                'org.gradle.BrokenBefore',
+                'org.gradle.BrokenAfter',
+                'org.gradle.BrokenBeforeClass',
+                'org.gradle.BrokenAfterClass',
+                'org.gradle.BrokenBeforeAndAfter',
+                'org.gradle.BrokenConstructor',
+                'org.gradle.BrokenException',
+                'org.gradle.Unloadable',
+                'org.gradle.UnserializableException')
+
+            results.testPathPreNormalized(initializationErrorTestPath).onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(startsWith('java.lang.UnsupportedOperationException: broken'))
+            results.testPath('org.gradle.BrokenTest').onlyRoot()
+                .assertChildCount(2, 2)
+            results.testPath('org.gradle.BrokenTest', 'failure').onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(containsString(failureAssertionError('failed')))
+            results.testPath('org.gradle.BrokenTest', 'broken').onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(containsString('java.lang.IllegalStateException: html: <> cdata: ]]>'))
+            results.testPathPreNormalized(":org.gradle.BrokenBeforeClass:$beforeClassErrorTestName").onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(containsString(failureAssertionError('failed')))
+            results.testPathPreNormalized(":org.gradle.BrokenAfterClass:$afterClassErrorTestName").onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(containsString(failureAssertionError('failed')))
+            results.testPath('org.gradle.BrokenBefore', 'ok').onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(containsString(failureAssertionError('failed')))
+            results.testPath('org.gradle.BrokenAfter', 'ok').onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(containsString(failureAssertionError('failed')))
+            results.testPath('org.gradle.BrokenBeforeAndAfter', 'ok').onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+            brokenBeforeAndAfterMatchers.each { matcher ->
+                results.testPath('org.gradle.BrokenBeforeAndAfter', 'ok').onlyRoot().assertFailureMessages(matcher)
+            }
+            results.testPath('org.gradle.BrokenException', 'broken').onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(startsWith('org.gradle.api.GradleException: Could not determine failure stacktrace for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
+            results.testPath('org.gradle.CustomException', 'custom').onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(startsWith('Exception with a custom toString implementation'))
+            results.testPath('org.gradle.UnserializableException', 'unserialized').onlyRoot()
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(startsWith('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
+            if (hasStableInitializationErrors()) {
+                results.testPath('org.gradle.Unloadable', 'ok').onlyRoot()
+                    .assertHasResult(TestResult.ResultType.FAILURE)
+                    .assertFailureMessages(startsWith(failureAssertionError('failed')))
+                results.testPath('org.gradle.Unloadable', 'ok2').onlyRoot()
+                    .assertHasResult(TestResult.ResultType.FAILURE)
+                    .assertFailureMessages(startsWith('java.lang.NoClassDefFoundError'))
+                results.testPath('org.gradle.BrokenConstructor', 'ok').onlyRoot()
+                    .assertHasResult(TestResult.ResultType.FAILURE)
+                    .assertFailureMessages(startsWith(failureAssertionError('failed')))
+            }
+        } else {
+            // In JUnit 4.0 to 4.4, a test class with an initialization error results in a test process failure; not a test execution failure,
+            // so we cannot assert on test results. From 4.5 onwards, we get proper test execution failures.
+            failure.assertHasDescription("Execution failed for task ':test'.")
+            failure.assertThatCause(startsWith("Could not execute test class 'org.gradle.Unloadable'."))
         }
     }
 
@@ -336,11 +375,15 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         fails("test")
 
         then:
-        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
-            assertTestPassed("passingTest")
-            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
-            assertTestFailed("normalFailingTest", containsString("AssertionError"))
-        }
+        def results = resultsFor(testDirectory)
+        results.testPath("PoisonTest", "passingTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath("PoisonTest", "testWithUnserializableException").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+        results.testPath("PoisonTest", "normalFailingTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("AssertionError"))
     }
 
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
@@ -383,9 +426,10 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         failureHasCause "There were failing tests"
 
         and:
-        def results = new DefaultTestExecutionResult(file("."))
-        results.assertTestClassesExecuted("ExceptionTest")
-        results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
+        def results = resultsFor(file("."))
+        results.testPath("ExceptionTest", "testThrow").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
     }
 
     def "fails cleanly even if an exception is thrown that doesn't de-serialize cleanly"() {
@@ -429,9 +473,10 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         failureHasCause "There were failing tests"
 
         and:
-        def results = new DefaultTestExecutionResult(file("."))
-        results.assertTestClassesExecuted("ExceptionTest")
-        results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
+        def results = resultsFor(file("."))
+        results.testPath("ExceptionTest", "testThrow").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
     @Requires([UnitTestPreconditions.Jdk14OrLater, IntegTestPreconditions.NotEmbeddedExecutor])
@@ -488,13 +533,16 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         fails 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("UsefulNPETest")
-            .testFailed("testUsefulNPE", equalTo('java.lang.NullPointerException: Cannot invoke "Object.toString()" because "o" is null'))
-        result.testClass("UsefulNPETest")
-            .testFailed("testDeepUsefulNPE", equalTo('java.lang.RuntimeException: java.lang.NullPointerException: Cannot invoke "Object.toString()" because "param" is null'))
-        result.testClass("UsefulNPETest")
-            .testFailed("testFailingGetMessage", equalTo('Could not determine failure message for exception of type UsefulNPETest$1: java.lang.RuntimeException'))
+        def result = resultsFor()
+        result.testPath(":UsefulNPETest:testUsefulNPE").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(startsWith('java.lang.NullPointerException: Cannot invoke "Object.toString()" because "o" is null'))
+        result.testPath(":UsefulNPETest:testDeepUsefulNPE").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(startsWith('java.lang.RuntimeException: java.lang.NullPointerException: Cannot invoke "Object.toString()" because "param" is null'))
+        result.testPath(":UsefulNPETest:testFailingGetMessage").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(startsWith('org.gradle.api.GradleException: Could not determine failure stacktrace for exception of type UsefulNPETest$1: java.lang.RuntimeException'))
     }
 
     String failureAssertionError(String message) {

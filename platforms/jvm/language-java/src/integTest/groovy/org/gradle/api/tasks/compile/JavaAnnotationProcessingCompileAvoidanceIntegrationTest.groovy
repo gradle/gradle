@@ -74,7 +74,7 @@ class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIn
         succeeds(":a:assemble")
 
         then:
-        result.assertTasksNotSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar")
+        result.assertTasksExecuted(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar")
         result.assertTasksSkipped(":a:compileJava", ":a:processResources", ":a:classes", ":a:jar", ":a:assemble")
     }
 }

@@ -35,6 +35,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final WorkerLeaseService workerLeases;
     private final Executor executor;
     private final QueueWorker<T> queueWorker;
+    private @Nullable BuildOperationState parent;
+
     private String logLocation;
 
     // Lock protects the following state, using an intentionally simple locking strategy
@@ -47,11 +49,18 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private final Deque<T> workQueue = new LinkedList<>();
     private final LinkedList<Throwable> failures = new LinkedList<>();
 
-    DefaultBuildOperationQueue(boolean allowAccessToProjectState, WorkerLeaseService workerLeases, Executor executor, QueueWorker<T> queueWorker) {
+    DefaultBuildOperationQueue(
+        boolean allowAccessToProjectState,
+        WorkerLeaseService workerLeases,
+        Executor executor,
+        QueueWorker<T> queueWorker,
+        @Nullable BuildOperationState parent
+    ) {
         this.allowAccessToProjectState = allowAccessToProjectState;
         this.workerLeases = workerLeases;
         this.executor = executor;
         this.queueWorker = queueWorker;
+        this.parent = parent;
     }
 
     @Override
@@ -70,7 +79,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             if (workerCount == 0 || workerCount < workerLeases.getMaxWorkerCount() - 1) {
                 // `getMaxWorkerCount() - 1` because main thread executes work as well. See https://github.com/gradle/gradle/issues/3273
                 // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
-                executor.execute(new WorkerRunnable());
+                executor.execute(new WorkerRunnable(parent));
                 workerCount++;
             }
         } finally {
@@ -102,7 +111,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         // worker lease acquired by this thread even if the executor thread pool is full of
         // workers from other queues.  In other words, it ensures that all worker leases
         // are being utilized, regardless of the bounds of the thread pool.
-        new WorkerRunnable().run();
+        new WorkerRunnable(parent).run();
 
         waitForWorkToComplete();
     }
@@ -184,8 +193,19 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     }
 
     private class WorkerRunnable implements Runnable {
+
+        private final @Nullable BuildOperationState parent;
+
+        public WorkerRunnable(@Nullable BuildOperationState parent) {
+            this.parent = parent;
+        }
+
         @Override
         public void run() {
+            CurrentBuildOperationRef.instance().with(parent, this::runOperations);
+        }
+
+        private void runOperations() {
             try {
                 T operation;
                 while ((operation = waitForNextOperation()) != null) {

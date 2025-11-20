@@ -30,7 +30,7 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
         run("resolve")
 
         then:
-        result.assertTaskExecuted(":producer")
+        result.assertTaskScheduled(":producer")
         output.count("transforming [dir1]") == 1
         outputContains("result = [dir1.size]")
 
@@ -38,7 +38,7 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
         run("resolve")
 
         then:
-        result.assertTaskExecuted(":producer")
+        result.assertTaskScheduled(":producer")
         output.count("transforming") == 0
         outputContains("result = [dir1.size]")
     }
@@ -49,14 +49,14 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
         taskTypeLogsInputFileCollectionContent()
         transformDirectoryDependency()
         buildFile << """
-            producer.content = "" // generate missing directory
+            tasks.producer.content = "" // generate missing directory
         """
 
         when:
         run("resolve")
 
         then:
-        result.assertTaskExecuted(":producer")
+        result.assertTaskScheduled(":producer")
         output.count("transforming") == 0
         outputContains("result = []")
 
@@ -64,7 +64,7 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
         run("resolve")
 
         then:
-        result.assertTaskExecuted(":producer")
+        result.assertTaskScheduled(":producer")
         output.count("transforming") == 0
         outputContains("result = []")
     }
@@ -82,7 +82,7 @@ class ArtifactTransformOfDirectoriesIntegrationTest extends AbstractDependencyRe
                 compile
             }
             dependencies {
-                compile files(producer.output)
+                compile files(tasks.producer.output)
 
                 registerTransform(MakeSize) {
                     from.attribute(artifactType, 'directory')

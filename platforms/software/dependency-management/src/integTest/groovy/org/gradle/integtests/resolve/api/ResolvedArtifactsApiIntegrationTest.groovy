@@ -273,11 +273,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                     outgoing {
                         variants {
                             var1 {
-                                artifact oneJar
+                                artifact tasks.oneJar
                                 attributes.attribute(flavor, 'one')
                             }
                             var2 {
-                                artifact twoJar
+                                artifact tasks.twoJar
                                 attributes.attribute(flavor, 'two')
                             }
                         }
@@ -310,11 +310,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                     outgoing {
                         variants {
                             var1 {
-                                artifact oneJar
+                                artifact tasks.oneJar
                                 attributes.attribute(flavor, 'one')
                             }
                             var2 {
-                                artifact twoJar
+                                artifact tasks.twoJar
                                 attributes.attribute(flavor, 'two')
                             }
                         }
@@ -334,7 +334,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
 
         and:
-        result.assertTasksExecuted(':a:oneJar', ':b:twoJar', ':show')
+        result.assertTasksScheduled(':a:oneJar', ':b:twoJar', ':show')
 
         where:
         expression                                                    | _
@@ -394,11 +394,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                     outgoing {
                         variants {
                             var1 {
-                                artifact oneJar
+                                artifact tasks.oneJar
                                 attributes.attribute(flavor, 'one')
                             }
                             var2 {
-                                artifact twoJar
+                                artifact tasks.twoJar
                                 attributes.attribute(flavor, 'two')
                             }
                         }
@@ -428,11 +428,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                     outgoing {
                         variants {
                             var1 {
-                                artifact oneJar
+                                artifact tasks.oneJar
                                 attributes.attribute(flavor, 'one')
                             }
                             var2 {
-                                artifact twoJar
+                                artifact tasks.twoJar
                                 attributes.attribute(flavor, 'two')
                             }
                         }
@@ -451,7 +451,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
 
         and:
-        result.assertTasksExecuted(':a:oneJar', ':b:twoJar', ':show')
+        result.assertTasksScheduled(':a:oneJar', ':b:twoJar', ':show')
 
         where:
         expression                                                    | _
@@ -499,11 +499,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                     outgoing {
                         variants {
                             var1 {
-                                artifact oneJar
+                                artifact tasks.oneJar
                                 attributes.attribute(flavor, 'one')
                             }
                             var2 {
-                                artifact twoJar
+                                artifact tasks.twoJar
                                 attributes.attribute(flavor, 'two')
                             }
                         }
@@ -526,11 +526,11 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
                     outgoing {
                         variants {
                             var1 {
-                                artifact oneJar
+                                artifact tasks.oneJar
                                 attributes.attribute(flavor, 'one')
                             }
                             var2 {
-                                artifact twoJar
+                                artifact tasks.twoJar
                                 attributes.attribute(flavor, 'two')
                             }
                         }
@@ -1147,8 +1147,8 @@ Searched in the following locations:
                 compile project(':c')
             }
             configurations.default.outgoing.variants {
-                v1 { artifact jar1 }
-                v2 { artifact jar2 }
+                v1 { artifact tasks.jar1 }
+                v2 { artifact tasks.jar2 }
             }
         """
 
@@ -1157,14 +1157,14 @@ Searched in the following locations:
 
             configurations.compile.attributes.attribute(usage, "broken")
             task jar1(type: Jar)
-            artifacts { compile jar1 }
+            artifacts { compile tasks.jar1 }
         """
 
         file("c/build.gradle") << """
             $common
 
             task jar1(type: Jar)
-            artifacts { compile jar1 }
+            artifacts { compile tasks.jar1 }
         """
 
         given:
@@ -1173,7 +1173,7 @@ Searched in the following locations:
 
         expect:
         succeeds 'resolveLenient'
-        result.assertTasksExecuted(":c:jar1", ":resolveLenient")
+        result.assertTasksScheduled(":c:jar1", ":resolveLenient")
     }
 
     def "attributes on incoming artifact variants can be requested using Stringly or strongly-typed values"() {

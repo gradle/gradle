@@ -37,13 +37,11 @@ class AndroidGradlePluginVersions {
     // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/options/ReplacedOption.kt;l=54-59
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
-    private static final VersionNumber AGP_8_0 = VersionNumber.parse('8.0.0')
-    private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
-    private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
-    private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
+    public static final VersionNumber AGP_9_0 = VersionNumber.parse('9.0.0')
 
-    private final Factory<Properties> propertiesFactory
-    private Properties properties
+    private static Factory<Properties> propertiesFactory
+    private static Properties properties
+    private static Map<String, String> aapt2Versions = null
 
     AndroidGradlePluginVersions() {
         this(new ClasspathVersionSource("agp-versions.properties", AndroidGradlePluginVersions.classLoader))
@@ -53,11 +51,11 @@ class AndroidGradlePluginVersions {
         this.propertiesFactory = propertiesFactory
     }
 
-    List<String> getLatests() {
+    static List<String> getLatests() {
         return getVersionList("latests")
     }
 
-    String getLatest() {
+    static String getLatest() {
         return latests.last()
     }
 
@@ -109,6 +107,28 @@ class AndroidGradlePluginVersions {
         return mirrors
     }
 
+    @Nullable
+    static String aapt2Version(String agpVersion) {
+        if (aapt2Versions == null) {
+            aapt2Versions = getVersionList("aapt2Versions")
+                .collectEntries { String version ->
+                    int index = version.lastIndexOf('-')
+                    def agpVer = version.substring(0, index)
+                    [(agpVer): version]
+                }
+        }
+        String version = aapt2Versions.get(agpVersion)
+        // latest dev has the same build number as the latest alpha
+        if (version == null && agpVersion.contains("-dev")) {
+            version = aapt2Versions.get(getLatest()).replaceAll(/-alpha\d+/, "-dev")
+        }
+        return version
+    }
+
+    private static String buildToolsVersion() {
+        return loadedProperties().getProperty("buildToolsVersion")
+    }
+
     private String getAgpNightlyRepositoryInitScript() {
         return """
             beforeSettings { settings ->
@@ -140,12 +160,12 @@ class AndroidGradlePluginVersions {
         """
     }
 
-    private List<String> getVersionList(String name) {
+    private static List<String> getVersionList(String name) {
         def versionList = loadedProperties().getProperty(name)
         return (versionList == null || versionList.empty) ? [] : versionList.split(",")
     }
 
-    private Properties loadedProperties() {
+    private static Properties loadedProperties() {
         if (properties == null) {
             properties = propertiesFactory.create()
         }
@@ -154,9 +174,6 @@ class AndroidGradlePluginVersions {
 
     @Nullable
     String getMinimumGradleBaseVersionFor(String agpVersion) {
-        if (VersionNumber.parse(agpVersion) >= AGP_7_3) {
-            return '7.4'
-        }
         return null
     }
 
@@ -165,6 +182,8 @@ class AndroidGradlePluginVersions {
         JavaVersion current = JavaVersion.current()
         JavaVersion mini = getMinimumJavaVersionFor(agpVersionNumber)
         assumeTrue("AGP $agpVersion minimum supported Java version is $mini, current is $current", current >= mini)
+        JavaVersion maxi = getMaximumJavaVersionFor(agpVersionNumber)
+        assumeTrue("AGP $agpVersion maximum supported Java version is $maxi, current is $current", current <= maxi)
     }
 
     static JavaVersion getMinimumJavaVersionFor(String agpVersion) {
@@ -172,40 +191,21 @@ class AndroidGradlePluginVersions {
     }
 
     static String getBuildToolsVersionFor(String agpVersion) {
-        VersionNumber version = VersionNumber.parse(agpVersion)
+        VersionNumber version = VersionNumber.parse(agpVersion).baseVersion
 
-        if (version < VersionNumber.parse("8.1")) {
-            return "30.0.3"
-        } else if (version < VersionNumber.parse("8.2")) {
-            return "33.0.1"
-        } else if (version < VersionNumber.parse("8.8")) {
-            return "34.0.0"
+        if (version < AGP_9_0) {
+            return "35.0.0"
         }
 
-        return "35.0.0"
+        return buildToolsVersion()
     }
 
     static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {
         return JavaVersion.VERSION_17
     }
 
-    static void assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(String agpVersion, String kotlinVersion) {
-        assumeCurrentJavaVersionIsSupportedBy(agpVersion)
-        assumeAgpSupportsKotlinVersion(agpVersion, kotlinVersion)
-    }
-
-    private static void assumeAgpSupportsKotlinVersion(String agpVersion, String kotlinVersion) {
-        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
-        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
-        def minimalSupportedKotlinVersion = getMinimumSupportedKotlinVersionFor(agpVersionNumber)
-        if (minimalSupportedKotlinVersion != null) {
-            assumeTrue("AGP $agpVersion minimal supported Kotlin version is $minimalSupportedKotlinVersion, current is $kotlinVersion", kotlinVersionNumber >= minimalSupportedKotlinVersion)
-        }
-    }
-
-    private static VersionNumber getMinimumSupportedKotlinVersionFor(VersionNumber agpVersion) {
-        return agpVersion.baseVersion < AGP_7_3
-            ? null
-            : KOTLIN_1_6_20
+    static JavaVersion getMaximumJavaVersionFor(VersionNumber agpVersion) {
+        // Note: only tested for latest AGP versions, but for our tests this is currently sufficient
+        return JavaVersion.VERSION_24
     }
 }

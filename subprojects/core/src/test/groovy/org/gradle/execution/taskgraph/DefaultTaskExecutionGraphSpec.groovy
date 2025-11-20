@@ -66,6 +66,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
+import org.gradle.internal.work.ResourceLockStatistics
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -83,7 +84,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def buildOperationRunner = new TestBuildOperationRunner()
     def listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     def workerLimits = new DefaultWorkerLimits(1)
-    def workerLeases = new DefaultWorkerLeaseService(coordinator, workerLimits)
+    def workerLeases = new DefaultWorkerLeaseService(coordinator, workerLimits, ResourceLockStatistics.NO_OP)
     def executorFactory = Mock(ExecutorFactory)
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService())
@@ -92,7 +93,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def executionPlan = newExecutionPlan()
     def taskGraph = new DefaultTaskExecutionGraph(
         new DefaultPlanExecutor(workerLimits, executorFactory, workerLeases, cancellationToken, coordinator, new DefaultInternalOptions([:])),
-        [nodeExecutor],
+        nodeExecutor,
         buildOperationRunner,
         listenerBuildOperationDecorator,
         thisBuild,
@@ -376,7 +377,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def planExecutor = Mock(PlanExecutor)
         def taskGraph = new DefaultTaskExecutionGraph(
             planExecutor,
-            [nodeExecutor],
+            nodeExecutor,
             buildOperationRunner,
             listenerBuildOperationDecorator,
             thisBuild,
@@ -412,7 +413,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def planExecutor = Mock(PlanExecutor)
         def taskGraph = new DefaultTaskExecutionGraph(
             planExecutor,
-            [nodeExecutor],
+            nodeExecutor,
             buildOperationRunner,
             listenerBuildOperationDecorator,
             thisBuild,

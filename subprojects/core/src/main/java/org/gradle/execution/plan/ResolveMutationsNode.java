@@ -47,7 +47,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         this.accessHierarchies = accessHierarchies;
     }
 
-    public Node getNode() {
+    public LocalTaskNode getNode() {
         return node;
     }
 
@@ -103,7 +103,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 TaskIdentity<?> taskIdentity = node.getTask().getTaskIdentity();
-                return BuildOperationDescriptor.displayName("Resolve mutations for task " + taskIdentity.getIdentityPath())
+                return BuildOperationDescriptor.displayName("Resolve mutations for task " + taskIdentity.getBuildTreePath().asString())
                     .details(new ResolveTaskMutationsDetails(taskIdentity));
             }
         });
@@ -118,12 +118,12 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
 
         @Override
         public String getBuildPath() {
-            return taskIdentity.getBuildPath();
+            return taskIdentity.getProjectIdentity().getBuildPath().asString();
         }
 
         @Override
         public String getTaskPath() {
-            return taskIdentity.getTaskPath();
+            return taskIdentity.getPath().asString();
         }
 
         @Override

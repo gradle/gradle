@@ -24,8 +24,8 @@ import org.gradle.util.internal.VersionNumber
 
 class GroovyCoverage {
     // NOTE: Update compatibility.adoc when adding new versions of Groovy
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.25', '4.0.27']
-    private static final String[] FUTURE = ["5.0.0-beta-1"]
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.25', '4.0.29']
+    private static final String[] FUTURE = ["5.0.2"]
 
     static final Set<String> SUPPORTED_BY_JDK
     static final Map<String, Jvm> ALL_VERSIONS_JVMS
@@ -92,7 +92,9 @@ class GroovyCoverage {
     private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
         def allVersions = allVersions()
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
+            return VersionCoverage.versionsAtLeast(allVersions, '4.0.29')
+        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
             return VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             // Latest 3.0.x patches support Java 15+

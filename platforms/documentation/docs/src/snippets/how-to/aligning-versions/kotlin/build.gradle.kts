@@ -36,8 +36,6 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.8.9")
     implementation("io.vertx:vertx-core:3.5.3")
 
-    dependencies {
-        components.all<JacksonAlignmentRule>()
-    }
+    components.all<JacksonAlignmentRule>()
 }
 // end::dependency-full-platform[]

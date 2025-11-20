@@ -89,7 +89,9 @@ public interface ComponentSelectionRules {
      *
      * @param ruleSource an instance providing a rule implementation
      * @return this
+     * @deprecated use {@link #all(Action)} instead.
      */
+    @Deprecated
     ComponentSelectionRules all(Object ruleSource);
 
     /**
@@ -127,6 +129,8 @@ public interface ComponentSelectionRules {
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param ruleSource an instance providing a rule implementation
      * @return this
+     * @deprecated use {@link #withModule(Object,Action)} instead.
      */
+    @Deprecated
     ComponentSelectionRules withModule(Object id, Object ruleSource);
 }

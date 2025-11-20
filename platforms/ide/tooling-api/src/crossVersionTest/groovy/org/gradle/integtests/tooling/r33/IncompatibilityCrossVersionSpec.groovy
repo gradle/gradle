@@ -16,30 +16,31 @@
 
 package org.gradle.integtests.tooling.r33
 
-import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 
-@Requires(
-    value = UnitTestPreconditions.Jdk8OrEarlier,
-    reason = "tests against old Gradle version that can only work with Java versions up to 8"
-)
 @ToolingApiVersion("current")
+@TargetGradleVersion("current")
 class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
+
     def buildPluginWith(String gradleVersion) {
-        buildPluginWith(buildContext.distribution(gradleVersion))
-    }
-    def buildPluginWith(GradleDistribution gradleDist) {
-        println "Building plugin with $gradleDist"
-        def pluginDir = file("plugin")
-        def pluginJar = pluginDir.file("plugin.jar")
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder).withWarningMode(null), pluginDir)
-        builder.sourceFile("com/example/MyTask.java") << """
+        def gradleDist = buildContext.distribution(gradleVersion)
+
+        file("other/settings.gradle") << """
+            rootProject.name = 'other'
+        """
+        file("other/build.gradle") << """
+            plugins {
+                id("java")
+            }
+            dependencies {
+                compile(gradleApi())
+            }
+        """
+        file('other/src/main/java/com/example/MyTask.java') << """
             package com.example;
 
             import org.gradle.api.*;
@@ -55,7 +56,20 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
                 }
             }
         """
-        builder.buildJar(pluginJar)
+
+        rawConnector(file("other"))
+            .useInstallation(gradleDist.gradleHomeDir)
+            .connect()
+            .newBuild()
+            .setJavaHome(AvailableJavaHomes.getAvailableJdk { md -> gradleDist.daemonWorksWith(md.javaMajorVersion)}.getJavaHome())
+            .forTasks("jar")
+            .run()
+
+        return file("other/build/libs/other.jar")
+    }
+
+    def "can use plugin built with minimum supported Gradle version"() {
+        File pluginJar = buildPluginWith(DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION.version)
 
         buildFile << """
             buildscript {
@@ -66,35 +80,14 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
 
             task myTask(type: com.example.MyTask)
         """
-    }
 
-    def "can use plugin built with Gradle 3.0 with"() {
         expect:
-        buildPluginWith("3.0")
-        assertWorks()
-    }
-
-    // Gradle 3.2 and 3.2.1 leaked internal types that fail when used with
-    // newer versions of Gradle.
-    @Ignore
-    def "can use plugin built with Gradle 3.2.1 with"() {
-        expect:
-        buildPluginWith("3.2.1")
-        assertWorks()
-    }
-
-    private void assertWorks() {
-        // So we don't try to use a classpath distribution
-        toolingApi.requireDaemons()
-
-        withConnector {
-            // TestKit builds that use debug will set this to true
-            it.embedded(true)
-        }
-
-        // Run the build
-        withConnection { c ->
-            c.newBuild().forTasks("myTask").run()
+        succeeds { c ->
+            c.newBuild()
+                .forTasks("myTask")
+                .run()
+            true
         }
     }
+
 }

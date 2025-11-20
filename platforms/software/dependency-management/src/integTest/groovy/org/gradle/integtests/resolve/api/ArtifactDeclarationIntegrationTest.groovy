@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
@@ -36,7 +36,12 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                     attribute(usage)
                 }
             }
-            configurations { compile { attributes.attribute(usage, 'for-compile') } }
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'for-compile')
+                }
+            }
+            ${resolve.configureProject("compile")}
         """
     }
 
@@ -64,11 +69,9 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         expect:
         succeeds "b:checkDeps"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: 'foo', type: '')
@@ -113,11 +116,9 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         expect:
         succeeds "b:checkDeps"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: 'thing-a', classifier: 'report', extension: 'txt', type: 'report', fileName: 'a')
@@ -157,11 +158,9 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         expect:
         succeeds(":b:checkDeps")
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "lib1")
@@ -202,8 +201,6 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             classes.attributes.keySet().collect { it.name } == ['usage', 'format']
         """
 
-        resolve.prepare()
-
         expect:
         succeeds()
     }
@@ -230,14 +227,12 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             task jar {} // ignored
         """
 
-        resolve.prepare()
-
         when:
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:jar", ":b:checkDeps")
-        resolve.expectGraph {
+        result.assertTasksScheduled(":a:jar", ":b:checkDeps")
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "lib1")
@@ -274,14 +269,12 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             task jar {} // ignored
         """
 
-        resolve.prepare()
-
         when:
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:jar", ":b:checkDeps")
-        resolve.expectGraph {
+        result.assertTasksScheduled(":a:jar", ":b:checkDeps")
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "lib1")
@@ -322,14 +315,12 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             task classes {} // ignored
         """
 
-        resolve.prepare()
-
         when:
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
-        resolve.expectGraph {
+        result.assertTasksScheduled(":a:classes", ":b:checkDeps")
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "classes", type: "")
@@ -358,14 +349,12 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         when:
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":b:checkDeps")
-        resolve.expectGraph {
+        result.assertTasksScheduled(":b:checkDeps")
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                 }
@@ -385,7 +374,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 outputFile.set(layout.buildDirectory.file("a.jar"))
             }
             artifacts {
-                compile classes.outputFile
+                compile tasks.classes.outputFile
             }
         """
 
@@ -397,14 +386,12 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         when:
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
-        resolve.expectGraph {
+        result.assertTasksScheduled(":a:classes", ":b:checkDeps")
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                 }
@@ -424,7 +411,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 outputDir.set(layout.buildDirectory.dir("classes"))
             }
             artifacts {
-                compile classes.outputDir
+                compile tasks.classes.outputDir
             }
         """
 
@@ -436,14 +423,12 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         when:
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
-        resolve.expectGraph {
+        result.assertTasksScheduled(":a:classes", ":b:checkDeps")
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "classes", type: "")
@@ -471,11 +456,9 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         expect:
         succeeds ':b:checkDeps'
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "someFile", type: "", extension: "txt")
@@ -503,11 +486,9 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         expect:
         succeeds ':b:checkDeps'
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "someDir", type: "")
@@ -538,7 +519,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 task jar
                 compile(artifact) {
                     name = "thing"
-                    builtBy jar
+                    builtBy tasks.jar
                 }
             }
             assert configurations.compile.artifacts.collect { it.file.name }  == ["lib1.jar"]
@@ -553,12 +534,10 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        resolve.prepare()
-
         expect:
         succeeds("b:checkDeps")
-        result.assertTasksExecutedInOrder(":a:jar", ":b:checkDeps")
-        resolve.expectGraph {
+        result.assertTasksScheduledInOrder(":a:jar", ":b:checkDeps")
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "thing", fileName: "lib1.jar")

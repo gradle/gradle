@@ -29,25 +29,33 @@ import org.gradle.internal.remote.internal.IncomingConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import static org.gradle.internal.remote.internal.inet.TcpOutgoingConnector.CONNECTION_PREAMBLE;
 
 public class TcpIncomingConnector implements IncomingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
     private final ExecutorFactory executorFactory;
     private final InetAddressFactory addressFactory;
     private final IdGenerator<UUID> idGenerator;
+    private final int acceptTimeoutSeconds;
 
-    public TcpIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory addressFactory, IdGenerator<UUID> idGenerator) {
+    public TcpIncomingConnector(ExecutorFactory executorFactory, InetAddressFactory addressFactory, IdGenerator<UUID> idGenerator, int acceptTimeoutSeconds) {
         this.executorFactory = executorFactory;
         this.addressFactory = addressFactory;
         this.idGenerator = idGenerator;
+        this.acceptTimeoutSeconds = acceptTimeoutSeconds;
     }
 
     @Override
@@ -109,13 +117,21 @@ public class TcpIncomingConnector implements IncomingConnector {
                         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
                         InetAddress remoteInetAddress = remoteSocketAddress.getAddress();
                         if (!allowRemote && !addressFactory.isCommunicationAddress(remoteInetAddress)) {
-                            LOGGER.error("Cannot accept connection from remote address {}.", remoteInetAddress);
+                            LOGGER.error("Cannot accept connection from remote address {}.", remoteSocketAddress);
                             socket.close();
                             continue;
                         }
-                        LOGGER.debug("Accepted connection from {} to {}.", socket.socket().getRemoteSocketAddress(), socket.socket().getLocalSocketAddress());
                         try {
                             SocketBlockingUtil.configureNonblocking(socket);
+                            waitForConnectionPreamble(socket);
+                        } catch (IOException e) {
+                            LOGGER.error("Failed connection handshake with {}.", remoteSocketAddress, e);
+                            socket.close();
+                            continue;
+                        }
+
+                        LOGGER.debug("Accepted connection from {} to {}.", socket.socket().getRemoteSocketAddress(), socket.socket().getLocalSocketAddress());
+                        try {
                             action.execute(new SocketConnectCompletion(socket));
                         } catch (Throwable t) {
                             socket.close();
@@ -129,6 +145,23 @@ public class TcpIncomingConnector implements IncomingConnector {
                 }
             } finally {
                 CompositeStoppable.stoppable(serverSocket).stop();
+            }
+        }
+
+        private void waitForConnectionPreamble(SocketChannel socket) throws IOException, InterruptedException {
+            ByteBuffer buffer = ByteBuffer.allocate(CONNECTION_PREAMBLE.length);
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(acceptTimeoutSeconds);
+            while (buffer.hasRemaining() && System.nanoTime() < deadline) {
+                int read = socket.read(buffer);
+                if (read == -1) {
+                    break;
+                }
+                if (read == 0) {
+                    Thread.sleep(1);
+                }
+            }
+            if (!Arrays.equals(buffer.array(), CONNECTION_PREAMBLE)) {
+                throw new IOException("Did not receive connection preamble within " + acceptTimeoutSeconds + "s");
             }
         }
 

@@ -124,7 +124,6 @@ public abstract class ConventionReportTask extends ConventionTask {
     ReportGenerator reportGenerator() {
         return new ReportGenerator(
             getRenderer(),
-            getClientMetaData(),
             getOutputFile(),
             getTextOutputFactory()
         );

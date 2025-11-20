@@ -58,7 +58,7 @@ class DefaultCppLibraryTest extends Specification {
 
     def "has api elements configuration"() {
         expect:
-        library.apiElements == project.configurations.cppApiElements
+        library.apiElements.get() == project.configurations.cppApiElements
     }
 
     def "has main publication"() {

@@ -17,17 +17,14 @@
 package org.gradle.testing.junit
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestClassExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.MultiJvmTestCompatibility
-import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -37,10 +34,33 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements JavaToolchainFixture {
     abstract String getJUnitVersionAssertion()
-    abstract TestClassExecutionResult assertFailedToExecute(TestExecutionResult testResult, String testClassName)
 
     String getStableEnvironmentDependencies() {
         return testFrameworkDependencies
+    }
+
+    def "tries to execute unparseable test classes"() {
+        given:
+        file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """
+
+        when:
+        fails('test', '-x', 'compileTestJava')
+
+        then:
+        failure.assertHasCause("Test process encountered an unexpected problem.")
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+
+        resultsFor(testDirectory).testPath(':').onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("Incompatible magic value 1768846945 in class file com/example/Foo"))
     }
 
     def "executes tests in the correct environment"() {
@@ -194,10 +214,10 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
         executer.withTasks('build').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
-        result.testClass('org.gradle.OkTest').assertTestPassed('ok')
-        result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
+        def results = resultsFor(testDirectory)
+        results.assertAtLeastTestPathsExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
+        results.testPath('org.gradle.OkTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath('org.gradle.OtherTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "runs all tests in the same forked jvm"() {
@@ -344,7 +364,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
 
         when:
         executer
-            .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+            .withArgument("-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
             .withToolchainDetectionEnabled()
         buildFile << """
             plugins {
@@ -379,11 +399,11 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
         fails "test"
 
         and:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("TestCase").with {
-            assertTestFailed("test", CoreMatchers.containsString("java.lang.VerifyError"))
-            assertTestFailed("test", CoreMatchers.containsString("\$EmptyImmutableCollection"))
-        }
+        def results = resultsFor(testDirectory)
+        results.testPath("TestCase", "test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("java.lang.VerifyError"))
+            .assertFailureMessages(containsString("\$EmptyImmutableCollection"))
     }
 
     def "tests are re-executed when set of candidate classes change"() {
@@ -491,5 +511,4 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
         then:
         outputContains "Unable to reset SecurityManager"
     }
-
 }

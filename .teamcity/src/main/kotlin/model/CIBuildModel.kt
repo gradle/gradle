@@ -2,6 +2,7 @@ package model
 
 import common.Arch
 import common.BuildToolBuildJvm
+import common.FlakyTestStrategy
 import common.Jvm
 import common.JvmCategory
 import common.JvmVendor
@@ -18,7 +19,6 @@ import configurations.CompileAll
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
 import configurations.DocsTestType.CONFIG_CACHE_ENABLED
-import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.OsAwareBaseGradleBuildType
@@ -58,11 +58,6 @@ enum class StageName(
         "Once a week: Run performance tests for multiple Gradle versions",
         "HistoricalPerformance",
     ),
-    EXPERIMENTAL_PERFORMANCE(
-        "Experimental Performance",
-        "Try out new performance test running",
-        "ExperimentalPerformance",
-    ),
     ;
 
     val id: String
@@ -83,7 +78,7 @@ private val performanceRegressionTestCoverages =
             PerformanceTestType.PER_COMMIT,
             Os.WINDOWS,
             numberOfBuckets = 10,
-            failsStage = false,
+            failsStage = true,
         ),
         PerformanceTestCoverage(
             7,
@@ -91,7 +86,7 @@ private val performanceRegressionTestCoverages =
             Os.MACOS,
             Arch.AARCH64,
             numberOfBuckets = 5,
-            failsStage = false,
+            failsStage = true,
         ),
     )
 
@@ -148,8 +143,7 @@ data class CIBuildModel(
                         SpecificBuild.CheckLinks,
                         SpecificBuild.CheckTeamCityKotlinDSL,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
-                        SpecificBuild.SantaTrackerSmokeTests,
-                        SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
+                        SpecificBuild.ConfigCacheAndroidProjectSmokeTests,
                         SpecificBuild.GradleBuildSmokeTests,
                         SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
                         SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
@@ -222,10 +216,7 @@ data class CIBuildModel(
                 specificBuilds =
                     listOf(
                         SpecificBuild.TestPerformanceTest,
-                        SpecificBuild.FlakyTestQuarantineLinux,
-                        SpecificBuild.FlakyTestQuarantineMacOs,
-                        SpecificBuild.FlakyTestQuarantineMacOsAppleSilicon,
-                        SpecificBuild.FlakyTestQuarantineWindows,
+                        SpecificBuild.AndroidProjectSmokeTests,
                     ),
                 functionalTests =
                     listOf(
@@ -380,13 +371,6 @@ data class CIBuildModel(
                 performanceTests =
                     listOf(
                         PerformanceTestCoverage(
-                            3,
-                            PerformanceTestType.HISTORICAL,
-                            Os.LINUX,
-                            numberOfBuckets = 60,
-                            oldUuid = "PerformanceTestHistoricalLinux",
-                        ),
-                        PerformanceTestCoverage(
                             4,
                             PerformanceTestType.FLAKINESS_DETECTION,
                             Os.LINUX,
@@ -405,27 +389,6 @@ data class CIBuildModel(
                             Os.MACOS,
                             numberOfBuckets = 10,
                         ),
-                        PerformanceTestCoverage(
-                            5,
-                            PerformanceTestType.PER_WEEK,
-                            Os.LINUX,
-                            numberOfBuckets = 20,
-                            oldUuid = "PerformanceTestExperimentLinux",
-                        ),
-                        PerformanceTestCoverage(8, PerformanceTestType.PER_WEEK, Os.WINDOWS, numberOfBuckets = 5),
-                        PerformanceTestCoverage(9, PerformanceTestType.PER_WEEK, Os.MACOS, numberOfBuckets = 5),
-                    ),
-            ),
-            Stage(
-                StageName.EXPERIMENTAL_PERFORMANCE,
-                trigger = Trigger.NEVER,
-                runsIndependent = true,
-                performanceTests =
-                    listOf(
-                        PerformanceTestCoverage(10, PerformanceTestType.PER_COMMIT, Os.LINUX, numberOfBuckets = 40),
-                        PerformanceTestCoverage(11, PerformanceTestType.PER_COMMIT, Os.WINDOWS, numberOfBuckets = 5),
-                        PerformanceTestCoverage(12, PerformanceTestType.PER_COMMIT, Os.MACOS, numberOfBuckets = 5),
-                        PerformanceTestCoverage(13, PerformanceTestType.PER_DAY, Os.LINUX, numberOfBuckets = 30),
                     ),
             ),
         ),
@@ -617,13 +580,6 @@ enum class PerformanceTestType(
         channel = "flakiness-detection",
         extraParameters = "--checks none --rerun --cross-version-only",
     ),
-    HISTORICAL(
-        displayName = "Historical Performance Test",
-        timeout = 600,
-        defaultBaselines = "last",
-        channel = "historical",
-        extraParameters = "--checks none --cross-version-only",
-    ),
     AD_HOC(
         displayName = "AdHoc Performance Test",
         timeout = 30,
@@ -646,141 +602,164 @@ enum class SpecificBuild {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = CompileAll(model, stage)
     },
     SanityCheck {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = SanityCheck(model, stage)
     },
     BuildLogicTest {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = BuildLogicTest(model, stage)
     },
     BuildDistributions {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = BuildDistributions(model, stage)
     },
     Gradleception {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = Gradleception(model, stage, BuildToolBuildJvm, "Default")
     },
     GradleceptionWithMaxLtsJdk {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = Gradleception(model, stage, JvmCategory.MAX_LTS_VERSION, "MaxLts")
     },
     CheckLinks {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = CheckLinks(model, stage)
     },
     CheckTeamCityKotlinDSL {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = CheckTeamCityKotlinDSL(model, stage)
     },
     TestPerformanceTest {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = TestPerformanceTest(model, stage)
     },
     SmokeTestsMinJavaVersion {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
-        ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MIN_VERSION, name, splitNumber = 2)
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType =
+            SmokeTests(model, stage, JvmCategory.MIN_VERSION, name, splitNumber = 2, flakyTestStrategy = flakyTestStrategy)
     },
     SmokeTestsMaxJavaVersion {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
-        ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, splitNumber = 4)
-    },
-    SantaTrackerSmokeTests {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType =
-            SmokeTests(model, stage, JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION, name, "santaTrackerSmokeTest", 4)
+            SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, splitNumber = 4, flakyTestStrategy = flakyTestStrategy)
     },
-    ConfigCacheSantaTrackerSmokeTests {
+    AndroidProjectSmokeTests {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType =
+            SmokeTests(model, stage, JvmCategory.ANDROID_PROJECT_SMOKE_TEST_VERSION, name, "androidProjectSmokeTest", 4, flakyTestStrategy)
+    },
+    ConfigCacheAndroidProjectSmokeTests {
+        override fun create(
+            model: CIBuildModel,
+            stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType =
             SmokeTests(
                 model,
                 stage,
-                JvmCategory.SANTA_TRACKER_SMOKE_TEST_VERSION,
+                JvmCategory.ANDROID_PROJECT_SMOKE_TEST_VERSION,
                 name,
-                "configCacheSantaTrackerSmokeTest",
+                "configCacheAndroidProjectSmokeTest",
                 4,
+                flakyTestStrategy,
             )
     },
     GradleBuildSmokeTests {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType =
-            SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, GRADLE_BUILD_SMOKE_TEST_NAME, splitNumber = 4)
+            SmokeTests(
+                model,
+                stage,
+                JvmCategory.MAX_LTS_VERSION,
+                name,
+                GRADLE_BUILD_SMOKE_TEST_NAME,
+                splitNumber = 4,
+                flakyTestStrategy = flakyTestStrategy,
+            )
     },
     ConfigCacheSmokeTestsMinJavaVersion {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
-        ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MIN_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType =
+            SmokeTests(
+                model,
+                stage,
+                JvmCategory.MIN_VERSION,
+                name,
+                "configCacheSmokeTest",
+                splitNumber = 4,
+                flakyTestStrategy = flakyTestStrategy,
+            )
     },
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
-        ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
-    },
-    FlakyTestQuarantineLinux {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.LINUX)
-    },
-    FlakyTestQuarantineMacOs {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.MACOS)
-    },
-    FlakyTestQuarantineMacOsAppleSilicon {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.MACOS, Arch.AARCH64)
-    },
-    FlakyTestQuarantineWindows {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.WINDOWS)
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType =
+            SmokeTests(
+                model,
+                stage,
+                JvmCategory.MAX_LTS_VERSION,
+                name,
+                "configCacheSmokeTest",
+                splitNumber = 4,
+                flakyTestStrategy = flakyTestStrategy,
+            )
     },
     SmokeIdeTests {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
-        ): OsAwareBaseGradleBuildType = SmokeIdeTests(model, stage)
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType = SmokeIdeTests(model, stage, flakyTestStrategy)
     }, ;
 
     abstract fun create(
         model: CIBuildModel,
         stage: Stage,
+        flakyTestStrategy: FlakyTestStrategy,
     ): OsAwareBaseGradleBuildType
 }

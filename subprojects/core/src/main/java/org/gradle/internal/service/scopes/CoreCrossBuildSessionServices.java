@@ -18,9 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
-import org.gradle.configuration.internal.DefaultDynamicCallContextTracker;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
-import org.gradle.configuration.internal.DynamicCallContextTracker;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -31,6 +29,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationsParameters;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
@@ -43,9 +42,11 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.work.DefaultResourceLockStatistics;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.ProjectParallelExecutionController;
+import org.gradle.internal.work.ResourceLockStatistics;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
 
@@ -55,7 +56,18 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     void configure(ServiceRegistration registration) {
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
         registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
-        registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
+    }
+
+    @Provides
+    ResourceLockStatistics createResourceLockStatistics(
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationsParameters buildOperationsParameters
+    ) {
+        if (buildOperationsParameters.emitLockingOperations()) {
+            return new DefaultResourceLockStatistics(buildOperationRunner);
+        } else {
+            return ResourceLockStatistics.NO_OP;
+        }
     }
 
     @Provides
@@ -101,8 +113,8 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager, CrossBuildSessionParameters buildSessionParameters) {
-        return new BuildOperationTrace(buildSessionParameters.getStartParameter(), buildOperationListenerManager);
+    BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager, CrossBuildSessionParameters parameters) {
+        return new BuildOperationTrace(parameters.getUserActionRootDirectory(), parameters.getStartParameter(), buildOperationListenerManager);
     }
 
     @Provides

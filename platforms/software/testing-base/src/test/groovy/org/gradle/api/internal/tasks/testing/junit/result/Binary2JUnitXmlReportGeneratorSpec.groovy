@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationExecutorSupport
 import org.gradle.internal.operations.BuildOperationRunner
@@ -40,12 +41,13 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
             .withRunner(buildOperationRunner)
             .build()
         Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(
-            temp.testDirectory,
-            resultsProvider,
-            new JUnitXmlResultOptions(false, false, true, true),
             buildOperationRunner,
             buildOperationExecutor,
-            "localhost")
+            { "localhost" },
+            temp.testDirectory,
+            resultsProvider,
+            new JUnitXmlResultOptions(false, false, true, true)
+        )
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
     }
@@ -53,12 +55,12 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     def "writes results - #numThreads parallel thread(s)"() {
         generator = generatorWithMaxThreads(numThreads)
 
-        def fooTest = new TestClassResult(1, 'FooTest', 100)
-            .add(new TestMethodResult(1, "foo"))
+        def fooTest = new TestClassResult(1, 'FooTest', 'FooTest', 100, [])
+            .add(new TestMethodResult(1, "foo", "foo", TestResult.ResultType.SUCCESS, 0, 200, []))
 
-        def barTest = new TestClassResult(2, 'BarTest', 100)
-            .add(new TestMethodResult(2, "bar"))
-            .add(new TestMethodResult(3, "bar2"))
+        def barTest = new TestClassResult(2, 'BarTest', 'BarTest', 100, [])
+            .add(new TestMethodResult(2, "bar", "bar", TestResult.ResultType.SUCCESS, 0, 200, []))
+            .add(new TestMethodResult(3, "bar2", "bar2", TestResult.ResultType.SUCCESS, 0, 200, []))
 
         resultsProvider.visitClasses(_) >> { Action action ->
             action.execute(fooTest)
@@ -80,8 +82,8 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
     def "adds context information to the failure if something goes wrong"() {
         generator = generatorWithMaxThreads(1)
 
-        def fooTest = new TestClassResult(1, 'FooTest', 100)
-            .add(new TestMethodResult(1, "foo"))
+        def fooTest = new TestClassResult(1, 'FooTest', 'FooTest', 100, [])
+            .add(new TestMethodResult(1, "foo", "foo", TestResult.ResultType.FAILURE, 0, 200, []))
 
         resultsProvider.visitClasses(_) >> { Action action ->
             action.execute(fooTest)
@@ -96,5 +98,39 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         ex.causes.size() == 1
         ex.causes[0].message.startsWith('Could not write XML test results for FooTest')
         ex.causes[0].cause.message == "Boo!"
+    }
+
+    def "generates actual files with correct unicode names"() {
+        given:
+        generator = generatorWithMaxThreads(1)
+
+        def testMethodResult = new TestMethodResult(1, "testMethod", "testMethod", TestResult.ResultType.SUCCESS, 100, 200, [])
+
+        def testClassResult = new TestClassResult(1, className, className, 100, [])
+            .add(testMethodResult)
+
+        resultsProvider.visitClasses(_) >> { Action action ->
+            action.execute(testClassResult)
+        }
+
+        when:
+        generator.generate()
+
+        then:
+        def xmlFiles = temp.testDirectory.listFiles()?.findAll { it.name.endsWith('.xml') } ?: []
+        xmlFiles.size() == 1
+
+        def actualFile = xmlFiles[0]
+        actualFile.name == expectedFileName
+        !actualFile.name.contains('#')
+        actualFile.isFile()
+
+        where:
+        description                 | className               | expectedFileName
+        "Korean class name"         | "한글테스트클래스"           | "TEST-한글테스트클래스.xml"
+        "Chinese class name"        | "中文测试类"              | "TEST-中文测试类.xml"
+        "path separator (illegal)"  | "com/example/TestClass" | "TEST-com-example-TestClass.xml"
+        "colon (illegal)"           | "com:example:TestClass" | "TEST-com-example-TestClass.xml"
+        "standard ASCII class name" | "StandardTest"          | "TEST-StandardTest.xml"
     }
 }

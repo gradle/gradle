@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
-import org.gradle.problems.internal.rendering.ProblemRenderer;
+import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.jspecify.annotations.Nullable;
 
 import java.io.StringWriter;
@@ -72,7 +72,7 @@ public class CompilationFailedException extends RuntimeException implements Comp
     private static String exceptionMessage(String prefix, List<InternalProblem> problems, String diagnosticCounts) {
         StringWriter result = new StringWriter();
         result.append(prefix);
-        new ProblemRenderer(result).render(problems);
+        ProblemWriter.simple().write(problems, result);
         result.append(System.lineSeparator());
         result.append(diagnosticCounts);
         return result.toString();

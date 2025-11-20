@@ -170,7 +170,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds('resolve')
-        result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
+        result.assertTasksScheduled(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
 
         when:
         repoA.expectListVersions()
@@ -179,7 +179,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds('resolve')
-        result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
+        result.assertTasksScheduled(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
     }
 
     def "git version lookup and checkout is performed once per branch selector per build invocation"() {
@@ -239,7 +239,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds('resolve')
-        result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
+        result.assertTasksScheduled(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
 
         when:
         repoA.expectListVersions()
@@ -248,6 +248,6 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds('resolve')
-        result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
+        result.assertTasksScheduled(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.time.Instant;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
  * @since 8.12
  */
 @Incubating
+@HasInternalProtocol
 public interface TestEventReporter extends AutoCloseable {
     /**
      * Emit a start event for the test. Can only be called once, and must be followed by a call to {@link #succeeded(Instant)}, {@link #skipped(Instant)}, {@link #failed(Instant)},
@@ -58,10 +60,10 @@ public interface TestEventReporter extends AutoCloseable {
      *
      * @param logTime the time the metadata was logged, should be between the start and end times of the test (inclusive)
      * @param key a key to identify the metadata
-     * @param value the metadata value, which must be serializable by the Tooling API
-     * @since 8.13
+     * @param value the metadata value
+     * @since 9.4.0
      */
-    void metadata(Instant logTime, String key, Object value);
+    void metadata(Instant logTime, String key, String value);
 
     /**
      * Emit an event containing metadata about the test or test group currently being run.  The metadata is
@@ -74,10 +76,10 @@ public interface TestEventReporter extends AutoCloseable {
      * Keys should usually be unique within the scope of a single test, but this is not enforced.
      *
      * @param logTime the time the metadata was logged, should be between the start and end times of the test (inclusive)
-     * @param values the metadata values, containing in a map which must be serializable by the Tooling API
+     * @param values the key-value pairs
      * @since 8.13
      */
-    void metadata(Instant logTime, Map<String, Object> values);
+    void metadata(Instant logTime, Map<String, String> values);
 
     /**
      * Emit a successful completion event for the test. May not be called before {@link #started(Instant)}.

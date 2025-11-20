@@ -30,7 +30,7 @@ class ScalaCompilationFixture {
     final ScalaClass independentClassSource
     final ScalaClass extraClass
     final String sourceSet
-    String scalaVersion
+    private String scalaVersionLazyInit
     String zincVersion
     String sourceCompatibility
     String sourceDir
@@ -41,7 +41,6 @@ class ScalaCompilationFixture {
         this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compileScala.analysis")
         this.sourceSet = 'main'
         this.sourceDir = 'src/main/scala'
-        this.scalaVersion = ScalaCoverage.latestSupportedScala2Version
         this.zincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
         this.sourceCompatibility = '1.8'
         basicClassSource = new ScalaClass(
@@ -79,6 +78,17 @@ class ScalaCompilationFixture {
                  */
                 class City(val name: String)'''.stripIndent()
         )
+    }
+
+    String getScalaVersion() {
+        if (scalaVersionLazyInit == null) {
+            scalaVersionLazyInit = ScalaCoverage.latestSupportedScala2Version
+        }
+        return scalaVersionLazyInit
+    }
+
+    void setScalaVersion(String scalaVersion) {
+        this.scalaVersionLazyInit = scalaVersion
     }
 
     def isScala3() {

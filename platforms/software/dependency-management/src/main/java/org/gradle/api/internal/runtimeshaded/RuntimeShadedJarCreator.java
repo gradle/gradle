@@ -71,10 +71,10 @@ class RuntimeShadedJarCreator {
         this.classpathBuilder = classpathBuilder;
     }
 
-    public void create(final File outputJar, final Iterable<? extends File> files) {
-        LOGGER.info("Generating " + outputJar.getAbsolutePath());
+    public void create(RuntimeShadedJarType type, final File outputJar, final Iterable<? extends File> files) {
+        LOGGER.info("Generating " + type.getDisplayName() + ": " + outputJar.getAbsolutePath());
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(RuntimeShadedJarCreator.class);
-        progressLogger.setDescription("Generating " + outputJar.getName());
+        progressLogger.setDescription("Generating " + type.getDisplayName());
         progressLogger.started();
         try {
             createFatJar(outputJar, files, progressLogger);

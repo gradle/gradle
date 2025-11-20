@@ -110,23 +110,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         ruleWrapper.rule.spec == Specs.satisfyAll()
     }
 
-    def "add rule source rule that applies to all components"() {
-        def ruleSource = new Object()
-
-        when:
-        mockedHandler.all(ruleSource)
-
-        then:
-        1 * adapter.createFromRuleSource(ComponentMetadataDetails, ruleSource) >> ruleAction
-
-        and:
-        !mockedHandler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = mockedHandler.metadataRuleContainer.iterator().next()
-        !ruleWrapper.classBased
-        ruleWrapper.rule.action == (ruleAction)
-        ruleWrapper.rule.spec == Specs.satisfyAll()
-    }
-
     def "add class rule that applies to all components"() {
         when:
         handler.all(TestComponentMetadataRule)
@@ -197,24 +180,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         ruleWrapper.rule.spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
-    def "add rule source rule that applies to module"() {
-        def ruleSource = new Object()
-        String notation = "${GROUP}:${MODULE}"
-
-        when:
-        mockedHandler.withModule(notation, ruleSource)
-
-        then:
-        1 * adapter.createFromRuleSource(ComponentMetadataDetails, ruleSource) >> ruleAction
-
-        and:
-        !mockedHandler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = mockedHandler.metadataRuleContainer.iterator().next()
-        !ruleWrapper.classBased
-        ruleWrapper.rule.action == (ruleAction)
-        ruleWrapper.rule.spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
-    }
-
     def "add class rule that applies to module"() {
         String notation = "${GROUP}:${MODULE}"
 
@@ -274,18 +239,6 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
         and:
         1 * adapter.createFromAction(action) >> { throw new InvalidUserCodeException("bad action") }
-    }
-
-    def "propagates error creating rule for rule source"() {
-        when:
-        mockedHandler.all(new Object())
-
-        then:
-        def e = thrown(InvalidUserCodeException)
-        e.message == "bad rule source"
-
-        and:
-        1 * adapter.createFromRuleSource(ComponentMetadataDetails, _) >> { throw new InvalidUserCodeException("bad rule source") }
     }
 
     def "produces sensible error when rule action throws an exception"() {

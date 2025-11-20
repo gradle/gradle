@@ -16,53 +16,44 @@
 
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.commons.io.input.NullReader;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.serialize.PlaceholderExceptionSupport;
+import org.gradle.internal.serialize.ExceptionSerializationUtil;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
+import java.util.Set;
 import java.util.function.Consumer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
+import java.util.stream.Collectors;
 
 /**
  * An object that can store test results and their outputs.
  */
-@NullMarked
 public final class SerializableTestResultStore {
 
     /**
@@ -75,49 +66,66 @@ public final class SerializableTestResultStore {
     private static final int STORE_VERSION = 1;
 
     private final Path serializedResultsFile;
-    private final Path outputZipFile;
+    private final Path outputEventsFile;
 
     public SerializableTestResultStore(Path resultsDir) {
         this.serializedResultsFile = resultsDir.resolve("results-generic.bin");
-        this.outputZipFile = resultsDir.resolve("output-generic.zip");
+        this.outputEventsFile = resultsDir.resolve("output-events.bin");
     }
 
-    public static boolean isGenericTestResults(File resultDir) {
-        return Files.exists(resultDir.toPath().resolve("results-generic.bin"));
+    public Writer openWriter(int diskSkipLevels) throws IOException {
+        return new Writer(serializedResultsFile, outputEventsFile, diskSkipLevels);
     }
 
-    public Writer openWriter() throws IOException {
-        return new Writer(serializedResultsFile, outputZipFile);
-    }
-
-    @NullMarked
     public static final class Writer implements Closeable, TestListenerInternal {
+        private static boolean isRoot(TestDescriptorInternal descriptor) {
+            return descriptor.getParent() == null;
+        }
+
+        private static int depth(TestDescriptorInternal descriptor) {
+            int depth = 0;
+            while (descriptor.getParent() != null) {
+                depth++;
+                descriptor = descriptor.getParent();
+            }
+            return depth;
+        }
+
+        private static final long ROOT_ID = 1;
+
         private final Map<Object, Long> assignedIds = new HashMap<>();
+        private final Set<Object> flatteningIds;
+        private final List<TestDescriptorInternal> extraFlattenedDescriptors;
+        private final List<TestResult> extraFlattenedResults;
         private final Path serializedResultsFile;
+        private final int diskSkipLevels;
         private final Path temporaryResultsFile;
+        /**
+         * Encoder storing the serialized test results.
+         */
         private final KryoBackedEncoder resultsEncoder;
-        private final FileSystem outputZipFileSystem;
+        private final TestOutputWriter outputWriter;
         private long nextId = 1;
 
         // Map from testDescriptor -> Serialized metadata associated with that descriptor
-        private final Multimap<TestDescriptorInternal, SerializedMetadata> metadatas = LinkedHashMultimap.create();
+        private final Multimap<TestDescriptorInternal, TestMetadataEvent> metadatas = LinkedHashMultimap.create();
 
-        private Writer(Path serializedResultsFile, Path outputZipFile) throws IOException {
+        private Writer(Path serializedResultsFile, Path outputEventsFile, int diskSkipLevels) throws IOException {
             this.serializedResultsFile = serializedResultsFile;
+            this.diskSkipLevels = diskSkipLevels;
+            // Use constants to avoid allocating empty collections if flattening is not enabled
+            flatteningIds = isDiskSkipEnabled() ? new HashSet<>() : Collections.emptySet();
+            extraFlattenedDescriptors = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
+            extraFlattenedResults = isDiskSkipEnabled() ? new ArrayList<>() : Collections.emptyList();
             Files.createDirectories(serializedResultsFile.getParent());
             temporaryResultsFile = Files.createTempFile(serializedResultsFile.getParent(), "in-progress-results-generic", ".bin");
             resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
-            resultsEncoder.writeSmallInt(STORE_VERSION);
+            Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
             try {
-                // Truncate existing output zip file
-                new ZipOutputStream(Files.newOutputStream(outputZipFile)).close();
-                try {
-                    outputZipFileSystem = FileSystems.newFileSystem(URI.create("jar:" + outputZipFile.toUri()), Collections.emptyMap());
-                } catch (FileSystemAlreadyExistsException e) {
-                    throw new InvalidUserCodeException("A previous file system exists for " + outputZipFile + ", which likely means that a previous test reporter was not closed", e);
-                }
+                resultsEncoder.writeSmallInt(STORE_VERSION);
+                outputWriter = new TestOutputWriter(outputEventsFile, testOutputEventSerializer);
             } catch (Throwable t) {
-                // Ensure we don't leak the encoder if we fail to open the output zip file
+                // Ensure we don't leak the encoder if we fail to do operations in the constructor
                 try {
                     resultsEncoder.close();
                 } catch (Throwable t2) {
@@ -127,105 +135,179 @@ public final class SerializableTestResultStore {
             }
         }
 
+        private boolean isDiskSkipEnabled() {
+            return diskSkipLevels > 0;
+        }
+
         @Override
         public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
+            if (isDiskSkipEnabled() && !isRoot(testDescriptor) && depth(testDescriptor) <= diskSkipLevels) {
+                flatteningIds.add(testDescriptor.getId());
+            }
             long id = nextId++;
+            // Sanity check, shouldn't happen in practice
+            if (id == ROOT_ID) {
+                if (!isRoot(testDescriptor)) {
+                    throw new IllegalStateException("The first test descriptor must be the root, but got: " + testDescriptor);
+                }
+            }
             assignedIds.put(testDescriptor.getId(), id);
         }
 
         @Override
         public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
+            if (isDiskSkipEnabled()) {
+                // Attach flattened results to the root if this is a flattened node
+                if (flatteningIds.contains(testDescriptor.getId())) {
+                    extraFlattenedDescriptors.add(testDescriptor);
+                    extraFlattenedResults.add(testResult);
+                    return;
+                }
+            }
+
             SerializableTestResult.Builder testNodeBuilder = SerializableTestResult.builder()
                 .name(testDescriptor.getName())
                 .displayName(testDescriptor.getDisplayName())
+                .className(testDescriptor.getClassName())
+                .classDisplayName(testDescriptor.getClassDisplayName())
                 .startTime(testResult.getStartTime())
                 .endTime(testResult.getEndTime())
                 .resultType(testResult.getResultType());
 
-            for (Throwable throwable : testResult.getExceptions()) {
-                testNodeBuilder.addFailure(new SerializableFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
+            if (testResult.getAssumptionFailure() != null) {
+                testNodeBuilder.assumptionFailure(convertToSerializableFailure(testResult.getAssumptionFailure()));
             }
 
-            for (SerializedMetadata metadata : metadatas.get(testDescriptor)) {
+            for (TestFailure failure : testResult.getFailures()) {
+                testNodeBuilder.addFailure(convertToSerializableFailure(failure));
+            }
+
+            for (TestMetadataEvent metadata : metadatas.removeAll(testDescriptor)) {
                 testNodeBuilder.addMetadata(metadata);
+            }
+
+            if (isDiskSkipEnabled() && isRoot(testDescriptor)) {
+                // Attach extra flattened results to the root node
+                boolean hasAssumptionFailure = testResult.getAssumptionFailure() != null;
+                for (TestResult flattenedResult : extraFlattenedResults) {
+                    if (flattenedResult.getAssumptionFailure() != null) {
+                        if (hasAssumptionFailure) {
+                            throw new IllegalStateException("Multiple assumption failures would need to be handled, but only one is supported: " + testDescriptor);
+                        }
+                        hasAssumptionFailure = true;
+
+                        testNodeBuilder.assumptionFailure(convertToSerializableFailure(flattenedResult.getAssumptionFailure()));
+                    }
+
+                    for (TestFailure failure : flattenedResult.getFailures()) {
+                        testNodeBuilder.addFailure(convertToSerializableFailure(failure));
+                    }
+                }
+                extraFlattenedResults.clear();
+
+                for (TestDescriptorInternal flattenedDescriptor : extraFlattenedDescriptors) {
+                    for (TestMetadataEvent metadata : metadatas.removeAll(flattenedDescriptor)) {
+                        testNodeBuilder.addMetadata(metadata);
+                    }
+                }
+                extraFlattenedDescriptors.clear();
             }
 
             // We remove the id here since no further events should come for this test, and it won't be needed as a parent id anymore
             long id = assignedIds.remove(testDescriptor.getId());
-            resultsEncoder.writeSmallLong(id);
             try {
+                OutputEntry outputEntry = outputWriter.finishOutput(id);
+                OutputEntry.SERIALIZER.write(resultsEncoder, outputEntry);
                 SerializableTestResult.Serializer.serialize(testNodeBuilder.build(), resultsEncoder);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-            if (testDescriptor.getParent() != null) {
-                resultsEncoder.writeSmallLong(assignedIds.get(testDescriptor.getParent().getId()));
+            TestDescriptorInternal parent = getFlattenedParent(testDescriptor);
+            if (parent != null) {
+                Long parentId = assignedIds.get(parent.getId());
+                if (parentId == null) {
+                    throw new IllegalStateException("No id found for test descriptor: " + parent);
+                }
+                resultsEncoder.writeSmallLong(parentId);
             } else {
                 resultsEncoder.writeSmallLong(0);
             }
         }
 
-        private static String failureMessage(Throwable throwable) {
-            try {
-                return throwable.toString();
-            } catch (Throwable t) {
-                String exceptionClassName = exceptionClassName(throwable);
-                return String.format("Could not determine failure message for exception of type %s: %s",
-                    exceptionClassName, t);
+        @Nullable
+        private TestDescriptorInternal getFlattenedParent(TestDescriptorInternal testDescriptor) {
+            if (!isDiskSkipEnabled() || isRoot(testDescriptor)) {
+                return testDescriptor.getParent();
             }
+            TestDescriptorInternal parent = testDescriptor.getParent();
+            assert parent != null : "Non-root test descriptor should always have a parent: " + testDescriptor.getDisplayName() + " (id: " + testDescriptor.getId() + ")";
+            while (flatteningIds.contains(parent.getId())) {
+                parent = parent.getParent();
+                if (parent == null) {
+                    // The root is always unflattened, so we should never reach here
+                    throw new AssertionError(
+                        "Parent of a flattened test descriptor should not be null: " + testDescriptor.getDisplayName() + " (id: " + testDescriptor.getId() + ")"
+                    );
+                }
+            }
+            return parent;
         }
 
-        private static String exceptionClassName(Throwable throwable) {
-            return throwable instanceof PlaceholderExceptionSupport ? ((PlaceholderExceptionSupport) throwable).getExceptionClassName() : throwable.getClass().getName();
-        }
-
-        private static String stackTrace(Throwable throwable) {
-            try {
-                return getStacktrace(throwable);
-            } catch (Throwable t) {
-                return getStacktrace(t);
+        private static SerializableFailure convertToSerializableFailure(TestFailure failure) {
+            // Build message in the same way as Throwable.toString()
+            String message = failure.getDetails().getClassName();
+            if (failure.getDetails().getMessage() != null) {
+                message += ": " + failure.getDetails().getMessage();
             }
-        }
+            List<String> convertedCauses = ExceptionSerializationUtil.extractCauses(failure.getRawFailure()).stream()
+                .map(Throwables::getStackTraceAsString)
+                .collect(Collectors.toList());
 
-        private static String getStacktrace(Throwable throwable) {
-            StringWriter writer = new StringWriter();
-            try (PrintWriter printWriter = new PrintWriter(writer)) {
-                throwable.printStackTrace(printWriter);
-            }
-            return writer.toString();
+            return new SerializableFailure(
+                message,
+                failure.getDetails().getStacktrace(),
+                failure.getDetails().getClassName(),
+                convertedCauses
+            );
         }
 
         @Override
         public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
-            Path file = outputZipFileSystem.getPath(Long.toString(assignedIds.get(testDescriptor.getId())), event.getDestination().name());
-            try {
-                Files.createDirectories(file.getParent());
-                Files.write(file, event.getMessage().getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-            } catch (IOException e) {
-                throw new RuntimeException("Could not write output file '" + file + "'", e);
+            long outputId;
+            // Log to the root of the output zip file if this is a flattened test
+            if (isDiskSkipEnabled() && flatteningIds.contains(testDescriptor.getId())) {
+                outputId = ROOT_ID;
+            } else {
+                outputId = assignedIds.get(testDescriptor.getId());
             }
+            outputWriter.writeOutputEvent(outputId, event);
         }
 
         @Override
         public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-            metadatas.put(testDescriptor, new SerializedMetadata(event.getLogTime(), event.getValues()));
+            metadatas.put(testDescriptor, event);
         }
 
         @Override
         public void close() throws IOException {
             try {
                 // Write a 0 id to terminate the file
-                resultsEncoder.writeSmallLong(0);
+                OutputEntry.SERIALIZER.write(resultsEncoder, new OutputEntry(0, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT));
+            } catch (Exception e) {
+                if (e instanceof IOException) {
+                    throw (IOException) e;
+                }
+                throw UncheckedException.throwAsUncheckedException(e);
             } finally {
-                CompositeStoppable.stoppable(resultsEncoder, outputZipFileSystem).stop();
-                // Move the temporary results file to the final location
-                Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
+                CompositeStoppable.stoppable(resultsEncoder, outputWriter).stop();
             }
+            // Move the temporary results file to the final location, if successful
+            Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
     public boolean hasResults() {
-        if (Files.exists(serializedResultsFile) && Files.exists(outputZipFile)) {
+        if (Files.exists(serializedResultsFile) && Files.exists(outputEventsFile)) {
             // Inspect the results file, read first ID to see if there are any results
             try (KryoBackedDecoder decoder = openAndInitializeDecoder()) {
                 return decoder.readSmallLong() != 0;
@@ -237,31 +319,6 @@ public final class SerializableTestResultStore {
         }
     }
 
-    @NullMarked
-    public static final class OutputTrackedResult {
-        private final long id;
-        private final SerializableTestResult testResult;
-        private final long parentId;
-
-        private OutputTrackedResult(long id, SerializableTestResult testResult, long parentId) {
-            this.id = id;
-            this.testResult = testResult;
-            this.parentId = parentId;
-        }
-
-        public SerializableTestResult getInnerResult() {
-            return testResult;
-        }
-
-        public long getOutputId() {
-            return id;
-        }
-
-        public OptionalLong getParentOutputId() {
-            return parentId == 0 ? OptionalLong.empty() : OptionalLong.of(parentId);
-        }
-    }
-
     /**
      * Visit every result in the store. Parents are visited <em>AFTER</em> their children, but not necessarily in a breadth-first or depth-first order.
      * The action is called once for each result.
@@ -269,22 +326,27 @@ public final class SerializableTestResultStore {
      * @param action the action to perform on each result
      * @throws IOException if an error occurs while reading the results
      */
-    public void forEachResult(Consumer<? super OutputTrackedResult> action) throws IOException {
+    public void forEachResult(Consumer<? super OutputTrackedResult> action) throws Exception {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
             while (true) {
-                long id = resultsDecoder.readSmallLong();
-                if (id == 0) {
-                    break;
+                OutputEntry entry;
+                try {
+                    entry = OutputEntry.SERIALIZER.read(resultsDecoder);
+                } catch (Exception e) {
+                    if (e instanceof IOException) {
+                        throw (IOException) e;
+                    }
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
-                if (id < 0) {
-                    throw new IllegalStateException("Invalid id: " + id);
+                if (entry.id == 0) {
+                    break;
                 }
                 SerializableTestResult testResult = SerializableTestResult.Serializer.deserialize(resultsDecoder);
                 long parentId = resultsDecoder.readSmallLong();
                 if (parentId < 0) {
                     throw new IllegalStateException("Invalid parent id: " + parentId);
                 }
-                action.accept(new OutputTrackedResult(id, testResult, parentId));
+                action.accept(new OutputTrackedResult(entry, testResult, parentId));
             }
         }
     }
@@ -308,43 +370,7 @@ public final class SerializableTestResultStore {
         return decoder;
     }
 
-    public OutputReader openOutputReader() throws IOException {
-        return new OutputReader(outputZipFile);
-    }
-
-    @NullMarked
-    public static final class OutputReader implements Closeable {
-        private final ZipFile outputZipFile;
-
-        private OutputReader(Path outputZipFile) throws IOException {
-            this.outputZipFile = new ZipFile(outputZipFile.toFile());
-        }
-
-        @Nullable
-        private ZipEntry getEntry(long id, TestOutputEvent.Destination destination) {
-            return outputZipFile.getEntry(id + "/" + destination.name());
-        }
-
-        public boolean hasOutput(long id, TestOutputEvent.Destination destination) {
-            return getEntry(id, destination) != null;
-        }
-
-        public java.io.Reader getOutput(long id, TestOutputEvent.Destination destination) {
-            ZipEntry entry = getEntry(id, destination);
-            if (entry == null) {
-                // Map no entry to no output
-                return new NullReader();
-            }
-            try {
-                return new InputStreamReader(outputZipFile.getInputStream(entry), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new RuntimeException("Could not read output entry '" + entry.getName() + "'", e);
-            }
-        }
-
-        @Override
-        public void close() throws IOException {
-            outputZipFile.close();
-        }
+    public TestOutputReader createOutputReader(Serializer<TestOutputEvent> testOutputEventSerializer) {
+        return new TestOutputReader(outputEventsFile, testOutputEventSerializer);
     }
 }

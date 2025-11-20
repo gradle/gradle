@@ -44,19 +44,19 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
-        execute(buildOperation, RUNNABLE_BUILD_OPERATION_WORKER, getCurrentBuildOperation());
+        execute(buildOperation, RUNNABLE_BUILD_OPERATION_WORKER);
     }
 
     @Override
-    public <T> T call(CallableBuildOperation<T> buildOperation) {
+    public <T extends @Nullable Object> T call(CallableBuildOperation<T> buildOperation) {
         CallableBuildOperationWorker<T> worker = new CallableBuildOperationWorker<T>();
-        execute(buildOperation, worker, getCurrentBuildOperation());
+        execute(buildOperation, worker);
         return worker.getReturnValue();
     }
 
     @Override
-    public <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
-        execute(buildOperation.description(), defaultParent, new BuildOperationExecution<O>() {
+    public <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker) {
+        execute(buildOperation.description(), new BuildOperationExecution<O>() {
             @Override
             public O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context, BuildOperationExecutionListener listener) {
                 try {
@@ -93,7 +93,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
     @Override
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder) {
-        return execute(descriptorBuilder, getCurrentBuildOperation(), new BuildOperationExecution<BuildOperationContext>() {
+        return execute(descriptorBuilder, new BuildOperationExecution<BuildOperationContext>() {
             @Override
             public BuildOperationContext execute(final BuildOperationDescriptor descriptor, final BuildOperationState operationState, @Nullable final BuildOperationState parent, final ReadableBuildOperationContext context, final BuildOperationExecutionListener listener) {
                 listener.start(descriptor, operationState);
@@ -151,9 +151,9 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         });
     }
 
-    private <O> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
+    private <O> O execute(BuildOperationDescriptor.Builder descriptorBuilder, BuildOperationExecution<O> execution) {
         BuildOperationState descriptorParent = (BuildOperationState) descriptorBuilder.getParentState();
-        BuildOperationState parent = descriptorParent == null ? defaultParent : descriptorParent;
+        BuildOperationState parent = descriptorParent == null ? getCurrentBuildOperation() : descriptorParent;
         OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
         BuildOperationDescriptor descriptor = descriptorBuilder.build(id, parent == null
             ? null
@@ -201,14 +201,15 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 
-    private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
-        private T returnValue;
+    private static class CallableBuildOperationWorker<T extends @Nullable Object> implements BuildOperationWorker<CallableBuildOperation<T>> {
+        private @Nullable T returnValue;
 
         @Override
         public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) throws Exception {
             returnValue = buildOperation.call(context);
         }
 
+        @SuppressWarnings("NullAway") // Properly typing this is non-trivial even with a sentinel object.
         public T getReturnValue() {
             return returnValue;
         }
@@ -217,7 +218,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static class BuildOperationTrackingListener implements BuildOperationExecutionListener {
         private final CurrentBuildOperationRef currentBuildOperationRef;
         private final BuildOperationExecutionListener delegate;
-        private BuildOperationState originalCurrentBuildOperation;
+        private @Nullable BuildOperationState originalCurrentBuildOperation;
 
         private BuildOperationTrackingListener(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationExecutionListener delegate) {
             this.currentBuildOperationRef = currentBuildOperationRef;
@@ -317,9 +318,9 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static class DefaultBuildOperationContext implements ReadableBuildOperationContext {
         private final BuildOperationDescriptor descriptor;
         private final BuildOperationExecutionListener listener;
-        private Throwable failure;
-        private Object result;
-        private String status;
+        private @Nullable Throwable failure;
+        private @Nullable Object result;
+        private @Nullable String status;
 
         public DefaultBuildOperationContext(BuildOperationDescriptor descriptor, BuildOperationExecutionListener listener) {
             this.descriptor = descriptor;

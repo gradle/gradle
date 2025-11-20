@@ -42,7 +42,7 @@ import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
-import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.reporting.internal.ReportUtilities;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
@@ -326,8 +326,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureJavaDoc(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
-            javadoc.getConventionMapping().map("destinationDir", () -> new File(javaPluginExtension.getDocsDir().get().getAsFile(), "javadoc"));
-            javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
+            javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir("javadoc").get().getAsFile());
+            javadoc.getConventionMapping().map("title", () -> ReportUtilities.getApiDocTitleFor(project));
 
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
                 JavadocExecutableUtils.getExecutableOverrideToolchainSpec(javadoc, propertyFactory));

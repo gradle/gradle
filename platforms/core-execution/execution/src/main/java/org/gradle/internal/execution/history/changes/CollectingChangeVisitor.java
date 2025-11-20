@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class CollectingChangeVisitor implements ChangeVisitor {
-    private List<Change> changes = new ArrayList<Change>();
+    private final List<Change> changes = new ArrayList<>();
 
     @Override
     public boolean visitChange(Change change) {

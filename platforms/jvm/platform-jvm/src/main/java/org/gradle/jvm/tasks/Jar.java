@@ -27,7 +27,6 @@ import org.gradle.api.internal.ConfigurationCacheDegradation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
@@ -217,7 +216,7 @@ public abstract class Jar extends Zip {
 
     private Manifest forceManifest() {
         if (manifest == null) {
-            manifest = new DefaultManifest(((ProjectInternal) getProject()).getFileResolver());
+            manifest = new DefaultManifest(getFileResolver());
         }
         return manifest;
     }

@@ -25,7 +25,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":assemble")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinary, ":assemble")
         // TODO - should skip the task as NO-SOURCE
         result.assertTasksSkipped(tasksToAssembleDevelopmentBinary, ":assemble")
     }

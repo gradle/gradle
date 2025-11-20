@@ -80,6 +80,12 @@ import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 public abstract class AvailableJavaHomes {
+    /**
+     * On CI we pass -P{@value org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier#JAVA_INSTALLATIONS_PATHS_PROPERTY}=X,Y,Z to the build,
+     * which sets the installation paths the build itself should use.  We then "forward" it to the integration tests via this system property.
+     * This allows this class to "discover" the same paths as are used in the build, and makes the JDKs available in integrations tests more deterministic.
+     */
+    private static final String FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY = JAVA_INSTALLATIONS_PATHS_PROPERTY + ".integTest";
 
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
 
@@ -437,7 +443,7 @@ public abstract class AvailableJavaHomes {
             new AsdfInstallationSupplier(toolchainConfiguration),
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
             new CurrentInstallationSupplier(),
-            new ToolchainInstallatioinPathsSystemPropertyJvmLocator(),
+            new ToolchainInstallationPathsSystemPropertyJvmLocator(),
             new EnvVariableJvmLocator(),
             new IntellijInstallationSupplier(toolchainConfiguration),
             new JabbaInstallationSupplier(toolchainConfiguration),
@@ -472,19 +478,19 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
-     * On CI we pass -Porg.gradle.java.installations.paths=X,Y,Z to the build, then "forward" it
-     * as system property to get deterministic results.
+     * On CI we pass -P{@value org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier#JAVA_INSTALLATIONS_PATHS_PROPERTY}=X,Y,Z to the build, then "forward" it
+     * as a system property ({@code -D{@value FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY}}) to get deterministic results.
      */
-    private static class ToolchainInstallatioinPathsSystemPropertyJvmLocator implements InstallationSupplier {
+    private static class ToolchainInstallationPathsSystemPropertyJvmLocator implements InstallationSupplier {
 
         @Override
         public String getSourceName() {
-            return "System properties " + JAVA_INSTALLATIONS_PATHS_PROPERTY;
+            return "System properties " + FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY;
         }
 
         @Override
         public Set<InstallationLocation> get() {
-            final String property = System.getProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY);
+            final String property = System.getProperty(FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY);
             if (property != null) {
                 return Arrays.stream(property.split(","))
                     .filter(path -> !path.trim().isEmpty())

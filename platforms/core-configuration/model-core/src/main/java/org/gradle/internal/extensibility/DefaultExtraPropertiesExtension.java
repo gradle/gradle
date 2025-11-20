@@ -16,21 +16,25 @@
 
 package org.gradle.internal.extensibility;
 
-import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtensionInternal {
 
-    private ImmutableMap<String, Object> gradleProperties = ImmutableMap.of();
+    @Nullable
+    private GradleProperties gradleProperties;
 
     @Nullable
     private Map<String, Object> storage = null;
@@ -40,9 +44,12 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         if (storage != null && storage.containsKey(name)) {
             return true;
         }
-        // TODO:configuration-cache track Gradle property lookup
-//        onGradlePropertyLookup(name);
-        return gradleProperties.containsKey(name);
+
+        if (gradleProperties != null) {
+            return gradleProperties.findUnsafe(name) != null;
+        }
+
+        return false;
     }
 
     @Override
@@ -63,9 +70,12 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
                 return value;
             }
         }
-        // TODO:configuration-cache track Gradle property lookup
-//        onGradlePropertyLookup(name);
-        return gradleProperties.get(name);
+
+        if (gradleProperties != null) {
+            return gradleProperties.findUnsafe(name);
+        }
+
+        return null;
     }
 
     @Override
@@ -90,10 +100,11 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
             }
         }
 
-        // TODO:configuration-cache track Gradle property lookup
-//        onGradlePropertyLookup(name);
-        if (gradleProperties.containsKey(name)) {
-            return gradleProperties.get(name);
+        if (gradleProperties != null) {
+            Object value = gradleProperties.findUnsafe(name);
+            if (value != null) {
+                return value;
+            }
         }
 
         throw new MissingPropertyException(UnknownPropertyException.createMessage(name), name, null);
@@ -109,21 +120,24 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     @Override
     public Map<String, Object> getProperties() {
-        // Must return a mutable map to preserve contract
-        // TODO:configuration-cache use a tracking map here
+        // Must return a mutable map to preserve the contract
+        // TODO:configuration-cache introduce a lazy mutable map that does not force eager reading of all Gradle properties
         if (storage == null) {
-            return new HashMap<>(gradleProperties);
+            return new HashMap<>(getGradlePropertiesAsMap());
         }
-        Map<String, Object> properties = new HashMap<>(storage.size() + gradleProperties.size());
+        Map<String, Object> gradlePropertiesMap = getGradlePropertiesAsMap();
+        Map<String, Object> properties = new HashMap<>(storage.size() + gradlePropertiesMap.size());
         properties.putAll(storage);
-        for (Map.Entry<String, Object> entry : gradleProperties.entrySet()) {
+        for (Map.Entry<String, Object> entry : gradlePropertiesMap.entrySet()) {
             if (!storage.containsKey(entry.getKey())) {
-                // TODO:configuration-cache track Gradle property lookup
-//                onGradlePropertyLookup(entry.getKey());
                 properties.put(entry.getKey(), entry.getValue());
             }
         }
         return properties;
+    }
+
+    private Map<String, Object> getGradlePropertiesAsMap() {
+        return gradleProperties == null ? Collections.emptyMap() : uncheckedNonnullCast(gradleProperties.getProperties());
     }
 
     @SuppressWarnings("rawtypes")
@@ -138,7 +152,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     }
 
     @Override
-    public void setGradleProperties(Map<String, Object> properties) {
-        gradleProperties = ImmutableMap.copyOf(properties);
+    public void setGradleProperties(GradleProperties gradleProperties) {
+        this.gradleProperties = gradleProperties;
     }
 }

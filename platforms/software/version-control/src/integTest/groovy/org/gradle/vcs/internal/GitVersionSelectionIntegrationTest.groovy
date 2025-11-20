@@ -30,7 +30,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     GitHttpRepository repo = new GitHttpRepository(httpServer, 'dep', temporaryFolder.getTestDirectory())
 
     TestFile repoSettingsFile
-    def fixture = new ResolveTestFixture(buildFile, "compile")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         httpServer.start()
@@ -50,6 +50,10 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        buildFile << """
+            ${resolve.configureProject("compile")}
+        """
+
         repoSettingsFile = repo.file("settings.gradle")
         repoSettingsFile << '''
             rootProject.name = 'test'
@@ -65,7 +69,6 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 configurations['default'].outgoing.artifact(jar)
             }
         '''
-        fixture.prepare()
     }
 
     def "selects and builds from master for latest.integration selector"() {
@@ -83,13 +86,13 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:latest.integration", ":dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
@@ -99,13 +102,13 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:latest.integration", ":dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
 
         when:
         repo.createBranch("ignore")
@@ -117,13 +120,13 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:latest.integration", ":dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
     }
 
     def "selects and builds from tag for static selector"() {
@@ -146,26 +149,26 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
     }
 
     def "reports on and recovers from missing version for static selector"() {
@@ -200,26 +203,26 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
     }
 
     def "selects and builds from highest tag that matches #selector selector"() {
@@ -242,13 +245,13 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_1.1", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '1.2'")
@@ -259,13 +262,13 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:${selector}", ":dep", "test:test:1.2") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_1.2", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_1.2", ":checkDeps")
 
         where:
         selector    | _
@@ -304,26 +307,26 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_1.1", ":checkDeps")
 
         when:
         repo.expectListVersions()
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_1.1", ":checkDeps")
 
         where:
         selector    | _
@@ -379,13 +382,13 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
@@ -395,26 +398,26 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
     }
 
     def "reports on and recovers from missing branch"() {
@@ -450,25 +453,25 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
     }
 }

@@ -39,7 +39,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule
-    public final Resources resources = new Resources()
+    public final Resources resources = new Resources(null)
 
     def setup() {
         writeBuildFile()
@@ -91,7 +91,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         when:
         succeeds('check')
         then:
-        result.assertTaskExecuted(":checkstyleMain")
+        result.assertTaskScheduled(":checkstyleMain")
 
         when:
         succeeds('check')
@@ -102,7 +102,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("config/checkstyle/new-file.xml").touch()
         succeeds('check')
         then:
-        result.assertTaskNotSkipped(":checkstyleMain")
+        result.assertTaskExecuted(":checkstyleMain")
     }
 
     @ToBeImplemented

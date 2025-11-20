@@ -31,12 +31,14 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationServicesBundle;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
@@ -93,9 +95,11 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -103,6 +107,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
@@ -117,10 +122,10 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.NonLockingMutableWorkspaceProvider;
@@ -177,6 +182,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         FileCollectionFactory fileCollectionFactory,
         DomainObjectContext owner
     ) {
+        @SuppressWarnings("resource")
         ServiceRegistry services = ServiceRegistryBuilder.builder()
             .parent(parent)
             .provider(registration -> {
@@ -230,6 +236,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             this.domainObjectContext = domainObjectContext;
         }
 
+        @SuppressWarnings("unused") // DI configuration
         void configure(ServiceRegistration registration) {
             registration.add(TransformedVariantFactory.class, DefaultTransformedVariantFactory.class);
             registration.add(ResolveExceptionMapper.class);
@@ -264,7 +271,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides
         MutableTransformWorkspaceServices createTransformWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
             Supplier<File> baseDirectory = projectLayout.getBuildDirectory().dir(".transforms").map(Directory::getAsFile)::get;
-            Cache<UnitOfWork.Identity, IdentityCacheResult<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
+            Cache<Identity, DeferredResult<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
             return new MutableTransformWorkspaceServices() {
                 @Override
                 public MutableWorkspaceProvider getWorkspaceProvider() {
@@ -272,7 +279,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public Cache<UnitOfWork.Identity, IdentityCacheResult<TransformWorkspaceResult>> getIdentityCache() {
+                public Cache<Identity, DeferredResult<TransformWorkspaceResult>> getIdentityCache() {
                     return identityCache;
                 }
 
@@ -505,6 +512,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides({ComponentMetadataHandler.class, ComponentMetadataHandlerInternal.class})
         DefaultComponentMetadataHandler createComponentMetadataHandler(
             Instantiator instantiator,
+            ObjectFactory objectFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             SimpleMapInterner interner,
             AttributesFactory attributesFactory,
@@ -514,7 +522,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ) {
             DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport);
             if (domainObjectContext.isScript()) {
-                componentMetadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
+                componentMetadataHandler.setVariantDerivationStrategy(objectFactory.newInstance(JavaEcosystemVariantDerivationStrategy.class));
             }
             return componentMetadataHandler;
         }
@@ -574,6 +582,35 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
                 return repositories;
             };
+        }
+
+        @Provides
+        ConfigurationServicesBundle createConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
+                                                                      ProjectStateRegistry projectStateRegistry,
+                                                                      FileCollectionFactory fileCollectionFactory,
+                                                                      ObjectFactory objectFactory,
+                                                                      AttributesFactory attributesFactory,
+                                                                      CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+                                                                      DomainObjectCollectionFactory domainObjectCollectionFactory,
+                                                                      CalculatedValueContainerFactory calculatedValueContainerFactory,
+                                                                      TaskDependencyFactory taskDependencyFactory,
+                                                                      InternalProblems problems,
+                                                                      AttributeDesugaring attributeDesugaring,
+                                                                      ResolveExceptionMapper exceptionMapper) {
+            return new DefaultConfigurationServicesBundle(
+                buildOperationRunner,
+                projectStateRegistry,
+                calculatedValueContainerFactory,
+                objectFactory,
+                fileCollectionFactory,
+                taskDependencyFactory,
+                attributesFactory,
+                domainObjectCollectionFactory,
+                collectionCallbackActionDecorator,
+                problems,
+                attributeDesugaring,
+                exceptionMapper
+            );
         }
 
         private static List<ResolutionAwareRepository> collectRepositories(RepositoryHandler repositoryHandler) {

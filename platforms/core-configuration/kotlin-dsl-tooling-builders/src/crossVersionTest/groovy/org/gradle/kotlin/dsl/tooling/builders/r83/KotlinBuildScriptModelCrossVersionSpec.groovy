@@ -28,6 +28,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
     @Issue("https://github.com/gradle/gradle/issues/25555")
     def "single project with parallel build should not emit configuration resolution deprecation warning"() {
         given:
+        // This test is flaky because of locking timeout on shared caches.
+        // See https://github.com/gradle/gradle/pull/34665
+        requireIsolatedUserHome()
         propertiesFile << gradleProperties
 
         expect:

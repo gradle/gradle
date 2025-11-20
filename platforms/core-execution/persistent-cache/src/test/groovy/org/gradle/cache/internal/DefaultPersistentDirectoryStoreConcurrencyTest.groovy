@@ -29,6 +29,7 @@ import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandEagerRelease
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
@@ -47,7 +48,7 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
     @Issue("GRADLE-3206")
     def "can create new caches and access them in parallel"() {
-        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, executorFactory)
+        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(lockMode), null, lockManager, executorFactory)
         store.open()
 
         when:
@@ -65,5 +66,8 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
         cleanup:
         store.close()
+
+        where:
+        lockMode << [OnDemand, OnDemandEagerRelease]
     }
 }

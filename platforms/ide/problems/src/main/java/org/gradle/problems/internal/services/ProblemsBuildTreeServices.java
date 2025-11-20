@@ -47,6 +47,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.problems.internal.NoOpProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
+import org.gradle.problems.internal.emitters.ConsoleProblemEmitter;
 import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
@@ -85,11 +86,12 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
-        WorkExecutionTracker workExecutionTracker
+        WorkExecutionTracker workExecutionTracker,
+        StartParameterInternal startParameter
     ) {
         return new DefaultProblemSummarizer(eventEmitter,
             currentBuildOperationRef,
-            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter)),
+            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter), new ConsoleProblemEmitter(startParameter.getWarningMode())),
             internalOptions,
             problemReportCreator,
             id -> {
@@ -99,7 +101,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
                 } else {
                     return workExecutionTracker
                         .getCurrentTask(id)
-                        .map(task -> new TaskIdentity(task.getTaskIdentity().getBuildPath(), task.getTaskIdentity().getTaskPath()))
+                        .map(task -> new TaskIdentity(task.getTaskIdentity().getPath().asString()))
                         .orElse(null);
                 }
             }

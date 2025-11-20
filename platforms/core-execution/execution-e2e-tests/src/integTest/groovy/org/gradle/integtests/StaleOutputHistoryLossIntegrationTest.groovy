@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.OtherGradleVersionFixture
 import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import spock.lang.Issue
 
@@ -33,13 +33,14 @@ import static org.gradle.util.internal.GFileUtils.forceDelete
 @IntegrationTestTimeout(240)
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec implements OtherGradleVersionFixture {
 
-    private final GradleExecuter mostRecentReleaseExecuter = otherVersion.executer(temporaryFolder, buildContext) as AbstractGradleExecuter
+    private GradleExecuter mostRecentReleaseExecuter
 
     def cleanup() {
-        mostRecentReleaseExecuter.cleanup()
+        mostRecentReleaseExecuter?.cleanup()
     }
 
     def setup() {
+        mostRecentReleaseExecuter = new NoDaemonGradleExecuter(otherVersion, temporaryFolder, buildContext)
         buildFile << "apply plugin: 'base'\n"
     }
 
@@ -327,7 +328,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -380,7 +381,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -431,7 +432,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTasksExecuted(taskPath, ':copy1', ':copy2')
+        result.assertTasksScheduled(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -495,7 +496,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -531,7 +532,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 

@@ -136,7 +136,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         extensionMapping.map("reportsDir", new Callable<File>() {
             @Override
             public File call() {
-                return project.getExtensions().getByType(ReportingExtension.class).file(getReportName());
+                return project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(getReportName()).get().getAsFile();
             }
         });
         withBasePlugin(new Action<Plugin>() {

@@ -17,11 +17,12 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.InternalTransformer
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
+import java.util.function.Function
+
 abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec {
-    InternalTransformer<String, String> formatter = new ComponentReportOutputFormatter()
+    Function<String, String> formatter = new ComponentReportOutputFormatter()
     JavaVersion currentJvm = JavaVersion.current()
     String currentJavaName = "java" + currentJvm.majorVersion
     String currentJava = "Java SE " + currentJvm.majorVersion
@@ -39,7 +40,7 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
 
     String removeIrrelevantOutput(String output) {
         return output.readLines().findAll {
-            !it.isEmpty() && !(it ==~ /^Download http.*$/) && !(it ==~ /.*has been deprecated.*$/)
+            !it.isEmpty() && !(it ==~ /^Download http.*$/) && !(it ==~ /.*has been deprecated.*$/) && !(it ==~ /.*Problem found.*$/) && !(it ==~ /.*invocation of 'Task.project' at execution time is unsupported.*$/)
         }.join('\n')
     }
 
@@ -49,7 +50,7 @@ Root project 'test'
 ------------------------------------------------------------
 """ + normalised + """
 Note: currently not all plugins register their components, so some components may not be visible here."""
-        return formatter.transform(raw).readLines().findAll { !it.isEmpty() }.join('\n')
+        return formatter.apply(raw).readLines().findAll { !it.isEmpty() }.join('\n')
     }
 
     AvailableToolChains.InstalledToolChain getToolChain() {

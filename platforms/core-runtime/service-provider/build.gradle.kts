@@ -17,3 +17,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.errorProneAnnotations)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

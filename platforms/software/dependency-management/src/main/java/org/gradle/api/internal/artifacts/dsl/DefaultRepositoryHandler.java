@@ -49,8 +49,6 @@ import static org.gradle.util.internal.CollectionUtils.flattenCollections;
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandlerInternal {
 
     public static final String GRADLE_PLUGIN_PORTAL_REPO_NAME = "Gradle Central Plugin Repository";
-    public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
-    public static final String BINTRAY_JCENTER_URL = "https://jcenter.bintray.com/";
     public static final String GOOGLE_REPO_NAME = "Google";
 
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";

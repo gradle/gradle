@@ -334,7 +334,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         )
 
         build(":help").apply {
-            assertTaskExecuted(":help")
+            assertTaskScheduled(":help")
             assertOutputContains("foo")
         }
     }

@@ -20,6 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenVariantAttributesFactory
 import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.AttributeValueIsolator
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -29,6 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistryFactory
+import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy
 
 class AttributeTestUtil {
 
@@ -38,6 +40,15 @@ class AttributeTestUtil {
 
     static DefaultAttributesFactory attributesFactory() {
         return new DefaultAttributesFactory(attributeValueIsolator(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator(), TestUtil.propertyFactory())
+    }
+
+    static JavaEcosystemVariantDerivationStrategy javaEcosystemVariantDerivationStrategy() {
+        return new JavaEcosystemVariantDerivationStrategy(
+            new DefaultMavenVariantAttributesFactory(
+                attributesFactory(),
+                TestUtil.objectInstantiator()
+            )
+        )
     }
 
     /**

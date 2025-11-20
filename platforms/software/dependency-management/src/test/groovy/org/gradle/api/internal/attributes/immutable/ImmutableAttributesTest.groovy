@@ -16,13 +16,9 @@
 
 package org.gradle.api.internal.attributes.immutable
 
-import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAR
@@ -51,8 +47,8 @@ class ImmutableAttributesTest extends Specification  {
 
         then:
         attributes.getAttribute(FOO) == null
-        !attributes.findEntry(FOO).isPresent()
-        !attributes.findEntry("foo").isPresent()
+        attributes.findEntry(FOO) == null
+        attributes.findEntry("foo") == null
     }
 
     def "immutable attribute sets throw a default error when attempting modification"() {
@@ -61,7 +57,7 @@ class ImmutableAttributesTest extends Specification  {
 
         then:
         UnsupportedOperationException t = thrown()
-        t.message == "Mutation of attributes is not allowed"
+        t.message == "This container is immutable and cannot be mutated."
 
         where:
         attributes << [ImmutableAttributes.EMPTY, factory.of(FOO, "other"), factory.of(BAR, "other")]
@@ -73,12 +69,12 @@ class ImmutableAttributesTest extends Specification  {
 
         then:
         attributes.getAttribute(FOO) == 'foo'
-        attributes.findEntry(FOO).get() == "foo"
-        attributes.findEntry("foo").get() == "foo"
+        attributes.findEntry(FOO).getIsolatedValue() == "foo"
+        attributes.findEntry("foo").getIsolatedValue() == "foo"
 
         attributes.getAttribute(BAR) == null
-        !attributes.findEntry(BAR).isPresent()
-        !attributes.findEntry("bar").isPresent()
+        attributes.findEntry(BAR) == null
+        attributes.findEntry("bar") == null
     }
 
     def "can lookup entries in a multiple value set"() {
@@ -87,16 +83,16 @@ class ImmutableAttributesTest extends Specification  {
 
         then:
         attributes.getAttribute(FOO) == "foo"
-        attributes.findEntry(FOO).get() == "foo"
-        attributes.findEntry("foo").get() == "foo"
+        attributes.findEntry(FOO).getIsolatedValue() == "foo"
+        attributes.findEntry("foo").getIsolatedValue() == "foo"
 
         attributes.getAttribute(BAR) == "bar"
-        attributes.findEntry(BAR).get() == "bar"
-        attributes.findEntry("bar").get() == "bar"
+        attributes.findEntry(BAR).getIsolatedValue() == "bar"
+        attributes.findEntry("bar").getIsolatedValue() == "bar"
 
         attributes.getAttribute(BAZ) == null
-        !attributes.findEntry(BAZ).isPresent()
-        !attributes.findEntry("baz").isPresent()
+        attributes.findEntry(BAZ) == null
+        attributes.findEntry("baz") == null
     }
 
     def "order of entries is not significant in equality"() {
@@ -108,18 +104,4 @@ class ImmutableAttributesTest extends Specification  {
         set1 == set2
     }
 
-    def "translates deprecated usage values"() {
-        def result = factory.of(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
-
-        expect:
-        result.findEntry(Usage.USAGE_ATTRIBUTE).get().name == "java-api"
-    }
-
-    @SuppressWarnings('GroovyAssignabilityCheck')
-    def "translates deprecated usage values as Isolatable"() {
-        def result = factory.of(Usage.USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS, TestUtil.objectInstantiator()))
-
-        expect:
-        result.findEntry(Usage.USAGE_ATTRIBUTE).get().toString() == "java-runtime"
-    }
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -60,7 +60,7 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void createMutableModel(
-        DefaultProjectDescriptor descriptor,
+        ProjectDescriptorInternal descriptor,
         BuildState build,
         ProjectState owner,
         ClassLoaderScope selfClassLoaderScope,
@@ -68,7 +68,7 @@ public class ProjectLifecycleController implements Closeable {
         IProjectFactory projectFactory
     ) {
         controller.transition(State.NotCreated, State.Created, () -> {
-            ProjectState parent = owner.getBuildParent();
+            ProjectState parent = owner.getParent();
             ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
             ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
                 LoggingManagerFactory loggingManagerFactory = buildServices.get(LoggingManagerFactory.class);
@@ -81,6 +81,11 @@ public class ProjectLifecycleController implements Closeable {
 
     public ProjectInternal getMutableModel() {
         controller.assertInStateOrLater(State.Created);
+        return project;
+    }
+
+    public ProjectInternal getMutableModelEvenAfterFailure() {
+        controller.assertInStateOrLaterIgnoringFailures(State.Created);
         return project;
     }
 

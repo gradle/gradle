@@ -314,15 +314,19 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
+    public ExecutionResult assertTasksScheduledInOrder(Object... taskPaths) {
         Set<String> allTasks = TaskOrderSpecs.exact(taskPaths).getTasks();
-        assertTasksExecuted(allTasks);
+        assertTasksScheduled(allTasks);
         assertTaskOrder(taskPaths);
         return this;
     }
 
     @Override
-    public ExecutionResult assertTasksExecuted(Object... taskPaths) {
+    public ExecutionResult assertTasksScheduled(Object... taskPaths) {
+        if (taskPaths == null || taskPaths.length == 0) {
+            throw new IllegalArgumentException("taskPaths cannot be empty. To check no tasks were executed, use assertNoTasksExecuted() instead." +
+                " To check that at least one task was executed, use assertAnyTasksExecuted() instead.");
+        }
         Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
         if (!expectedTasks.equals(actualTasks)) {
@@ -332,13 +336,26 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
-        assertTasksExecuted(taskPaths);
-        return assertTasksNotSkipped(taskPaths);
+    public ExecutionResult assertAnyTasksScheduled() {
+        Set<String> actualTasks = findExecutedTasksInOrderStarted();
+        if (actualTasks.isEmpty()) {
+            failureOnUnexpectedOutput("Build output does not contain any executed tasks.");
+        }
+        return this;
     }
 
     @Override
-    public ExecutionResult assertTaskExecuted(String taskPath) {
+    public ExecutionResult assertNoTasksScheduled() {
+        Set<String> actualTasks = findExecutedTasksInOrderStarted();
+        if (!actualTasks.isEmpty()) {
+            failOnDifferentSets("Unexpected tasks were executed in the build output. " +
+                "Expected no tasks to be executed.", new TreeSet<>(), actualTasks);
+        }
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTaskScheduled(String taskPath) {
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
         if (!actualTasks.contains(taskPath)) {
             failOnMissingElement("Build output does not contain the expected task.", taskPath, actualTasks);
@@ -347,7 +364,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public ExecutionResult assertTaskNotExecuted(String taskPath) {
+    public ExecutionResult assertTasksNotScheduled(String taskPath) {
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
         if (actualTasks.contains(taskPath)) {
             failOnMissingElement("Build output does contains unexpected task.", taskPath, actualTasks);
@@ -392,17 +409,48 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
+    public ExecutionResult assertTasksExecuted(Object... taskPaths) {
+        if (taskPaths == null || taskPaths.length == 0) {
+            throw new IllegalArgumentException("taskPaths cannot be empty. To check no tasks in the task graph, use assertNoTasksScheduled().\n" +
+                "To check that at least one task was executed, use assertAnyTasksExecuted()\n +" +
+                "To check that tasks are in the task graph but were skipped, use assertAllTasksSkipped().");
+        }
         Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
-        Set<String> tasks = new TreeSet<>(getNotSkippedTasks());
-        if (!expectedTasks.equals(tasks)) {
-            failOnDifferentSets("Build output does not contain the expected non skipped tasks.", expectedTasks, tasks);
+        Set<String> notSkippedTasks = new TreeSet<>(getNotSkippedTasks());
+        if (!expectedTasks.equals(notSkippedTasks)) {
+            failOnDifferentSets("Build output does not contain the expected non skipped tasks.", expectedTasks, notSkippedTasks);
         }
         return this;
     }
 
     @Override
-    public ExecutionResult assertTaskNotSkipped(String taskPath) {
+    public ExecutionResult assertAnyTasksExecuted() {
+        Set<String> notSkippedTasks = new TreeSet<>(getNotSkippedTasks());
+        Set<String> executedTasks = findExecutedTasksInOrderStarted();
+        if (notSkippedTasks.isEmpty()) {
+            if (executedTasks.isEmpty()) {
+                //In this case there were no executed tasks at all
+                failureOnUnexpectedOutput("Build output does not contain any executed tasks.");
+            } else {
+                // In this case there were executed tasks, but they were all skipped
+                failureOnUnexpectedOutput("Build output contains only skipped tasks: " + executedTasks);
+            }
+        }
+
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertAllTasksSkipped() {
+        Set<String> notSkippedTasks = new TreeSet<>(getNotSkippedTasks());
+        if (!notSkippedTasks.isEmpty()) {
+            failOnDifferentSets("Build output contains unexpected non skipped tasks.", new TreeSet<>(), notSkippedTasks);
+        }
+        return this;
+    }
+
+    @Override
+    public ExecutionResult assertTaskExecuted(String taskPath) {
         Set<String> tasks = new TreeSet<>(getNotSkippedTasks());
         if (!tasks.contains(taskPath)) {
             failOnMissingElement("Build output does not contain the expected non skipped task.", taskPath, tasks);

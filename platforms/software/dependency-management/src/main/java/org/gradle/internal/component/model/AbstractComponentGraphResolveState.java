@@ -21,15 +21,14 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
     private final long instanceId;
@@ -72,18 +71,9 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return false;
     }
 
-    protected AttributeDesugaring getAttributeDesugaring() {
-        return attributeDesugaring;
-    }
-
     @Override
     public ComponentArtifactResolveState prepareForArtifactResolution() {
         return this;
-    }
-
-    @Override
-    public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        artifactResolver.resolveArtifactsWithType(getArtifactMetadata(), artifactType, result);
     }
 
     @Override
@@ -91,7 +81,23 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
         return implicitCapability;
     }
 
-    protected ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
+    @Override
+    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
+        return getCandidatesForGraphVariantSelection()
+            .getVariantsForAttributeMatching()
+            .stream()
+            .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
+            .map(artifactSet -> new DefaultResolvedVariantResult(
+                getId(),
+                Describables.of(artifactSet.getName()),
+                attributeDesugaring.desugar(artifactSet.getAttributes().asImmutable()),
+                capabilitiesFor(artifactSet.getCapabilities()),
+                null
+            ))
+            .collect(Collectors.toList());
+    }
+
+    private ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
         if (capabilities.asSet().isEmpty()) {
             return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
         } else {

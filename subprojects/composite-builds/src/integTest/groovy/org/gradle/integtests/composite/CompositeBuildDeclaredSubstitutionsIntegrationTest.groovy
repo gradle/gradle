@@ -33,7 +33,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         mavenRepo.module("org.test", "buildB", "1.0").publish()
         mavenRepo.module("org.test", "b2", "1.0").publish()
 
-        resolve = new ResolveTestFixture(buildA.buildFile).expectDefaultConfiguration("runtime")
+        resolve = new ResolveTestFixture(buildA)
+        buildA.buildFile << """
+            ${resolve.configureProject("runtimeClasspath")}
+        """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
@@ -155,8 +158,8 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         execute(buildA, "assembleB")
 
         then:
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":buildC:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":buildC:jar")
     }
 
     def "can substitute arbitrary coordinates for included build"() {
@@ -450,7 +453,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
-        resolve.prepare()
         execute(buildA, ":checkDeps", buildArgs)
         resolve.expectGraph {
             root(":", "org.test:buildA:1.0", closure)

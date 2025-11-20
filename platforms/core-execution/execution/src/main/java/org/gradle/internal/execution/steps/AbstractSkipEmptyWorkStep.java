@@ -20,16 +20,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.jspecify.annotations.NonNull;
 
 import java.util.EnumSet;
 import java.util.Map;
@@ -92,7 +90,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
 
     private static boolean hasEmptyInputFileCollections(UnitOfWork work, Predicate<String> propertyNameFilter) {
         EmptyCheckingVisitor visitor = new EmptyCheckingVisitor(propertyNameFilter);
-        work.visitRegularInputs(visitor);
+        work.visitMutableInputs(visitor);
         return visitor.isAllEmpty();
     }
 
@@ -102,7 +100,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
             getKnownInputFileProperties(context),
             knownValueSnapshots,
             knownFileFingerprints,
-            visitor -> work.visitRegularInputs(new InputVisitor() {
+            visitor -> work.visitMutableInputs(new InputVisitor() {
                 @Override
                 public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                     if (behavior.shouldSkipWhenEmpty()) {
@@ -117,7 +115,6 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
 
     abstract protected ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getKnownInputFileProperties(C context);
 
-    @NonNull
     private CachingResult skipExecutionWithEmptySources(UnitOfWork work, C context) {
         // Make sure we check for missing dependencies even if we skip executing the work
         WorkValidationContext validationContext = context.getValidationContext();

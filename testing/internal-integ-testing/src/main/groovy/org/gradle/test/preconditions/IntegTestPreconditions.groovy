@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.KillProcessAvailability
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.precondition.TestPrecondition
 
 class IntegTestPreconditions {
@@ -34,7 +35,7 @@ class IntegTestPreconditions {
     static final class IsEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isEmbedded()
+            return IntegrationTestBuildContext.isEmbedded()
         }
     }
 
@@ -119,6 +120,13 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             return GradleContextualExecuter.isNotConfigCache()
+        }
+    }
+
+    static final class IsolatedProjects implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.isIsolatedProjects()
         }
     }
 
@@ -295,6 +303,14 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             return AvailableJavaHomes.differentVersion != null
+        }
+    }
+
+    static class JavaHomeWithTwoDifferentVersionsAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            def firstDifferent = AvailableJavaHomes.differentVersion
+            return firstDifferent != null && AvailableJavaHomes.getDifferentVersion(firstDifferent.javaVersion) != null
         }
     }
 

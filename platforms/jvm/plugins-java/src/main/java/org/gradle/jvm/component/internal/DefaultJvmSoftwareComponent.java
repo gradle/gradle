@@ -16,8 +16,9 @@
 
 package org.gradle.jvm.component.internal;
 
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -62,12 +63,8 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                feature.withJavadocJar();
-
-                Configuration javadocElements = feature.getJavadocElementsConfiguration();
-                if (!isRegisteredAsLegacyVariant(javadocElements)) {
-                    addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
-                }
+                NamedDomainObjectProvider<ConsumableConfiguration> javadocElements = feature.maybeRegisterJavadocElements();
+                addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
             }
         });
     }
@@ -79,12 +76,8 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                feature.withSourcesJar();
-
-                Configuration sourcesElements = feature.getSourcesElementsConfiguration();
-                if (!isRegisteredAsLegacyVariant(sourcesElements)) {
-                    addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
-                }
+                NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements = feature.maybeRegisterSourcesElements();
+                addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
             }
         });
     }

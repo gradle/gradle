@@ -16,6 +16,8 @@
 
 package org.gradle.instrumentation.agent;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 
@@ -23,7 +25,7 @@ import java.lang.instrument.Instrumentation;
  * An entry point for the on-the-fly bytecode instrumentation agent.
  */
 public class Agent {
-    private static volatile Instrumentation instrumentation;
+    private static volatile @Nullable Instrumentation instrumentation;
 
     public static void premain(String agentArgs, Instrumentation inst) {
         doMain(inst);

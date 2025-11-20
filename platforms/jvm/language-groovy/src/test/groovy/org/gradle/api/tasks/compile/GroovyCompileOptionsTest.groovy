@@ -16,10 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.model.ObjectFactory
-import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.ServiceLookup
+
 import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
@@ -38,8 +35,7 @@ class GroovyCompileOptionsTest {
 
     @Before
     void setUp()  {
-        ServiceLookup services = new DefaultServiceRegistry().add(ObjectFactory, TestUtil.objectFactory()).add(InstantiatorFactory, TestUtil.instantiatorFactory())
-        compileOptions = TestUtil.instantiatorFactory().decorateLenient(services).newInstance(GroovyCompileOptions.class)
+        compileOptions = TestUtil.newInstance(GroovyCompileOptions.class)
     }
 
     @Test

@@ -30,7 +30,7 @@ import org.gradle.test.fixtures.file.TestFile
  * Tests for composite build.
  */
 abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
-    BuildTestFile buildA
+    protected BuildTestFile buildA
     List<File> includedBuilds = []
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -131,7 +131,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
 
     protected void executed(String... tasks) {
         for (String task : tasks) {
-            result.assertTaskExecuted(task)
+            result.assertTaskScheduled(task)
         }
     }
 

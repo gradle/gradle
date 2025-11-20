@@ -17,7 +17,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,6 +37,7 @@ class GroovyBasePluginTest extends Specification {
 
     def setup() {
         project = TestUtil.create(temporaryFolder).rootProject()
+        project.version = "1.0"
         project.pluginManager.apply(GroovyBasePlugin)
     }
 
@@ -81,7 +81,7 @@ class GroovyBasePluginTest extends Specification {
 
         then:
         task.destinationDir == project.java.docsDir.file('groovydoc').get().asFile
-        task.docTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
-        task.windowTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.docTitle == "test-project 1.0 API"
+        task.windowTitle == "test-project 1.0 API"
     }
 }

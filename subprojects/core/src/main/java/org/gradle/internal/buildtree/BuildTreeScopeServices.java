@@ -30,6 +30,9 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
+import org.gradle.api.internal.properties.DefaultGradlePropertiesController;
+import org.gradle.api.internal.properties.GradlePropertiesController;
+import org.gradle.api.internal.properties.GradlePropertiesListener;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -48,10 +51,14 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
+import org.gradle.initialization.Environment;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.initialization.properties.DefaultGradlePropertiesLoader;
+import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
+import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
@@ -65,6 +72,7 @@ import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.ErrorReportingMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
@@ -110,13 +118,17 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(ConfigurationTimeBarrier.class, DefaultConfigurationTimeBarrier.class);
         registration.add(ProblemReporter.class, DeprecationsReporter.class);
         registration.add(ProjectConfigurer.class, TaskPathProjectEvaluator.class);
-        registration.add(FeatureFlags.class, DefaultFeatureFlags.class);
         registration.add(ProblemDiagnosticsFactory.class, DefaultProblemDiagnosticsFactory.class);
         registration.add(ExceptionCollector.class, DefaultExceptionAnalyser.class);
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
         modelServices.applyServicesTo(registration);
+    }
+
+    @Provides
+    ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
+        return parent.createChild();
     }
 
     @Provides
@@ -140,6 +152,11 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
+    }
+
+    @Provides
+    FeatureFlags createFeatureFlags(ListenerManager listenerManager, StartParameterInternal startParameter) {
+        return new DefaultFeatureFlags(listenerManager, startParameter.getSystemPropertiesArgs());
     }
 
     @Provides
@@ -184,6 +201,25 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         return new PropertyUpgradeReportConfig(
             reportCollector,
             startParameter.isPropertyUpgradeReportEnabled()
+        );
+    }
+
+    @Provides
+    protected SystemPropertiesInstaller createSystemPropertiesInstaller(StartParameterInternal startParameter) {
+        return new DefaultSystemPropertiesInstaller(startParameter);
+    }
+
+    @Provides
+    protected GradlePropertiesController createGradlePropertiesController(
+        StartParameterInternal startParameter,
+        Environment environment,
+        SystemPropertiesInstaller systemPropertiesInstaller,
+        ListenerManager listenerManager
+    ) {
+        return new DefaultGradlePropertiesController(
+            new DefaultGradlePropertiesLoader(startParameter, environment),
+            systemPropertiesInstaller,
+            listenerManager.getBroadcaster(GradlePropertiesListener.class)
         );
     }
 }

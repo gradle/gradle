@@ -204,7 +204,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
-            result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
+            result.assertTasksScheduled(':a:freeJar', ':b:paidJar', ':show')
         }
 
         where:
@@ -274,7 +274,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
-            result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
+            result.assertTasksScheduled(':a:freeJar', ':b:paidJar', ':show')
         }
 
         where:
@@ -598,11 +598,11 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             configurations.compile.outgoing.variants {
                 free {
                     attributes.attribute(flavor, 'free')
-                    artifact freeJar
+                    artifact tasks.freeJar
                 }
                 paid {
                     attributes.attribute(flavor, 'paid')
-                    artifact paidJar
+                    artifact tasks.paidJar
                 }
             }
         """

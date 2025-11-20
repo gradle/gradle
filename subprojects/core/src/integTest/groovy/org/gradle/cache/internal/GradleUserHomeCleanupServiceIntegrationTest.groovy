@@ -18,7 +18,7 @@ package org.gradle.cache.internal
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
@@ -178,7 +178,7 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
         given:
         executer.requireIsolatedDaemons() // because we want to reuse Gradle user home services
         executer.beforeExecute {
-            if (!GradleContextualExecuter.embedded) {
+            if (!IntegrationTestBuildContext.embedded) {
                 executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
             }
         }

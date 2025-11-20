@@ -46,10 +46,10 @@ main() {
     : "${GITHUB_TOKEN:?GITHUB_TOKEN environment variable is required}"
 
     if [[ "$TRIGGERED_BY" == *"Release - Final"* ]]; then
-        source version-info-final-release/version-info.properties
+        source version-info-final-release/promote-projects/gradle/build/version-info.properties
         export WRAPPER_VERSION="$promotedVersion"
     elif [[ "$TRIGGERED_BY" == *"Release - Release Candidate"* ]]; then
-        source version-info-release-candidate/version-info.properties
+        source version-info-release-candidate/promote-projects/gradle/build/version-info.properties
         export WRAPPER_VERSION="$promotedVersion"
     fi
 

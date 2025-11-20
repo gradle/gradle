@@ -162,7 +162,7 @@ public abstract class SigningExtension {
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
             ? configuration
-            : configurations.consumableLocked(DEFAULT_CONFIGURATION_NAME);
+            : configurations.consumable(DEFAULT_CONFIGURATION_NAME).get();
     }
 
     /**
@@ -189,6 +189,17 @@ public abstract class SigningExtension {
     public SignatoryProvider<?> signatories(Closure<?> closure) {
         signatories.configure(this, closure);
         return signatories;
+    }
+
+    /**
+     * Configures the signatory provider with the given action.
+     *
+     * @param action the configuration action
+     * @since 9.3.0
+     */
+    @Incubating
+    public void signatories(Action<? super SignatoryProvider<?>> action) {
+        action.execute(getSignatories());
     }
 
     /**

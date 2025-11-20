@@ -82,7 +82,7 @@ ${getGeneratedGitignoreContent()}""")
 ${getGeneratedGitignoreContent(entry)}""")
 
         where:
-        entry << ['.gradle', 'build']
+        entry << ['.gradle', '.kotlin', 'build']
     }
 
     private static String getGeneratedGitignoreContent(String excludingEntry = null) {
@@ -100,6 +100,15 @@ ${getGeneratedGitignoreContent(entry)}""")
             }
             builder << '''# Ignore Gradle build output directory
 build
+'''
+        }
+
+        if (excludingEntry != '.kotlin') {
+            if (builder.length() > 0) {
+                builder << '\n'
+            }
+            builder << '''# Ignore Kotlin plugin data
+.kotlin
 '''
         }
 

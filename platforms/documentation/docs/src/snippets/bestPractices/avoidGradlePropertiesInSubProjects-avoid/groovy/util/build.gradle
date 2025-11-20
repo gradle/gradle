@@ -1,0 +1,10 @@
+// This file is located in /util
+tasks.register("printProperties") {
+    def propA = project.properties.get("propertyA")
+    def propB = project.properties.get("propertyB") // <3>
+
+    doLast {
+        println "propertyA in util: $propA"
+        println "propertyB in util: $propB"
+    }
+}

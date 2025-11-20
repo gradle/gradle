@@ -21,6 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -115,7 +116,14 @@ public class DefaultConnection implements ConnectionVersion4,
         // It would be better to separate these into different scopes, but many things still assume that connection services are available in the global scope,
         // so keep them merged as a migration step
         // It would also be better to create the build process services only if they are needed, ie when the tooling API is used in embedded mode
-        buildProcessState = new BuildProcessState(true, AgentStatus.disabled(), ClassPath.EMPTY, loggingServices, NativeServices.getInstance()) {
+        buildProcessState = new BuildProcessState(
+            true,
+            AgentStatus.disabled(),
+            ClassPath.EMPTY,
+            CurrentGradleInstallation.locate(),
+            loggingServices,
+            NativeServices.getInstance()
+        ) {
             @Override
             protected void addProviders(ServiceRegistryBuilder builder) {
                 builder.provider(new ConnectionScopeServices());

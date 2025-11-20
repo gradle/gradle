@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -30,21 +29,19 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     List arguments = []
 
     def setup() {
-        new ResolveTestFixture(buildA.buildFile).prepare()
-
         buildA.buildFile << """
             task resolve(type: Copy) {
                 from configurations.runtimeClasspath
                 into 'libs'
             }
-"""
+        """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.model.ObjectFactory;
@@ -72,10 +72,10 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         List<File> suiteFiles = getOptions().getSuites(testTaskTemporaryDir.create());
         TestNGSpec spec = toSpec(getOptions(), filter);
-        return new TestNgTestClassProcessorFactory(this.getOptions().getOutputDirectory(), spec, suiteFiles);
+        return new TestNgTestDefinitionProcessorFactory(this.getOptions().getOutputDirectory(), spec, suiteFiles);
     }
 
     private TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
@@ -102,10 +102,20 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     @Override
+    public int getAdditionalReportEntrySkipLevels() {
+        // Skip `suiteName` and `testName`
+        return 2;
+    }
+
+    @Override
     public void close() throws IOException {
         // Clear expensive state from the test framework to avoid holding on to memory
         // This should probably be a part of the test task and managed there.
         detector = null;
     }
 
+    @Override
+    public String getDisplayName() {
+        return "TestNG";
+    }
 }

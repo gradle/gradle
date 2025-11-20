@@ -22,10 +22,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class ConfigurationDefaultsIntegrationTest extends AbstractDependencyResolutionTest {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf")
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         mavenRepo.module("org", "default-dependency").publish()
@@ -52,17 +53,14 @@ if (System.getProperty('explicitDeps')) {
 
     def "can use defaultDependencies to specify default dependencies"() {
         buildFile << """
-configurations.conf.defaultDependencies { deps ->
-    deps.add project.dependencies.create("org:default-dependency:1.0")
-}
-"""
-        resolve.prepare {
-            config("conf", "checkDeps")
-            config("child", "checkChild")
-        }
+            configurations.conf.defaultDependencies { deps ->
+                deps.add project.dependencies.create("org:default-dependency:1.0")
+            }
+            ${resolve.configureProject("conf", "child")}
+        """
 
         when:
-        run "checkDeps"
+        run "checkConf"
 
         then:
         resolve.expectGraph {
@@ -83,7 +81,7 @@ configurations.conf.defaultDependencies { deps ->
 
         when:
         executer.withArgument("-DexplicitDeps=yes")
-        run "checkDeps"
+        run "checkConf"
 
         then:
         resolve.expectGraph {
@@ -106,6 +104,7 @@ configurations {
         }
     }
 }
+${resolve.configureProject("conf")}
 dependencies {
     other "org:explicit-dependency:1.0"
 }
@@ -114,7 +113,6 @@ println configurations.other.files
 
 project.status = 'foo'
 """
-        resolve.prepare()
 
         when:
         run "checkDeps"
@@ -160,19 +158,19 @@ project.status = 'foo'
                 id("java-library")
             }
 
+            ${resolve.configureProject("runtimeClasspath")}
+
             dependencies {
                 implementation project(":producer")
             }
         """
-
-        resolve.prepare("runtimeClasspath")
 
         when:
         executer.withArgument("-DexplicitDeps=yes")
         run ":consumer:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":consumer") {
             root(":consumer", "test:consumer:") {
                 project(":producer", "test:producer:") {
                     module("org:explicit-dependency:1.0")
@@ -184,7 +182,7 @@ project.status = 'foo'
         run ":consumer:checkDeps"
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":consumer") {
             root(":consumer", "test:consumer:") {
                 project(":producer", "test:producer:") {
                     module("org:default-dependency:1.0")
@@ -214,22 +212,25 @@ project.status = 'foo'
         }
 
         settingsFile << """
-    includeBuild '${producer.toURI()}'
-"""
-        buildFile << """
-    apply plugin: 'java'
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
+            includeBuild '${producer.toURI()}'
+        """
 
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
-    dependencies {
-        implementation 'org.test:producer:1.0'
-    }
-"""
-        resolve.prepare("runtimeClasspath")
+        buildFile << """
+            apply plugin: 'java'
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+            dependencies {
+                implementation 'org.test:producer:1.0'
+            }
+        """
 
         when:
         run ":checkDeps"
@@ -307,7 +308,7 @@ project.status = 'foo'
         """
 
         when:
-        executer.noDeprecationChecks()
+        executer.expectDocumentedDeprecationWarning("foo has been deprecated. This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
         succeeds("resolve")
 
         then:
@@ -324,7 +325,6 @@ project.status = 'foo'
     }
 
     def "fails if beforeResolve used to add dependencies to observed configuration"() {
-        resolve.prepare()
         buildFile << """
 configurations.conf.incoming.beforeResolve {
     if (configurations.conf.dependencies.empty) {

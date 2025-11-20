@@ -23,8 +23,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.config.JvmTarget
@@ -118,7 +116,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
         gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
             .withJvm(currentJvm)
-            .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
+            .withArgument("-Dorg.gradle.java.installations.paths=$installationPaths")
             .run()
 
         withSettingsIn("consumer", """
@@ -192,7 +190,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
         gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
             .withJvm(currentJvm)
-            .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
+            .withArgument("-Dorg.gradle.java.installations.paths=$installationPaths")
             .run()
 
         withSettingsIn("consumer", """

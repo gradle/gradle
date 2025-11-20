@@ -124,8 +124,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             artifacts {
                 'default' file('b-default.jar')
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -216,9 +216,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
-                bar barJar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
+                bar tasks.barJar
             }
         """
 
@@ -226,7 +226,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkDebug')
     }
 
     def "selects configuration with requested value when multiple are compatible"() {
@@ -290,9 +290,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
-                bar barJar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
+                bar tasks.barJar
             }
         """
 
@@ -300,7 +300,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkDebug')
     }
 
     def "fails when multiple candidates are still available after disambiguation rules have been applied"() {
@@ -376,9 +376,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
-                bar barJar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
+                bar tasks.barJar
             }
         """
 
@@ -485,10 +485,10 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
-                bar barJar
-                bar2 bar2Jar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
+                bar tasks.barJar
+                bar2 tasks.bar2Jar
             }
         """
 
@@ -496,7 +496,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkDebug')
     }
 
     def "can select best compatible match based on requested value"() {
@@ -568,8 +568,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                foo2 foo2Jar
+                foo tasks.fooJar
+                foo2 tasks.foo2Jar
             }
         """
 
@@ -577,13 +577,13 @@ All of them match the consumer attributes:
         run ':a:checkFreeDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkFreeDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkFreeDebug')
 
         when:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
     def "producer can apply additional compatibility rules when consumer does not have an opinion for attribute known to both"() {
@@ -648,8 +648,8 @@ All of them match the consumer attributes:
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    foo fooJar
-                    bar barJar
+                    foo tasks.fooJar
+                    bar tasks.barJar
                 }
             }
 
@@ -659,7 +659,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
     def "consumer can veto producers view of compatibility"() {
@@ -723,8 +723,8 @@ All of them match the consumer attributes:
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    foo fooJar
-                    bar barJar
+                    foo tasks.fooJar
+                    bar tasks.barJar
                 }
             }
 
@@ -734,7 +734,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
     def "producer can apply disambiguation for attribute known to both"() {
@@ -783,8 +783,8 @@ All of them match the consumer attributes:
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    foo fooJar
-                    bar barJar
+                    foo tasks.fooJar
+                    bar tasks.barJar
                 }
             }
         """
@@ -793,7 +793,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:check')
+        result.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
     def "producer can apply disambiguation for attribute not known to consumer"() {
@@ -841,8 +841,8 @@ All of them match the consumer attributes:
                 }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts {
-                    foo fooJar
-                    bar barJar
+                    foo tasks.fooJar
+                    bar tasks.barJar
                 }
             }
 
@@ -852,7 +852,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:check')
+        result.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
     def "producer can apply disambiguation when consumer does not define any attributes"() {
@@ -902,8 +902,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -911,7 +911,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:check')
+        result.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
     def "both dependencies will choose the same default value"() {
@@ -970,8 +970,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -996,8 +996,8 @@ All of them match the consumer attributes:
             }
             tasks.withType(Jar) { destinationDirectory = buildDir }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1005,7 +1005,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':c:barJar', ':a:check')
+        result.assertTasksScheduled(':b:barJar', ':c:barJar', ':a:check')
     }
 
     def "can inject configuration into compatibility and disambiguation rules"() {
@@ -1088,10 +1088,10 @@ All of them match the consumer attributes:
                 c4 { attributes { attribute(flavor, objects.named(Flavor, 'full')); $release } }
             }
             artifacts {
-                c1 fooJar
-                c2 fooJar
-                c3 foo2Jar
-                c4 barJar
+                c1 tasks.fooJar
+                c2 tasks.fooJar
+                c3 tasks.foo2Jar
+                c4 tasks.barJar
             }
         """
 
@@ -1099,7 +1099,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkDebug')
     }
 
     def "user receives reasonable error message when compatibility rule cannot be created"() {
@@ -1148,7 +1148,7 @@ All of them match the consumer attributes:
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                bar barJar
+                bar tasks.barJar
             }
         """
 
@@ -1161,7 +1161,7 @@ All of them match the consumer attributes:
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
-        failure.assertHasCause("The constructor for type FlavorCompatibilityRule should be annotated with @Inject.")
+        failure.assertHasCause("The constructor for type FlavorCompatibilityRule should be annotated with @Inject (javax.inject.Inject) for dependency injection.")
     }
 
     def "user receives reasonable error message when compatibility rule fails"() {
@@ -1210,7 +1210,7 @@ All of them match the consumer attributes:
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                bar barJar
+                bar tasks.barJar
             }
         """
 
@@ -1283,8 +1283,8 @@ All of them match the consumer attributes:
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 
@@ -1297,7 +1297,7 @@ All of them match the consumer attributes:
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
-        failure.assertHasCause("The constructor for type FlavorSelectionRule should be annotated with @Inject.")
+        failure.assertHasCause("The constructor for type FlavorSelectionRule should be annotated with @Inject (javax.inject.Inject) for dependency injection.")
     }
 
     def "user receives reasonable error message when disambiguation rule fails"() {
@@ -1356,8 +1356,8 @@ All of them match the consumer attributes:
                archiveBaseName = 'b-bar'
             }
             artifacts {
-                foo fooJar
-                bar barJar
+                foo tasks.fooJar
+                bar tasks.barJar
             }
         """
 

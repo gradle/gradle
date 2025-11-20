@@ -20,6 +20,7 @@ import org.gradle.api.Describable
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -64,10 +65,17 @@ abstract class AbstractClassGeneratorSpec extends Specification {
 
     ServiceLookup defaultServices() {
         ServiceLookup services = Mock(ServiceLookup)
+
+        def testServices = TestUtil.services(tmpDir.testDirectory)
+        def managedObjectRegistry = testServices.get(ManagedObjectRegistry)
+        def objectFactory = testServices.get(ObjectFactory)
+
         _ * services.find(InstantiatorFactory.class) >> { TestUtil.instantiatorFactory() }
         _ * services.get(InstantiatorFactory.class) >> { TestUtil.instantiatorFactory() }
-        _ * services.find(ObjectFactory.class) >> { TestUtil.objectFactory(tmpDir.testDirectory) }
-        _ * services.get(ObjectFactory.class) >> { TestUtil.objectFactory(tmpDir.testDirectory) }
+        _ * services.find(ManagedObjectRegistry.class) >> { managedObjectRegistry }
+        _ * services.get(ManagedObjectRegistry.class) >> { managedObjectRegistry }
+        _ * services.find(ObjectFactory.class) >> { objectFactory }
+        _ * services.get(ObjectFactory.class) >> { objectFactory }
         return services
     }
 

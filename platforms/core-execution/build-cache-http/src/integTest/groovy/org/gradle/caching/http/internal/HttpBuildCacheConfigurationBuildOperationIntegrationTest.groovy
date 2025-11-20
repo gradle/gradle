@@ -77,9 +77,9 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
         result.remote.config.url == url
 
         if (authenticated) {
-            result.remote.config.authenticated == "true"
+            assert result.remote.config.authenticated == authenticated
         } else {
-            result.remote.config.authenticated == null
+            assert result.remote.config.authenticated == null
         }
 
         result.remote.config.useExpectContinue == "false"

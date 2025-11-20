@@ -174,10 +174,10 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
                 outputs.file file("\${project.name}-lib.jar")
             }
             artifacts {
-                compile file: jar.outputs.files.singleFile, builtBy: jar
+                compile file: tasks.jar.outputs.files.singleFile, builtBy: tasks.jar
             }
             dependencies {
-                compile lib.outputs.files
+                compile tasks.lib.outputs.files
                 compile project(':child1')
             }
 
@@ -198,10 +198,10 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
                 outputs.file file("\${project.name}-lib.jar")
             }
             artifacts {
-                compile file: jar.outputs.files.singleFile, builtBy: jar
+                compile file: tasks.jar.outputs.files.singleFile, builtBy: tasks.jar
             }
             dependencies {
-                compile lib.outputs.files
+                compile tasks.lib.outputs.files
             }
         """
 
@@ -210,7 +210,7 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
 
         then:
         // Should not be including ':lib' as it's not required
-        result.assertTasksExecuted(":lib", ":child1:jar", ":child1:lib", ":verify")
+        result.assertTasksScheduled(":lib", ":child1:jar", ":child1:lib", ":verify")
     }
 
 }

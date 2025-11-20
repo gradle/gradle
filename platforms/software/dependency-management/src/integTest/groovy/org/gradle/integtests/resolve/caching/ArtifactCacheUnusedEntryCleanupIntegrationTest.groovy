@@ -24,7 +24,7 @@ import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
@@ -201,7 +201,7 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
 
         and:
         executer.beforeExecute {
-            if (!GradleContextualExecuter.embedded) {
+            if (!IntegrationTestBuildContext.embedded) {
                 executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
             }
         }
@@ -237,7 +237,6 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         journal.assertExists()
 
         when:
-        executer.noDeprecationChecks()
         run '--stop' // ensure daemon does not cache file access times in memory
         forceCleanup(gcFile)
 

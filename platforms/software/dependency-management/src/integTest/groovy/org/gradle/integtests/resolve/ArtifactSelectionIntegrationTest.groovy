@@ -86,9 +86,9 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 outputs.file("\${project.name}-util")
             }
             dependencies {
-                compile utilJar.outputs.files
-                compile utilClasses.outputs.files
-                compile utilDir.outputs.files
+                compile tasks.utilJar.outputs.files
+                compile tasks.utilClasses.outputs.files
+                compile tasks.utilDir.outputs.files
                 compile 'org:test:1.0'
                 compile 'org:test2:1.0'
             }
@@ -117,7 +117,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 outputs.file("\${project.name}.jar")
             }
             artifacts {
-                compile file: file('ui.jar'), builtBy: jar
+                compile file: file('ui.jar'), builtBy: tasks.jar
             }
         """
 
@@ -218,9 +218,9 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 outputs.file("\${project.name}-util")
             }
             dependencies {
-                compile utilJar.outputs.files
-                compile utilClasses.outputs.files
-                compile utilDir.outputs.files
+                compile tasks.utilJar.outputs.files
+                compile tasks.utilClasses.outputs.files
+                compile tasks.utilDir.outputs.files
                 compile 'org:test:1.0'
                 compile 'org:test2:1.0'
             }
@@ -249,7 +249,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 outputs.file("\${project.name}.classes")
             }
             artifacts {
-                compile file: file('ui.classes'), builtBy: classes
+                compile file: file('ui.classes'), builtBy: tasks.classes
             }
         """
 
@@ -784,9 +784,9 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 outputs.file("\${project.name}-util")
             }
             dependencies {
-                compile utilJar.outputs.files
-                compile utilClasses.outputs.files
-                compile utilDir.outputs.files
+                compile tasks.utilJar.outputs.files
+                compile tasks.utilClasses.outputs.files
+                compile tasks.utilDir.outputs.files
                 compile 'org:test:1.0'
                 compile 'org:test2:1.0'
             }
@@ -815,7 +815,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 outputs.file("\${project.name}.classes")
             }
             artifacts {
-                compile file: file('ui.classes'), builtBy: classes
+                compile file: file('ui.classes'), builtBy: tasks.classes
             }
         """
 
@@ -912,7 +912,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         expect:
         succeeds "resolve"
-        result.assertTasksExecuted(":lib:classes", ":app:resolve")
+        result.assertTasksScheduled(":lib:classes", ":app:resolve")
     }
 
     def "fails when multiple variants match"() {
@@ -1042,7 +1042,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         expect:
         succeeds "resolveView"
-        result.assertTasksExecuted(":app:resolveView")
+        result.assertTasksScheduled(":app:resolveView")
     }
 
     @ToBeFixedForConfigurationCache(because = "broken file collection")

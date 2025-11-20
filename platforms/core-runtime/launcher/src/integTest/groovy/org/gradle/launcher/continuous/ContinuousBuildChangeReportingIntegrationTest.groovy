@@ -202,7 +202,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         sendEOT()
         results.size() == 2
         results.each {
-            assert it.assertTasksExecuted(':theTask')
+            assert it.assertTasksScheduled(':theTask')
         }
         assertReportsChanges([new ChangeEntry("new file", file("inputDir/input.txt"))])
     }

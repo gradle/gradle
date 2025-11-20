@@ -20,16 +20,13 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
+import org.gradle.internal.execution.DeferredResult;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.jspecify.annotations.NonNull;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> extends BuildOperationStep<C, R> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
@@ -48,60 +45,24 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
     }
 
     @Override
-    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, IdentityCacheResult<T>> cache) {
+    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache) {
         return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
-    @NonNull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
-        Class<? extends UnitOfWork> workType = work.getClass();
-        return operation(operationContext -> {
-                IdentityContext identityContext = createIdentityContextInternal(work, context);
-                Identity identity = identityContext.getIdentity();
-                operationContext.setResult(new Operation.Result() {
-                    @Override
-                    public Identity getIdentity() {
-                        return identity;
-                    }
-                });
-                return identityContext;
-            },
-            BuildOperationDescriptor
-                .displayName("Identifying work")
-                .details(new Operation.Details() {
-                    @Override
-                    public Class<?> getWorkType() {
-                        return workType;
-                    }
-                })
-        );
-    }
-
-    @NonNull
-    private IdentityContext createIdentityContextInternal(UnitOfWork work, C context) {
         InputFingerprinter.Result inputs = work.getInputFingerprinter().fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            work::visitIdentityInputs,
+            work::visitImmutableInputs,
             work.getInputDependencyChecker(context.getValidationContext())
         );
 
-        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
-        Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
+        ImmutableSortedMap<String, ValueSnapshot> scalarInputProperties = inputs.getValueSnapshots();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileInputProperties = inputs.getFileFingerprints();
+        Identity identity = work.identify(scalarInputProperties, fileInputProperties);
 
-        return new IdentityContext(context, identityInputProperties, identityInputFileProperties, identity);
-    }
-
-    public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
-        interface Details {
-            Class<?> getWorkType();
-        }
-
-        interface Result {
-            Identity getIdentity();
-        }
+        return new IdentityContext(context, scalarInputProperties, fileInputProperties, identity);
     }
 }

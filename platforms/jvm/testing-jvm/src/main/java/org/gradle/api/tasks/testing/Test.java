@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
@@ -36,9 +37,8 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
@@ -66,6 +66,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -166,7 +167,6 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @NullMarked
 @CacheableTask
 public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
-
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
@@ -179,6 +179,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
+
+    @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
@@ -188,12 +190,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
-        stableClasspath.from(new Callable<Object>() {
-            @Override
-            public Object call() {
-                return getClasspath();
-            }
-        });
+        stableClasspath.from((Callable<Object>) this::getClasspath);
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
@@ -362,6 +359,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMinHeapSize() {
         return forkOptions.getMinHeapSize();
     }
@@ -371,6 +369,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getDefaultCharacterEncoding() {
         return forkOptions.getDefaultCharacterEncoding();
     }
@@ -379,7 +378,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
         forkOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
@@ -387,7 +386,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setMinHeapSize(String heapSize) {
+    public void setMinHeapSize(@Nullable String heapSize) {
         forkOptions.setMinHeapSize(heapSize);
     }
 
@@ -396,6 +395,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMaxHeapSize() {
         return forkOptions.getMaxHeapSize();
     }
@@ -404,7 +404,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setMaxHeapSize(String heapSize) {
+    public void setMaxHeapSize(@Nullable String heapSize) {
         forkOptions.setMaxHeapSize(heapSize);
     }
 
@@ -655,6 +655,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
+        if (!getTestFramework().supportsNonClassBasedTesting() && !getTestDefinitionDirs().isEmpty()) {
+            throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
+        }
+
         validateExecutableMatchesToolchain();
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
@@ -663,7 +667,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
+            getCandidateClassFiles(), isScanForTestClasses(), getTestDefinitionDirs().getFiles(),
+            getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
     private void validateExecutableMatchesToolchain() {
@@ -675,17 +681,21 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private Set<String> getPreviousFailedTestClasses() {
-        TestResultSerializer serializer = new TestResultSerializer(getBinaryResultsDirectory().getAsFile().get());
-        if (serializer.isHasResults()) {
-            final Set<String> previousFailedTestClasses = new HashSet<String>();
-            serializer.read(new Action<TestClassResult>() {
-                @Override
-                public void execute(TestClassResult testClassResult) {
-                    if (testClassResult.getFailuresCount() > 0) {
-                        previousFailedTestClasses.add(testClassResult.getClassName());
+        SerializableTestResultStore store = new SerializableTestResultStore(getBinaryResultsDirectory().getAsFile().get().toPath());
+        if (store.hasResults()) {
+            final Set<String> previousFailedTestClasses = new HashSet<>();
+            try {
+                store.forEachResult(result -> {
+                    // Test class descriptors set both name and class name to the test class name
+                    if (result.getInnerResult().getName().equals(result.getInnerResult().getClassName())) {
+                        if (result.getInnerResult().getResultType() == TestResult.ResultType.FAILURE) {
+                            previousFailedTestClasses.add(result.getInnerResult().getClassName());
+                        }
                     }
-                }
-            });
+                });
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
             return previousFailedTestClasses;
         } else {
             return Collections.emptySet();
@@ -738,6 +748,12 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         }
         reasons.addAll(super.getNoMatchingTestErrorReasons());
         return reasons;
+    }
+
+    @Override
+    protected int getReportEntrySkipLevels() {
+        // Add 1 for the workers, plus any additional levels required by the test framework
+        return super.getReportEntrySkipLevels() + 1 + getTestFramework().getAdditionalReportEntrySkipLevels();
     }
 
     /**
@@ -840,6 +856,19 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public FileCollection getTestClassesDirs() {
         return testClassesDirs;
     }
+
+    /**
+     * Returns directories to scan for non-class-based test definition files.
+     *
+     * @return The directories holding non-class-based test definition files.
+     * @since 9.4.0
+     */
+    @Incubating
+    @InputFiles
+    @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getTestDefinitionDirs();
 
     /**
      * Sets the directories to scan for compiled test sources.
@@ -1278,9 +1307,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             throw new IllegalArgumentException("Unknown test framework: " + frameworkOptions.getClass().getName());
         }
     }
-
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
     protected abstract PropertyFactory getPropertyFactory();

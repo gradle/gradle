@@ -26,15 +26,16 @@ testing/internal-testing/                   @gradle/bt-developer-productivity
 testing/precondition-tester                 @gradle/bt-developer-productivity
 
 # Release coordination
-packaging/core-platform/                @gradle/bt-product-operations
-packaging/distributions-dependencies/   @gradle/bt-product-operations
-packaging/distributions-full/           @gradle/bt-product-operations
-packaging/public-api                    @gradle/bt-product-operations
-testing/performance/                    @gradle/bt-developer-productivity
-testing/smoke-test/                     @gradle/bt-product-operations
-testing/soak/                           @gradle/bt-developer-productivity
-testing/distributions-integ-tests       @gradle/bt-developer-productivity
-testing/public-api-tests                @gradle/bt-developer-productivity
+packaging/core-platform/                        @gradle/bt-product-operations
+packaging/distributions-dependencies/           @gradle/bt-product-operations
+packaging/distributions-full/                   @gradle/bt-product-operations
+packaging/public-api                            @gradle/bt-product-operations
+testing/performance/                            @gradle/bt-developer-productivity
+testing/smoke-test/                             @gradle/bt-product-operations
+testing/smoke-test/src/**/*IsolatedProjects*    @gradle/bt-product-operations @gradle/bt-isolated-projects-project
+testing/soak/                                   @gradle/bt-developer-productivity
+testing/distributions-integ-tests               @gradle/bt-developer-productivity
+testing/public-api-tests                        @gradle/bt-developer-productivity
 testing/integ-test/
 version.txt
 released-versions.json
@@ -119,7 +120,6 @@ platforms/jvm/                                      @gradle/bt-jvm
 platforms/core-configuration/java-api-extractor     @gradle/bt-jvm
 
 # JVM testing services also shared by GE testing plugins
-platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/dv-testing-team
 platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/dv-testing-team
 platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/dv-testing-team
 
@@ -144,8 +144,8 @@ platforms/ide/ide-native/         @gradle/bt-tide @gradle/bt-jvm
 platforms/documentation/          @gradle/bt-docs-reviewers
 
 platforms/documentation/docs/src/snippets/kotlinDsl/                                                        @gradle/bt-docs-reviewers @gradle/bt-tide
-platforms/documentation/docs/src/docs/userguide/reference/apis/kotlin_dsl.adoc                              @gradle/bt-docs-reviewers @gradle/bt-tide
-platforms/documentation/docs/src/docs/userguide/releases/migrating/migrating_from_groovy_to_kotlin_dsl.adoc @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/kotlin_dsl.adoc                          @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/migrating_from_groovy_to_kotlin_dsl.adoc @gradle/bt-docs-reviewers @gradle/bt-tide
 
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/base_plugin.adoc                 @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-docs-reviewers @gradle/bt-jvm
@@ -158,6 +158,6 @@ platforms/documentation/docs/src/docs/userguide/reference/core-plugins/jacoco_pl
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/java_gradle_plugin.adoc          @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/pmd_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/war_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/dep-man/                                                @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/platforms/jvm/                                          @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/running-builds/directory_layout.adoc                    @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/dependency-management/                        @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/                                @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/directory_layout.adoc   @gradle/bt-docs-reviewers @gradle/bt-jvm

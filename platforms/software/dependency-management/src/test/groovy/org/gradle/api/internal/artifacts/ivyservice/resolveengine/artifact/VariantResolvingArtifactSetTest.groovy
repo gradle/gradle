@@ -25,7 +25,9 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.VariantArtifactResolveState
+import org.gradle.internal.component.model.VariantGraphResolveMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver
 import spock.lang.Specification
@@ -36,7 +38,11 @@ class VariantResolvingArtifactSetTest extends Specification {
     ComponentGraphResolveState component = Stub(ComponentGraphResolveState) {
         getMetadata() >> Mock(ComponentGraphResolveMetadata)
     }
-    VariantGraphResolveState variant = Mock(VariantGraphResolveState)
+    VariantGraphResolveState variant = Stub(VariantGraphResolveState)  {
+        getMetadata() >> Mock(VariantGraphResolveMetadata) {
+            getId() >> Mock(VariantIdentifier)
+        }
+    }
     ArtifactVariantSelector selector = Mock(ArtifactVariantSelector)
 
     ArtifactSelectionServices services = Mock(ArtifactSelectionServices) {
@@ -83,8 +89,8 @@ class VariantResolvingArtifactSetTest extends Specification {
         artifactSet.select(services, spec)
 
         then:
-        1 * variantResolver.resolveVariantArtifactSet(_, subvariant1) >> Mock(ResolvedVariant)
-        1 * variantResolver.resolveVariantArtifactSet(_, subvariant2) >> Mock(ResolvedVariant)
+        1 * variantResolver.resolveVariantArtifactSet(_, variant.metadata.id, subvariant1) >> Mock(ResolvedVariant)
+        1 * variantResolver.resolveVariantArtifactSet(_, variant.metadata.id, subvariant2) >> Mock(ResolvedVariant)
         0 * variantResolver._
     }
 
@@ -106,7 +112,7 @@ class VariantResolvingArtifactSetTest extends Specification {
 
         then:
         1 * selector.select(_, _, _) >> artifacts
-        _ * variantResolver.resolveVariantArtifactSet(_, _) >> Mock(ResolvedVariant)
+        _ * variantResolver.resolveVariantArtifactSet(_, _, _) >> Mock(ResolvedVariant)
         selected == artifacts
 
         where:
