@@ -243,12 +243,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
         containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
 
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other]")
-        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other]")
+        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other] [SUCCESS] [1] [null]")
     }
 
     def "can listen for non-class-based tests using dry-run and tests are reported as skipped"() {
@@ -293,12 +293,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
         containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
 
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other]")
-        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other]")
+        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
     }
 
     def "resource-based test engine can exclude test definitions"() {
