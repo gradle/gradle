@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.client.methods.HttpGet
+import com.google.common.collect.ImmutableMap
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -31,7 +31,7 @@ class HttpClientHelperTimeoutTest extends Specification {
 
     @Rule SetSystemProperties systemProperties = new SetSystemProperties((SOCKET_TIMEOUT_SYSTEM_PROPERTY): "500")
     @Rule HttpServer httpServer = new HttpServer()
-    @Subject HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), httpSettings)
+    @Subject HttpClient client = new ApacheCommonsHttpClientFactory(new DocumentationRegistry()).createClient(httpSettings)
 
     def "throws exception if socket timeout is reached"() {
         given:
@@ -39,7 +39,7 @@ class HttpClientHelperTimeoutTest extends Specification {
         httpServer.start()
 
         when:
-        client.performRequest(new HttpGet("${httpServer.uri}/"), false)
+        client.performGet(URI.create("${httpServer.uri}/"), ImmutableMap.of())
 
         then:
         def e = thrown(HttpRequestException)
