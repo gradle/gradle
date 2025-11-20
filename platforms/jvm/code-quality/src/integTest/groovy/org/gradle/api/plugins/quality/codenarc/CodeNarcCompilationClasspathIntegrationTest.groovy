@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.jvm.Jvm
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -87,33 +88,8 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
                 id 'jvm-test-suite'
             }
 
-            repositories {
-                mavenCentral()
-            }
-
-            dependencies {
-                testImplementation localGroovy()
-            }
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersionMajor})
-                }
-            }
-
-            codenarc {
-                codenarc.configFile = file('$CONFIG_FILE_PATH')
-            }
-
-            testing {
-                suites {
-                    test {
-                        useSpock()
-                    }
-                }
-            }
+            ${buildScriptWithToolchainAndTestSuite(jvm)}
         """
-
 
         when:
         fails("codenarcTest")
@@ -121,6 +97,44 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
         then:
         failure.assertHasCause('CodeNarc rule violations were found')
         outputDoesNotContain("WARNING: Compilation error for non-default compiler phase (semantic analysis). Consider removing \"enhanced\" rules from your ruleset.")
+    }
+
+    def "can override default compilationClasspath on CodeNarc task"() {
+        // Groovy 4 includes a shadowed version of ASM that can only read up to Java 24 class files
+        def jvm = AvailableJavaHomes.getJdkInRange(Range.atMost(24))
+        withInstallations(jvm)
+        println "Using JDK ${jvm.javaVersionMajor} at ${jvm.javaHome}"
+
+        given:
+        configFileWithCloneWithoutCloneableRuleEnabled()
+        testClassViolatingCloneWithoutCloneableRuleAndExternalReferences()
+        file('buildSrc/build.gradle') << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file('buildSrc/src/main/groovy/conventions.gradle') << """
+            tasks.withType(CodeNarc) {
+                compilationClasspath = files()
+            }
+        """
+        buildFile << """
+            plugins {
+                id 'conventions'
+                id 'groovy'
+                id 'codenarc'
+                id 'jvm-test-suite'
+            }
+
+            ${buildScriptWithToolchainAndTestSuite(jvm)}
+        """
+
+        when:
+        succeeds("codenarcTest")
+
+        then:
+        outputContains("WARNING: Compilation error for non-default compiler phase (semantic analysis). Consider removing \"enhanced\" rules from your ruleset.")
+        outputContains("unable to resolve class spock.lang.Shared")
     }
 
     private void buildFileWithCodeNarcAndCompilationClasspath(String codeNarcVersion) {
@@ -143,6 +157,34 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
 
             codenarcMain {
                 compilationClasspath = configurations.compileClasspath
+            }
+        """
+    }
+
+    private String buildScriptWithToolchainAndTestSuite(Jvm jvm) {
+        return """
+            ${mavenCentralRepository()}
+
+            dependencies {
+                testImplementation localGroovy()
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersionMajor})
+                }
+            }
+
+            codenarc {
+                codenarc.configFile = file('$CONFIG_FILE_PATH')
+            }
+
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
             }
         """
     }
