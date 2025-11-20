@@ -73,8 +73,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def resilientModels = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
@@ -110,14 +110,14 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
         assertHasScriptModelForFiles(model/*, "settings.gradle.kts"*/)
         assertHasErrorsInScriptModels(model,
-                Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
         // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
@@ -140,14 +140,14 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
         assertHasErrorsInScriptModels(model,
-                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
@@ -163,14 +163,14 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
         assertHasErrorsInScriptModels(model,
-                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
     }
 
@@ -198,15 +198,15 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
         assertHasErrorsInScriptModels(model,
-                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
-                Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+            Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
@@ -228,15 +228,15 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
         assertHasErrorsInScriptModels(model,
-                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
-                Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+            Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
     }
 
@@ -269,15 +269,15 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
         assertHasScriptModelForFiles(model, /*"settings.gradle.kts"*/)
         assertHasErrorsInScriptModels(model,
-                Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
-                Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
+            Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
         // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
@@ -320,8 +320,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def resilientModels = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
@@ -378,8 +378,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         c << """$breakage"""
         def resilientModels = succeeds {
             action(KotlinModelAction.resilientModel(queryStrategy))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
@@ -470,8 +470,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         projectPlugin << "throw RuntimeException(\"Failing script\")"
         def resilientModels = succeeds {
             action(KotlinModelAction.resilientModel(queryStrategy))
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
@@ -587,7 +587,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
         // At the moment the failure reporting is not consistent and depends on the order of query
         def actualNoOfFailures = resilientModels.failures.size()
-        assert actualNoOfFailures == expectedNoOfFailures : "Expected $expectedNoOfFailures failures, but had ${actualNoOfFailures}"
+        assert actualNoOfFailures == expectedNoOfFailures: "Expected $expectedNoOfFailures failures, but had ${actualNoOfFailures}"
         rootBuildFailure?.with {
             expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], it)
         }
@@ -596,9 +596,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         where:
-        queryStrategy         | expectedNoOfFailures    | rootBuildFailure                               | includedBuildFailure
-        ROOT_PROJECT_FIRST    | 2                       | "A problem occurred configuring project ':b'." | "Execution failed for task ':build-logic:compileKotlin'."
-        INCLUDED_BUILDS_FIRST | 1                       | "A problem occurred configuring project ':b'." | null
+        queryStrategy         | expectedNoOfFailures | rootBuildFailure                               | includedBuildFailure
+        ROOT_PROJECT_FIRST    | 2                    | "A problem occurred configuring project ':b'." | "Execution failed for task ':build-logic:compileKotlin'."
+        INCLUDED_BUILDS_FIRST | 1                    | "A problem occurred configuring project ':b'." | null
     }
 
     def "build with convention plugins - broken settings convention"() {
@@ -654,8 +654,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         assertHasScriptModelForFiles(model, "build-logic/settings.gradle.kts", "build-logic/build.gradle.kts", "build-logic/src/main/kotlin/build-logic.settings.gradle.kts")
         assertHasErrorsInScriptModels(model,
-                Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"),
-                Pair.of("build-logic", ".*Execution failed for task ':build-logic:compileKotlin.*"))
+            Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"),
+            Pair.of("build-logic", ".*Execution failed for task ':build-logic:compileKotlin.*"))
     }
 
     @ToBeImplemented
@@ -678,7 +678,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         then:
         assertHasScriptModelForFiles(model/*, "settings.gradle.kts", "build.gradle.kts"*/)
         assertHasErrorsInScriptModels(model,
-                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         // assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
@@ -701,7 +701,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             matchProjectFailure(failure, expectedElement.right)
         }
 
-        assert failures.isEmpty() : "Unexpected failures for build roots: ${failures.keySet()}"
+        assert failures.isEmpty(): "Unexpected failures for build roots: ${failures.keySet()}"
     }
 
     private static void matchProjectFailure(String failureMessage, String expectedPattern) {
@@ -715,27 +715,27 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assert scriptModel != null: "Expected script model for file $expectedFile, but there wasn't one"
 
         def jarFilesInClasspath = scriptModel.classPath.stream()
-                .filter { it.isFile() }
-                .map { it.name }
-                .filter { it.endsWith(".jar") }
-                .collect(Collectors.toList())
+            .filter { it.isFile() }
+            .map { it.name }
+            .filter { it.endsWith(".jar") }
+            .collect(Collectors.toList())
 
         for (String expectedJar : expectedJars) {
             assert jarFilesInClasspath.stream().filter { it.startsWith(expectedJar) }.findFirst().isPresent():
-                    "Expected jar named $expectedJar in the script model classpath for file $expectedFile, " +
-                            "but it wasn't there: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
+                "Expected jar named $expectedJar in the script model classpath for file $expectedFile, " +
+                    "but it wasn't there: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
         }
     }
 
     static void expectFailureToContain(String actualFailure, String expectedFragment) {
-        assert actualFailure.contains(expectedFragment) :
-                "Failure expected to contain \"${expectedFragment}\", but was \"\n${actualFailure}\n\" instead!"
+        assert actualFailure.contains(expectedFragment):
+            "Failure expected to contain \"${expectedFragment}\", but was \"\n${actualFailure}\n\" instead!"
     }
 
     private static void queryResilientKotlinDslScriptsModel(BuildController controller, GradleBuild build, Model target, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
         def modelResult = controller.fetch(target, KotlinDslScriptsModel.class)
 
-        assert modelResult.failures.size() <= 1 : "Expected a single failure, but got multiple ones"
+        assert modelResult.failures.size() <= 1: "Expected a single failure, but got multiple ones"
         def failure = modelResult.failures.stream().findAny()
         if (failure.isPresent()) {
             failures[build.buildIdentifier.rootDir] = failure.get()
@@ -758,7 +758,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         KotlinModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
             this.scriptModels = scriptModels
-            this.failures = failures.collectEntries { key, value -> [ key, value.description ]}
+            this.failures = failures.collectEntries { key, value -> [key, value.description] }
         }
     }
 
@@ -779,7 +779,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         @Override
         KotlinModel execute(BuildController controller) {
-            GradleBuild rootBuild = controller.getModel(GradleBuild.class)
+            GradleBuild rootBuild
+            if (resilient) {
+                rootBuild = controller.fetch(GradleBuild.class).model
+            } else {
+                rootBuild = controller.getModel(GradleBuild.class)
+            }
             Map<File, KotlinDslScriptModel> scriptModels = [:]
             Map<File, Failure> failures = [:]
 
@@ -844,42 +849,42 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         ComparingModelAssert assertBothModelsExist() {
-            assert originalModel : "Original model for script ${scriptFile} is missing, scripts that have original model are:\n" +
-                        " ${originalCustomModel.scriptModels.keySet()}"
-            assert resilientModel : "Resilient model for script ${scriptFile} is missing, scripts that have resilient model are:\n" +
-                        " ${resilientCustomModel.scriptModels.keySet()}"
+            assert originalModel: "Original model for script ${scriptFile} is missing, scripts that have original model are:\n" +
+                " ${originalCustomModel.scriptModels.keySet()}"
+            assert resilientModel: "Resilient model for script ${scriptFile} is missing, scripts that have resilient model are:\n" +
+                " ${resilientCustomModel.scriptModels.keySet()}"
             return this
         }
 
 
         ComparingModelAssert assertClassPathsAreEqual() {
-            assert resilientModel.classPath == originalModel.classPath : "Class paths are not equal for script ${scriptFile}:\n" +
-                        " - Resilient classPath: ${resilientModel.classPath}\n" +
-                        " - Original classPath:  ${originalModel.classPath}"
+            assert resilientModel.classPath == originalModel.classPath: "Class paths are not equal for script ${scriptFile}:\n" +
+                " - Resilient classPath: ${resilientModel.classPath}\n" +
+                " - Original classPath:  ${originalModel.classPath}"
             return this
         }
 
         ComparingModelAssert assertClassPathsAreEqualIfIgnoringSomeOriginalEntries(Function<String, Boolean> filter) {
             def filteredOriginalClassPath = originalModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
-            assert resilientModel.classPath == filteredOriginalClassPath : "Class paths are not equal after filtering original entries for script ${scriptFile}:\n" +
-                        " - Resilient classPath:         ${resilientModel.classPath}\n" +
-                        " - Filtered original classPath: ${filteredOriginalClassPath}"
+            assert resilientModel.classPath == filteredOriginalClassPath: "Class paths are not equal after filtering original entries for script ${scriptFile}:\n" +
+                " - Resilient classPath:         ${resilientModel.classPath}\n" +
+                " - Filtered original classPath: ${filteredOriginalClassPath}"
             return this
         }
 
         ComparingModelAssert assertClassPathsAreEqualIfIgnoringSomeEntries(Function<String, Boolean> filter) {
             def filteredResilient = resilientModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
             def filteredOriginalClassPath = originalModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
-            assert filteredResilient == filteredOriginalClassPath : "Class paths are not equal after filtering some entries for script ${scriptFile}:\n" +
-                        " - Riltered resilient: ${filteredResilient}\n" +
-                        " - Riltered original:  ${filteredOriginalClassPath}"
+            assert filteredResilient == filteredOriginalClassPath: "Class paths are not equal after filtering some entries for script ${scriptFile}:\n" +
+                " - Riltered resilient: ${filteredResilient}\n" +
+                " - Riltered original:  ${filteredOriginalClassPath}"
             return this
         }
 
         ComparingModelAssert assertResilientModelContainsClassPathEntriesWithPath(String path) {
             def filteredResilient = resilientModel.classPath.findAll { TextUtil.normaliseFileSeparators(it.absolutePath).contains(path) }
-            assert !filteredResilient.isEmpty() : "Resilient Class paths for script ${scriptFile} did not contain entries with path '${path}':\n" +
-                    " - Resilient classPath: ${resilientModel.classPath}"
+            assert !filteredResilient.isEmpty(): "Resilient Class paths for script ${scriptFile} did not contain entries with path '${path}':\n" +
+                " - Resilient classPath: ${resilientModel.classPath}"
             return this
         }
 
@@ -887,8 +892,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             def relevantResilientImports = minusAccessors(resilientModel.implicitImports)
             def relevantOriginalImports = minusAccessors(originalModel.implicitImports)
             assert relevantResilientImports == relevantOriginalImports: "Implicit imports are not equal for script ${scriptFile}:\n" +
-                        " - Resilient imports: $relevantResilientImports\n" +
-                        " - Original imports:  $relevantOriginalImports"
+                " - Resilient imports: $relevantResilientImports\n" +
+                " - Original imports:  $relevantOriginalImports"
             return this
         }
 

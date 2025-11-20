@@ -71,7 +71,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        1 * modelController.getModel(_, 'some.model', null) >> { throw failure }
+        1 * modelController.getModel(_, _) >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -102,7 +102,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * workerThreadRegistry.workerThread >> true
         _ * target.projectPath >> ":some:path"
         _ * target.rootDir >> rootDir
-        1 * modelController.getModel(_, "some.model", null) >> { BuildTreeModelTarget t, m, p ->
+        1 * modelController.getModel(_, _) >> { BuildTreeModelTarget t, context ->
             assert t.buildRootDir == rootDir && t.projectPath == Path.path(":some:path")
             model
         }
@@ -122,7 +122,7 @@ class DefaultBuildControllerTest extends Specification {
         given:
         _ * workerThreadRegistry.workerThread >> true
         _ * target.rootDir >> rootDir
-        1 * modelController.getModel(_, "some.model", null) >> { BuildTreeModelTarget t, m, p ->
+        1 * modelController.getModel(_, _) >> { BuildTreeModelTarget t, context ->
             assert t instanceof BuildTreeModelTarget.Build && t.buildRootDir == rootDir
             model
         }
@@ -139,7 +139,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        1 * modelController.getModel(_, "some.model", null) >> model
+        1 * modelController.getModel(_, _) >> model
 
         when:
         def result = controller.getModel(null, modelId)
@@ -175,7 +175,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * workerThreadRegistry.workerThread >> true
-        1 * modelController.getModel(_, 'some.model', parameter) >> model
+        1 * modelController.getModel(_, _) >> model
 
         when:
         def result = controller.getModel(null, modelId, parameter)
