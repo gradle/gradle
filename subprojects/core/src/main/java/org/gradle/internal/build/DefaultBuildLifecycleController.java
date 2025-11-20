@@ -323,8 +323,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
-        return action.apply(toolingModelControllerFactory.createController(targetBuild(), this));
+    public <T> T withToolingModels(boolean isFetch, Function<? super BuildToolingModelController, T> action) {
+        return action.apply(toolingModelControllerFactory.createController(targetBuild(), this, isFetch));
     }
 
     private BuildState targetBuild() {

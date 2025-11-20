@@ -33,6 +33,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
+import spock.lang.IgnoreRest
 
 import java.util.function.Function
 import java.util.regex.Pattern
@@ -41,8 +42,8 @@ import java.util.stream.Collectors
 import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.INCLUDED_BUILDS_FIRST
 import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST
 
-@ToolingApiVersion('>=9.3.0')
-@TargetGradleVersion('>=9.3.0')
+@ToolingApiVersion('>=9.4.0')
+@TargetGradleVersion('>=9.4.0')
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -92,6 +93,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     @ToBeImplemented
+//    @IgnoreRest
     def "basic build - broken settings file"() {
         given:
         settingsKotlinFile << """
@@ -778,7 +780,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         @Override
         KotlinModel execute(BuildController controller) {
-            GradleBuild rootBuild = controller.getModel(GradleBuild.class)
+            GradleBuild rootBuild
+            if (resilient) {
+                rootBuild = controller.fetch(GradleBuild.class).model
+            } else {
+                rootBuild = controller.getModel(GradleBuild.class)
+            }
             Map<File, KotlinDslScriptModel> scriptModels = [:]
             Map<File, Failure> failures = [:]
 

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.buildtree.ToolingModelContext;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
@@ -32,12 +33,16 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         // TODO: Is there a better way to identify resilient models?
         "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
     );
+    private final boolean isFetch;
 
     public ResilientBuildToolingModelController(
         BuildState buildState,
         BuildLifecycleController buildController,
-        ToolingModelBuilderLookup buildScopeLookup) {
+        ToolingModelBuilderLookup buildScopeLookup,
+        boolean isFetch
+    ) {
         super(buildState, buildController, buildScopeLookup);
+        this.isFetch = isFetch;
     }
 
     @Override
@@ -49,21 +54,25 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         }
     }
 
-    private static void rethrowExceptionIfNotResilientModel(String modelName, GradleException e) {
+    private void rethrowExceptionIfNotResilientModel(String modelName, GradleException e) {
         // For resilient models, ignore configuration failures
-        if (!RESILIENT_MODELS.contains(modelName)) {
+        if (isFetch) {
+            if (!RESILIENT_MODELS.contains(modelName)) {
+                throw e;
+            }
+        } else {
             throw e;
         }
-    }
+   }
 
     @Override
-    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
-        return new ResilientProjectToolingScope(target, modelName, param);
+    protected ToolingModelScope doLocate(ProjectState target, ToolingModelContext toolingModelContext) {
+        return new ResilientProjectToolingScope(target, toolingModelContext);
     }
 
-    private static class ResilientProjectToolingScope extends ProjectToolingScope {
-        public ResilientProjectToolingScope(ProjectState target, String modelName, boolean parameter) {
-            super(target, modelName, parameter);
+    private class ResilientProjectToolingScope extends ProjectToolingScope {
+        public ResilientProjectToolingScope(ProjectState target, ToolingModelContext toolingModelContext) {
+            super(target, toolingModelContext.getModelName(), toolingModelContext.hasParameter());
         }
 
         @Override
