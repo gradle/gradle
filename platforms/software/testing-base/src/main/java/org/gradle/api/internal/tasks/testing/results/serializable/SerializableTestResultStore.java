@@ -48,6 +48,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -329,6 +330,34 @@ public final class SerializableTestResultStore {
          * @throws IOException if an error occurs while processing the result
          */
         void process(long id, @Nullable Long parentId, SerializableTestResult result, OutputRanges outputRanges) throws IOException;
+    }
+
+    /**
+     * Exists for backwards compatibility with TestFilesCleanupService.
+     *
+     * Mirrors the old structure of OutputTrackedResult that was used by TestFilesCleanupService.
+     * Doesn't need to be the original class since the type wasn't explicitly referenced.
+     */
+    public static final class FacadeForOutputTrackedResult {
+        private final SerializableTestResult innerResult;
+
+        public FacadeForOutputTrackedResult(SerializableTestResult innerResult) {
+            this.innerResult = innerResult;
+        }
+
+        public SerializableTestResult getInnerResult() {
+            return innerResult;
+        }
+    }
+
+    /**
+     * Exists for backwards compatibility with TestFilesCleanupService.
+     */
+    @SuppressWarnings("unused")
+    public void forEachResult(Consumer<FacadeForOutputTrackedResult> consumer) throws IOException {
+        forEachResult((id, parentId, result, outputRanges) ->
+            consumer.accept(new FacadeForOutputTrackedResult(result))
+        );
     }
 
     /**
