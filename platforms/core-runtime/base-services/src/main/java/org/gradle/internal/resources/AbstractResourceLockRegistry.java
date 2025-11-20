@@ -101,7 +101,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     @Override
     public void lockReleased(ResourceLock resourceLock) {
         ThreadLockDetails<T> lockDetails = threadLocks.get(Thread.currentThread().getId());
-        if (!lockDetails.mayChange) {
+        if (lockDetails == null || !lockDetails.mayChange) {
             throw new IllegalStateException("This thread may not release any locks.");
         }
         lockDetails.locks.remove(resourceLock);
