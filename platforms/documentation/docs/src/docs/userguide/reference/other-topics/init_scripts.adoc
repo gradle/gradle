@@ -57,7 +57,7 @@ Like any Gradle script, an init script implements link:{groovyDslPath}/org.gradl
 NOTE: Properties from `gradle.properties` are available on `Settings`/`Project`, *not* on `Gradle`.
 
 Useful `Gradle` callbacks include: `settingsEvaluated {}`, `projectsLoaded {}`, `beforeProject {}`, `afterProject {}`.
-You can see more in the <<build_lifecycle#lifecycle_api,Gradle LifeCycle API>>.
+You can see more in the <<build_lifecycle#lifecycle_api,Gradle Lifecycle API>>.
 
 [[sec:configuring_projects_from_an_init_script]]
 === Configuring projects from an init script

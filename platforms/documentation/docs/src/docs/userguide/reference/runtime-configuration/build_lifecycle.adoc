@@ -107,7 +107,7 @@ This diagram shows two example task graphs, one abstract and the other concrete,
 image::task-dag-examples.png[]
 
 [[lifecycle_api]]
-== Hooks into the Gradle Build LifeCycle
+== Hooks into the Gradle Build Lifecycle
 
 Gradle exposes several APIs that allow you to listen to or react to key points in the build lifecycle.
 
