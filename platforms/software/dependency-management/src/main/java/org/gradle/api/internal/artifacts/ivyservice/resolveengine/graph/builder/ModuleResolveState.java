@@ -194,10 +194,6 @@ public class ModuleResolveState implements CandidateModule {
         this.replaced = false;
 
         selectComponentAndEvictOthers(selected);
-
-        if (!unattachedEdges.isEmpty()) {
-            restartUnattachedEdges();
-        }
     }
 
     private void selectComponentAndEvictOthers(ComponentState selected) {
@@ -275,6 +271,7 @@ public class ModuleResolveState implements CandidateModule {
         }
 
         doRestart(selected);
+        restartUnattachedEdges();
     }
 
     private boolean computeReplaced(ComponentState selected) {
@@ -290,16 +287,13 @@ public class ModuleResolveState implements CandidateModule {
         for (SelectorState selector : selectors) {
             selector.overrideSelection(selected);
         }
-        if (!unattachedEdges.isEmpty()) {
-            restartUnattachedEdges();
-        }
     }
 
-    private void restartUnattachedEdges() {
+    public void restartUnattachedEdges() {
         if (unattachedEdges.size() == 1) {
             EdgeState singleEdge = unattachedEdges.get(0);
             singleEdge.retarget();
-        } else {
+        } else if (unattachedEdges.size() > 1) {
             for (EdgeState edge : new ArrayList<>(unattachedEdges)) {
                 edge.retarget();
             }
@@ -359,6 +353,7 @@ public class ModuleResolveState implements CandidateModule {
         }
         if (!alreadyReused && selectors.size() != 0 && selected != null) {
             maybeUpdateSelection();
+            restartUnattachedEdges();
         }
     }
 

@@ -36,6 +36,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -162,7 +163,13 @@ class EdgeState implements DependencyGraphEdge {
             targetNode.addIncomingEdge(this);
         }
         if (!targetNodes.isEmpty()) {
-            selector.getTargetModule().removeUnattachedEdge(this);
+            ModuleResolveState targetModule = selector.getTargetModule();
+            targetModule.removeUnattachedEdge(this);
+            if (hasWellDefinedTargetNodes()) {
+                // We successfully attached an edge to a node in the module.
+                // Try to see if we can attach any other unattached edges targeting the same module.
+                targetModule.restartUnattachedEdges();
+            }
         }
     }
 
@@ -225,33 +232,27 @@ class EdgeState implements DependencyGraphEdge {
             // Broken version
             return;
         }
-        if (isConstraint && !isVirtualDependency()) {
-            List<NodeState> nodes = targetComponent.getNodes();
-            for (NodeState node : nodes) {
-                if (node.isSelected() && !node.isRoot()) {
-                    targetNodes.add(node);
-                }
-            }
-            if (targetNodes.isEmpty()) {
-                // There is a chance we could not attach target configurations previously
-                List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
-                if (!unattachedEdges.isEmpty()) {
-                    for (EdgeState otherEdge : unattachedEdges) {
-                        if (!otherEdge.isConstraint()) {
-                            otherEdge.attachToTargetNodes();
-                            if (otherEdge.targetNodeSelectionFailure != null) {
-                                // Copy selection failure
-                                this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
-                                return;
-                            }
-                            break;
+
+        // Attach any edge with well-defined target nodes pointing at the same module,
+        // inheriting any failure that occurred while doing so.
+        if (!hasWellDefinedTargetNodes()) {
+            List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
+            if (!unattachedEdges.isEmpty()) {
+                for (EdgeState otherEdge : new ArrayList<>(unattachedEdges)) {
+                    if (otherEdge.hasWellDefinedTargetNodes()) {
+                        otherEdge.retarget();
+                        if (otherEdge.targetNodeSelectionFailure != null) {
+                            this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
+                            return;
                         }
                     }
                 }
-                for (NodeState node : nodes) {
-                    if (node.isSelected() && !node.isRoot()) {
-                        targetNodes.add(node);
-                    }
+            }
+
+            // Otherwise, inherit all selected nodes from the target component
+            for (NodeState node : targetComponent.getNodes()) {
+                if (node.isSelected() && !node.isRoot()) {
+                    targetNodes.add(node);
                 }
             }
             return;
@@ -281,6 +282,17 @@ class EdgeState implements DependencyGraphEdge {
             }
             this.targetNodes.add(targetNodeState);
         }
+    }
+
+    /**
+     * Non-virtual constraints don't generally have a well-defined target node. They are
+     * intended to constrain properties of an entire module. They contribute version selectors
+     * and attributes, but unlike hard edges, do not resolve to a specific variant. Instead,
+     * non-virtual constraints inherit the selected variants from the entire module they constrain --
+     * they inherit the target variants of all other edges that do have well-defined target nodes.
+     */
+    private boolean hasWellDefinedTargetNodes() {
+        return !isConstraint || isVirtualDependency();
     }
 
     /**
