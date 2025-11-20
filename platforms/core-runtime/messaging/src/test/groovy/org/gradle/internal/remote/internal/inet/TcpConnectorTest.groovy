@@ -42,7 +42,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     final def idGenerator = new UUIDGenerator()
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
-    final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator)
+    final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator, 1)
     @Rule
     public ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
@@ -313,13 +313,39 @@ class TcpConnectorTest extends ConcurrentSpec {
         when:
         socketChannel.socket().bind(bindAnyPort)
         socketChannel.socket().connect(connectAddress)
+        socketChannel.socket().outputStream.write(TcpOutgoingConnector.CONNECTION_PREAMBLE)
+        socketChannel.socket().outputStream.flush()
 
         then:
         !outgoingConnector.detectSelfConnect(socketChannel)
 
         cleanup:
         acceptor?.stop()
-        socketChannel.close()
+        socketChannel?.close()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27801")
+    def "refuses connections that don't provide a handshake"() {
+        given:
+        def connected = false
+        def action = { connected = true  }
+        def socketChannel = SocketChannel.open()
+        def acceptor = incomingConnector.accept(action, false)
+        def communicationAddress = addressFactory.getLocalBindingAddress()
+        def bindAnyPort = new InetSocketAddress(communicationAddress, 0)
+        def connectAddress = new InetSocketAddress(communicationAddress, acceptor.address.port)
+
+        when:
+        socketChannel.socket().bind(bindAnyPort)
+        socketChannel.socket().connect(connectAddress)
+        acceptor.stop()
+
+        then:
+        !connected
+
+        cleanup:
+        acceptor?.stop()
+        socketChannel?.close()
     }
 }
 

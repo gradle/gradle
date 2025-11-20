@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.query
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
@@ -31,8 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleCom
 import org.gradle.api.internal.component.ComponentTypeRegistration
 import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.model.ComponentArtifactResolveState
-import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -129,15 +126,11 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         1 * externalResolverFactory.createResolvers(_, _, _, _, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
-        def state = Mock(ComponentGraphResolveState)
-
-        def metadata = Mock(ComponentGraphResolveMetadata)
-        _ * state.getMetadata() >> metadata
-        _ * state.prepareForArtifactResolution() >> Mock(ComponentArtifactResolveState)
-        _ * metadata.getModuleVersionId() >> Mock(ModuleVersionIdentifier)
-
         numberOfComponentsToResolve * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
-            resolveResult.resolved(state, Stub(ComponentGraphSpecificResolveState))
+            resolveResult.resolved(
+                Stub(ComponentGraphResolveState),
+                Stub(ComponentGraphSpecificResolveState)
+            )
         }
     }
 

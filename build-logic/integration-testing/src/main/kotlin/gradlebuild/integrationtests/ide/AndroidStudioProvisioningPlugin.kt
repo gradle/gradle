@@ -28,10 +28,10 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 
 
-// Android Studio Narwhal | 2025.1.2.11
+// Android Studio Narwhal 3 | 2025.1.3
 // Find all references here https://developer.android.com/studio/archive
 // Update verification-metadata.xml
-const val DEFAULT_ANDROID_STUDIO_VERSION = "2025.1.2.11"
+const val DEFAULT_ANDROID_STUDIO_VERSION = "2025.1.3.7"
 const val UNPACK_ANDROID_STUDIO_TASK_NAME = "unpackAndroidStudio"
 const val ANDROID_STUDIO_INSTALL_PATH = "android-studio"
 

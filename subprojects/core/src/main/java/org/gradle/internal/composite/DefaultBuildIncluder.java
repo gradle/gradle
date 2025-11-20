@@ -28,12 +28,14 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.reflect.Instantiator;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@NullMarked
 public class DefaultBuildIncluder implements BuildIncluder {
 
     private final BuildStateRegistry buildRegistry;
@@ -41,14 +43,23 @@ public class DefaultBuildIncluder implements BuildIncluder {
     private final PublicBuildPath publicBuildPath;
     private final Instantiator instantiator;
     private final GradleInternal gradle;
+    private final BuildIncludeListener buildIncludeListener;
     private final List<BuildDefinition> pluginBuildDefinitions = new ArrayList<>();
 
-    public DefaultBuildIncluder(BuildStateRegistry buildRegistry, BuildInclusionCoordinator coordinator, PublicBuildPath publicBuildPath, Instantiator instantiator, GradleInternal gradle) {
+    public DefaultBuildIncluder(
+        BuildStateRegistry buildRegistry,
+        BuildInclusionCoordinator coordinator,
+        PublicBuildPath publicBuildPath,
+        Instantiator instantiator,
+        GradleInternal gradle,
+        BuildIncludeListener buildIncludeListener
+    ) {
         this.buildRegistry = buildRegistry;
         this.coordinator = coordinator;
         this.publicBuildPath = publicBuildPath;
         this.instantiator = instantiator;
         this.gradle = gradle;
+        this.buildIncludeListener = buildIncludeListener;
     }
 
     @Override
@@ -61,7 +72,12 @@ public class DefaultBuildIncluder implements BuildIncluder {
             return rootBuild;
         } else {
             IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition, gradle.getOwner());
-            coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
+            try {
+                coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
+            } catch (Exception e) {
+                buildIncludeListener.buildInclusionFailed(build);
+                throw e;
+            }
             return build;
         }
     }

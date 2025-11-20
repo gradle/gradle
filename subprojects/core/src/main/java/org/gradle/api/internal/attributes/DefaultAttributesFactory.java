@@ -17,14 +17,12 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,6 +34,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     private final AttributeValueIsolator attributeValueIsolator;
     private final PropertyFactory propertyFactory;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
+    private final NamedObjectInstantiator instantiator;
 
     /**
      * A map from parent attribute containers to the set of containers that have
@@ -54,16 +53,17 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
 
         this.concatCache = new ConcurrentHashMap<>();
+        this.instantiator = instantiator;
     }
 
     @Override
     public AttributeContainerInternal mutable() {
-        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory);
+        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, instantiator, propertyFactory);
     }
 
     @Override
     public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
-        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory));
+        return join(fallback, mutable());
     }
 
     @Override
@@ -83,14 +83,16 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
-        if (key.equals(Usage.USAGE_ATTRIBUTE) || key.getName().equals(Usage.USAGE_ATTRIBUTE.getName())) {
-            return usageCompatibilityHandler.doConcat(this, node, key, value);
-        } else {
-            return doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
-        }
+        return doConcatEntry(node, new DefaultImmutableAttributesEntry<>(key, value));
     }
 
-    /* package */ <T> ImmutableAttributes doConcatEntry(ImmutableAttributes node, ImmutableAttributesEntry<T> entry) {
+    @Override
+    @Deprecated
+    public <T> ImmutableAttributes concatUsageAttribute(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+        return usageCompatibilityHandler.doConcat(this, node, key, value);
+    }
+
+    private <T> ImmutableAttributes doConcatEntry(ImmutableAttributes node, ImmutableAttributesEntry<T> entry) {
         assertAttributeNotAlreadyPresent(node, entry.getKey());
 
         // Try to retrieve a cached value without locking
@@ -191,32 +193,6 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         }
 
         return current;
-    }
-
-    @Override
-    public ImmutableAttributes fromEntries(Collection<AttributeEntry<?>> entries) {
-        /*
-         * This should use safeConcat, but can't because of how the GradleModuleMetadataParser
-         * uses the DefaultAttributesFactory in consumeAttributes.  See the "can detect incompatible X when merging" tests
-         * in DefaultAttributesFactoryTest for examples of the type of behavior this method must
-         * support.
-         *
-         * Eventually, we should construct that set of attributes differently, in a way that
-         * allows us to use a safeConcat here.  Possibly we can use a different implementation
-         * of this method in a different factory implementation, and let this one do safeConcat.
-         */
-        ImmutableAttributes result = ImmutableAttributes.EMPTY;
-        for (AttributeEntry<?> entry : entries) {
-            result = concatEntry(result, entry);
-        }
-        return result;
-    }
-
-    /**
-     * Concatenates an attribute entry to an immutable attributes instance.
-     */
-    private <T> ImmutableAttributes concatEntry(ImmutableAttributes attributes, AttributeEntry<T> entry) {
-        return concat(attributes, entry.getKey(), entry.getValue());
     }
 
     /**

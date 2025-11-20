@@ -44,14 +44,12 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 
 errorprone {
     disabledChecks.addAll(
-        "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
         "ReferenceEquality", // 2 occurrences
         "StreamResourceLeak", // 6 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
-        "UndefinedEquals", // 1 occurrences
     )
 }
 
@@ -64,6 +62,8 @@ dependencies {
     api(projects.buildCacheLocal)
     api(projects.buildCachePackaging)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscovery)
+    api(projects.buildDiscoveryImpl)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
@@ -105,7 +105,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)
@@ -128,7 +128,10 @@ dependencies {
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.softwareFeaturesApi)
+    implementation(projects.coreFlowServicesApi) {
+        because("DefaultBuildServicesRegistry has ordering dependency with FlowScope")
+    }
+    implementation(projects.projectFeaturesApi)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
@@ -144,6 +147,7 @@ dependencies {
         // Used for its nullability annotations, not needed at runtime
         exclude("org.checkerframework", "checker-qual")
     }
+    implementation(libs.jnrConstants)
 
     compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")

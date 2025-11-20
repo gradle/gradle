@@ -152,7 +152,7 @@ repositories { maven { url = '${mavenHttpRepo.uri}' } }
 dependencies { implementation '${groupId}:${artifactId}:1.0' }
 task retrieve {}
 ['compile', 'runtime'].each { cp ->
-   retrieve.dependsOn(tasks.create("retrieve\${cp.capitalize()}Classpath", Sync) {
+   tasks.retrieve.dependsOn(tasks.create("retrieve\${cp.capitalize()}Classpath", Sync) {
       into "\${cp}Classpath"
       from configurations.getByName("\${cp}Classpath")
    })

@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ComponentSelectorNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
@@ -25,18 +26,23 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
+import org.gradle.internal.service.scopes.BrokenBuildsCapturingListener;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
+
+import java.util.Set;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
@@ -57,6 +63,15 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(IncludedBuildFactory.class, DefaultIncludedBuildFactory.class);
             serviceRegistration.add(BuildTreeWorkGraphController.class, DefaultIncludedBuildTaskGraph.class);
+        }
+
+        @Provides
+        BuildIncludeListener createBuildIncludeListener(BuildModelParameters buildModelParameters) {
+            if (buildModelParameters.isResilientModelBuilding()) {
+                return new BrokenBuildsCapturingListener();
+            }
+            //ignored in non-resilient model building
+            return new NoOpBuildIncludeListener();
         }
 
         @Provides
@@ -89,6 +104,28 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         @Provides
         public CompositeBuildContext createCompositeBuildContext() {
             return new DefaultBuildableCompositeBuildContext();
+        }
+
+        private static class NoOpBuildIncludeListener implements BuildIncludeListener {
+            @Override
+            public void buildInclusionFailed(BuildState buildState) {
+                // No-op in non-resilient model building
+            }
+
+            @Override
+            public Set<BuildState> getBrokenBuilds() {
+                throw new UnsupportedOperationException("getBrokenBuilds() should not be called in non-resilient model building");
+            }
+
+            @Override
+            public void settingsScriptFailed(SettingsInternal settingsScript) {
+                // No-op in non-resilient model building
+            }
+
+            @Override
+            public Set<SettingsInternal> getBrokenSettings() {
+                throw new UnsupportedOperationException("getBrokenSettings() should not be called in non-resilient model building");
+            }
         }
     }
 }

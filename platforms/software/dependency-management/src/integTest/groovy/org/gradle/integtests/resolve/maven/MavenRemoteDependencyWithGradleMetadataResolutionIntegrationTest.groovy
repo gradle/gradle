@@ -28,15 +28,18 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESS
 import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration("runtime")
+
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
         server.start()
 
         settingsFile << "rootProject.name = 'test'"
-
+        buildFile << """
+            plugins {
+                id("jvm-ecosystem")
+            }
+        """
     }
 
     def "downloads and caches the module metadata when present"() {
@@ -44,16 +47,22 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.moduleMetadata.expectGet()
@@ -102,16 +111,22 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.artifact.expectGet()
@@ -668,16 +683,22 @@ task checkRelease {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGetMissing()
 
@@ -719,16 +740,21 @@ Required by:
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.moduleMetadata.expectGetBroken()
@@ -763,16 +789,22 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.moduleMetadata.expectGet()
@@ -822,16 +854,21 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenHttpRepo.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         m.pom.expectGet()
         m.moduleMetadata.expectGet()
@@ -872,4 +909,5 @@ Searched in the following locations:
 Searched in the following locations:
     ${m.artifact(classifier: 'extra').uri}""")
     }
+
 }

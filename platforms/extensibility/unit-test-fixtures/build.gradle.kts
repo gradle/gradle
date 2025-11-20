@@ -34,6 +34,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
@@ -57,6 +58,7 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.testingBase))
     integTestCompileOnly(libs.jetbrainsAnnotations)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)

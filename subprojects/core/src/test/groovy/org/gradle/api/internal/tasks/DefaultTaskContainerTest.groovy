@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.internal.build.BuildState
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
@@ -57,6 +58,9 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     private serviceRegistry = Mock(ServiceRegistry) {
         get(InstantiatorFactory) >> instantiatorFactory
     }
+    private buildState = Stub(BuildState) {
+        getIdentityPath() >> Path.ROOT
+    }
     private project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
             Path.path(":project").child(name)
@@ -70,6 +74,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         getOwner() >> Mock(ProjectState) {
             getDepth() >> 0
             getProjectPath() >> Path.path(":project")
+            getOwner() >> buildState
         }
         getServices() >> serviceRegistry
         getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
@@ -1631,6 +1636,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         crossProjectModelAccess.findProject(_, Path.path(projectPath)) >> otherProject
 
         otherProject.owner >> otherProjectState
+        otherProjectState.owner >> buildState
         1 * otherProjectState.ensureTasksDiscovered()
         otherProject.tasks >> otherTaskContainer
 

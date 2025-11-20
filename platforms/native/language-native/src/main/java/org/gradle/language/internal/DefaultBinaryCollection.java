@@ -194,6 +194,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         }
 
         // Mix in some Groovy DSL support. Should decorate instead
+        @SuppressWarnings("unused") // public API
         public void configure(Closure<?> closure) {
             configure(ConfigureUtil.configureUsing(closure));
         }

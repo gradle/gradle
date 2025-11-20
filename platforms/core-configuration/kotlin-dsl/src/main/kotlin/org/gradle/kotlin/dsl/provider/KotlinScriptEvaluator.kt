@@ -39,7 +39,7 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.InputVisitor
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
@@ -423,8 +423,8 @@ class StandardKotlinScriptEvaluator(
             return super.shouldDisableCaching(detectedOverlappingOutputs)
         }
 
-        override fun visitIdentityInputs(visitor: UnitOfWork.InputVisitor) {
-            super.visitIdentityInputs(visitor)
+        override fun visitImmutableInputs(visitor: InputVisitor) {
+            super.visitImmutableInputs(visitor)
             visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
             visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
             visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }

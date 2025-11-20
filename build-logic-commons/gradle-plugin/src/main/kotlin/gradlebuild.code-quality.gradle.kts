@@ -53,12 +53,14 @@ val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
         "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
 
         // NEVER
-        "MissingSummary", // We have another mechanism to check Javadocs on public API
+        "AssignmentExpression", // Not using it is more a matter of taste.
+        "EffectivelyPrivate", // It is still useful to distinguish between public interface and implementation details of inner classes even though it isn't enforced.
         "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
-        "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
-        "JavaUtilDate", // We are fine with using Date
-        "StringSplitter", // We are fine with using String.split() as is
         "InlineMeSuggester", // Only suppression seems to actually "fix" this, so make it global
+        "JavaUtilDate", // We are fine with using Date
+        "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
+        "MissingSummary", // We have another mechanism to check Javadocs on public API
+        "StringSplitter", // We are fine with using String.split() as is
     )
 
     nullawayEnabled.convention(false)
@@ -121,9 +123,8 @@ project.plugins.withType<JavaBasePlugin> {
         }
 
         // don't forget to update the version in distributions-dependencies/build.gradle.kts
-        // 2.31.0 is the latest version that works with JDK 11
-        addErrorProneDependency("com.google.errorprone:error_prone_core:2.31.0")
-        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.7")
+        addErrorProneDependency("com.google.errorprone:error_prone_core:2.42.0")
+        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.10")
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {

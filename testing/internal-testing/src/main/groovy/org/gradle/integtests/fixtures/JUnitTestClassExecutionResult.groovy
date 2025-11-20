@@ -66,18 +66,35 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return assertTestsExecuted(testCases.collect { it.displayName } as String[])
     }
 
-    TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
+    TestClassExecutionResult assertTestCount(int tests, int failures) {
         assert testClassNode.@tests == tests
         assert testClassNode.@failures == failures
-        assert testClassNode.@errors == errors
+        assert testClassNode.@errors == 0
         this
     }
 
-    TestClassExecutionResult assertTestCount(int tests, int skipped, int failures, int errors) {
+    TestClassExecutionResult assertTestCount(int tests, int skipped, int failures) {
         assert testClassNode.@tests == tests
         assert testClassNode.@skipped == skipped
         assert testClassNode.@failures == failures
-        assert testClassNode.@errors == errors
+        assert testClassNode.@errors == 0
+        this
+    }
+
+    @Override
+    TestClassExecutionResult assertMetadata(Map<String, String> props) {
+        def properties = testClassNode.properties
+        def found = properties.children().collectEntries { [it.@name.text(), it.@value.text()] }
+        assert found == props
+        this
+    }
+
+    @Override
+    TestClassExecutionResult assertTestMetadata(String name, Map<String, String> props) {
+        def test = testCase(name)
+        def properties = test.properties
+        def found = properties.children().collectEntries { [it.@name.text(), it.@value.text()] }
+        assert found == props
         this
     }
 

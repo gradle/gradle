@@ -48,7 +48,9 @@ public abstract class ClassLoaderUtils {
     }
 
     public static void tryClose(@Nullable ClassLoader classLoader) {
-        CompositeStoppable.stoppable(classLoader).stop();
+        if (classLoader != null) {
+            CompositeStoppable.stoppable(classLoader).stop();
+        }
     }
 
     // Used by the Gradle Play Framework Plugin. See:

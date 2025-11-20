@@ -4,12 +4,6 @@ plugins {
 
 description = "A set of general-purpose resource abstractions"
 
-errorprone {
-    disabledChecks.addAll(
-        "UndefinedEquals", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.buildOperations)

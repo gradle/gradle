@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan
 
+import spock.lang.Issue
 import spock.lang.Specification
 
 class LazySortedReferenceHashSetTest extends Specification {
@@ -89,5 +90,63 @@ class LazySortedReferenceHashSetTest extends Specification {
 
         then:
         thrown(ConcurrentModificationException)
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/35522')
+    def "can remove first element via iterator when backing array is exactly full"() {
+        given:
+        // Fill up to initial capacity so that array.length == size
+        def initialSet = (1..NodeSets.LazySortedReferenceHashSet.INITIAL_CAPACITY).collect { it.toString() }
+        set.addAll(initialSet)
+
+        when:
+        def it = set.iterator()
+        assert it.next() == "1"
+        it.remove()
+
+        then:
+        noExceptionThrown()
+
+        and:
+        set.toList() == initialSet.drop(1)
+    }
+
+    def "iterator.remove before next throws IllegalStateException"() {
+        given:
+        set.addAll(["a", "b"]) // ensure we use the non-empty iterator from our implementation
+        def it = set.iterator()
+
+        when:
+        it.remove()
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "iterator.remove called twice without next throws IllegalStateException"() {
+        given:
+        set.addAll(["1", "2", "3"])
+        def it = set.iterator()
+        assert it.next() == "1"
+        it.remove()
+
+        when:
+        it.remove()
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "next past end throws NoSuchElementException"() {
+        given:
+        set.addAll(["x"])
+        def it = set.iterator()
+        assert it.next() == "x"
+
+        when:
+        it.next()
+
+        then:
+        thrown(NoSuchElementException)
     }
 }

@@ -41,6 +41,7 @@ import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.concurrent.Stoppable;
@@ -91,14 +92,19 @@ import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * Writes files describing the build operation stream for a build.
+ * <p>
  * Can be enabled for any build with {@code -Dorg.gradle.internal.operations.trace=«path-base»}.
+ * The output file {@code «path-base»-log.txt} is in the JSON Lines format.
+ * It contains a chronological log of events, each line is a JSON object.
  * <p>
- * Imposes no overhead when not enabled.
- * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
+ * The «path-base» param is optional.
+ * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of {@code "operations"} will be used.
+ * The output file will then be {@code "operations-log.txt"}.
+ * When disabled, the option imposes no overhead.
+ * Also used as the basis for asserting on the event stream in integration tests, via {@code BuildOperationFixture}.
  * <p>
- * Three files are created:
+ * Additional files can be generated with the {@code -Dorg.gradle.internal.operations.trace.tree=true} option.
  * <ul>
- * <li>«path-base»-log.txt: a chronological log of events, each line is a JSON object</li>
  * <li>«path-base»-tree.json: a JSON tree of the event structure</li>
  * <li>«path-base»-tree.txt: A simplified tree representation showing basic information</li>
  * </ul>
@@ -106,12 +112,9 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * Generally, the simplified tree view is best for browsing.
  * The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
  * <p>
- * The «path-base» param is optional.
- * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of "operations" will be used.
+ * The generation of trees can be very memory hungry, so you might need to increase heap memory of the build process
+ * to ensure the build completes successfully.
  * <p>
- * The generation of trees can be very memory hungry and thus can be disabled with
- * {@code -Dorg.gradle.internal.operations.trace.tree=false}.
- * </p>
  * The "trace" produced here is different to the trace produced by Gradle Profiler.
  * There, the focus is analyzing the performance profile.
  * Here, the focus is debugging/developing the information structure of build operations.
@@ -123,7 +126,7 @@ public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
-    private static final StringInternalOption TRACE_OPTION = new StringInternalOption(SYSPROP, null);
+    private static final InternalOption<@Nullable String> TRACE_OPTION = StringInternalOption.of(SYSPROP);
 
     /**
      * A list of either details or result class names, delimited by {@link #FILTER_SEPARATOR},
@@ -136,15 +139,15 @@ public class BuildOperationTrace implements Stoppable {
      */
     public static final String FILTER_SYSPROP = SYSPROP + ".filter";
 
-    private static final StringInternalOption FILTER_OPTION = new StringInternalOption(FILTER_SYSPROP, null);
+    private static final InternalOption<@Nullable String> FILTER_OPTION = StringInternalOption.of(FILTER_SYSPROP);
 
     /**
-     * A flag controlling whether tree generation is enabled ({@code true} by default).
+     * A flag controlling whether tree generation is enabled ({@code false} by default).
      * Only application when {@link #FILTER_SYSPROP} is not set.
      */
     public static final String TREE_SYSPROP = SYSPROP + ".tree";
 
-    private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, true);
+    private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, false);
 
     /**
      * Delimiter for entries in {@link #FILTER_SYSPROP}.
@@ -159,12 +162,12 @@ public class BuildOperationTrace implements Stoppable {
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
+    public BuildOperationTrace(File userActionRootDir, StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
         InternalOptions internalOptions = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
-        String basePath = internalOptions.getOption(TRACE_OPTION).get();
-        if (basePath == null || basePath.equals(Boolean.FALSE.toString())) {
+        Path basePath = resolveBasePath(internalOptions, userActionRootDir);
+        if (basePath == null) {
             this.outputTree = false;
             this.listener = null;
             this.writer = null;
@@ -182,6 +185,17 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         buildOperationListenerManager.addListener(listener);
+    }
+
+    @Nullable
+    private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
+        String basePath = internalOptions.getOption(TRACE_OPTION).get();
+        if (basePath == null || basePath.equals("false")) {
+            return null;
+        }
+
+        Path base = userActionRootDir.toPath();
+        return basePath.isEmpty() ? base.resolve("operations") : base.resolve(basePath);
     }
 
     @Nullable
@@ -206,14 +220,14 @@ public class BuildOperationTrace implements Stoppable {
 
     private static class DefaultTraceWriter implements TraceWriter {
 
-        private final String basePath;
+        private final Path basePath;
         private final ObjectMapper objectMapper;
         private final OutputStream logOutputStream;
 
-        public DefaultTraceWriter(String basePath) {
+        public DefaultTraceWriter(Path basePath) {
             this.basePath = basePath;
             this.objectMapper = createObjectMapper();
-            this.logOutputStream = openStream(logFile(basePath));
+            this.logOutputStream = openStream(logFile(basePath).toFile());
         }
 
         private static ObjectMapper createObjectMapper() {
@@ -262,6 +276,7 @@ public class BuildOperationTrace implements Stoppable {
         @Override
         public void complete(boolean writeTree) {
             try {
+                System.out.println("Build operation trace: " + logFile(basePath));
                 if (writeTree) {
                     doWriteTreeJson();
                 }
@@ -281,16 +296,16 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
-            File outputFile = file(basePath, "-tree.json");
+            File outputFile = withSuffix(basePath, "-tree.json").toFile();
 
-            System.out.println("Writing build operation tree to " + outputFile.getAbsoluteFile().toPath());
+            System.out.println("Build operation trace: writing tree to " + outputFile.getAbsoluteFile().toPath());
             objectMapper.writerWithDefaultPrettyPrinter()
                 .writeValue(outputFile, BuildOperationTree.serialize(roots));
-            System.out.println("Finished writing build operation tree");
+            System.out.println("Build operation trace: finished writing tree");
         }
 
         private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
-            Path outputPath = Paths.get(basePath + "-tree.txt");
+            Path outputPath = withSuffix(basePath, "-tree.txt");
             try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
                 doWriteSummaryTree(roots, writer);
             }
@@ -368,8 +383,8 @@ public class BuildOperationTrace implements Stoppable {
 
     }
 
-    public static BuildOperationTree read(String basePath) {
-        File logFile = logFile(basePath);
+    public static BuildOperationTree readTree(String basePath) {
+        Path logFile = logFile(Paths.get(basePath));
         List<BuildOperationRecord> roots = readLogToTreeRoots(logFile, true);
         return new BuildOperationTree(roots);
     }
@@ -383,12 +398,12 @@ public class BuildOperationTrace implements Stoppable {
      * @param basePath The same path used for {@link #SYSPROP} when the trace was recorded.
      */
     public static BuildOperationTree readPartialTree(String basePath) {
-        File logFile = logFile(basePath);
+        Path logFile = logFile(Paths.get(basePath));
         List<BuildOperationRecord> partialTree = readLogToTreeRoots(logFile, false);
         return new BuildOperationTree(partialTree);
     }
 
-    private static List<BuildOperationRecord> readLogToTreeRoots(final File logFile, boolean completeTree) {
+    private static List<BuildOperationRecord> readLogToTreeRoots(Path logFile, boolean completeTree) {
         try {
             final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -398,7 +413,7 @@ public class BuildOperationTrace implements Stoppable {
 
             final List<SerializedOperationProgress> danglingProgress = new ArrayList<>();
 
-            try (Stream<String> lines = Files.lines(logFile.toPath())) {
+            try (Stream<String> lines = Files.lines(logFile)) {
                 lines.forEach(line -> {
                     Map<String, ?> map;
                     try {
@@ -493,12 +508,12 @@ public class BuildOperationTrace implements Stoppable {
 
     }
 
-    private static File logFile(String basePath) {
-        return file(basePath, "-log.txt");
+    private static Path logFile(Path basePath) {
+        return withSuffix(basePath, "-log.txt");
     }
 
-    private static File file(@Nullable String base, String suffix) {
-        return new File((base == null || base.trim().isEmpty() ? "operations" : base) + suffix).getAbsoluteFile();
+    private static Path withSuffix(Path base, String suffix) {
+        return base.resolveSibling(base.getFileName() + suffix);
     }
 
     static class PendingOperation {
@@ -694,7 +709,7 @@ public class BuildOperationTrace implements Stoppable {
      * silently ignored.
      * <p>
      * The use case for this executor strongly overlaps with that of
-     * {@link org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
+     * {@code org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
      * We should consider merging these implementations.
      */
     private static class AsyncExecutor implements Closeable {

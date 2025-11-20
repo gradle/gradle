@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -62,5 +63,5 @@ public abstract class IntegerBuildOption<T> extends AbstractBuildOption<T, Comma
         }
     }
 
-    public abstract void applyTo(int value, T settings, Origin origin);
+    public abstract void applyTo(int value, T settings, @Nullable Origin origin);
 }

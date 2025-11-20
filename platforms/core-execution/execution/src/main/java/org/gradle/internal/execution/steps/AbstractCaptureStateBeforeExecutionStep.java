@@ -19,7 +19,9 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionInputState;
@@ -35,7 +37,6 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +67,9 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         } else {
             beforeExecutionState = null;
             // We still need to visit the inputs to ensure that the dependencies are validated
-            work.visitRegularInputs(new UnitOfWork.InputVisitor() {
+            work.visitMutableInputs(new InputVisitor() {
                 @Override
-                public void visitInputFileProperty(String propertyName, InputBehavior behavior, UnitOfWork.InputFileValueSupplier value) {
+                public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                     ((FileCollectionInternal) value.getFiles()).visitStructure(work.getInputDependencyChecker(context.getValidationContext()));
                 }
             });
@@ -76,8 +77,9 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState));
     }
 
-    @NonNull
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
+        // TODO Remove once IntelliJ stops complaining about possible NPE
+        //noinspection DataFlowIssue
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = captureOutputSnapshots(work, context);
 
@@ -123,7 +125,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
             previousInputFileFingerprints,
             context.getInputProperties(),
             context.getInputFileProperties(),
-            work::visitRegularInputs,
+            work::visitMutableInputs,
             work.getInputDependencyChecker(context.getValidationContext())
         );
 
@@ -137,8 +139,9 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         );
     }
 
-    private static class ImplementationsBuilder implements UnitOfWork.ImplementationVisitor {
+    private static class ImplementationsBuilder implements ImplementationVisitor {
         private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+        @Nullable
         private ImplementationSnapshot implementation;
         private final ImmutableList.Builder<ImplementationSnapshot> additionalImplementations = ImmutableList.builder();
 

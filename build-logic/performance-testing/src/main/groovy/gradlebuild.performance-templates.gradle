@@ -430,15 +430,6 @@ performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
     }
 }
 
-performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
-    remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
-    // Pinned from main branch
-    ref = '3f5f79b06da263670c77a734ec2db6220dcf311c'
-    doLast {
-        addGoogleServicesJson(outputDirectory)
-    }
-}
-
 performanceTest.registerAndroidTestProject("uberMobileApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/android-build-eval.git'
     subdirectory = 'mobile_app1'
@@ -471,84 +462,6 @@ private void setMaxHeap(File projectDirectory, String maxHeap) {
 private void setParallel(File projectDirectory, boolean parallel) {
     new File(projectDirectory, "gradle.properties") << "\norg.gradle.parallel=${parallel}\n"
 
-}
-
-private void addGoogleServicesJson(File outputDirectory) {
-    new File(outputDirectory, 'santa-tracker/google-services.json').text = """
-{
-  "project_info": {
-    "project_number": "012345678912",
-    "firebase_url": "https://example.com",
-    "project_id": "example",
-    "storage_bucket": "example.example.com"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:012345678912:android:0123456789abcdef",
-        "android_client_info": {
-          "package_name": "com.google.android.apps.santatracker.debug"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "foo.example.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "012345678901234567890123456789012345678"
-        }
-      ],
-      "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
-        },
-        "ads_service": {
-          "status": 2
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:012345678912:android:0123456789abcdef",
-        "android_client_info": {
-          "package_name": "com.google.android.apps.santatracker.debug"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "foo.example.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "012345678901234567890123456789012345678"
-        }
-      ],
-      "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
-        },
-        "ads_service": {
-          "status": 2
-        }
-      }
-    }
-  ],
-  "configuration_version": "1"
-}
-"""
 }
 
 performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {

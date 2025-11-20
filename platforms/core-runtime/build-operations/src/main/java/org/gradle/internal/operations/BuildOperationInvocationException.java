@@ -16,8 +16,10 @@
 
 package org.gradle.internal.operations;
 
+import org.jspecify.annotations.Nullable;
+
 public class BuildOperationInvocationException extends RuntimeException {
-    public BuildOperationInvocationException(String message, Throwable cause) {
+    public BuildOperationInvocationException(@Nullable String message, @Nullable Throwable cause) {
         super(message, cause);
     }
 }
