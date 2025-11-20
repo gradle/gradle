@@ -642,7 +642,7 @@ by adding a `module-info.java` file to the corresponding source set (e.g. `integ
 
 You can find a full example that includes blackbox integration tests link:../samples/sample_java_modules_multi_project_with_integration_tests.html[here].
 
-NOTE: In Eclipse, compiling multiple modules in one project is https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667[currently not support].
+NOTE: In Eclipse, compiling multiple modules in one project is currently not supported.
 Therefore the integration test (blackbox) setup described here only works in Eclipse if the tests are moved to a separate subproject.
 
 [[sec:java_testing_modular_patching]]
