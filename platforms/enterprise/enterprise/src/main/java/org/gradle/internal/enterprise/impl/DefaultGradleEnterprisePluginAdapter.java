@@ -32,6 +32,8 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationListenerR
 import org.gradle.operations.problems.Failure;
 import org.gradle.operations.problems.Problem;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -55,6 +57,8 @@ import java.util.stream.Collectors;
  * Instead, it would re-use the newly registered services in the new build that causes the loss of pluginServiceFactory.
  */
 public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePluginAdapter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradleEnterprisePluginAdapter.class);
 
     private final GradleEnterprisePluginServiceFactory pluginServiceFactory;
     private final GradleEnterprisePluginConfig config;
@@ -115,6 +119,11 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private void createPluginService() {
         String injectedDevelocityUrl = config.getDevelocityUrl();
         if (injectedDevelocityUrl != null) {
+            String existingScanUrl = System.getProperty("com.gradle.scan.server");
+            if (existingScanUrl != null && !Objects.equals(existingScanUrl, injectedDevelocityUrl)) {
+                // TODO Problem?
+                LOGGER.warn("Overriding existing Gradle Enterprise URL system property '{}' with injected Develocity URL '{}'", existingScanUrl, injectedDevelocityUrl);
+            }
             // We might want to stop setting this system property if the Develocity plugin is new enough to read the URL from the configuration directly.
             System.setProperty("com.gradle.scan.server", injectedDevelocityUrl);
         }

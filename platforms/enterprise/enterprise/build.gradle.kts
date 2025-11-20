@@ -36,6 +36,7 @@ dependencies {
     implementation(projects.testingBase)
 
     implementation(libs.guava)
+    implementation(libs.slf4jApi)
 
     compileOnly(libs.groovy) {
         because("some used APIs (e.g. FileTree.visit) provide methods taking Groovy closures which causes compile errors")
