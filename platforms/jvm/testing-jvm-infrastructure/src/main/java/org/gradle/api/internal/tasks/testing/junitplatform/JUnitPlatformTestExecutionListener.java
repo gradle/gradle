@@ -306,7 +306,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         Optional<MethodSource> methodSource = getMethodSource(node);
         if (methodSource.isPresent()) {
             TestDescriptorInternal parentDescriptor = findTestParentDescriptor(node);
-            String className = createUnknownClassName(node, parentDescriptor);
+            String className = determineClassName(node, parentDescriptor);
             return new DefaultParameterizedTestDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), className, displayName, candidateId);
         } else {
             return new DefaultNestedTestSuiteDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), displayName, candidateId);
@@ -328,20 +328,20 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private TestDescriptorInternal createTestDescriptor(TestIdentifier test, String name, String displayName) {
         TestDescriptorInternal parentDescriptor = findTestParentDescriptor(test);
-        String className = createUnknownClassName(test, parentDescriptor);
-        String classDisplayName = createUnknownClassDisplayName(test, parentDescriptor);
+        String className = determineClassName(test, parentDescriptor);
+        String classDisplayName = determineClassDisplayName(test, parentDescriptor);
         return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
     }
 
-    private String createUnknownClassName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
-        return createUnknownName(node, parentDescriptor, TestDescriptorInternal::getName);
+    private String determineClassName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
+        return determineName(node, parentDescriptor, TestDescriptorInternal::getName);
     }
 
-    private String createUnknownClassDisplayName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
-        return createUnknownName(node, parentDescriptor, TestDescriptorInternal::getClassDisplayName);
+    private String determineClassDisplayName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
+        return determineName(node, parentDescriptor, TestDescriptorInternal::getClassDisplayName);
     }
 
-    private String createUnknownName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
+    private String determineName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
         TestSource source = node.getSource().orElse(null);
         if (source instanceof ClassSource || source instanceof MethodSource) {
             if (parentDescriptor == null) {
