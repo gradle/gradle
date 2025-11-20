@@ -111,7 +111,7 @@ class DefaultBuildTreeModelCreatorTest extends Specification {
 
             @Override
             Object fromBuildModel(BuildTreeModelController controller) {
-                return controller.getModel(target, modelName, parameter)
+                return controller.getModel(target, modelName, parameter, false)
             }
         })
     }
