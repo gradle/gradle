@@ -36,9 +36,9 @@ enum class InvocationScenarioParameter(
     }
 
     class Option(
-        systemProperty: String,
+        propertyName: String,
         private val default: InvocationScenarioParameter
-    ) : InternalOption<InvocationScenarioParameter>(systemProperty) {
+    ) : InternalOption<InvocationScenarioParameter>(propertyName) {
 
         override fun getDefaultValue(): InvocationScenarioParameter = default
 

@@ -22,12 +22,12 @@ package org.gradle.internal.buildoption;
 public class InternalFlag extends InternalOption<Boolean> {
     private final boolean defaultValue;
 
-    public InternalFlag(String systemPropertyName) {
-        this(systemPropertyName, false);
+    public InternalFlag(String propertyName) {
+        this(propertyName, false);
     }
 
-    public InternalFlag(String systemPropertyName, boolean defaultValue) {
-        super(systemPropertyName);
+    public InternalFlag(String propertyName, boolean defaultValue) {
+        super(propertyName);
         this.defaultValue = defaultValue;
     }
 
