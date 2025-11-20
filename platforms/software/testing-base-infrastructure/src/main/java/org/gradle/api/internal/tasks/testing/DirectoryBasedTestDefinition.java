@@ -52,7 +52,10 @@ public final class DirectoryBasedTestDefinition implements TestDefinition {
 
     @Override
     public boolean matches(TestSelectionMatcher matcher) {
-        return matcher.matchesPath(dir.toPath());
+        // The only place this method is called is from PatternMatchTestDefinitionProcessor,
+        // where we want to let all candidate test definition dirs through to the workers,
+        // so we'll just let everything through here.
+        return true;
     }
 
     @Override

@@ -31,13 +31,13 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 @NullMarked
-public final class FileNameFilter implements PostDiscoveryFilter {
+public final class FilePathFilter implements PostDiscoveryFilter {
     private final TestSelectionMatcher matcher;
-    private final File baseDefinitionsDir;
+    private final File baseFilterDir;
 
-    public FileNameFilter(TestSelectionMatcher matcher, File baseDefinitionsDir) {
+    public FilePathFilter(TestSelectionMatcher matcher, File baseFilterDir) {
         this.matcher = matcher;
-        this.baseDefinitionsDir = baseDefinitionsDir;
+        this.baseFilterDir = baseFilterDir;
     }
 
     @Override
@@ -60,7 +60,7 @@ public final class FileNameFilter implements PostDiscoveryFilter {
     }
 
     private boolean fileMatch(File file) {
-        Path relativePath = baseDefinitionsDir.toPath().relativize(file.toPath());
+        Path relativePath = baseFilterDir.toPath().relativize(file.toPath());
         return matcher.matchesPath(relativePath);
     }
 }

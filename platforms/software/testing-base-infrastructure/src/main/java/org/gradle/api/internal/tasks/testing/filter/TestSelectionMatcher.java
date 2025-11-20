@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,8 +50,6 @@ public class TestSelectionMatcher {
     private final List<FileTestPattern> fileBuildScriptExcludePatterns;
     private final List<FileTestPattern> fileCommandLineIncludePatterns;
 
-    private final File projectDir;
-
     public TestSelectionMatcher(TestFilterSpec filter) {
         buildScriptIncludePatterns = preparePatternList(filter.getIncludedTests());
         buildScriptExcludePatterns = preparePatternList(filter.getExcludedTests());
@@ -61,8 +58,6 @@ public class TestSelectionMatcher {
         fileBuildScriptIncludePatterns = prepareFilePatternList(filter.getIncludedTests());
         fileBuildScriptExcludePatterns = prepareFilePatternList(filter.getExcludedTests());
         fileCommandLineIncludePatterns = prepareFilePatternList(filter.getIncludedTestsCommandLine());
-
-        this.projectDir = filter.getProjectDir();
     }
 
     private List<ClassTestPattern> preparePatternList(Collection<String> includedTests) {
@@ -99,8 +94,7 @@ public class TestSelectionMatcher {
 
     private boolean matchesPattern(List<FileTestPattern> patterns, Path path) {
         for (FileTestPattern pattern : patterns) {
-            Path relativePath = projectDir.toPath().relativize(path);
-            if (pattern.matches(relativePath.toString())) {
+            if (pattern.matches(path.toString())) {
                 return true;
             }
         }
@@ -191,11 +185,27 @@ public class TestSelectionMatcher {
         private final Pattern pattern;
 
         public FileTestPattern(String path) {
-            pattern = Pattern.compile(Pattern.quote(path));
+            pattern = preparePattern(path);
         }
 
         private boolean matches(String input) {
             return pattern.matcher(input).matches();
+        }
+
+        private static Pattern preparePattern(String input) {
+            StringBuilder pattern = new StringBuilder();
+            String[] split = StringUtils.splitPreserveAllTokens(input, '*');
+            for (String s : split) {
+                if (s.isEmpty()) {
+                    pattern.append(".*"); //replace wildcard '*' with '.*'
+                } else {
+                    if (pattern.length() > 0) {
+                        pattern.append(".*"); //replace wildcard '*' with '.*'
+                    }
+                    pattern.append(Pattern.quote(s)); //quote everything else
+                }
+            }
+            return Pattern.compile(pattern.toString());
         }
     }
 

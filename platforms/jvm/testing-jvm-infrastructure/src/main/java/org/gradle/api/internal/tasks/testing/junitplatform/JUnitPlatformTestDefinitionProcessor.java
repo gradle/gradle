@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.junitplatform.filters.ClassMethodNameFilter;
 import org.gradle.api.internal.tasks.testing.junitplatform.filters.DelegatingByTypeFilter;
-import org.gradle.api.internal.tasks.testing.junitplatform.filters.FileNameFilter;
+import org.gradle.api.internal.tasks.testing.junitplatform.filters.FilePathFilter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -110,7 +110,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
     @Override
     public void stop() {
         if (startedProcessing) {
-            Objects.requireNonNull(testClassExecutor).processAllTestClasses();
+            Objects.requireNonNull(testClassExecutor).processAllTestDefinitions();
             Objects.requireNonNull(launcherSession).close();
             super.stop();
         }
@@ -160,7 +160,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionsDir()));
         }
 
-        private void processAllTestClasses() {
+        private void processAllTestDefinitions() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
             Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
@@ -216,7 +216,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
                 TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
 
                 ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
-                FileNameFilter fileFilter = new FileNameFilter(matcher, spec.getBaseDefinitionsDir());
+                FilePathFilter fileFilter = new FilePathFilter(matcher, spec.getBaseDefinitionsDir());
 
                 DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter();
                 delegatingFilter.addDelegate(ClassSource.class, classFilter);

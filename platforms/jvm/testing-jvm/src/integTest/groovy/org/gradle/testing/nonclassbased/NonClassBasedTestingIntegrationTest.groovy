@@ -247,8 +247,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo] [SUCCESS] [1] [null]")
         containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar]")
         containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test subSomeOtherTestSpec.rbt : other(UnknownClass)] [subSomeOtherTestSpec.rbt : other]")
-        containsLine(result.getOutput(), "FINISH [Test subSomeOtherTestSpec.rbt : other(UnknownClass)] [subSomeOtherTestSpec.rbt : other] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other]")
+        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other] [SUCCESS] [1] [null]")
     }
 
     def "can listen for non-class-based tests using dry-run and tests are reported as skipped"() {
@@ -297,8 +297,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo(UnknownClass)] [SomeTestSpec.rbt : foo] [SKIPPED] [1] [null]")
         containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar]")
         containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar(UnknownClass)] [SomeTestSpec.rbt : bar] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test subSomeOtherTestSpec.rbt : other(UnknownClass)] [subSomeOtherTestSpec.rbt : other]")
-        containsLine(result.getOutput(), "FINISH [Test subSomeOtherTestSpec.rbt : other(UnknownClass)] [subSomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other]")
+        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other(UnknownClass)] [SomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
     }
 
     def "resource-based test engine can exclude test definitions"() {
