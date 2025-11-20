@@ -52,11 +52,12 @@ All found scripts run; scripts in the same directory run alphabetically.
 [[sec:writing_an_init_script]]
 == Writing an init script
 
-Like any Gradle script, an init script implements link:{groovyDslPath}/org.gradle.api.Script.html[`Script`] and talks to the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[`Gradle`] instance.
+Like any Gradle script, an init script implements link:{groovyDslPath}/org.gradle.api.Script.html[`Script`] and delegates to the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[`Gradle`] instance.
 
 NOTE: Properties from `gradle.properties` are available on `Settings`/`Project`, *not* on `Gradle`.
 
-Useful `Gradle` callbacks include: `settingsEvaluated {}`, `projectsLoaded {}`, `beforeProject {}`, `afterProject {}`. You can see more in the <<build_lifecycle#lifecycle_api,Gradle LifeCycle API>>.
+Useful `Gradle` callbacks include: `settingsEvaluated {}`, `projectsLoaded {}`, `beforeProject {}`, `afterProject {}`.
+You can see more in the <<build_lifecycle#lifecycle_api,Gradle LifeCycle API>>.
 
 [[sec:configuring_projects_from_an_init_script]]
 === Configuring projects from an init script

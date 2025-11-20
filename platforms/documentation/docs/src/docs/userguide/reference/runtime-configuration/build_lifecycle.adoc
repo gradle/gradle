@@ -176,14 +176,10 @@ buildStarted -> DEPRECATED in Gradle 6
 *Where*: init script. +
 *When*: By the time `settings.gradle(.kts)` is executing, `beforeSettings` has already fired.
 
-[source,kotlin]
-----
-gradle.beforeSettings { settings ->
-    // Safe to read/adjust things on Settings before it’s evaluated
-    settings.gradle.userHomeDir.mkdirs() // example side-effect
-    logger.lifecycle("beforeSettings: using settings in ${settings.settingsDir}")
-}
-----
+====
+include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=beforesettings]"]
+include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=beforesettings]"]
+====
 
 [[settings_evaluated]]
 ==== `settingsEvaluated`
@@ -191,12 +187,10 @@ gradle.beforeSettings { settings ->
 *Where*: `settings.gradle(.kts)`. +
 *When*: After the settings file finishes evaluating.
 
-[source,kotlin]
-----
-settingsEvaluated {
-    println("Settings evaluated. Root project: ${rootProject.name}")
-}
-----
+====
+include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=settingsevaluated]"]
+include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=settingsevaluated]"]
+====
 
 [[projects_loaded]]
 ==== `projectsLoaded`
@@ -204,17 +198,10 @@ settingsEvaluated {
 *Where*: `settings.gradle(.kts)`. +
 *When*: All projects have been discovered but not yet configured.
 
-[source,kotlin]
-----
-projectsLoaded {
-    gradle.rootProject {
-        subprojects {
-            // equivalent to using "allprojects {}"
-            apply(plugin = "java")
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=projectsloaded]"]
+include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=projectsloaded]"]
+====
 
 [[before_project]]
 ==== `beforeProject`
@@ -222,15 +209,10 @@ projectsLoaded {
 *Where*: `build.gradle(.kts)` or anywhere you have access to the Gradle instance. +
 *When*: For each project as its build script is evaluated.
 
-[source,kotlin]
-----
-gradle.lifecycle.beforeProject {
-    apply(plugin = "base")
-    repositories {
-        mavenCentral()
-    }
-}
-----
+====
+include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=beforeproject]"]
+include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=beforeproject]"]
+====
 
 [[after_project]]
 ==== `afterProject`
@@ -238,14 +220,10 @@ gradle.lifecycle.beforeProject {
 *Where*: `build.gradle(.kts)` or anywhere you have access to the Gradle instance. +
 *When*: For each project as its build script is evaluated.
 
-[source,kotlin]
-----
-gradle.afterProject { project ->
-    if (!project.plugins.hasPlugin("java")) {
-        println("Project ${project.path} did not apply the Java plugin")
-    }
-}
-----
+====
+include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=afterproject]"]
+include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=afterproject]"]
+====
 
 [[projects_evaluated]]
 ==== `projectsEvaluated`
@@ -253,17 +231,10 @@ gradle.afterProject { project ->
 *Where*: `build.gradle(.kts)` or anywhere you have access to the Gradle instance. +
 *When*: After all projects have been evaluated (i.e., all `build.gradle(.kts)` files are read and configuration is complete), but before task graph is finalized and before execution starts.
 
-[source,kotlin]
-----
-gradle.projectsEvaluated {
-    subprojects {
-        tasks.matching { it.name == "test" }.configureEach {
-            // Will only run when 'test' is realized
-            dependsOn(rootProject.tasks.named("prepareTestEnv"))
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=projectsevaluated]"]
+include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=projectsevaluated]"]
+====
 
 === BuildListener API
 
