@@ -28,6 +28,10 @@ import org.junit.platform.launcher.PostDiscoveryFilter;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
+ * class or method based tests based on their fully qualified names.
+ */
 @NullMarked
 public final class ClassMethodNameFilter implements PostDiscoveryFilter {
     private final TestSelectionMatcher matcher;
