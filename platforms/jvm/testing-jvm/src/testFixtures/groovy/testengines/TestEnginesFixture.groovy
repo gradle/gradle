@@ -84,6 +84,7 @@ trait TestEnginesFixture {
 
     enum TestEngines {
         BASIC_RESOURCE_BASED("rbt-engine"),
+        BASIC_RESOURCE_BASED_PARALLEL("parallel-rbt-engine"),
         MULTI_FILE_RESOURCE_BASED("multi-file-rbt-engine"),
         RESOURCE_AND_CLASS_BASED("resource-and-class-engine"),
         FAILS_DISCOVERY_RESOURCE_BASED("fails-discovery-rbt-engine"),
