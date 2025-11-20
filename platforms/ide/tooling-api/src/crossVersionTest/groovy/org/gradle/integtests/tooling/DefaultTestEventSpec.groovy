@@ -73,12 +73,12 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     }
 
     @Override
-    void metadata(String key, Object value) {
-        assert actualMetadata.remove(Collections.singletonMap(key, value)): "expected to find $key -> $value in $self"
+    void metadata(String key, String value) {
+        assert actualMetadata.remove(Collections.singletonMap(key, value)): "expected to find $key -> $value in $self. Available: $actualMetadata"
     }
 
     @Override
-    void metadata(Map<String, Object> values) {
+    void metadata(Map<String, String> values) {
         assert actualMetadata.remove(values): "expected to find $values in $self"
     }
 

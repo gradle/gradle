@@ -62,12 +62,12 @@ interface TestEventSpec {
     /**
      * Expect some metadata with a singleton key-value
      */
-    void metadata(String key, Object value);
+    void metadata(String key, String value);
 
     /**
      * Expect some metadata with multiple key-values
      */
-    void metadata(Map<String, Object> values);
+    void metadata(Map<String, String> values);
 
     /**
      * Expect a file attachment
