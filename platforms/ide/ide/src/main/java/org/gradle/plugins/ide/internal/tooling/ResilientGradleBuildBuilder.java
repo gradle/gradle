@@ -36,16 +36,18 @@ import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.jspecify.annotations.NullMarked;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.GRADLE_BUILD_MODEL_NAME;
-import static org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder.addProjects;
 
 @NullMarked
 public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
@@ -83,7 +85,7 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             this.target = target;
         }
 
-        ToolingModelBuilderResultInternal create() {
+        private ToolingModelBuilderResultInternal create() {
             ensureProjectsLoaded(target);
             DefaultGradleBuild gradleBuild = convert(target);
             List<Failure> allFailures = failures.stream()
@@ -92,7 +94,7 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             return ToolingModelBuilderResultInternal.of(gradleBuild, allFailures);
         }
 
-        protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model) {
+        private void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model) {
             for (IncludedBuildInternal reference : gradle.includedBuilds()) {
                 BuildState target = reference.getTarget();
                 if (target instanceof IncludedBuildState || target instanceof RootBuildState) {
@@ -103,7 +105,7 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             }
         }
 
-        protected void addAllImportableBuilds(BuildState targetBuild, GradleInternal gradle, DefaultGradleBuild model) {
+        private void addAllImportableBuilds(BuildState targetBuild, GradleInternal gradle, DefaultGradleBuild model) {
             if (gradle.getParent() == null) {
                 List<DefaultGradleBuild> allBuilds = new ArrayList<>();
                 buildStateRegistry.visitBuilds(buildState -> {
@@ -116,7 +118,7 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             }
         }
 
-        protected void ensureProjectsLoaded(BuildState target) {
+        private void ensureProjectsLoaded(BuildState target) {
             try {
                 target.ensureProjectsLoaded();
             } catch (GradleException e) {
@@ -124,7 +126,7 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             }
         }
 
-        protected DefaultGradleBuild convert(BuildState targetBuild) {
+        private DefaultGradleBuild convert(BuildState targetBuild) {
             DefaultGradleBuild model = all.get(targetBuild);
             if (model != null) {
                 return model;
@@ -134,22 +136,8 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
 
             ensureProjectsLoaded(targetBuild);
 
-            Collection<SettingsInternal> brokenSettings = failedIncludedBuildsRegistry.getBrokenSettings();
-            if (!brokenSettings.contains(targetBuild) && !brokenSettings.isEmpty()) {
-                SettingsInternal settingsEntry = brokenSettings.iterator().next();
-                ProjectDescriptor rootProject = settingsEntry.getRootProject();
-                BasicGradleProject root = convertRoot(targetBuild, rootProject);
-                model.setRootProject(root);
-                model.addProject(root);
-            }
-            if (targetBuild instanceof IncludedBuildState) {
-                model.setBuildIdentifier(new DefaultBuildIdentifier(((IncludedBuildState) targetBuild).getBuildDefinition().getBuildRootDir()));
-            }
-
             GradleInternal gradle = targetBuild.getMutableModel();
-            if (targetBuild.isProjectsLoaded()) {
-                addProjects(targetBuild, model);
-            }
+            addProjectsAndBuildIdentifier(targetBuild, model);
             try {
                 addFailedBuilds(targetBuild, model);
                 addIncludedBuilds(gradle, model);
@@ -160,7 +148,43 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             return model;
         }
 
-        protected BasicGradleProject convertRoot(BuildState owner, ProjectDescriptor project) {
+        private void addProjectsAndBuildIdentifier(BuildState targetBuild, DefaultGradleBuild model) {
+            // If projects are loaded, just add them normally
+            if (targetBuild.isProjectsLoaded()) {
+                GradleBuildBuilder.addProjects(targetBuild, model);
+                return;
+            }
+
+            // Else try to find a root project from the settings
+            Set<BuildState> brokenBuilds = failedIncludedBuildsRegistry.getBrokenBuilds();
+            Set<SettingsInternal> brokenSettings = failedIncludedBuildsRegistry.getBrokenSettings();
+            if (!brokenBuilds.contains(targetBuild) && !brokenSettings.isEmpty()) {
+                Optional<SettingsInternal> brokenSettingsInternal = findBrokenSettingsForBuild(targetBuild, brokenSettings);
+                if (brokenSettingsInternal.isPresent()) {
+                    ProjectDescriptor rootProject = brokenSettingsInternal.get().getRootProject();
+                    BasicGradleProject root = convertRoot(targetBuild, rootProject);
+                    model.setRootProject(root);
+                    model.addProject(root);
+                }
+            }
+
+            // Build identifier is set via a root project,
+            // so if a root project is not set, try to set build identifier differently
+            if (model.getRootProject() == null
+                && targetBuild instanceof IncludedBuildState
+                && ((IncludedBuildState) targetBuild).getBuildDefinition().getBuildRootDir() != null) {
+                model.setBuildIdentifier(new DefaultBuildIdentifier(((IncludedBuildState) targetBuild).getBuildDefinition().getBuildRootDir()));
+            }
+        }
+
+        private Optional<SettingsInternal> findBrokenSettingsForBuild(BuildState buildState, Set<SettingsInternal> brokenSettings) {
+            File buildRootDir = buildState.getBuildRootDir();
+            return brokenSettings.stream()
+                .filter(settings -> settings.getRootDir().equals(buildRootDir))
+                .findFirst();
+        }
+
+        private BasicGradleProject convertRoot(BuildState owner, ProjectDescriptor project) {
             DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getPath());
             return new BasicGradleProject()
                 .setName(project.getName())
