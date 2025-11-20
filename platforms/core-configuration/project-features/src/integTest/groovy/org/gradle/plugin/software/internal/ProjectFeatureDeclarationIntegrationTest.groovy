@@ -132,7 +132,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin"() {
         PluginBuilder pluginBuilder = withKotlinProjectFeaturePlugins()
-        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatest())
+        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
         pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
         pluginBuilder.prepareToExecute()
 
