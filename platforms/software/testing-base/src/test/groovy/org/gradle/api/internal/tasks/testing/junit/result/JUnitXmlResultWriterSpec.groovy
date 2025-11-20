@@ -153,7 +153,8 @@ class JUnitXmlResultWriterSpec extends Specification {
         and:
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestFileAttachmentDataEvent(Instant.now(), classFile, "application/json")])
         result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new DefaultTestFileAttachmentDataEvent(Instant.now(), testFile, "text/plain")]))
-        _ * provider.writeAllOutput(_, _, _)
+        provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
+        provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
 
         when:
         def xml = getXml(result, options)
@@ -167,10 +168,12 @@ class JUnitXmlResultWriterSpec extends Specification {
 [[ATTACHMENT|sub/sub/test.file]]
 ]]></system-out>
   </testcase>
-  <system-out><![CDATA[
+  <system-out><![CDATA[1st output message
+2nd output message
+
 [[ATTACHMENT|sub/class.file]]
 ]]></system-out>
-  <system-err><![CDATA[]]></system-err>
+  <system-err><![CDATA[err]]></system-err>
 </testsuite>
 """
     }

@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.xml.SimpleXmlWriter;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -300,7 +301,8 @@ public class JUnitXmlResultWriter {
         if (!fileAttachments.isEmpty()) {
             writer.write('\n');
             for (DefaultTestFileAttachmentDataEvent fileAttachment : fileAttachments) {
-                writer.write("[[ATTACHMENT|" + reportDirectory.relativize(fileAttachment.getPath()) + "]]\n");
+                // Always produce *nix style paths:
+                writer.write("[[ATTACHMENT|" + TextUtil.normaliseFileSeparators(reportDirectory.relativize(fileAttachment.getPath()).toString()) + "]]\n");
             }
         }
     }
