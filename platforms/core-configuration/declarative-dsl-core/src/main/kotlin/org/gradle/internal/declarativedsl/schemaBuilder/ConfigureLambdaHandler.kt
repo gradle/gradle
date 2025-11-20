@@ -18,7 +18,6 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.internal.declarativedsl.analysis.interpretationCheck
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
-import org.gradle.internal.declarativedsl.Workarounds.isSubtypeOfWithKt81967Workaround
 import java.lang.reflect.Proxy
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -71,7 +70,7 @@ val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : Configure
 
     private
     fun isConfigureLambdaType(maybeLambdaType: KType) =
-        maybeLambdaType.isSubtypeOfWithKt81967Workaround(typeOf<Function1<*, Unit>>())
+        maybeLambdaType.isSubtypeOf(typeOf<Function1<*, Unit>>())
 
     private
     fun isConfigureLambdaType(maybeLambdaType: KType, configuredType: KType) = maybeLambdaType.isSubtypeOf(configureLambdaTypeFor(configuredType))
