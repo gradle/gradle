@@ -42,7 +42,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
     def "compilation classpath can be specified for a CodeNarc task"() {
         given:
         buildFileWithCodeNarcAndCompilationClasspath(supportedCompilationClasspathVersion())
-        cloneWithoutCloneableRuleEnabled()
+        configFileWithCloneWithoutCloneableRuleEnabled()
         codeViolatingCloneWithoutCloneableRule()
 
         when:
@@ -59,7 +59,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
 
         given:
         buildFileWithCodeNarcAndCompilationClasspath(UNSUPPORTED_COMPILATION_CLASSPATH_VERSION)
-        cloneWithoutCloneableRuleEnabled()
+        configFileWithCloneWithoutCloneableRuleEnabled()
         codeViolatingCloneWithoutCloneableRule()
         buildFile << javaPluginToolchainVersion(jvm)
 
@@ -78,10 +78,12 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
         println "Using JDK ${jvm.javaVersionMajor} at ${jvm.javaHome}"
 
         given:
+        configFileWithCloneWithoutCloneableRuleEnabled()
+        testClassViolatingCloneWithoutCloneableRuleAndExternalReferences()
         buildFile << """
             plugins {
-                id 'codenarc'
                 id 'groovy'
+                id 'codenarc'
                 id 'jvm-test-suite'
             }
 
@@ -90,7 +92,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
             }
 
             dependencies {
-                testImplementation 'org.spockframework:spock-core:2.4-M6-groovy-4.0'
+                testImplementation localGroovy()
             }
 
             java {
@@ -99,46 +101,25 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
                 }
             }
 
+            codenarc {
+                codenarc.configFile = file('$CONFIG_FILE_PATH')
+            }
+
             testing {
                 suites {
                     test {
-                        useJUnitJupiter()
+                        useSpock()
                     }
                 }
             }
         """
-        file("src/test/groovy/UsesAnnotationTest.groovy") << """
-            import spock.lang.Shared
-            import spock.lang.Specification
 
-            class UsesAnnotationTest extends Specification {
-
-                @Shared
-                Object object = new Object()
-
-                void 'a test'() {
-                    expect:
-                    true
-                }
-
-            }
-        """
-        file("config/codenarc/codenarc.xml") << """
-            <ruleset xmlns="http://codenarc.org/ruleset/1.0"
-                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
-                     xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
-
-                <ruleset-ref path='rulesets/basic.xml'/>
-                <ruleset-ref path='rulesets/serialization.xml'/>
-
-            </ruleset>
-        """
 
         when:
-        succeeds("check")
+        fails("codenarcTest")
 
         then:
+        failure.assertHasCause('CodeNarc rule violations were found')
         outputDoesNotContain("WARNING: Compilation error for non-default compiler phase (semantic analysis). Consider removing \"enhanced\" rules from your ruleset.")
     }
 
@@ -166,7 +147,7 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private void cloneWithoutCloneableRuleEnabled() {
+    private void configFileWithCloneWithoutCloneableRuleEnabled() {
         file(CONFIG_FILE_PATH) << '''
             ruleset {
                 CloneWithoutCloneable
@@ -178,6 +159,26 @@ class CodeNarcCompilationClasspathIntegrationTest extends AbstractIntegrationSpe
         file('src/main/groovy/ViolatingClass.groovy') << '''
             class ViolatingClass {
                 ViolatingClass clone() {}
+            }
+        '''
+    }
+
+    private void testClassViolatingCloneWithoutCloneableRuleAndExternalReferences() {
+        file("src/test/groovy/ViolatingTest.groovy") << '''
+            import spock.lang.Shared
+            import spock.lang.Specification
+
+            class ViolatingTest extends Specification {
+
+                @Shared
+                Object object = new Object()
+
+                void 'a test'() {
+                    expect:
+                    true
+                }
+
+                ViolatingTest clone() { }
             }
         '''
     }
