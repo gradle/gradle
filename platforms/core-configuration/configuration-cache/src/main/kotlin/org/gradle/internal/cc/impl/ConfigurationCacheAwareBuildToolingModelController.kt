@@ -30,12 +30,12 @@ class ConfigurationCacheAwareBuildToolingModelController(
 ) : BuildToolingModelController {
     override fun getConfiguredModel(): GradleInternal = delegate.configuredModel
 
-    override fun locateBuilderForTarget(modelName: String, param: Boolean): ToolingModelScope {
-        return wrap(delegate.locateBuilderForTarget(modelName, param))
+    override fun locateBuilderForTarget(modelName: String, hasParameter: Boolean, isFetch: Boolean): ToolingModelScope {
+        return wrap(delegate.locateBuilderForTarget(modelName, hasParameter, false))
     }
 
-    override fun locateBuilderForTarget(target: ProjectState, modelName: String, param: Boolean): ToolingModelScope {
-        return wrap(delegate.locateBuilderForTarget(target, modelName, param))
+    override fun locateBuilderForTarget(target: ProjectState, modelName: String, hasParameter: Boolean): ToolingModelScope {
+        return wrap(delegate.locateBuilderForTarget(target, modelName, hasParameter))
     }
 
     private
@@ -50,9 +50,9 @@ class ConfigurationCacheAwareBuildToolingModelController(
     ) : ToolingModelScope {
         override fun getTarget() = delegate.target
 
-        override fun getModel(modelName: String, parameter: ToolingModelParameterCarrier?): Any? {
+        override fun getModel(modelName: String, parameter: ToolingModelParameterCarrier?, isFetch: Boolean): Any? {
             return cache.loadOrCreateIntermediateModel(target?.identity, modelName, parameter) {
-                delegate.getModel(modelName, parameter)
+                delegate.getModel(modelName, parameter, isFetch)
             }
         }
     }

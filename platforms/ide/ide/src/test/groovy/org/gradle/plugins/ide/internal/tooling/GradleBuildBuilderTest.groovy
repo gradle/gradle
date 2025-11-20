@@ -153,7 +153,7 @@ class GradleBuildBuilderTest extends Specification {
         def builder = new GradleBuildBuilder(buildRegistry)
 
         expect:
-        def model = builder.create(rootBuildState)
+        def model = builder.create(rootBuildState, false)
         model.includedBuilds.size() == 1
 
         def model1 = model.includedBuilds[0]

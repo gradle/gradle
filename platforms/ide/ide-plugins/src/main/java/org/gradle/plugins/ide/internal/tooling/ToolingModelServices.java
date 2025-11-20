@@ -85,9 +85,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                 }
 
                 private ToolingModelBuilder createGradleBuildBuilder() {
-                    return buildModelParameters.isResilientModelBuilding()
-                        ? new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory)
-                        : new GradleBuildBuilder(buildStateRegistry);
+                     return new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory);
                 }
 
                 private IdeaModelBuilderInternal createIdeaModelBuilder(boolean isolatedProjects, GradleProjectBuilderInternal gradleProjectBuilder) {

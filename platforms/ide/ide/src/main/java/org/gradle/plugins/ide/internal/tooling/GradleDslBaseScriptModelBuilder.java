@@ -44,7 +44,7 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
     }
 
     @Override
-    public Object create(BuildState target) {
+    public Object create(BuildState target, boolean isFetch) {
         GradleInternal gradle = target.getMutableModel();
         ModuleRegistry moduleRegistry = gradle.getServices().get(ModuleRegistry.class);
         GradleApiImplicitImportsProvider implicitImports = gradle.getServices().get(GradleApiImplicitImportsProvider.class);

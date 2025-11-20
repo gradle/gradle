@@ -30,9 +30,9 @@ internal
 class DefaultBuildToolingModelControllerFactory(
     private val modelParameters: BuildModelParameters
 ) : BuildToolingModelControllerFactory {
-    override fun createController(owner: BuildState, lifecycleController: BuildLifecycleController): BuildToolingModelController {
+    override fun createController(owner: BuildState, lifecycleController: BuildLifecycleController, isFetch: Boolean): BuildToolingModelController {
         val modelBuilderLookup = lifecycleController.gradle.services.get(ToolingModelBuilderLookup::class.java)
-        val toolingModelController = if (modelParameters.isResilientModelBuilding) {
+        val toolingModelController = if (isFetch) {
             ResilientBuildToolingModelController(owner, lifecycleController, modelBuilderLookup)
         } else {
             DefaultBuildToolingModelController(owner, lifecycleController, modelBuilderLookup)

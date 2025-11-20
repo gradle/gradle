@@ -92,7 +92,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         projectState.displayName >> Describables.of("<project>")
 
         when:
-        def result = actualBuilder.build(null)
+        def result = actualBuilder.build(null, false)
 
         then:
         result == "result"
@@ -188,7 +188,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         def actualBuilder = registry.locateForClientOperation("model", true, projectState, projectState.getMutableModel())
 
         when:
-        def result = actualBuilder.build("param")
+        def result = actualBuilder.build("param", false)
 
         then:
         result == "result"

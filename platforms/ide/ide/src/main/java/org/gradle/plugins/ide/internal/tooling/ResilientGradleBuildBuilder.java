@@ -69,12 +69,15 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
     }
 
     @Override
-    public ToolingModelBuilderResultInternal create(BuildState target) {
-        return new ResilientGradleBuildCreator(target).create();
+    public Object create(BuildState target, boolean isFetch) {
+        if(isFetch) {
+            return new ResilientGradleBuildCreator(target).create();
+        }
+        return new GradleBuildBuilder.GradleBuildCreator(target, buildStateRegistry).create();
     }
 
     @NullMarked
-    private class ResilientGradleBuildCreator {
+    public class ResilientGradleBuildCreator {
         private final BuildState target;
         private final Map<BuildState, DefaultGradleBuild> all = new LinkedHashMap<>();
         private final Collection<Failure> failures = new LinkedHashSet<>();

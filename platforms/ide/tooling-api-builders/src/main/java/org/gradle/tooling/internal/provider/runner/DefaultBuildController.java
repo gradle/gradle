@@ -110,11 +110,11 @@ class DefaultBuildController implements
     @Override
     public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
-        ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter);
+        ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter, false);
         return new ProviderBuildResult<>(model.getModel());
     }
 
-    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
+    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter, boolean isFetch)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
@@ -123,7 +123,7 @@ class DefaultBuildController implements
 
         BuildTreeModelTarget scopedTarget = resolveTarget(target);
         try {
-            Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter);
+            Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter, isFetch);
             if (model instanceof ToolingModelBuilderResultInternal) {
                 return (ToolingModelBuilderResultInternal) model;
             } else {
@@ -176,7 +176,7 @@ class DefaultBuildController implements
     @Override
     public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
-            ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter);
+            ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter, true);
             List<InternalFailure> failures = toInternalFailures(model.getFailures());
             return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(model.getModel()), failures);
         } catch (Exception e) {
