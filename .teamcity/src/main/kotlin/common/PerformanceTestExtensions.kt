@@ -50,12 +50,11 @@ fun performanceTestCommandLine(
     extraParameters: String = "",
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
-    testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
     testJavaVendor: String = os.perfTestJavaVendor.name.lowercase(),
 ) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
-    "-PtestJavaVersion=$testJavaVersion",
+    "-PtestJavaVersion=%testJavaVersion%",
     "-PtestJavaVendor=$testJavaVendor",
     "-PautoDownloadAndroidStudio=true",
     "-PrunAndroidStudioInHeadlessMode=true",

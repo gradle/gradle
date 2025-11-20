@@ -113,7 +113,7 @@ class BuildTypeTest {
                 "%additional.gradle.parameters%",
                 "--continue",
                 "-DbuildScan.PartOf=PlatformJava25AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
-                "-PtestJavaVersion=25",
+                "-PtestJavaVersion=%testJavaVersion%",
                 "-PtestJavaVendor=openjdk",
                 "-Dscan.tag.FunctionalTest",
                 "-Dscan.value.coverageOs=windows",

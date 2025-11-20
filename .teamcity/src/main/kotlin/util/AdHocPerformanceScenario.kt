@@ -56,13 +56,6 @@ abstract class AdHocPerformanceScenario(
                     "Which performance test to run. Should be the fully qualified class name dot (unrolled) method name. " +
                         "E.g. org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
             )
-            text(
-                "testJavaVersion",
-                "17",
-                display = ParameterDisplay.PROMPT,
-                allowEmpty = false,
-                description = "The java version to run the performance tests, e.g. 8/11/17",
-            )
             select(
                 "testJavaVendor",
                 JvmVendor.OPENJDK.name.lowercase(),
@@ -103,7 +96,6 @@ abstract class AdHocPerformanceScenario(
                             """--warmups %warmups% --runs %runs% --checks %checks% --profiler %profiler% %additional.gradle.parameters%""",
                             os,
                             arch,
-                            "%testJavaVersion%",
                             "%testJavaVendor%",
                         ) + buildToolGradleParameters(isContinue = false)
                     ).joinToString(separator = " ")

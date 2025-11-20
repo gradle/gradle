@@ -72,6 +72,7 @@ class PerformanceTest(
                 )
                 param("env.PERFORMANCE_CHANNEL", performanceTestBuildSpec.channel())
                 param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
+                param("testJavaVersion", os.perfTestJavaVersion.major.toString())
                 when (os) {
                     Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
                     else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin:/opt/swift/4.2.4-RELEASE-ubuntu18.04/usr/bin")

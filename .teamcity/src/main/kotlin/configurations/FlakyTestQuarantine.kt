@@ -92,6 +92,10 @@ class FlakyTestQuarantine(
             }
         }
 
+        params {
+            param("testJavaVersion", testCoverage.testJvmVersion.major.toString())
+        }
+
         val extraParameters =
             functionalTestExtraParameters(
                 listOf("FlakyTestQuarantine"),

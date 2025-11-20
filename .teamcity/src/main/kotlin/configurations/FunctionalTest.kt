@@ -86,6 +86,10 @@ class FunctionalTest(
         this.id(id)
         val testTasks = getTestTaskName(testCoverage, subprojects)
 
+        params {
+            param("testJavaVersion", testCoverage.testJvmVersion.major.toString())
+        }
+
         val assembledExtraParameters =
             mutableListOf(
                 stage.getBuildScanCustomValueParam(testCoverage),

@@ -19,7 +19,6 @@ package util
 import common.Arch
 import common.BuildToolBuildJvm
 import common.JvmVendor
-import common.JvmVersion
 import common.KillProcessMode.KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS
 import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
@@ -45,7 +44,6 @@ class RerunFlakyTest(
         description = "Allows you to rerun a selected flaky test 10 times"
         id(id)
         val testJvmVendorParameter = "testJavaVendor"
-        val testJvmVersionParameter = "testJavaVersion"
         val testTaskParameterName = "testTask"
         val testNameParameterName = "testName"
         val testTaskOptionsParameterName = "testTaskOptions"
@@ -59,7 +57,7 @@ class RerunFlakyTest(
                 listOf("RerunFlakyTest"),
                 os,
                 arch,
-                "%$testJvmVersionParameter%",
+                "%testJavaVersion%",
                 "%$testJvmVendorParameter%",
             )
         val parameters =
@@ -104,13 +102,6 @@ class RerunFlakyTest(
                 description =
                     "The name of the test to run, as should be passed to --tests. " +
                         "Can't contain spaces since there are problems with Teamcity's escaping, you can use * instead.",
-            )
-            text(
-                testJvmVersionParameter,
-                JvmVersion.JAVA_11.major.toString(),
-                display = ParameterDisplay.PROMPT,
-                allowEmpty = false,
-                description = "Java version to run the test with",
             )
             select(
                 testJvmVendorParameter,

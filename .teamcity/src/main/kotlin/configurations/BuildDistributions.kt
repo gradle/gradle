@@ -14,6 +14,10 @@ class BuildDistributions(
         name = "Build Distributions"
         description = "Creation and verification of the distribution and documentation"
 
+        params {
+            param("testJavaVersion", LINUX.buildJavaVersion.major.toString())
+        }
+
         applyDefaults(
             model,
             this,
@@ -22,7 +26,7 @@ class BuildDistributions(
                 listOf(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("BuildDistributions"),
-                    "-PtestJavaVersion=${LINUX.buildJavaVersion.major}",
+                    "-PtestJavaVersion=%testJavaVersion%",
                     "-Dorg.gradle.java.installations.auto-download=false",
                     "-Porg.gradle.java.installations.auto-download=false",
                 ).joinToString(" "),

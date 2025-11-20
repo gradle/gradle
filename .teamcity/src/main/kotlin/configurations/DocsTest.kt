@@ -85,6 +85,10 @@ class DocsTest(
             javaCrash = false
         }
 
+        params {
+            param("testJavaVersion", testJava.version.major.toString())
+        }
+
         applyTestDefaults(
             model,
             this,
@@ -97,7 +101,7 @@ class DocsTest(
                     buildScanTagParam(docsTestType.docsTestName),
                     parallelizationMethod.extraBuildParameters,
                     "-PenableConfigurationCacheForDocsTests=${docsTestType.ccEnabled}",
-                    "-PtestJavaVersion=${testJava.version.major}",
+                    "-PtestJavaVersion=%testJavaVersion%",
                     "-PtestJavaVendor=${testJava.vendor.name.lowercase()}",
                 ).joinToString(" "),
         )

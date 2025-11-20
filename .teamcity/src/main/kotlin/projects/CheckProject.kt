@@ -51,6 +51,13 @@ class CheckProject(
                         "e.g. `-PrerunAllTests` or `--no-build-cache`",
             )
             text(
+                "testJavaVersion",
+                "should-be-overwritten",
+                display = ParameterDisplay.NORMAL,
+                allowEmpty = true,
+                description = "The java version to use for test, e.g. '17', '21'",
+            )
+            text(
                 "reverse.dep.*.skip.build",
                 "",
                 display = ParameterDisplay.NORMAL,

@@ -17,6 +17,7 @@
 package configurations
 
 import common.applyDefaultSettings
+import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import model.CIBuildModel
 import model.TestCoverage
 import projects.FunctionalTestProject
@@ -33,6 +34,16 @@ class FunctionalTestsPass(
 
         dependencies {
             snapshotDependencies(functionalTestProject.functionalTests)
+        }
+
+        params {
+            text(
+                "reverse.dep.*.testJavaVersion",
+                functionalTestProject.testCoverage.testJvmVersion.major.toString(),
+                display = ParameterDisplay.NORMAL,
+                allowEmpty = true,
+                description = "Set to 'true' if you want to skip all dependency builds",
+            )
         }
     }) {
     val testCoverage: TestCoverage = functionalTestProject.testCoverage

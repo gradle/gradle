@@ -334,7 +334,7 @@ fun functionalTestExtraParameters(
         )
     return (
         listOf(
-            "-PtestJavaVersion=$testJvmVersion",
+            "-PtestJavaVersion=%testJavaVersion%",
             "-PtestJavaVendor=$testJvmVendor",
         ) +
             buildScanTags.map { buildScanTagParam(it) } +

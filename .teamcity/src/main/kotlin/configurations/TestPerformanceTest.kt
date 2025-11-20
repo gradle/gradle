@@ -49,21 +49,6 @@ class TestPerformanceTest(
             }
         }
 
-        fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
-            gradleStep(
-                listOf(
-                    "clean",
-                    "performance:${testProject}PerformanceAdHocTest",
-                    tests.map { """--tests "$it"""" }.joinToString(" "),
-                    """--warmups 2 --runs 2 --checks none""",
-                    "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
-                    "-PtestJavaVendor=${os.perfTestJavaVendor.name.lowercase()}",
-                    "-PautoDownloadAndroidStudio=true",
-                    "-PrunAndroidStudioInHeadlessMode=true",
-                ) + os.javaInstallationLocations(),
-            )
-        }
-
         id("${model.projectId}_TestPerformanceTest")
         name = "Test performance test tasks - Java8 Linux"
         description = "Tries to run an adhoc performance test without a database connection to verify this is still working"
@@ -71,14 +56,28 @@ class TestPerformanceTest(
         applyPerformanceTestSettings()
         artifactRules = INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
 
+        params {
+            param("testJavaVersion", os.perfTestJavaVersion.major.toString())
+        }
+
         steps {
             killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
-            adHocPerformanceTest(
+
+            gradleStep(
                 listOf(
-                    "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
-                    "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
-                    "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
-                ),
+                    "clean",
+                    "performance:${testProject}PerformanceAdHocTest",
+                    listOf(
+                        "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+                        "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
+                        "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
+                    ).joinToString(" ") { """--tests "$it"""" },
+                    """--warmups 2 --runs 2 --checks none""",
+                    "-PtestJavaVersion=%testJavaVersion%",
+                    "-PtestJavaVendor=${os.perfTestJavaVendor.name.lowercase()}",
+                    "-PautoDownloadAndroidStudio=true",
+                    "-PrunAndroidStudioInHeadlessMode=true",
+                ) + os.javaInstallationLocations(),
             )
 
             checkCleanM2AndAndroidUserHome(os)

@@ -31,6 +31,10 @@ class SmokeTests(
             requiresNotEc2Agent()
         }
 
+        params {
+            param("testJavaVersion", testJava.version.major.toString())
+        }
+
         applyTestDefaults(
             model,
             this,
@@ -40,7 +44,7 @@ class SmokeTests(
                 listOf(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("SmokeTests"),
-                    "-PtestJavaVersion=${testJava.version.major}",
+                    "-PtestJavaVersion=%testJavaVersion%",
                     "-PtestJavaVendor=${testJava.vendor.name.lowercase()}",
                     "-PflakyTests=$flakyTestStrategy",
                 ).joinToString(" "),
