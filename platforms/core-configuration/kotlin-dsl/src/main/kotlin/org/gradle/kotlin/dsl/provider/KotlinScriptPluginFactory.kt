@@ -28,10 +28,8 @@ import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.extensions.core.callableBuildOperation
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
-import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.defaultEvalOptions
 import org.gradle.kotlin.dsl.support.info
-import java.util.EnumSet
 import javax.inject.Inject
 
 
@@ -57,16 +55,15 @@ class KotlinScriptPluginFactory @Inject internal constructor(
                 }
             }
 
-            kotlinScriptEvaluator
-                .evaluate(
-                    target,
-                    scriptSource,
-                    scriptHandler,
-                    targetScope,
-                    baseScope,
-                    topLevelScript,
-                    kotlinScriptOptions()
-                )
+            kotlinScriptEvaluator.evaluate(
+                target,
+                scriptSource,
+                scriptHandler,
+                targetScope,
+                baseScope,
+                topLevelScript,
+                defaultEvalOptions
+            )
         }
 
     private
@@ -91,11 +88,6 @@ class KotlinScriptPluginFactory @Inject internal constructor(
             }
         })
 
-    private
-    fun kotlinScriptOptions(): EnumSet<EvalOption> =
-        if (inLenientMode()) lenientModeScriptOptions
-        else defaultEvalOptions
-
     private val logger = Logging.getLogger(KotlinScriptPluginFactory::class.java)
 
     /**
@@ -110,7 +102,3 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     private fun shouldTryDclInterpreterWithScriptTarget(target: Any) =
         target is Project && isDclEnabledForScriptTarget(target)
 }
-
-
-private
-val lenientModeScriptOptions = EnumSet.of(EvalOption.IgnoreErrors)

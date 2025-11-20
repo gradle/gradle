@@ -28,13 +28,38 @@ public final class KotlinDslModelsParameters {
 
     public static final String CORRELATION_ID_GRADLE_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.cid";
 
+    /**
+     * Do not use.
+     * @deprecated This has no effect since Gradle 9.4. This will be removed in Gradle 10.
+     */
+    @Deprecated
     public static final String PROVIDER_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.mode";
 
+    /**
+     * Do not use.
+     * @deprecated This has no effect since Gradle 9.4. This will be removed in Gradle 10.
+     */
+    @Deprecated
     public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = "classpath";
 
+    /**
+     * Do not use.
+     * @deprecated This has no effect since Gradle 9.4. This will be removed in Gradle 10.
+     */
+    @Deprecated
     public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = "strict-classpath";
 
+    /**
+     * Do not use.
+     * @deprecated This has no effect since Gradle 9.4. This will be removed in Gradle 10.
+     */
+    @Deprecated
     public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
 
+    /**
+     * Do not use.
+     * @deprecated This has no effect since Gradle 9.4. This will be removed in Gradle 10.
+     */
+    @Deprecated
     public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
 }

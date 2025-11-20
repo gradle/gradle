@@ -184,6 +184,7 @@ private
 fun ProjectConnection.modelBuilderFor(parameters: FetchParameters) =
     model(KotlinBuildScriptModel::class.java).apply {
         setEnvironmentVariables(parameters.environmentVariables.takeIf { it.isNotEmpty() })
+        @Suppress("DEPRECATION")
         setJvmArguments(parameters.jvmOptions + KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
 
