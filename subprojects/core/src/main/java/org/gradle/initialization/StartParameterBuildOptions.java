@@ -363,9 +363,9 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     }
 
     public static class DevelocityUrlOption extends StringBuildOption<StartParameterInternal> {
-       public static final String LONG_OPTION = "develocity-url";
-        public static final String GRADLE_PROPERTY = "org.gradle.develocity.url";
-        public static final String ENVIRONMENT_VARIABLE = "ORG_GRADLE_DEVELOCITY_URL";
+        public static final String LONG_OPTION = "develocity-url";
+        public static final String GRADLE_PROPERTY = "com.gradle.develocity.url";
+        public static final String ENVIRONMENT_VARIABLE = "COM_GRADLE_DEVELOCITY_URL";
 
         public DevelocityUrlOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
