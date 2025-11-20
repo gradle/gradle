@@ -88,17 +88,8 @@ public class JUnitXmlResultWriter {
             }
 
             List<DefaultTestFileAttachmentDataEvent> fileAttachments = result.getMetadatas().stream().filter(DefaultTestFileAttachmentDataEvent.class::isInstance).map(DefaultTestFileAttachmentDataEvent.class::cast).collect(Collectors.toList());
-            if (options.includeSystemOutLog) {
-                writer.startElement("system-out");
-                writeOutputs(writer, classId, options.includeSystemOutLog, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut, fileAttachments);
-                writer.endElement();
-            }
-
-            if (options.includeSystemErrLog) {
-                writer.startElement("system-err");
-                writeOutputs(writer, classId, options.includeSystemErrLog, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr, Collections.emptyList());
-                writer.endElement();
-            }
+            writeOutputs(writer, "system-out", classId, options.includeSystemOutLog, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut, fileAttachments);
+            writeOutputs(writer, "system-err", classId, options.includeSystemErrLog, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr, Collections.emptyList());
 
             writer.endElement();
         } catch (IOException e) {
@@ -106,18 +97,22 @@ public class JUnitXmlResultWriter {
         }
     }
 
-    private void writeOutputs(SimpleXmlWriter writer, long classId, boolean includeRawOutput, boolean allClassOutput, TestOutputEvent.Destination destination, List<DefaultTestFileAttachmentDataEvent> fileAttachments) throws IOException {
+    private void writeOutputs(SimpleXmlWriter writer, String elementName, long classId, boolean includeRawOutput, boolean allClassOutput, TestOutputEvent.Destination destination, List<DefaultTestFileAttachmentDataEvent> fileAttachments) throws IOException {
         boolean mayWrite = includeRawOutput || !fileAttachments.isEmpty();
 
         if (mayWrite) {
+            writer.startElement(elementName);
             writer.startCDATA();
-            if (allClassOutput) {
-                testResultsProvider.writeAllOutput(classId, destination, writer);
-            } else {
-                testResultsProvider.writeNonTestOutput(classId, destination, writer);
+            if (includeRawOutput) {
+                if (allClassOutput) {
+                    testResultsProvider.writeAllOutput(classId, destination, writer);
+                } else {
+                    testResultsProvider.writeNonTestOutput(classId, destination, writer);
+                }
             }
             writeFileAttachments(writer, fileAttachments);
             writer.endCDATA();
+            writer.endElement();
         }
     }
 
