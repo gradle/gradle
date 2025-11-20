@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.filter;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
@@ -203,7 +204,7 @@ public class TestSelectionMatcher {
                     pattern.append(Pattern.quote(s)); //quote everything else
                 }
             }
-            return Pattern.compile(pattern.toString());
+            return Pattern.compile(TextUtil.normaliseFileSeparators(pattern.toString()));
         }
     }
 
