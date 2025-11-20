@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r930
+package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -32,17 +32,16 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Ignore
 
 import java.util.function.Function
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 
-import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.INCLUDED_BUILDS_FIRST
-import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST
+import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.INCLUDED_BUILDS_FIRST
+import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST
 
-@ToolingApiVersion('>=9.3.0')
-@TargetGradleVersion('>=9.3.0')
+@ToolingApiVersion('>=9.4.0')
+@TargetGradleVersion('>=9.4.0')
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -117,9 +116,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model/*, "settings.gradle.kts"*/)
-        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
         // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
-        // TODO: do better
     }
 
     def "basic build - broken build file - intact plugins block"() {
@@ -147,7 +146,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
-        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
@@ -169,7 +169,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
-        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
     }
 
@@ -205,8 +206,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
         assertHasErrorsInScriptModels(model,
                 Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
-                Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")
-        )
+                Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
@@ -236,13 +236,11 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
         assertHasErrorsInScriptModels(model,
                 Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
-                Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")
-        )
+                Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
     }
 
-    @ToBeImplemented // TODO: we should be able to do better
-    @Ignore
+    @ToBeImplemented
     def "basic build with included build - broken settings and build file in included build"() {
         given:
         settingsKotlinFile << """
@@ -269,16 +267,18 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         failure.assertHasDescription("Script compilation error")
 
         when:
-        fails {
+        def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
                     .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
                     .run()
         }
 
         then:
-        e = thrown(BuildActionFailureException)
-        e.cause.message.contains(includedSettings.absolutePath)
-        failure.assertHasDescription("Script compilation error")
+        assertHasScriptModelForFiles(model, /*"settings.gradle.kts"*/)
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
+                Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+        // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
     def "bigger build - nothing broken"() {
@@ -653,11 +653,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         then:
 
         assertHasScriptModelForFiles(model, "build-logic/settings.gradle.kts", "build-logic/build.gradle.kts", "build-logic/src/main/kotlin/build-logic.settings.gradle.kts")
-        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"),
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"),
                 Pair.of("build-logic", ".*Execution failed for task ':build-logic:compileKotlin.*"))
     }
 
-    @ToBeImplemented // TODO
+    @ToBeImplemented
     def "resilient Kotlin DSL can be queried with null target"() {
         given:
         settingsKotlinFile << """
@@ -676,9 +677,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         then:
         assertHasScriptModelForFiles(model/*, "settings.gradle.kts", "build.gradle.kts"*/)
-        assertHasErrorsInScriptModels(model, Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasErrorsInScriptModels(model,
+                Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         // assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
-        // TODO: do better
     }
 
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {
@@ -745,7 +746,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
     }
 
-    private static void queryBasicKotlinDslScriptsModel(BuildController controller, GradleBuild build, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
+    private static void queryBasicKotlinDslScriptsModel(BuildController controller, GradleBuild build, Map<File, KotlinDslScriptModel> scriptModels) {
         KotlinDslScriptsModel buildScriptModel = controller.getModel(build.rootProject, KotlinDslScriptsModel.class)
         scriptModels.putAll(buildScriptModel.scriptModels)
     }
@@ -801,7 +802,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             if (resilient) {
                 queryResilientKotlinDslScriptsModel(controller, build, build.rootProject, scriptModels, failures)
             } else {
-                queryBasicKotlinDslScriptsModel(controller, build, scriptModels, failures)
+                queryBasicKotlinDslScriptsModel(controller, build, scriptModels)
             }
         }
 

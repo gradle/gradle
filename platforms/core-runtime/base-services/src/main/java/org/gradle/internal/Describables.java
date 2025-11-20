@@ -116,7 +116,7 @@ public class Describables {
             Describable describable = (Describable) src;
             stringBuilder.append(describable.getDisplayName());
         } else {
-            stringBuilder.append(src.toString());
+            stringBuilder.append(src);
         }
     }
 
