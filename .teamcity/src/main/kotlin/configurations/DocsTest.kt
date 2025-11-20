@@ -80,6 +80,11 @@ class DocsTest(
             }
         }
 
+        failureConditions {
+            // Disabled due to https://github.com/gradle/gradle-private/issues/4927
+            javaCrash = false
+        }
+
         applyTestDefaults(
             model,
             this,

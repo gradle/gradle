@@ -142,7 +142,7 @@ public class DefaultDaemonContext implements DaemonContext {
     }
 
     @Override
-    @SuppressWarnings("UndefinedEquals")
+    @SuppressWarnings("UndefinedEquals") // We're fine with having weak contract of Iterable/Collection.equals.
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -151,7 +151,17 @@ public class DefaultDaemonContext implements DaemonContext {
             return false;
         }
         DefaultDaemonContext that = (DefaultDaemonContext) o;
-        return applyInstrumentationAgent == that.applyInstrumentationAgent && Objects.equals(uid, that.uid) && Objects.equals(javaHome, that.javaHome) && Objects.equals(daemonRegistryDir, that.daemonRegistryDir) && Objects.equals(pid, that.pid) && Objects.equals(idleTimeout, that.idleTimeout) && Objects.equals(daemonOpts, that.daemonOpts) && priority == that.priority && nativeServicesMode == that.nativeServicesMode && Objects.equals(javaVersion, that.javaVersion) && Objects.equals(javaVendor, that.javaVendor);
+        return applyInstrumentationAgent == that.applyInstrumentationAgent &&
+            Objects.equals(uid, that.uid) &&
+            Objects.equals(javaHome, that.javaHome) &&
+            Objects.equals(daemonRegistryDir, that.daemonRegistryDir) &&
+            Objects.equals(pid, that.pid) &&
+            Objects.equals(idleTimeout, that.idleTimeout) &&
+            Objects.equals(daemonOpts, that.daemonOpts) &&
+            priority == that.priority &&
+            nativeServicesMode == that.nativeServicesMode &&
+            Objects.equals(javaVersion, that.javaVersion) &&
+            Objects.equals(javaVendor, that.javaVendor);
     }
 
     @Override

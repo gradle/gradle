@@ -875,6 +875,15 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return projectToEvaluate;
     }
 
+    /**
+     * Returns the display name of this project in a human-readable format.
+     * <p>
+     * Currently:
+     * <ul>
+     *     <li>For the root project: {@code root project 'projectName'}</li>
+     *     <li>For subprojects: {@code project ':identity:path:of:project'}</li>
+     * </ul>
+     */
     @Override
     public String getDisplayName() {
         return owner.getDisplayName().getDisplayName();

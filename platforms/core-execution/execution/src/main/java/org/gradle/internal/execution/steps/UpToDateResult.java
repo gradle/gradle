@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.jspecify.annotations.Nullable;
 
@@ -41,7 +41,7 @@ public class UpToDateResult extends AfterExecutionResult {
             .orElse(null);
     }
 
-    public UpToDateResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable ExecutionOutputState executionOutputState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {
+    public UpToDateResult(Duration duration, Try<Execution> execution, @Nullable ExecutionOutputState executionOutputState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata) {
         super(duration, execution, executionOutputState);
         this.executionReasons = executionReasons;
         this.reusedOutputOriginMetadata = reusedOutputOriginMetadata;

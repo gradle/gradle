@@ -105,6 +105,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         jdwpClient.close()
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
     def "can debug via host"() {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()

@@ -17,7 +17,8 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.Execution;
+import org.gradle.internal.execution.ExecutionContext;
 import org.gradle.internal.execution.UnitOfWork;
 
 import java.time.Duration;
@@ -46,7 +47,7 @@ public class Result {
 
     /**
      * The elapsed wall clock time of executing the actual work, i.e. the time it took to execute the
-     * {@link UnitOfWork#execute(UnitOfWork.ExecutionRequest)} method.
+     * {@link UnitOfWork#execute(ExecutionContext)} method.
      *
      * The execution time refers to when and where the work was executed: if a previous result was reused,
      * then this method will return the time it took to produce the previous result.

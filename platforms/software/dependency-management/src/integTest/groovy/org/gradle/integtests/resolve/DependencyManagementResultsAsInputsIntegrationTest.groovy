@@ -129,7 +129,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
     def "can not use ResolvedArtifactResult as task input annotated with #annotation"() {
 
         executer.beforeExecute {
-            executer.noDeprecationChecks() // Cannot convert the provided notation to a File or URI
             executer.withArgument("-Dorg.gradle.internal.max.validation.errors=20")
         }
 

@@ -52,7 +52,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         def reportPath = htmlReportDirectory.toPath()
         try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
             return paths.filter {
-                it.getFileName().toString() == "index.html"
+                it.getFileName().toString().endsWith(".html")
             }.map {
                 def html = Jsoup.parse(it.toFile(), null)
                 def breadcrumbs = html.selectFirst(".breadcrumbs")
@@ -221,8 +221,19 @@ Unexpected paths: ${unexpectedPaths}""")
     }
 
     private java.nio.file.Path diskPathForTestPath(String frameworkTestPath) {
-        String processedPath = Strings.isNullOrEmpty(frameworkTestPath) ? "index.html" : GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath))
-        htmlReportDirectory.toPath().resolve(processedPath)
+        if (Strings.isNullOrEmpty(frameworkTestPath)) {
+            return htmlReportDirectory.toPath().resolve("index.html")
+        }
+        java.nio.file.Path nonLeafPath = htmlReportDirectory.toPath().resolve(
+            GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), false)
+        )
+        if (Files.exists(nonLeafPath)) {
+            return nonLeafPath
+        } else {
+            return htmlReportDirectory.toPath().resolve(
+                GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), true)
+            )
+        }
     }
 
     private static Map<String, Element> getTabs(Element base) {

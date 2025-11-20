@@ -323,6 +323,35 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         "JUnit"           | "useJUnit()"
     }
 
+    def "when TestEngine matches nothing then task fails, even if non test def files are present in test defs dir"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+        """
+
+        file("$DEFAULT_DEFINITIONS_LOCATION/plain-text-file.txt") << "I'm a distractor!"
+
+        when:
+        fails("test", "--info")
+
+        then:
+        sourcesPresentAndNoTestsFound()
+    }
+
     // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
     @Override
     protected void classBasedTestsExecuted() {

@@ -118,7 +118,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     }
 
     private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, BoundProjectFeatureImplementation<T, V> projectFeature) {
-        T definition = createDefinitionObject(parentDefinition, projectFeature);
+        T definition = instantiateDefinitionObject(parentDefinition, projectFeature);
         V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, definition, projectFeature);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
 
@@ -130,7 +130,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         return definition;
     }
 
-    private <T, V> T createDefinitionObject(Object target, ProjectFeatureImplementation<T, V> projectFeature) {
+    private <T, V> T instantiateDefinitionObject(Object target, ProjectFeatureImplementation<T, V> projectFeature) {
         Class<? extends T> dslType = projectFeature.getDefinitionImplementationType();
 
         if (Named.class.isAssignableFrom(dslType)) {

@@ -60,9 +60,9 @@ class FailsExecutionNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
         then:
         def results = resultsFor()
-        def testPath = results.testPath(":UnknownClass")
+        def testPath = results.testPath(":engine_fails-execution-rbt-engine")
         testPath.onlyRoot().assertChildCount(1, 1)
-        results.testPathPreNormalized(":UnknownClass:initializationError").onlyRoot()
+        results.testPathPreNormalized(":engine_fails-execution-rbt-engine:initializationError").onlyRoot()
             .assertFailureMessages(containsNormalizedString("org.junit.platform.commons.JUnitException: TestEngine with ID 'fails-execution-rbt-engine' failed to execute tests"))
             .assertFailureMessages(containsNormalizedString("java.lang.RuntimeException: Test execution failed"))
     }

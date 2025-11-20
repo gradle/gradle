@@ -18,18 +18,21 @@ package org.gradle.internal.execution.steps
 
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.snapshot.FileSystemSnapshot
 
-import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
+import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
+import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 
 class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStateBeforeExecutionStepTest<PreviousExecutionContext> {
 
     def outputSnapshotter = Mock(OutputSnapshotter)
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
+    def work = Stub(MutableUnitOfWork)
 
     AbstractCaptureStateBeforeExecutionStep<PreviousExecutionContext, CachingResult> step
         = new CaptureIncrementalStateBeforeExecutionStep(buildOperationRunner, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
@@ -37,6 +40,8 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter
     }
+
+
 
     def "output file properties are snapshotted"() {
         def outputSnapshots = ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", Mock(FileSystemSnapshot))
@@ -109,5 +114,6 @@ class CaptureIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStat
     void snapshotState() {
         super.snapshotState()
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
+        _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
     }
 }

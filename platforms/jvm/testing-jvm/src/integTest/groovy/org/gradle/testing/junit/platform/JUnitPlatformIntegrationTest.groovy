@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.platform
 
-import org.gradle.api.internal.tasks.testing.junit.JUnitSupport
+
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
@@ -210,7 +210,7 @@ public class UninstantiableExtension implements BeforeEachCallback {
 
         then:
         def results = resultsFor(testDirectory)
-        results.testPathPreNormalized(":${JUnitSupport.UNKNOWN_CLASS}:initializationError").onlyRoot()
+        results.testPathPreNormalized(":engine_junit-jupiter:initializationError").onlyRoot()
             .assertFailureMessages(containsString('UninstantiableExtension'))
     }
 
@@ -515,6 +515,6 @@ public class StaticInnerTest {
 
         then:
         failureCauseContains('There were failing tests.')
-        outputContains("afterSuite: Test class UnknownClass -> FAILURE")
+        outputContains("afterSuite: Test class engine_EngineFailingExecution -> FAILURE")
     }
 }

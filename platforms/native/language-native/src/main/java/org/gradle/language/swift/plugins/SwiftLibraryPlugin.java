@@ -44,7 +44,7 @@ import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -93,7 +93,7 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
 
         // Setup component
         final Property<String> module = library.getModule();
-        module.set(GUtil.toCamelCase(project.getName()));
+        module.set(TextUtil.toCamelCase(project.getName()));
 
         library.getTargetMachines().convention(useHostAsDefaultTargetMachine(targetMachineFactory));
         library.getDevelopmentBinary().convention(project.provider(new Callable<SwiftBinary>() {

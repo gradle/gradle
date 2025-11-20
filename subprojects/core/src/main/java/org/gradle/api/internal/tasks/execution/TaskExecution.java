@@ -52,9 +52,15 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.ExecutionContext;
+import org.gradle.internal.execution.Identity;
+import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
+import org.gradle.internal.execution.OutputVisitor;
+import org.gradle.internal.execution.WorkOutput;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -155,19 +161,19 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     @Override
-    public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+    public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         return task::getPath;
     }
 
     @Override
-    public WorkOutput execute(ExecutionRequest executionRequest) {
-        FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
+    public WorkOutput execute(ExecutionContext executionContext) {
+        FileCollection previousFiles = executionContext.getPreviouslyProducedOutputs()
             .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs))
             .orElseGet(FileCollectionFactory::empty);
         TaskOutputsEnterpriseInternal outputs = (TaskOutputsEnterpriseInternal) task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
         try {
-            WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
+            WorkOutput.WorkResult didWork = executeWithPreviousOutputFiles(executionContext.getInputChanges().orElse(null));
             boolean storeInCache = outputs.getStoreInCache();
             return new WorkOutput() {
                 @Override
@@ -190,18 +196,19 @@ public class TaskExecution implements MutableUnitOfWork {
         }
     }
 
+    @Nullable
     @Override
     public Object loadAlreadyProducedOutput(File workspace) {
         return null;
     }
 
-    private WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {
+    private WorkOutput.WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {
         task.getState().setExecuting(true);
         try {
             LOGGER.debug("Executing actions for {}.", task);
             actionListener.beforeActions(task);
             executeActions(task, inputChanges);
-            return task.getState().getDidWork() ? WorkResult.DID_WORK : WorkResult.DID_NO_WORK;
+            return task.getState().getDidWork() ? WorkOutput.WorkResult.DID_WORK : WorkOutput.WorkResult.DID_NO_WORK;
         } finally {
             task.getState().setExecuting(false);
             actionListener.afterActions(task);
@@ -318,7 +325,7 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     @Override
-    public void visitRegularInputs(InputVisitor visitor) {
+    public void visitMutableInputs(InputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
         for (InputPropertySpec inputProperty : taskProperties.getInputProperties()) {
             visitor.visitInputProperty(
@@ -333,7 +340,7 @@ public class TaskExecution implements MutableUnitOfWork {
                 visitor.visitInputFileProperty(
                     inputFileProperty.getPropertyName(),
                     inputFileProperty.getBehavior(),
-                    new InputFileValueSupplier(
+                    new InputVisitor.InputFileValueSupplier(
                         inputFileProperty.getValue(),
                         inputFileProperty.getNormalizer(),
                         inputFileProperty.getDirectorySensitivity(),
@@ -353,7 +360,7 @@ public class TaskExecution implements MutableUnitOfWork {
                 visitor.visitOutputProperty(
                     property.getPropertyName(),
                     property.getOutputType(),
-                    OutputFileValueSupplier.fromSupplier(property::getOutputFile, property.getPropertyFiles())
+                    OutputVisitor.OutputFileValueSupplier.fromSupplier(property::getOutputFile, property.getPropertyFiles())
                 );
             } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
                 throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
@@ -407,6 +414,10 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
+        // If the task is declared with InputChanges received in its action,
+        // then we know it is prepared to execute non-incrementally.
+        // If the task does not request an InputChanges object, then
+        // we cannot assume if it understands non-incremental execution.
         return getExecutionBehavior() == ExecutionBehavior.INCREMENTAL;
     }
 

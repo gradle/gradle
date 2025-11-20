@@ -40,15 +40,15 @@ See the table below for the Java version supported by a specific Gradle release:
 |===
 |Java version | Support for toolchains | Support for running Gradle
 
-| 8 | N/A | 2.0 to 8.14.*
-| 9 | N/A | 4.3 to 8.14.*
-| 10| N/A | 4.7 to 8.14.*
-| 11| N/A | 5.0 to 8.14.*
-| 12| N/A | 5.4 to 8.14.*
-| 13| N/A | 6.0 to 8.14.*
-| 14| N/A | 6.3 to 8.14.*
-| 15| 6.7 | 6.7 to 8.14.*
-| 16| 7.0 | 7.0 to 8.14.*
+| 8 | N/A | 2.0 to 8.14.x
+| 9 | N/A | 4.3 to 8.14.x
+| 10| N/A | 4.7 to 8.14.x
+| 11| N/A | 5.0 to 8.14.x
+| 12| N/A | 5.4 to 8.14.x
+| 13| N/A | 6.0 to 8.14.x
+| 14| N/A | 6.3 to 8.14.x
+| 15| 6.7 | 6.7 to 8.14.x
+| 16| 7.0 | 7.0 to 8.14.x
 | 17| 7.3 | 7.3 and after
 | 18| 7.5 | 7.5 and after
 | 19| 7.6 | 7.6 and after
@@ -115,7 +115,7 @@ Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Grad
 
 == Android
 
-Gradle is tested with Android Gradle Plugin 8.13 through 9.0.0-alpha11.
+Gradle is tested with Android Gradle Plugin 8.13 through 9.0.0-beta01.
 Alpha and beta versions may or may not work.
 
 == Target Platforms

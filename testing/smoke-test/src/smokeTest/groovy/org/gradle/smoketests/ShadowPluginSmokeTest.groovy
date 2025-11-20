@@ -17,39 +17,15 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
 class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    @Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
-    def 'shadow plugin'() {
-        given:
-        buildFile << """
-            import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
-
-            plugins {
-                id 'java' // or 'groovy' Must be explicitly applied
-                id 'com.gradleup.shadow' version '$TestedVersions.shadow'
-            }
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                implementation 'commons-collections:commons-collections:3.2.2'
-            }
-
-            shadowJar {
-                transform(ServiceFileTransformer)
-                relocate("org.apache.commons.collections", "shadow.org.apache.commons.collections")
-
-                manifest {
-                    attributes 'Test-Entry': 'PASSED'
-                }
-            }
-            """.stripIndent()
-
+    def setup() {
         file("src/main/java/org/example/ExampleAnnotation.java").java """
             package org.example;
             public @interface ExampleAnnotation {
@@ -84,10 +60,42 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                     }
                 }
             }
-            """
+        """
+    }
+
+    String getCommon() {
+        """
+            import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
+
+            plugins {
+                id("java-library")
+                id("com.gradleup.shadow").version("$TestedVersions.shadow")
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation("commons-collections:commons-collections:3.2.2")
+            }
+
+            shadowJar {
+                transform(ServiceFileTransformer)
+                relocate("org.apache.commons.collections", "shadow.org.apache.commons.collections")
+
+                manifest {
+                    attributes 'Test-Entry': 'PASSED'
+                }
+            }
+        """
+    }
+
+    def 'shadow plugin'() {
+        given:
+        buildFile << """
+            $common
+        """
 
         when:
-
         def result = runner('shadowJar').build()
 
         then:
@@ -109,6 +117,92 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         if (GradleContextualExecuter.isConfigCache()) {
             result.assertConfigurationCacheStateLoaded()
         }
+    }
+
+    String publishTo(MavenFileRepository mavenRepo) {
+        """
+            publishing {
+                publications {
+                    shadow(MavenPublication) {
+                        groupId = "org"
+                        artifactId = "foo"
+                        version = "1.0"
+
+                        from(components["shadow"])
+                    }
+                }
+
+                repositories {
+                    maven {
+                        url = uri("${mavenRepo.uri}")
+                    }
+                }
+
+            }
+        """
+    }
+
+    @Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
+    def 'can publish shadowed project'() {
+        given:
+        MavenFileRepository mavenRepo = new MavenFileRepository(file("maven-repo"))
+
+        buildFile << """
+            plugins {
+                id("maven-publish")
+            }
+
+            $common
+            ${publishTo(mavenRepo)}
+        """
+
+        when:
+        def result = runner('publish').build()
+
+        then:
+        result.task(':shadowJar').outcome == SUCCESS
+        result.task(':generateMetadataFileForShadowPublication').outcome == SUCCESS
+        result.task(':generatePomFileForShadowPublication').outcome == SUCCESS
+        result.task(':publishShadowPublicationToMavenRepository').outcome == SUCCESS
+
+        and:
+        def module = mavenRepo.module("org", "foo", "1.0")
+        module.assertPublished()
+        module.moduleDir.file("foo-1.0-all.jar").exists()
+    }
+
+    def "can publish shadowed project with dependency on non-published project"() {
+        given:
+        MavenFileRepository mavenRepo = new MavenFileRepository(file("maven-repo"))
+
+        settingsFile << """
+            include 'lib'
+        """
+        file("lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("maven-publish")
+            }
+
+            $common
+
+            dependencies {
+                implementation(project(':lib'))
+            }
+
+            ${publishTo(mavenRepo)}
+        """
+
+        when:
+        def result = runner('publish').build()
+
+        then:
+        result.task(":lib:jar").outcome == SUCCESS
     }
 
     @Override

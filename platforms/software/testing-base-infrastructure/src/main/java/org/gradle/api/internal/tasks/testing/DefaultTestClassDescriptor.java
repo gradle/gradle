@@ -19,6 +19,13 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * Note that as of Gradle 9.3, this class is also used for non-class-based testing and may not
+ * represent a class at all.
+ * <p>
+ * Thus {@link #getClassName()} and {@link #getClassDisplayName()} may return identifiers
+ * that are <strong>NOT</strong> class names.
+ */
 @UsedByScanPlugin("test-distribution")
 public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
     private final String classDisplayName;

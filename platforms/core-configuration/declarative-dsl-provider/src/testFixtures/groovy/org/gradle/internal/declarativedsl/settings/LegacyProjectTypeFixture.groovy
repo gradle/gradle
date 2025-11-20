@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder // codenarc-disable-line UnusedImport
-import org.gradle.api.internal.plugins.ProjectTypeBindingRegistration // codenarc-disable-line UnusedImport
+import org.gradle.api.internal.plugins.ProjectTypeBinding // codenarc-disable-line UnusedImport
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -155,7 +155,7 @@ trait LegacyProjectTypeFixture extends ProjectTypeFixture {
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.tasks.Nested;
                 import ${SoftwareType.class.name};
-                import ${ProjectTypeBindingRegistration.class.name};
+                import ${ProjectTypeBinding.class.name};
                 import ${ProjectTypeBindingBuilder.class.name};
                 import javax.inject.Inject;
 

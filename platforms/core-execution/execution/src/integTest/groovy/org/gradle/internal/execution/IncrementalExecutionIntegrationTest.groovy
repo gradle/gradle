@@ -54,8 +54,8 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
 
 class IncrementalExecutionIntegrationTest extends Specification implements ValidationMessageChecker {
     @Rule
@@ -135,7 +135,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             "file1": file("parent1/outFile"),
             "file2": file("parent2/outFile")
         ).withWork { ->
-            UnitOfWork.WorkResult.DID_WORK
+            WorkOutput.WorkResult.DID_WORK
         }.build()
 
         when:
@@ -588,7 +588,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     def "results are loaded from identity cache"() {
         def work = builder.build()
-        def cache = new ManualEvictionInMemoryCache<UnitOfWork.Identity, Try<Object>>()
+        def cache = new ManualEvictionInMemoryCache<Identity, Try<Object>>()
 
         when:
         def executedResult = executeDeferred(work, cache)
@@ -616,7 +616,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         ]
         def unitOfWork = builder.withOutputDirs(outputDir).withWork { ->
             files.each { it.createFile() }
-            UnitOfWork.WorkResult.DID_WORK
+            WorkOutput.WorkResult.DID_WORK
         }.build()
         execute(unitOfWork)
 
@@ -697,7 +697,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         createExecutor().createRequest(unitOfWork).execute()
     }
 
-    String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
+    String executeDeferred(UnitOfWork unitOfWork, Cache<Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
         def result = createExecutor().createRequest(unitOfWork)
             .executeDeferred(cache)

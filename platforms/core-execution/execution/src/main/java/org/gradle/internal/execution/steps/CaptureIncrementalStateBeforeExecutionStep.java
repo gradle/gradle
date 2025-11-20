@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
@@ -26,6 +27,8 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.jspecify.annotations.Nullable;
+
+import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS;
 
 public class CaptureIncrementalStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends AbstractCaptureStateBeforeExecutionStep<C, R> {
     private final OutputSnapshotter outputSnapshotter;
@@ -51,7 +54,8 @@ public class CaptureIncrementalStateBeforeExecutionStep<C extends PreviousExecut
     @Nullable
     @Override
     protected OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
-        if (work.getOverlappingOutputHandling() == UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS) {
+        MutableUnitOfWork mutableWork = (MutableUnitOfWork) work;
+        if (mutableWork.getOverlappingOutputHandling() == IGNORE_OVERLAPS) {
             return null;
         }
         ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = context.getPreviousExecutionState()

@@ -115,6 +115,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
     }
 
     @Override
+    public void sourceSets(Action<? super SourceSetContainer> action) {
+        action.execute(getSourceSets());
+    }
+
+    @Override
     public DirectoryProperty getDocsDir() {
         return docsDir;
     }

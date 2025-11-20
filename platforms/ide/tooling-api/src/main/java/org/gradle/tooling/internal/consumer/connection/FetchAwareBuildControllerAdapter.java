@@ -25,7 +25,7 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.internal.protocol.resiliency.InternalFetchAwareBuildController;
+import org.gradle.tooling.internal.protocol.InternalFetchAwareBuildController;
 import org.gradle.tooling.model.Model;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

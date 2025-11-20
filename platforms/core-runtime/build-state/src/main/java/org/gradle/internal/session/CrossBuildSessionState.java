@@ -32,6 +32,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -47,12 +48,12 @@ import java.util.List;
 public class CrossBuildSessionState implements Closeable {
     private final ServiceRegistry services;
 
-    public CrossBuildSessionState(ServiceRegistry parent, StartParameterInternal startParameter) {
+    public CrossBuildSessionState(ServiceRegistry parent, StartParameterInternal startParameter, File userActionRootDir) {
         this.services = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.CrossBuildSession.class)
             .displayName("cross session services")
             .parent(parent)
-            .provider(new Services(startParameter))
+            .provider(new Services(startParameter, userActionRootDir))
             .build();
         // Trigger listener to wire itself in
         services.get(BuildOperationTrace.class);
@@ -70,9 +71,11 @@ public class CrossBuildSessionState implements Closeable {
     private class Services implements ServiceRegistrationProvider {
 
         private final StartParameterInternal startParameter;
+        private final File userActionRootDir;
 
-        public Services(StartParameterInternal startParameter) {
+        public Services(StartParameterInternal startParameter, File userActionRootDir) {
             this.startParameter = startParameter;
+            this.userActionRootDir = userActionRootDir;
         }
 
         @Provides
@@ -80,7 +83,7 @@ public class CrossBuildSessionState implements Closeable {
             for (GradleModuleServices services : servicesProviders) {
                 services.registerCrossBuildSessionServices(registration);
             }
-            registration.add(CrossBuildSessionParameters.class, new CrossBuildSessionParameters(startParameter));
+            registration.add(CrossBuildSessionParameters.class, new CrossBuildSessionParameters(startParameter, userActionRootDir));
             registration.add(CrossBuildSessionState.class, CrossBuildSessionState.this);
             registration.add(BuildOperationsParameters.class, DefaultBuildOperationsParameters.class);
         }

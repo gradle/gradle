@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider
@@ -25,7 +25,7 @@ import org.gradle.internal.execution.workspace.MutableWorkspaceProvider
 import java.time.Duration
 
 class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
-    def delegateExecution = Mock(ExecutionEngine.Execution)
+    def delegateExecution = Mock(Execution)
     def delegateResult = Stub(CachingResult) {
         duration >> Duration.ZERO
         execution >> Try.successful(delegateExecution)

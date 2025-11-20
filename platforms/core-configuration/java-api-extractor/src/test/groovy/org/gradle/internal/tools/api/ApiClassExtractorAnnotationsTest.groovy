@@ -128,6 +128,178 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].path() == 'somePath'
     }
 
+    void "type annotations on method params are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                public class A {
+                    public void foo(@Ann(path="somePath") String foo) {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.getDeclaredMethod('foo', String).annotatedParameterTypes
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def annClazz = api.classes.Ann
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.getDeclaredMethod('foo', String).annotatedParameterTypes
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotations[0].annotationType().name == 'Ann'
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotations[0].annotationType() == extractedAnn
+        extractedAnnotations[0].annotations[0].path() == 'somePath'
+    }
+
+    void "mixed annotations on method params are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                public class A {
+                    public void foo(@Ann(path="somePath") @Ann2 String foo) {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            ''',
+            Ann2: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.PARAMETER})
+                public @interface Ann2 {
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def paramAnnotations = clazz.clazz.getDeclaredMethod('foo', String).parameterAnnotations[0]
+        def typeAnnotations = clazz.clazz.getDeclaredMethod('foo', String).annotatedParameterTypes
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def annClazz = api.classes.Ann
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedTypeAnnotations = extractedClass.getDeclaredMethod('foo', String).annotatedParameterTypes
+        def ann2Clazz = api.classes.Ann2
+        def extractedAnn2 = api.extractAndLoadApiClassFrom(ann2Clazz)
+        def extractedParamAnnotations = extractedClass.getDeclaredMethod('foo', String).parameterAnnotations[0]
+
+        then:
+        typeAnnotations.size() == 1
+        typeAnnotations[0].annotations[0].annotationType().name == 'Ann'
+        extractedTypeAnnotations.size() == 1
+        extractedTypeAnnotations[0].annotations[0].annotationType() == extractedAnn
+        extractedTypeAnnotations[0].annotations[0].path() == 'somePath'
+        paramAnnotations.size() == 1
+        paramAnnotations[0].annotationType().name == 'Ann2'
+        extractedParamAnnotations.size() == 1
+        extractedParamAnnotations[0].annotationType() == extractedAnn2
+
+    }
+
+    void "annotations on constructor params are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                public class A {
+                    public A(@Ann(path="somePath") String foo) {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.PARAMETER})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.getDeclaredConstructor(String).parameterAnnotations[0]
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def annClazz = api.classes.Ann
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.getDeclaredConstructor(String).parameterAnnotations[0]
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotationType().name == 'Ann'
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotationType() == extractedAnn
+        extractedAnnotations[0].path() == 'somePath'
+    }
+
+    void "type annotations on constructor params are retained"() {
+        given:
+        def api = toApi([
+            A  : '''
+                public class A {
+                    public A(@Ann(path="somePath") String foo) {}
+                }
+            ''',
+            Ann: '''
+                import java.lang.annotation.ElementType;
+                import java.lang.annotation.Retention;
+                import java.lang.annotation.RetentionPolicy;
+                import java.lang.annotation.Target;
+
+                @Retention(RetentionPolicy.RUNTIME)
+                @Target({ElementType.TYPE_USE})
+                public @interface Ann {
+                    String path();
+                }
+            '''
+        ])
+
+        when:
+        def clazz = api.classes.A
+        def annotations = clazz.clazz.getDeclaredConstructor(String).annotatedParameterTypes
+        def extractedClass = api.extractAndLoadApiClassFrom(clazz)
+        def annClazz = api.classes.Ann
+        def extractedAnn = api.extractAndLoadApiClassFrom(annClazz)
+        def extractedAnnotations = extractedClass.getDeclaredConstructor(String).annotatedParameterTypes
+
+        then:
+        annotations.size() == 1
+        annotations[0].annotations[0].annotationType().name == 'Ann'
+        extractedAnnotations.size() == 1
+        extractedAnnotations[0].annotations[0].annotationType() == extractedAnn
+        extractedAnnotations[0].annotations[0].path() == 'somePath'
+    }
+
     void "annotations on field are retained"() {
         given:
         def api = toApi([

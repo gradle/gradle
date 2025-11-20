@@ -82,7 +82,7 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
         if (!name.endsWith(".jar")) {
             return false;
         }
-        return name.startsWith("gradle-kotlin-dsl-") || name.startsWith("gradle-core-api-") || name.startsWith("kotlin-script-runtime-");
+        return name.startsWith("gradle-kotlin-dsl-") || name.startsWith("gradle-core-api-") || name.startsWith("gradle-base-services-") || name.startsWith("kotlin-script-runtime-");
     }
 }
 

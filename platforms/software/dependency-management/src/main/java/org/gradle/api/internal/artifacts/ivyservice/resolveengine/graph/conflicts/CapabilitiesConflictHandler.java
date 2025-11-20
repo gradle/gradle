@@ -33,6 +33,11 @@ public interface CapabilitiesConflictHandler {
     boolean hasConflicts();
 
     /**
+     * Return true iff the given node is involved in a capability conflict.
+     */
+    boolean hasConflictFor(NodeState node);
+
+    /**
      * Resolves next conflict.
      *
      * Must be called only if {@link #hasConflicts()} returns true.

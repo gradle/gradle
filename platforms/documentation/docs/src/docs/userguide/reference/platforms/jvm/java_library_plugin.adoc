@@ -204,9 +204,9 @@ The role of each configuration is described in the following tables.
 The following graph describes how configurations are setup when the Java Library plugin is in use.
 You can use this legend to interpret the colors:
 
-* The configurations in _green_ are the ones a user should use to declare dependencies.
+* The configurations in _blue_ are the ones a user should use to declare dependencies.
 * The configurations in _purple_ are the ones used when a component compiles, or runs against the library.
-* The configurations in _blue_ are internal to the component, for its own use.
+* The configurations in _green_ are internal to the component, for its own use.
 * The tasks in _grey_.
 
 image::java-library-ignore-deprecated-main.png[]

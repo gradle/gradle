@@ -25,7 +25,6 @@ errorprone {
         "StringCharset", // 1 occurrences
         "TypeParameterShadowing", // 4 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
-        "UndefinedEquals", // 1 occurrences
     )
 }
 

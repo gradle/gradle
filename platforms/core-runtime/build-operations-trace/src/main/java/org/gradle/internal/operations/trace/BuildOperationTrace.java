@@ -162,12 +162,12 @@ public class BuildOperationTrace implements Stoppable {
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
+    public BuildOperationTrace(File userActionRootDir, StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
         InternalOptions internalOptions = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
-        String basePath = internalOptions.getOption(TRACE_OPTION).get();
-        if (basePath == null || basePath.equals("false")) {
+        Path basePath = resolveBasePath(internalOptions, userActionRootDir);
+        if (basePath == null) {
             this.outputTree = false;
             this.listener = null;
             this.writer = null;
@@ -185,6 +185,17 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         buildOperationListenerManager.addListener(listener);
+    }
+
+    @Nullable
+    private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
+        String basePath = internalOptions.getOption(TRACE_OPTION).get();
+        if (basePath == null || basePath.equals("false")) {
+            return null;
+        }
+
+        Path base = userActionRootDir.toPath();
+        return basePath.isEmpty() ? base.resolve("operations") : base.resolve(basePath);
     }
 
     @Nullable
@@ -209,14 +220,14 @@ public class BuildOperationTrace implements Stoppable {
 
     private static class DefaultTraceWriter implements TraceWriter {
 
-        private final String basePath;
+        private final Path basePath;
         private final ObjectMapper objectMapper;
         private final OutputStream logOutputStream;
 
-        public DefaultTraceWriter(String basePath) {
+        public DefaultTraceWriter(Path basePath) {
             this.basePath = basePath;
             this.objectMapper = createObjectMapper();
-            this.logOutputStream = openStream(logFile(basePath));
+            this.logOutputStream = openStream(logFile(basePath).toFile());
         }
 
         private static ObjectMapper createObjectMapper() {
@@ -265,6 +276,7 @@ public class BuildOperationTrace implements Stoppable {
         @Override
         public void complete(boolean writeTree) {
             try {
+                System.out.println("Build operation trace: " + logFile(basePath));
                 if (writeTree) {
                     doWriteTreeJson();
                 }
@@ -284,16 +296,16 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         private void writeDetailTree(List<BuildOperationRecord> roots) throws IOException {
-            File outputFile = file(basePath, "-tree.json");
+            File outputFile = withSuffix(basePath, "-tree.json").toFile();
 
-            System.out.println("Writing build operation tree to " + outputFile.getAbsoluteFile().toPath());
+            System.out.println("Build operation trace: writing tree to " + outputFile.getAbsoluteFile().toPath());
             objectMapper.writerWithDefaultPrettyPrinter()
                 .writeValue(outputFile, BuildOperationTree.serialize(roots));
-            System.out.println("Finished writing build operation tree");
+            System.out.println("Build operation trace: finished writing tree");
         }
 
         private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
-            Path outputPath = Paths.get(basePath + "-tree.txt");
+            Path outputPath = withSuffix(basePath, "-tree.txt");
             try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
                 doWriteSummaryTree(roots, writer);
             }
@@ -371,8 +383,8 @@ public class BuildOperationTrace implements Stoppable {
 
     }
 
-    public static BuildOperationTree read(String basePath) {
-        File logFile = logFile(basePath);
+    public static BuildOperationTree readTree(String basePath) {
+        Path logFile = logFile(Paths.get(basePath));
         List<BuildOperationRecord> roots = readLogToTreeRoots(logFile, true);
         return new BuildOperationTree(roots);
     }
@@ -386,12 +398,12 @@ public class BuildOperationTrace implements Stoppable {
      * @param basePath The same path used for {@link #SYSPROP} when the trace was recorded.
      */
     public static BuildOperationTree readPartialTree(String basePath) {
-        File logFile = logFile(basePath);
+        Path logFile = logFile(Paths.get(basePath));
         List<BuildOperationRecord> partialTree = readLogToTreeRoots(logFile, false);
         return new BuildOperationTree(partialTree);
     }
 
-    private static List<BuildOperationRecord> readLogToTreeRoots(final File logFile, boolean completeTree) {
+    private static List<BuildOperationRecord> readLogToTreeRoots(Path logFile, boolean completeTree) {
         try {
             final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -401,7 +413,7 @@ public class BuildOperationTrace implements Stoppable {
 
             final List<SerializedOperationProgress> danglingProgress = new ArrayList<>();
 
-            try (Stream<String> lines = Files.lines(logFile.toPath())) {
+            try (Stream<String> lines = Files.lines(logFile)) {
                 lines.forEach(line -> {
                     Map<String, ?> map;
                     try {
@@ -496,12 +508,12 @@ public class BuildOperationTrace implements Stoppable {
 
     }
 
-    private static File logFile(String basePath) {
-        return file(basePath, "-log.txt");
+    private static Path logFile(Path basePath) {
+        return withSuffix(basePath, "-log.txt");
     }
 
-    private static File file(@Nullable String base, String suffix) {
-        return new File((base == null || base.trim().isEmpty() ? "operations" : base) + suffix).getAbsoluteFile();
+    private static Path withSuffix(Path base, String suffix) {
+        return base.resolveSibling(base.getFileName() + suffix);
     }
 
     static class PendingOperation {
@@ -697,7 +709,7 @@ public class BuildOperationTrace implements Stoppable {
      * silently ignored.
      * <p>
      * The use case for this executor strongly overlaps with that of
-     * {@link org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
+     * {@code org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
      * We should consider merging these implementations.
      */
     private static class AsyncExecutor implements Closeable {

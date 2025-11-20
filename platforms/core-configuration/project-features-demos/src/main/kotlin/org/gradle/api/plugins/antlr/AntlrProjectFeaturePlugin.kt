@@ -21,7 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
-import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration
+import org.gradle.api.internal.plugins.ProjectFeatureBinding
 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToBuildModel
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet
@@ -40,8 +40,8 @@ class AntlrProjectFeaturePlugin : Plugin<Project> {
      *     }
      * }
      */
-    class Binding : ProjectFeatureBindingRegistration {
-        override fun register(builder: ProjectFeatureBindingBuilder) {
+    class Binding : ProjectFeatureBinding {
+        override fun bind(builder: ProjectFeatureBindingBuilder) {
             builder.bindProjectFeatureToBuildModel(
                 "antlr",
                 AntlrGrammarsDefinition::class,

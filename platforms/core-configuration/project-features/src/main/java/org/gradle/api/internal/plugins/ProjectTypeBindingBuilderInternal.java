@@ -19,5 +19,5 @@ package org.gradle.api.internal.plugins;
 import java.util.List;
 
 public interface ProjectTypeBindingBuilderInternal extends ProjectTypeBindingBuilder {
-    List<ProjectFeatureBinding<?, ?>> build();
+    List<ProjectFeatureBindingDeclaration<?, ?>> build();
 }

@@ -44,5 +44,5 @@ public interface TestMetadataEvent {
      * @return the event metadata values
      * @since 8.13
      */
-    Map<String, Object> getValues();
+    Map<String, String> getValues();
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
 
@@ -39,9 +40,9 @@ public class BroadcastChangingOutputsStep<C extends InputChangesContext> impleme
     @Override
     public Result execute(UnitOfWork work, C context) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(context.getWorkspace(), new OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+            public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
                 builder.add(value.getValue().getAbsolutePath());
             }
 

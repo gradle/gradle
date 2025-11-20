@@ -18,6 +18,7 @@ package org.gradle.internal.tools.api.impl;
 
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableSortedSet;
+import org.jspecify.annotations.Nullable;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -25,9 +26,10 @@ import java.util.TreeSet;
 public abstract class AnnotatableMember extends AccessibleMember {
 
     private final SortedSet<AnnotationMember> annotations = new TreeSet<>();
+    @Nullable
     private final String signature;
 
-    public AnnotatableMember(int access, String name, String signature) {
+    public AnnotatableMember(int access, String name, @Nullable String signature) {
         super(access, name);
         this.signature = signature;
     }
@@ -40,6 +42,7 @@ public abstract class AnnotatableMember extends AccessibleMember {
         annotations.add(annotationMember);
     }
 
+    @Nullable
     public String getSignature() {
         return signature;
     }

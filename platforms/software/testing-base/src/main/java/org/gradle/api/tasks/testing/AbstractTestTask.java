@@ -526,6 +526,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             reportGenerator,
             testListenerInternalBroadcaster,
             getReportEntrySkipLevels(),
+            false,
             false
         ))) {
             TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());

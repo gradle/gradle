@@ -856,6 +856,54 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/35625")
+    def "can use manual alignment and capability conflict detection together"() {
+        mavenRepo.module("org.slf4j", "slf4j-simple", "1.7.36").publish()
+
+        mavenRepo.module("org.slf4j", "slf4j-simple", "1.7.27")
+            .dependsOn(mavenRepo.module("org.slf4j", "slf4j-api", "1.7.27").publish())
+            .publish()
+
+        mavenRepo.module("org.apache.logging.log4j", "log4j-slf4j2-impl", "2.20.0")
+            .dependsOn(mavenRepo.module("org.slf4j", "slf4j-api", "1.7.36").publish())
+            .publish()
+
+        given:
+        buildFile << """
+            ${common}
+
+            dependencies {
+                implementation("org.slf4j:slf4j-simple:1.7.27")
+                implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0")
+            }
+
+            def modules = ["org.slf4j:slf4j-api", "org.slf4j:slf4j-simple"]
+            modules.each {
+                dependencies.components.withModule(it) {
+                    def version = id.version
+                    allVariants {
+                        withDependencyConstraints {
+                            modules.each {
+                                add(it + ":" + version)
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        capability("org.gradlex", "slf4j-impl") {
+            forModule("org.slf4j:slf4j-simple")
+            forModule("org.apache.logging.log4j:log4j-slf4j2-impl")
+        }
+
+        when:
+        fails(':checkDeps')
+
+        then:
+        failure.assertHasCause("Component is the target of multiple version constraints with conflicting requirements")
+    }
+
     // region test fixtures
 
     class CapabilityClosure {

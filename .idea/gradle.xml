@@ -247,7 +247,6 @@
             <option value="$PROJECT_DIR$/platforms/jvm/plugins-jvm-test-suite" />
             <option value="$PROJECT_DIR$/platforms/jvm/plugins-test-report-aggregation" />
             <option value="$PROJECT_DIR$/platforms/jvm/scala" />
-            <option value="$PROJECT_DIR$/platforms/jvm/testing-junit-platform" />
             <option value="$PROJECT_DIR$/platforms/jvm/testing-jvm" />
             <option value="$PROJECT_DIR$/platforms/jvm/testing-jvm-infrastructure" />
             <option value="$PROJECT_DIR$/platforms/jvm/toolchains-jvm" />

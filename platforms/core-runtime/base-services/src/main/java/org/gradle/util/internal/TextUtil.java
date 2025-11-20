@@ -16,9 +16,6 @@
 
 package org.gradle.util.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
@@ -28,22 +25,24 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+/**
+ * Utility methods for working with text.
+ * <p>
+ * To keep this class usable from Workers, do <strong>NOT</strong> add dependencies on Guava, which
+ * we don't want to make available at runtime in TestWorkers.
+ */
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
-    private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
-    private static final Joiner KEBAB_JOINER = Joiner.on("-");
-    private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-            return input.toLowerCase(Locale.ROOT);
-        }
-    };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
+    private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
+    private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
 
     /**
      * Returns the line separator for Windows.
@@ -335,10 +334,6 @@ public class TextUtil {
         return normaliseLineSeparators(normaliseFileSeparators(in));
     }
 
-    public static String camelToKebabCase(String camelCase) {
-        return KEBAB_JOINER.join(Iterables.transform(Arrays.asList(UPPER_CASE.split(camelCase)), TO_LOWERCASE));
-    }
-
     /**
      * This method returns the plural ending for an english word for trivial cases depending on the number of elements a list has.
      *
@@ -356,8 +351,64 @@ public class TextUtil {
         return txt + ".";
     }
 
+    // TODO: This should probably also live in GUtil to be with other camel/kebab case methods
     public static String screamingSnakeToKebabCase(String text) {
         return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
+    }
+
+    /**
+     * Converts a camel case string to kebab case. E.g. fooBar -&gt; foo-bar
+     */
+    public static String camelToKebabCase(String camelCase) {
+        return Stream.of(UPPER_CASE.split(camelCase))
+            .map(s -> s.toLowerCase(Locale.ROOT))
+            .collect(Collectors.joining("-"));
+    }
+
+    /**
+     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
+     */
+    public static String toCamelCase(CharSequence string) {
+        return toCamelCase(string, false);
+    }
+
+    /**
+     * Converts an arbitrary string to a lower camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
+     */
+    public static String toLowerCamelCase(CharSequence string) {
+        return toCamelCase(string, true);
+    }
+
+    private static String toCamelCase(CharSequence string, boolean lower) {
+        if (string == null) {
+            return null;
+        }
+        StringBuilder builder = new StringBuilder();
+        Matcher matcher = WORD_SEPARATOR.matcher(string);
+        int pos = 0;
+        boolean first = true;
+        while (matcher.find()) {
+            String chunk = string.subSequence(pos, matcher.start()).toString();
+            pos = matcher.end();
+            if (chunk.isEmpty()) {
+                continue;
+            }
+            if (lower && first) {
+                chunk = StringUtils.uncapitalize(chunk);
+                first = false;
+            } else {
+                chunk = StringUtils.capitalize(chunk);
+            }
+            builder.append(chunk);
+        }
+        String rest = string.subSequence(pos, string.length()).toString();
+        if (lower && first) {
+            rest = StringUtils.uncapitalize(rest);
+        } else {
+            rest = StringUtils.capitalize(rest);
+        }
+        builder.append(rest);
+        return builder.toString();
     }
 
     public static String removeTrailing(String originalString, String suffix) {

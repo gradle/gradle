@@ -21,6 +21,8 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.ExecutionProblemHandler;
+import org.gradle.internal.execution.Identity;
+import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -64,7 +66,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
     private static void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
         MutableReference<Class<?>> workClass = MutableReference.empty();
-        work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
+        work.visitImplementations(new ImplementationVisitor() {
             @Override
             public void visitImplementation(Class<?> implementation) {
                 workClass.set(GeneratedSubclasses.unpack(implementation));
@@ -122,6 +124,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
     @ServiceScope(Scope.Global.class)
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork.Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings);
+        void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings);
     }
 }

@@ -66,9 +66,9 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.execution.InputVisitor
+import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.extensions.core.fileSystemEntryType
@@ -585,7 +585,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun captureWorkInputs(work: UnitOfWork, relevantInputBehaviors: EnumSet<InputBehavior>) {
         captureWorkInputs(work.displayName) { visitStructure ->
-            work.visitRegularInputs(object : InputVisitor {
+            work.visitMutableInputs(object : InputVisitor {
                 override fun visitInputFileProperty(propertyName: String, behavior: InputBehavior, value: InputFileValueSupplier) {
                     if (relevantInputBehaviors.contains(behavior)) {
                         visitStructure(value.files as FileCollectionInternal)

@@ -32,7 +32,7 @@ import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.inject.Inject;
 
@@ -79,7 +79,7 @@ public abstract class SwiftApplicationPlugin implements Plugin<Project> {
         project.getComponents().add(application);
 
         // Setup component
-        application.getModule().convention(GUtil.toCamelCase(project.getName()));
+        application.getModule().convention(TextUtil.toCamelCase(project.getName()));
 
         application.getTargetMachines().convention(Dimensions.useHostAsDefaultTargetMachine(targetMachineFactory));
         application.getDevelopmentBinary().convention(project.provider(() -> {

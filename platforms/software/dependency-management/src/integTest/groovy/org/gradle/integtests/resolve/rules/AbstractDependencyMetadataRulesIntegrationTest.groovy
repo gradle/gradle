@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
-import static org.gradle.util.internal.GUtil.toCamelCase
+import static org.gradle.util.internal.TextUtil.toCamelCase
 
 abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     @Override

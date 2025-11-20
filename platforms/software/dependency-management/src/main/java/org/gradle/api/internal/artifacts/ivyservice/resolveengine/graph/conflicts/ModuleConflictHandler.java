@@ -34,6 +34,11 @@ public interface ModuleConflictHandler {
     boolean hasConflicts();
 
     /**
+     * Return true iff the given module is involved in a module conflict.
+     */
+    boolean hasConflictFor(CandidateModule module);
+
+    /**
      * Resolves next conflict.
      *
      * Must be called only if {@link #hasConflicts()} returns true.

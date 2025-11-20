@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 /**
  * Verifies behavior of lazily-registered configurations when performing dependency resolution.
@@ -27,6 +28,35 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  * @see org.gradle.api.artifacts.ConfigurationContainer#dependencyScope(String)
  */
 class LazyConfigurationResolveIntegrationTest extends AbstractIntegrationSpec {
+    @Issue("https://github.com/gradle/gradle/issues/35571")
+    def "reproducer for concurrent modification of configuration container while visiting configuration attributes"() {
+        buildFile"""
+            def myTask = tasks.register("myTask") {
+                configurations.getByName("zzz")
+            }
+            configurations {
+                create("trigger") {
+                    dependencies.add(dependencyFactory.create(project))
+                }
+                resolvable("zzz")
+                consumable("bbb")
+                // This must be named something that's alphabetically before the other consumable configurations
+                // to trigger the failure
+                consumable("aaa") {
+                    attributes {
+                        attributeProvider(Attribute.of("taskValue", String), myTask.map { "from task value" })
+                    }
+                }
+            }
+
+            tasks.register("resolve") {
+                dependsOn(configurations.trigger)
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 
     def "does not realize non-consumable, unrelated, role-locked configurations in target project"() {
         settingsFile << "include('producer')"

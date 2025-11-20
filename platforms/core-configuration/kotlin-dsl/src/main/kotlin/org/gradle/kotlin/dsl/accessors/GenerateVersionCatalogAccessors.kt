@@ -23,8 +23,9 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.reflect.TypeOf
 import org.gradle.initialization.DependenciesAccessors.IN_PLUGINS_BLOCK_FACTORIES_SUFFIX
+import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -76,8 +77,8 @@ class GenerateVersionCatalogAccessors(
 
     override val identitySuffix: String = "VC"
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
-        val workspace = executionRequest.workspace
+    override fun execute(executionContext: ExecutionContext): WorkOutput {
+        val workspace = executionContext.workspace
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
                 buildVersionCatalogAccessorsFor(
@@ -87,8 +88,8 @@ class GenerateVersionCatalogAccessors(
                 )
             }
         }
-        return object : UnitOfWork.WorkOutput {
-            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+        return object : WorkOutput {
+            override fun getDidWork() = WorkOutput.WorkResult.DID_WORK
 
             override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
         }

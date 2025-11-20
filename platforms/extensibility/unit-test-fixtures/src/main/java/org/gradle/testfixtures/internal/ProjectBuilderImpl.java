@@ -42,6 +42,7 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
@@ -154,7 +155,8 @@ public class ProjectBuilderImpl {
         final ServiceRegistry globalServices = getGlobalServices();
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
+        File userActionRootDir = globalServices.get(BuildLayoutFactory.class).getLayoutFor(startParameter.toBuildLayoutConfiguration()).getRootDirectory();
+        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter, userActionRootDir);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(new RunTasksRequirements(startParameter));

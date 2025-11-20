@@ -18,6 +18,7 @@ package org.gradle.internal.tools.api.impl;
 
 import org.gradle.internal.tools.api.ApiMemberWriter;
 import org.gradle.internal.tools.api.ApiMemberWriterAdapter;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -83,11 +84,12 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     }
 
     @Override
-    public void writeMethod(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
+    public void writeMethod(ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method) {
         MethodVisitor mv = apiMemberAdapter.visitMethod(
             method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
             method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
+        writeMethodAnnotations(mv, method.getTypeAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
 
         // In some cases ASM generates the wrong number of parameter annotation entries
@@ -109,7 +111,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         mv.visitEnd();
     }
 
-    private static Optional<Integer> calculateNonAnnotableParameterCount(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
+    private static Optional<Integer> calculateNonAnnotableParameterCount(ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method) {
         if (method.getName().equals("<init>")) {
             if ((classMember.getAccess() & ACC_ENUM) == ACC_ENUM) {
                 // Enum constructors have an implicit String and int parameter containing
@@ -142,6 +144,11 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
                 annotationVisitor = mv.visitParameterAnnotation(
                     ((ParameterAnnotationMember) annotation).getParameter(), annotation.getName(),
                     annotation.isVisible());
+            } else if (annotation instanceof TypeAnnotationMember) {
+                TypeAnnotationMember typeAnnotationMember = (TypeAnnotationMember) annotation;
+                annotationVisitor = mv.visitTypeAnnotation(
+                    typeAnnotationMember.getTypeRef(), typeAnnotationMember.getTypePath(),
+                    typeAnnotationMember.getName(), typeAnnotationMember.isVisible());
             } else {
                 annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
             }

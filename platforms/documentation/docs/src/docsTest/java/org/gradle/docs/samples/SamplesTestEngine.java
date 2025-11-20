@@ -64,8 +64,21 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
         this.samplesRunner = new IntegrationTestSamplesRunner(Buckets.class);
     }
 
-    public static String getBucketClassName(String sampleId) {
-        int bucketNumber = Math.abs(sampleId.hashCode()) % Buckets.BUCKET_NUMBER + 1;
+    // By default, the sample id returned by exemplar has a `.sample` suffix,
+    //   resulting something like org.gradle.docs.samples.bucket.Bucket39.snippet-xxx.sample
+    // This will cause TeamCity incorrectly recognize `org.gradle.docs.samples.bucket.Bucket39` as package name,
+    // ` snippet-xxx` as class name, and `sample` as method name, thus parallel tests are disrupted
+    // https://github.com/gradle/gradle/issues/35614#issuecomment-3515646533
+    public static String getNormalizedSampleId(Sample sample) {
+        String sampleId = sample.getId();
+        if (sampleId.endsWith(".sample")) {
+            return sampleId.substring(0, sampleId.length() - ".sample".length());
+        }
+        return sampleId;
+    }
+
+    public static String getBucketClassName(Sample sample) {
+        int bucketNumber = Math.abs(getNormalizedSampleId(sample).hashCode()) % Buckets.BUCKET_NUMBER + 1;
         return String.format("org.gradle.docs.samples.bucket.Bucket%s", bucketNumber);
     }
 
@@ -75,13 +88,13 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
     }
 
     private boolean selectedByClass(Sample sample, Set<String> classNames) {
-        return classNames.contains(getBucketClassName(sample.getId()));
+        return classNames.contains(getBucketClassName(sample));
     }
 
     private boolean selectedByUniqueId(Sample sample, Set<UniqueId> uids) {
-        String className = getBucketClassName(sample.getId());
+        String className = getBucketClassName(sample);
         UniqueId classUid = BucketClassTestDescriptor.getClassUid(className);
-        UniqueId sampleUid = SampleTestDescriptor.getSampleUid(sample.getId());
+        UniqueId sampleUid = SampleTestDescriptor.getSampleUid(sample);
         return uids.contains(classUid) || uids.contains(sampleUid);
     }
 
@@ -108,7 +121,7 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
             List<Sample> samplesToBeRun = determineSamplesToBeRun(discoveryRequest);
 
             Set<String> sampleBucketClassesToBeRun = samplesToBeRun.stream()
-                .map(sample -> getBucketClassName(sample.getId()))
+                .map(SamplesTestEngine::getBucketClassName)
                 .collect(Collectors.toSet());
 
             TestDescriptor engineDescriptor = new EngineDescriptor(SAMPLES_TEST_ENGINE_UID, SAMPLES_TEST_ENGINE_ID);
@@ -122,7 +135,7 @@ public class SamplesTestEngine extends HierarchicalTestEngine<SamplesTestEngine.
             }
 
             for (Sample sample : samplesToBeRun) {
-                String className = getBucketClassName(sample.getId());
+                String className = getBucketClassName(sample);
                 TestDescriptor classDescriptor = classNameToEngineDescriptor.get(className);
                 TestDescriptor sampleDescriptor = new SampleTestDescriptor(sample, samplesRunner);
                 classDescriptor.addChild(sampleDescriptor);

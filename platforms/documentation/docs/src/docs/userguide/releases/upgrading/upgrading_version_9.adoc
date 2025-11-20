@@ -70,6 +70,75 @@ The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[W
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
+==== Deprecated publishing dependency on an unpublished project
+
+When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.
+If the target project has no publication, Gradle currently resolves the dependency silently using the target project’s `group`, `name`, and `version`.
+
+Starting with Gradle 10, this behavior is deprecated. Gradle will no longer silently ignore unpublished projects during publication.
+Publishing a project that depends on another project without a publication will be forbidden.
+This change prevents publishing broken metadata with invalid dependency coordinates.
+
+The example below demonstrates a build that triggers the deprecated behavior:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+dependencies {
+    api(project(":other"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+group = "com.example"
+version = "1.0.0"
+----
+
+To avoid this deprecation, ensure that all project dependencies of published projects are also published.
+In the example above, applying the `maven-publish` plugin and configuring a publication in the `:other` project resolves the issue:
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
 [[deprecate_legacy_usage_values]]
 ==== Deprecation of legacy `Usage` attribute values
 
@@ -89,6 +158,49 @@ To ease migration, Gradle has automatically mapped legacy `Usage` values to thei
 
 Starting with Gradle 10, this automatic mapping will no longer occur when legacy `Usage` values are added directly to an `AttributeContainer` in build logic.
 To maintain backward compatibility, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
+
+[[module_identity_for_root_component]]
+==== Deprecated depending on current project using module coordinates
+
+Starting with Gradle 10, declaring a dependency on the resolving project using module coordinates (`group`, `name`, `version`) will no longer resolve to that project.
+Instead, Gradle will attempt to resolve that dependency from a repository.
+
+The example below demonstrates the change in behavior:
+
+.my-project/build.gradle.kts
+[source,kotlin]
+----
+group = "com.example"
+version = "1.0.0"
+
+val deps = configurations.dependencyScope("deps")
+val classpath = configurations.resolvable("classpath") {
+    extendsFrom(deps.get())
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+val elements = configurations.consumable("elements") {
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+dependencies {
+    // In Gradle 9.x, this dependency resolves to the `elements` configuration.
+    // In Gradle 10, this dependency will attempt to resolve from a repository.
+    deps("com.example:my-project:1.0.0")
+}
+----
+
+To continue depending on the current project, use a `project` dependency:
+
+.my-project/build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    // Declare a dependency on the current project to continue resolving
+    // to the current project.
+    deps(project)
+}
+----
 
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier

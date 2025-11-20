@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 
 // Should use stronger modelling for this and make the set of tools open, rather than hard-coding here
 public enum ToolType {
@@ -44,6 +44,6 @@ public enum ToolType {
 
     @Override
     public String toString() {
-        return GUtil.toLowerCamelCase(name());
+        return TextUtil.toLowerCamelCase(name());
     }
 }

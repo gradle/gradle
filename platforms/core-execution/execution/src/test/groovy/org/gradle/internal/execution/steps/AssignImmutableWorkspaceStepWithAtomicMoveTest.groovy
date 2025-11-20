@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
@@ -42,10 +42,10 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.Duration
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
 import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
-import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace.TemporaryWorkspaceAction
 import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace
+import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace.TemporaryWorkspaceAction
 
 class AssignImmutableWorkspaceStepWithAtomicMoveTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
     def immutableWorkspace = file("immutable-workspace")
@@ -117,7 +117,7 @@ class AssignImmutableWorkspaceStepWithAtomicMoveTest extends StepSpec<IdentityCo
     }
 
     def "runs in temporary workspace when immutable workspace doesn't exist"() {
-        def delegateExecution = Mock(ExecutionEngine.Execution)
+        def delegateExecution = Mock(Execution)
         def delegateDuration = Duration.ofSeconds(1)
         def delegateOriginMetadata = Stub(OriginMetadata)
         def delegateOutputFiles = ImmutableSortedMap.of()
@@ -176,7 +176,7 @@ class AssignImmutableWorkspaceStepWithAtomicMoveTest extends StepSpec<IdentityCo
 
     @Issue("https://github.com/gradle/gradle/issues/27844")
     def "falls back to duplicating temporary workspace when the original cannot be moved atomically"() {
-        def delegateExecution = Mock(ExecutionEngine.Execution)
+        def delegateExecution = Mock(Execution)
         def delegateDuration = Duration.ofSeconds(1)
         def delegateOriginMetadata = Stub(OriginMetadata)
         def delegateOutputFiles = ImmutableSortedMap.of()

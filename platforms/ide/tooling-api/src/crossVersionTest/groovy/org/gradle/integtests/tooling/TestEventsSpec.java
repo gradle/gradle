@@ -19,6 +19,8 @@ package org.gradle.integtests.tooling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 
+import java.util.Map;
+
 /**
  * Spec builder for asserting that a test task emitted the appropriate events.
  */
@@ -59,6 +61,11 @@ interface TestEventSpec {
      * Some metadata to expect
      */
     void metadata(String key, Object value);
+
+    /**
+     * Some metadata to expect
+     */
+    void metadata(Map<String, String> values);
 
     /**
      * Set the expected test display name

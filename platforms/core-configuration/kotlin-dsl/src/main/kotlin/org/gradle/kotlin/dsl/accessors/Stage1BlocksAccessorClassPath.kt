@@ -24,11 +24,12 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
-import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
+import org.gradle.internal.execution.InputVisitor
+import org.gradle.internal.execution.OutputVisitor
+import org.gradle.internal.execution.OutputVisitor.OutputFileValueSupplier
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -154,8 +155,8 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) =
-        UnitOfWork.Identity { "$classLoaderHash-$identitySuffix" }
+    override fun identify(scalarInputs: MutableMap<String, ValueSnapshot>, fileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) =
+        Identity { "$classLoaderHash-$identitySuffix" }
 
     protected
     abstract val identitySuffix: String
@@ -169,11 +170,11 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
 
     override fun getInputFingerprinter() = inputFingerprinter
 
-    override fun visitIdentityInputs(visitor: InputVisitor) {
+    override fun visitImmutableInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY) { classLoaderHash }
     }
 
-    override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
+    override fun visitOutputs(workspace: File, visitor: OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))

@@ -177,7 +177,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         def applicationResults = resultsFor(testDirectory.file('application'), 'tests/test')
         applicationResults.assertAtLeastTestPathsExecuted('application.AdderTest')
 
-        def aggregatedResults = aggregateResults(testDirectory, '')
+        def aggregatedResults = aggregateResults(testDirectory.file('application'), 'tests/test', 'aggregated-results')
         aggregatedResults.assertAtLeastTestPathsExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 

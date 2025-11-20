@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel
 
-@TargetGradleVersion(">=9.2")
+@TargetGradleVersion(">=9.2 <9.3")
 class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "GradleDslBaseScriptModel is obtained without configuring projects"() {

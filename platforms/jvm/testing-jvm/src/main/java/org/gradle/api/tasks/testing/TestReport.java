@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegi
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -55,20 +56,25 @@ public abstract class TestReport extends DefaultTask {
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
     @Inject
+    @Deprecated
     protected abstract BuildOperationRunner getBuildOperationRunner();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
     @Inject
+    @Deprecated
     protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
-    @Inject
-    protected abstract MetadataRendererRegistry getMetadataRendererRegistry();
+    @Deprecated
+    @Internal
+    protected MetadataRendererRegistry getMetadataRendererRegistry() {
+        return new MetadataRendererRegistry();
+    }
 
     /**
      * Returns the directory to write the HTML report to.

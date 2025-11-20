@@ -18,8 +18,8 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
-import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.Execution;
+import org.gradle.internal.execution.Execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
@@ -95,18 +95,18 @@ public class SkipEmptyIncrementalWorkStep extends AbstractSkipEmptyWorkStep<Prev
         String executionReason = null;
         if (outputFilesAfterPreviousExecution.isEmpty()) {
             LOGGER.info("Skipping {} as it has no source files and no previous output files.", work.getDisplayName());
-            skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
+            skipOutcome = Execution.ExecutionOutcome.SHORT_CIRCUITED;
         } else {
             boolean didWork = cleanPreviousOutputs(outputFilesAfterPreviousExecution);
             if (didWork) {
                 LOGGER.info("Cleaned previous output of {} as it has no source files.", work.getDisplayName());
-                skipOutcome = ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+                skipOutcome = Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
                 executionReason = "Cleaned previous output";
             } else {
-                skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
+                skipOutcome = Execution.ExecutionOutcome.SHORT_CIRCUITED;
             }
         }
-        Duration duration = skipOutcome == ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
+        Duration duration = skipOutcome == Execution.ExecutionOutcome.SHORT_CIRCUITED ? Duration.ZERO : Duration.ofMillis(timer.getElapsedMillis());
         return CachingResult.shortcutResult(duration, Execution.skipped(skipOutcome, work), null, executionReason, null);
     }
 

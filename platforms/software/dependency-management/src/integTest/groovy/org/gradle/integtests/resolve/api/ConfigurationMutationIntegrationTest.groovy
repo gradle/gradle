@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
+import org.gradle.util.GradleVersion
 
 class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionTest {
     ResolveTestFixture resolve
@@ -418,7 +419,7 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         """
 
         when:
-        executer.noDeprecationChecks()
+        executer.expectDocumentedDeprecationWarning("foo has been deprecated. This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
         succeeds("resolve")
 
         then:

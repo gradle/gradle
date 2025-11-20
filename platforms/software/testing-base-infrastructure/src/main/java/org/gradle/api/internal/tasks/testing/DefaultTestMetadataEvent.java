@@ -28,9 +28,9 @@ import java.util.Map;
 public final class DefaultTestMetadataEvent implements TestMetadataEvent {
     private final long logTime;
 
-    private final Map<String, Object> values;
+    private final Map<String, String> values;
 
-    public DefaultTestMetadataEvent(long logTime, Map<String, Object> values) {
+    public DefaultTestMetadataEvent(long logTime, Map<String, String> values) {
         this.logTime = logTime;
         this.values = values;
     }
@@ -41,7 +41,7 @@ public final class DefaultTestMetadataEvent implements TestMetadataEvent {
     }
 
     @Override
-    public Map<String, Object> getValues() {
+    public Map<String, String> getValues() {
         return values;
     }
 }

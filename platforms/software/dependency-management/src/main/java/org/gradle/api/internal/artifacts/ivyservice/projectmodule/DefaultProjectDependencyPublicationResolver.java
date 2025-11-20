@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.scopes.Scope;
@@ -137,18 +138,16 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
      * Get the coordinates of a project that has no publications.
      */
     private static <T> T getImplicitCoordinates(Class<T> coordsType, Project project) {
-        // Project has no publications: simply use the project name in place of the dependency name
         if (coordsType.equals(ModuleVersionIdentifier.class)) {
+            DeprecationLogger.deprecateAction("Declaring a dependency on an unpublished project")
+                .withContext("A dependency was declared on " + project.getDisplayName() + ", but that project does not declare any publications.")
+                .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
+                .nagUser();
 
-            // TODO #35531: Deprecate this behavior
-//            String message = "Cannot publish dependency on " + project.getDisplayName() + " since it does not declare any publications. " +
-//                "Publishing a component that depends on another project without publications";
-//            DeprecationLogger.deprecate(message)
-//                .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
-//                .willBecomeAnErrorInGradle10()
-//                .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
-//                .nagUser();
-
+            // These synthetic coordinates are problematic, since they are not the real coordinates of the target project. The target project is not actually published.
+            // We should throw an exception here in all cases in Gradle 10, instead requiring the user to declare at least one publication in the target project.
             return coordsType.cast(DefaultModuleVersionIdentifier.newId(project.getGroup().toString(), project.getName(), project.getVersion().toString()));
         }
 

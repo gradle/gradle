@@ -20,14 +20,14 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
 import java.time.Duration
 
-import static org.gradle.internal.execution.ExecutionEngine.Execution
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
 
 class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
     def step = new SkipUpToDateStep<>(delegate)

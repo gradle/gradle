@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
@@ -38,8 +38,8 @@ import org.gradle.internal.vfs.FileSystemAccess
 import java.time.Duration
 import java.util.function.Supplier
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
 import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
 import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.LockingImmutableWorkspace
 
@@ -150,7 +150,7 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         def existingWorkspaceSnapshot = Stub(DirectorySnapshot) {
             type >> FileType.Directory
         }
-        def delegateExecution = Stub(ExecutionEngine.Execution) {
+        def delegateExecution = Stub(Execution) {
             getOutcome() >> EXECUTED_NON_INCREMENTALLY
         }
         def delegateResult = Stub(CachingResult) {

@@ -17,6 +17,7 @@
 package org.gradle.execution;
 
 import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.slf4j.Logger;
@@ -36,10 +37,10 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningRecorder.class);
 
     // TODO If we can ensure that the recorder is only called once per work execution, then we can demote this to a simple counter
-    private final Set<UnitOfWork.Identity> workWithWarnings = ConcurrentHashMap.newKeySet();
+    private final Set<Identity> workWithWarnings = ConcurrentHashMap.newKeySet();
 
     @Override
-    public void recordValidationWarnings(UnitOfWork.Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings) {
+    public void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings) {
         workWithWarnings.add(identity);
         String uniqueWarnings = warnings.stream()
             .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))

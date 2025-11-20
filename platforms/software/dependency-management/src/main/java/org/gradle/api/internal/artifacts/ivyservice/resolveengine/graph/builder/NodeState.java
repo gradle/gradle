@@ -270,20 +270,21 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private void doVisitDependencies(ExcludeSpec resolutionFilter, StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
-        // If none of the incoming edges are transitive, act as if we have no declared dependencies
-        // and only visit virtual edges to platform owners. If we have any edges from previous traversals,
-        // clear that state.
         if (transitiveEdgeCount == 0 && !isRoot() && canIgnoreExternalVariant()) {
-            cleanupConstraints();
-            if (previousTraversalExclusions != null) {
-                removeOutgoingEdges();
+            assert !incomingEdges.isEmpty();
+
+            // This node is part of the graph, but no incoming edges are transitive.
+            // Act as if we have no declared dependencies. Remove any outgoing edges we may
+            // have from a previous traversal. Virtual platform edges remain in order to
+            // maintain version alignment (this behavior differs from non-virtual platform
+            // edges, which is confusing and potentially not desired).
+            removeOutgoingEdges();
+            if (this.ownStrictVersions == null) {
+                // Compute our own strict versions here, as we are short-circuiting
+                // `visitDependencies`, which usually collects them.
+                collectOwnStrictVersions(resolutionFilter);
             }
-            if (!incomingEdges.isEmpty()) {
-                if (this.ownStrictVersions == null) {
-                    collectOwnStrictVersions(resolutionFilter);
-                }
-                visitOwners(resolutionFilter, ancestorsStrictVersions, discoveredEdges);
-            }
+            visitOwners(resolutionFilter, ancestorsStrictVersions, discoveredEdges);
             return;
         }
 
@@ -328,10 +329,7 @@ public class NodeState implements DependencyGraphNode {
         assert !visitedDependencies || previousTraversalExclusions != null;
 
         // If we have any prior state, clear it before doing a full visit.
-        if (previousTraversalExclusions != null) {
-            removeOutgoingEdges();
-            edgesToRecompute = null;
-        }
+        removeOutgoingEdges();
 
         visitDependencies(resolutionFilter, ancestorsStrictVersions, discoveredEdges);
         visitOwners(resolutionFilter, ancestorsStrictVersions, discoveredEdges);
@@ -381,7 +379,7 @@ public class NodeState implements DependencyGraphNode {
      * * Rescheduling any deferred selection impacted by a constraint coming from this node
      * * Making sure we no longer are registered as pending interest on nodes pointed by constraints
      */
-    void cleanupConstraints() {
+    private void cleanupConstraints() {
         // This part covers constraint that were taken into account between a selection being deferred and this node being scheduled for traversal
         if (upcomingNoLongerPendingConstraints != null) {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
@@ -983,7 +981,29 @@ public class NodeState implements DependencyGraphNode {
             && previousIncomingEdgeCount == incomingEdgeCount;
     }
 
-    private void removeOutgoingEdges() {
+    /**
+     * Returns true if {@link #visitOutgoingDependenciesAndCollectEdges(Collection)}
+     * has never been called, or if it has been called but {@link #removeOutgoingEdges()}
+     * has been called since then.
+     * <p>
+     * If this returns true, this node has no outgoing edges in the graph, and therefore does
+     * not affect the rest of the graph.
+     */
+    boolean isDisconnected() {
+        return previousTraversalExclusions == null && !visitedDependencies;
+    }
+
+    /**
+     * This method is effectively the inverse of {@link #visitOutgoingDependenciesAndCollectEdges(Collection)}.
+     * <p>
+     * Cleans up the outgoing state of this node, undoing any effects this node has on the graph.
+     * To be called when this node is removed from the graph.
+     */
+    public void removeOutgoingEdges() {
+        if (previousTraversalExclusions == null) {
+            return;
+        }
+
         boolean alreadyRemoving = removingOutgoingEdges;
         removingOutgoingEdges = true;
         if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
@@ -1010,10 +1030,12 @@ public class NodeState implements DependencyGraphNode {
             }
             virtualEdges = null;
         }
+        cleanupConstraints();
         previousTraversalExclusions = null;
         previousAncestorsStrictVersions = null;
         visitedDependencies = false;
         cachedFilteredDependencyStates = null;
+        edgesToRecompute = null;
         virtualPlatformNeedsRefresh = false;
         removingOutgoingEdges = alreadyRemoving;
     }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
@@ -43,11 +44,13 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
 
     private final DefaultTestFilter filter;
     private final Provider<Boolean> dryRun;
+    private final ProjectLayout projectLayout;
 
     @Inject
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun) {
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun, ProjectLayout projectLayout) {
         this.filter = filter;
         this.dryRun = dryRun;
+        this.projectLayout = projectLayout;
     }
 
     @UsedByScanPlugin("test-retry")
@@ -55,7 +58,8 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
         JUnitPlatformTestFramework newTestFramework = getObjectFactory().newInstance(JUnitPlatformTestFramework.class,
             newTestFilters,
-            dryRun);
+            dryRun,
+            projectLayout);
 
         newTestFramework.getOptions().copyFrom(getOptions());
         return newTestFramework;
@@ -69,7 +73,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
         validateOptions();
         return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
-            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get()
+            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), projectLayout.getProjectDirectory().getAsFile()
         ));
     }
 

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata
+import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
@@ -116,8 +116,8 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new SerializedMetadata(0, Collections.singletonMap("classKey", "value"))])
-        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new SerializedMetadata(0, Collections.singletonMap("testKey", "value"))]))
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestMetadataEvent(0, Collections.singletonMap("classKey", "value"))])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new DefaultTestMetadataEvent(0, Collections.singletonMap("testKey", "value"))]))
         _ * provider.writeAllOutput(_, _, _)
 
         when:

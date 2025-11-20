@@ -64,7 +64,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPlatformPathLocator;
-import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -114,7 +114,7 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
         project.getComponents().add(testSuite);
 
         // Setup component
-        testSuite.getModule().set(GUtil.toCamelCase(project.getName() + "Test"));
+        testSuite.getModule().set(TextUtil.toCamelCase(project.getName() + "Test"));
 
         final DefaultSwiftXCTestSuite testComponent = testSuite;
 

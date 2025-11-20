@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.UnitOfWork.Identity;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 

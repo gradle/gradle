@@ -20,20 +20,21 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
-    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep;
+    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> pipeline;
     private final InternalProblems problems;
 
-    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep, InternalProblems problems) {
-        this.executeStep = executeStep;
+    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> pipeline, InternalProblems problems) {
+        this.pipeline = pipeline;
         this.problems = problems;
     }
 
@@ -48,7 +49,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             private ExecutionRequestContext createExecutionRequestContext() {
                 WorkValidationContext validationContext = this.validationContext != null
                     ? this.validationContext
-                    : new DefaultWorkValidationContext(work.getTypeOriginInspector(), problems);
+                    : new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems);
                 return new ExecutionRequestContext(nonIncrementalReason, validationContext);
             }
 
@@ -64,12 +65,12 @@ public class DefaultExecutionEngine implements ExecutionEngine {
 
             @Override
             public Result execute() {
-                return executeStep.execute(work, createExecutionRequestContext());
+                return pipeline.execute(work, createExecutionRequestContext());
             }
 
             @Override
-            public <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, IdentityCacheResult<T>> cache) {
-                return executeStep.executeDeferred(work, createExecutionRequestContext(), cache);
+            public <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, DeferredResult<T>> cache) {
+                return pipeline.executeDeferred(work, createExecutionRequestContext(), cache);
             }
         };
     }

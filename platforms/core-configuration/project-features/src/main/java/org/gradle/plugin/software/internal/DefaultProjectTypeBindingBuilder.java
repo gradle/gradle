@@ -19,11 +19,11 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.DslBindingBuilder;
-import org.gradle.api.internal.plugins.DslBindingBuilderInternal;
+import org.gradle.api.internal.plugins.DeclaredProjectFeatureBindingBuilder;
+import org.gradle.api.internal.plugins.DeclaredProjectFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
-import org.gradle.api.internal.plugins.ProjectFeatureBinding;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder;
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
@@ -35,15 +35,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuilderInternal {
-    private final List<DslBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
+    private final List<DeclaredProjectFeatureBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
 
     @Override
-    public <T extends Definition<V>, V extends BuildModel> DslBindingBuilder<T, V> bindProjectType(String name, Class<T> dslType, Class<V> buildModelType, ProjectTypeApplyAction<T, V> transform) {
+    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
         ProjectFeatureApplyAction<T, V, ?> featureTransform = (ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) ->
             transform.transform(context, definition, buildModel);
 
-        DslBindingBuilderInternal<T, V> builder = new DefaultDslBindingBuilder<>(dslType,
-            buildModelType,
+        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(definitionClass,
+            buildModelClass,
             new TargetTypeInformation.DefinitionTargetTypeInformation<>(Project.class),
             Path.path(name),
             featureTransform
@@ -54,8 +54,8 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
     }
 
     @Override
-    public <T extends Definition<V>, V extends BuildModel> DslBindingBuilder<T, V> bindProjectType(String name, Class<T> dslType, ProjectTypeApplyAction<T, V> transform) {
-        return bindProjectType(name, dslType, ModelTypeUtils.getBuildModelClass(dslType), transform);
+    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, ProjectTypeApplyAction<T, V> transform) {
+        return bindProjectType(name, definitionClass, ModelTypeUtils.getBuildModelClass(definitionClass), transform);
     }
 
     public ProjectTypeBindingBuilder apply(Action<ProjectTypeBindingBuilder> configuration) {
@@ -64,9 +64,9 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
     }
 
     @Override
-    public List<ProjectFeatureBinding<?, ?>> build() {
-        List<ProjectFeatureBinding<?, ?>> result = new ArrayList<>();
-        for (DslBindingBuilderInternal<?, ?> binding : bindings) {
+    public List<ProjectFeatureBindingDeclaration<?, ?>> build() {
+        List<ProjectFeatureBindingDeclaration<?, ?>> result = new ArrayList<>();
+        for (DeclaredProjectFeatureBindingBuilderInternal<?, ?> binding : bindings) {
             result.add(binding.build());
         }
         return result;

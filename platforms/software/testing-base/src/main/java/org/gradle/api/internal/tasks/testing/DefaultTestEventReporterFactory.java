@@ -32,6 +32,7 @@ import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -76,7 +77,8 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             reportGenerator,
             testListenerInternalBroadcaster,
             0,
-            closeThrowsOnTestFailures
+            closeThrowsOnTestFailures,
+            true
         );
     }
 
@@ -84,10 +86,11 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     public GroupTestEventReporterInternal createInternalTestEventReporter(
         LongFunction<TestDescriptorInternal> rootDescriptorFactory,
         Directory binaryResultsDirectory,
-        TestReportGenerator reportGenerator,
+        @Nullable TestReportGenerator reportGenerator,
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
         int diskSkipLevels,
-        boolean closeThrowsOnTestFailures
+        boolean closeThrowsOnTestFailures,
+        boolean addToAggregateReports
     ) {
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
@@ -110,7 +113,8 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             resultsSerializingListener,
             reportGenerator,
             executionResultsListenerBroadcaster,
-            closeThrowsOnTestFailures
+            closeThrowsOnTestFailures,
+            addToAggregateReports
         ));
     }
 }

@@ -20,9 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -91,7 +90,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
 
     private static boolean hasEmptyInputFileCollections(UnitOfWork work, Predicate<String> propertyNameFilter) {
         EmptyCheckingVisitor visitor = new EmptyCheckingVisitor(propertyNameFilter);
-        work.visitRegularInputs(visitor);
+        work.visitMutableInputs(visitor);
         return visitor.isAllEmpty();
     }
 
@@ -101,7 +100,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
             getKnownInputFileProperties(context),
             knownValueSnapshots,
             knownFileFingerprints,
-            visitor -> work.visitRegularInputs(new InputVisitor() {
+            visitor -> work.visitMutableInputs(new InputVisitor() {
                 @Override
                 public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                     if (behavior.shouldSkipWhenEmpty()) {

@@ -26,7 +26,7 @@ import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
-import org.gradle.tooling.internal.protocol.resiliency.InternalFetchAwareBuildController;
+import org.gradle.tooling.internal.protocol.InternalFetchAwareBuildController;
 
 import java.io.File;
 

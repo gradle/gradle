@@ -21,7 +21,7 @@ import groovy.transform.SelfType
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.events.task.TaskOperationDescriptor
-import org.gradle.tooling.events.test.JvmTestOperationDescriptor
+import org.gradle.tooling.events.test.TestOperationDescriptor
 
 @SelfType(ToolingApiSpecification)
 @CompileStatic
@@ -40,7 +40,7 @@ trait TestEventsFixture {
             // If it's a task, check if it has any test related operations
             if (it.descriptor instanceof TaskOperationDescriptor) {
                 // keep this in the list if it could be a task running tests
-                return it.children*.descriptor instanceof JvmTestOperationDescriptor
+                return it.children*.descriptor instanceof TestOperationDescriptor
             }
             // keep it if we don't recognize it as something we don't care about
             return true

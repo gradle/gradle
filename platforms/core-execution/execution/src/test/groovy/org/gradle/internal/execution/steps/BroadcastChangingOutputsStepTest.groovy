@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.file.TreeType
 
 class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
@@ -41,8 +41,8 @@ class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
         step.execute(work, context)
 
         then:
-        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("output", TreeType.DIRECTORY, UnitOfWork.OutputFileValueSupplier.fromStatic(outputDir, Mock(FileCollection)))
+        _ * work.visitOutputs(_ as File, _ as OutputVisitor) >> { File workspace, OutputVisitor visitor ->
+            visitor.visitOutputProperty("output", TreeType.DIRECTORY, OutputVisitor.OutputFileValueSupplier.fromStatic(outputDir, Mock(FileCollection)))
             visitor.visitDestroyable(destroyableDir)
             visitor.visitLocalState(localStateDir)
         }

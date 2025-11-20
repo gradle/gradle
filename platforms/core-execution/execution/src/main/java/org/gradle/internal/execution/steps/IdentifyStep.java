@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
+import org.gradle.internal.execution.DeferredResult;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -45,7 +45,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
     }
 
     @Override
-    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, IdentityCacheResult<T>> cache) {
+    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache) {
         return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
@@ -55,14 +55,14 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            work::visitIdentityInputs,
+            work::visitImmutableInputs,
             work.getInputDependencyChecker(context.getValidationContext())
         );
 
-        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
-        Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
+        ImmutableSortedMap<String, ValueSnapshot> scalarInputProperties = inputs.getValueSnapshots();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileInputProperties = inputs.getFileFingerprints();
+        Identity identity = work.identify(scalarInputProperties, fileInputProperties);
 
-        return new IdentityContext(context, identityInputProperties, identityInputFileProperties, identity);
+        return new IdentityContext(context, scalarInputProperties, fileInputProperties, identity);
     }
 }
