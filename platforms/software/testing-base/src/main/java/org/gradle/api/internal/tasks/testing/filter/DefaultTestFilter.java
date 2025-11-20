@@ -20,6 +20,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,6 +36,7 @@ public class DefaultTestFilter implements TestFilter {
     private boolean failOnNoMatching = true;
     private final File projectDir;
 
+    @Inject
     public DefaultTestFilter(File projectDir) {
         this.projectDir = projectDir;
     }
