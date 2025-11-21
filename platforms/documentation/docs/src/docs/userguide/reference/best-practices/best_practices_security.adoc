@@ -44,3 +44,34 @@ The official SHA-256 checksums can be found on the link:https://gradle.org/relea
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
 
+[[build-published-artifacts-securely]]
+== Build your Published Artifacts Securely
+
+When publishing, ensure that artifacts are built in a trusted, reproducible way to protect your software supply chain.
+
+=== Explanation
+
+For a project to be trustworthy, its published artifacts must be reproducible. 
+This means that a clean build from a given set of source files will always produce a byte-for-byte identical output, regardless of when or where the build is executed. 
+To achieve this, the build process must be isolated from any external state that could influence the final artifact.
+
+When preparing a project for publishing, it is critical to use a secure, isolated, and non-incremental build process. This prevents potential security risks and ensures that the published artifact is a direct and verifiable result of the source code.
+that contains minimal infrastructure, such as only the JDK.
+
+==== Don't Do This
+
+Do not use incremental, local, or cached builds when publishing. 
+These methods rely on the outputs of previous builds, which can introduce a security vector. 
+An incremental build might use a leftover artifact from an older, potentially compromised, build. 
+Similarly, using a remote build cache or other caching mechanisms can lead to accidental inclusion of outdated or malicious content, resulting in a non-reproducible artifact. 
+The build output would then be dependent on the state of the machine it was run on, undermining the integrity of your software.
+
+==== Do This Instead
+
+Published artifacts should always be built in a trusted, pristine environment. 
+The best way to achieve this is by using a fresh, isolated, and temporary CI machine. 
+This approach, often referred to as *Ephemeral CI*, guarantees that the build starts from a clean slate every time, with no lingering artifacts, caches, or other external state.
+
+=== Tags
+
+<<tags_reference.adoc:structuring-builds,#structuring-builds>>
