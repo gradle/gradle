@@ -171,6 +171,6 @@ class UnixStartScriptGeneratorTest extends Specification {
         List<String> classpath = ['path\\to\\Jar.jar']
     ) {
         final String applicationName = 'TestApp'
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, "TODO", null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
     }
 }
