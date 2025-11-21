@@ -881,22 +881,15 @@ public class NodeState implements DependencyGraphNode {
             ? StrictVersionConstraints.EMPTY
             : StrictVersionConstraints.of(ImmutableSet.copyOf(constraintsSet));
 
-        if (ownStrictVersions != null && !ownStrictVersions.equals(newStrictVersions)) {
-            // Our strict versions were already computed, and they just changed.
-            // Invalidate any nodes that computed their endorsed strict versions based on our previous value.
-            for (EdgeState incomingEdge : incomingEdges) {
-                if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
-                    incomingEdge.getFrom().invalidateEndorsedStrictVersions();
-                }
-            }
-        }
-
         StrictVersionConstraints existingOwnStrictVersions = this.ownStrictVersions;
         this.ownStrictVersions = newStrictVersions;
 
         if (!newStrictVersions.equals(existingOwnStrictVersions)) {
             for (EdgeState incomingEdge : incomingEdges) {
                 if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
+                    // Our own strict versions contribute to the endorsed strict versions of
+                    // ancestors that endorse us.
+                    incomingEdge.getFrom().invalidateEndorsedStrictVersions();
                     // Our own strict versions contribute to our ancestors strict versions
                     // if our ancestor endorses us.
                     recomputeAncestorsStrictVersions();
