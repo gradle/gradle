@@ -531,7 +531,8 @@ public class NodeState implements DependencyGraphNode {
     ) {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolveState));
         dependencyEdge.updateTransitiveExcludes(resolutionFilter);
-        dependencyEdge.computeSelector(ancestorsStrictVersions, discoveredEdges, deferSelection);
+        dependencyEdge.computeSelector(ancestorsStrictVersions, deferSelection);
+        discoveredEdges.add(dependencyEdge);
         outgoingEdges.add(dependencyEdge);
         dependencyEdge.markUsed();
     }
@@ -603,7 +604,8 @@ public class NodeState implements DependencyGraphNode {
         DependencyState dependencyState = resolveState.getDependencySubstitutionApplicator().applySubstitutions(dependencyMetadata);
         EdgeState edge = new EdgeState(this, dependencyState, resolveState);
         edge.updateTransitiveExcludes(resolutionFilter);
-        edge.computeSelector(ancestorsStrictVersions, discoveredEdges, false);
+        edge.computeSelector(ancestorsStrictVersions, false);
+        discoveredEdges.add(edge);
         if (virtualEdges == null) {
             virtualEdges = new ArrayList<>();
         }
