@@ -312,10 +312,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                     }
                 }
             }
-            if (node.getType().isTest()) {
+            // Check for isContainer first
+            // Some nodes may be CONTAINER_AND_TEST, and we need to treat them as containers
+            if (node.getType().isContainer()) {
+                return createTestContainerDescriptor(node);
+            } else if (node.getType().isTest()) {
                 return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
             } else {
-                return createTestContainerDescriptor(node);
+                throw new IllegalStateException("Unknown TestIdentifier type: " + node.getType());
             }
         });
         return wasCreated.get();
