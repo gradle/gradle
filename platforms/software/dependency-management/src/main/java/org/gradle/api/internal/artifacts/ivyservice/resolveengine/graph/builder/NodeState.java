@@ -414,7 +414,7 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    private void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
+    void prepareToRecomputeEdge(EdgeState edgeToRecompute) {
         if (edgesToRecompute == null) {
             edgesToRecompute = new LinkedHashSet<>();
         }
