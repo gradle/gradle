@@ -41,6 +41,10 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
+### Daemon logging improvements
+
+Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
+
 <!--
 
 ================== TEMPLATE ==============================

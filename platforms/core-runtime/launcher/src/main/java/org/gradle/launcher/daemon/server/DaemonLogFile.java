@@ -18,18 +18,26 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.UUID;
 
 /**
  * Carries the location of the log file for the current daemon.
  */
 @ServiceScope(Scope.Global.class)
 public class DaemonLogFile {
+    public static final String DAEMON_LOG_SUFFIX = ".out.log";
+    public static final String DAEMON_LOG_PREFIX = "daemon-";
     private final File file;
 
     public DaemonLogFile(File file) {
         this.file = file;
+    }
+
+    static String getDaemonLogFileName(@Nullable Long pid) {
+        return DAEMON_LOG_PREFIX + (pid == null ? UUID.randomUUID() : pid) + DAEMON_LOG_SUFFIX;
     }
 
     public File getFile() {
