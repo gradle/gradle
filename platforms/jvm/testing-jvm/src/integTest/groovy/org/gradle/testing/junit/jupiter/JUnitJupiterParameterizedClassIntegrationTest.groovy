@@ -29,6 +29,7 @@ class JUnitJupiterParameterizedClassIntegrationTest extends JUnitPlatformIntegra
 
             import org.junit.jupiter.api.Test;
             import org.junit.jupiter.params.ParameterizedClass;
+            import org.junit.jupiter.params.ParameterizedTest;
             import org.junit.jupiter.params.provider.ValueSource;
 
             @ParameterizedClass
@@ -44,6 +45,12 @@ class JUnitJupiterParameterizedClassIntegrationTest extends JUnitPlatformIntegra
                 public void sayValue() {
                     System.out.println("Value: " + value);
                 }
+
+                @ParameterizedTest
+                @ValueSource(strings = { "buckle", "shoe" })
+                public void sayCombinedValue(String suffix) {
+                    System.out.println("Combined Value: " + value + " " + suffix);
+                }
             }
             '''
 
@@ -54,17 +61,36 @@ class JUnitJupiterParameterizedClassIntegrationTest extends JUnitPlatformIntegra
         def testResults = resultsFor(testDirectory)
         testResults.assertTestPathsExecuted(
             ":org.gradle.ParamClass:org.gradle.ParamClass[1]:sayValue()",
-            ":org.gradle.ParamClass:org.gradle.ParamClass[2]:sayValue()"
+            ":org.gradle.ParamClass:org.gradle.ParamClass[1]:sayCombinedValue(String):sayCombinedValue(String)[1]",
+            ":org.gradle.ParamClass:org.gradle.ParamClass[1]:sayCombinedValue(String):sayCombinedValue(String)[2]",
+            ":org.gradle.ParamClass:org.gradle.ParamClass[2]:sayValue()",
+            ":org.gradle.ParamClass:org.gradle.ParamClass[2]:sayCombinedValue(String):sayCombinedValue(String)[1]",
+            ":org.gradle.ParamClass:org.gradle.ParamClass[2]:sayCombinedValue(String):sayCombinedValue(String)[2]",
         )
         testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[1]").onlyRoot()
             .assertDisplayName(equalTo("[1] one"))
         testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[2]").onlyRoot()
             .assertDisplayName(equalTo("[2] two"))
+        for (int i = 1; i <= 2; i++) {
+            testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[1]").onlyRoot()
+                .assertDisplayName(equalTo("[1] buckle"))
+            testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[2]").onlyRoot()
+                .assertDisplayName(equalTo("[2] shoe"))
+        }
         testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[1]:sayValue()").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(equalTo("Value: one\n"))
         testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[2]:sayValue()").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(equalTo("Value: two\n"))
+        for (int i = 1; i <= 2; i++) {
+            String value = (i == 1) ? "one" : "two"
+            testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[1]").onlyRoot()
+                .assertHasResult(TestResult.ResultType.SUCCESS)
+                .assertStdout(equalTo("Combined Value: $value buckle\n".toString()))
+            testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[2]").onlyRoot()
+                .assertHasResult(TestResult.ResultType.SUCCESS)
+                .assertStdout(equalTo("Combined Value: $value shoe\n".toString()))
+        }
     }
 }
