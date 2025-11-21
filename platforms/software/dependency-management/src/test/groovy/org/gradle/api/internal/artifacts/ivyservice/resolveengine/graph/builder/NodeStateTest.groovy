@@ -202,8 +202,8 @@ class NodeStateTest extends Specification {
             getDependencyMetadata() >> dependencyMetadata
         }
 
-        to.addIncomingEdge(edge)
         from.outgoingEdges.add(edge)
+        to.addIncomingEdge(edge)
 
         edge
     }
@@ -215,9 +215,8 @@ class NodeStateTest extends Specification {
     }
 
     StrictVersionConstraints visit(NodeState node) {
-        node.collectOwnStrictVersions(new ModuleExclusions().nothing())
-        node.previousAncestorsStrictVersions = node.collectAncestorsStrictVersions()
-        node.previousAncestorsStrictVersions
+        node.recomputeAncestorsStrictVersions()
+        node.ancestorsStrictVersions
     }
 
     private NodeState node(List<String> strictDependencies = []) {
@@ -235,6 +234,7 @@ class NodeStateTest extends Specification {
         def component = Stub(ComponentState)
         def node = new NodeState(idIdx++, component, resolveState, state, true)
         component.nodes >> [node]
+        node.collectOwnStrictVersions(new ModuleExclusions().nothing())
         node
     }
 
