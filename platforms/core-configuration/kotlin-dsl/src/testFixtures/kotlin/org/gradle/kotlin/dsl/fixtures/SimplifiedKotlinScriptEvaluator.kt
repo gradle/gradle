@@ -31,7 +31,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.kotlin.dsl.execution.CompiledScript
@@ -139,6 +138,7 @@ class SimplifiedKotlinScriptEvaluator(
     private
     fun scriptSourceFor(script: String): ScriptSource = mock {
         on { fileName } doReturn "script.gradle.kts"
+        on { className } doReturn "Script_gradle"
         on { shortDisplayName } doReturn Describables.of("<test script>")
         on { resource } doReturn StringTextResource("<test script>", script)
     }
