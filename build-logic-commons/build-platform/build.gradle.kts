@@ -54,7 +54,7 @@ dependencies {
         }
         api("com.google.code.findbugs:jsr305:3.0.2")
         api("org.jspecify:jspecify:1.0.0")
-        api("commons-io:commons-io:2.14.0")
+        api("commons-io:commons-io:2.15.1")
         api("org.apache.commons:commons-lang3:3.17.0")
         api("javax.activation:activation:1.1.1")
         api("jakarta.xml.bind:jakarta.xml.bind-api:4.0.2")

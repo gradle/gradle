@@ -34,7 +34,7 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
 
             dependencies {
                 implementation "commons-collections:commons-collections:3.2.2"
-                runtimeOnly "commons-io:commons-io:1.4"
+                runtimeOnly "commons-io:commons-io:2.15.1"
                 providedCompile "commons-lang:commons-lang:2.6"
                 providedRuntime "commons-cli:commons-cli:1.2"
                 testImplementation "junit:junit:4.13"

@@ -157,7 +157,7 @@ ${mavenCentralRepository()}
 dependencies {
     ${implementationConfiguration} 'commons-lang:commons-lang:2.5'
     ${implementationConfiguration} project(':a')
-    ${runtimeConfiguration} 'commons-io:commons-io:1.4'
+    ${runtimeConfiguration} 'commons-io:commons-io:2.15.1'
 }
 """
 

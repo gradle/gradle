@@ -178,7 +178,7 @@ repositories {
     }
 }
 configurations { compile }
-dependencies { compile 'commons-io:commons-io:1.4@jar' }
+dependencies { compile 'commons-io:commons-io:2.15.1@jar' }
 """
 
         50.times { i ->

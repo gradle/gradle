@@ -29,7 +29,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         """dependencies {
                api "commons-collections:commons-collections:3.2.2"
                compileOnly "javax.servlet:servlet-api:2.5"
-               runtimeOnly "commons-io:commons-io:1.4"
+               runtimeOnly "commons-io:commons-io:2.15.1"
                testImplementation "junit:junit:4.13"
            }
 """
@@ -64,7 +64,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile", "runtime"])
         }
         javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
-        javaLibrary.assertRuntimeDependencies('commons-collections:commons-collections:3.2.2', 'commons-io:commons-io:1.4')
+        javaLibrary.assertRuntimeDependencies('commons-collections:commons-collections:3.2.2', 'commons-io:commons-io:2.15.1')
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -363,7 +363,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             }
         }
         javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
-            dependency('commons-io:commons-io:1.4') {
+            dependency('commons-io:commons-io:2.15.1') {
                 hasExclude('runtimeElements-group', 'runtimeElements-module')
                 hasExclude('implementation-group', 'implementation-module')
                 hasExclude('api-group', 'api-module')

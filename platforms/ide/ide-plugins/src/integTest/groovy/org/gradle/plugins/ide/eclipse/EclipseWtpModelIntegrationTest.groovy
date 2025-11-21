@@ -450,7 +450,7 @@ project(':contrib') {
             ${mavenCentralRepository()}
 
             dependencies {
-              implementation 'commons-io:commons-io:1.4'
+              implementation 'commons-io:commons-io:2.15.1'
               implementation project(':someCoolLib')
             }
         """
@@ -489,7 +489,7 @@ project(':contrib') {
             ${mavenCentralRepository()}
 
             dependencies {
-              implementation 'commons-io:commons-io:1.4'
+              implementation 'commons-io:commons-io:2.15.1'
             }
 
             import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
@@ -528,7 +528,7 @@ project(':contrib') {
            ${mavenCentralRepository()}
 
            dependencies {
-               runtimeOnly 'commons-io:commons-io:1.4'
+               runtimeOnly 'commons-io:commons-io:2.15.1'
                runtimeOnly files('libs/myFoo.jar')
            }
 
@@ -560,7 +560,7 @@ project(':contrib') {
            ${mavenCentralRepository()}
 
            dependencies {
-               runtimeOnly 'commons-io:commons-io:1.4'
+               runtimeOnly 'commons-io:commons-io:2.15.1'
                runtimeOnly files('libs/myFoo.jar')
            }
 

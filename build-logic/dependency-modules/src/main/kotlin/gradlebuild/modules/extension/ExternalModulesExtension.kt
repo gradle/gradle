@@ -54,7 +54,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val commonsCodec = "commons-codec:commons-codec"
     val commonsCompress = "org.apache.commons:commons-compress"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
-    val commonsIo = "commons-io:commons-io"
+    val commonsIo = "commons-io:commons-io:2.15.1"
     val commonsLang = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
     val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"

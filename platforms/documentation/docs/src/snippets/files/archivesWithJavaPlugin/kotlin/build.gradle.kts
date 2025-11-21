@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    implementation("commons-io:commons-io:2.6")
+    implementation("commons-io:commons-io:2.15.1")
 }
 
 tasks.register<Jar>("uberJar") {

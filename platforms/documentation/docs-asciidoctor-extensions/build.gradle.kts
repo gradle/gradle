@@ -10,7 +10,7 @@ dependencies {
     api("org.asciidoctor:asciidoctorj-api:$asciiDoctorVersion")
     api("org.asciidoctor:asciidoctorj:$asciiDoctorVersion")
 
-    implementation("commons-io:commons-io:2.11.0")
+    implementation("commons-io:commons-io:2.15.1")
     implementation(projects.docsAsciidoctorExtensionsBase)
 }
 
