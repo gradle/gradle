@@ -1,0 +1,38 @@
+[beforeSettings] Disabling parallel execution, not on CI
+
+[settingsEvaluated] rootProject = callback
+[settingsEvaluated] Ensuring company plugin repo is configured
+
+[projectsLoaded] Projects discovered: callback, app, lib
+[projectsLoaded] Setting extra property on callback
+[lifecycle.beforeProject] Started configuring :
+[projectsLoaded] Setting extra property on app
+[lifecycle.beforeProject] Started configuring :app
+[projectsLoaded] Setting extra property on lib
+[lifecycle.beforeProject] Started configuring :lib
+
+> Configure project :
+[beforeProject] Started configuring :
+[beforeProject] Setup a global build directory for callback
+[afterProject] Finished configuring :
+[afterProject] Applying java plugin to :
+[lifecycle.afterProject] Finished configuring :
+
+> Configure project :app
+[beforeProject] Started configuring :app
+[beforeProject] Setup a global build directory for app
+[afterProject] Finished configuring :app
+[afterProject] :app already has the java plugin
+[lifecycle.afterProject] Finished configuring :app
+
+> Configure project :lib
+[beforeProject] Started configuring :lib
+[beforeProject] Setup a global build directory for lib
+[afterProject] Finished configuring :lib
+[afterProject] Applying java plugin to :lib
+[lifecycle.afterProject] Finished configuring :lib
+
+[projectsEvaluated] All projects evaluated
+[projectsEvaluated] WARNING: : uses Java plugin but no toolchain is configured, setting Java 17
+[projectsEvaluated] :app uses Java plugin with toolchain {languageVersion=17, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}
+[projectsEvaluated] WARNING: :lib uses Java plugin but no toolchain is configured, setting Java 17
