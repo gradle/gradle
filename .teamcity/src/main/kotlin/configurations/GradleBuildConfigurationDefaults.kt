@@ -200,8 +200,8 @@ fun applyDefaults(
         extraSteps()
         killProcessStep(buildType, KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
         checkCleanM2AndAndroidUserHome(os, buildType)
-        buildType.addEc2PostBuild(os)
     }
+    buildType.addEc2PostBuild(os)
 
     applyDefaultDependencies(model, buildType)
 }
@@ -247,6 +247,7 @@ fun applyTestDefaults(
         extraSteps()
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
+    buildType.addEc2PostBuild(os)
 
     applyDefaultDependencies(model, buildType)
 }
