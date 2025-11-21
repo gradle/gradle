@@ -30,10 +30,10 @@ dependencies {
     externalApi(libs.groovy)
     // Required to inject services into tasks and other objects
     externalApi(libs.inject)
-    // Moslty used for nullability annotations
+    // Nullability annotations
     externalApi(libs.jsr305)
     externalApi(libs.jspecify)
-    // We use this to annotate type parameters as @Nullable
+    // We don't use this anymore in public types, but it used to be part of the public API
     externalApi(libs.jetbrainsAnnotations)
     // SLF4J logging is part of our public API
     externalApi(libs.slf4jApi)
