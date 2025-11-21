@@ -20,21 +20,17 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.TestMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Map;
-
 /**
- * Implementation of the {@code TestMetadataEvent} interface.
+ * Base implementation of the {@code TestMetadataEvent} interface.
  */
 @NullMarked
-public class DefaultTestMetadataEvent implements TestMetadataEvent {
+abstract class AbstractTestMetadataEvent implements TestMetadataEvent {
     private final long eventTime;
     private final OperationDescriptor descriptor;
-    private final Map<String, Object> values;
 
-    public DefaultTestMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, Object> values) {
+    public AbstractTestMetadataEvent(long eventTime, OperationDescriptor descriptor) {
         this.eventTime = eventTime;
         this.descriptor = descriptor;
-        this.values = values;
     }
 
     @Override
@@ -55,10 +51,5 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
     @Override
     public String toString() {
         return getDisplayName(); // This must == displayName, see TestEventsFixture
-    }
-
-    @Override
-    public Map<String, Object> getValues() {
-        return values;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * This is the original message sent from Gradle 8.12 and newer when sending key-values.
- * Both new and old clients use this message.
- *
- * @since 8.12
+ * An event emitted by tests that contains additional data in the form of key-values.
+ * @since 9.4.0
  */
+@Incubating
 @NullMarked
-public interface InternalTestMetadataEvent extends InternalProgressEvent {
-    @Override
-    InternalTestMetadataDescriptor getDescriptor();
-
-    Map<String, Object> getValues();
+public interface TestKeyValueMetadataEvent extends TestMetadataEvent {
+    /**
+     * Key-value data reported by the associated test.
+     *
+     * @return map of key-values
+     * @since 9.4.0
+     */
+    Map<String, String> getValues();
 }

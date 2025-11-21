@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.tooling.events.test.internal;
 
-import org.gradle.api.tasks.testing.TestMetadataEvent;
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.test.TestKeyValueMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 
 /**
- * Default implementation of the {@code TestMetadataEvent} interface.
+ * Consumer implementation of key-value metadata event
  */
 @NullMarked
-public final class DefaultTestMetadataEvent implements TestMetadataEvent {
-    private final long logTime;
-
+public class DefaultTestKeyValueMetadataEvent extends AbstractTestMetadataEvent implements TestKeyValueMetadataEvent {
     private final Map<String, String> values;
 
-    public DefaultTestMetadataEvent(long logTime, Map<String, String> values) {
-        this.logTime = logTime;
+    public DefaultTestKeyValueMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, String> values) {
+        super(eventTime, descriptor);
         this.values = values;
-    }
-
-    @Override
-    public long getLogTime() {
-        return logTime;
     }
 
     @Override

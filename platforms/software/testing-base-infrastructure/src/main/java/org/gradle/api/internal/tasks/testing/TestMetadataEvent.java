@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.Incubating;
+import org.jspecify.annotations.NullMarked;
 
-import java.util.Map;
+import java.time.Instant;
 
 /**
  * Metadata captured during the execution of a test.
  *
- * @since 8.13
+ * @since 9.4.0
  */
-@Incubating
+@NullMarked
 public interface TestMetadataEvent {
     /**
      * The time the message was logged.
@@ -33,16 +33,7 @@ public interface TestMetadataEvent {
      * Producers can supply the same value as the test start time to indicate that the metadata is "timeless", such
      * as environment information that isn't tied to a specific point during test execution.
      *
-     * @return log time, in milliseconds since UNIX epoch
-     * @since 8.13
+     * @return log time
      */
-    long getLogTime();
-
-    /**
-     * Retrieves the recorded metadata values for this event.
-     *
-     * @return the event metadata values
-     * @since 8.13
-     */
-    Map<String, String> getValues();
+    Instant getLogTime();
 }

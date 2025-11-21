@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Map;
+import java.time.Instant;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * This is the original message sent from Gradle 8.12 and newer when sending key-values.
- * Both new and old clients use this message.
- *
- * @since 8.12
+ * Base implementation of the {@code TestMetadataEvent} interface.
  */
 @NullMarked
-public interface InternalTestMetadataEvent extends InternalProgressEvent {
-    @Override
-    InternalTestMetadataDescriptor getDescriptor();
+public abstract class AbstractTestDataEvent implements TestMetadataEvent {
+    private final Instant logTime;
 
-    Map<String, Object> getValues();
+    public AbstractTestDataEvent(Instant logTime) {
+        this.logTime = logTime;
+    }
+
+    @Override
+    public Instant getLogTime() {
+        return logTime;
+    }
 }

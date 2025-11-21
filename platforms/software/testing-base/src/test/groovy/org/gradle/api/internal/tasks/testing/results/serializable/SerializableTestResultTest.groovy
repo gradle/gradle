@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.results.serializable
 
-import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent
+
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 
@@ -33,8 +34,8 @@ final class SerializableTestResultTest extends Specification {
         builder.displayName("Test 1")
         builder.startTime(Instant.now().toEpochMilli())
 
-        def metadataTime = Instant.now().toEpochMilli();
-        builder.addMetadata(new DefaultTestMetadataEvent(metadataTime, Collections.singletonMap("key", "value")))
+        def metadataTime = Instant.now()
+        builder.addMetadata(new DefaultTestKeyValueDataEvent(metadataTime, Collections.singletonMap("key", "value")))
 
         builder.resultType(TestResult.ResultType.SUCCESS)
         builder.endTime(Instant.now().toEpochMilli())
