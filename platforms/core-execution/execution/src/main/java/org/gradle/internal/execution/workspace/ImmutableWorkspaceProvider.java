@@ -20,45 +20,34 @@ import java.io.File;
 import java.util.function.Supplier;
 
 public interface ImmutableWorkspaceProvider {
-    AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path);
     LockingImmutableWorkspace getLockingWorkspace(String path);
 
     interface ImmutableWorkspace {
         /**
          * Immutable workspace outputs location.
-         *
-         * For {@link LockingImmutableWorkspace} this will normally be $GRADLE_USER_HOME/caches/transforms/[gradle-version]/[hash]/workspace/
-         *     and for {@link AtomicMoveImmutableWorkspace} this will normally be $GRADLE_USER_HOME/caches/transforms/[gradle-version]/[hash]/
          */
         File getImmutableLocation();
     }
 
     /**
      * A workspace that relies on locking to ensure that only one process can access it at a time.
-     * Used on Windows where atomic moves cause issues with file locking.
      */
     interface LockingImmutableWorkspace extends ImmutableWorkspace {
+
+
+        boolean isStale();
 
         /**
          * Executes the given action under the global scoped lock.
          */
-        <T> T withWorkspaceLock(Supplier<T> supplier);
-    }
+        <T> T withProcessLock(Supplier<T> supplier);
 
-    /**
-     * A workspace that relies on atomic moves of immutable workspace directory.
-     * Used on Unix-like systems where atomic moves are supported.
-     */
-    interface AtomicMoveImmutableWorkspace extends ImmutableWorkspace {
+        <T> T withThreadLock(Supplier<T> supplier);
 
-        /**
-         * Provides a temporary workspace and executes the given action in it.
-         */
-        <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action);
+        void unstale();
 
-        @FunctionalInterface
-        interface TemporaryWorkspaceAction<T> {
-            T executeInTemporaryWorkspace(File temporaryWorkspaceLocation);
-        }
+        boolean deleteStaleFiles();
+
+        void withDeletionLock(Runnable supplier);
     }
 }

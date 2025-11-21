@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
+import java.util.concurrent.TimeUnit
+
 class KotlinScriptCacheCleanupIntegrationTest
     extends AbstractIntegrationSpec
     implements FileAccessTimeJournalFixture {
@@ -55,6 +57,17 @@ class KotlinScriptCacheCleanupIntegrationTest
         writeLastFileAccessTimeToJournal(outdatedScriptCache, daysAgo(16))
 
         when:
+        run 'run'
+
+        then:
+        // We first create a .stale file
+        scriptCacheDir.file('7c8e05b2aa9d61f6b8422a683803c455/.stale').exists()
+
+        when:
+        // Simulate some time passing, so that the script cache cleanup task will delete the stale entry
+        scriptCacheDir.file('7c8e05b2aa9d61f6b8422a683803c455/.stale').lastModified = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1)
+        // Default cleanup frequency is 24 hours, so we need to set the gc file to a time in the past
+        gcFile.createFile().lastModified = daysAgo(1)
         run 'run'
 
         then:

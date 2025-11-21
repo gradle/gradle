@@ -17,12 +17,9 @@
 package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.cache.CacheCleanupStrategyFactory
-import org.gradle.cache.UnscopedCacheBuilderFactory
+import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.LockingImmutableWorkspace
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.service.scopes.Scope
@@ -36,20 +33,18 @@ class KotlinDslWorkspaceProvider(
     cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     fileAccessTimeJournal: FileAccessTimeJournal,
     cacheConfigurations: CacheConfigurationsInternal,
-    cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
-    unscopedCacheBuilderFactory: UnscopedCacheBuilderFactory
+    cacheCleanupStrategyFactory: FineGrainedCacheCleanupStrategyFactory,
 ) : Closeable {
 
     private
     val kotlinDslWorkspace = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
         cacheBuilderFactory
-            .createCacheBuilder("kotlin-dsl")
+            .createFineGrainedCacheBuilder("kotlin-dsl")
             .withDisplayName("kotlin-dsl"),
         fileAccessTimeJournal,
         2, // scripts and accessors caches sit below the root directory
         cacheConfigurations,
-        cacheCleanupStrategyFactory,
-        unscopedCacheBuilderFactory
+        cacheCleanupStrategyFactory
     )
 
     val accessors = subWorkspace("accessors")
@@ -61,11 +56,5 @@ class KotlinDslWorkspaceProvider(
 
     private
     fun subWorkspace(prefix: String): ImmutableWorkspaceProvider =
-        object : ImmutableWorkspaceProvider {
-            override fun getAtomicMoveWorkspace(path: String): AtomicMoveImmutableWorkspace =
-                kotlinDslWorkspace.getAtomicMoveWorkspace("$prefix/$path")
-
-            override fun getLockingWorkspace(path: String): LockingImmutableWorkspace =
-                kotlinDslWorkspace.getLockingWorkspace("$prefix/$path")
-        }
+        ImmutableWorkspaceProvider { path -> kotlinDslWorkspace.getLockingWorkspace("$prefix/$path") }
 }
