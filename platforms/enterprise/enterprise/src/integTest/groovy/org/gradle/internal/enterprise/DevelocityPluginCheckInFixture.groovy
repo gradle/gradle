@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class DevelocityPluginCheckInFixture extends BaseBuildScanPluginCheckInFixture {
 
@@ -33,6 +34,30 @@ class DevelocityPluginCheckInFixture extends BaseBuildScanPluginCheckInFixture {
             'DevelocityPlugin',
             AutoAppliedDevelocityPlugin.NAME
         )
+    }
+
+    @Override
+    String configureExtension(PluginBuilder builder) {
+        builder.file('src/main/groovy/com/gradle/develocity/agent/gradle/DevelocityConfiguration.groovy') << """
+package com.gradle.develocity.agent.gradle
+
+import org.gradle.api.provider.Property
+
+abstract class DevelocityConfiguration {
+    abstract Property<String> getServer()
+}
+"""
+        return """
+            def dvExtension = settings.getExtensions().create("develocity", com.gradle.develocity.agent.gradle.DevelocityConfiguration.class);
+
+            settings.gradle.settingsEvaluated {
+                println "develocityExtension.server = \${dvExtension.getServer().getOrElse("unset")}"
+            }
+"""
+    }
+
+    void assertExtensionDevelocityUrl(String output, String develocityUrl) {
+        assert output.contains("develocityExtension.server = $develocityUrl")
     }
 
 }

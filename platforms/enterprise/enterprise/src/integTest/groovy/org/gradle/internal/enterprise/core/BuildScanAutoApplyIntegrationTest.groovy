@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise.core
 
-import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
@@ -371,39 +370,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         then:
         pluginNotApplied()
     }
-
-    def "does auto-apply plugin when develocity URL is configured via gradle.properties"() {
-        given:
-        file('gradle.properties') << """
-            com.gradle.develocity.url=https://develocity.example.com
-        """.stripIndent()
-
-        when:
-        runBuildWithoutScanRequest()
-
-        then:
-        pluginAppliedOnce()
-    }
-
-    def "does auto-apply plugin when develocity URL is configured via CLI"() {
-        when:
-        runBuildWithoutScanRequest("--develocity-url", "https://develocity.example.com")
-
-        then:
-        pluginAppliedOnce()
-    }
-
-    def "does auto-apply plugin when develocity URL is configured via environment variable"() {
-        given:
-        executer.withEnvironmentVars([(StartParameterBuildOptions.DevelocityUrlOption.ENVIRONMENT_VARIABLE):"https://develocity.example.com"])
-
-        when:
-        runBuildWithoutScanRequest()
-
-        then:
-        pluginAppliedOnce()
-    }
-
 
     private void runBuildWithScanRequest(String... additionalArgs) {
         List<String> allArgs = ["--${BuildScanOption.LONG_OPTION}", "-s"]
