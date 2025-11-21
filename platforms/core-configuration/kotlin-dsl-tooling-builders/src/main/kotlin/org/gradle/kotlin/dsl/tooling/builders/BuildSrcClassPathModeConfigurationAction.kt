@@ -23,7 +23,6 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.provider.ListProperty
-import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceSetContainer
@@ -31,14 +30,18 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.resolver.BUILD_SRC_SOURCE_ROOTS_FILE_PATH
+import org.gradle.work.DisableCachingByDefault
 
 
 internal
 class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAction {
 
     override fun execute(project: ProjectInternal) = project.run {
-        afterEvaluate {
-            configureBuildSrcSourceRootsTask()
+        // TODO how to make this happen only on IDE sync, including on non-IDEA IDEs
+        if (System.getProperty("idea.sync.active") != null) {
+            afterEvaluate {
+                configureBuildSrcSourceRootsTask()
+            }
         }
     }
 
@@ -86,7 +89,7 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
 }
 
 
-@CacheableTask
+@DisableCachingByDefault(because = "Not worth caching")
 abstract class GenerateSourceRootsFile : DefaultTask() {
 
     @get:Input
