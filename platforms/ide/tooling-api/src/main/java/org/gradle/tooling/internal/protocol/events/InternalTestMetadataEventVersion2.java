@@ -24,7 +24,7 @@ import java.io.File;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * This is a new message sent from Gradle 9.4.0 and newer with an arbitrary payload.
+ * This is a new message sent from Gradle 9.4.0 and newer with file attachment data.
  * Older clients (before 9.4.0) ignore this message.
  *
  * @since 9.4.0
