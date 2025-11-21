@@ -43,7 +43,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 
 /**
- * Generates release notes file from markdown to HTML
+ * Converts a single Markdown file to an HTML fragment using Flexmark.
  */
 @CacheableTask
 public abstract class RenderMarkdown extends DefaultTask {
