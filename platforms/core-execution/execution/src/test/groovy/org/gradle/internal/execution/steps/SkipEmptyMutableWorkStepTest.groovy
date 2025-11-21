@@ -18,17 +18,28 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.execution.ExecutionProblemHandler
 import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.execution.MutableUnitOfWork
+import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkInputListeners
+import org.gradle.internal.execution.history.OutputsCleaner
+import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.properties.InputBehavior
+import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
-abstract class AbstractSkipEmptyWorkStepTest<C extends WorkspaceContext> extends StepSpec<C> {
+class SkipEmptyMutableWorkStepTest extends StepSpec<PreviousExecutionContext> implements SnapshotterFixture {
+    def problemHandler = Mock(ExecutionProblemHandler)
+    def outputChangeListener = Mock(OutputChangeListener)
+    def outputsCleaner = Mock(OutputsCleaner)
+
     def workInputListeners = Mock(WorkInputListeners)
     def inputFingerprinter = Mock(InputFingerprinter)
     def primaryFileInputs = EnumSet.of(PRIMARY)
@@ -39,13 +50,16 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends WorkspaceContext> extends
     def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot> of()
     def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+    def work = Stub(MutableUnitOfWork)
 
-    abstract protected AbstractSkipEmptyWorkStep<C> createStep()
-
-    AbstractSkipEmptyWorkStep<C> step
+    def step = new SkipEmptyMutableWorkStep(
+        problemHandler,
+        outputChangeListener,
+        workInputListeners,
+        { -> outputsCleaner },
+        delegate)
 
     def setup() {
-        step = createStep()
         _ * work.inputFingerprinter >> inputFingerprinter
         context.getInputProperties() >> { knownInputProperties }
         context.getInputFileProperties() >> { knownInputFileProperties }
@@ -151,5 +165,98 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends WorkspaceContext> extends
         assertExecutionStateWhenSkipped(result)
     }
 
-    abstract void assertExecutionStateWhenSkipped(CachingResult result)
+    def "skips when work has empty sources and previous outputs (#description)"() {
+        def previousOutputFile = file("output.txt").createFile()
+        def outputFileSnapshot = snapshot(previousOutputFile)
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        interaction {
+            emptySourcesWithPreviousOutputs(outputFileSnapshot)
+        }
+
+        and:
+        1 * problemHandler.handleReportedProblems(identity, work, _)
+
+        and:
+        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
+
+        and:
+        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot)
+
+        and:
+        1 * outputsCleaner.didWork >> didWork
+        1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
+        0 * _
+
+        then:
+        result.execution.get().outcome == outcome
+        assertExecutionStateWhenSkipped(result)
+
+        where:
+        didWork | outcome
+        true    | EXECUTED_NON_INCREMENTALLY
+        false   | SHORT_CIRCUITED
+        description = didWork ? "removed files" : "no files removed"
+    }
+
+    def "exception thrown when sourceFiles are empty and deletes previous output, but delete fails"() {
+        def previousOutputFile = file("output.txt").createFile()
+        def outputFileSnapshot = snapshot(previousOutputFile)
+        def ioException = new IOException("Couldn't delete file")
+
+        when:
+        step.execute(work, context)
+
+        then:
+        interaction {
+            emptySourcesWithPreviousOutputs(outputFileSnapshot)
+        }
+
+        and:
+        1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
+
+        and:
+        1 * outputsCleaner.cleanupOutputs(outputFileSnapshot) >> { throw ioException }
+
+        then:
+        def ex = thrown Exception
+        ex.message.contains("Couldn't delete file")
+        ex.cause == ioException
+    }
+
+    private static void assertExecutionStateWhenSkipped(CachingResult result) {
+        assert !result.afterExecutionOutputState.present
+    }
+
+    private void emptySourcesWithPreviousOutputs(FileSystemSnapshot outputFileSnapshot) {
+        def previousExecutionState = Stub(PreviousExecutionState)
+        def outputFileSnapshots = ImmutableSortedMap.of("output", outputFileSnapshot)
+
+        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        _ * previousExecutionState.inputProperties >> ImmutableSortedMap.of()
+        _ * previousExecutionState.inputFileProperties >> ImmutableSortedMap.of()
+        _ * previousExecutionState.outputFilesProducedByWork >> outputFileSnapshots
+        1 * inputFingerprinter.fingerprintInputProperties(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            _,
+            _
+        ) >> new DefaultInputFingerprinter.InputFingerprints(
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of(),
+            ImmutableSortedMap.of("source-file", sourceFileFingerprint),
+            ImmutableSet.of())
+
+        1 * sourceFileFingerprint.empty >> true
+    }
+
+    private static Set<String> rootPaths(File... files) {
+        files*.absolutePath as Set
+    }
 }

@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.UnitOfWork;
 
+// TODO Instead of this class, we could consider making Step generic in UnitOfWork type.
 public abstract class MutableStep<C extends Context, R extends Result> implements Step<C, R> {
     @Override
     public final R execute(UnitOfWork work, C context) {

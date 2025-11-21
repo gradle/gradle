@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package org.gradle.internal.execution.steps;
 
-/**
- * Context necessary for steps that change the outputs.
- *
- * This context doesn't add any new information, it encodes a requirement
- * in the type system that a step can change the outputs.
- */
-public class ChangingOutputsContext extends InputChangesContext {
-    public ChangingOutputsContext(InputChangesContext parent) {
-        super(parent);
-    }
+import org.gradle.internal.execution.Identity;
+
+public interface IdentifyingContext extends ValidatingContext {
+    /**
+     * Returns an identity for the given work item that uniquely identifies it
+     * among all the other work items of the same type in the current build.
+     */
+    Identity getIdentity();
 }

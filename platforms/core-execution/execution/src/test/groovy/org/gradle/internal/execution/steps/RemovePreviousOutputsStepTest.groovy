@@ -29,7 +29,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> implements SnapshotterFixture {
+class RemovePreviousOutputsStepTest extends StepSpec<InputChangesContext> implements SnapshotterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def previousExecutionState = Mock(PreviousExecutionState)
@@ -178,7 +178,7 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
         _ * context.incrementalExecution >> false
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
+        _ * context.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
         _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, OutputVisitor.OutputFileValueSupplier.fromStatic(outputs.dir, TestFiles.fixed(outputs.dir)))
             visitor.visitOutputProperty("file", TreeType.FILE, OutputVisitor.OutputFileValueSupplier.fromStatic(outputs.file, TestFiles.fixed(outputs.file)))
@@ -193,7 +193,7 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
         _ * context.incrementalExecution >> incrementalExecution
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
+        _ * context.detectedOverlappingOutputs >> Optional.empty()
         _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, OutputVisitor.OutputFileValueSupplier.fromStatic(outputs.dir, TestFiles.fixed(outputs.dir)))
             visitor.visitOutputProperty("file", TreeType.FILE, OutputVisitor.OutputFileValueSupplier.fromStatic(outputs.file, TestFiles.fixed(outputs.file)))

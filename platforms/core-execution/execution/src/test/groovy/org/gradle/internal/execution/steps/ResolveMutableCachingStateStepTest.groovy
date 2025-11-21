@@ -21,10 +21,10 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.hash.TestHashCodes
 
-class ResolveIncrementalCachingStateStepTest extends AbstractResolveCachingStateStepTest<IncrementalChangesContext, ResolveIncrementalCachingStateStep<IncrementalChangesContext>> {
+class ResolveMutableCachingStateStepTest extends AbstractResolveCachingStateStepTest<MutableChangesContext, ResolveMutableCachingStateStep<MutableChangesContext>> {
     @Override
-    ResolveIncrementalCachingStateStep<IncrementalChangesContext> createStep() {
-        return new ResolveIncrementalCachingStateStep<>(buildCache, false, delegate)
+    ResolveMutableCachingStateStep<MutableChangesContext> createStep() {
+        return new ResolveMutableCachingStateStep<>(buildCache, false, delegate)
     }
 
     def executionStateChanges = Mock(ExecutionStateChanges)

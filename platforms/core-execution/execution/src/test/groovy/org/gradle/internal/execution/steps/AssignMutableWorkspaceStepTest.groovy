@@ -43,7 +43,7 @@ class AssignMutableWorkspaceStepTest extends StepSpec<IdentityContext> {
         then:
         _ * work.workspaceProvider >> workspaceProvider
         1 * workspaceProvider.withWorkspace(":test", _) >> { String identity, MutableWorkspaceProvider.WorkspaceAction action ->
-            def actionResult = action.executeInWorkspace(workspace, null)
+            def actionResult = action.executeInWorkspace(workspace)
             return actionResult
         }
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext context ->
