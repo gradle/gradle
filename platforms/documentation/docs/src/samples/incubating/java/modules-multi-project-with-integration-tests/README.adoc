@@ -27,7 +27,7 @@ open module org.gradle.sample.integtest.utilities {
 ```
 
 NOTE: This sample does **not** work in Eclipse when imported using https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
-This is due to https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667[a limitation in Eclipse] that does not allow more than one module in one project.
+This is due to a limitation in Eclipse that does not allow more than one module in one project.
 It you want to do blackbox testing in Eclipse, you should move the integration tests to separate subprojects.
 
 For more information, see link:{userManualPath}/java_library_plugin.html#sec:java_library_modular[Java Module support in the Java Library Plugin],
