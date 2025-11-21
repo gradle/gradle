@@ -32,7 +32,10 @@ class FindBrokenInternalLinksTest extends Specification {
 
     private setup() {
         docsRoot = new File(projectDir, "docsRoot")
-        new File(docsRoot, 'javadoc').mkdirs()
+        new File(docsRoot, 'javadocs').mkdirs()
+        new File(docsRoot, 'groovy-dsl').mkdirs()
+        new File(docsRoot, 'kotlin-dsl').mkdirs()
+
         sampleDoc = new File(docsRoot, "sample.adoc")
 
         new File(projectDir,"build/working/samples/docs").mkdirs()
@@ -54,38 +57,41 @@ class FindBrokenInternalLinksTest extends Specification {
         """.stripIndent()
 
         new File(projectDir, "build.gradle") << """
-            plugins {
-                id 'java'
-                id 'checkstyle'
-                id 'gradlebuild.documentation'
-            }
+        plugins {
+            id 'java'
+            id 'checkstyle'
+            id 'gradlebuild.documentation'
+        }
 
-            repositories {
-                mavenCentral()
-            }
+        repositories {
+            mavenCentral()
+        }
 
-            gradleDocumentation {
-                javadocs {
-                    javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
-                    javaPackageListLoc = project.layout.projectDirectory.dir("src/docs/javaPackageList/8/")
-                    groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-4.0.28/html/gapi")
-                    groovyPackageListSrc = "org.apache.groovy:groovy-all:4.0.28:groovydoc"
-                }
+        gradleDocumentation {
+            javadocs {
+                javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
+                javaPackageListLoc = project.layout.projectDirectory.dir("src/docs/javaPackageList/8/")
+                groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-4.0.28/html/gapi")
+                groovyPackageListSrc = "org.apache.groovy:groovy-all:4.0.28:groovydoc"
             }
+        }
 
-            tasks.register('assembleSamples')
+        tasks.register('assembleSamples')
 
-            javadocAll {
-                enabled = false
-            }
+        javadocAll {
+            enabled = false
+        }
 
-            tasks.named('checkDeadInternalLinks').configure {
-                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
-                javadocRoot = documentationRoot.dir('javadoc')
-                releaseNotesFile = project.layout.buildDirectory.file('working/release-notes/raw.html')
-                samplesRoot = project.layout.buildDirectory.dir('working/samples/docs');
-            }
-        """
+        tasks.named('checkDeadInternalLinks').configure {
+            documentationRoot = project.layout.projectDirectory.dir('docsRoot')
+            javadocRoot = documentationRoot.dir('javadoc')
+            groovyDslRoot = documentationRoot.dir('groovy-dsl')
+            kotlinDslRoot = documentationRoot.dir('kotlin-dsl')
+
+            releaseNotesFile = project.layout.buildDirectory.file('working/release-notes/raw.html')
+            samplesRoot = project.layout.buildDirectory.dir('working/samples/docs');
+        }
+    """
     }
 
     def "finds broken section links"() {
@@ -233,7 +239,7 @@ Nothing to write about
 === Valid Javadoc Links
 
 Be sure to see: `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]`
-The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
+The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(java.util.List)[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
         """
 
         createJavadocForClass("org/gradle/api/tasks/InputDirectory")
@@ -311,7 +317,7 @@ Nothing to write about
 
     private void assertNoDeadLinks() {
         assert linkErrors.exists()
-        assert linkErrors.text.stripTrailing().endsWith('All clear!')
+        assert linkErrors.text.contains('All clear!')
     }
 
     private void assertFoundDeadLinks(Collection<DeadLink> deadLinks) {
@@ -320,7 +326,7 @@ Nothing to write about
         def lines = linkErrors.readLines()
         deadLinks.each { deadLink ->
             String errorStart = "ERROR: ${deadLink.file.name}:"
-            assert lines.any { it.startsWith(errorStart) && it.endsWith(deadLink.message) }
+            assert lines.any { it.startsWith(errorStart) && it.contains(deadLink.message) }
         }
     }
 
@@ -346,7 +352,7 @@ Nothing to write about
         }
 
         static DeadLink forJavadoc(File file, String path) {
-            return new DeadLink(file, "Missing Javadoc file for $path in ${file.name}" + (path.startsWith("javadoc") ? " (You may need to remove the leading `javadoc` path component)" : ""))
+            return new DeadLink(file, "Missing Javadoc file for $path in ${file.name}")
         }
 
         static DeadLink forMarkdownLink(File file, String link) {

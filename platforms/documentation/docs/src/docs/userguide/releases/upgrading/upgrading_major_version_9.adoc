@@ -564,7 +564,7 @@ NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to
 
 === Methods on public API types made final
 
-The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(java.lang.Object)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] have been declared `final` to support the use of the `@SafeVarargs` annotation.
+The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(T)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] have been declared `final` to support the use of the `@SafeVarargs` annotation.
 
 These types were not intended to be subclassed.
 However, if your build logic or a plugin attempts to override these methods, it will now result in a runtime failure.
@@ -876,7 +876,7 @@ To control cache cleanup behavior in Gradle 9.0.0 and later, use an <<directory_
 
 === Removal of `buildCache.local.removeUnusedEntriesAfterDays`
 
-In Gradle 9.0.0, the property link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[`buildCache.local.removeUnusedEntriesAfterDays`] has been removed.
+In Gradle 9.0.0, the property `buildCache.local.removeUnusedEntriesAfterDays` has been removed.
 
 This property was previously used to configure the retention period for the local build cache.
 

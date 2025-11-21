@@ -64,7 +64,7 @@ Creates ZIP and TAR archives of the distribution contents.
 `installDist` — link:{groovyDslPath}/org.gradle.api.tasks.Sync.html[Sync]::
 Assembles the distribution content and installs it on the current machine.
 
-For each additional distribution you add to the project, the Distribution Plugin adds the following tasks, where _distributionName_ comes from link:{javadocPath}/org/gradle/api/distribution/Distribution.html#getName--[Distribution.getName()]:
+For each additional distribution you add to the project, the Distribution Plugin adds the following tasks, where _distributionName_ comes from link:{javadocPath}/org/gradle/api/distribution/Distribution.html#getName()[Distribution.getName()]:
 
 `__distributionName__DistZip` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip]::
 Creates a ZIP archive of the distribution contents.

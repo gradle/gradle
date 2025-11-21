@@ -347,7 +347,7 @@ You can use link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask] inst
 ==== Removal of `BuildListener.buildStarted(Gradle)`
 
 `BuildListener.buildStarted(Gradle)` was deprecated in Gradle 6.0 and is now removed in Gradle 7.0.
-Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings-org.gradle.api.initialization.Settings-[BuildListener.beforeSettings(Settings)] instead.
+Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings(org.gradle.api.initialization.Settings)[BuildListener.beforeSettings(Settings)] instead.
 
 ==== Removal of unused `StartParameter` APIs
 
@@ -378,8 +378,8 @@ The `ValidateTaskProperties` task has been removed and replaced by the link:{jav
 ==== Removal of `ImmutableFileCollection`
 
 The `ImmutableFileCollection` type has been removed.
-Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...-[factory method] instead.
-A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.layout].
+Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files(java.lang.Object...)[factory method] instead.
+A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout()[Project.layout].
 
 ==== Removal of `ComponentSelectionReason.getDescription`
 
@@ -397,7 +397,7 @@ The following deprecated constructors were removed:
 
 ==== Removal of arbitrary local cache configuration
 
-The local build cache configuration now needs to be done via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-[BuildCacheConfiguration.local()].
+The local build cache configuration now needs to be done via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local(org.gradle.api.Action)[BuildCacheConfiguration.local()].
 
 ==== Removal of DefaultVersionSelectorScheme constructor
 
@@ -453,7 +453,7 @@ A fix for this problem is to <<incremental_build.adoc#sec:link_output_dir_to_inp
 ==== Duplicates strategy
 
 Gradle 7 now fails when a copy operation (or any operation which uses a `org.gradle.api.file.CopySpec`) encounters a duplicate entry, and that the duplicates strategy isn't set.
-Please look at link:{javadocPath}/org/gradle/api/file/CopySpec.html#setDuplicatesStrategy-org.gradle.api.file.DuplicatesStrategy-[the CopySpec docs] for details.
+Please look at link:{javadocPath}/org/gradle/api/file/CopySpec.html#setDuplicatesStrategy(org.gradle.api.file.DuplicatesStrategy)[the CopySpec docs] for details.
 
 [[changes_6.9]]
 == Upgrading from 6.8 and earlier

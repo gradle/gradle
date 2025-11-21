@@ -120,7 +120,7 @@ This sample does not have any project source code and only lays out a hypothetic
 
 == Compiling convention plugins
 
-In this sample, convention plugins are implemented as link:{userManualPath}/custom_plugins.html#sec:precompiled_plugins[precompiled script plugins] -
+In this sample, convention plugins are implemented as link:{userManualPath}/plugins.html#sec:precompile_script_plugin[precompiled script plugins] -
 this is the simplest way to start out as you can use one of Gradle's DSLs directly to implement the build logic, just as if the plugin was
 a regular build script.
 
@@ -146,7 +146,7 @@ include::sample[dir="groovy",files="buildSrc/build.gradle[tags=apply]"]
 
 The `myproject.java-conventions` plugin uses SpotBugs plugin to perform static code analysis.
 
-SpotBugs is an external plugin - external plugins link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[need to be added as implementation dependencies] before they can be applied in a precompiled script plugin:
+SpotBugs is an external plugin - external plugins link:{userManualPath}/implementing_gradle_plugins_precompiled.html#sec:applying_external_plugins[need to be added as implementation dependencies] before they can be applied in a precompiled script plugin:
 ====
 include::sample[dir="kotlin",files="buildSrc/build.gradle.kts[tags=repositories-and-dependencies]"]
 include::sample[dir="groovy",files="buildSrc/build.gradle[tags=repositories-and-dependencies]"]

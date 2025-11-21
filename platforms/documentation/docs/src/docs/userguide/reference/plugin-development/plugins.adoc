@@ -148,7 +148,7 @@ Precompiled script plugin names have two important limitations:
 * They cannot start with `org.gradle`.
 * They cannot have the same name as a <<plugin_reference#plugin_reference,core plugin>>.
 
-When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[`Plugin.apply()`] method.
+When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply(T)[`Plugin.apply()`] method.
 
 Let's rewrite the `GreetingPlugin` script plugin as a precompiled script plugin.
 The script plugin is moved to its own file in `buildSrc`:

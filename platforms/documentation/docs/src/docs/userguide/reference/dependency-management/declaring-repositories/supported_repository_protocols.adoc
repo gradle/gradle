@@ -269,7 +269,7 @@ gcs://<bucketName>/<objectKey>
 == Handling credentials
 
 Repository credentials should never be hardcoded in your build script but kept external.
-Gradle provides an link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[API in artifact repositories] that allows you to declare the type of credentials required, with their values being looked up from <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>> during the build.
+Gradle provides an link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials(java.lang.Class)[API in artifact repositories] that allows you to declare the type of credentials required, with their values being looked up from <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>> during the build.
 
 For example, consider the following repository configuration:
 

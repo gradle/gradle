@@ -42,7 +42,7 @@ A link:{javadocPath}/org/gradle/api/DomainObjectSet.html[`DomainObjectSet`] simp
 Compared to `NamedDomainObjectContainer`, a `DomainObjectSet` doesn't manage the objects in the collection.
 They need to be created and added manually.
 
-You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectSet-java.lang.Class-[ObjectFactory.domainObjectSet()] method:
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectSet(java.lang.Class)[ObjectFactory.domainObjectSet()] method:
 
 ====
 include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=dos]"]
@@ -57,7 +57,7 @@ A link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html[`NamedDomainObject
 This is similar to `NamedDomainObjectContainer`, however a `NamedDomainObjectSet` doesn't manage the objects in the collection.
 They need to be created and added manually.
 
-You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#namedDomainObjectSet-java.lang.Class-[ObjectFactory.namedDomainObjectSet()] method.
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#namedDomainObjectSet(java.lang.Class)[ObjectFactory.namedDomainObjectSet()] method.
 
 ====
 include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=ndos]"]
@@ -72,7 +72,7 @@ A link:{javadocPath}/org/gradle/api/NamedDomainObjectList.html[`NamedDomainObjec
 This is similar to `NamedDomainObjectContainer`, however a `NamedDomainObjectList` doesn't manage the objects in the collection.
 They need to be created and added manually.
 
-You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#namedDomainObjectList-java.lang.Class-[ObjectFactory.namedDomainObjectList()] method.
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#namedDomainObjectList(java.lang.Class)[ObjectFactory.namedDomainObjectList()] method.
 
 ====
 include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=ndol]"]
@@ -90,7 +90,7 @@ It is intended to hold objects which are themselves configurable, for example a 
 Gradle uses `NamedDomainObjectContainer` type extensively throughout the API.
 For example, the `project.tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer<Task>`.
 
-You can create a container instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service, which provides the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectContainer-java.lang.Class-[ObjectFactory.domainObjectContainer()] method.
+You can create a container instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service, which provides the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectContainer(java.lang.Class)[ObjectFactory.domainObjectContainer()] method.
 
 You can also create a container instance using a <<properties_providers.adoc#read_only_managed_properties,read-only managed property>>.
 
@@ -137,7 +137,7 @@ include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/build.gradle[]
 An link:{javadocPath}/org/gradle/api/ExtensiblePolymorphicDomainObjectContainer.html[ExtensiblePolymorphicDomainObjectContainer] is a `NamedDomainObjectContainer` that allows you to
 define instantiation strategies for different types of objects.
 
-You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#polymorphicDomainObjectContainer-java.lang.Class-[ObjectFactory.polymorphicDomainObjectContainer()] method:
+You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#polymorphicDomainObjectContainer(java.lang.Class)[ObjectFactory.polymorphicDomainObjectContainer()] method:
 
 ====
 include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=epdoc]"]

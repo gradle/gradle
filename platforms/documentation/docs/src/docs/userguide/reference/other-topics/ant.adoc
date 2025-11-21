@@ -39,7 +39,7 @@ Gradle's Ant integration allows you to migrate your build from Ant to Gradle smo
 This migration process can be performed incrementally, and you can maintain a functional Gradle build throughout the transition.
 
 WARNING: Ant integration is not fully compatible with the <<configuration_cache.adoc#config_cache,configuration cache>>.
-Using link:{javadocPath}/org/gradle/api/Task.html#getAnt--[Task.ant] to run Ant task in the task action may work, but importing the Ant build is not supported.
+Using link:{javadocPath}/org/gradle/api/Task.html#getAnt()[Task.ant] to run Ant task in the task action may work, but importing the Ant build is not supported.
 As a result, the configuration cache is automatically disabled when importing an Ant build.
 
 [[sec:ant_api]]
@@ -203,7 +203,7 @@ include::{snippetsPath}/ant/dependsOnTask/tests/dependsOnTask.out[]
 ----
 
 Sometimes, it may be necessary to "rename" the task generated for an Ant target to avoid a naming collision with existing Gradle tasks.
-To do this, use the link:{javadocPath}/org/gradle/api/AntBuilder.html#importBuild-java.lang.Object-org.gradle.api.Transformer-[AntBuilder.importBuild(java.lang.Object, org.gradle.api.Transformer)] method:
+To do this, use the link:{javadocPath}/org/gradle/api/AntBuilder.html#importBuild(java.lang.Object,org.gradle.api.Transformer)[AntBuilder.importBuild(java.lang.Object, org.gradle.api.Transformer)] method:
 
 ====
 include::sample[dir="snippets/ant/renameTask/kotlin",files="build.gradle.kts"]
@@ -310,7 +310,7 @@ Conversely, if an Ant task logs messages at too high of a level, suppressing tho
 However, this could result in other desirable outputs being suppressed.
 
 To help with this, Gradle allows the user to fine-tune the Ant logging and control the mapping of message priority to the Gradle log level.
-This is done by setting the priority that should map to the default Gradle `LIFECYCLE` log level using the link:{javadocPath}/org/gradle/api/AntBuilder.html#setLifecycleLogLevel-java.lang.String-[AntBuilder.setLifecycleLogLevel(java.lang.String)] method.
+This is done by setting the priority that should map to the default Gradle `LIFECYCLE` log level using the link:{javadocPath}/org/gradle/api/AntBuilder.html#setLifecycleLogLevel(java.lang.String)[AntBuilder.setLifecycleLogLevel(java.lang.String)] method.
 When this value is set, any Ant message logged at the configured priority or above will be logged at least at `LIFECYCLE`.
 Any Ant message logged below this priority will be logged at `INFO` at most.
 

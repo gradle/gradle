@@ -324,7 +324,7 @@ This change has been made so that plugins applied to the settings script can con
 - The `ValidateTaskProperties` type is replaced by `ValidatePlugins`.
 - The `setClasses()` method is now removed. Use `getClasses().setFrom()` instead.
 - The `setClasspath()` method is also removed. use `getClasspath().setFrom()` instead.
-- The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html#getFailOnWarning--[failOnWarning] option is now enabled by default.
+- The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html#getFailOnWarning()[failOnWarning] option is now enabled by default.
 - The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins]:
   * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
@@ -472,7 +472,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
   `append` is now always configured to be true for the Jacoco agent.
 * The `configureDefaultOutputPathForJacocoMerge` method on `JacocoPlugin` has been removed.
   The method was never meant to be public.
-* File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName--[deployment descriptor file name] for the ear plugin are not allowed any more.
+* File paths in link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html#getFileName()[deployment descriptor file name] for the ear plugin are not allowed any more.
   Use a simple name, like `application.xml`, instead.
 * The `org.gradle.testfixtures.ProjectBuilder` constructor has been removed. Please use `ProjectBuilder.builder()` instead.
 * When <<groovy_plugin.adoc#sec:incremental_groovy_compilation,incremental Groovy compilation>> is enabled, a wrong configuration of the source roots or enabling Java annotation for Groovy now fails the build.
@@ -480,7 +480,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 * `ComponentSelectionRule` no longer can inject the metadata or ivy descriptor.
   Use the methods on the <<resolution_rules.adoc#sec:component-selection-rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
-  Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+  Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen(groovy.lang.Closure)[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
 * Changing the value of a task property with type `Property<T>` after the task has started execution now results in an error.
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
@@ -511,7 +511,7 @@ This will become an error in Gradle 6.0.
 ==== Declaring an incremental task without outputs
 
 Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now deprecated.
-Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
+Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen(groovy.lang.Closure)[TaskOutputs.upToDateWhen()] instead.
 
 This will become an error in Gradle 6.0.
 
@@ -813,7 +813,7 @@ This may break plugins that relied on the previous behaviour.
 
 ==== Changes to specifying operating system for native projects
 
-The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
+The incubating `operatingSystems` property on native components has been replaced with the `CppComponent#getTargetMachines()` property.
 
 ==== Changes for archive tasks (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
 

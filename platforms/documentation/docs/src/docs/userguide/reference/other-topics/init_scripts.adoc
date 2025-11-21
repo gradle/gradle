@@ -163,6 +163,6 @@ include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts
 
 The plugin in the init script ensures that only a specified repository is used when running the build.
 
-When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply(T)] method.
+When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply(T)[Plugin.apply(T)] method.
 
 The `gradle` object is passed as a parameter, which can be used to configure all aspects of a build. Of course, the applied plugin can be resolved as an external dependency as described in <<#sec:custom_classpath,External dependencies for the init script>>

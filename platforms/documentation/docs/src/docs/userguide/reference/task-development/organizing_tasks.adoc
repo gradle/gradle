@@ -108,9 +108,9 @@ Instead, we want to run code quality checks all the time, but not the lengthy te
 
 To add a quality check lifecycle task, we introduce an additional lifecycle task called `qualityCheck` and a plugin called link:https://github.com/spotbugs/spotbugs[`spotbugs`].
 
-To add a lifecycle task, use link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`tasks.register()`].
+To add a lifecycle task, use link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register(java.lang.String,java.lang.Class)[`tasks.register()`].
 The only thing you need to provide is a name.
-Put this task in our group and wire the actionable tasks that belong to this new lifecycle task using the link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object...-[`dependsOn()`] method:
+Put this task in our group and wire the actionable tasks that belong to this new lifecycle task using the link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn(java.lang.Object...)[`dependsOn()`] method:
 
 ====
 [.multi-language-sample]

@@ -154,7 +154,7 @@ include::sample[dir="snippets/antMigration/importBuild/kotlin",files="build.grad
 include::sample[dir="snippets/antMigration/importBuild/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
-To rename the `build` task, use the variant of link:{javadocPath}/org/gradle/api/AntBuilder.html#importBuild-java.lang.Object-org.gradle.api.Transformer-[AntBuilder.importBuild()] that accepts a transformer, like this:
+To rename the `build` task, use the variant of link:{javadocPath}/org/gradle/api/AntBuilder.html#importBuild(java.lang.Object,org.gradle.api.Transformer)[AntBuilder.importBuild()] that accepts a transformer, like this:
 
 .Renaming targets on import
 ====
@@ -415,7 +415,7 @@ You can learn more about these types and other aspects of Gradle's file API in t
 
 You can construct Ant paths and filesets from within your build via the `ant` object if you need to interact with an Ant task that requires them.
 The chapter on <<ant#ant,Ant integration>> has examples that use both `<path>` and `<fileset>`.
-There is also link:{javadocPath}/org/gradle/api/file/FileCollection.html#addToAntBuilder-java.lang.Object-java.lang.String-org.gradle.api.file.FileCollection.AntType-[a method on `FileCollection`] that will convert a file collection to a fileset or similar Ant type.
+There is also link:{javadocPath}/org/gradle/api/file/FileCollection.html#addToAntBuilder(java.lang.Object,java.lang.String,org.gradle.api.file.FileCollection.AntType)[a method on `FileCollection`] that will convert a file collection to a fileset or similar Ant type.
 --
 
 [[migant:properties]]

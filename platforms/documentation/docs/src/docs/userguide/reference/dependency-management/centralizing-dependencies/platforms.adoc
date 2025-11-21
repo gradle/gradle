@@ -59,7 +59,7 @@ include::sample[dir="snippets/java-platform/recommender/groovy/consumer",files="
 This notation automatically performs several actions:
 
 - Sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[`org.gradle.category` attribute] to platform, ensuring Gradle selects the platform component.
-- Enables the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--[`endorseStrictVersions`] behavior by default, enforcing strict versions defined in the platform.
+- Enables the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions()[`endorseStrictVersions`] behavior by default, enforcing strict versions defined in the platform.
 
 If <<dependency_versions.adoc#sec:strict-version,strict version>> enforcement isn't needed, you can disable it using the `doNotEndorseStrictVersions` method.
 

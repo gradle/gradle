@@ -219,7 +219,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 ====
 
 First, you need to declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
-Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
+Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object...)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
 
 TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
 
@@ -246,7 +246,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 ====
 
 First, you need to declare an interface with a property of type `ArchiveOperations`, here named `InjectedArcOps`, to serve as an injection point.
-Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
+Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object...)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
 
 TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
 
@@ -273,7 +273,7 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 ====
 
 First, you need to declare an interface with a property of type `ExecOperations`, here named `InjectedExecOps`, to serve as an injection point.
-Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
+Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object...)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
 
 TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
 

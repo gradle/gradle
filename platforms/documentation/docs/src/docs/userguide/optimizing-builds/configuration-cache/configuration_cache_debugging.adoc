@@ -172,7 +172,7 @@ $ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
 [[config_cache:task_opt_out]]
 == Declare Incompatible Tasks
 
-You can explicitly mark a task as incompatible with the Configuration Cache using the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[`Task.notCompatibleWithConfigurationCache()`] method:
+You can explicitly mark a task as incompatible with the Configuration Cache using the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache(java.lang.String)[`Task.notCompatibleWithConfigurationCache()`] method:
 
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
@@ -186,7 +186,7 @@ When a task is marked as incompatible:
 
 This mechanism can be useful during migration, allowing you to temporarily opt out tasks that require more extensive changes to become Configuration Cache-compatible.
 
-For more details, refer to the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[method] documentation.
+For more details, refer to the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache(java.lang.String)[method] documentation.
 
 [[config_cache:integrity_check]]
 == Use Integrity Checks

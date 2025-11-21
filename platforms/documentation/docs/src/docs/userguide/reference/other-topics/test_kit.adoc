@@ -47,7 +47,7 @@ A contrived build can be created (e.g. programmatically, or from a template) tha
 * The build's logging (i.e. console output);
 * The set of tasks executed by the build and their results (e.g. FAILED, UP-TO-DATE etc.).
 
-After creating and configuring a runner instance, the build can be executed via the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#build--[GradleRunner.build()] or link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#buildAndFail--[GradleRunner.buildAndFail()] methods depending on the anticipated outcome.
+After creating and configuring a runner instance, the build can be executed via the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#build()[GradleRunner.build()] or link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#buildAndFail()[GradleRunner.buildAndFail()] methods depending on the anticipated outcome.
 
 The following demonstrates the usage of the Gradle runner in a Java JUnit test:
 
@@ -96,7 +96,7 @@ Starting with version 2.13, Gradle provides a conventional mechanism to inject t
 The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin development plugin>> can be used to assist in the development of Gradle plugins.
 Starting with Gradle version 2.13, the plugin provides a direct integration with TestKit.
 When applied to a project, the plugin automatically adds the `gradleTestKit()` dependency to the `testApi` configuration.
-Furthermore, it automatically generates the classpath for the code under test and injects it via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[GradleRunner.withPluginClasspath()] for any `GradleRunner` instance created by the user.
+Furthermore, it automatically generates the classpath for the code under test and injects it via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath()[GradleRunner.withPluginClasspath()] for any `GradleRunner` instance created by the user.
 It's important to note that the mechanism currently _only_ works if the plugin under test is applied using the <<plugins_intermediate.adoc#sec:plugins_block,plugins DSL>>.
 If the <<#sub:gradle-runner-gradle-version,target Gradle version>> is prior to 2.8, automatic plugin classpath injection is not performed.
 
@@ -146,7 +146,7 @@ The dedicated working directory is not deleted by the runner after the build.
 The TestKit provides two ways to specify a location that is regularly cleaned, such as the project's build folder:
 
 * The `org.gradle.testkit.dir` system property;
-* The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(file testKitDir)] method.
+* The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir(java.io.File)[GradleRunner.withTestKitDir(file testKitDir)] method.
 
 [[sub:gradle-runner-gradle-version]]
 == Setting the Gradle version used to test
@@ -159,9 +159,9 @@ When using the runner as part of tests _being executed by Gradle_ (e.g. executin
 
 Alternatively, a different and specific version of Gradle to use can be specified by the any of the following `GradleRunner` methods:
 
-* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion-java.lang.String-[GradleRunner.withGradleVersion(java.lang.String)]
-* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleInstallation-java.io.File-[GradleRunner.withGradleInstallation(java.io.File)]
-* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleDistribution-java.net.URI-[GradleRunner.withGradleDistribution(java.net.URI)]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion(java.lang.String)[GradleRunner.withGradleVersion(java.lang.String)]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleInstallation(java.io.File)[GradleRunner.withGradleInstallation(java.io.File)]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleDistribution(java.net.URI)[GradleRunner.withGradleDistribution(java.net.URI)]
 
 This can potentially be used to test build logic across Gradle versions. The following demonstrates a cross-version compatibility test written as Groovy Spock test:
 
@@ -189,19 +189,19 @@ The following table lists the features that are sensitive to the Gradle version 
 
 | Inspecting executed tasks
 | 2.5
-| Inspecting the executed tasks, using link:{javadocPath}/org/gradle/testkit/runner/BuildResult.html#getTasks--[BuildResult.getTasks()] and similar methods.
+| Inspecting the executed tasks, using link:{javadocPath}/org/gradle/testkit/runner/BuildResult.html#getTasks()[BuildResult.getTasks()] and similar methods.
 
 | <<#sub:test-kit-classpath-injection,Plugin classpath injection>>
 | 2.8
-| Injecting the code under test vialink:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath-java.lang.Iterable-[GradleRunner.withPluginClasspath(java.lang.Iterable)].
+| Injecting the code under test vialink:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath(java.lang.Iterable)[GradleRunner.withPluginClasspath(java.lang.Iterable)].
 
 | <<#sub:test-kit-debug,Inspecting build output in debug mode>>
 | 2.9
-| Inspecting the build's text output when run in debug mode, using link:{javadocPath}/org/gradle/testkit/runner/BuildResult.html#getOutput--[BuildResult.getOutput()].
+| Inspecting the build's text output when run in debug mode, using link:{javadocPath}/org/gradle/testkit/runner/BuildResult.html#getOutput()[BuildResult.getOutput()].
 
 | <<#sub:test-kit-automatic-classpath-injection,Automatic plugin classpath injection>>
 | 2.13
-| Injecting the code under test automatically via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[GradleRunner.withPluginClasspath()] by applying the Java Gradle Plugin Development plugin.
+| Injecting the code under test automatically via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath()[GradleRunner.withPluginClasspath()] by applying the Java Gradle Plugin Development plugin.
 
 | Setting environment variables to be used by the build.
 | 3.5
@@ -217,7 +217,7 @@ The runner uses the <<tooling_api.adoc#embedding,Tooling API>> to execute builds
 The TestKit provides two different ways to enable the debug mode:
 
 * Setting "`org.gradle.testkit.debug`" system property to `true` for the JVM _using_ the `GradleRunner` (i.e. not the build being executed with the runner);
-* Calling the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withDebug-boolean-[GradleRunner.withDebug(boolean)] method.
+* Calling the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withDebug(boolean)[GradleRunner.withDebug(boolean)] method.
 
 The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration. Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.
 
@@ -234,7 +234,7 @@ To enable the <<build_cache.adoc#build_cache,Build Cache>> in your tests, you ca
 include::{snippetsPath}/testKit/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-build-cache]
 ----
 
-Note that TestKit re-uses a Gradle User Home between tests (see link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(java.io.File)]) which contains the default location for the local build cache.
+Note that TestKit re-uses a Gradle User Home between tests (see link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir(java.io.File)[GradleRunner.withTestKitDir(java.io.File)]) which contains the default location for the local build cache.
 For testing with the build cache, the build cache directory should be cleaned between tests.
 The easiest way to accomplish this is to configure the local build cache to use a temporary directory.
 

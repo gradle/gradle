@@ -195,7 +195,7 @@ Use a task input or output property or a script variable to capture the result o
 | link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:gradleProperty(java.lang.String)[Value providers for Gradle properties].
 
 | `project.logger`
-| link:{javadocPath}/org/gradle/api/Task.html#getLogger--[Task.logger]
+| link:{javadocPath}/org/gradle/api/Task.html#getLogger()[Task.logger]
 
 | `project.provider {}`
 | link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider {}]
@@ -207,49 +207,49 @@ Use a task input or output property or a script variable to capture the result o
 | A task input or output property or a script variable to capture the result of using `project.uri(path)` to calculate the actual parameter. Otherwise, `File.toURI()` or some other JVM API can be used.
 
 | `project.relativePath(path)`
-| link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.projectDirectory].link:{javadocPath}/org/gradle/api/file/Directory.html#file-java.lang.String-[file(path)]
+| link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory()[ProjectLayout.projectDirectory].link:{javadocPath}/org/gradle/api/file/Directory.html#file(java.lang.String)[file(path)]
 
 | `project.files(paths)`
-| link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileCollection--[ObjectFactory.fileCollection()].link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#from-java.lang.Object...-[from(paths)]
+| link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileCollection()[ObjectFactory.fileCollection()].link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#from(java.lang.Object...)[from(paths)]
 
 | `project.fileTree(paths)`
-| link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileTree--[ObjectFactory.fileTree()].link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html#from-java.lang.Object-[from(dir)]
+| link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#fileTree()[ObjectFactory.fileTree()].link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html#from(java.lang.Object)[from(dir)]
 
 | `project.zipTree(path)`
-| link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html#zipTree-java.lang.Object-[ArchiveOperations.zipTree(path)]
+| link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html#zipTree(java.lang.Object)[ArchiveOperations.zipTree(path)]
 
 | `project.tarTree(path)`
-| link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html#tarTree-java.lang.Object-[ArchiveOperations.tarTree(path)]
+| link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html#tarTree(java.lang.Object)[ArchiveOperations.tarTree(path)]
 
 | `project.resources`
 | A task input or output property or a script variable to capture the result of using `project.resource` to calculate the actual parameter.
 
 | `project.copySpec {}`
-| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copySpec--[FileSystemOperations.copySpec {}]
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copySpec()[FileSystemOperations.copySpec {}]
 
 | `project.copy {}`
-| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy-org.gradle.api.Action-[FileSystemOperations.copy {}]
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#copy(org.gradle.api.Action)[FileSystemOperations.copy {}]
 
 | `project.sync {}`
-| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#sync-org.gradle.api.Action-[FileSystemOperations.sync {}]
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#sync(org.gradle.api.Action)[FileSystemOperations.sync {}]
 
 | `project.delete {}`
-| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#delete-org.gradle.api.Action-[FileSystemOperations.delete {}]
+| link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html#delete(org.gradle.api.Action)[FileSystemOperations.delete {}]
 
 | `project.mkdir(path)`
 | The Kotlin, Groovy or Java API available to your build logic.
 
 | `project.exec {}`
-| link:{javadocPath}/org/gradle/process/ExecOperations.html#exec-org.gradle.api.Action-[ExecOperations.exec {}]
+| link:{javadocPath}/org/gradle/process/ExecOperations.html#exec(org.gradle.api.Action)[ExecOperations.exec {}]
 
 | `project.javaexec {}`
-| link:{javadocPath}/org/gradle/process/ExecOperations.html#javaexec-org.gradle.api.Action-[ExecOperations.javaexec {}]
+| link:{javadocPath}/org/gradle/process/ExecOperations.html#javaexec(org.gradle.api.Action)[ExecOperations.javaexec {}]
 
 | `project.ant {}`
-| link:{javadocPath}/org/gradle/api/Task.html#getAnt--[Task.ant]
+| link:{javadocPath}/org/gradle/api/Task.html#getAnt()[Task.ant]
 
 | `project.createAntBuilder()`
-| link:{javadocPath}/org/gradle/api/Task.html#getAnt--[Task.ant]
+| link:{javadocPath}/org/gradle/api/Task.html#getAnt()[Task.ant]
 
 |===
 
