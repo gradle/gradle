@@ -80,6 +80,8 @@ import java.security.ProtectionDomain;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 @SuppressWarnings("deprecation")
 @ServiceScope(Scope.Build.class)
 public abstract class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
@@ -457,7 +459,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
 
         @Override
         public void close() throws IOException {
-            IoActions.closeQuietly(replacer);
+            closeQuietly(replacer);
         }
     }
 }

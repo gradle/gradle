@@ -38,6 +38,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 /**
  * A helper class that can remap classes loaded from the original JARs of the TransformedClassPath to the classes from the corresponding transformed JARs.
  * <p>
@@ -89,7 +91,7 @@ public class TransformReplacer implements Closeable {
                 // This replacer was closed while setting up a loader.
                 // The transformLoader might be inserted into the loaders map after close(), so let's close it for sure to
                 // avoid leaks.
-                IOUtils.closeQuietly(transformLoader);
+                closeQuietly(transformLoader);
                 // Throw the exception so the caller doesn't see the obviously closed loader.
                 ensureOpened();
             }
@@ -114,7 +116,7 @@ public class TransformReplacer implements Closeable {
         Loader oldLoader = loaders.putIfAbsent(domain, newLoader);
         if (oldLoader != null) {
             // Discard the new loader, someone beat us with storing it.
-            IOUtils.closeQuietly(newLoader);
+            closeQuietly(newLoader);
             return oldLoader;
         }
         return newLoader;
@@ -128,7 +130,7 @@ public class TransformReplacer implements Closeable {
         }
         closed = true;
         for (Loader value : loaders.values()) {
-            IOUtils.closeQuietly(value);
+            closeQuietly(value);
         }
     }
 
@@ -184,18 +186,15 @@ public class TransformReplacer implements Closeable {
                 // Injected classes reuse the protection domain. See ClassLoaderUtils.define and defineDecorator.
                 return null;
             }
-            InputStream classBytes = jarFile.getInputStream(classEntry);
-            try {
+            try (InputStream classBytes = jarFile.getInputStream(classEntry)) {
                 return StreamByteBuffer.of(classBytes).readAsByteArray();
-            } finally {
-                classBytes.close();
             }
         }
 
         @Override
         public synchronized void close() {
             // Not calling getJarFileLocked intentionally, to avoid opening the JAR if it isn't opened yet.
-            IOUtils.closeQuietly(jarFile);
+            closeQuietly(jarFile);
         }
 
         private JarFile getJarFileLocked() throws IOException {
@@ -216,11 +215,8 @@ public class TransformReplacer implements Closeable {
     private static boolean isTransformed(JarFile jarFile) throws IOException {
         JarEntry entry = jarFile.getJarEntry(MarkerResource.RESOURCE_NAME);
         if (entry != null) {
-            InputStream in = jarFile.getInputStream(entry);
-            try {
+            try (InputStream in = jarFile.getInputStream(entry)) {
                 return MarkerResource.TRANSFORMED.equals(MarkerResource.readFromStream(in));
-            } finally {
-                in.close();
             }
         }
         return false;
@@ -243,11 +239,8 @@ public class TransformReplacer implements Closeable {
                 //  file, we're going to use originals silently.
                 return null;
             }
-            InputStream classBytes = new FileInputStream(classFile);
-            try {
+            try (InputStream classBytes = new FileInputStream(classFile)) {
                 return StreamByteBuffer.of(classBytes).readAsByteArray();
-            } finally {
-                classBytes.close();
             }
         }
     }

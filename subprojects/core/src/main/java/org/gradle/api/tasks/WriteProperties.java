@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.util.PropertiesUtils;
@@ -37,6 +36,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
@@ -211,7 +212,7 @@ public abstract class WriteProperties extends DefaultTask {
             propertiesToWrite.putAll(getProperties());
             PropertiesUtils.store(propertiesToWrite, out, getComment(), charset, getLineSeparator());
         } finally {
-            IoActions.closeQuietly(out);
+            closeQuietly(out);
         }
     }
 

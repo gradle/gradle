@@ -156,8 +156,7 @@ public class DefaultServiceLocator implements ServiceLocator {
         if (!useCaches && urlConnection instanceof JarURLConnection) {
             urlConnection.setUseCaches(false);
         }
-        InputStream inputStream = urlConnection.getInputStream();
-        try {
+        try (InputStream inputStream = urlConnection.getInputStream()) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             List<String> implementationClassNames = new ArrayList<String>();
             String line;
@@ -168,8 +167,6 @@ public class DefaultServiceLocator implements ServiceLocator {
                 }
             }
             return implementationClassNames;
-        } finally {
-            inputStream.close();
         }
     }
 

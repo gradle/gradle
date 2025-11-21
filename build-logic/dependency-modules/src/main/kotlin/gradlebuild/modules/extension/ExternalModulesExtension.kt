@@ -17,16 +17,14 @@ package gradlebuild.modules.extension
 
 import gradlebuild.modules.model.License
 
-
 abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     val groovyVersion = when (bundleGroovyMajor) {
         4 -> "4.0.29"
-        // This is expected to contain Groovy 5 soon, once it's released or we need to test it.
+        // This is expected to contain Groovy 5 soon, once it's released, or we need to test it.
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
-    val configurationCacheReportVersion = "1.27"
     val gradleIdeStarterVersion = "0.8.2"
     val kotlinVersion = "2.2.21"
 
@@ -52,12 +50,12 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val bouncycastleUtil = "org.bouncycastle:bcutil-jdk18on"
     val bsh = "org.apache-extras.beanshell:bsh"
     val commonsCodec = "commons-codec:commons-codec"
-    val commonsCompress = "org.apache.commons:commons-compress"
+    val commonsCompress = "org.apache.commons:commons-compress:1.28.0"
     val commonsHttpclient = "org.apache.httpcomponents:httpclient"
-    val commonsIo = "commons-io:commons-io"
+    val commonsIo = "commons-io:commons-io:2.21.0"
     val commonsLang = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
-    val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
+    val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:1.27"
     val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
     val eclipseSisuPlexus = "org.eclipse.sisu:org.eclipse.sisu.plexus"
     val errorProneAnnotations = "com.google.errorprone:error_prone_annotations"
@@ -116,21 +114,21 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val jnrConstants = "com.github.jnr:jnr-constants"
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
-    val jsr305 = "com.google.code.findbugs:jsr305"
     val jspecify = "org.jspecify:jspecify"
+    val jsr305 = "com.google.code.findbugs:jsr305"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
-    val junitJupiter = "org.junit.jupiter:junit-jupiter"
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"
     val junit5Vintage = "org.junit.vintage:junit-vintage-engine"
+    val junitJupiter = "org.junit.jupiter:junit-jupiter"
     val junitPlatform = "org.junit.platform:junit-platform-launcher"
     val junitPlatformEngine = "org.junit.platform:junit-platform-engine"
     val jzlib = "com.jcraft:jzlib"
+    val kotlinBuildToolsImpl = futureKotlin("build-tools-impl")
     val kotlinCompilerEmbeddable = futureKotlin("compiler-embeddable")
+    val kotlinJvmAbiGenEmbeddable = "org.jetbrains.kotlin:jvm-abi-gen-embeddable"
     val kotlinReflect = futureKotlin("reflect")
     val kotlinStdlib = futureKotlin("stdlib")
-    val kotlinBuildToolsImpl = futureKotlin("build-tools-impl")
-    val kotlinJvmAbiGenEmbeddable = "org.jetbrains.kotlin:jvm-abi-gen-embeddable"
     val kotlinxSerializationCore = "org.jetbrains.kotlinx:kotlinx-serialization-core"
     val kotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json"
     val kryo = "com.esotericsoftware.kryo:kryo"
@@ -185,8 +183,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val compileTesting = "com.google.testing.compile:compile-testing"
     val dockerJavaApi = "com.github.docker-java:docker-java-api"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
-    val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"
+    val hikariCP = "com.zaxxer:HikariCP"
     val httpmime = "org.apache.httpcomponents:httpmime"
     val jacksonKotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
     val jetty = "org.eclipse.jetty:jetty-http"
@@ -209,8 +207,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val opentest4j = "org.opentest4j:opentest4j"
     val samplesCheck = "org.gradle.exemplar:samples-check"
     val samplesDiscovery = "org.gradle.exemplar:samples-discovery"
-    val snappy = "org.iq80.snappy:snappy"
     val servletApi = "javax.servlet:javax.servlet-api"
+    val snappy = "org.iq80.snappy:snappy"
     val socksProxy = "com.github.bbottema:java-socks-proxy-server"
     val spock = "org.spockframework:spock-core"
     val spockJUnit4 = "org.spockframework:spock-junit4"
@@ -253,8 +251,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         gcs to License.Apache2,
         googleApiClient to License.Apache2,
         googleHttpClient to License.Apache2,
-        googleHttpClientGson to License.Apache2,
         googleHttpClientApacheV2 to License.Apache2,
+        googleHttpClientGson to License.Apache2,
         googleOauthClient to License.Apache2,
         gradleFileEvents to License.Apache2,
         gradleIdeStarter to License.Apache2,
@@ -265,8 +263,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         guice to License.Apache2,
         h2Database to License.EPL,
         hamcrest to License.BSD3,
-        httpcore to License.Apache2,
         hikariCP to License.Apache2,
+        httpcore to License.Apache2,
         inject to License.Apache2,
         ivy to License.Apache2,
         jacksonAnnotations to License.Apache2,
@@ -292,8 +290,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         jsr305 to License.BSD3,
         julToSlf4j to License.MIT,
         junit to License.EPL,
-        junit5Vintage to License.EPL,
         junit5JupiterApi to License.EPL,
+        junit5Vintage to License.EPL,
         junitPlatform to License.EPL,
         junitPlatformEngine to License.EPL,
         jzlib to License.BSDStyle,
@@ -301,8 +299,8 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         log4jToSlf4j to License.MIT,
         maven3BuilderSupport to License.Apache2,
         maven3Model to License.Apache2,
-        maven3ResolverProvider to License.Apache2,
         maven3RepositoryMetadata to License.Apache2,
+        maven3ResolverProvider to License.Apache2,
         maven3Settings to License.Apache2,
         maven3SettingsBuilder to License.Apache2,
         mavenResolverApi to License.Apache2,
@@ -329,4 +327,5 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         xbeanReflect to License.Apache2,
         zinc to License.Apache2
     )
+
 }

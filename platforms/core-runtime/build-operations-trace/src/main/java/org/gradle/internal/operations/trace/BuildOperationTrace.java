@@ -37,7 +37,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
@@ -88,6 +87,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import static java.lang.Boolean.TRUE;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
@@ -180,7 +181,7 @@ public class BuildOperationTrace implements Stoppable {
             this.outputTree = false;
             this.listener = new FilteringBuildOperationListener(new SerializingBuildOperationListener(writer), filter);
         } else {
-            this.outputTree = internalOptions.getOption(TRACE_TREE_OPTION).get();
+            this.outputTree = TRUE.equals(internalOptions.getOption(TRACE_TREE_OPTION).get()); // fixed Unboxing of 'internalOptions.getOption(TRACE_TREE_OPTION).get()' may produce 'NullPointerException'
             this.listener = new SerializingBuildOperationListener(writer);
         }
 
@@ -265,10 +266,10 @@ public class BuildOperationTrace implements Stoppable {
                 logOutputStream.write(NEWLINE);
                 logOutputStream.flush();
             } catch (IOException e) {
-                IoActions.closeQuietly(logOutputStream);
+                closeQuietly(logOutputStream);
                 throw new UncheckedIOException(e);
             } catch (Throwable t) {
-                IoActions.closeQuietly(logOutputStream);
+                closeQuietly(logOutputStream);
                 throw t;
             }
         }
@@ -281,7 +282,7 @@ public class BuildOperationTrace implements Stoppable {
                     doWriteTreeJson();
                 }
             } finally {
-                IoActions.closeQuietly(logOutputStream);
+                closeQuietly(logOutputStream);
             }
         }
 
@@ -695,7 +696,7 @@ public class BuildOperationTrace implements Stoppable {
             try {
                 executor.execute(() -> delegate.complete(outputTree));
             } finally {
-                IoActions.closeQuietly(executor);
+                closeQuietly(executor);
             }
         }
 

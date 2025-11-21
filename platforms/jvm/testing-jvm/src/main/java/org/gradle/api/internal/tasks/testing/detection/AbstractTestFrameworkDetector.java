@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.IoActions;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
@@ -129,7 +130,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             LOGGER.debug("Failed to read class file " + testClassFile.getAbsolutePath() + "; assuming it's a test class and continuing", e);
             return TestClass.forUnparseableFile(fallbackClassNameProvider.create());
         } finally {
-            IoActions.closeQuietly(classStream);
+            closeQuietly(classStream);
         }
     }
 

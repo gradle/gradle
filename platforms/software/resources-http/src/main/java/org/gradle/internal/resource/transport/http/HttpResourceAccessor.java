@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 public class HttpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
@@ -71,7 +73,7 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
         try {
             return resource.getMetaData();
         } finally {
-            IoActions.closeQuietly(resource);
+            closeQuietly(resource);
         }
     }
 

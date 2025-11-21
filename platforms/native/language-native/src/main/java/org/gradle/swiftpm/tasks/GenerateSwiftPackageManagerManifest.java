@@ -79,8 +79,7 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
         try {
             Path baseDir = manifest.getParent();
             Files.createDirectories(baseDir);
-            PrintWriter writer = new PrintWriter(Files.newBufferedWriter(manifest, Charset.forName("utf-8")));
-            try {
+            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(manifest, Charset.forName("utf-8")))) {
                 writer.println("// swift-tools-version:4.0");
                 writer.println("//");
                 writer.println("// GENERATED FILE - do not edit");
@@ -128,13 +127,13 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
                                 writer.print("from: \"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"");
-                            } else if (versionDependency.isUpperInclusive()){
+                            } else if (versionDependency.isUpperInclusive()) {
                                 writer.print("\"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"...\"");
                                 writer.print(versionDependency.getUpperBound());
                                 writer.print("\"");
-                            }  else {
+                            } else {
                                 writer.print("\"");
                                 writer.print(versionDependency.getLowerBound());
                                 writer.print("\"..<\"");
@@ -204,8 +203,6 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
                 }
                 writer.println();
                 writer.println(")");
-            } finally {
-                writer.close();
             }
         } catch (IOException e) {
             throw new GradleException(String.format("Could not write manifest file %s.", manifest), e);

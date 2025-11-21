@@ -26,7 +26,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.Strings;
 import org.gradle.cache.CleanupProgressMonitor;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.util.GradleVersion;
@@ -54,6 +53,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 import static org.gradle.util.internal.CollectionUtils.single;
 
@@ -200,7 +200,7 @@ public class WrapperDistributionCleanupAction implements MonitoredCleanupAction 
             zipFile = new ZipFile(jarFile);
             return readGradleVersionFromBuildReceipt(zipFile);
         } finally {
-            IoActions.closeQuietly(zipFile);
+            closeQuietly(zipFile);
         }
     }
 
@@ -210,14 +210,11 @@ public class WrapperDistributionCleanupAction implements MonitoredCleanupAction 
         if (zipEntry == null) {
             return null;
         }
-        InputStream in = zipFile.getInputStream(zipEntry);
-        try {
+        try (InputStream in = zipFile.getInputStream(zipEntry)) {
             Properties properties = new Properties();
             properties.load(in);
             String versionString = properties.getProperty(DefaultGradleVersion.VERSION_NUMBER_PROPERTY);
             return GradleVersion.version(versionString);
-        } finally {
-            in.close();
         }
     }
 

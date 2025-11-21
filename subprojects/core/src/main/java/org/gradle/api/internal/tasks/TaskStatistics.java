@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
@@ -36,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newOutputStream;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 @ServiceScope(Scope.Build.class)
 public class TaskStatistics implements Closeable {
@@ -124,7 +124,7 @@ public class TaskStatistics implements Closeable {
 
             printTypeCounts("\nTask types that were created with the old API", typeCounts);
             printTypeCounts("\nTask types that were registered with the new API but were created anyways", realizedTypeCounts);
-            IoActions.closeQuietly(lazyTaskLog);
+            closeQuietly(lazyTaskLog);
         }
     }
 

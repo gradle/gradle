@@ -83,7 +83,7 @@ abstract class AbstractModule implements Module {
             zipStream.closeArchiveEntry()
             zipStream.finish()
         } finally {
-            IoActions.closeQuietly(zipStream)
+            closeQuietly(zipStream)
         }
     }
 

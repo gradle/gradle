@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classloader;
 
-import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
@@ -32,6 +31,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     static {
@@ -196,7 +197,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
         @Override
         public void close() throws IOException {
-            IOUtils.closeQuietly(replacer);
+            closeQuietly(replacer);
             super.close();
         }
     }

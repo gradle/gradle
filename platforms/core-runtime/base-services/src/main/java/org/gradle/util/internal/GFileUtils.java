@@ -18,7 +18,7 @@ package org.gradle.util.internal;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.gradle.internal.IoActions;
+
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
@@ -38,6 +38,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.zip.Checksum;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class GFileUtils {
 
@@ -90,7 +92,7 @@ public class GFileUtils {
         } catch (IOException e) {
             throw new UncheckedIOException("Could not update timestamp for " + file, e);
         } finally {
-            IoActions.closeQuietly(out);
+            closeQuietly(out);
         }
     }
 

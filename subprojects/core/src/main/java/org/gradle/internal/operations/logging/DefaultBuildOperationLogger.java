@@ -29,6 +29,7 @@ import java.io.PrintWriter;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newOutputStream;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 class DefaultBuildOperationLogger implements BuildOperationLogger {
     private final BuildOperationLogInfo configuration;
@@ -90,7 +91,7 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
             }
             logInBoth(LogLevel.INFO, String.format("Finished %s, see full log %s.", configuration.getTaskName(), getLogLocation()));
         } finally {
-            IoActions.closeQuietly(logWriter);
+            closeQuietly(logWriter);
             started = false;
         }
     }

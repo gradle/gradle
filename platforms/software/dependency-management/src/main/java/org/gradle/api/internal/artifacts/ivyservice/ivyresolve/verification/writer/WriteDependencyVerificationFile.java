@@ -284,7 +284,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             if (previous.exists()) {
                 LOGGER.info("Found dependency verification dryrun metadata file, updating");
                 try {
-                    DependencyVerificationsXmlReader.readFromXml(new FileInputStream(previous), verificationsBuilder);
+                    DependencyVerificationsXmlReader.readFromXml(verificationsBuilder, new FileInputStream(previous));
                 } catch (FileNotFoundException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -294,7 +294,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         if (verificationFile.exists()) {
             LOGGER.info("Found dependency verification metadata file, updating");
             try {
-                DependencyVerificationsXmlReader.readFromXml(new FileInputStream(verificationFile), verificationsBuilder);
+                DependencyVerificationsXmlReader.readFromXml(verificationsBuilder, new FileInputStream(verificationFile));
             } catch (FileNotFoundException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
