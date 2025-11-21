@@ -119,7 +119,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             TaskProvider<GroovyCompile> compileTask = createGroovyCompileTask(project, sourceSet, groovySource);
 
             ConfigurationContainer configurations = project.getConfigurations();
-            configureLibraryElements(sourceSet, configurations, project.getObjects());
+            configureLibraryElements(sourceSet, configurations);
             configureTargetPlatform(compileTask, sourceSet, configurations);
         });
     }
@@ -131,12 +131,12 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
         return groovySourceDirectorySet;
     }
 
-    private static void configureLibraryElements(SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
+    private static void configureLibraryElements(SourceSet sourceSet, ConfigurationContainer configurations) {
         // Explain that Groovy, for compile, also needs the resources (#9872)
         configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).attributes(attrs ->
             attrs.attribute(
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
-                objectFactory.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES)
+                attrs.named(LibraryElements.class, LibraryElements.CLASSES_AND_RESOURCES)
             )
         );
     }
