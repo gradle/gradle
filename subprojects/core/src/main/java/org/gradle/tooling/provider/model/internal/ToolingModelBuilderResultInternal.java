@@ -16,9 +16,11 @@
 
 package org.gradle.tooling.provider.model.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,14 +34,16 @@ import java.util.List;
 @NullMarked
 public class ToolingModelBuilderResultInternal {
 
+    @Nullable
     private final Object model;
     private final List<Failure> failures;
 
-    private ToolingModelBuilderResultInternal(Object model, List<Failure> failures) {
+    private ToolingModelBuilderResultInternal(@Nullable Object model, List<Failure> failures) {
         this.model = model;
         this.failures = failures;
     }
 
+    @Nullable
     public Object getModel() {
         return model;
     }
@@ -48,11 +52,27 @@ public class ToolingModelBuilderResultInternal {
         return failures;
     }
 
+    public static ToolingModelBuilderResultInternal attachFailures(@Nullable Object model, List<Failure> additionalFailures) {
+        if (model instanceof ToolingModelBuilderResultInternal) {
+            ToolingModelBuilderResultInternal result = (ToolingModelBuilderResultInternal) model;
+            List<Failure> merged = ImmutableList.<Failure>builder()
+                .addAll(additionalFailures)
+                .addAll(result.getFailures())
+                .build();
+            return of(result.getModel(), merged);
+        }
+        return of(model, ImmutableList.copyOf(additionalFailures));
+    }
+
     public static ToolingModelBuilderResultInternal of(Object model) {
         return new ToolingModelBuilderResultInternal(model, Collections.emptyList());
     }
 
-    public static ToolingModelBuilderResultInternal of(Object model, List<Failure> failures) {
-        return new ToolingModelBuilderResultInternal(model, failures);
+    public static ToolingModelBuilderResultInternal of(@Nullable Object model, List<Failure> failures) {
+        return new ToolingModelBuilderResultInternal(model, ImmutableList.copyOf(failures));
+    }
+
+    public static ToolingModelBuilderResultInternal of(List<Failure> failures) {
+        return new ToolingModelBuilderResultInternal(null, ImmutableList.copyOf(failures));
     }
 }

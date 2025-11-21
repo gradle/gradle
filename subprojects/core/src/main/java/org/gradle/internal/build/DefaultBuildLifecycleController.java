@@ -129,6 +129,16 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
+    public void configureProjectsIgnoringLaterFailures() {
+        state.notInStateIgnoringFailures(State.Finished, () -> {
+            if (!state.inStateOrLaterIgnoringFailures(State.ReadyToRun)) {
+                modelController.getConfiguredModel();
+            }
+            return Void.class;
+        });
+    }
+
+    @Override
     public <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
         return state.notInState(State.Finished, () -> action.apply(modelController.getConfiguredModel()));
     }
