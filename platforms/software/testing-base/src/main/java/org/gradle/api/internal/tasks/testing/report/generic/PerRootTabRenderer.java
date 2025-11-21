@@ -38,6 +38,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -504,18 +505,18 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 String possibleMediaType = metadata.getMediaType();
                 if (possibleMediaType == null) {
                     // Might be a directory, just render this as a link
-                    renderLink(htmlWriter, metadata);
+                    renderLink(htmlWriter, metadata.getPath());
                 } else {
                     MediaType mediaType = MediaType.parse(possibleMediaType);
                     if (mediaType.is(MediaType.ANY_IMAGE_TYPE)) {
                         // render as image
-                        renderImage(htmlWriter, metadata);
+                        renderImage(htmlWriter, metadata.getPath());
                     } else if (mediaType.is(MediaType.ANY_VIDEO_TYPE)) {
                         // render as video
-                        renderVideo(htmlWriter, metadata);
+                        renderVideo(htmlWriter, metadata.getPath());
                     } else {
                         // render as a link
-                        renderLink(htmlWriter, metadata);
+                        renderLink(htmlWriter, metadata.getPath(), mediaType);
                     }
                 }
                 htmlWriter.endElement();
@@ -525,18 +526,22 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.endElement();
         }
 
-        private static void renderLink(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
-            htmlWriter.startElement("a").attribute("href", htmlWriter.relativeLink(metadata.getPath())).characters(htmlWriter.relativeLink(metadata.getPath())).endElement();
+        private static void renderLink(SimpleHtmlWriter htmlWriter, Path path, MediaType mediaType) throws IOException {
+            htmlWriter.startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters(path.getFileName().toString() + " (" + mediaType + ")").endElement();
         }
 
-        private static void renderImage(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
-            htmlWriter.startElement("img").attribute("src", htmlWriter.relativeLink(metadata.getPath())).attribute("alt", metadata.getPath().getFileName().toString()).endElement();
+        private static void renderLink(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
+            htmlWriter.startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters(path.getFileName().toString()).endElement();
         }
-        private static void renderVideo(SimpleHtmlWriter htmlWriter, DefaultTestFileAttachmentDataEvent metadata) throws IOException {
+
+        private static void renderImage(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
+            htmlWriter.startElement("img").attribute("src", htmlWriter.relativeLink(path)).attribute("alt", path.getFileName().toString()).endElement();
+        }
+        private static void renderVideo(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
             htmlWriter.startElement("video")
-                .attribute("src", htmlWriter.relativeLink(metadata.getPath())).attribute("controls", "")
+                .attribute("src", htmlWriter.relativeLink(path)).attribute("controls", "")
                 // If the browser doesn't support this video format, fallback to a link
-                .startElement("a").attribute("href", htmlWriter.relativeLink(metadata.getPath())).characters("Download video").endElement()
+                .startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters("Download video").endElement()
             .endElement();
         }
     }
