@@ -22,7 +22,7 @@ import org.jspecify.annotations.NullMarked;
 /**
  * The source of a test run.
  *
- * @see SingleFileSource
+ * @see FileSource
  * @see UnknownSource
  * @since 9.4.0
  */

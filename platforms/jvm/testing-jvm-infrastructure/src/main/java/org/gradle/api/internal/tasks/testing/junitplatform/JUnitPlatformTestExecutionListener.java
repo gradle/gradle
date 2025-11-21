@@ -341,9 +341,32 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private static TestSource sourceOf(TestIdentifier node) {
         return node.getSource()
-            .filter(org.junit.platform.engine.support.descriptor.FileSource.class::isInstance)
-            .map(source -> (TestSource) TestSources.singleFileSource(((org.junit.platform.engine.support.descriptor.FileSource) source).getFile()))
-            .orElse(TestSources.unknown());
+            .map(source -> {
+                if (source instanceof FileSource) {
+                    return TestSources.fileSource(((FileSource) source).getFile());
+//                } else if (source instanceof DirectorySource) {
+//                    // TODO (donat) directory source handling if needed
+//                    return TestSources.unknown();
+//                } else if (source instanceof ClassSource) {
+//                    // TODO (donat) directory source handling if needed
+//                    return TestSources.unknown();
+//                } else if (source instanceof MethodSource) {
+//                    // TODO (donat) directory source handling if needed
+//                    return TestSources.unknown();
+//                } else if (source instanceof ClasspathResourceSource) {
+//                    // TODO (donat) directory source handling if needed
+//                    return TestSources.unknown();
+//                } else if (source instanceof PackageSource) {
+//                    // TODO (donat) directory source handling if needed
+//                    return TestSources.unknown();
+//                } else if (source instanceof CompositeTestSource) {
+//                    // TODO (donat) directory source handling if needed
+//                    return TestSources.unknown();
+                } else {
+                    return TestSources.unknown();
+                }
+            })
+            .orElse(TestSources.missing());
     }
 
     private TestDescriptorInternal createSyntheticTestDescriptorForContainer(TestIdentifier node) {

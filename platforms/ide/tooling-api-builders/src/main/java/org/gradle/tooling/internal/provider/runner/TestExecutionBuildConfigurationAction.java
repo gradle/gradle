@@ -35,7 +35,7 @@ import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.event.types.BaseTestDescriptor;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalSingleFileResourceBasedTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalResourceBasedTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
@@ -201,7 +201,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     private static void warnIfUnsupportedTestRerunningForResourceBasedTests(Collection<InternalTestDescriptor> testDescriptors) {
         Set<String> seenTasks = new LinkedHashSet<>();
         for (InternalTestDescriptor descriptor : testDescriptors) {
-            if (descriptor instanceof InternalSingleFileResourceBasedTestDescriptor) {
+            if (descriptor instanceof InternalResourceBasedTestDescriptor) {
                 String taskPath = taskPathOf(descriptor);
                 if (!seenTasks.contains(taskPath)) {
                     LOG.warn("Re-running resource-based tests is not supported via TestLauncher API. The '{}' task will be scheduled without further filtering.", taskPath);

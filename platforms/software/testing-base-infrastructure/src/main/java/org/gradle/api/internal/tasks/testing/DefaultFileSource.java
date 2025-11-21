@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.tasks.testing.SingleFileSource;
+import org.gradle.api.tasks.testing.FileSource;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 
 @NullMarked
-public final class DefaultSingleFileSource implements SingleFileSource {
+public final class DefaultFileSource implements FileSource {
 
     private final File file;
 
-    public DefaultSingleFileSource(File file) {
+    public DefaultFileSource(File file) {
         this.file = file;
     }
 

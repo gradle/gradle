@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.internal.build.event.types;
 
-import org.gradle.api.tasks.testing.FileSource;
-import org.gradle.api.tasks.testing.MissingSource;
-import org.gradle.api.tasks.testing.UnknownSource;
-import org.jspecify.annotations.NullMarked;
+import org.gradle.tooling.internal.protocol.events.InternalFileSource;
 
 import java.io.File;
+import java.io.Serializable;
+import java.net.URI;
 
-@NullMarked
-public class TestSources {
+public class DefaultFileSource implements InternalFileSource, Serializable {
 
-    public static FileSource fileSource(File file) {
-        return new DefaultFileSource(file);
+    private final File file;
+
+    public DefaultFileSource(File file) {
+        this.file = file;
     }
 
-    public static UnknownSource unknown() {
-        return DefaultUnknownSource.getInstance();
+    @Override
+    public final URI getUri() {
+        return getFile().toURI();
     }
 
-    public static MissingSource missing() {
-        return DefaultMissingSource.getInstance();
+    @Override
+    public final File getFile() {
+        return this.file;
     }
 }

@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.api.Incubating;
-import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 
 /**
- * A test source defined by a single file.
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 9.4.0
  */
-@Incubating
-@NullMarked
-public interface SingleFileSource extends TestSource {
+public interface InternalFilesystemSource extends InternalUriSource {
 
     /**
-     * Returns the file representing the test source.
      *
      * @since 9.4.0
      */

@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.AbstractTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
-import org.gradle.api.tasks.testing.SingleFileSource;
+import org.gradle.api.tasks.testing.FileSource;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
@@ -29,7 +29,8 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractTestResult;
 import org.gradle.internal.build.event.types.DefaultClassBasedTestDescriptor;
 import org.gradle.internal.build.event.types.DefaultFileComparisonTestAssertionFailure;
-import org.gradle.internal.build.event.types.DefaultSingleFileResourceBasedTestDescriptor;
+import org.gradle.internal.build.event.types.DefaultFileSource;
+import org.gradle.internal.build.event.types.DefaultResourceBasedTestDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestAssertionFailure;
 import org.gradle.internal.build.event.types.DefaultTestFailureResult;
 import org.gradle.internal.build.event.types.DefaultTestFinishedProgressEvent;
@@ -37,6 +38,7 @@ import org.gradle.internal.build.event.types.DefaultTestFrameworkFailure;
 import org.gradle.internal.build.event.types.DefaultTestSkippedResult;
 import org.gradle.internal.build.event.types.DefaultTestStartedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTestSuccessResult;
+import org.gradle.internal.build.event.types.DefaultUnknownSource;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -48,6 +50,7 @@ import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestSource;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -102,7 +105,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         } else {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
-        return new DefaultClassBasedTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId));
+        return new DefaultClassBasedTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId), toInternalTestSource(suite.getSource()));
     }
 
     private InternalTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor test) {
@@ -114,10 +117,41 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
         TestSource source = test.getSource();
-        if (source instanceof SingleFileSource) {
-            return new DefaultSingleFileResourceBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), parentId, taskTracker.getTaskPath(buildOperationId), ((SingleFileSource) source).getFile());
+
+        if (source instanceof FileSource) { // TODO improve logic to detect resource-based tests
+            return new DefaultResourceBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), parentId, taskTracker.getTaskPath(buildOperationId), toInternalTestSource(source));
         }
-        return new DefaultClassBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId));
+        return new DefaultClassBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId), toInternalTestSource(test.getSource()));
+    }
+
+    private InternalTestSource toInternalTestSource(TestSource source) {
+        if (source instanceof FileSource) {
+            return new DefaultFileSource(((FileSource) source).getFile()); // TODO add location
+//        } else if (source instanceof DirectorySource) {
+//            // TODO (donat) directory source handling if needed
+//            return TestSources.unknown();
+//        } else if (source instanceof ClassSource) {
+//            // TODO (donat) directory source handling if needed
+//            return TestSources.unknown();
+//        } else if (source instanceof MethodSource) {
+//            // TODO (donat) directory source handling if needed
+//            return TestSources.unknown();
+//        } else if (source instanceof ClasspathResourceSource) {
+//            // TODO (donat) directory source handling if needed
+//            return TestSources.unknown();
+//        } else if (source instanceof PackageSource) {
+//            // TODO (donat) directory source handling if needed
+//            return TestSources.unknown();
+//        } else if (source instanceof CompositeTestSource) {
+//            // TODO (donat) directory source handling if needed
+//            return TestSources.unknown();
+//        } else if (source instanceof MissingSource) {
+//            // TODO (donat) directory source handling if needed
+//            return TestSources.unknown();
+        }
+        else {
+            return DefaultUnknownSource.getInstance();
+        }
     }
 
     /**

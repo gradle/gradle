@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * The test engine did not declare any sources for the test.
  *
- * @since 2.4
+ * @since 9.4.0
  */
+@Incubating
 @NullMarked
-public interface InternalTestDescriptor extends InternalOperationDescriptor {
-    /**
-     * Returns the display name of the test.
-     *
-     * @return The display name of the test
-     * @since 8.8
-     */
-    String getTestDisplayName();
-
-    InternalTestSource getTestSource();
+public interface MissingSource extends TestSource {
 }

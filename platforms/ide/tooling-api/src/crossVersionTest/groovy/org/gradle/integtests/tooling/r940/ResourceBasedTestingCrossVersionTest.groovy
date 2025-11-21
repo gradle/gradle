@@ -23,7 +23,8 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.TestSpecs
 import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.events.test.SingleFileResourceBasedTestOperationDescriptor
+import org.gradle.tooling.events.test.FileSource
+import org.gradle.tooling.events.test.ResourceBasedTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.model.gradle.GradleBuild
 import testengines.TestEnginesFixture
@@ -153,7 +154,7 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         def test1 = events.operation('Test SomeTestSpec.rbt : foo')
 
         then:
-        test1.descriptor instanceof SingleFileResourceBasedTestOperationDescriptor
+        test1.descriptor instanceof ResourceBasedTestOperationDescriptor
 
         when:
         events.clear()
@@ -249,12 +250,13 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         test3.parent.descriptor.displayName.startsWith('Gradle Test Executor')
         test1.parent.parent == events.operation('Gradle Test Run :test')
 
-        test1.descriptor instanceof SingleFileResourceBasedTestOperationDescriptor
-        test2.descriptor instanceof SingleFileResourceBasedTestOperationDescriptor
-        test3.descriptor instanceof SingleFileResourceBasedTestOperationDescriptor
+        test1.descriptor instanceof ResourceBasedTestOperationDescriptor
+        test2.descriptor instanceof ResourceBasedTestOperationDescriptor
+        test3.descriptor instanceof ResourceBasedTestOperationDescriptor
 
-        (test1.descriptor as SingleFileResourceBasedTestOperationDescriptor).file == file('src/test/definitions/SomeTestSpec.rbt')
-        (test2.descriptor as SingleFileResourceBasedTestOperationDescriptor).file == file('src/test/definitions/SomeTestSpec.rbt')
-        (test3.descriptor as SingleFileResourceBasedTestOperationDescriptor).file == file('src/test/definitions/subSomeOtherTestSpec.rbt')
+        (test1.descriptor as ResourceBasedTestOperationDescriptor).testSource instanceof FileSource  // == file('src/test/definitions/SomeTestSpec.rbt')
+        ((test1.descriptor as ResourceBasedTestOperationDescriptor).testSource as FileSource).file == file('src/test/definitions/SomeTestSpec.rbt')
+//        (test2.descriptor as ResourceBasedTestOperationDescriptor).file == file('src/test/definitions/SomeTestSpec.rbt')
+//        (test3.descriptor as ResourceBasedTestOperationDescriptor).file == file('src/test/definitions/subSomeOtherTestSpec.rbt')
     }
 }

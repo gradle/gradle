@@ -19,6 +19,7 @@ package org.gradle.internal.build.event.types;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestSource;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -47,9 +48,10 @@ public class DefaultClassBasedTestDescriptor extends BaseTestDescriptor implemen
         @Nullable String className,
         @Nullable String methodName,
         OperationIdentifier parentId,
-        String taskPath
+        String taskPath,
+        InternalTestSource testSource
     ) {
-        super(taskPath);
+        super(taskPath, testSource);
         this.id = id;
         this.operationName = operationName;
         this.operationDisplayName = operationDisplayName;

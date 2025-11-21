@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.test.internal;
 
-import org.jspecify.annotations.NullMarked;
+import org.gradle.tooling.events.test.FileSource;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.4
- */
-@NullMarked
-public interface InternalTestDescriptor extends InternalOperationDescriptor {
-    /**
-     * Returns the display name of the test.
-     *
-     * @return The display name of the test
-     * @since 8.8
-     */
-    String getTestDisplayName();
+import java.io.File;
+import java.net.URI;
 
-    InternalTestSource getTestSource();
+public class DefaultFileSource implements FileSource {
+    private final File file;
+
+    public DefaultFileSource(File file) {
+        this.file = file;
+    }
+
+    @Override
+    public final URI getUri() {
+        return getFile().toURI();
+    }
+
+    @Override
+    public final File getFile() {
+        return this.file;
+    }
 }

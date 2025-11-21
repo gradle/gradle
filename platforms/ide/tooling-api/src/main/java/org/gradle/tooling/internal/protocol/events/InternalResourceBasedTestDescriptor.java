@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test;
+package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-
 /**
- * Describes a resource-based test operation for which an event has occurred backed by a single file.
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 9.4.0
  */
 @NullMarked
-@Incubating
-public interface SingleFileResourceBasedTestOperationDescriptor extends TestOperationDescriptor {
+public interface InternalResourceBasedTestDescriptor extends InternalTestDescriptor {
 
-    /**
-     * Returns the file defining the test.
-     *
-     * @return resource path
-     * @since 9.4.0
-     */
-    File getFile();
 }

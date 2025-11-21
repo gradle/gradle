@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Describes a resource-based test that runs on the JVM and for which an event has occurred.
  *
- * @since 2.4
+ * @since 9.4.0
  */
 @NullMarked
-public interface InternalTestDescriptor extends InternalOperationDescriptor {
-    /**
-     * Returns the display name of the test.
-     *
-     * @return The display name of the test
-     * @since 8.8
-     */
-    String getTestDisplayName();
+@Incubating
+public interface ResourceBasedTestOperationDescriptor extends TestOperationDescriptor {
 
-    InternalTestSource getTestSource();
 }

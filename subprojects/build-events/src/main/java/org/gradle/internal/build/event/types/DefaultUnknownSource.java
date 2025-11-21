@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.internal.build.event.types;
 
-import org.jspecify.annotations.NullMarked;
+import org.gradle.tooling.internal.protocol.events.InternalUnknownSource;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 2.4
- */
-@NullMarked
-public interface InternalTestDescriptor extends InternalOperationDescriptor {
-    /**
-     * Returns the display name of the test.
-     *
-     * @return The display name of the test
-     * @since 8.8
-     */
-    String getTestDisplayName();
+import java.io.Serializable;
 
-    InternalTestSource getTestSource();
+public class DefaultUnknownSource implements InternalUnknownSource, Serializable {
+
+    private static final InternalUnknownSource INSTANCE = new DefaultUnknownSource();
+
+    public static InternalUnknownSource getInstance() {
+        return INSTANCE;
+    }
 }

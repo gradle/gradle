@@ -38,7 +38,8 @@ import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestSources;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
-import org.gradle.api.tasks.testing.SingleFileSource;
+import org.gradle.api.tasks.testing.FileSource;
+import org.gradle.api.tasks.testing.MissingSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -483,8 +484,10 @@ public class TestEventSerializer {
             if (i == 0) {
                 return TestSources.unknown();
             } else if (i == 1) {
+                return TestSources.missing();
+            } else if (i == 2) {
                 String absolutePath = decoder.readString();
-                return TestSources.singleFileSource(new File(absolutePath));
+                return TestSources.fileSource(new File(absolutePath));
             } else {
                 throw new IllegalArgumentException("Unknown TestSource type id: " + i);
             }
@@ -494,9 +497,11 @@ public class TestEventSerializer {
         public void write(Encoder encoder, TestSource value) throws Exception {
             if (value instanceof UnknownSource) {
                 encoder.writeSmallInt(0);
-            } else if (value instanceof SingleFileSource) {
+            } else if (value instanceof MissingSource) {
                 encoder.writeSmallInt(1);
-                encoder.writeString(((SingleFileSource) value).getFile().getAbsolutePath());
+            } else if (value instanceof FileSource) {
+                encoder.writeSmallInt(2);
+                encoder.writeString(((FileSource) value).getFile().getAbsolutePath());
             } else {
                 throw new IllegalArgumentException("Unknown TestSource type: " + value.getClass().getName());
             }

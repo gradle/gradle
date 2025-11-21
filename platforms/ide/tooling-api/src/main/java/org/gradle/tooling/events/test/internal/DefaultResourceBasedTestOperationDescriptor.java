@@ -17,27 +17,20 @@
 package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.test.SingleFileResourceBasedTestOperationDescriptor;
+import org.gradle.tooling.events.test.ResourceBasedTestOperationDescriptor;
+import org.gradle.tooling.events.test.TestSource;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-
 @NullMarked
-public final class DefaultSingleFileResourceBasedTestOperationDescriptor extends DefaultTestOperationDescriptor implements SingleFileResourceBasedTestOperationDescriptor {
-    private final File resource;
+public final class DefaultResourceBasedTestOperationDescriptor extends DefaultTestOperationDescriptor implements ResourceBasedTestOperationDescriptor {
 
-    public DefaultSingleFileResourceBasedTestOperationDescriptor(
+    public DefaultResourceBasedTestOperationDescriptor(
         InternalTestDescriptor internalTestDescriptor,
         OperationDescriptor parent,
-        File resource
+        TestSource testSource
     ) {
-        super(internalTestDescriptor, parent);
-        this.resource = resource;
+        super(internalTestDescriptor, parent, testSource);
     }
 
-    @Override
-    public File getFile() {
-        return resource;
-    }
 }

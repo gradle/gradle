@@ -18,37 +18,35 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalSingleFileResourceBasedTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalResourceBasedTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestSource;
 import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
 import java.io.Serializable;
 
 @NullMarked
-public class DefaultSingleFileResourceBasedTestDescriptor extends BaseTestDescriptor implements Serializable, InternalSingleFileResourceBasedTestDescriptor, InternalOperationDescriptor {
+public class DefaultResourceBasedTestDescriptor extends BaseTestDescriptor implements Serializable, InternalResourceBasedTestDescriptor, InternalOperationDescriptor {
     private final OperationIdentifier id;
     private final String operationName;
     private final String operationDisplayName;
     private final OperationIdentifier parentId;
     private final String testDisplayName;
-    private final File file;
 
-    public DefaultSingleFileResourceBasedTestDescriptor(
+    public DefaultResourceBasedTestDescriptor(
         OperationIdentifier id,
         String operationName,
         String operationDisplayName,
         String displayName,
         OperationIdentifier parentId,
         String taskPath,
-        File file
+        InternalTestSource testSource
     ) {
-        super(taskPath);
+        super(taskPath, testSource);
         this.id = id;
         this.operationName = operationName;
         this.operationDisplayName = operationDisplayName;
         this.testDisplayName = displayName;
         this.parentId = parentId;
-        this.file = file;
     }
 
     @Override
@@ -74,10 +72,5 @@ public class DefaultSingleFileResourceBasedTestDescriptor extends BaseTestDescri
     @Override
     public OperationIdentifier getParentId() {
         return parentId;
-    }
-
-    @Override
-    public File getFile() {
-        return file;
     }
 }

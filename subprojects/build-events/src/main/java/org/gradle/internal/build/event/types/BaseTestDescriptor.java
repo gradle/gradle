@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.events.InternalTestSource;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -24,9 +25,12 @@ import java.io.Serializable;
 @NullMarked
 public abstract class BaseTestDescriptor implements Serializable {
     private final String taskPath;
+    private final InternalTestSource testSource;
 
-    public BaseTestDescriptor(String taskPath) {
+    public BaseTestDescriptor(String taskPath, InternalTestSource testSource
+    ) {
         this.taskPath = taskPath;
+        this.testSource = testSource;
     }
 
     /**
@@ -37,5 +41,14 @@ public abstract class BaseTestDescriptor implements Serializable {
     @Nullable
     public String getTaskPath() {
         return taskPath;
+    }
+
+    /**
+     * Provides information about where the test is defined.
+     *
+     * @return the test source
+     */
+    public InternalTestSource getTestSource() {
+        return testSource;
     }
 }

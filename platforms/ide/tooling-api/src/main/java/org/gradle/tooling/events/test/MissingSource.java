@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
-
-import org.jspecify.annotations.NullMarked;
-
-import java.io.File;
+package org.gradle.tooling.events.test;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 9.3.0
+ * @since 9.4.0
  */
-@NullMarked
-public interface InternalSingleFileResourceBasedTestDescriptor extends InternalTestDescriptor {
-
-    /**
-     * @since 9.3.0
-     */
-    File getFile();
+public interface MissingSource extends TestSource {
 }

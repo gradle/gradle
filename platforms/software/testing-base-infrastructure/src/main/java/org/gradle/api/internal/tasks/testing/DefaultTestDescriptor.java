@@ -37,7 +37,7 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
 
     @UsedByScanPlugin("test-distribution")
     public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName) {
-        this(id, className, name, classDisplayName, displayName, TestSources.unknown());
+        this(id, className, name, classDisplayName, displayName, TestSources.missing());
     }
 
     public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName, TestSource source) {
