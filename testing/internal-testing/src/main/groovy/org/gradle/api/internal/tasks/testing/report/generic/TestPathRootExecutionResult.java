@@ -125,4 +125,19 @@ public interface TestPathRootExecutionResult {
      * @return {@code this}
      */
     TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata);
+
+    /**
+     * Flags to indicate how a file attachment should be rendered
+     */
+    enum ShowAs {
+        LINK, IMAGE, VIDEO;
+    }
+
+    /**
+     * Asserts that the given file attachments are shown as the given type in the report.
+     *
+     * @param expectedAttachments the expected file attachments
+     * @return {@code this}
+     */
+    TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedAttachments);
 }

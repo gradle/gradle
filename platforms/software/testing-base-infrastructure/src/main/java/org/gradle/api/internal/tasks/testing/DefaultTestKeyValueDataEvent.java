@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
 
+import java.time.Instant;
 import java.util.Map;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Key-value data published by a test
  *
- * This is the original message sent from Gradle 8.12 and newer when sending key-values.
- * Both new and old clients use this message.
- *
- * @since 8.12
+ * This implementation is intended to be kept within the build process and workers.
  */
 @NullMarked
-public interface InternalTestMetadataEvent extends InternalProgressEvent {
-    @Override
-    InternalTestMetadataDescriptor getDescriptor();
+public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent {
+    private final Map<String, String> values;
 
-    Map<String, Object> getValues();
+    public DefaultTestKeyValueDataEvent(Instant logTime, Map<String, String> values) {
+        super(logTime);
+        this.values = values;
+    }
+
+    public Map<String, String> getValues() {
+        return values;
+    }
 }

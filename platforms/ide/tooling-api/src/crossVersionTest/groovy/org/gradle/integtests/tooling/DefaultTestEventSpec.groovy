@@ -16,13 +16,18 @@
 
 package org.gradle.integtests.tooling
 
+
 import groovy.transform.CompileStatic
+import groovy.transform.RecordType
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.internal.SystemProperties
+import org.gradle.tooling.events.test.TestFileAttachmentMetadataEvent
+import org.gradle.tooling.events.test.TestKeyValueMetadataEvent
 import org.gradle.tooling.events.test.TestMetadataEvent
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestOutputDescriptor
-import org.gradle.tooling.events.test.TestOutputEvent;
+import org.gradle.tooling.events.test.TestOutputEvent
+import org.jspecify.annotations.Nullable
 
 @CompileStatic
 class DefaultTestEventSpec implements GroupTestEventSpec {
@@ -30,7 +35,13 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     private final List<ProgressEvents.Operation> verifiedOperations
 
     private final List<String> actualOutput;
-    private final List<Map<String, Object>> actualMetadata;
+    private final List<Object> actualMetadata;
+
+    @RecordType
+    private static class FileAttachment {
+        File file
+        String mediaType
+    }
 
     DefaultTestEventSpec(ProgressEvents.Operation self, List<ProgressEvents.Operation> verifiedOperations) {
         this.self = self
@@ -39,9 +50,19 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
         def outputs = self.statusEvents.findAll { it.event instanceof TestOutputEvent }
         actualOutput = new ArrayList<>(outputs.collect { ((TestOutputDescriptor) it.event.descriptor).message })
 
-        def metadatas = self.statusEvents.findAll { it.event instanceof TestMetadataEvent }
+        def metadatas = self.statusEvents.findAll { it.event instanceof TestMetadataEvent }.collect { (TestMetadataEvent) it.event }
         actualMetadata = new ArrayList<>(metadatas.collect {
-            ((TestMetadataEvent) it.event).getValues()
+            if (it instanceof TestMetadataEvent && it.respondsTo("getValues")) {
+                // Older versions of TAPI (before 9.4.0) have a TestMetadataEvent that has a getValues method
+                it.invokeMethod("getValues", null)
+            } else if (it instanceof TestKeyValueMetadataEvent) {
+                it.values
+            } else if (it instanceof TestFileAttachmentMetadataEvent) {
+                new FileAttachment(it.file, it.mediaType)
+            } else {
+                // Don't recognize what kind of metadata this is, just return the event and let checks later fail
+                it
+            }
         })
     }
 
@@ -52,13 +73,20 @@ class DefaultTestEventSpec implements GroupTestEventSpec {
     }
 
     @Override
-    void metadata(String key, Object value) {
-        assert actualMetadata.remove(Collections.singletonMap(key, value)): "expected to find $key -> $value in $self"
+    void metadata(String key, String value) {
+        assert actualMetadata.remove(Collections.singletonMap(key, value)): "expected to find $key -> $value in $self. Available: $actualMetadata"
     }
 
     @Override
     void metadata(Map<String, String> values) {
         assert actualMetadata.remove(values): "expected to find $values in $self"
+    }
+
+    @Override
+    void fileAttachment(File file, @Nullable String mediaType) {
+        assert actualMetadata.removeIf {
+            it instanceof FileAttachment && file == it.file && mediaType == it.mediaType
+        }
     }
 
     @Override

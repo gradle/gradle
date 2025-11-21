@@ -31,7 +31,7 @@ class TabsRendererTest extends Specification {
     def "renders tabs"() {
         def writer = new StringWriter()
         given:
-        SimpleHtmlWriter htmlBuilder = new SimpleHtmlWriter(writer);
+        SimpleHtmlWriter htmlBuilder = new SimpleHtmlWriter(writer)
 
         and:
         renderer.add('tab 1', contentRenderer)

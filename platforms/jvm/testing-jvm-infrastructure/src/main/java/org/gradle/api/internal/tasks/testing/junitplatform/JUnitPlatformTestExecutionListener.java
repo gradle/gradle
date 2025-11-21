@@ -21,7 +21,8 @@ import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
-import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -36,7 +37,6 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFa
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
-import org.gradle.internal.Cast;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -61,7 +61,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -143,21 +145,38 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
         // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class constructor.
         if (wasStarted(testIdentifier)) {
-            resultProcessor.published(getId(testIdentifier), new DefaultTestMetadataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+            resultProcessor.published(getId(testIdentifier), new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
         } else {
             // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with it
             Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
             if (closestStartedAncestor != null) {
-                resultProcessor.published(closestStartedAncestor, new DefaultTestMetadataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+                resultProcessor.published(closestStartedAncestor, new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
             }
             // otherwise, we don't know what to associate this ReportEntry with
             LOGGER.debug("report entry published for unknown test identifier {}", testIdentifier);
         }
     }
 
+    private static Instant convertToInstant(LocalDateTime dateTime) {
+        return dateTime.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
     @Override
-    public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry file) {
-        // TODO: Capture this as well
+    public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry entry) {
+        // media type can be null if the file is a directory
+        String mediaType = entry.getMediaType().orElse(null);
+
+        // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class constructor.
+        if (wasStarted(testIdentifier)) {
+            resultProcessor.published(getId(testIdentifier), new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath(), mediaType));
+        } else {
+            // The test has not started yet, so see if we can find a close ancestor and associate the FileEntry with it
+            Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
+            if (closestStartedAncestor != null) {
+                resultProcessor.published(closestStartedAncestor, new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath(), mediaType));
+            }
+            // otherwise, we don't know what to associate this FileEntry with
+        }
     }
 
     @Override

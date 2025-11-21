@@ -128,8 +128,9 @@ import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
+import org.gradle.tooling.events.test.internal.DefaultTestFileAttachmentMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestMetadataEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestKeyValueMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
@@ -215,6 +216,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEventVersion2;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
@@ -249,6 +251,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -626,16 +629,18 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private @Nullable TestMetadataEvent toTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
-        if (event instanceof InternalTestMetadataEvent) {
-            return transformTestMetadata((InternalTestMetadataEvent) event, descriptor);
+        if (event instanceof InternalTestMetadataEventVersion2) {
+            OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
+            return new DefaultTestFileAttachmentMetadataEvent(event.getEventTime(), clientDescriptor, ((InternalTestMetadataEventVersion2)event).getFile(), ((InternalTestMetadataEventVersion2)event).getMediaType());
+        } else if (event instanceof InternalTestMetadataEvent) {
+            OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
+            Map<String, Object> values = ((InternalTestMetadataEvent) event).getValues();
+            Map<String, String> keyValues = new LinkedHashMap<>();
+            values.forEach((key, value) -> keyValues.put(key, String.valueOf(value)));
+            return new DefaultTestKeyValueMetadataEvent(event.getEventTime(), clientDescriptor, keyValues);
         } else {
             return null;
         }
-    }
-
-    private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
-        OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, event.getValues());
     }
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {

@@ -16,18 +16,21 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform
 
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.FixedClock
 import org.junit.platform.engine.TestDescriptor
 import org.junit.platform.engine.UniqueId
+import org.junit.platform.engine.reporting.FileEntry
 import org.junit.platform.engine.reporting.ReportEntry
 import org.junit.platform.launcher.TestIdentifier
 import org.junit.platform.launcher.TestPlan
 import spock.lang.Specification
 
-import java.time.ZoneOffset
+import java.time.Instant
 
 /**
  * Unit tests for {@link JUnitPlatformTestExecutionListener}.
@@ -59,24 +62,32 @@ class JUnitPlatformTestExecutionListenerTest extends Specification {
         File workingDir = new File("working-dir")
 
         when:
+        def recentTime = Instant.now().minusSeconds(600)
         ReportEntry entry = ReportEntry.from("key", "value")
+        FileEntry fileEntry = FileEntry.from(workingDir.toPath(), "application/directory")
 
         then:
         testClock.currentTime == startTime
-        entry.timestamp.toEpochSecond(ZoneOffset.UTC) > testClock.currentTime
 
         when:
         JUnitPlatformTestExecutionListener listener = new JUnitPlatformTestExecutionListener(mockResultProcessor, testClock, idGenerator, workingDir)
         listener.testPlanExecutionStarted(mockTestPlan)
         listener.executionStarted(testIdentifier)
         listener.reportingEntryPublished(testIdentifier, entry)
+        listener.fileEntryPublished(testIdentifier, fileEntry)
 
         then:
         1 * mockResultProcessor.published(id) { e ->
+            assert e instanceof DefaultTestKeyValueDataEvent
             assert e.values.size() == 1
             assert e.values["key"] == "value"
-            assert e.logTime != startTime
-            assert e.logTime == entry.timestamp.toEpochSecond(ZoneOffset.UTC)
+            assert recentTime.isBefore(e.logTime)
+        }
+        1 * mockResultProcessor.published(id) { e ->
+            assert e instanceof DefaultTestFileAttachmentDataEvent
+            assert e.path == workingDir.toPath()
+            assert e.mediaType == "application/directory"
+            assert recentTime.isBefore(e.logTime)
         }
     }
 }

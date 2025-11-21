@@ -20,10 +20,10 @@ import org.gradle.api.internal.tasks.testing.GroupTestEventReporterInternal;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestEventReporterInternal;
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestEventReporter;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -121,7 +121,7 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
         if (reporter == null) {
             throw new IllegalStateException("No reporter found for test descriptor: " + testDescriptor);
         }
-        reporter.metadata(Instant.ofEpochMilli(event.getLogTime()), event.getValues());
+        ((TestEventReporterInternal)reporter).metadata(event);
     }
 
     @Override

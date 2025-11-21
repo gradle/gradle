@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,25 @@
 package org.gradle.tooling.internal.protocol.events;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
+import java.io.File;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * This is the original message sent from Gradle 8.12 and newer when sending key-values.
- * Both new and old clients use this message.
+ * This is a new message sent from Gradle 9.4.0 and newer with an arbitrary payload.
+ * Older clients (before 9.4.0) ignore this message.
  *
- * @since 8.12
+ * @since 9.4.0
  */
 @NullMarked
-public interface InternalTestMetadataEvent extends InternalProgressEvent {
+public interface InternalTestMetadataEventVersion2 extends InternalProgressEvent {
     @Override
     InternalTestMetadataDescriptor getDescriptor();
 
-    Map<String, Object> getValues();
+    File getFile();
+
+    @Nullable
+    String getMediaType();
 }

@@ -219,6 +219,64 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         }
     }
 
+
+    @TargetGradleVersion(">=8.13 <9.4.0")
+    def "reports custom test events with non-String key-values"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
+                        reporter.started(Instant.now())
+                        try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
+                            myTest.started(Instant.now())
+                            myTest.metadata(Instant.now(), "mykey1", Collections.singletonList("value"))
+                            myTest.metadata(Instant.now(), "mykey2", 10)
+                            myTest.succeeded(Instant.now())
+                        }
+                        reporter.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST, OperationType.TEST_METADATA)
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+        testEvents {
+            task(":customTest") {
+                nested("Test suite 'Custom test root'") {
+                    test(if813OrOlderTestDisplayName()) {
+                        metadata("mykey1", "[value]")
+                        metadata("mykey2", "10")
+                    }
+                }
+            }
+        }
+    }
+
     def "reports custom test events at root, group and nested group levels"() {
         given:
         buildFile("""

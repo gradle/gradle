@@ -26,20 +26,21 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails;
-import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
-import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.Cast;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -53,6 +54,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +79,7 @@ public class TestEventSerializer {
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer(factory));
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer(factory));
-        registry.register(DefaultTestMetadataEvent.class, new TestMetadataEventSerializer());
+        registry.register(TestMetadataEvent.class, new TestMetadataEventSerializer());
 
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
@@ -166,20 +169,39 @@ public class TestEventSerializer {
     }
 
     @NullMarked
-    private static class TestMetadataEventSerializer implements Serializer<DefaultTestMetadataEvent> {
+    private static class TestMetadataEventSerializer implements Serializer<TestMetadataEvent> {
         private final MapSerializer<String, String> mapSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, BaseSerializerFactory.STRING_SERIALIZER);
+        private final Serializer<Path> pathSerializer = BaseSerializerFactory.PATH_SERIALIZER;
+
+        private static final int MAP_TYPE = 0;
+        private static final int FILE_ATTACHMENT_TYPE = 1;
 
         @Override
-        public DefaultTestMetadataEvent read(Decoder decoder) throws Exception {
-            long logTime = decoder.readLong();
-            Map<String, String> keyValues = mapSerializer.read(decoder);
-            return new DefaultTestMetadataEvent(logTime, Cast.uncheckedNonnullCast(keyValues));
+        public TestMetadataEvent read(Decoder decoder) throws Exception {
+            Instant logTime = Instant.ofEpochMilli(decoder.readLong());
+            int type = decoder.readInt();
+            switch (type) {
+                case MAP_TYPE:
+                    Map<String, String> keyValues = mapSerializer.read(decoder);
+                    return new DefaultTestKeyValueDataEvent(logTime, keyValues);
+                case FILE_ATTACHMENT_TYPE:
+                    return new DefaultTestFileAttachmentDataEvent(logTime, pathSerializer.read(decoder), decoder.readNullableString());
+            }
+            throw new IllegalStateException("Unknown type of test metadata: " + type);
         }
 
         @Override
-        public void write(Encoder encoder, DefaultTestMetadataEvent value) throws Exception {
-            encoder.writeLong(value.getLogTime());
-            mapSerializer.write(encoder, Cast.uncheckedNonnullCast(value.getValues()));
+        public void write(Encoder encoder, TestMetadataEvent value) throws Exception {
+            encoder.writeLong(value.getLogTime().toEpochMilli());
+
+            if (value instanceof DefaultTestKeyValueDataEvent) {
+                encoder.writeInt(MAP_TYPE);
+                mapSerializer.write(encoder, ((DefaultTestKeyValueDataEvent) value).getValues());
+            } else if (value instanceof DefaultTestFileAttachmentDataEvent) {
+                encoder.writeInt(FILE_ATTACHMENT_TYPE);
+                pathSerializer.write(encoder, ((DefaultTestFileAttachmentDataEvent) value).getPath());
+                encoder.writeNullableString(((DefaultTestFileAttachmentDataEvent) value).getMediaType());
+            }
         }
     }
 
