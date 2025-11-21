@@ -18,8 +18,8 @@ package org.gradle.plugin.software.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
@@ -54,7 +54,7 @@ public class ProjectTypeAnnotationHandler extends AbstractPropertyAnnotationHand
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyMetadata.getPropertyName())
-                        .id("mismatched-types-for-software-type", "has @SoftwareType annotation used on property", GradleCoreProblemGroup.validation().property())
+                        .id("mismatched-types-for-software-type", "has @SoftwareType annotation used on property", PredefinedProblemGroups.validation().property())
                         .contextualLabel(String.format("has @SoftwareType annotation with public type '%s' used on property of type '%s'", ModelType.of(publicType).getDisplayName(), ModelType.of(valueType).getDisplayName()))
                         .severity(Severity.ERROR)
                         .details("The publicType value of the @SoftwareType annotation (" + ModelType.of(publicType).getDisplayName() + ") must be the same type as or a supertype of '" + ModelType.of(valueType).getDisplayName() + "'")

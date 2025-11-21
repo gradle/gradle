@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
@@ -135,7 +135,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
-                        .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
+                        .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", PredefinedProblemGroups.validation().property())
                         .contextualLabel(String.format("is annotated with invalid property type @%s", propertyType.getSimpleName()))
                         .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                         .severity(ERROR)
@@ -157,7 +157,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", GradleCoreProblemGroup.validation().property())
+                            .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", PredefinedProblemGroups.validation().property())
                             .contextualLabel("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + propertyType.getSimpleName() + "' properties")
                             .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
@@ -167,7 +167,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(propertyAnnotationMetadata.getPropertyName())
-                            .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
+                            .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", PredefinedProblemGroups.validation().property())
                             .contextualLabel(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
@@ -206,7 +206,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 validationContext.visitPropertyProblem(problem ->
                     problem
                         .forFunction(functionAnnotationMetadata.getMethod().getName())
-                        .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().type())
+                        .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", PredefinedProblemGroups.validation().type())
                         .contextualLabel(String.format("is annotated with invalid function type @%s", functionType.getSimpleName()))
                         .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                         .severity(ERROR)
@@ -228,7 +228,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forFunction(functionAnnotationMetadata.getMethod().getName())
-                            .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", GradleCoreProblemGroup.validation().type())
+                            .id(TextUtil.screamingSnakeToKebabCase(INCOMPATIBLE_ANNOTATIONS), "Incompatible annotations", PredefinedProblemGroups.validation().type())
                             .contextualLabel("is annotated with @" + annotationType.getSimpleName() + " but that is not allowed for '" + functionType.getSimpleName() + "' functions")
                             .documentedAt(userManual("validation_problems", INCOMPATIBLE_ANNOTATIONS.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)
@@ -238,7 +238,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                     validationContext.visitPropertyProblem(problem ->
                         problem
                             .forProperty(functionAnnotationMetadata.getMethod().getName())
-                            .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", GradleCoreProblemGroup.validation().property())
+                            .id(TextUtil.screamingSnakeToKebabCase(ANNOTATION_INVALID_IN_CONTEXT), "Invalid annotation in context", PredefinedProblemGroups.validation().property())
                             .contextualLabel(String.format("is annotated with invalid modifier @%s", annotationType.getSimpleName()))
                             .documentedAt(userManual("validation_problems", ANNOTATION_INVALID_IN_CONTEXT.toLowerCase(Locale.ROOT)))
                             .severity(ERROR)

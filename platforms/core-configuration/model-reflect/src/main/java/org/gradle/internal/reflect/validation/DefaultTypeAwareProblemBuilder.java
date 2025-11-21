@@ -16,8 +16,8 @@
 
 package org.gradle.internal.reflect.validation;
 
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.TypeValidationData;
@@ -77,7 +77,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     }
 
     private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {
-        if (!problemId.getGroup().equals(GradleCoreProblemGroup.validation().property())) {
+        if (!problemId.getGroup().equals(PredefinedProblemGroups.validation().property())) {
             return false;
         } else {
             List<String> candidates = Arrays.asList("unknown-implementation", "unknown-implementation-nested", "implicit-dependency");

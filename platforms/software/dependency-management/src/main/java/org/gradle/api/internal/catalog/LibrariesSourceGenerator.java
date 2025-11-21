@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -516,7 +516,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
-            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
+            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, PredefinedProblemGroups.versionCatalog()) // TODO is message stable?
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
             .severity(ERROR);
     }

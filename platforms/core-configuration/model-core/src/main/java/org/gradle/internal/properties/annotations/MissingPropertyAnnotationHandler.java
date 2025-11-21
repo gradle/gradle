@@ -16,7 +16,7 @@
 
 package org.gradle.internal.properties.annotations;
 
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
@@ -39,7 +39,7 @@ public interface MissingPropertyAnnotationHandler {
         final String missingAnnotation = "MISSING_ANNOTATION";
         problem
             .forProperty(annotationMetadata.getPropertyName())
-            .id(TextUtil.screamingSnakeToKebabCase(missingAnnotation), "Missing annotation", GradleCoreProblemGroup.validation().property())
+            .id(TextUtil.screamingSnakeToKebabCase(missingAnnotation), "Missing annotation", PredefinedProblemGroups.validation().property())
             .contextualLabel("is missing " + displayName)
             .documentedAt(userManual("validation_problems", missingAnnotation.toLowerCase(Locale.ROOT)))
             .severity(ERROR)

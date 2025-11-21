@@ -22,10 +22,10 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.PredefinedProblemGroups
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
@@ -267,7 +267,7 @@ class ConfigurationCacheProblems(
     }
 
     private
-    val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
+    val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", PredefinedProblemGroups.validation().thisGroup())
 
     private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {

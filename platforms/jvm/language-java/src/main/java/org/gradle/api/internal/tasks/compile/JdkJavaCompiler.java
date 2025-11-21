@@ -19,10 +19,10 @@ import com.sun.tools.javac.util.Context;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
+import org.gradle.api.problems.PredefinedProblemGroups;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.WorkResult;
@@ -75,7 +75,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         try {
             task = createCompileTask(spec, result);
         } catch (RuntimeException ex) {
-            ProblemId id = ProblemId.create("initialization-failed", "Java compilation initialization error", GradleCoreProblemGroup.compilation().java());
+            ProblemId id = ProblemId.create("initialization-failed", "Java compilation initialization error", PredefinedProblemGroups.compilation().java());
             throw problemsService.getInternalReporter().throwing(ex, id, builder -> {
                 buildProblemFrom(ex, builder);
             });
