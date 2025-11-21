@@ -58,7 +58,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
         outputDir().let { outputDir ->
             compileProgramTo(outputDir, program, sourceHash, programKind, programTarget)
             withClassLoaderFor(outputDir) {
-                val executableProgram = loadClass("Program").getDeclaredConstructor().newInstance()
+                val executableProgram = loadClass("P$sourceHash").getDeclaredConstructor().newInstance()
                 action(executableProgram as ExecutableProgram)
             }
         }
@@ -72,15 +72,15 @@ abstract class TestWithCompiler : TestWithTempFiles() {
         programKind: ProgramKind,
         programTarget: ProgramTarget
     ) {
-        ResidualProgramCompiler(
+        val residualProgramCompiler = ResidualProgramCompiler(
             outputDir,
             KotlinCompilerOptions(),
             testRuntimeClassPath,
-            sourceHash,
             programKind,
             programTarget,
             temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
-        ).compile(program)
+        )
+        residualProgramCompiler.compile(program, sourceHash, null)
     }
 
     private
