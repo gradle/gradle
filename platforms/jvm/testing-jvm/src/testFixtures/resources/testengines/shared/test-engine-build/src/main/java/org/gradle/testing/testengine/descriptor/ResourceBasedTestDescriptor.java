@@ -27,16 +27,27 @@ import java.util.Optional;
 public final class ResourceBasedTestDescriptor extends AbstractTestDescriptor {
     private final File file;
     private final String name;
+    private final boolean dynamic;
 
     public ResourceBasedTestDescriptor(UniqueId parentId, File file, String name) {
+        this(parentId, file, name, false);
+    }
+
+    public ResourceBasedTestDescriptor(UniqueId parentId, File file, String name, boolean dynamic) {
         super(parentId.append("testDefinitionFile", file.getName()).append("testDefinition", name), file.getName() + " : " + name);
         this.file = file;
         this.name = name;
+        this.dynamic = dynamic;
     }
 
     @Override
     public Type getType() {
-        return Type.TEST;
+        return dynamic ? Type.CONTAINER_AND_TEST : Type.TEST;
+    }
+
+    @Override
+    public boolean mayRegisterTests() {
+        return dynamic;
     }
 
     @Override

@@ -709,10 +709,6 @@ Check with the annotation processor project directly for the most up-to-date inf
 | link:https://github.com/greenrobot/EventBus/releases/tag/V3.2.0[3.2.0]
 | N/A
 
-| EclipseLink
-| link:https://bugs.eclipse.org/bugs/show_bug.cgi?id=535985[Open issue]
-| N/A
-
 | link:https://github.com/permissions-dispatcher/PermissionsDispatcher[PermissionsDispatcher]
 | link:https://github.com/permissions-dispatcher/PermissionsDispatcher/releases/tag/4.2.0[4.2.0]
 | N/A

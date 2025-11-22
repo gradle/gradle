@@ -162,11 +162,11 @@ public class BuildOperationTrace implements Stoppable {
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
+    public BuildOperationTrace(File userActionRootDir, StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
         InternalOptions internalOptions = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
-        Path basePath = resolveBasePath(internalOptions, startParameter);
+        Path basePath = resolveBasePath(internalOptions, userActionRootDir);
         if (basePath == null) {
             this.outputTree = false;
             this.listener = null;
@@ -188,14 +188,14 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     @Nullable
-    private static Path resolveBasePath(InternalOptions internalOptions, StartParameter startParameter) {
+    private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
         String basePath = internalOptions.getOption(TRACE_OPTION).get();
         if (basePath == null || basePath.equals("false")) {
             return null;
         }
 
-        Path currentDir = startParameter.getCurrentDir().getAbsoluteFile().toPath();
-        return basePath.isEmpty() ? currentDir.resolve("operations") : currentDir.resolve(basePath);
+        Path base = userActionRootDir.toPath();
+        return basePath.isEmpty() ? base.resolve("operations") : base.resolve(basePath);
     }
 
     @Nullable

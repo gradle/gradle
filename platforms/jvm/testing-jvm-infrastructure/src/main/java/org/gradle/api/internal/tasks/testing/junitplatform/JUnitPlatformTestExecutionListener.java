@@ -21,7 +21,8 @@ import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
-import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -34,10 +35,8 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAsse
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
-import org.gradle.api.internal.tasks.testing.junit.JUnitSupport;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
-import org.gradle.internal.Cast;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -46,6 +45,7 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.UniqueId;
 import org.junit.platform.engine.reporting.FileEntry;
 import org.junit.platform.engine.reporting.ReportEntry;
@@ -61,7 +61,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -127,37 +129,54 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
     private final IdGenerator<?> idGenerator;
-    private final File workingDir;
+    private final File baseDefinitionsDir;
 
     @Nullable
     private TestPlan currentTestPlan;
 
-    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File workingDir) {
+    public JUnitPlatformTestExecutionListener(TestResultProcessor resultProcessor, Clock clock, IdGenerator<?> idGenerator, File baseDefinitionsDir) {
         this.resultProcessor = resultProcessor;
         this.clock = clock;
         this.idGenerator = idGenerator;
-        this.workingDir = workingDir;
+        this.baseDefinitionsDir = baseDefinitionsDir;
     }
 
     @Override
     public void reportingEntryPublished(TestIdentifier testIdentifier, ReportEntry entry) {
         // JUnit Platform will emit ReportEntry before a test starts if the ReportEntry is published from the class constructor.
         if (wasStarted(testIdentifier)) {
-            resultProcessor.published(getId(testIdentifier), new DefaultTestMetadataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+            resultProcessor.published(getId(testIdentifier), new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
         } else {
             // The test has not started yet, so see if we can find a close ancestor and associate the ReportEntry with it
             Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
             if (closestStartedAncestor != null) {
-                resultProcessor.published(closestStartedAncestor, new DefaultTestMetadataEvent(entry.getTimestamp().toEpochSecond(ZoneOffset.UTC), Cast.uncheckedNonnullCast(entry.getKeyValuePairs())));
+                resultProcessor.published(closestStartedAncestor, new DefaultTestKeyValueDataEvent(convertToInstant(entry.getTimestamp()), entry.getKeyValuePairs()));
             }
             // otherwise, we don't know what to associate this ReportEntry with
             LOGGER.debug("report entry published for unknown test identifier {}", testIdentifier);
         }
     }
 
+    private static Instant convertToInstant(LocalDateTime dateTime) {
+        return dateTime.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
     @Override
-    public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry file) {
-        // TODO: Capture this as well
+    public void fileEntryPublished(TestIdentifier testIdentifier, FileEntry entry) {
+        // media type can be null if the file is a directory
+        String mediaType = entry.getMediaType().orElse(null);
+
+        // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class constructor.
+        if (wasStarted(testIdentifier)) {
+            resultProcessor.published(getId(testIdentifier), new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath(), mediaType));
+        } else {
+            // The test has not started yet, so see if we can find a close ancestor and associate the FileEntry with it
+            Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
+            if (closestStartedAncestor != null) {
+                resultProcessor.published(closestStartedAncestor, new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath(), mediaType));
+            }
+            // otherwise, we don't know what to associate this FileEntry with
+        }
     }
 
     @Override
@@ -293,10 +312,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                     }
                 }
             }
-            if (node.getType().isTest()) {
+            // Check for isContainer first
+            // Some nodes may be CONTAINER_AND_TEST, and we need to treat them as containers
+            if (node.getType().isContainer()) {
+                return createTestContainerDescriptor(node);
+            } else if (node.getType().isTest()) {
                 return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
             } else {
-                return createTestContainerDescriptor(node);
+                throw new IllegalStateException("Unknown TestIdentifier type: " + node.getType());
             }
         });
         return wasCreated.get();
@@ -306,7 +329,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         Optional<MethodSource> methodSource = getMethodSource(node);
         if (methodSource.isPresent()) {
             TestDescriptorInternal parentDescriptor = findTestParentDescriptor(node);
-            String className = parentDescriptor == null ? JUnitSupport.UNKNOWN_CLASS : parentDescriptor.getName();
+            String className = determineClassName(node, parentDescriptor);
             return new DefaultParameterizedTestDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), className, displayName, candidateId);
         } else {
             return new DefaultNestedTestSuiteDescriptor(idGenerator.generateId(), node.getLegacyReportingName(), displayName, candidateId);
@@ -328,9 +351,31 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     private TestDescriptorInternal createTestDescriptor(TestIdentifier test, String name, String displayName) {
         TestDescriptorInternal parentDescriptor = findTestParentDescriptor(test);
-        String className = parentDescriptor == null ? JUnitSupport.UNKNOWN_CLASS : parentDescriptor.getName();
-        String classDisplayName = parentDescriptor == null ? JUnitSupport.UNKNOWN_CLASS : parentDescriptor.getClassDisplayName();
+        String className = determineClassName(test, parentDescriptor);
+        String classDisplayName = determineClassDisplayName(test, parentDescriptor);
         return new DefaultTestDescriptor(idGenerator.generateId(), className, name, classDisplayName, displayName);
+    }
+
+    private String determineClassName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
+        return determineName(node, parentDescriptor, TestDescriptorInternal::getName);
+    }
+
+    private String determineClassDisplayName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
+        return determineName(node, parentDescriptor, TestDescriptorInternal::getClassDisplayName);
+    }
+
+    private String determineName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
+        TestSource source = node.getSource().orElse(null);
+        if (source instanceof ClassSource || source instanceof MethodSource) {
+            if (parentDescriptor == null) {
+                return JUnitPlatformSupport.UNKNOWN_CLASS;
+            } else {
+                String result = nameGetter.apply(parentDescriptor);
+                return result != null ? result : JUnitPlatformSupport.UNKNOWN;
+            }
+        } else {
+            return JUnitPlatformSupport.NON_CLASS;
+        }
     }
 
     private Object getId(TestIdentifier testIdentifier) {
@@ -439,7 +484,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
 
         try {
-            Path rootDirPath = workingDir.toPath().toRealPath();
+            Path rootDirPath = baseDefinitionsDir.toPath().toRealPath();
             Path testDefPath = ((FileSource) source).getFile().toPath().toRealPath();
             String relativePath = TextUtil.normaliseFileSeparators(rootDirPath.relativize(testDefPath).toString());
             return Optional.of(relativePath);

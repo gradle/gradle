@@ -18,12 +18,13 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.net.MediaType;
 import org.apache.commons.lang3.stream.Streams;
-import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -37,19 +38,24 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
 
 public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
+    private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z").withZone(ZoneId.systemDefault());
+
     protected final int rootIndex;
     // Should be private unlike rootIndex, as subclass access should use the passed-in `info` parameter
     private final int perRootInfoIndex;
@@ -76,6 +82,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     protected abstract void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException;
+
+    private static String formatLogTime(Instant logTime) {
+        return FORMATTER.format(logTime.atOffset(ZoneOffset.UTC));
+    }
 
     public static final class ForSummary extends PerRootTabRenderer {
         public ForSummary(int rootIndex, int perRootInfoIndex) {
@@ -384,123 +394,155 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
     }
 
-    @SuppressWarnings({"MethodMayBeStatic", "UnusedReturnValue"})
-    public static final class ForMetadata extends PerRootTabRenderer {
-        private final MetadataRendererRegistry metadataRendererRegistry;
-
-        public ForMetadata(int rootIndex, int perRootInfoIndex, MetadataRendererRegistry metadataRendererRegistry) {
+    public static final class ForKeyValues extends PerRootTabRenderer {
+        public ForKeyValues(int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
-            this.metadataRendererRegistry = metadataRendererRegistry;
         }
 
         @Override
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div").attribute("class", "metadata");
-                renderMetadataTable(info, htmlWriter);
+            List<DefaultTestKeyValueDataEvent> keyValues = info.getMetadatas().stream().filter(DefaultTestKeyValueDataEvent.class::isInstance).map(DefaultTestKeyValueDataEvent.class::cast).collect(Collectors.toList());
+            renderKeyValueTable(keyValues, htmlWriter);
             htmlWriter.endElement();
         }
 
-        private void renderMetadataTable(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueTable(List<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("table");
-                renderMetadataTableHeader(htmlWriter);
-                renderMetadataTableBody(info.getMetadatas(), htmlWriter);
+                renderKeyValueHeader(htmlWriter);
+                renderKeyValueValues(metadatas, htmlWriter);
             htmlWriter.endElement();
         }
 
-        private SimpleHtmlWriter renderMetadataTableHeader(SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueHeader(SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("thead")
                 .startElement("tr")
                     .startElement("th")
                         .characters("Time")
                     .endElement()
                     .startElement("th")
-                        .characters("Key(s)")
+                        .characters("Key")
                     .endElement()
                     .startElement("th")
-                        .characters("Value(s)")
+                        .characters("Value")
                     .endElement()
                 .endElement()
             .endElement();
-
-            return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataTableBody(List<SerializedMetadata> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueValues(List<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
             for (int metadataIdx = 0; metadataIdx < metadatas.size(); metadataIdx++) {
-                SerializedMetadata metadata = metadatas.get(metadataIdx);
-                renderFirstMetadataElement(metadata, metadataIdx, htmlWriter);
-                if (metadata.getEntries().size() > 1) {
-                    List<SerializedMetadata.SerializedMetadataElement> additionalEntries = metadata.getEntries().subList(1, metadata.getEntries().size());
-                    renderAdditionalMetadataElements(additionalEntries, metadataIdx, htmlWriter);
+                DefaultTestKeyValueDataEvent metadata = metadatas.get(metadataIdx);
+                Map<String, String> elements = metadata.getValues();
+
+                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                htmlWriter.startElement("td").attribute("rowspan", Integer.toString(metadata.getValues().size() + 1))
+                    .startElement("span").attribute("class", "time")
+                        .characters(formatLogTime(metadata.getLogTime()))
+                    .endElement()
+                .endElement();
+                htmlWriter.endElement();
+
+                for (Map.Entry<String, String> element : elements.entrySet()) {
+                    htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                    htmlWriter
+                        .startElement("td").attribute("class", "key")
+                        .characters(element.getKey())
+                        .endElement()
+                        .startElement("td").attribute("class", "value")
+                        .characters(element.getValue())
+                        .endElement();
+                    htmlWriter.endElement();
                 }
             }
             htmlWriter.endElement();
+        }
+    }
 
-            return htmlWriter;
+
+    public static final class ForFileAttachments extends PerRootTabRenderer {
+        public ForFileAttachments(int rootIndex, int perRootInfoIndex) {
+            super(rootIndex, perRootInfoIndex);
         }
 
-        private SimpleHtmlWriter renderFirstMetadataElement(SerializedMetadata metadata, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
-                renderMetadataTimeCell(metadata, htmlWriter);
-                renderMetadataKeyValueCells(metadata.getEntries().get(0), htmlWriter)
+        @Override
+        protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("div").attribute("class", "attachments");
+            List<DefaultTestFileAttachmentDataEvent> keyValues = info.getMetadatas().stream().filter(DefaultTestFileAttachmentDataEvent.class::isInstance).map(DefaultTestFileAttachmentDataEvent.class::cast).collect(Collectors.toList());
+            renderFileAttachments(keyValues, htmlWriter);
+            htmlWriter.endElement();
+        }
+
+        private static void renderFileAttachments(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("table");
+            renderFileAttachmentHeader(htmlWriter);
+            renderFileAttachmentValues(metadatas, htmlWriter);
+            htmlWriter.endElement();
+        }
+
+        private static void renderFileAttachmentHeader(SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("thead")
+                .startElement("tr")
+                    .startElement("th")
+                        .characters("Name")
+                    .endElement()
+                    .startElement("th")
+                        .characters("Content")
+                    .endElement()
+                .endElement()
             .endElement();
-
-            return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderAdditionalMetadataElements(List<SerializedMetadata.SerializedMetadataElement> elements, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
-            for (SerializedMetadata.SerializedMetadataElement element : elements) {
-                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 1 ? "even" : "odd");
-                    renderMetadataKeyValueCells(element, htmlWriter);
+        private static void renderFileAttachmentValues(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("tbody");
+            for (int metadataIdx = 0; metadataIdx < metadatas.size(); metadataIdx++) {
+                DefaultTestFileAttachmentDataEvent metadata = metadatas.get(metadataIdx);
+                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                htmlWriter.startElement("td").attribute("class", "key").characters(metadata.getPath().getFileName().toString()).endElement();
+
+                htmlWriter.startElement("td").attribute("class", "value");
+                String possibleMediaType = metadata.getMediaType();
+                if (possibleMediaType == null) {
+                    // Might be a directory, just render this as a link
+                    renderLink(htmlWriter, metadata.getPath());
+                } else {
+                    MediaType mediaType = MediaType.parse(possibleMediaType);
+                    if (mediaType.is(MediaType.ANY_IMAGE_TYPE)) {
+                        // render as image
+                        renderImage(htmlWriter, metadata.getPath());
+                    } else if (mediaType.is(MediaType.ANY_VIDEO_TYPE)) {
+                        // render as video
+                        renderVideo(htmlWriter, metadata.getPath());
+                    } else {
+                        // render as a link
+                        renderLink(htmlWriter, metadata.getPath(), mediaType);
+                    }
+                }
+                htmlWriter.endElement();
+
                 htmlWriter.endElement();
             }
-
-            return htmlWriter;
+            htmlWriter.endElement();
         }
 
-        private SimpleHtmlWriter renderMetadataTimeCell(SerializedMetadata metadata, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("td").attribute("rowspan", Integer.toString(metadata.getEntries().size()))
-                .startElement("span").attribute("class", "time")
-                    .characters(formatLogTime(metadata.getLogTime()))
-                .endElement()
+        private static void renderLink(SimpleHtmlWriter htmlWriter, Path path, MediaType mediaType) throws IOException {
+            htmlWriter.startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters(path.getFileName().toString() + " (" + mediaType + ")").endElement();
+        }
+
+        private static void renderLink(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
+            htmlWriter.startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters(path.getFileName().toString()).endElement();
+        }
+
+        private static void renderImage(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
+            htmlWriter.startElement("img").attribute("src", htmlWriter.relativeLink(path)).attribute("alt", path.getFileName().toString()).endElement();
+        }
+        private static void renderVideo(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
+            htmlWriter.startElement("video")
+                .attribute("src", htmlWriter.relativeLink(path)).attribute("controls", "")
+                // If the browser doesn't support this video format, fallback to a link
+                .startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters("Download video").endElement()
             .endElement();
-
-            return htmlWriter;
-        }
-
-        private SimpleHtmlWriter renderMetadataKeyValueCells(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter
-                .startElement("td").attribute("class", "key")
-                    .characters(element.getKey())
-                .endElement()
-                .startElement("td").attribute("class", "value");
-                    renderMetadataValue(element, htmlWriter)
-                .endElement();
-
-            return htmlWriter;
-        }
-
-        private SimpleHtmlWriter renderMetadataValue(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
-            MetadataRenderer renderer = metadataRendererRegistry.getRenderer(element.getValueType());
-
-            try {
-                return renderer.render(element.getValue(), htmlWriter);
-            } catch (Exception e) {
-                return (SimpleHtmlWriter) htmlWriter
-                    .startElement("span").attribute("class", "unrenderable")
-                        .characters("[error rendering value]")
-                    .endElement();
-            }
-        }
-
-        private String formatLogTime(long logTime) {
-            Instant instant = Instant.ofEpochMilli(logTime);
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z")
-                .withZone(ZoneId.systemDefault());
-
-            return formatter.format(instant);
         }
     }
 }

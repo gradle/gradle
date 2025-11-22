@@ -36,10 +36,49 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.4.0]]
+== Upgrading from 9.3.0 and earlier
+
+=== Potential breaking changes
+
+==== CodeNarc compilation classpath is set by default
+
+Some of the rulesets included with CodeNarc make use of link:https://codenarc.org/codenarc-enhanced-classpath-rules.html[enhanced classpath rules], which require additional dependencies to be present on the CodeNarc task's compilation classpath.
+Previously, this had to be configured explicitly, but the CodeNarc plugin now adds the compile classpath of a source set to its CodeNarc task `compilationClasspath` by default.
+If your build relies on a custom configuration for the `compilationClasspath` of a CodeNarc task, you will need to continue explicitly setting it to override the new default behavior.
+
+A side effect of this change is that there is now a task dependency between the CodeNarc task and the associated source set's compile task.
+Previously, these tasks could run in parallel, but now the CodeNarc task will wait for the compile task to complete first so that it can add the compiled classes to its classpath.
+In some cases, this may lead to longer build times if CodeNarc tasks were previously running in parallel with compile tasks.
+If you are not using any enhanced classpath rules, you can avoid this task dependency by setting an empty `compilationClasspath` for the CodeNarc task:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("groovy")
+    id("codenarc")
+}
+
+tasks.withType<CodeNarc>().configureEach {
+    // Override the default compilation classpath
+    compilationClasspath = files()
+}
+----
+
+=== Deprecations
+
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
 === Potential breaking changes
+
+==== TestNG output may be different when using a version before 6.9.13.3
+As a part of the `AbstractTestTask` refactoring, the integration with TestNG has been updated.
+Gradle now relies on a correctly functioning `IClassListener` integration to report the correct hierarchy of test classes and methods.
+This may lead to different output when using TestNG versions before 6.9.13.3, for example, if you had `org.gradle > TestClass > ok` before, it will now emit just `ok`, without any class information.
+Additionally, when using TestNG versions starting with 6.9.10 and before 6.9.13.3, the `IClassListener` exists but is broken, which may lead to even worse output, such as an empty name.
+It is recommended to update to at least TestNG 6.9.13.3 to get the correct output.
 
 ==== Upgrade to Kotlin 2.2.21
 

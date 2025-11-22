@@ -17,7 +17,8 @@
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata.SerializedMetadataElement;
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -58,7 +59,7 @@ public final class SerializableTestResult {
         @Nullable
         private SerializableFailure assumptionFailure;
         private final ImmutableList.Builder<SerializableFailure> failures = ImmutableList.builder();
-        private final ImmutableList.Builder<SerializedMetadata> metadatas = ImmutableList.builder();
+        private final ImmutableList.Builder<TestMetadataEvent> metadatas = ImmutableList.builder();
 
         public Builder name(String name) {
             this.name = name;
@@ -107,7 +108,7 @@ public final class SerializableTestResult {
         }
 
         @SuppressWarnings("UnusedReturnValue")
-        public Builder addMetadata(SerializedMetadata metadata) {
+        public Builder addMetadata(TestMetadataEvent metadata) {
             this.metadatas.add(metadata);
             return this;
         }
@@ -134,8 +135,9 @@ public final class SerializableTestResult {
 
     public static final class Serializer {
         private Serializer() { /* static util class is not instantiable */ }
+        private final static org.gradle.internal.serialize.Serializer<TestMetadataEvent> METADATA_EVENT_SERIALIZER = TestEventSerializer.create().build(TestMetadataEvent.class);
 
-        public static void serialize(SerializableTestResult result, Encoder encoder) throws IOException {
+        public static void serialize(SerializableTestResult result, Encoder encoder) throws Exception {
             encoder.writeString(result.name);
             encoder.writeString(result.displayName);
             encoder.writeNullableString(result.className);
@@ -154,7 +156,7 @@ public final class SerializableTestResult {
             serializeMetadatas(result, encoder);
         }
 
-        public static SerializableTestResult deserialize(Decoder decoder) throws IOException {
+        public static SerializableTestResult deserialize(Decoder decoder) throws Exception {
             String name = decoder.readString();
             String displayName = decoder.readString();
             String className = decoder.readNullableString();
@@ -170,7 +172,7 @@ public final class SerializableTestResult {
             }
 
             ImmutableList<SerializableFailure> failures = deserializeFailures(decoder);
-            ImmutableList<SerializedMetadata> metadatas = deserializeMetadatas(decoder);
+            ImmutableList<TestMetadataEvent> metadatas = deserializeMetadatas(decoder);
 
             return new SerializableTestResult(name, displayName, className, classDisplayName, resultType, startTime, endTime, assumptionFailure, failures, metadatas);
         }
@@ -214,33 +216,18 @@ public final class SerializableTestResult {
             return new SerializableFailure(message, stackTrace, exceptionType, causes);
         }
 
-        private static void serializeMetadatas(SerializableTestResult result, Encoder encoder) throws IOException {
-            encoder.writeSmallInt(result.metadatas.size());
-            for (SerializedMetadata metadata : result.metadatas) {
-                encoder.writeLong(metadata.getLogTime());
-                encoder.writeSmallInt(metadata.getEntries().size());
-                for (SerializedMetadataElement entry : metadata.getEntries()) {
-                    encoder.writeString(entry.getKey());
-                    encoder.writeBinary(entry.getSerializedValue());
-                    encoder.writeString(entry.getValueType());
-                }
+        private static void serializeMetadatas(SerializableTestResult result, Encoder encoder) throws Exception {
+            encoder.writeInt(result.getMetadatas().size());
+            for (TestMetadataEvent metadata : result.getMetadatas()) {
+                METADATA_EVENT_SERIALIZER.write(encoder, metadata);
             }
         }
 
-        private static ImmutableList<SerializedMetadata> deserializeMetadatas(Decoder decoder) throws IOException {
-            ImmutableList.Builder<SerializedMetadata> metadatas = ImmutableList.builder();
-            int metadataCount = decoder.readSmallInt();
-            for (int i = 0; i < metadataCount; i++) {
-                long logTime = decoder.readLong();
-                int entryCount = decoder.readSmallInt();
-                ImmutableList.Builder<SerializedMetadataElement> entries = ImmutableList.builder();
-                for (int j = 0; j < entryCount; j++) {
-                    String key = decoder.readString();
-                    byte[] value = decoder.readBinary();
-                    String valueType = decoder.readString();
-                    entries.add(new SerializedMetadataElement(key, value, valueType));
-                }
-                metadatas.add(new SerializedMetadata(logTime, entries.build()));
+        private static ImmutableList<TestMetadataEvent> deserializeMetadatas(Decoder decoder) throws Exception {
+            int metadatasCount = decoder.readInt();
+            ImmutableList.Builder<TestMetadataEvent> metadatas = ImmutableList.builder();
+            for (int i = 0; i < metadatasCount; i++) {
+                metadatas.add(METADATA_EVENT_SERIALIZER.read(decoder));
             }
             return metadatas.build();
         }
@@ -258,7 +245,7 @@ public final class SerializableTestResult {
     @Nullable
     private final SerializableFailure assumptionFailure;
     private final ImmutableList<SerializableFailure> failures;
-    private final ImmutableList<SerializedMetadata> metadatas;
+    private final ImmutableList<TestMetadataEvent> metadatas;
 
     public SerializableTestResult(
         String name,
@@ -270,7 +257,7 @@ public final class SerializableTestResult {
         long endTime,
         @Nullable SerializableFailure assumptionFailure,
         ImmutableList<SerializableFailure> failures,
-        ImmutableList<SerializedMetadata> metadatas
+        ImmutableList<TestMetadataEvent> metadatas
     ) {
         this.name = name;
         this.displayName = displayName;
@@ -327,7 +314,7 @@ public final class SerializableTestResult {
         return failures;
     }
 
-    public ImmutableList<SerializedMetadata> getMetadatas() {
+    public ImmutableList<TestMetadataEvent> getMetadatas() {
         return metadatas;
     }
 

@@ -106,7 +106,7 @@ public class TestTreeModel {
      * @param stores the stores to load the models from
      * @return the merged tree model
      */
-    public static TestTreeModel loadModelFromStores(List<SerializableTestResultStore> stores) throws IOException {
+    public static TestTreeModel loadModelFromStores(List<SerializableTestResultStore> stores) throws Exception {
         Map<SmallPath, TestTreeModel.Builder> modelsByPath = new HashMap<>();
         int rootCount = stores.size();
         for (int i = 0; i < rootCount; i++) {
