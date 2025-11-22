@@ -20,6 +20,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
@@ -30,9 +32,10 @@ import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
-import org.gradle.internal.build.event.types.DefaultTestDescriptor;
+import org.gradle.internal.build.event.types.BaseTestDescriptor;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalResourceBasedTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
@@ -50,6 +53,9 @@ import java.util.function.Consumer;
 
 @NullMarked
 class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
+
+    private static final Logger LOG = Logging.getLogger(TestExecutionBuildConfigurationAction.class);
+
     private final TestExecutionRequestAction testExecutionRequest;
 
     public TestExecutionBuildConfigurationAction(TestExecutionRequestAction testExecutionRequest) {
@@ -118,6 +124,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 for (InternalJvmTestRequest jvmTestRequest : entry.getValue()) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+                    disableResourceBasedTests(testTask);
                 }
             }
         }
@@ -130,20 +137,29 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                     DefaultTestFilter filter = (DefaultTestFilter) task.getFilter();
                     for (String cls : testSpec.getClasses()) {
                         filter.includeCommandLineTest(cls, null);
+                        disableResourceBasedTests(task);
                     }
                     for (Map.Entry<String, List<String>> entry : testSpec.getMethods().entrySet()) {
                         String cls = entry.getKey();
                         for (String method : entry.getValue()) {
                             filter.includeCommandLineTest(cls, method);
+                            disableResourceBasedTests(task);
                         }
                     }
                     Set<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns();
                     commandLineIncludePatterns.addAll(testSpec.getPatterns());
                     for (String pkg : testSpec.getPackages()) {
                         commandLineIncludePatterns.add(pkg + ".*");
+                        disableResourceBasedTests(task);
                     }
                 }
             }
+        }
+    }
+
+    private static void disableResourceBasedTests(AbstractTestTask testTask) {
+        if (testTask instanceof Test) {
+            ((Test) testTask).getTestDefinitionDirs().setFrom();
         }
     }
 
@@ -160,6 +176,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+                    disableResourceBasedTests(testTask);
                 }
             }
         });
@@ -167,14 +184,28 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
 
     private void configureTestTasksInBuild(Context context) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
+        warnIfUnsupportedTestRerunningForResourceBasedTests(testDescriptors);
         for (final InternalTestDescriptor descriptor : testDescriptors) {
             final String testTaskPath = taskPathOf(descriptor);
             for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
                 configureTestTask(testTask);
                 for (InternalTestDescriptor testDescriptor : testDescriptors) {
                     if (taskPathOf(testDescriptor).equals(testTaskPath)) {
-                        includeTestMatching((InternalJvmTestDescriptor) testDescriptor, testTask);
+                        includeTestMatching(testDescriptor, testTask);
                     }
+                }
+            }
+        }
+    }
+
+    private static void warnIfUnsupportedTestRerunningForResourceBasedTests(Collection<InternalTestDescriptor> testDescriptors) {
+        Set<String> seenTasks = new LinkedHashSet<>();
+        for (InternalTestDescriptor descriptor : testDescriptors) {
+            if (descriptor instanceof InternalResourceBasedTestDescriptor) {
+                String taskPath = taskPathOf(descriptor);
+                if (!seenTasks.contains(taskPath)) {
+                    LOG.warn("Re-running resource-based tests is not supported via TestLauncher API. The '{}' task will be scheduled without further filtering.", taskPath);
+                    seenTasks.add(taskPath);
                 }
             }
         }
@@ -196,13 +227,17 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
-    private static void includeTestMatching(InternalJvmTestDescriptor descriptor, AbstractTestTask testTask) {
-        String className = descriptor.getClassName();
-        String methodName = descriptor.getMethodName();
-        if (className == null && methodName == null) {
-            testTask.getFilter().includeTestsMatching("*");
-        } else {
-            testTask.getFilter().includeTest(className, methodName);
+    private static void includeTestMatching(InternalTestDescriptor descriptor, AbstractTestTask testTask) {
+        if (descriptor instanceof InternalJvmTestDescriptor) {
+            InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
+            String className = jvmTestDescriptor.getClassName();
+            String methodName = jvmTestDescriptor.getMethodName();
+            if (className == null && methodName == null) {
+                testTask.getFilter().includeTestsMatching("*");
+            } else {
+                testTask.getFilter().includeTest(className, methodName);
+            }
+            disableResourceBasedTests(testTask);
         }
     }
 
@@ -261,6 +296,6 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private static String taskPathOf(InternalTestDescriptor descriptor) {
-        return ((DefaultTestDescriptor) descriptor).getTaskPath();
+        return ((BaseTestDescriptor) descriptor).getTaskPath();
     }
 }

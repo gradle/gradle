@@ -32,4 +32,6 @@ public interface InternalTestDescriptor extends InternalOperationDescriptor {
      * @since 8.8
      */
     String getTestDisplayName();
+
+    InternalTestSource getTestSource();
 }

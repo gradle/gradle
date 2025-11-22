@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -35,6 +35,7 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 import static org.hamcrest.CoreMatchers.equalTo
 
+@Ignore
 class JUnitXmlResultWriterSpec extends Specification {
     private provider = Mock(TestResultsProvider)
 

@@ -20,6 +20,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorWrapper;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
+import org.gradle.tooling.events.test.TestSource;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 
@@ -28,10 +29,12 @@ import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
  */
 public class DefaultTestOperationDescriptor extends DefaultOperationDescriptor implements TestOperationDescriptor, OperationDescriptorWrapper {
     private final InternalTestDescriptor internalTestDescriptor;
+    private final TestSource testSource;
 
-    public DefaultTestOperationDescriptor(InternalTestDescriptor internalTestDescriptor, OperationDescriptor parent) {
+    public DefaultTestOperationDescriptor(InternalTestDescriptor internalTestDescriptor, OperationDescriptor parent, TestSource testSource) {
         super(internalTestDescriptor, parent);
         this.internalTestDescriptor = internalTestDescriptor;
+        this.testSource = testSource;
     }
 
     @Override
@@ -42,5 +45,10 @@ public class DefaultTestOperationDescriptor extends DefaultOperationDescriptor i
     @Override
     public String getTestDisplayName() {
         return internalTestDescriptor.getTestDisplayName();
+    }
+
+    @Override
+    public TestSource getTestSource() {
+        return testSource;
     }
 }

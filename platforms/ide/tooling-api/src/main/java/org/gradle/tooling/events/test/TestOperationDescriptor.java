@@ -34,4 +34,12 @@ public interface TestOperationDescriptor extends OperationDescriptor {
      */
     @Incubating
     String getTestDisplayName();
+
+    /**
+     * Returns the information about where the test was defined.
+     * @return the test source.
+     * @since 9.4.0
+     */
+    @Incubating
+    TestSource getTestSource();
 }

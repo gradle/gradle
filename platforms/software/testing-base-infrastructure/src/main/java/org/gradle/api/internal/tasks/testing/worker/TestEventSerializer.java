@@ -36,11 +36,16 @@ import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.internal.tasks.testing.TestSources;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.FileSource;
+import org.gradle.api.tasks.testing.MissingSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.TestSource;
+import org.gradle.api.tasks.testing.UnknownSource;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -470,6 +475,39 @@ public class TestEventSerializer {
         }
     }
 
+    @NullMarked
+    private static class TestSourceSerializer implements Serializer<TestSource> {
+
+        @Override
+        public TestSource read(Decoder decoder) throws Exception {
+            int i = decoder.readSmallInt();
+            if (i == 0) {
+                return TestSources.unknown();
+            } else if (i == 1) {
+                return TestSources.missing();
+            } else if (i == 2) {
+                String absolutePath = decoder.readString();
+                return TestSources.fileSource(new File(absolutePath));
+            } else {
+                throw new IllegalArgumentException("Unknown TestSource type id: " + i);
+            }
+        }
+
+        @Override
+        public void write(Encoder encoder, TestSource value) throws Exception {
+            if (value instanceof UnknownSource) {
+                encoder.writeSmallInt(0);
+            } else if (value instanceof MissingSource) {
+                encoder.writeSmallInt(1);
+            } else if (value instanceof FileSource) {
+                encoder.writeSmallInt(2);
+                encoder.writeString(((FileSource) value).getFile().getAbsolutePath());
+            } else {
+                throw new IllegalArgumentException("Unknown TestSource type: " + value.getClass().getName());
+            }
+        }
+    }
+
     private static class DefaultTestClassDescriptorSerializer implements Serializer<DefaultTestClassDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
@@ -491,6 +529,7 @@ public class TestEventSerializer {
 
     private static class DefaultTestDescriptorSerializer implements Serializer<DefaultTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
+        final Serializer<TestSource> testSourceSerializer = new TestSourceSerializer();
 
         @Override
         public DefaultTestDescriptor read(Decoder decoder) throws Exception {
@@ -499,7 +538,8 @@ public class TestEventSerializer {
             String classDisplayName = decoder.readString();
             String name = decoder.readString();
             String displayName = decoder.readString();
-            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName);
+            TestSource source = testSourceSerializer.read(decoder);
+            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName, source);
         }
 
         @Override
@@ -509,6 +549,7 @@ public class TestEventSerializer {
             encoder.writeString(value.getClassDisplayName());
             encoder.writeString(value.getName());
             encoder.writeString(value.getDisplayName());
+            testSourceSerializer.write(encoder, value.getSource());
         }
     }
 

@@ -17,12 +17,13 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
 
-public class DefaultTestFinishedProgressEvent extends AbstractProgressEvent<DefaultTestDescriptor> implements InternalTestFinishedProgressEvent, InternalOperationFinishedProgressEvent {
+public class DefaultTestFinishedProgressEvent extends AbstractProgressEvent<InternalTestDescriptor> implements InternalTestFinishedProgressEvent, InternalOperationFinishedProgressEvent {
     private final AbstractTestResult result;
 
-    public DefaultTestFinishedProgressEvent(long eventTime, DefaultTestDescriptor descriptor, AbstractTestResult result) {
+    public DefaultTestFinishedProgressEvent(long eventTime, InternalTestDescriptor descriptor, AbstractTestResult result) {
         super(eventTime, descriptor);
         this.result = result;
     }
