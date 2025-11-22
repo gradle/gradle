@@ -107,6 +107,7 @@ internal class DefaultProjectSchemaProvider(
                 }
             }
             if (target is Settings) {
+//                collectSchemaOf(target.toolchainManagement, typeOfToolchainManagement)
                 val projectFeatureDeclarations = target.serviceOf<ProjectFeatureDeclarations>()
                 accessibleContainerSchema(projectFeatureDeclarations.schema).forEach { schema ->
                     buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
@@ -302,6 +303,10 @@ val typeOfTaskContainer = typeOf<TaskContainer>()
 
 private
 val typeOfModelDefaults = typeOf<SharedModelDefaults>()
+
+
+//private
+//val typeOfToolchainManagement = typeOf<ToolchainManagement>()
 
 
 internal

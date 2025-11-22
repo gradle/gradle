@@ -16,7 +16,6 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.distribution.api-kotlin")
 }
 
 description = "Adds support for using JVM toolchains in projects"
@@ -42,7 +41,6 @@ dependencies {
 
     api(libs.inject)
     api(libs.jspecify)
-    api(libs.kotlinStdlib)
 
     implementation(projects.baseDiagnostics)
     implementation(projects.fileTemp)
@@ -64,7 +62,7 @@ dependencies {
 
     integTestImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
     crossVersionTestImplementation(testFixtures(projects.toolchainsJvmShared))
 }

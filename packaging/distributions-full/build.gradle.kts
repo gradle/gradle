@@ -11,6 +11,12 @@ description = "The collector project for the entirety of the Gradle distribution
 dependencies {
     coreRuntimeOnly(platform(projects.corePlatform))
 
+    publicApiOnly(projects.publicApi) {
+        capabilities {
+            requireCapability("org.gradle.experimental:gradle-public-api-internal")
+        }
+    }
+
     agentsRuntimeOnly(projects.instrumentationAgent)
 
     pluginsRuntimeOnly(platform(projects.distributionsPublishing))

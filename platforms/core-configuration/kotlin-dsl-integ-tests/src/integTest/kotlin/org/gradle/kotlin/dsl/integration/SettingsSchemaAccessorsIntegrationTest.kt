@@ -86,6 +86,25 @@ class SettingsSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    fun `can access jvm toolchain management extensions`() {
+        // given:
+        withDefaultSettings().appendText(
+            """
+            plugins {
+                id("jvm-toolchain-management")
+            }
+
+            toolchainManagement {
+                jvm {} // accessor
+            }
+            """
+        )
+
+        // expect:
+        build("help")
+    }
+
+    @Test
     fun `can access extension registered by included build plugin`() {
         // when:
         val result = build("ok")

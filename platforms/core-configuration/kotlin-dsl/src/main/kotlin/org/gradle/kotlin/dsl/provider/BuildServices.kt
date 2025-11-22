@@ -34,6 +34,7 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationRunner
@@ -59,6 +60,7 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createKotlinScriptClassPathProvider(
+        currentGradleInstallation: CurrentGradleInstallation,
         moduleRegistry: ModuleRegistry,
         classPathRegistry: ClassPathRegistry,
         classLoaderScopeRegistry: ClassLoaderScopeRegistry,
@@ -69,8 +71,26 @@ object BuildServices : ServiceRegistrationProvider {
             moduleRegistry,
             classPathRegistry,
             classLoaderScopeRegistry.coreAndPluginsScope,
-            gradleApiJarsProviderFor(dependencyFactory),
+            gradleApiJarsProviderFor(currentGradleInstallation, dependencyFactory),
         )
+
+    private fun gradleApiJarsProviderFor(
+        gradleInstallation: CurrentGradleInstallation,
+        dependencyFactory: DependencyFactoryInternal
+    ): JarsProvider = {
+        gradleInstallation.installation!!
+            .libDirs
+            .singleOrNull { it.name == "api" }
+            ?.listFiles()
+            ?.filter { it.extension == "jar" }
+            ?.takeIf { it.isNotEmpty() }
+            ?: gradleApiJarsProviderFallback(dependencyFactory)
+    }
+
+    // If the distribution has no API dir, fallback to generated API jar
+    // This is mostly to support integration tests running on non-full distros
+    private fun gradleApiJarsProviderFallback(dependencyFactory: DependencyFactoryInternal) =
+        gradleApiJarsProviderFor(dependencyFactory)()
 
     @Provides
     fun createPluginRequestsHandler(
