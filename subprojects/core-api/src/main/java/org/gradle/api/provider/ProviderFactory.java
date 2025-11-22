@@ -84,11 +84,31 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
      *
+     * @param variableName The name of the environment variable.
+     * @param defaultValue The value to use if the environment variable is not set.
+     * @return The provider. Never returns null.
+     * @since 6.1
+     */
+    Provider<String> environmentVariable(String variableName, String defaultValue);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
+     *
      * @param variableName The provider for the name of the environment variable; when the given provider has no value, the returned provider has no value.
      * @return The provider. Never returns null.
      * @since 6.1
      */
     Provider<String> environmentVariable(Provider<String> variableName);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.
+     *
+     * @param variableName The provider for the name of the environment variable; when the given provider has no value, the returned provider has no value.
+     * @param defaultValue The value to use if the environment variable is not set.
+     * @return The provider. Never returns null.
+     * @since 6.1
+     */
+    Provider<String> environmentVariable(Provider<String> variableName, Provider<String> defaultValue);
 
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the environment variables with the names starting with the given prefix.
@@ -123,10 +143,30 @@ public interface ProviderFactory {
      * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
      *
      * @param propertyName the name of the system property
+     * @param defaultValue The value to use if the system property is not set.
+     * @return the provider for the system property, never returns null
+     * @since 6.1
+     */
+    Provider<String> systemProperty(String propertyName, String defaultValue);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
+     *
+     * @param propertyName the name of the system property
      * @return the provider for the system property, never returns null
      * @since 6.1
      */
     Provider<String> systemProperty(Provider<String> propertyName);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
+     *
+     * @param propertyName the name of the system property
+     * @param defaultValue The value to use if the system property is not set.
+     * @return the provider for the system property, never returns null
+     * @since 6.1
+     */
+    Provider<String> systemProperty(Provider<String> propertyName, Provider<String> defaultValue);
 
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the system properties with the names starting with the given prefix.
@@ -161,10 +201,30 @@ public interface ProviderFactory {
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
      *
      * @param propertyName the name of the Gradle property
+     * @param defaultValue The value to use if the Gradle property is not set.
+     * @return the provider for the Gradle property, never returns null
+     * @since 6.2
+     */
+    Provider<String> gradleProperty(String propertyName, String defaultValue);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
+     *
+     * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
      * @since 6.2
      */
     Provider<String> gradleProperty(Provider<String> propertyName);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
+     *
+     * @param propertyName the name of the Gradle property
+     * @param defaultValue The value to use if the Gradle property is not set.
+     * @return the provider for the Gradle property, never returns null
+     * @since 6.2
+     */
+    Provider<String> gradleProperty(Provider<String> propertyName, String defaultValue);
 
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
