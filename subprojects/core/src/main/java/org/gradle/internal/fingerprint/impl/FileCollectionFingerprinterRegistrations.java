@@ -27,7 +27,7 @@ import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.execution.impl.FingerprinterRegistration;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
+import org.gradle.internal.fingerprint.classpath.impl.DefaultRuntimeClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.service.scopes.Scope;
@@ -119,7 +119,7 @@ public class FileCollectionFingerprinterRegistrations {
     ) {
         return ImmutableList.of(
             new IgnoredPathFileCollectionFingerprinter(normalizedContentHasher),
-            new DefaultClasspathFingerprinter(
+            new DefaultRuntimeClasspathFingerprinter(
                 resourceSnapshotterCacheService,
                 resourceFilter,
                 metaInfFilter,

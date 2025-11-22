@@ -29,8 +29,8 @@ import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
 
 import java.util.Map;
 
-public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
-    public DefaultClasspathFingerprinter(
+public class DefaultRuntimeClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
+    public DefaultRuntimeClasspathFingerprinter(
         ResourceSnapshotterCacheService cacheService,
         ResourceFilter classpathResourceFilter,
         ResourceEntryFilter manifestAttributeResourceEntryFilter,

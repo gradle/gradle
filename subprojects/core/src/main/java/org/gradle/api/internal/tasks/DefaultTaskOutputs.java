@@ -34,6 +34,7 @@ import org.gradle.api.internal.tasks.properties.OutputUnpacker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
@@ -58,7 +59,7 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private boolean storeInCache = true;
     private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
     private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
-    private FileCollection previousOutputFiles;
+    private Lazy<Set<File>> previousOutputFiles;
     private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;
     private final TaskMutator taskMutator;
@@ -206,7 +207,7 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     }
 
     @Override
-    public void setPreviousOutputFiles(FileCollection previousOutputFiles) {
+    public void setPreviousOutputFiles(Lazy<Set<File>> previousOutputFiles) {
         this.previousOutputFiles = previousOutputFiles;
     }
 
@@ -215,7 +216,7 @@ public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
         if (previousOutputFiles == null) {
             throw new IllegalStateException("Task history is currently not available for this task.");
         }
-        return previousOutputFiles.getFiles();
+        return previousOutputFiles.get();
     }
 
     private static class HasDeclaredOutputsVisitor implements PropertyVisitor {

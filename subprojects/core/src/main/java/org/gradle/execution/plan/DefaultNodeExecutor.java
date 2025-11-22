@@ -25,6 +25,12 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 
 public class DefaultNodeExecutor implements NodeExecutor {
 
+    private final MissingTaskDependencyDetector missingTaskDependencyDetector;
+
+    public DefaultNodeExecutor(MissingTaskDependencyDetector missingTaskDependencyDetector) {
+        this.missingTaskDependencyDetector = missingTaskDependencyDetector;
+    }
+
     @Override
     public boolean execute(Node node, NodeExecutionContext context) {
         if (node instanceof SelfExecutingNode) {
@@ -38,10 +44,9 @@ public class DefaultNodeExecutor implements NodeExecutor {
         }
     }
 
-    private static void executeLocalTaskNode(Node node, NodeExecutionContext context, LocalTaskNode localTaskNode) {
+    private void executeLocalTaskNode(Node node, NodeExecutionContext context, LocalTaskNode localTaskNode) {
         TaskInternal task = localTaskNode.getTask();
         TaskStateInternal state = task.getState();
-        MissingTaskDependencyDetector missingTaskDependencyDetector = context.getService(MissingTaskDependencyDetector.class);
         TaskExecutionContext ctx = new DefaultTaskExecutionContext(
             localTaskNode,
             localTaskNode.getTaskProperties(),

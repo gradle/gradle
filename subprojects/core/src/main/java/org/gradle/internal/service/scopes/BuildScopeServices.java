@@ -138,6 +138,7 @@ import org.gradle.execution.plan.DefaultNodeExecutor;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
+import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.plan.NodeValidator;
 import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.PlanExecutor;
@@ -340,6 +341,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     ExecutionNodeAccessHierarchies createExecutionNodeAccessHierarchies(FileSystem fileSystem, Stat stat) {
         return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
+    }
+
+    @Provides
+    MissingTaskDependencyDetector createMissingTaskDependencyDetector(ExecutionNodeAccessHierarchies hierarchies) {
+        return new MissingTaskDependencyDetector(hierarchies.getOutputHierarchy(), hierarchies.createInputHierarchy());
     }
 
     @Provides
@@ -923,11 +929,12 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
         ListenerManager listenerManager,
-        ServiceRegistry gradleScopedServices
+        ServiceRegistry gradleScopedServices,
+        MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         return new DefaultTaskExecutionGraph(
             planExecutor,
-            new DefaultNodeExecutor(),
+            new DefaultNodeExecutor(missingTaskDependencyDetector),
             buildOperationRunner,
             listenerBuildOperationDecorator,
             gradleInternal,
