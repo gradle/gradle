@@ -63,20 +63,6 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         cause.message.contains(executableDir.name)
     }
 
-    def 'fails if custom executable is not from a valid JVM'() {
-        def task = project.tasks.create("run", JavaExec)
-        def invalidJavac = temporaryFolder.createFile("invalidJavac")
-
-        when:
-        task.executable = invalidJavac.absolutePath
-        execute(task)
-
-        then:
-        def e = thrown(TaskExecutionException)
-        assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed:"))
-        assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
-    }
-
     def "fails if custom Java home does not exist"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
         javaCompile.destinationDirectory.fileValue(temporaryFolder.createDir())

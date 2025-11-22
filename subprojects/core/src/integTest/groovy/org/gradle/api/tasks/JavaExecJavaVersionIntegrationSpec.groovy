@@ -77,7 +77,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
         then:
         executedAndNotSkipped ":runHelloWorld"
         assertExecutedWith(otherJdk)
-        output.contains "Value of input property 'javaVersion' has changed for task ':runHelloWorld'"
+        output.contains "Value of input property 'javaLauncher.metadata.languageVersion' has changed for task ':runHelloWorld'"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
