@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.StartParameter;
+import com.google.common.base.Strings;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -50,14 +50,19 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
         if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyDevelocityPlugin(target)) {
             return PluginRequests.EMPTY;
         } else {
+            // We are going with an auto-application request, let's configure the URL
+            // TODO Remove this once the default applied version supports DefaultGradleEnterprisePluginConfig.getDevelocityUrl()
+            target.getPluginManager().withPlugin(AutoAppliedDevelocityPlugin.ID.getId(), new DevelocityAutoAppliedPluginConfigurationAction(target));
             return PluginRequests.of(createDevelocityPluginRequest());
         }
     }
 
     private static boolean shouldApplyDevelocityPlugin(Settings settings) {
         Gradle gradle = settings.getGradle();
-        StartParameter startParameter = gradle.getStartParameter();
-        return startParameter.isBuildScan() && gradle.getParent() == null;
+        StartParameterInternal startParameter = (StartParameterInternal) gradle.getStartParameter();
+        return (startParameter.isBuildScan()
+                || !Strings.isNullOrEmpty(startParameter.getDevelocityUrl()))
+            && gradle.getParent() == null;
     }
 
     private static PluginRequestInternal createDevelocityPluginRequest() {
@@ -83,6 +88,7 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
     }
 
     private static String getScriptDisplayName() {
+        // TODO This needs to be aware of the application reason, which can be the DV URL now
         return String.format("auto-applied by using --%s", BuildScanOption.LONG_OPTION);
     }
 }
