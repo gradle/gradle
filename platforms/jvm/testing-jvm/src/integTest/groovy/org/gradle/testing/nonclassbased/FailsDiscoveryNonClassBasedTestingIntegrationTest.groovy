@@ -53,7 +53,7 @@ class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClass
         fails("test", "--info", "-S")
 
         then:
-        failure.assertThatCause(matchesRegexp(/Could not complete execution for Gradle Test Executor \d+\./))
+        failure.assertThatCause(matchesRegexp(/Could not complete execution for Gradle Test Executor \d+: TestEngine with ID 'fails-discovery-rbt-engine' failed to discover tests/))
         failure.assertHasErrorOutput("Caused by: java.lang.RuntimeException: Test discovery failed")
     }
 
