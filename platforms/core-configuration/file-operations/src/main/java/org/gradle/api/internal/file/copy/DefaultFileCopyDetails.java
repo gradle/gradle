@@ -27,8 +27,10 @@ import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.CompressedDataSource;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.internal.file.DefaultExpandDetails;
+import org.gradle.api.internal.file.archive.compression.CompressionType;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
@@ -283,6 +285,22 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Override
     public RelativePath getRelativeSourcePath() {
         return this.fileDetails.getRelativePath();
+    }
+
+    @Override
+    public CompressionType getCompressionType() {
+        if (fileDetails instanceof CompressedDataSource) {
+            return ((CompressedDataSource) fileDetails).getCompressionType();
+        }
+        return FileCopyDetailsInternal.super.getCompressionType();
+    }
+
+    @Override
+    public InputStream openCompressedInputStream() {
+        if (fileDetails instanceof CompressedDataSource) {
+            return ((CompressedDataSource) fileDetails).openCompressedInputStream();
+        }
+        return FileCopyDetailsInternal.super.openCompressedInputStream();
     }
 
     private static class ByteCountingOutputStream extends OutputStream {

@@ -20,6 +20,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
+import org.gradle.api.internal.file.CompressedDataSource;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.file.PathTraversalChecker;
 import org.gradle.util.internal.GFileUtils;
@@ -33,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  * This implementation extracts the files from the archive to the supplied expansion directory.
  */
-public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeElement implements FileVisitDetails {
+public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeElement implements FileVisitDetails, CompressedDataSource {
     private final File expandedDir;
     private File file;
     private final AtomicBoolean stopFlag;

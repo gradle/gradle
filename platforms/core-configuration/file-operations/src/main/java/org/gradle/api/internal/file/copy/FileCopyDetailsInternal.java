@@ -17,10 +17,27 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.file.CompressedDataSource;
+import org.gradle.api.internal.file.archive.compression.CompressionType;
 
-public interface FileCopyDetailsInternal extends FileCopyDetails {
+import java.io.InputStream;
+
+public interface FileCopyDetailsInternal extends FileCopyDetails, CompressedDataSource {
 
     boolean isIncludeEmptyDirs();
 
     boolean isDefaultDuplicatesStrategy();
+
+    @Override
+    default CompressionType getCompressionType() {
+        return CompressionType.NONE;
+    }
+
+    @Override
+    default InputStream openCompressedInputStream() {
+        if (getCompressionType() == CompressionType.NONE) {
+            return open();
+        }
+        throw new AssertionError("openCompressedInputStream() must be implemented for compressed files");
+    }
 }

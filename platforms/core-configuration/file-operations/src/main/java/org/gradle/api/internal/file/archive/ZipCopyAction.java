@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
+import org.gradle.api.internal.file.archive.compression.CompressionType;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
@@ -32,6 +33,9 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.IoActions;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.ZipEntry;
 
 public class ZipCopyAction implements CopyAction {
 
@@ -96,16 +100,30 @@ public class ZipCopyAction implements CopyAction {
             }
         }
 
-        private void visitFile(FileCopyDetails fileDetails) {
+        private void visitFile(FileCopyDetailsInternal fileDetails) {
             try {
                 ZipArchiveEntry archiveEntry = new ZipArchiveEntry(fileDetails.getRelativePath().getPathString());
                 archiveEntry.setTime(getArchiveTimeFor(fileDetails));
                 archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
+                storeEntry(fileDetails, archiveEntry);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e);
+            }
+        }
+
+        private void storeEntry(FileCopyDetailsInternal fileDetails, ZipArchiveEntry archiveEntry) throws IOException {
+            // Uses compression info to determine if we can store the entry without recompressing
+            CompressionType compressionType = fileDetails.getCompressionType();
+            if (compressionType == CompressionType.DEFLATE && compressor.isDeflateCompression()) {
+                archiveEntry.setMethod(ZipEntry.DEFLATED);
+                try (InputStream compressedInput = fileDetails.openCompressedInputStream()) {
+                    zipOutStr.addRawArchiveEntry(archiveEntry, compressedInput);
+                }
+            } else {
+                // Fallback in cases where there is no compression, or it's incompatible
                 zipOutStr.putArchiveEntry(archiveEntry);
                 fileDetails.copyTo(zipOutStr);
                 zipOutStr.closeArchiveEntry();
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e);
             }
         }
 

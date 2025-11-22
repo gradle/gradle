@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.DefaultFilePermissions;
+import org.gradle.api.internal.file.archive.compression.CompressionType;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -180,6 +181,26 @@ public class ZipFileTree extends AbstractArchiveFileTree {
             }
 
             return super.getPermissions();
+        }
+
+        @Override
+        public CompressionType getCompressionType() {
+            if (entry.getMethod() == ZipArchiveEntry.DEFLATED) {
+                return CompressionType.DEFLATE;
+            } else if (entry.getMethod() == ZipArchiveEntry.STORED) {
+                return CompressionType.NONE;
+            } else {
+                return CompressionType.UNKNOWN;
+            }
+        }
+
+        @Override
+        public InputStream openCompressedInputStream() {
+            try {
+                return zip.getRawInputStream(entry);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 }

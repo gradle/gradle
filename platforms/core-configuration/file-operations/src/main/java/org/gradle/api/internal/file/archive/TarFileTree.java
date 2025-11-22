@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.DefaultFilePermissions;
+import org.gradle.api.internal.file.archive.compression.CompressionType;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -243,6 +244,16 @@ public class TarFileTree extends AbstractArchiveFileTree {
         @Override
         protected TarArchiveEntry getArchiveEntry() {
             return entry;
+        }
+
+        @Override
+        public CompressionType getCompressionType() {
+            return CompressionType.NONE;
+        }
+
+        @Override
+        public InputStream openCompressedInputStream() {
+            return open();
         }
 
         private static final class NoCloseTarArchiveInputStream extends TarArchiveInputStream {
