@@ -19,7 +19,7 @@ package org.gradle.api.internal.file.archive.compression;
 import org.apache.tools.bzip2.CBZip2InputStream;
 import org.apache.tools.bzip2.CBZip2OutputStream;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.internal.IoActions;
+
 import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.BufferedInputStream;
@@ -27,6 +27,9 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import static java.lang.String.format;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class Bzip2Archiver extends AbstractArchiver {
     public Bzip2Archiver(ReadableResourceInternal resource) {
@@ -48,9 +51,8 @@ public class Bzip2Archiver extends AbstractArchiver {
                 outStr.write('Z');
                 return new CBZip2OutputStream(outStr);
             } catch (Exception e) {
-                IoActions.closeQuietly(outStr);
-                String message = String.format("Unable to create bzip2 output stream for file %s", destination);
-                throw new RuntimeException(message, e);
+                closeQuietly(outStr);
+                throw new RuntimeException(format("Unable to create bzip2 output stream for file %s", destination), e);
             }
         };
     }
@@ -64,7 +66,7 @@ public class Bzip2Archiver extends AbstractArchiver {
             input.read(skip);
             return new CBZip2InputStream(input);
         } catch (Exception e) {
-            IoActions.closeQuietly(input);
+            closeQuietly(input);
             throw ResourceExceptions.readFailed(resource.getDisplayName(), e);
         }
     }

@@ -29,6 +29,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.function.Function;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 /**
  * Various utilities for dealing with IO actions.
  */
@@ -106,21 +108,6 @@ public abstract class IoActions {
             }
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    /**
-     * Closes the given resource silently ignoring any {@link IOException}.
-     *
-     * @param resource The resource to be closed
-     */
-    public static void closeQuietly(@Nullable Closeable resource) {
-        try {
-            if (resource != null) {
-                resource.close();
-            }
-        } catch (IOException e) {
-            // Ignored
         }
     }
 

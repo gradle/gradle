@@ -76,11 +76,8 @@ public class GcsResourceConnector extends AbstractExternalResourceAccessor imple
     @Override
     public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
         LOGGER.debug("Attempting to upload stream to: {}", destination);
-        InputStream inputStream = resource.open();
-        try {
+        try (InputStream inputStream = resource.open()) {
             gcsClient.put(inputStream, resource.getContentLength(), destination.getUri());
-        } finally {
-            inputStream.close();
         }
     }
 }

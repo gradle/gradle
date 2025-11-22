@@ -180,7 +180,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
         file("transitive/build.gradle") << """
             dependencies {
-                implementation 'org.apache.commons:commons-io:1.3.2'
+                implementation 'org.apache.commons:commons-io:2.21.0'
             }
         """
 
@@ -206,7 +206,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
         file("transitive/build.gradle") << """
             dependencies {
-                implementation 'org.apache.commons:commons-io:1.3.2'
+                implementation 'org.apache.commons:commons-io:2.21.0'
             }
         """
 
@@ -236,7 +236,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
         file("transitive/build.gradle") << """
             dependencies {
-                implementation 'org.apache.commons:commons-io:1.3.2'
+                implementation 'org.apache.commons:commons-io:2.21.0'
             }
         """
 
@@ -259,7 +259,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
         file("transitive/build.gradle") << """
             dependencies {
-                implementation 'org.apache.commons:commons-io:1.3.2'
+                implementation 'org.apache.commons:commons-io:2.21.0'
                 implementation(platform('org.springframework.boot:spring-boot-dependencies:2.5.8'))
                 runtimeOnly 'org.codehaus.janino:janino'
             }
@@ -498,7 +498,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("transitive/build.gradle") << """
             dependencies {
-                implementation 'org.apache.commons:commons-io:1.3.2'
+                implementation 'org.apache.commons:commons-io:2.21.0'
                 implementation(platform('org.springframework.boot:spring-boot-dependencies:2.5.8'))
                 runtimeOnly 'org.codehaus.janino:janino'
             }

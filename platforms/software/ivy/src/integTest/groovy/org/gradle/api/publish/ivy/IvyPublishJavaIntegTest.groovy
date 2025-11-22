@@ -29,7 +29,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         """dependencies {
                api "commons-collections:commons-collections:3.2.2"
                compileOnly "javax.servlet:servlet-api:2.5"
-               runtimeOnly "commons-io:commons-io:1.4"
+               runtimeOnly "commons-io:commons-io:2.21.0"
                testImplementation "junit:junit:4.13"
            }
 """
@@ -64,7 +64,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             expectArtifact("publishTest").hasAttributes("jar", "jar", ["compile", "runtime"])
         }
         javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
-        javaLibrary.assertRuntimeDependencies('commons-collections:commons-collections:3.2.2', 'commons-io:commons-io:1.4')
+        javaLibrary.assertRuntimeDependencies('commons-collections:commons-collections:3.2.2', 'commons-io:commons-io:2.21.0')
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -363,7 +363,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             }
         }
         javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
-            dependency('commons-io:commons-io:1.4') {
+            dependency('commons-io:commons-io:2.21.0') {
                 hasExclude('runtimeElements-group', 'runtimeElements-module')
                 hasExclude('implementation-group', 'implementation-module')
                 hasExclude('api-group', 'api-module')
@@ -534,7 +534,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             dependencies {
                 api "org.springframework:spring-core:1.2.9"
-                implementation "org.apache.commons:commons-compress:1.5"
+                implementation "org.apache.commons:commons-compress:1.28.0"
                 constraints {
                     api "commons-logging:commons-logging:1.1"
                     implementation "commons-logging:commons-logging:1.2"
@@ -564,7 +564,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
 
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
-        javaLibrary.parsedIvy.assertDependsOn("org.springframework:spring-core:1.2.9@compile", "org.apache.commons:commons-compress:1.5@runtime")
+        javaLibrary.parsedIvy.assertDependsOn("org.springframework:spring-core:1.2.9@compile", "org.apache.commons:commons-compress:1.28.0@runtime")
         // we do not publish constraints to ivy
 
         and:
@@ -587,7 +587,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             constraint('commons-logging:commons-logging:1.1') { rejects() }
             constraint('commons-logging:commons-logging:1.2') { rejects() }
 
-            dependency('org.apache.commons:commons-compress:1.5') {
+            dependency('org.apache.commons:commons-compress:1.28.0') {
                 rejects()
                 noMoreExcludes()
             }

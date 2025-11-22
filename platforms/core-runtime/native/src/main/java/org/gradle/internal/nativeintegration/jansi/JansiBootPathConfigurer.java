@@ -17,13 +17,14 @@
 package org.gradle.internal.nativeintegration.jansi;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class JansiBootPathConfigurer {
     private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
@@ -53,7 +54,7 @@ public class JansiBootPathConfigurer {
                         copyLibrary(libraryInputStream, libFile);
                     }
                 } finally {
-                    IoActions.closeQuietly(libraryInputStream);
+                    closeQuietly(libraryInputStream);
                 }
             }
 
@@ -64,12 +65,8 @@ public class JansiBootPathConfigurer {
     private void copyLibrary(InputStream lib, File libFile) {
         try {
             try {
-                FileOutputStream outputStream = new FileOutputStream(libFile);
-
-                try {
+                try (FileOutputStream outputStream = new FileOutputStream(libFile)) {
                     IOUtils.copy(lib, outputStream);
-                } finally {
-                    outputStream.close();
                 }
             } finally {
                 lib.close();

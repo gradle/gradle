@@ -3,6 +3,6 @@ repositories {
 }
 
 dependencies {
-    implementation("commons-io:commons-io:2.5")
+    implementation("commons-io:commons-io:2.21.0")
     compileOnly("commons-codec:commons-codec:1.9")
 }

@@ -41,13 +41,10 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
     @SuppressWarnings("unchecked")
     public void load(File repoFile) {
         try {
-            FileInputStream inputStream = new FileInputStream(repoFile);
-            try {
+            try (FileInputStream inputStream = new FileInputStream(repoFile)) {
                 ObjectInputStream objInputStream = new ObjectInputStream(new BufferedInputStream(inputStream));
                 classes.clear();
                 classes.putAll((Map<String, T>) objInputStream.readObject());
-            } finally {
-                inputStream.close();
             }
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load meta-data from %s.", repoFile), e);
@@ -56,13 +53,10 @@ public class SimpleClassMetaDataRepository<T extends Attachable<T>> implements C
 
     public void store(File repoFile) {
         try {
-            FileOutputStream outputStream = new FileOutputStream(repoFile);
-            try {
+            try (FileOutputStream outputStream = new FileOutputStream(repoFile)) {
                 ObjectOutputStream objOutputStream = new ObjectOutputStream(new BufferedOutputStream(outputStream));
                 objOutputStream.writeObject(classes);
                 objOutputStream.close();
-            } finally {
-                outputStream.close();
             }
         } catch (IOException e) {
             throw new GradleException(String.format("Could not write meta-data to %s.", repoFile), e);

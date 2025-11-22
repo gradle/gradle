@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 @ThreadSafe
 @ServiceScope(Scope.UserHome.class)
 public class PayloadSerializer {
@@ -54,7 +56,7 @@ public class PayloadSerializer {
             try {
                 objectStream.writeObject(payload);
             } finally {
-                IOUtils.closeQuietly(objectStream);
+                closeQuietly(objectStream);
             }
 
             Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();

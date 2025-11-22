@@ -19,7 +19,7 @@ package org.gradle.internal.util;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.gradle.internal.IoActions;
+
 import org.gradle.internal.SystemProperties;
 import org.jspecify.annotations.Nullable;
 
@@ -34,6 +34,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class PropertiesUtils {
 
@@ -75,7 +77,7 @@ public class PropertiesUtils {
         try {
             store(properties, outputStream, comment, charset, lineSeparator);
         } finally {
-            IoActions.closeQuietly(outputStream);
+            closeQuietly(outputStream);
         }
     }
 

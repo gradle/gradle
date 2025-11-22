@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenc
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
@@ -35,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
@@ -142,7 +142,7 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
             } catch (IOException e) {
                 throw new UncheckedIOException("Failed to hash " + fileDetails, e);
             } finally {
-                IoActions.closeQuietly(inputStream);
+                closeQuietly(inputStream);
             }
         }
     }

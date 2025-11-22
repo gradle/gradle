@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import static org.apache.http.client.utils.HttpClientUtils.closeQuietly;
+
 public class HttpClientResponse implements Closeable {
 
     private final String method;
@@ -61,7 +63,7 @@ public class HttpClientResponse implements Closeable {
     public void close() {
         if (!closed) {
             closed = true;
-            HttpClientUtils.closeQuietly(httpResponse);
+            closeQuietly(httpResponse);
         }
     }
 

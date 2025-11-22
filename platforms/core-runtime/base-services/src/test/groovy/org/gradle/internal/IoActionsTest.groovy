@@ -164,36 +164,6 @@ class IoActionsTest extends Specification {
         0 * _._
     }
 
-    def "can handle null resource when closing"() {
-        when:
-        uncheckedClose(null)
-
-        then:
-        noExceptionThrown()
-
-        when:
-        closeQuietly(null)
-
-        then:
-        noExceptionThrown()
-    }
-
-    def "can close a valid resource"() {
-        def resource = Mock(Closeable)
-
-        when:
-        uncheckedClose(resource)
-
-        then:
-        1 * resource.close()
-
-        when:
-        closeQuietly(resource)
-
-        then:
-        1 * resource.close()
-    }
-
     def "rethrows unchecked exception when closing resource"() {
         def resource = Mock(Closeable)
 
@@ -205,14 +175,4 @@ class IoActionsTest extends Specification {
         thrown(UncheckedIOException)
     }
 
-    def "does not rethrow exception when closing resource"() {
-        def resource = Mock(Closeable)
-
-        when:
-        closeQuietly(resource)
-
-        then:
-        1 * resource.close() >> { throw new IOException() }
-        noExceptionThrown()
-    }
 }

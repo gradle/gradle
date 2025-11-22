@@ -111,8 +111,7 @@ public class ToolSearchPath {
         }
 
         String pathStr;
-        DataInputStream instr = new DataInputStream(new BufferedInputStream(new FileInputStream(symlink)));
-        try {
+        try (DataInputStream instr = new DataInputStream(new BufferedInputStream(new FileInputStream(symlink)))) {
             byte[] header = new byte[10];
             instr.readFully(header);
             if (!new String(header, "utf-8").equals("!<symlink>")) {
@@ -121,8 +120,6 @@ public class ToolSearchPath {
             byte[] pathContent = new byte[(int) symlink.length() - 11];
             instr.readFully(pathContent);
             pathStr = new String(pathContent, "utf-8");
-        } finally {
-            instr.close();
         }
 
         symlink = new File(symlink.getParentFile(), pathStr);

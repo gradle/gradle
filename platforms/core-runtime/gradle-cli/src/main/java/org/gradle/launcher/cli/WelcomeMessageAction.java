@@ -18,14 +18,12 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.IoActions;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.util.GradleVersion;
@@ -36,6 +34,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.apache.commons.io.IOUtils.copy;
 
 public class WelcomeMessageAction implements Action<ExecutionListener> {
     public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
@@ -130,14 +131,13 @@ public class WelcomeMessageAction implements Action<ExecutionListener> {
 
         if (inputStream != null) {
             StringWriter writer = new StringWriter();
-
             try {
-                IOUtils.copy(inputStream, writer, "UTF-8");
+                copy(inputStream, writer, "UTF-8");
                 return writer.toString();
             } catch (IOException e) {
                 // do not fail the build as feature is non-critical
             } finally {
-                IoActions.closeQuietly(inputStream);
+                closeQuietly(inputStream);
             }
         }
 

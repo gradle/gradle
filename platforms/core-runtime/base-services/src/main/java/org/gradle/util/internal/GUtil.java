@@ -19,7 +19,7 @@ package org.gradle.util.internal;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.IoActions;
+
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
@@ -28,7 +28,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -51,6 +50,7 @@ import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Various utility methods.
@@ -212,11 +212,8 @@ public class GUtil {
 
     public static Properties loadProperties(File propertyFile) {
         try {
-            FileInputStream inputStream = new FileInputStream(propertyFile);
-            try {
+            try (FileInputStream inputStream = new FileInputStream(propertyFile)) {
                 return loadProperties(inputStream);
-            } finally {
-                inputStream.close();
             }
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -240,30 +237,15 @@ public class GUtil {
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            IoActions.closeQuietly(inputStream);
+            closeQuietly(inputStream);
         }
         return properties;
     }
 
     public static void saveProperties(Properties properties, File propertyFile) {
         try {
-            FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
-            try {
+            try (FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile)) {
                 properties.store(propertiesFileOutputStream, null);
-            } finally {
-                propertiesFileOutputStream.close();
-            }
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    public static void saveProperties(Properties properties, OutputStream outputStream) {
-        try {
-            try {
-                properties.store(outputStream, null);
-            } finally {
-                outputStream.close();
             }
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

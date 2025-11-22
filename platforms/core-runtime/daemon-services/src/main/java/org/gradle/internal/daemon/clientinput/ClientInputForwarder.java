@@ -19,7 +19,6 @@ package org.gradle.internal.daemon.clientinput;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
@@ -27,6 +26,8 @@ import org.gradle.launcher.daemon.protocol.UserResponse;
 
 import java.io.InputStream;
 import java.util.function.Function;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Forwards user input received from the client to this process' System.in and {@link UserInputReader}.
@@ -80,7 +81,7 @@ public class ClientInputForwarder {
             return action.apply(stdinHandler);
         } finally {
             System.setIn(previousStdin);
-            IoActions.closeQuietly(stdInStream);
+            closeQuietly(stdInStream);
         }
     }
 }

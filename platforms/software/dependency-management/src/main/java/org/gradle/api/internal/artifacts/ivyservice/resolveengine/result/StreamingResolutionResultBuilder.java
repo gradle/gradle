@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class StreamingResolutionResultBuilder implements DependencyGraphVisitor {
     private final static byte ROOT = 1;
@@ -191,11 +191,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                     try {
                         return data.read(this::deserialize);
                     } finally {
-                        try {
-                            data.close();
-                        } catch (IOException e) {
-                            throw throwAsUncheckedException(e);
-                        }
+                        closeQuietly(data);
                     }
                 });
             }

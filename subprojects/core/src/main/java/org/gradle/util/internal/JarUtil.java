@@ -17,7 +17,6 @@
 package org.gradle.util.internal;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.internal.IoActions;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
@@ -33,6 +32,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class JarUtil {
     // We cannot use Attributes.Name.MULTI_RELEASE as it is only available since Java 9;
@@ -66,8 +67,8 @@ public class JarUtil {
                 }
             }
         } finally {
-            IoActions.closeQuietly(zipStream);
-            IoActions.closeQuietly(extractTargetStream);
+            closeQuietly(zipStream);
+            closeQuietly(extractTargetStream);
         }
 
         return entryExtracted;

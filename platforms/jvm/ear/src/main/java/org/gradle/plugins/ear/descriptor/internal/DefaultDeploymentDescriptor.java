@@ -48,6 +48,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     private static final String ACCESS_EXTERNAL_DTD = "http://javax.xml.XMLConstants/property/accessExternalDTD";
@@ -339,7 +341,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         } catch (IOException | SAXException ex) {
             throw UncheckedException.throwAsUncheckedException(ex);
         } finally {
-            IoActions.closeQuietly(reader);
+            closeQuietly(reader);
         }
         return this;
     }

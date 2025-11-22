@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    implementation("commons-io:commons-io:2.6")
+    implementation("commons-io:commons-io:2.21.0")
 }
 
 // tag::link-task-properties[]

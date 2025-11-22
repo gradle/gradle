@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class ArgWriter implements ArgCollector {
 
     private static final Pattern WHITESPACE = Pattern.compile("\\s");
@@ -89,13 +91,9 @@ public class ArgWriter implements ArgCollector {
         argsFile.getParentFile().mkdirs();
         try {
             // TODO(https://github.com/gradle/gradle/issues/29303)
-            @SuppressWarnings("DefaultCharset") // This method is documented as "uses platform text encoding"
-            PrintWriter writer = new PrintWriter(argsFile);
-            try {
-                ArgWriter argWriter = argWriterFactory.apply(writer);
-                argWriter.args(args);
-            } finally {
-                writer.close();
+            // This method is documented as "uses platform text encoding"
+            try (PrintWriter writer = new PrintWriter(argsFile, UTF_8.name())) {
+                argWriterFactory.apply(writer).args(args);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);

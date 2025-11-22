@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.archive.compression;
 
 import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.BufferedInputStream;
@@ -26,6 +25,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import static java.lang.String.format;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class GzipArchiver extends AbstractArchiver {
     public GzipArchiver(ReadableResourceInternal resource) {
@@ -45,9 +47,8 @@ public class GzipArchiver extends AbstractArchiver {
             try {
                 return new GZIPOutputStream(outStr);
             } catch (Exception e) {
-                IoActions.closeQuietly(outStr);
-                String message = String.format("Unable to create gzip output stream for file %s.", destination);
-                throw new RuntimeException(message, e);
+                closeQuietly(outStr);
+                throw new RuntimeException(format("Unable to create gzip output stream for file %s.", destination), e);
             }
         };
     }
@@ -58,7 +59,7 @@ public class GzipArchiver extends AbstractArchiver {
         try {
             return new GZIPInputStream(input);
         } catch (Exception e) {
-            IoActions.closeQuietly(input);
+            closeQuietly(input);
             throw ResourceExceptions.readFailed(resource.getDisplayName(), e);
         }
     }

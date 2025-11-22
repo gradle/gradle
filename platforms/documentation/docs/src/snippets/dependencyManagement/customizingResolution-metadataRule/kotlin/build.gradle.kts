@@ -22,14 +22,14 @@ abstract class TargetJvmVersionRule @Inject constructor(val jvmVersion: Int) : C
 }
 dependencies {
     components {
-        withModule<TargetJvmVersionRule>("commons-io:commons-io") {
+        withModule<TargetJvmVersionRule>("commons-io:commons-io:2.21.0") {
             params(7)
         }
         withModule<TargetJvmVersionRule>("commons-collections:commons-collections") {
             params(8)
         }
     }
-    implementation("commons-io:commons-io:2.6")
+    implementation("commons-io:commons-io:2.21.0")
     implementation("commons-collections:commons-collections:3.2.2")
 }
 // end::config-component-metadata-rule[]

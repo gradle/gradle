@@ -41,7 +41,6 @@ import org.gradle.integtests.fixtures.FileSystemWatchingHelper;
 import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalListener;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildprocess.BuildProcessState;
@@ -107,6 +106,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
 import static org.gradle.internal.hash.Hashing.hashString;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -335,7 +335,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {
-                IoActions.closeQuietly(output);
+                closeQuietly(output);
             }
         }
         return cpJar;

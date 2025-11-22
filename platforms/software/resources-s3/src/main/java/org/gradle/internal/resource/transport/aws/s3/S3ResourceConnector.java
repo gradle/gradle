@@ -20,7 +20,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.io.ByteStreams;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
@@ -34,6 +33,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class S3ResourceConnector extends AbstractExternalResourceAccessor implements ExternalResourceConnector {
 
@@ -97,18 +98,15 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
             LOGGER.debug("Exception while consuming empty object content from metadata request", e);
         } finally {
             // This also closes objectContent, no need to close it explicitly.
-            IoActions.closeQuietly(s3Object);
+            closeQuietly(s3Object);
         }
     }
 
     @Override
     public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
         LOGGER.debug("Attempting to upload stream to : {}", destination);
-        InputStream inputStream = resource.open();
-        try {
+        try (InputStream inputStream = resource.open()) {
             s3Client.put(inputStream, resource.getContentLength(), destination.getUri());
-        } finally {
-            inputStream.close();
         }
     }
 }

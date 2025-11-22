@@ -45,7 +45,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 
 /**
  * Serializes the transient parts of the resolved configuration results.
@@ -140,11 +141,7 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
                 try {
                     return binaryData.read(decoder -> deserialize(decoder, artifactResults, buildOperationExecutor, resolutionHost));
                 } finally {
-                    try {
-                        binaryData.close();
-                    } catch (IOException e) {
-                        throw throwAsUncheckedException(e);
-                    }
+                    closeQuietly(binaryData);
                 }
             });
         }

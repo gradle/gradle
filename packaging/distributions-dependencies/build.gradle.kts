@@ -58,6 +58,7 @@ dependencies {
 
     constraints {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
+        api(libs.gradleIdeStarterVersion) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}

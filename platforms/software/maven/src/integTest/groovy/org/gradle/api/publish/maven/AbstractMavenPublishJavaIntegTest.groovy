@@ -126,7 +126,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
             dependencies {
                 api "commons-collections:commons-collections:3.2.2"
                 compileOnly "javax.servlet:servlet-api:2.5"
-                runtimeOnly "commons-io:commons-io:1.4"
+                runtimeOnly "commons-io:commons-io:2.21.0"
                 testImplementation "junit:junit:4.13"
                 api ("org.springframework:spring-core:2.5.6") {
                     exclude group: 'commons-logging', module: 'commons-logging'
@@ -159,7 +159,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
         javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
-        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-io:commons-io:1.4")
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-io:commons-io:2.21.0")
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("org.springframework:spring-core:2.5.6", new MavenDependencyExclusion("commons-logging", "commons-logging"))
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("commons-beanutils:commons-beanutils:1.8.3", new MavenDependencyExclusion("commons-logging", "*"))
         javaLibrary.parsedPom.scopes.compile.hasDependencyExclusion("commons-dbcp:commons-dbcp:1.4", new MavenDependencyExclusion("*", "*"))
@@ -167,7 +167,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
         and:
         javaLibrary.assertApiDependencies("commons-collections:commons-collections:3.2.2", "org.springframework:spring-core:2.5.6", "commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3")
-        javaLibrary.assertRuntimeDependencies("commons-io:commons-io:1.4")
+        javaLibrary.assertRuntimeDependencies("commons-io:commons-io:2.21.0")
         def apiVariant = javaLibrary.parsedModuleMetadata.variant("apiElements")
         apiVariant.dependencies.find { it.coords == 'org.springframework:spring-core:2.5.6' }.excludes == ['commons-logging:commons-logging']
         apiVariant.dependencies.find { it.coords == 'commons-beanutils:commons-beanutils:1.8.3' }.excludes == ['commons-logging:*']
@@ -258,7 +258,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
             dependencies {
                 api "org.springframework:spring-core:1.2.9"
-                implementation "org.apache.commons:commons-compress:1.5"
+                implementation "org.apache.commons:commons-compress:1.28.0"
                 constraints {
                     api "commons-logging:commons-logging:1.1"
                     implementation "commons-logging:commons-logging:1.2"
@@ -288,7 +288,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         javaLibrary.parsedPom.scopes.keySet() == ["compile", "no_scope", "runtime"] as Set
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:1.2.9")
 
-        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.apache.commons:commons-compress:1.5")
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.apache.commons:commons-compress:1.28.0")
         javaLibrary.parsedPom.scopes.no_scope.assertDependencyManagement("commons-logging:commons-logging:1.1", "org.tukaani:xz:1.6")
 
         and:
@@ -310,7 +310,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
             constraint('commons-logging:commons-logging:1.1') { rejects() }
             constraint('commons-logging:commons-logging:1.2') { rejects() }
 
-            dependency('org.apache.commons:commons-compress:1.5') {
+            dependency('org.apache.commons:commons-compress:1.28.0') {
                 rejects()
                 noMoreExcludes()
             }

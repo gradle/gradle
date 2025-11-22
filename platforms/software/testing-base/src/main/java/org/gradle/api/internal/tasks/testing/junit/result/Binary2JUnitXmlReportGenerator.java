@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -38,6 +37,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
+
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 @NullMarked
 public class Binary2JUnitXmlReportGenerator {
@@ -130,7 +131,7 @@ public class Binary2JUnitXmlReportGenerator {
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), reportFile), e);
             } finally {
-                IoActions.closeQuietly(output);
+                closeQuietly(output);
             }
         }
     }

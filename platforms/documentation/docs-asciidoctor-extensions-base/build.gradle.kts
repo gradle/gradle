@@ -12,7 +12,7 @@ dependencies {
     api("org.asciidoctor:asciidoctorj:$asciiDoctorVersion")
     api("org.jspecify:jspecify:1.0.0")
 
-    implementation("commons-io:commons-io:2.11.0")
+    implementation("commons-io:commons-io:2.21.0")
     testImplementation("org.spockframework:spock-core")
 }
 

@@ -217,7 +217,7 @@ Attributes
 
             dependencies {
                 api 'org.apache.commons:commons-lang3:3.5'
-                implementation 'org.apache.commons:commons-compress:1.19'
+                implementation 'org.apache.commons:commons-compress:1.28.0'
             }
         """
 
@@ -335,7 +335,7 @@ Extended Configurations
 
             dependencies {
                 api 'org.apache.commons:commons-lang3:3.5'
-                implementation 'org.apache.commons:commons-compress:1.19'
+                implementation 'org.apache.commons:commons-compress:1.28.0'
             }
         """
 
