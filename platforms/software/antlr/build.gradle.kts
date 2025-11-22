@@ -4,12 +4,6 @@ plugins {
 
 description = "Adds support for generating parsers from Antlr grammars."
 
-errorprone {
-    disabledChecks.addAll(
-        "Finally", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.core)
     api(projects.coreApi)
@@ -32,6 +26,7 @@ dependencies {
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)
+    implementation("commons-io:commons-io:2.15.1")
 
     compileOnly("antlr:antlr:2.7.7") {
         because("this dependency is downloaded by the antlr plugin")

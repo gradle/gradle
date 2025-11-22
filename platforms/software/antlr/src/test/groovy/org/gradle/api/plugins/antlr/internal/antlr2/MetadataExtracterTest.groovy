@@ -18,6 +18,8 @@ package org.gradle.api.plugins.antlr.internal.antlr2
 
 import spock.lang.Specification
 
+import static java.util.Arrays.stream
+
 class MetadataExtracterTest extends Specification {
 
     def "parses package information when defined in a separate line"() {
@@ -43,7 +45,7 @@ class MetadataExtracterTest extends Specification {
         atom:   INT
             ;"""
         expect:
-        "org.acme" == new MetadataExtracter().getPackageName(new StringReader(grammar))
+        "org.acme" == new MetadataExtracter().getNormalizedPackageName(stream(grammar.split("\n")))
     }
 
     def "parses package information when header is declared as one-liner"() {
@@ -67,7 +69,7 @@ class MetadataExtracterTest extends Specification {
         atom:   INT
             ;"""
         expect:
-        "org.acme" == new MetadataExtracter().getPackageName(new StringReader(grammar))
+        "org.acme" == new MetadataExtracter().getNormalizedPackageName(stream(grammar.split("\n")))
     }
 
     def "parses package information with header block in cpp syntax"() {
@@ -100,6 +102,6 @@ import org.hibernate.hql.internal.ast.ErrorReporter;
         atom:   INT
             ;"""
         expect:
-        "org.hibernate.hql.internal.antlr" == new MetadataExtracter().getPackageName(new StringReader(grammar))
+        "org.hibernate.hql.internal.antlr" == new MetadataExtracter().getNormalizedPackageName(stream(grammar.split("\n")))
     }
 }
