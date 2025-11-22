@@ -33,6 +33,11 @@ public class DefaultZipCompressor implements ZipCompressor {
     }
 
     @Override
+    public boolean isDeflateCompression() {
+        return entryCompressionMethod == ZipArchiveOutputStream.DEFLATED;
+    }
+
+    @Override
     public ZipArchiveOutputStream createArchiveOutputStream(File destination) throws IOException {
         ZipArchiveOutputStream outStream = new ZipArchiveOutputStream(destination);
         try {
