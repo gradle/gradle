@@ -42,6 +42,7 @@ object GradleDistributionSpecs {
         val gradleApiKotlinExtensionsJarModuleProperties = tasks.named("gradleApiKotlinExtensionsJarModuleProperties", GenerateEmptyModuleProperties::class.java).get()
         val agentsRuntimeClasspath = configurations.getByName("agentsRuntimeClasspath")
         val generateAgentsRuntimeModuleProperties = tasks.named("generateAgentsRuntimeModuleProperties", GenerateClasspathModuleProperties::class.java).get()
+        val gradlePublicAbiClasspath = configurations.getByName("gradlePublicAbiClasspath")
         val generateLicenseFile = tasks.named("generateLicenseFile", GenerateLicenseFile::class.java).get()
 
         from(generateLicenseFile.outputLicenseFile)
@@ -76,6 +77,9 @@ object GradleDistributionSpecs {
             into("agents") {
                 from(agentsRuntimeClasspath)
                 from(generateAgentsRuntimeModuleProperties.outputDir)
+            }
+            into("api") {
+                from(gradlePublicAbiClasspath)
             }
         }
     }

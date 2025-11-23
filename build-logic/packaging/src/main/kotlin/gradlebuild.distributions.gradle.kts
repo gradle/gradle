@@ -89,9 +89,14 @@ val pluginsRuntimeOnly = bucket("pluginsRuntimeOnly")
 pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent additional plugins packaged in the distributions (lib/plugins/*.jar)"
 val agentsRuntimeOnly = bucket("agentsRuntimeOnly")
 agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
+val publicAbiOnly = bucket("publicAbiOnly")
+publicAbiOnly.description = "To define dependencies to the Gradle modules that make up the public API (lib/api/*.jar)"
 
 // Use lazy API to not attempt to find platform project during script compilation
 coreRuntimeOnly.dependencies.addLater(provider {
+    dependencies.platform(dependencies.create(project(":distributions-dependencies")))
+})
+publicAbiOnly.dependencies.addLater(provider {
     dependencies.platform(dependencies.create(project(":distributions-dependencies")))
 })
 
@@ -102,6 +107,9 @@ val coreRuntimeClasspath = libraryResolver("coreRuntimeClasspath", listOf(coreRu
 coreRuntimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
 val agentsRuntimeClasspath = libraryResolver("agentsRuntimeClasspath", listOf(agentsRuntimeOnly))
 agentsRuntimeClasspath.description = "Resolves to all Jars that need to be added as agents"
+val gradlePublicAbiClasspath = apiLibraryResolver("gradlePublicAbiClasspath", listOf(publicAbiOnly))
+gradlePublicAbiClasspath.description = "Resolves all Jars that make up the public API of Gradle"
+gradlePublicAbiClasspath.isTransitive = false // Transitives must already be part of the distribution
 val gradleScriptPath = startScriptResolver("gradleScriptPath", ":gradle-cli-main")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath = sourcesResolver("sourcesPath", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
@@ -392,6 +400,18 @@ fun libraryResolver(name: String, extends: List<Configuration>) =
     configurations.create(name) {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+        }
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        extends.forEach { extendsFrom(it) }
+    }
+
+fun apiLibraryResolver(name: String, extends: List<Configuration>) =
+    configurations.create(name) {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
         }

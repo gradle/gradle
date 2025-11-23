@@ -38,7 +38,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 134
+        return 140
     }
 
     /**
@@ -57,11 +57,15 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         def jarsWithDuplicateFiles = [:]
         def classesIndex = [:] as HashMap<String, List<String>> // class name -> list of containing jars
         jars.each { jar ->
+            // The API/ABI jars purposely duplicate class entries that also live in other distro jars.
+            // They are excluded from the cross-jar duplicate-class check below.
+            // They are checked for intra-jar duplicate entries.
+            def skipCrossJarCheck = jar.name.startsWith("gradle-public-api-")
             new ZipFile(jar).withCloseable {
                 def names = it.entries()*.name
                 def groupedNames = names.groupBy { it }
                 groupedNames.each { name, all ->
-                    if (name.endsWith(".class") && !name.endsWith("module-info.class") && !name.endsWith("package-info.class")) {
+                    if (!skipCrossJarCheck && name.endsWith(".class") && !name.endsWith("module-info.class") && !name.endsWith("package-info.class")) {
                         def containingJars = classesIndex.computeIfAbsent(name, k -> [])
                         containingJars.add(jar.name)
                     }
