@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
+import gradlebuild.jar.configureGradleJarTasks
 
 plugins {
     id("gradlebuild.dependency-modules")
@@ -55,6 +57,14 @@ val distributionClasspath = configurations.resolvable("distributionClasspath") {
     configureAsRuntimeJarClasspath(objects)
 }
 
+val classpathManifest = tasks.register<ClasspathManifest>("classpathManifest") {
+    manifestFile = layout.buildDirectory.dir("generated-resources/classpath-manifest")
+        .zip(gradleModule.identity.baseName) { dir, baseName ->
+            dir.file("$baseName-classpath.properties")
+        }
+    externalDependencies.from(externalRuntimeClasspath)
+}
+
 val task = tasks.register<Jar>("jarGradleApi") {
     // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of api stubs artifacts
     // Some projects simply don't have one, which excludes them
@@ -72,10 +82,12 @@ val task = tasks.register<Jar>("jarGradleApi") {
         include("**/*.class")
         include("META-INF/*.kotlin_module")
     }
+    from(classpathManifest)
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
-    // This is needed because of the duplicate package-info.class files
+    // This is needed because of the duplicate package-info.class files, it is safe thanks to PackageInfoTest
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+configureGradleJarTasks()
 
 // The consumable configuration containing the public Gradle API artifact
 // and its external dependencies.
@@ -87,6 +99,7 @@ val gradleApiElements = configurations.consumable("gradleApiElements") {
 
 // TODO: SoftwareComponentFactoryProvider can be replaced with PublishingExtension#getSoftwareComponentFactory()
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
+
 val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFactoryProvider::class.java).factory
 val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")
 components.add(gradleApiComponent)

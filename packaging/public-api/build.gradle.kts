@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.assign
+
 /*
  * Copyright 2024 the original author or authors.
  *
@@ -15,6 +17,7 @@
  */
 
 plugins {
+    id("gradlebuild.no-module-annotation")
     id("gradlebuild.public-api-jar")
     id("gradlebuild.publish-defaults")
     id("signing")
@@ -53,6 +56,25 @@ dependencies {
     externalApi(libs.ant)
 }
 
+// The JAR built by this module includes the ABI of internals
+val internalBaseName = gradleModule.identity.baseName.map { "$it-internal" }
+tasks.jarGradleApi {
+    archiveBaseName = internalBaseName
+}
+tasks.classpathManifest {
+    manifestFile = layout.buildDirectory.dir("generated-resources/classpath-manifest")
+        .zip(internalBaseName) { dir, baseName ->
+            dir.file("$baseName-classpath.properties")
+        }
+}
+configurations {
+    gradleApiElements {
+        outgoing {
+            capability(internalBaseName.map { "$group:$it:$version" })
+        }
+    }
+}
+
 val testRepoLocation = layout.buildDirectory.dir("repos/test")
 
 publishing {
@@ -69,7 +91,7 @@ publishing {
             }
 
             pom {
-                name = gradleModule.identity.baseName.map { "${project.group}:$it"}
+                name = gradleModule.identity.baseName.map { "${project.group}:$it" }
             }
         }
     }
@@ -99,17 +121,9 @@ signing {
     }
 }
 
-configurations {
-    gradleApiElements {
-        outgoing {
-            capability(gradleModule.identity.baseName.map { "$group:$it-internal:$version" })
-        }
-    }
-}
-
 val testRepoElements = configurations.consumable("testRepoElements") {
     outgoing.artifact(testRepoLocation) {
-        builtBy( "publishMavenPublicationToTestRepository")
+        builtBy("publishMavenPublicationToTestRepository")
     }
     // TODO: De-duplicate this. See publish-public-libraries
     attributes {
