@@ -26,8 +26,9 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
-    val configurationCacheReportVersion = "1.27"
-    val gradleIdeStarterVersion = "0.8.2"
+    val gradleIdeStarterVersion = "0.8.2" // bug: Supplied String module notation '0.8.2' is invalid. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core:1.9.5:javadoc'.
+    // why can not inline?
+    // val configurationCacheReportVersion = "1.27"
     val kotlinVersion = "2.2.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -57,7 +58,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val commonsIo = "commons-io:commons-io"
     val commonsLang = "org.apache.commons:commons-lang3"
     val commonsMath = "org.apache.commons:commons-math3"
-    val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:$configurationCacheReportVersion"
+    val configurationCacheReport = "org.gradle.buildtool.internal:configuration-cache-report:1.27"
     val develocityTestAnnotation = "com.gradle:develocity-testing-annotations"
     val eclipseSisuPlexus = "org.eclipse.sisu:org.eclipse.sisu.plexus"
     val errorProneAnnotations = "com.google.errorprone:error_prone_annotations"

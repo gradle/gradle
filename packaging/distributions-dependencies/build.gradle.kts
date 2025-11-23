@@ -58,6 +58,9 @@ dependencies {
 
     constraints {
         api(libs.ansiControlSequenceUtil) { version { strictly("0.3") }}
+        // "0.8.2" is not fully qualified to be resolved this seems strange.
+        // bug: Supplied String module notation '0.8.2' is invalid. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core:1.9.5:javadoc'.
+        // api(libs.gradleIdeStarterVersion) { version { strictly("0.3") }}
         api(libs.ant)                   { version { strictly(antVersion) }}
         api(libs.antLauncher)           { version { strictly(antVersion) }}
         api(libs.asm)                   { version { strictly(asmVersion) }}
