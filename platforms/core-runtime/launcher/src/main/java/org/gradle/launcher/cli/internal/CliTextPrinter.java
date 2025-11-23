@@ -44,7 +44,7 @@ public final class CliTextPrinter {
     private static final Logger LOGGER = LoggerFactory.getLogger(CliTextPrinter.class);
     private CliTextPrinter() {}
 
-    public static String renderVersionBanner(BuildClientMetaData metaData, String daemonJvmCriteria) {
+    public static String renderVersionInfo(BuildClientMetaData metaData, String daemonJvmCriteria) {
         DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
         StringWriter sw = new StringWriter();
         PrintWriter out = new PrintWriter(sw);
@@ -94,68 +94,16 @@ public final class CliTextPrinter {
         out.println(value);
     }
 
-    public static String renderGeneralHelp(BuildClientMetaData metaData) {
+
+    public static String renderHelp(BuildClientMetaData metaData, CommandLineParser parser, String suggestedTaskSelector) {
         StringWriter sw = new StringWriter();
         PrintWriter out = new PrintWriter(sw);
 
-        // Match the structure printed by CLI's ShowUsageAction + showUsage(), excluding the dynamic option table
         out.println();
         out.print("To see help contextual to the project, use ");
         metaData.describeCommand(out, "help");
         out.println();
 
-        out.println();
-        out.print("To see more detail about a task, run ");
-        metaData.describeCommand(out, "help --task <task>");
-        out.println();
-
-        out.println();
-        out.print("To see a list of available tasks, run ");
-        metaData.describeCommand(out, "tasks");
-        out.println();
-
-        out.println();
-        out.print("USAGE: ");
-        metaData.describeCommand(out, "[option...]", "[task...]");
-        out.println();
-        out.println();
-
-        // Note: CLI prints a full, dynamically generated option table here via parser.printUsage(out).
-        // Producing that list here would require duplicating CLI parser wiring. For TAPI we omit the table
-        // for now and rely on IDEs to provide rich UX. We can enhance this later to reuse the CLI parser.
-
-        out.flush();
-        return sw.toString();
-    }
-
-    /**
-     * Renders full CLI help output, including the dynamic options table produced by the command line parser.
-     * This mirrors DefaultCommandLineActionFactory.ShowUsageAction + showUsage(), but writes to a String and
-     * avoids starting the daemon.
-     */
-    public static String renderFullHelp(BuildClientMetaData metaData, String suggestedTaskSelector) {
-        StringWriter sw = new StringWriter();
-        PrintWriter out = new PrintWriter(sw);
-
-        // Header line printed by ShowUsageAction
-        out.println();
-        out.print("To see help contextual to the project, use ");
-        metaData.describeCommand(out, "help");
-        out.println();
-
-    // Build a parser with the same core options wiring and built-in flags
-        CommandLineParser parser = new CommandLineParser();
-    // Wire core converters so the option table matches CLI (initial/build layout/start parameter/daemon)
-    new InitialPropertiesConverter().configure(parser);
-    new BuildLayoutConverter().configure(parser);
-    new StartParameterConverter().configure(parser);
-    new BuildOptionBackedConverter<>(new DaemonBuildOptions()).configure(parser);
-        // Built-in options: -h/--help/-?, -v/--version, -V/--show-version
-        parser.option("h", "?", "help").hasDescription("Shows this help message.");
-        parser.option("v", "version").hasDescription("Print version info and exit.");
-        parser.option("V", "show-version").hasDescription("Print version info and continue.");
-
-        // Now mirror DefaultCommandLineActionFactory.showUsage()
         out.println();
         out.print("To see more detail about a task, run ");
         metaData.describeCommand(out, "help --task <task>");
@@ -180,5 +128,26 @@ public final class CliTextPrinter {
 
         out.flush();
         return sw.toString();
+    }
+
+    /**
+     * Renders full CLI help output, including the dynamic options table produced by the command line parser.
+     * This mirrors DefaultCommandLineActionFactory.ShowUsageAction + showUsage(), but writes to a String and
+     * avoids starting the daemon.
+     */
+    public static String renderFullHelp(BuildClientMetaData metaData, String suggestedTaskSelector) {
+        // Build a parser with the same core options wiring and built-in flags
+        CommandLineParser parser = new CommandLineParser();
+        // Wire core converters so the option table matches CLI (initial/build layout/start parameter/daemon)
+        new InitialPropertiesConverter().configure(parser);
+        new BuildLayoutConverter().configure(parser);
+        new StartParameterConverter().configure(parser);
+        new BuildOptionBackedConverter<>(new DaemonBuildOptions()).configure(parser);
+        // Built-in options: -h/--help/-?, -v/--version, -V/--show-version
+        parser.option("h", "?", "help").hasDescription("Shows this help message.");
+        parser.option("v", "version").hasDescription("Print version info and exit.");
+        parser.option("V", "show-version").hasDescription("Print version info and continue.");
+
+        return renderHelp(metaData, parser, suggestedTaskSelector);
     }
 }

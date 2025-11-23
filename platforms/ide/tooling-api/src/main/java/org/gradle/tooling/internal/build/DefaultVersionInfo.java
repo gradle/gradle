@@ -15,22 +15,21 @@
  */
 package org.gradle.tooling.internal.build;
 
-import org.gradle.tooling.internal.protocol.InternalVersionBanner;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 import org.gradle.tooling.model.BuildIdentifier;
-import org.gradle.tooling.model.build.VersionBanner;
+import org.gradle.tooling.model.build.VersionInfo;
 
 import java.io.Serializable;
 
-public class DefaultVersionBanner implements InternalVersionBanner, VersionBanner, Serializable {
+public class DefaultVersionInfo implements InternalProtocolInterface, VersionInfo, Serializable {
     private final BuildIdentifier buildIdentifier;
     private final String versionOutput;
 
-    public DefaultVersionBanner(BuildIdentifier buildIdentifier, String versionOutput) {
+    public DefaultVersionInfo(BuildIdentifier buildIdentifier, String versionOutput) {
         this.buildIdentifier = buildIdentifier;
         this.versionOutput = versionOutput;
     }
 
-    @Override
     public BuildIdentifier getBuildIdentifier() {
         return buildIdentifier;
     }
@@ -40,4 +39,3 @@ public class DefaultVersionBanner implements InternalVersionBanner, VersionBanne
         return versionOutput;
     }
 }
-

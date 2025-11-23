@@ -66,8 +66,7 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.launcher.cli.internal.CliTextPrinter;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
-import org.gradle.tooling.internal.build.DefaultHelp;
-import org.gradle.tooling.internal.build.DefaultVersionBanner;
+import org.gradle.tooling.internal.build.DefaultVersionInfo;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
@@ -92,8 +91,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.build.Help;
-import org.gradle.tooling.model.build.VersionBanner;
+import org.gradle.tooling.model.build.VersionInfo;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -101,12 +99,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -180,7 +172,7 @@ public class ProviderConnection {
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
-            String banner = CliTextPrinter.renderVersionBanner(
+            String banner = CliTextPrinter.renderVersionInfo(
                 new DefaultBuildClientMetaData(new GradleLauncherMetaData()),
                 params.daemonParams.getRequestedJvmCriteria().toString()
             );
@@ -193,27 +185,26 @@ public class ProviderConnection {
                 banner);
         }
 
-        // Short-circuit provider-side for Help and VersionBanner models without starting the daemon
-        if (Help.class.getName().equals(modelName)) {
+        if (VersionInfo.class.getName().equals(modelName)) {
             if (tasks != null) {
-                throw new IllegalArgumentException("Cannot run tasks and fetch the Help model.");
+                throw new IllegalArgumentException("Cannot run tasks and fetch the VersionInfo model.");
             }
-            // Use full CLI help, including dynamic options table, for exact parity with the console client.
-            String help = CliTextPrinter.renderFullHelp(new DefaultBuildClientMetaData(new GradleLauncherMetaData()), null);
-            providerLog(params, "served Help without daemon");
-            return new DefaultHelp(new DefaultBuildIdentifier(providerParameters.getProjectDir()), help);
-        }
-
-        if (VersionBanner.class.getName().equals(modelName)) {
-            if (tasks != null) {
-                throw new IllegalArgumentException("Cannot run tasks and fetch the VersionBanner model.");
-            }
-            String banner = CliTextPrinter.renderVersionBanner(
+            String banner = CliTextPrinter.renderVersionInfo(
                 new DefaultBuildClientMetaData(new GradleLauncherMetaData()),
                 params.daemonParams.getRequestedJvmCriteria().toString()
             );
-            providerLog(params, "served VersionBanner without daemon");
-            return new DefaultVersionBanner(new DefaultBuildIdentifier(providerParameters.getProjectDir()), banner);
+            return new DefaultVersionInfo(new DefaultBuildIdentifier(providerParameters.getProjectDir()), banner);
+        }
+
+        if (org.gradle.tooling.model.build.Help.class.getName().equals(modelName)) {
+            if (tasks != null) {
+                throw new IllegalArgumentException("Cannot run tasks and fetch the Help model.");
+            }
+            String help = CliTextPrinter.renderFullHelp(
+                new DefaultBuildClientMetaData(new GradleLauncherMetaData()),
+                null
+            );
+            return new org.gradle.tooling.internal.build.DefaultHelp(help);
         }
 
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
@@ -342,24 +333,7 @@ public class ProviderConnection {
         throw new BuildExceptionVersion1(exception);
     }
 
-    private static void providerLog(Parameters params, String message) {
-        try {
-            File base = params.buildLayout.getGradleUserHomeDir();
-            if (base == null) {
-                base = params.daemonParams.getBaseDir();
-            }
-            if (base == null) {
-                return;
-            }
-            Path logsDir = base.toPath().resolve("logs");
-            Files.createDirectories(logsDir);
-            Path logFile = logsDir.resolve("tapi-help-version-provider.txt");
-            String line = DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + " [provider] " + message + System.lineSeparator();
-            Files.write(logFile, line.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        } catch (Throwable ignored) {
-            // ignore logging failures
-        }
-    }
+    // removed ad-hoc provider-side disk logging that was used for local debugging
 
     private BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> createExecutor(ProviderOperationParameters operationParameters, Parameters params) {
         LoggingManagerInternal loggingManager;

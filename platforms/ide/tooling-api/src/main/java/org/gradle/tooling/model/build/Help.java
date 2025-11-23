@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.model.build;
 
-import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.Model;
 
 /**
@@ -27,7 +26,7 @@ import org.gradle.tooling.model.Model;
  *
  * @since 9.3.0
  */
-public interface Help extends Model, BuildModel {
+public interface Help extends Model {
     /**
      * Returns the full help text as printed by {@code gradle --help} for the target distribution.
      *

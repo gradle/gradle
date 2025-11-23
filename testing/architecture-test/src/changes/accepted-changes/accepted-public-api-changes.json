@@ -63,17 +63,17 @@
             "changes": []
         },
         {
-            "type": "org.gradle.tooling.model.build.VersionBanner",
-            "member": "Class org.gradle.tooling.model.build.VersionBanner",
-            "acceptation": "Tooling API: new VersionBanner model for --version output (no incubation)",
+            "type": "org.gradle.tooling.model.build.VersionInfo",
+            "member": "Class org.gradle.tooling.model.build.VersionInfo",
+            "acceptation": "Tooling API: new VersionInfo model for --version output (no incubation)",
             "changes": [
                 "Interface has been added"
             ]
         },
         {
-            "type": "org.gradle.tooling.model.build.VersionBanner",
-            "member": "Method org.gradle.tooling.model.build.VersionBanner.getVersionOutput()",
-            "acceptation": "Tooling API: new VersionBanner model for --version output (no incubation)",
+            "type": "org.gradle.tooling.model.build.VersionInfo",
+            "member": "Method org.gradle.tooling.model.build.VersionInfo.getVersionOutput()",
+            "acceptation": "Tooling API: new VersionInfo model for --version output (no incubation)",
             "changes": []
         }
     ]

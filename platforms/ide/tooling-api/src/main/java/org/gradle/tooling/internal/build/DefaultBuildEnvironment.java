@@ -35,15 +35,6 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
     private final String versionOutput;
     private DefaultBuildIdentifier buildIdentifier;
 
-    public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments) {
-        this.buildIdentifier = buildIdentifier;
-        this.gradleUserHome = gradleUserHome;
-        this.gradleVersion = gradleVersion;
-        this.javaHome = javaHome;
-        this.jvmArguments = jvmArguments;
-        this.versionOutput = null;
-    }
-
     public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments, String versionOutput) {
         this.buildIdentifier = buildIdentifier;
         this.gradleUserHome = gradleUserHome;

@@ -39,7 +39,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.ant)
-    implementation(libs.groovy)
+    runtimeOnly(libs.groovy)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)

@@ -73,23 +73,19 @@ You can use link:{javadocPath}/org/gradle/tooling/GradleConnector.html#connect--
 A `ProjectConnection` connects to a single Gradle project.
 Using the connection you can execute tasks, tests and retrieve models relative to this project.
 
-[[sec:tapi_help_and_version]]
-=== Getting CLI help and version banner
+[[sec:tapi_version_info]]
+=== Getting CLI version info
 
-Starting with 9.3, the Tooling API exposes two lightweight models that return the exact command-line texts without starting a Gradle daemon:
+Starting with 9.3, the Tooling API exposes a lightweight model that returns the exact command-line text without starting a Gradle daemon:
 
-* link:{javadocPath}/org/gradle/tooling/model/build/Help.html[org.gradle.tooling.model.build.Help] — the full output of `gradle --help`.
-* link:{javadocPath}/org/gradle/tooling/model/build/VersionBanner.html[org.gradle.tooling.model.build.VersionBanner] — the banner printed by `gradle --version`.
+* link:{javadocPath}/org/gradle/tooling/model/build/VersionInfo.html[org.gradle.tooling.model.build.VersionInfo] — the banner printed by `gradle --version`.
 
-You can fetch them like any other model:
+You can fetch it like any other model:
 
 ----
 try (var connection = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) {
-	var help = connection.getModel(org.gradle.tooling.model.build.Help.class);
-	System.out.println(help.getHelpOutput());
-
-	var banner = connection.getModel(org.gradle.tooling.model.build.VersionBanner.class);
-	System.out.println(banner.getVersionOutput());
+	var versionInfo = connection.getModel(org.gradle.tooling.model.build.VersionInfo.class);
+	System.out.println(versionInfo.getVersionOutput());
 }
 ----
 
