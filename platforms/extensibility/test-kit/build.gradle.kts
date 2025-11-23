@@ -53,14 +53,13 @@ dependencies {
 // TODO Find a way to not register this and the task instead
 configurations.remove(configurations.apiStubElements.get())
 
+val runtimeApiInfoDir = layout.buildDirectory.dir("generated-resources/runtime-api-info")
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath.from(sourceSets.main.map { it.runtimeClasspath })
-    outputFile = layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt")
+    classpath.from(configurations.runtimeClasspath.get().elements)
+    outputFile = runtimeApiInfoDir.map { it.file("org/gradle/api/internal/runtimeshaded/test-kit-relocated.txt") }
 }
-tasks.jar {
-    into("org/gradle/api/internal/runtimeshaded") {
-        from(generateTestKitPackageList)
-    }
+sourceSets.main {
+    resources.srcDir(files(runtimeApiInfoDir) { builtBy(generateTestKitPackageList) })
 }
 
 packageCycles {
