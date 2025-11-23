@@ -201,7 +201,7 @@ fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, 
 private
 fun GradleInternal.baseScriptClassPath(): ClassPath {
     return serviceOf<KotlinScriptClassPathProvider>()
-        .compilationClassPathOf(baseProjectClassLoaderScope())
+        .ideClassPathOf(baseProjectClassLoaderScope())
 }
 
 
