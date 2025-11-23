@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.lazy;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -30,7 +32,7 @@ import java.util.function.Supplier;
  *
  * @param <T> the type of the lazy value
  */
-public interface Lazy<T> extends Supplier<T> {
+public interface Lazy<T extends @Nullable Object> extends Supplier<T> {
     /**
      * Executes an operation on the lazily computed value
      *
@@ -47,7 +49,7 @@ public interface Lazy<T> extends Supplier<T> {
      * @param <V> the return type
      * @return the result of the function, applied on the lazily computed value
      */
-    default <V> V apply(Function<? super T, V> function) {
+    default <V extends @Nullable Object> V apply(Function<? super T, V> function) {
         return function.apply(get());
     }
 
@@ -59,7 +61,7 @@ public interface Lazy<T> extends Supplier<T> {
      * @param <V> the type of the result of the function
      * @return a new lazy wrapper
      */
-    default <V> Lazy<V> map(Function<? super T, V> mapper) {
+    default <V extends @Nullable Object> Lazy<V> map(Function<? super T, V> mapper) {
         return unsafe().of(() -> mapper.apply(get()));
     }
 
@@ -95,7 +97,7 @@ public interface Lazy<T> extends Supplier<T> {
     }
 
     interface Factory {
-        <T> Lazy<T> of(Supplier<T> supplier);
+        <T extends @Nullable Object> Lazy<T> of(Supplier<T> supplier);
     }
 
 }

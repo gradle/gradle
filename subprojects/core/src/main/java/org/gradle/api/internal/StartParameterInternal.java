@@ -22,12 +22,14 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCachePr
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.configuration.inputs.InstrumentedInputs;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
@@ -98,6 +100,23 @@ public class StartParameterInternal extends StartParameter {
         p.enableProblemReportGeneration = enableProblemReportGeneration;
         p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         return p;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public Map<String, String> getProjectProperties() {
+        // We avoid using the more usual `Instrumented` directly because a class dependency on it bloats up the Shaded TAPI Jar
+        InstrumentedInputs.listener().startParameterProjectPropertiesObserved();
+        return super.getProjectProperties();
+    }
+
+    /**
+     * Returns the properties without making their snapshot a build input for Configuration Caching purposes.
+     * <p>
+     * This should be used with care because failing to track properties can lead to false-positive cache hits.
+     */
+    public Map<String, String> getProjectPropertiesUntracked() {
+        return super.getProjectProperties();
     }
 
     public File getGradleHomeDir() {

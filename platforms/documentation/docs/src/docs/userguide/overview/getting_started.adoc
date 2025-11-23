@@ -84,7 +84,7 @@ This section covers:
 <<gradle_managed_types_intermediate.adoc#gradle_types_intro,Part 5.>> Gradle Managed Types +
 <<dependencies_intermediate.adoc#dependencies_intro,Part 6.>> Declaring and Managing Dependencies +
 <<writing_tasks_intermediate.adoc#writing_tasks,Part 7.>> Creating and Registering Tasks +
-<<plugins_intermediate.adoc#using_plugins,Part 8.>> Working With Plugins +
+<<plugins_intermediate.adoc#using_plugins,Part 8.>> Working With Plugins
 
 [[intermediate_tutorial]]
 === 2. Intermediate Gradle Tutorial
@@ -103,7 +103,7 @@ The tutorial covers:
 <<part4_settings_file.adoc#part4_begin,Part 6.>> Writing the Settings File +
 <<part5_build_scripts.adoc#part5_begin,Part 5.>> Writing Build Scripts +
 <<part6_writing_tasks.adoc#part6_begin,Part 6.>> Writing Tasks +
-<<part7_writing_plugins.adoc#part7_begin,Part 7.>> Writing Plugins +
+<<part7_writing_plugins.adoc#part7_begin,Part 7.>> Writing Plugins
 
 == Gradle for Plugin Developers
 
@@ -124,7 +124,7 @@ This section covers:
 <<pre_compiled_script_plugin_advanced.adoc#pre_compiled_script_plugins_advanced,Part 2.>> Pre-Compiled Script Plugins +
 <<binary_plugin_advanced.adoc#binary_plugins_advanced,Part 3.>> Binary Plugins +
 <<developing_binary_plugin_advanced.adoc#develop_binary_plugins_advanced,Part 4.>> Binary Plugin Development +
-<<publishing_binary_plugin_advanced.adoc#publish_binary_plugins_advanced,Part 5.>> Binary Plugin Publishing +
+<<publishing_binary_plugin_advanced.adoc#publish_binary_plugins_advanced,Part 5.>> Binary Plugin Publishing
 
 [[advanced_tutorial]]
 === 2. Advanced Gradle Tutorial
@@ -138,3 +138,10 @@ _Training time_: **65 minutes**
 The tutorial covers:
 
 <<part1_gradle_init_plugin.adoc#part1_begin,Part 1.>> Initializing the Project +
+<<part2_add_extension.adoc#part2_begin,Part 2.>> Adding an Extension +
+<<part3_create_custom_task.adoc#part3_begin,Part 3.>> Creating a Custom Task +
+<<part4_unit_test.adoc#part4_begin,Part 6.>> Writing a Unit Test +
+<<part5_add_dataflow_action.adoc#part5_begin,Part 5.>> Adding a DataFlow Action +
+<<part6_functional_test.adoc#part6_begin,Part 6.>> Writing a Functional Test +
+<<part7_use_consumer_project.adoc#part7_begin,Part 7.>> Using a Consumer Project +
+<<part8_publish_locally.adoc#part8_begin,Part 8.>> Publishing the Plugin

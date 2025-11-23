@@ -16,11 +16,7 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -61,6 +57,9 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin`() {
 
         KotlinGradlePluginVersions.assumeCurrentJavaVersionIsSupportedBy(kotlinVersion)
+        if (kotlinVersion < VersionNumber.parse(KotlinGradlePluginVersions().latestStable)) {
+            executer.noDeprecationChecks()
+        }
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn(

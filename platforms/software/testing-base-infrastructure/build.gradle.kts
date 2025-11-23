@@ -27,6 +27,7 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.commonsLang)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.serviceRegistryImpl)
@@ -36,6 +37,7 @@ dependencies {
     testImplementation(testFixtures(projects.time))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestImplementation(testFixtures(projects.testingBase))
 }
 
 packageCycles {

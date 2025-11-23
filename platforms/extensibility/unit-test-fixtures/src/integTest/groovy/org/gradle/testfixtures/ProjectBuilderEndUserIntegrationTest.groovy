@@ -16,10 +16,12 @@
 
 package org.gradle.testfixtures
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
@@ -28,13 +30,19 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
+import org.intellij.lang.annotations.Language
 import org.junit.Assume
 
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
+class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.SPOCK
+    }
 
     def setup() {
         buildFile << """
@@ -154,7 +162,31 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
         assertTestStdout(not(containsString(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)))
     }
 
-    void withTest(String body) {
+    def "can call deprecation logger"() {
+        given:
+        withTest("""
+            when:
+            def project = ProjectBuilder.builder().build()
+            project.with {
+                //noinspection UnnecessaryQualifiedReference
+                org.gradle.internal.deprecation.DeprecationLogger
+                    .deprecate("test deprecation").willBecomeAnErrorInNextMajorGradleVersion().undocumented()
+                    .nagUser()
+            }
+
+            then:
+            noExceptionThrown()
+        """)
+
+        when:
+        succeeds('test')
+
+        then:
+        testPassed()
+        assertTestStdout(not(containsString("DeprecationLogger has not been initialized")))
+    }
+
+    void withTest(@Language("Groovy") String body) {
         file("src/test/groovy/Test.groovy") << """
             import spock.lang.Specification
             import org.gradle.testfixtures.ProjectBuilder
@@ -168,19 +200,22 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     void testPassed() {
-        def results = new DefaultTestExecutionResult(testDirectory)
-        results.assertTestClassesExecuted('Test')
-        results.testClass('Test').assertTestPassed('test')
+        def results = resultsFor()
+        results.assertTestPathsExecuted(":Test:test")
+        results.testPath(":Test:test").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     void testFailed(Matcher<String> matcher) {
-        def results = new DefaultTestExecutionResult(testDirectory)
-        results.assertTestClassesExecuted('Test')
-        results.testClass('Test').assertTestFailed('test', matcher)
+        def results = resultsFor()
+        results.assertTestPathsExecuted(":Test:test")
+        results.testPath(":Test:test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(matcher)
     }
 
     void assertTestStdout(Matcher<String> matcher) {
-        def results = new DefaultTestExecutionResult(testDirectory)
-        results.testClass('Test').assertStdout(matcher)
+        def results = resultsFor()
+        results.assertTestPathsExecuted(":Test:test")
+        results.testPath(":Test:test").onlyRoot().assertStdout(matcher)
     }
 }

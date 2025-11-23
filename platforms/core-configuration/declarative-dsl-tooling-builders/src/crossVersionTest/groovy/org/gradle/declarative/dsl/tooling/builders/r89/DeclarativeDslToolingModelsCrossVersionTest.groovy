@@ -86,7 +86,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 
-    def 'schema contains custom software type from included build'() {
+    def 'schema contains custom project type from included build'() {
         given:
         withSoftwareTypePlugins(targetVersion).prepareToExecute()
 

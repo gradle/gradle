@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.plugins.BindsSoftwareFeature;
-import org.gradle.api.internal.plugins.BindsSoftwareType;
-import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures;
+import org.gradle.api.internal.plugins.BindsProjectFeature;
+import org.gradle.api.internal.plugins.BindsProjectType;
+import org.gradle.api.internal.plugins.software.RegistersProjectFeatures;
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
@@ -173,9 +173,9 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 DisableCachingByDefault.class,
                 UntrackedTask.class,
                 RegistersSoftwareTypes.class,
-                RegistersSoftwareFeatures.class,
-                BindsSoftwareType.class,
-                BindsSoftwareFeature.class
+                RegistersProjectFeatures.class,
+                BindsProjectType.class,
+                BindsProjectFeature.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             FUNCTION_TYPE_ANNOTATIONS.stream().collect(Collectors.toMap(annotation -> annotation, annotation -> ModifierAnnotationCategory.TYPE)),

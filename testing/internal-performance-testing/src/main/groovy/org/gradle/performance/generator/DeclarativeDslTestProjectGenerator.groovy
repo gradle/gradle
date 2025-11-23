@@ -199,7 +199,6 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
             import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 
             @RegistersSoftwareTypes({
                     StandaloneJavaApplicationPlugin.class,

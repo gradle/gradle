@@ -27,7 +27,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.accessors.pluginEntriesFrom
 import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import java.io.File
 
 

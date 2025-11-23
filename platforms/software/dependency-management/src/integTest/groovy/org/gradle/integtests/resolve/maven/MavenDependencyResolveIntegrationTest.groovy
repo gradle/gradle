@@ -57,7 +57,7 @@ dependencies {
         }
 
         expect:
-        succeeds "checkDep"
+        succeeds "checkDeps"
         resolve.expectGraph {
             root(':', 'org.gradle:testproject:1.0') {
                 module("org.gradle:test:1.45") {
@@ -107,7 +107,7 @@ dependencies {
         }
 
         expect:
-        succeeds "checkDep"
+        succeeds "checkDeps"
         resolve.expectGraph {
             root(':', 'org.gradle:testproject:1.0') {
                 module("org.gradle:test:1.45") {
@@ -162,7 +162,7 @@ dependencies {
         }
 
         expect:
-        succeeds "checkDep"
+        succeeds "checkDeps"
         resolve.expectGraph {
             root(':', 'org.gradle:testproject:1.0') {
                 module("org.gradle:test:1.45") {
@@ -205,7 +205,7 @@ dependencies {
                 expectGetArtifact(classifier: 'classifier')
             }
         }
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
@@ -243,7 +243,7 @@ dependencies {
         }
 
         expect:
-        succeeds "checkDep"
+        succeeds "checkDeps"
         resolve.expectGraph {
             root(':', ':testproject:') {
                 module("org.gradle:test:1.45")

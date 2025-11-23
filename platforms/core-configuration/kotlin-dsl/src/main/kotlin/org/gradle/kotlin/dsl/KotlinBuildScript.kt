@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
@@ -54,7 +56,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @Deprecated("Will be removed in Gradle 10")
 abstract class KotlinBuildScript(
     private val host: KotlinScriptHost<Project>
-) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.ProjectDelegate() {
+) : org.gradle.kotlin.dsl.support.delegates.ProjectDelegate() {
 
     override val delegate: Project
         get() = host.target

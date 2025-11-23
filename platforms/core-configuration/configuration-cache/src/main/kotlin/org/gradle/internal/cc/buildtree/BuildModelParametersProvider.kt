@@ -67,7 +67,7 @@ object BuildModelParametersProvider {
 
     @JvmStatic
     val isolatedProjectsCaching =
-        InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.caching", InvocationScenarioParameter.TOOLING)
+        InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.caching", InvocationScenarioParameter.NONE)
 
     private
     val resilientModelBuilding =
@@ -176,11 +176,11 @@ object BuildModelParametersProvider {
     private
     fun warnOnPreviouslyExistingOptions(options: InternalOptions) {
         val replacements = mapOf(
-            "org.gradle.internal.isolated-projects.configure-on-demand.tooling" to isolatedProjectsConfigureOnDemand.systemPropertyName,
-            "org.gradle.internal.isolated-projects.configure-on-demand.tasks" to isolatedProjectsConfigureOnDemand.systemPropertyName,
+            "org.gradle.internal.isolated-projects.configure-on-demand.tooling" to isolatedProjectsConfigureOnDemand.propertyName,
+            "org.gradle.internal.isolated-projects.configure-on-demand.tasks" to isolatedProjectsConfigureOnDemand.propertyName,
         )
         for ((previous, current) in replacements) {
-            if (options.getOption(StringInternalOption(previous, null)).isExplicit) {
+            if (options.getOption(StringInternalOption.of(previous)).isExplicit) {
                 logger.warn("Warning: option '$previous' has been replaced with '$current'")
             }
         }
@@ -192,7 +192,7 @@ object BuildModelParametersProvider {
         val supported = listOf(InvocationScenarioParameter.TOOLING, InvocationScenarioParameter.NONE)
         require(param in supported) {
             "Unsupported value for '%s' option: %s. Supported values: %s".format(
-                isolatedProjectsCaching.systemPropertyName, param.value, supported.map { it.value })
+                isolatedProjectsCaching.propertyName, param.value, supported.map { it.value })
         }
     }
 
@@ -233,5 +233,5 @@ object BuildModelParametersProvider {
     }
 
     private
-    operator fun <T> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
+    operator fun <T : Any> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
 }

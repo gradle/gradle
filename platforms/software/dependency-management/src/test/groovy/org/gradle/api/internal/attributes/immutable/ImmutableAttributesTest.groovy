@@ -16,14 +16,9 @@
 
 package org.gradle.api.internal.attributes.immutable
 
-import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAR
@@ -109,19 +104,4 @@ class ImmutableAttributesTest extends Specification  {
         set1 == set2
     }
 
-    def "translates deprecated usage values"() {
-        def result = factory.of(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
-
-        expect:
-        result.findEntry(Usage.USAGE_ATTRIBUTE).getIsolatedValue().name == "java-api"
-    }
-
-    def "translates deprecated usage values as Isolatable"() {
-        def stringUsage = Attribute.of(Usage.USAGE_ATTRIBUTE.name, String)
-        def result = factory.concat(ImmutableAttributes.EMPTY, stringUsage, new CoercingStringValueSnapshot(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS, TestUtil.objectInstantiator()))
-
-        expect:
-        result.findEntry(stringUsage).getIsolatedValue() == "java-runtime"
-        result.getAttribute(Usage.USAGE_ATTRIBUTE).name.toString() == "java-runtime"
-    }
 }

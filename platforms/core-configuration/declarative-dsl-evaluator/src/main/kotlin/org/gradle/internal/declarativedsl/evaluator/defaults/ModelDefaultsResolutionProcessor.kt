@@ -24,24 +24,24 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 
 /**
- * Processes a resolution result to extract the Software Type model defaults operations it defines.
+ * Processes a resolution result to extract the project type model defaults operations it defines.
  */
 internal
 object ModelDefaultsResolutionProcessor {
     fun process(resolutionResult: ResolutionResult): Map<String, ModelDefaultsResolutionResults> {
         val assignments = resolutionResult.assignments.groupBy { assignment ->
-            getSoftwareFeature(assignment.lhs.receiverObject).function.simpleName
+            getProjectFeature(assignment.lhs.receiverObject).function.simpleName
         }
         val additions = resolutionResult.additions.groupBy { addition ->
-            getSoftwareFeature(addition.container).function.simpleName
+            getProjectFeature(addition.container).function.simpleName
         }
         val nestedObjectAccess = resolutionResult.nestedObjectAccess.mapNotNull { access ->
-            findSoftwareFeature(access.dataObject)?.let { access to it.function.simpleName }
-        }.groupBy({ (_, softwareFeatureName) -> softwareFeatureName }, valueTransform = { (access, _) -> access })
+            findProjectFeature(access.dataObject)?.let { access to it.function.simpleName }
+        }.groupBy({ (_, projectFeatureName) -> projectFeatureName }, valueTransform = { (access, _) -> access })
 
-        val softwareFeatureNames = assignments.keys + additions.keys + nestedObjectAccess.keys
+        val projectFeatureNames = assignments.keys + additions.keys + nestedObjectAccess.keys
 
-        return softwareFeatureNames.associateWith {
+        return projectFeatureNames.associateWith {
             ModelDefaultsResolutionResults(it, assignments[it].orEmpty(), additions[it].orEmpty(), nestedObjectAccess[it].orEmpty())
         }
     }
@@ -52,7 +52,7 @@ object ModelDefaultsResolutionProcessor {
  * The operations for model defaults extracted from a resolution result.
  */
 data class ModelDefaultsResolutionResults(
-    val softwareFeatureName: String,
+    val projectFeatureName: String,
     val assignments: List<AssignmentRecord>,
     val additions: List<DataAdditionRecord>,
     val nestedObjectAccess: List<NestedObjectAccessRecord>
@@ -60,35 +60,35 @@ data class ModelDefaultsResolutionResults(
 
 
 /**
- * Searches an ObjectOrigin receiver hierarchy to find the parent software type or throws an error if a software type
+ * Searches an ObjectOrigin receiver hierarchy to find the parent project type or throws an error if a project type
  * is not in the hierarchy.
  */
 private
-fun getSoftwareFeature(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver =
-    findSoftwareFeature(objectOrigin) ?: error("could not discover software feature for $objectOrigin")
+fun getProjectFeature(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver =
+    findProjectFeature(objectOrigin) ?: error("could not discover project feature for $objectOrigin")
 
 
 /**
- * Searches an ObjectOrigin receiver hierarchy to find the parent software type. Returns null if a software type
+ * Searches an ObjectOrigin receiver hierarchy to find the parent project type. Returns null if a project type
  * is not in the hierarchy.
  */
 private
-fun findSoftwareFeature(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver? =
+fun findProjectFeature(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver? =
     when (objectOrigin) {
-        is ObjectOrigin.ImplicitThisReceiver -> findSoftwareFeature(objectOrigin.resolvedTo)
+        is ObjectOrigin.ImplicitThisReceiver -> findProjectFeature(objectOrigin.resolvedTo)
         is ObjectOrigin.AccessAndConfigureReceiver ->
-            if (isSoftwareFeature(objectOrigin)) objectOrigin else findSoftwareFeature(objectOrigin.receiver)
-        is ObjectOrigin.NewObjectFromMemberFunction -> findSoftwareFeature(objectOrigin.receiver)
+            if (isProjectFeature(objectOrigin)) objectOrigin else findProjectFeature(objectOrigin.receiver)
+        is ObjectOrigin.NewObjectFromMemberFunction -> findProjectFeature(objectOrigin.receiver)
         is ObjectOrigin.TopLevelReceiver -> null
         else -> null
     }
 
 
 /**
- * Checks if a given ObjectOrigin is a software type configuration block.
+ * Checks if a given ObjectOrigin is a project type configuration block.
  */
 internal
-fun isSoftwareFeature(objectOrigin: ObjectOrigin): Boolean =
+fun isProjectFeature(objectOrigin: ObjectOrigin): Boolean =
     true == (objectOrigin as? ObjectOrigin.AccessAndConfigureReceiver)?.receiver?.let { receiver ->
         (receiver as? ObjectOrigin.ImplicitThisReceiver)?.resolvedTo?.let { parent ->
             isDefaultsCall(parent)

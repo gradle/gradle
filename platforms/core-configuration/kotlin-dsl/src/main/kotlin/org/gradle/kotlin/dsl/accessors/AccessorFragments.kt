@@ -17,7 +17,8 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating
-import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.Project
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -73,27 +74,33 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
     is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
-    is Accessor.ForSoftwareType -> fragmentsForSoftwareType(accessor)
+    is Accessor.ForProjectType -> fragmentsForProjectType(accessor)
     is Accessor.ForContainerElementFactory -> fragmentsForContainerElementFactory(accessor)
 }
 
-private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragments = accessor.run {
-    val className = "${accessor.spec.softwareFeatureName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
-    val functionName = spec.softwareFeatureName.original
+private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragments = accessor.run {
+    val className = "${accessor.spec.projectFeatureName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val functionName = spec.projectFeatureName.original
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
     val (kotlinTargetType, jvmTargetType) = accessibleTypesFor(accessor.spec.targetType)
     val deprecation = highestDeprecationByLevel(accessor.spec.modelType.deprecation(), accessor.spec.targetType.deprecation())
     val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.modelType, accessor.spec.targetType)}"
 
+    val targetTypeKotlinString = spec.targetType.type.kotlinString
+    val featureKind = when (accessor.spec.targetType.type.value.concreteClass) {
+        Project::class.java -> "project type"
+        else -> "project feature"
+    }
+
     className to sequenceOf(
         AccessorFragment(
             source = """
             |        /**
-            |         * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
+            |         * Applies the "$functionName" $featureKind to the target and configures the definition with the [configure] action.
             |         */
             |        @Incubating
-            |        ${annotations}fun ${spec.targetType.type.kotlinString}.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
-            |            applySoftwareType(this, "$functionName", configure)
+            |        ${annotations}fun $targetTypeKotlinString.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
+            |            applyProjectType(this, "$functionName", configure)
             |        }
             """.trimMargin(),
             signature = JvmMethodSignature(
@@ -106,10 +113,10 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                 }) {
                     maybeWithDeprecation(deprecation)
                     ALOAD(0)
-                    CHECKCAST(ExtensionAware::class.internalName)
+                    CHECKCAST(DynamicObjectAware::class.internalName)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applySoftwareFeature", "(L${ExtensionAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime("applyProjectFeature", "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },
@@ -1052,7 +1059,7 @@ fun fragmentsForModelDefault(
     val accessorSpec = accessor.spec
     val className = internalNameForAccessorClassOf(accessorSpec)
     val (accessibleReceiverType, name, modelType) = accessorSpec
-    val softwareFeatureName = name.kotlinIdentifier
+    val projectFeatureName = name.kotlinIdentifier
     val receiverType = accessibleReceiverType.type.kmType
     val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
     val deprecation = accessor.spec.type.deprecation()
@@ -1066,7 +1073,7 @@ fun fragmentsForModelDefault(
                     maybeWithDeprecation(deprecation)
                     maybeWithOptInRequirement(optIns)
                     ALOAD(0)
-                    LDC(softwareFeatureName)
+                    LDC(projectFeatureName)
                     LDC(jvmPublicType)
                     ALOAD(1)
                     INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
@@ -1077,7 +1084,7 @@ fun fragmentsForModelDefault(
                 kmPackage.functions += newFunctionOf(
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
-                    name = softwareFeatureName,
+                    name = projectFeatureName,
                     valueParameters = listOf(
                         newValueParameterOf("configureAction", actionTypeOf(kotlinPublicType))
                     ),
@@ -1162,12 +1169,23 @@ val TypeOf<*>.kmType: KmType
     get() = when {
         isParameterized -> genericTypeOf(
             classOf(parameterizedTypeDefinition.concreteClass),
-            actualTypeArguments.map { it.kmType }
+            actualTypeArguments.map { it.kmTypeProjection }
         )
 
         isWildcard -> (upperBound ?: lowerBound)?.kmType ?: KotlinType.any
         else -> classOf(concreteClass)
     }
+
+private
+val TypeOf<*>.kmTypeProjection: KmTypeProjection
+    get() = KmTypeProjection(
+        variance = when {
+            upperBound != null -> KmVariance.OUT
+            lowerBound != null -> KmVariance.IN
+            else -> KmVariance.INVARIANT
+        },
+        type = kmType
+    )
 
 
 internal

@@ -106,10 +106,8 @@ public class ThisBuildTreeOnlyComponentResultSerializer implements ComponentResu
         long resultId = decoder.readSmallLong();
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         String repo = decoder.readNullableString();
-        visitor.startVisitComponent(resultId, reason, repo);
-
         ComponentGraphResolveState component = readComponentReference(decoder);
-        visitor.visitComponentDetails(component.getId(), component.getMetadata().getModuleVersionId());
+        visitor.startVisitComponent(resultId, reason, repo, component.getId(), component.getMetadata().getModuleVersionId());
 
         boolean includeAllSelectableVariantResults = decoder.readBoolean();
         if (includeAllSelectableVariantResults) {

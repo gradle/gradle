@@ -74,7 +74,7 @@ public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParamete
                 ));
 
                 ant.invokeMethod("groovydoc", new Object[]{args, new Closure<Object>(this, this) {
-                    @SuppressWarnings("UnusedVariable")
+                    @SuppressWarnings("unused") // Magic Groovy method
                     public Object doCall(Object ignore) {
                         for (Groovydoc.Link link : parameters.getLinks().get()) {
                             ant.invokeMethod("link", new Object[]{

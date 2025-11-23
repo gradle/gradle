@@ -25,7 +25,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.VariantIdentifier;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -164,7 +163,6 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
 
     private Factory<List<ModuleDependencyMetadata>> lazyConfigDependencies() {
         return new Factory<List<ModuleDependencyMetadata>>() {
-            @Nullable
             @Override
             public List<ModuleDependencyMetadata> create() {
                 return DefaultConfigurationMetadata.super.getConfigDependencies();

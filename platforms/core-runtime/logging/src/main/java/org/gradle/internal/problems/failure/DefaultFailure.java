@@ -16,6 +16,7 @@
 
 package org.gradle.internal.problems.failure;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
@@ -121,4 +122,34 @@ class DefaultFailure implements Failure {
         );
     }
 
+    @Override
+    public String toString() {
+        return "DefaultFailure{" +
+            "original=" + original +
+            ", stackTrace=" + stackTrace +
+            ", frameRelevance=" + frameRelevance +
+            ", suppressed=" + suppressed +
+            ", causes=" + causes +
+            ", problems=" + problems +
+            '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultFailure)) {
+            return false;
+        }
+        DefaultFailure that = (DefaultFailure) o;
+        return Objects.equal(original, that.original) &&
+            Objects.equal(stackTrace, that.stackTrace) &&
+            Objects.equal(frameRelevance, that.frameRelevance) &&
+            Objects.equal(suppressed, that.suppressed) &&
+            Objects.equal(causes, that.causes) &&
+            Objects.equal(problems, that.problems);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(original, stackTrace, frameRelevance, suppressed, causes, problems);
+    }
 }

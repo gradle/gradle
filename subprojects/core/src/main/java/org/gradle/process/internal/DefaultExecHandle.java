@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
+import jnr.constants.platform.Signal;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -25,6 +26,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
@@ -39,6 +41,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
@@ -447,7 +450,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         @Override
         public ExecResult assertNormalExitValue() throws ProcessExecutionException {
             if (exitValue != 0) {
-                throw new ProcessExecutionException(format("Process '%s' finished with non-zero exit value %d", displayName, exitValue));
+                String hint = getExitCodeHint(exitValue);
+                throw new ProcessExecutionException(format("Process '%s' finished with non-zero exit value %d%s", displayName, exitValue, hint));
             }
             return this;
         }
@@ -463,6 +467,33 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         @Override
         public String toString() {
             return "{exitValue=" + exitValue + ", failure=" + failure + "}";
+        }
+
+        private static String getExitCodeHint(int exitValue) {
+            if (OperatingSystem.current().isUnix() && exitValue > 128) {
+                int signalNumber = exitValue - 128;
+                Signal signal = Stream.of(Signal.values())
+                    .filter(s -> s.intValue() == signalNumber)
+                    .findFirst()
+                    .orElse(null);
+
+                if (signal != null) {
+                    return format(" (this value may indicate that the process was terminated with the %s signal%s)", signal.description(), getAdditionalHint(signal));
+                } else {
+                    return "";
+                }
+            }
+            if (OperatingSystem.current().isWindows() && exitValue > 0xC0000000 && exitValue < 0) {
+                return format(" (NTSTATUS 0x%08X)", exitValue);
+            }
+            return "";
+        }
+
+        private static String getAdditionalHint(Signal signal) {
+            if (signal == Signal.SIGKILL) {
+                return ", which is often caused by the system running out of memory";
+            }
+            return "";
         }
     }
 

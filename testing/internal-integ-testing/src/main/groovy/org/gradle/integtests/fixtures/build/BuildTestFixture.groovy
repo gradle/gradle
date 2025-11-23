@@ -60,10 +60,7 @@ class BuildTestFixture {
 
     def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def project = populate(projectName) {
-            buildFile << """
-                    group = 'org.test'
-                    version = '1.0'
-                """
+            withGroupAndVersion(settingsFile)
             file('src/main/java/Dummy.java') << "public class Dummy {}"
         }
         project.with(cl)
@@ -76,16 +73,10 @@ class BuildTestFixture {
 
     def multiProjectBuild(String projectName, List<String> subprojects, CompiledLanguage language, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         def rootMulti = populate(projectName) {
+            withGroupAndVersion(settingsFile)
             subprojects.each {
                 settingsFile << "include '$it'\n"
             }
-
-            buildFile << """
-                    allprojects {
-                        group = 'org.test'
-                        version = '1.0'
-                    }
-                """
         }
         rootMulti.with(cl)
         addSourceToAllProjects(rootMulti, language, subprojects)
@@ -123,6 +114,29 @@ class BuildTestFixture {
         subprojects.each {
             rootMulti.file(it.replace(':' as char, File.separatorChar), "src/main/${language.name}/Dummy.${language.name}") << "public class Dummy {}"
         }
+    }
+
+    /**
+     * Configure a default group and version for all projects in the build via the settings file.
+     * This allows us to use the plugins block in the build file.
+     * <p>
+     * Since this test fixture is used in cross version tests, we need to use allprojects
+     * for older Gradle versions.
+     */
+    private static void withGroupAndVersion(TestFile settingsFile) {
+        settingsFile << """
+            if (GradleVersion.current() >= GradleVersion.version("8.8")) {
+                gradle.lifecycle.beforeProject {
+                    group = 'org.test'
+                    version = '1.0'
+                }
+            } else {
+                gradle.allprojects {
+                    group = 'org.test'
+                    version = '1.0'
+                }
+            }
+        """
     }
 
 }

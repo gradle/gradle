@@ -187,7 +187,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
 
         and: "the unit tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.testng.SimpleUnitTest")
-        assertTestsRunCount(xmlResults, 1)
+        xmlResults.@name == "org.gradle.testng.SimpleUnitTest"
 
         and: "the integration tests aren't run"
         getTestResultsFile(dslDir, "org.gradle.testng.SimpleIntegrationTest").assertDoesNotExist()
@@ -210,7 +210,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
 
         and: "the tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.junitplatform.JupiterTest")
-        // This expected count includes the skipped test
         assertTestsRunCount(xmlResults, 5)
 
         where:
@@ -375,16 +374,16 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
      * assumes the file path to that file and loads it using Groovy's XmlSlurper
      * which can then be used to extract information from the XML.
      */
-    private static getTestResultsFileAsXml(TestFile sampleDir, String testClassName, String taskName = "test") {
-        return new XmlSlurper().parse(getTestResultsFile(sampleDir, testClassName, taskName))
+    private static getTestResultsFileAsXml(TestFile sampleDir, String testFileName, String taskName = "test") {
+        return new XmlSlurper().parse(getTestResultsFile(sampleDir, testFileName, taskName))
     }
 
     /**
      * Returns the {@code TestFile} instance representing the required JUnit test
      * results file. Assumes the standard test results directory.
      */
-    private static TestFile getTestResultsFile(TestFile sampleDir, String testClassName, String taskName = "test") {
-        return sampleDir.file("build/test-results/$taskName/TEST-${testClassName}.xml")
+    private static TestFile getTestResultsFile(TestFile sampleDir, String testFileName, String taskName = "test") {
+        return sampleDir.file("build/test-results/$taskName/TEST-${testFileName}.xml")
     }
 
     /**

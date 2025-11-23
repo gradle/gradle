@@ -52,6 +52,7 @@ import org.gradle.util.TestClassLoader;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -80,6 +81,8 @@ import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicate
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static java.util.stream.Collectors.toSet;
 
 @NullMarked
@@ -89,10 +92,17 @@ public interface ArchUnitFixture {
             .and(resideOutsideOfPackages("org.gradle.kotlin..")) // a few relocated kotlinx-metadata classes violate the nullability annotation rules
             .as("classes written in Java or Groovy");
 
-    DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {
+    DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<>("not synthetic classes") {
         @Override
         public boolean test(JavaClass javaClass) {
             return !javaClass.getModifiers().contains(JavaModifier.SYNTHETIC);
+        }
+    };
+
+    DescribedPredicate<JavaClass> not_anonymous_classes = new DescribedPredicate<>("not anonymous classes") {
+        @Override
+        public boolean test(JavaClass javaClass) {
+            return !javaClass.isAnonymousClass();
         }
     };
 
@@ -314,6 +324,14 @@ public interface ArchUnitFixture {
 
     static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
         return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
+    }
+
+    static ArchCondition<JavaClass> beNullMarkedClass() {
+        return beAnnotatedOrInPackageAnnotatedWith(NullMarked.class).and(not(beAnnotatedWith(NullUnmarked.class)));
+    }
+
+    static ArchCondition<JavaMethod> beNullUnmarkedMethod() {
+        return beAnnotatedWith(NullUnmarked.class);
     }
 
     /**

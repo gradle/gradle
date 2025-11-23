@@ -118,7 +118,6 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(ConfigurationTimeBarrier.class, DefaultConfigurationTimeBarrier.class);
         registration.add(ProblemReporter.class, DeprecationsReporter.class);
         registration.add(ProjectConfigurer.class, TaskPathProjectEvaluator.class);
-        registration.add(FeatureFlags.class, DefaultFeatureFlags.class);
         registration.add(ProblemDiagnosticsFactory.class, DefaultProblemDiagnosticsFactory.class);
         registration.add(ExceptionCollector.class, DefaultExceptionAnalyser.class);
         registration.add(ConfigurationCacheableIdFactory.class);
@@ -153,6 +152,11 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
+    }
+
+    @Provides
+    FeatureFlags createFeatureFlags(ListenerManager listenerManager, StartParameterInternal startParameter) {
+        return new DefaultFeatureFlags(listenerManager, startParameter.getSystemPropertiesArgs());
     }
 
     @Provides

@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.precondition.Requires
@@ -25,7 +26,7 @@ import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_CATEGORIES
-import static org.hamcrest.CoreMatchers.startsWith
+import static org.gradle.util.Matchers.matchesRegexp
 
 @TargetCoverage({ JUNIT4_CATEGORIES })
 class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest implements JUnit4MultiVersionTest {
@@ -60,10 +61,10 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         fails("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('SomeTestClass')
-        result.testClass("SomeTestClass").assertTestCount(1, 1, 0)
-        result.testClass("SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
+        result.assertTestClassesNotExecuted('SomeTestClass')
+
+        failure.assertThatCause(matchesRegexp(/Could not start Gradle Test Executor \d+: Can't load category class \[org\.gradle\.CategoryA\]\./))
 
         where:
         type << ['includeCategories', 'excludeCategories']
@@ -74,7 +75,8 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         Assume.assumeTrue(VersionNumber.parse(version) >= VersionNumber.parse('4.11'))
 
         given:
-        file('src/test/java/CategoryA.java') << """
+        file('src/test/java/org/gradle/CategoryA.java') << """
+            package org.gradle;
             public interface CategoryA { }
         """
         file('src/test/java/CustomRunner.java') << """
@@ -126,10 +128,8 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
         then:
         executedAndNotSkipped(":test")
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        def testClass = result.testClass("Not a real class name")
-        testClass.assertTestCount(1, 0, 0)
-        testClass.assertTestPassed("someTest")
+        GenericHtmlTestExecutionResult result = resultsFor()
+        result.assertTestPathsExecuted(':DescriptionWithNullClassTest:someTest')
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3189')

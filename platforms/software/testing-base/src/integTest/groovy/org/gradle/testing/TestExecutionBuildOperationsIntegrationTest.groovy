@@ -75,7 +75,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         then: "test build operations are emitted in expected hierarchy"
         def operations = operations.all(ExecuteTestBuildOperationType)
-        operations.size() == 10
+        operations.size() == 12
         def rootTestOp = this.operations.first(ExecuteTestBuildOperationType)
         assertJunit(rootTestOp, this.operations)
 
@@ -86,7 +86,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         operations = this.operations.all(ExecuteTestBuildOperationType)
 
         then:
-        operations.size() == 10
+        operations.size() == 12
         assertJunit(rootTestOp, this.operations)
     }
 

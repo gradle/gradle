@@ -17,18 +17,16 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.initialization.properties.FilteringGradleProperties;
 
 import java.util.Set;
-
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
@@ -46,21 +44,24 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
         buildLoader.load(settings, gradle);
-        setProjectProperties(gradle.getRootProject());
+        setProjectProperties(gradle.getOwner().getProjects().getRootProject());
     }
 
-    private void setProjectProperties(ProjectInternal project) {
+    private void setProjectProperties(ProjectState project) {
         addPropertiesToProject(project);
-        for (Project childProject : getChildProjectsForInternalUse(project)) {
-            setProjectProperties((ProjectInternal) childProject);
+        for (ProjectState childProject : project.getChildProjects()) {
+            setProjectProperties(childProject);
         }
     }
 
-    private void addPropertiesToProject(ProjectInternal project) {
-        gradlePropertiesController.loadGradleProperties(project.getProjectIdentity(), project.getProjectDir());
-        GradleProperties projectGradleProperties = gradlePropertiesController.getGradleProperties(project.getProjectIdentity());
-        Set<String> consumedProperties = assignSelectedPropertiesDirectly(project, projectGradleProperties);
-        installProjectExtraPropertiesDefaults(project, projectGradleProperties, consumedProperties);
+    private void addPropertiesToProject(ProjectState project) {
+        gradlePropertiesController.loadGradleProperties(project.getIdentity(), project.getProjectDir());
+        GradleProperties projectGradleProperties = gradlePropertiesController.getGradleProperties(project.getIdentity());
+
+        ProjectInternal mutableProject = project.getMutableModel();
+
+        Set<String> consumedProperties = assignSelectedPropertiesDirectly(mutableProject, projectGradleProperties);
+        installProjectExtraPropertiesDefaults(mutableProject, projectGradleProperties, consumedProperties);
     }
 
     /**

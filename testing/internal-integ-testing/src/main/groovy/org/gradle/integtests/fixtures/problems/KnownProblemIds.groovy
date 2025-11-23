@@ -68,7 +68,8 @@ class KnownProblemIds {
         'dependency-variant-resolution': 'Dependency variant resolution',
 
         // groups from integration tests
-        'generic': 'Generic'
+        'generic': 'Generic',
+        'sample-problems': 'Sample Problems',
     ]
 
     /**
@@ -144,6 +145,7 @@ class KnownProblemIds {
         'validation:type-validation:not-cacheable-without-reason': ['Not cacheable without reason'],
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
         'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
+        'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 
         // dependency resolution failures
         'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],
@@ -182,5 +184,6 @@ class KnownProblemIds {
         'generic:type9': ['This is the heading problem text9'],
         'generic:type11': ['inner'],
         'generic:type12': ['outer'],
+        'sample-problems:prototype-project': ['Project is a prototype']
     ]
 }

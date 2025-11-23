@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
@@ -53,7 +55,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @Deprecated("Will be removed in Gradle 10")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
-) : @Suppress("DEPRECATION") InitScriptApi(host.target) {
+) : InitScriptApi(host.target) {
 
     /**
      * The [ScriptHandler] for this script.

@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.UnresolvedDependency
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
@@ -54,9 +55,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
@@ -75,6 +76,7 @@ import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -82,8 +84,6 @@ import org.gradle.util.TestUtil
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
-
-import java.util.function.Supplier
 
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
@@ -618,6 +618,34 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
+        expect:
+        deprecationsArePassedToCopies(baseRole)
+
+        where:
+        baseRole << [
+            ConfigurationRoles.ALL,
+            ConfigurationRoles.RESOLVABLE,
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED - deprecatedRoles
+    }
+
+    @ExpectDeprecation("The conf configuration has been deprecated for dependency declaration")
+    void "deprecations are passed to copies when corresponding role is #baseRole (deprecated)"() {
+        expect:
+        deprecationsArePassedToCopies(baseRole)
+
+        where:
+        baseRole << deprecatedRoles
+    }
+
+    private static deprecatedRoles = [
+        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+        ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE
+    ]
+
+    private void deprecationsArePassedToCopies(ConfigurationRole baseRole) {
+        // given:
         ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
@@ -625,28 +653,21 @@ class DefaultConfigurationSpec extends Specification {
         configuration.addDeclarationAlternatives("declaration")
         configuration.addResolutionAlternatives("resolution")
 
-        when:
+        // when:
         def copy = configuration.copy()
 
-        then:
+        // then:
         // This is not desired behavior. Ideally the copy method should copy the role of the original.
         // Instead, the role of copies are currently always set to RESOLVABLE_DEPENDENCY_SCOPE, as
         // currently copies are detached configurations, and this is the role of all detached configurations.
-        copy.canBeDeclared
-        copy.canBeResolved
-        !copy.canBeConsumed
-        copy.declarationAlternatives == ["declaration"]
-        copy.resolutionAlternatives == ["resolution"]
-        !copy.deprecatedForConsumption
-        !copy.deprecatedForResolution
-        !copy.deprecatedForDeclarationAgainst
-
-        where:
-        baseRole << [
-            ConfigurationRoles.ALL,
-            ConfigurationRoles.RESOLVABLE,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
+        assert copy.declarationAlternatives == ["declaration"]
+        assert copy.resolutionAlternatives == ["resolution"]
+        assert !copy.deprecatedForConsumption
+        assert !copy.deprecatedForResolution
+        assert !copy.deprecatedForDeclarationAgainst
     }
 
     void "fails to copy non-resolvable configuration (#role)"() {
@@ -946,9 +967,10 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
-        Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
-        def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
+        def graph = Mock(ResolvedDependencyGraph) {
+            getRootComponent() >> Mock(ResolvedComponentResult)
+        }
+        def result = new MinimalResolutionResult(() -> graph, ImmutableAttributes.EMPTY)
         def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
@@ -957,7 +979,7 @@ This method is only meant to be called on configurations which allow the (non-de
         def out = config.incoming.resolutionResult
 
         then:
-        out.root == result.rootSource.get()
+        out.root == result.graphSource.get().rootComponent
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -1529,13 +1551,13 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private ResolverResults buildDependenciesResolved() {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
         def unresolved = Mock(UnresolvedDependency) {
             getProblem() >> failure
         }
@@ -1556,7 +1578,7 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(

@@ -1,0 +1,75 @@
+name: Auto update test buckets
+
+on:
+  schedule:
+    - cron: '42 2 * * 1' # Every monday 2:42am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  update-test-buckets:
+    runs-on: ubuntu-latest
+
+    if: github.repository == 'gradle/gradle'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
+          aws-region: "eu-central-1"
+      - name: get secrets
+        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        with:
+          secret-ids: |
+            BOT_GRADLE_GITHUB_TOKEN, gha/gradle/_all/BOT_GRADLE_GITHUB_TOKEN
+            TEAMCITY_ACCESS_TOKEN, gha/gradle/_all/TEAMCITY_ACCESS_TOKEN
+      - name: Setup java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Clone gradle/ci-health repository
+        run: |
+          git clone https://${{ env.BOT_GRADLE_GITHUB_TOKEN }}@github.com/gradle/ci-health.git /tmp/gradle-ci-health
+      - name: Generate test class runtime JSON
+        run: |
+          cd /tmp/gradle-ci-health
+          ./gradlew :run --args "/tmp/test-class-data.json ${GITHUB_WORKSPACE}"
+      - name: Update test bucket split
+        run: |
+          cd ${GITHUB_WORKSPACE}/.teamcity
+          ./mvnw compile exec:java@update-test-buckets -DinputTestClassDataJson=/tmp/test-class-data.json
+      - name: Check for changes in ci-health repository
+        id: check-changes
+        run: |
+          cd ${GITHUB_WORKSPACE}
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Create Pull Request
+        if: steps.check-changes.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: Update test buckets
+          branch: devprod/update-test-buckets
+          branch-suffix: timestamp
+          delete-branch: true
+          title: 'Update test buckets'
+          signoff: true
+          sign-commits: true
+          labels: |
+            in:building-gradle
+            @dev-productivity
+          body: |
+            This PR updates the test buckets based on the latest test class data.
+          path: ${{ github.workspace }}
+

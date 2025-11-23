@@ -65,7 +65,7 @@ enum class Os(
     fun escapeKeyValuePair(
         key: String,
         value: String,
-    ) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
+    ) = """"$key=$value""""
 
     fun asName() = name.lowercase().toCapitalized()
 

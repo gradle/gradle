@@ -36,26 +36,200 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
-[[changes_9.2]]
+[[changes_9.3.0]]
+== Upgrading from 9.2.0 and earlier
+
+=== Potential breaking changes
+
+==== TestNG output may be different when using a version before 6.9.13.3
+As a part of the `AbstractTestTask` refactoring, the integration with TestNG has been updated.
+Gradle now relies on a correctly functioning `IClassListener` integration to report the correct hierarchy of test classes and methods.
+This may lead to different output when using TestNG versions before 6.9.13.3, for example, if you had `org.gradle > TestClass > ok` before, it will now emit just `ok`, without any class information.
+Additionally, when using TestNG versions starting with 6.9.10 and before 6.9.13.3, the `IClassListener` exists but is broken, which may lead to even worse output, such as an empty name.
+It is recommended to update to at least TestNG 6.9.13.3 to get the correct output.
+
+==== Upgrade to Kotlin 2.2.21
+
+The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[Kotlin 2.2.21].
+
+==== Upgrade to Jansi 2.4.2
+
+Jansi was upgraded from https://github.com/fusesource/jansi/blob/jansi-2.4.2/changelog.md#jansi-118-released-2019-04-02[1.18] to https://github.com/fusesource/jansi/releases/tag/jansi-2.4.2[2.4.2] to pick up support for Windows ARM64.
+
+==== Upgrade to ASM 9.9
+
+ASM was upgraded from 9.8 to https://asm.ow2.io/versions.html[9.9] to ensure earlier compatibility for Java 26.
+
+==== Upgrade to Groovy 4.0.29
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[Groovy 4.0.29].
+
+==== Upgrade to JaCoCo 0.8.14
+
+JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.14].
+
+=== Deprecations
+
+[[deprecated_wrapper_get_available_distribution_types]]
+==== Deprecated `Wrapper.getAvailableDistributionTypes()` method
+
+The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[Wrapper] task has been deprecated and will be removed in Gradle 10.
+
+Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
+
+==== Deprecated publishing dependency on an unpublished project
+
+When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.
+If the target project has no publication, Gradle currently resolves the dependency silently using the target project’s `group`, `name`, and `version`.
+
+Starting with Gradle 10, this behavior is deprecated. Gradle will no longer silently ignore unpublished projects during publication.
+Publishing a project that depends on another project without a publication will be forbidden.
+This change prevents publishing broken metadata with invalid dependency coordinates.
+
+The example below demonstrates a build that triggers the deprecated behavior:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+dependencies {
+    api(project(":other"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+group = "com.example"
+version = "1.0.0"
+----
+
+To avoid this deprecation, ensure that all project dependencies of published projects are also published.
+In the example above, applying the `maven-publish` plugin and configuring a publication in the `:other` project resolves the issue:
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
+[[deprecate_legacy_usage_values]]
+==== Deprecation of legacy `Usage` attribute values
+
+Since Gradle 5.6, the link:{javadocPath}/org/gradle/api/attributes/Usage.html[`Usage`] attribute has been split into a separate link:{javadocPath}/org/gradle/api/attributes/LibraryElements.html[`LibraryElements`] attribute.
+In the JVM ecosystem, `Usage` indicates whether a variant is intended for compilation or runtime, while `LibraryElements` specifies the format of the artifact (for example, a JAR file or a classes directory).
+
+To ease migration, Gradle has automatically mapped legacy `Usage` values to their corresponding `Usage` and `LibraryElements` pairs:
+
+|===
+| Legacy `Usage`           | Replaced `Usage` | Replaced `LibraryElements`
+| `java-api-jars`          | `java-api`       | `jar`
+| `java-api-classes`       | `java-api`       | `classes`
+| `java-runtime-jars`      | `java-runtime`   | `jar`
+| `java-runtime-classes`   | `java-runtime`   | `classes`
+| `java-runtime-resources` | `java-runtime`   | `resources`
+|===
+
+Starting with Gradle 10, this automatic mapping will no longer occur when legacy `Usage` values are added directly to an `AttributeContainer` in build logic.
+To maintain backward compatibility, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
+
+[[module_identity_for_root_component]]
+==== Deprecated depending on current project using module coordinates
+
+Starting with Gradle 10, declaring a dependency on the resolving project using module coordinates (`group`, `name`, `version`) will no longer resolve to that project.
+Instead, Gradle will attempt to resolve that dependency from a repository.
+
+The example below demonstrates the change in behavior:
+
+.my-project/build.gradle.kts
+[source,kotlin]
+----
+group = "com.example"
+version = "1.0.0"
+
+val deps = configurations.dependencyScope("deps")
+val classpath = configurations.resolvable("classpath") {
+    extendsFrom(deps.get())
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+val elements = configurations.consumable("elements") {
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+dependencies {
+    // In Gradle 9.x, this dependency resolves to the `elements` configuration.
+    // In Gradle 10, this dependency will attempt to resolve from a repository.
+    deps("com.example:my-project:1.0.0")
+}
+----
+
+To continue depending on the current project, use a `project` dependency:
+
+.my-project/build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    // Declare a dependency on the current project to continue resolving
+    // to the current project.
+    deps(project)
+}
+----
+
+[[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 
 === Potential breaking changes
 
-==== Upgrade to Kotlin 2.2.10
+==== Upgrade to Kotlin 2.2.20
 
-The embedded Kotlin has been updated from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.10[Kotlin 2.2.10].
+The embedded Kotlin has been upgraded from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.20[Kotlin 2.2.20].
 
-==== Removed incubating method `ObjectFactory#dependencyCollector()`
+==== Removed incubating `ObjectFactory#dependencyCollector()` method
 
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
-DependencyCollectors can still be instantiated within Gradle <<properties_providers.adoc#managed_types, managed types>>.
+You can still create `DependencyCollectors` within Gradle <<properties_providers.adoc#managed_types, managed types>>.
 
-==== Consumable configurations are initialized lazily
+==== Consumable configurations in bundled plugins are now initialized lazily
 
-Consumable configurations created by all bundled Gradle plugins are now initialized lazily.
-Configure actions applied to consumable configurations created by Gradle will no longer be executed unless that configuration is published, consumed as a variant, or otherwise realized by build logic.
+Consumable configurations created by bundled Gradle plugins are now initialized only when needed.
+`Configure` actions on these configurations no longer run at configuration time by default.
+They only execute if the configuration is published, consumed as a variant, or otherwise realized by build logic.
 
-Consider the following example:
+For example:
 
 .build.gradle.kts
 [source,kotlin]
@@ -69,63 +243,86 @@ configurations.named("apiElements").configure {
 }
 ----
 
-The `Configuring apiElements` line will no longer be executed during configuration-time by default.
-Instead, the configuration will only be realized and initialized if it is needed.
+With this change, the `Configuring apiElements` line is no longer printed during configuration time unless `apiElements` is actually realized.
 
-To leverage this new laziness, avoid APIs that eagerly realize configurations:
+See <<declaring_configurations.adoc#declaring-dependency-configurations,Declaring Configurations>> for more guidance.
 
+[[validate_plugins_java_version]]
+==== `ValidatePlugins` now has stricter Java version requirements
+
+The `ValidatePlugins` task must now run on a Java version that is supported by the Gradle daemon.
+This change was made because the task depends on several core Gradle services, which may now be compiled to the same bytecode version supported by the daemon.
+
+By default, the task’s convention has been updated:
+
+* If your project’s toolchain is compatible, `ValidatePlugins` will use it.
+* Otherwise, it will fall back to the Java version used to run Gradle.
+
+If you explicitly set a toolchain like this:
+
+[.multi-language-sample]
+=====
 .build.gradle.kts
 [source,kotlin]
 ----
-// Instead of
-configurations.all {} // Eagerly realizes all configurations
-
-// Use
-configurations.confgureEach {} // Only called for realized configurations
-
-// Instead of
-configurations.getByName("name").doSomething() // Eagerly realizes the "name" configuration
-
-// Use
-configurations.named("name").configure {
-    doSomething() // Only called if "name" configuration is realized
+tasks.withType<ValidatePlugins>().configureEach {
+    javaLauncher.set(
+        project.javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    )
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.withType(ValidatePlugins).configureEach {
+    javaLauncher.set(
+        project.javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    )
+}
+----
+=====
+
+If the specified Java version is **not** compatible with the Gradle daemon, you must update it to a <<compatibility.adoc#java_runtime,compatible version>>.
 
 === Deprecations
 
 [[project_container_methods]]
-=== Deprecated `Project.container(...)` methods
+==== Deprecation of `Project.container(...)` methods
 
-The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10. These methods were used to manually create named domain object containers.
+The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10.
+These methods manually create named domain object containers.
 
-A named domain object container can be created with a <<properties_providers.adoc#mutable_managed_properties,managed property>>, which delegates the responsibility to Gradle to instantiate the container properly.
-
-Since Gradle 5.5, `ObjectFactory.domainObjectContainer(...)` has provided equivalent functionality if the plugin cannot use a managed property.
-
-Unlike `Project.container(Class)`, `ObjectFactory.domainObjectContainer(Class)` requires the given type is non-final and elements of the container will be decorated and made extension aware like all other Gradle instantiated objects.
+Use a <<properties_providers.adoc#mutable_managed_properties,managed property>> to let Gradle instantiate containers automatically.
+If a managed property isn’t possible, use `ObjectFactory.domainObjectContainer(...)` (available since Gradle 5.5).
+Unlike `Project.container(Class)`, the `ObjectFactory` version decorates container elements and makes them extension aware.
 
 [[dependency_management_rules]]
-==== RuleSource-based dependency management APIs have been deprecated
+==== Deprecation of ruleSource-based dependency management APIs
 
 The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
 
-These APIs include:
+Deprecated APIs include:
 
 - link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.all(Object)`]
 - link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.withModule(Object,Object)`]
 - link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#all(java.lang.Object)[`ComponentSelectionRules.all(Object)`]
 - link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#withModule(java.lang.Object,java.lang.Object)[`ComponentSelectionRules.withModule(Object,Object)`]
 
-Instead of using these APIs, you should use the alternative methods that take a `ComponentMetadataRule` class or an `Action`.
+Use the alternative methods that accept a `ComponentMetadataRule` class or an `Action`.
 
 [[deprecate_register_feature_no_java_plugin]]
-==== Deprecated calling `registerFeature` without applying the Java plugin
+==== Deprecation of calling `registerFeature` without applying the Java plugin
 
-Creating a JVM feature with link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[`JavaPluginExtension#registerFeature`] before the Java plugin is applied has been deprecated and will become an error in Gradle 10.0.0.
+Creating a JVM feature with link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[`JavaPluginExtension#registerFeature`] before applying the Java plugin has been deprecated and will become an error in Gradle 10.0.0.
 
-Build logic that creates JVM features should ensure the Java plugin is applied before invoking `registerFeature`.
-
+Ensure the Java plugin is applied before invoking `registerFeature`.
 The following bundled plugins apply the Java plugin automatically:
 
 - `java-library`
@@ -136,6 +333,16 @@ The following bundled plugins apply the Java plugin automatically:
 
 [[changes_9.1.0]]
 == Upgrading from 9.0.0 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to ASM 9.8
+
+ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure earlier compatibility for Java 25.
+
+==== Upgrade to Groovy 4.0.28
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.28.html[Groovy 4.0.28].
 
 === Deprecations
 
@@ -286,13 +493,62 @@ There is no direct replacement for this method.
 [[set-all-jvm-args]]
 ==== Deprecation of `JavaForkOptions.setAllJvmArgs()`
 
-The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` has been deprecated and will be removed in Gradle 10.0.0.
+The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` and, by inheritance, on `JavaExecSpec` has been deprecated and will be removed in Gradle 10.0.0.
 
-Instead, use one of the following:
+Instead, to overwrite existing JVM arguments, use:
 
 * `JavaForkOptions.jvmArgs()`
 * `JavaForkOptions.setJvmArgs()`
-* Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
+* Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`
+
+Note that link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` cleared all fork options before setting `jvmArgs`.
+The properties cleared included:
+
+* System properties configured via `JavaForkOptions.systemProperties`
+* JVM argument providers configured via `JavaForkOptions.jvmArgumentProviders`
+* Argument providers configured via `JavaExecSpec.argumentProviders`
+* Memory settings configured via `JavaForkOptions.minHeapSize` and `JavaForkOptions.maxHeapSize`
+* All other JVM arguments configured via `JavaForkOptions.jvmArgs`
+* The assertion and debug flags configured via `JavaForkOptions.enableAssertions` and `JavaForkOptions.debug`
+
+If the arguments you provide to `setJvmArgs()` or `jvmArgs()` depend on any of the above properties being cleared, you will need to manually clear them.
+
+Consider the following snippets for examples of how to implement this change:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("java")
+}
+
+tasks.register<JavaExec>("myRunTask") {
+    jvmArgumentProviders.clear() // Clear existing JVM argument providers
+    maxHeapSize = null // Clear max heap size
+    jvmArgs = listOf("-Dfoo", "-Dbar") // Set new JVM arguments
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+plugins {
+    id("java")
+}
+
+tasks.named('myRunTask', JavaExec) {
+    jvmArgumentProviders.clear() // Clear existing JVM argument providers
+    maxHeapSize = null // Clear max heap size
+    jvmArgs = ["-Dfoo", "-Dbar"] // Set new JVM arguments
+}
+----
+=====
+====
 
 [[archives-configuration]]
 ==== Deprecation of `archives` configuration
@@ -393,12 +649,3 @@ Instead, you should specify these settings as <<build_environment.adoc#sec:gradl
 -Dorg.gradle.java.installations.auto-detect=false
 ----
 
-=== Potential breaking changes
-
-==== Upgrade to ASM 9.8
-
-ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure earlier compatibility for Java 25.
-
-==== Upgrade to Groovy 4.0.28
-
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.28.html[Groovy 4.0.28].
