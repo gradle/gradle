@@ -28,12 +28,24 @@ dependencies {
 
     // Groovy is part of our API
     externalApi(libs.groovy)
+    // Groovy modules that are part of our API
+    // See DependencyClassPathProvider and DependencyClassPathNotationConverter
+    externalApi(libs.groovyAnt)
+    externalApi(libs.groovyAstbuilder)
+    externalApi(libs.groovyDatetime)
+    externalApi(libs.groovyDateUtil)
+    externalApi(libs.groovyDoc)
+    externalApi(libs.groovyJson)
+    externalApi(libs.groovyNio)
+    externalApi(libs.groovyTemplates)
+    externalApi(libs.groovyXml)
     // Required to inject services into tasks and other objects
     externalApi(libs.inject)
-    // Moslty used for nullability annotations
-    externalApi(libs.jsr305)
+    // JSpecify is part of the public API for nullability annotations
     externalApi(libs.jspecify)
-    // We use this to annotate type parameters as @Nullable
+    // We don't use this anymore for annotating the public API, but we support plugin types annotated with it
+    externalApi(libs.jsr305)
+    // We don't use this anymore in public types, but it is still part of the public API
     externalApi(libs.jetbrainsAnnotations)
     // SLF4J logging is part of our public API
     externalApi(libs.slf4jApi)
