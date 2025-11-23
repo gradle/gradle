@@ -143,5 +143,6 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
         SourceDirectorySet groovySourceSet =  sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
         task.setSource(groovySourceSet.matching(filter -> filter.include("**/*.groovy")));
+        task.getConventionMapping().map("compilationClasspath", sourceSet::getCompileClasspath);
     }
 }

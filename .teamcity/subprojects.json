@@ -324,7 +324,7 @@
   {
     "name": "daemon-server",
     "path": "platforms/core-runtime/daemon-server",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

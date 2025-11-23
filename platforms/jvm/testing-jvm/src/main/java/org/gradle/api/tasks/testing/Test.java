@@ -93,7 +93,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -694,7 +693,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                         }
                     }
                 });
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
             return previousFailedTestClasses;
@@ -862,7 +861,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Returns directories to scan for non-class-based test definition files.
      *
      * @return The directories holding non-class-based test definition files.
-     * @since 9.3.0
+     * @since 9.4.0
      */
     @Incubating
     @InputFiles
@@ -1052,7 +1051,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.6
      */
     public void useJUnitPlatform() {
-        useTestFramework(getObjectFactory().newInstance(JUnitPlatformTestFramework.class, getFilter(), getDryRun(), getWorkingDir()));
+        useTestFramework(getObjectFactory().newInstance(JUnitPlatformTestFramework.class, getFilter(), getDryRun()));
     }
 
     /**

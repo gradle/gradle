@@ -94,19 +94,16 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final MetadataRendererRegistry metadataRendererRegistry;
     private final Path reportsDirectory;
 
     @Inject
     public GenericHtmlTestReportGenerator(
         BuildOperationRunner buildOperationRunner,
         BuildOperationExecutor buildOperationExecutor,
-        MetadataRendererRegistry metadataRendererRegistry,
         Path reportsDirectory
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.metadataRendererRegistry = metadataRendererRegistry;
         this.reportsDirectory = reportsDirectory;
     }
 
@@ -132,7 +129,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
             generateReport(root, outputReaders);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             CompositeStoppable.stoppable(outputReaders).stop();
@@ -204,8 +201,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                         requestsBuilder.build(),
                         output,
                         outputReaders,
-                        rootDisplayNames,
-                        metadataRendererRegistry
+                        rootDisplayNames
                     ));
                 }
             }, reportsDirectory.toFile());
@@ -219,20 +215,17 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         private final HtmlReportBuilder output;
         private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
-        private final MetadataRendererRegistry metadataRendererRegistry;
 
         HtmlReportFileGenerator(
             List<TestTreeModel> requests,
             HtmlReportBuilder output,
             List<TestOutputReader> outputReaders,
-            List<String> rootDisplayNames,
-            MetadataRendererRegistry metadataRendererRegistry
+            List<String> rootDisplayNames
         ) {
             this.requests = requests;
             this.output = output;
             this.outputReaders = outputReaders;
             this.rootDisplayNames = rootDisplayNames;
-            this.metadataRendererRegistry = metadataRendererRegistry;
         }
 
         @Override
@@ -246,7 +239,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
         @Override
         public void run(BuildOperationContext context) {
-            GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry);
+            GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames);
             for (TestTreeModel request : requests) {
                 output.renderHtmlPage(getFilePath(request), request, renderer);
             }

@@ -288,17 +288,23 @@ The remote build cache can be configured by specifying the type of build cache t
 The built-in local build cache, link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle User Home, but its location is configurable.
 
-For more details on the configuration options refer to the DSL documentation of link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache].
-Here is an example of the configuration.
+The local build cache can also be configured to control whether a build reads cached outputs from previous builds and whether it writes new outputs back to the cache.
+These behaviors are controlled independently through two properties:
 
-.Configure the local cache
+- `enabled` – whether the build reads from this cache
+- `push` – whether the build writes outputs into this cache
+
+This allows for the complete disabling of the cache, or for reading while preventing new entries from being stored:
+
 ====
 include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-directory-build-cache]"]
 include::sample[dir="snippets/buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-directory-build-cache]"]
 ====
 
-Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
-How often Gradle will perform this clean-up and how long entries will be retained is configurable via an init-script as demonstrated
+For more details on the configuration options, refer to the DSL documentation of link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache].
+
+Gradle will periodically clean up the local cache directory by removing entries that have not been used recently to conserve disk space.
+How often Gradle will perform this clean-up and how long entries will be retained is configurable via an init-script, as demonstrated
 <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup, in this section>>.
 
 [[sec:build_cache_configure_remote]]

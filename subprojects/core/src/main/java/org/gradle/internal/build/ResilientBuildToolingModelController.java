@@ -41,19 +41,26 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     @Override
-    protected void configureProjectsForModel(String modelName) {
+    protected void configureProjectsForModel(ProjectState target, String modelName) {
         try {
-            super.configureProjectsForModel(modelName);
+            super.configureProjectsForModel(target, modelName);
         } catch (GradleException e) {
-            rethrowExceptionIfNotResilientModel(modelName, e);
+            rethrowExceptionIfNotResilientModel(target, modelName, e);
         }
     }
 
-    private static void rethrowExceptionIfNotResilientModel(String modelName, GradleException e) {
-        // For resilient models, ignore configuration failures
-        if (!RESILIENT_MODELS.contains(modelName)) {
+    private static void rethrowExceptionIfNotResilientModel(ProjectState target, String modelName, GradleException e) {
+        if (!target.isCreated()) {
+            // mutable models weren't created, no point in pushing further
             throw e;
         }
+
+        if (!RESILIENT_MODELS.contains(modelName)) {
+            // the model we are building is not a resilient one, no point in pushing further
+            throw e;
+        }
+
+        // swallowing the exception, there is hope of going further
     }
 
     @Override
@@ -70,14 +77,14 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             // Force configuration of the target project to ensure all builders have been registered, but ignore failures
             try {
-                target.ensureConfigured();
+                targetProject.ensureConfigured();
             } catch (GradleException e) {
-                rethrowExceptionIfNotResilientModel(modelName, e);
+                rethrowExceptionIfNotResilientModel(targetProject, modelName, e);
             }
 
-            ProjectInternal project = target.getMutableModelEvenAfterFailure();
+            ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
             ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, parameter, target, project);
+            return lookup.locateForClientOperation(modelName, parameter, targetProject, project);
         }
     }
 }

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.tasks.testing.TestResult;
 import org.jspecify.annotations.Nullable;
 
@@ -31,12 +31,12 @@ public class TestMethodResult {
     private final TestResult.ResultType resultType;
     private final long duration;
     private final long endTime;
-    private final List<SerializedMetadata> metadatas;
+    private final List<TestMetadataEvent> metadatas;
     private final List<SerializableFailure> failures;
 
     private SerializableFailure assumptionFailure = null;
 
-    public TestMethodResult(long id, String name, String displayName, TestResult.ResultType resultType, long duration, long endTime, List<SerializedMetadata> metadatas) {
+    public TestMethodResult(long id, String name, String displayName, TestResult.ResultType resultType, long duration, long endTime, List<TestMetadataEvent> metadatas) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
@@ -94,7 +94,7 @@ public class TestMethodResult {
         return endTime;
     }
 
-    public List<SerializedMetadata> getMetadatas() {
+    public List<TestMetadataEvent> getMetadatas() {
         return metadatas;
     }
 }

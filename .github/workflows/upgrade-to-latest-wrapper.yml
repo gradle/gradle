@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: devprod/upgrade-to-latest-wrapper
           token: ${{ secrets.GITHUB_TOKEN }}

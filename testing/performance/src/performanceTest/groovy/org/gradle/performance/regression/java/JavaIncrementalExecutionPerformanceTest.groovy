@@ -108,7 +108,6 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
     def "test for non-abi change"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.gradleOpts << "-Xmx4g"
         runner.warmUpRuns = 2
         runner.runs = 6
         runner.tasksToRun = ['test']

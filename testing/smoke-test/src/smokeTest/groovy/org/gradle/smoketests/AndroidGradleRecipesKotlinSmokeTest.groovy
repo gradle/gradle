@@ -77,12 +77,17 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                 outputs.upToDateWhen { false }
             }
 
+            kotlin {
+                compilerOptions {
+                    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+                }
+            }
+
             android {
                 namespace = "org.gradle.smoketests.androidrecipes"
                 compileSdk = 29
                 buildToolsVersion("${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}")
                 buildFeatures { buildConfig = true }
-                kotlinOptions { jvmTarget = "1.8" }
             }
 
             androidComponents {
