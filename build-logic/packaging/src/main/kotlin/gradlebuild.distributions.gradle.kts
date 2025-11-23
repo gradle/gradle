@@ -83,19 +83,27 @@ val pluginsRuntimeOnly by bucket()
 pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent additional plugins packaged in the distributions (lib/plugins/*.jar)"
 val agentsRuntimeOnly by bucket()
 agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
+val publicApiOnly by bucket()
+publicApiOnly.description = "To define dependencies to the Gradle modules that make up the public API (lib/api/*.jar)"
 
 // Use lazy API to not attempt to find platform project during script compilation
 coreRuntimeOnly.dependencies.addLater(provider {
     dependencies.platform(dependencies.create(project(":distributions-dependencies")))
 })
+publicApiOnly.dependencies.addLater(provider {
+    dependencies.platform(dependencies.create(project(":distributions-dependencies")))
+})
 
 // Configurations to resolve dependencies
-val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
+val runtimeClasspath by runtimeLibraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
 runtimeClasspath.description = "Resolves to all Jars that need to be in the distribution including all transitive dependencies"
-val coreRuntimeClasspath by libraryResolver(listOf(coreRuntimeOnly))
+val coreRuntimeClasspath by runtimeLibraryResolver(listOf(coreRuntimeOnly))
 coreRuntimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
-val agentsRuntimeClasspath by libraryResolver(listOf(agentsRuntimeOnly))
+val agentsRuntimeClasspath by runtimeLibraryResolver(listOf(agentsRuntimeOnly))
 agentsRuntimeClasspath.description = "Resolves to all Jars that need to be added as agents"
+val gradlePublicApiRuntimeClasspath by apiLibraryResolver(listOf(publicApiOnly)) // TODO: name -> compile
+gradlePublicApiRuntimeClasspath.description = "Resolves all Jars that make up the public API of Gradle"
+gradlePublicApiRuntimeClasspath.isTransitive = false // Transitives must already be part of the distribution
 val gradleScriptPath by startScriptResolver(":gradle-cli-main")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath by sourcesResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))
@@ -339,10 +347,22 @@ fun bucket() =
         isCanBeConsumed = false
     }
 
-fun libraryResolver(extends: List<Configuration>) =
+fun runtimeLibraryResolver(extends: List<Configuration>) =
     configurations.creating {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+        }
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        extends.forEach { extendsFrom(it) }
+    }
+
+fun apiLibraryResolver(extends: List<Configuration>) =
+    configurations.creating {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
         }
