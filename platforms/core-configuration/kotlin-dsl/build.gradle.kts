@@ -1,7 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin.Companion.shadowRuntimeElements
-import gradlebuild.basics.PublicKotlinDslApi
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-
 plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
@@ -224,23 +220,7 @@ tasks.isolatedProjectsIntegTest {
     enabled = false
 }
 
-// Filter out what goes into the public API
-configure<KotlinJvmProjectExtension> {
-    val filterKotlinDslApi = tasks.register<Copy>("filterKotlinDslApi") {
-        dependsOn(target.compilations.named("main").flatMap { it.compileTaskProvider })
-        into(layout.buildDirectory.dir("generated/kotlin-abi-filtered"))
-        from(layout.buildDirectory.dir("generated/kotlin-abi")) {
-            includeEmptyDirs = false
-            include(PublicKotlinDslApi.includes)
-            // Those leak in the public API - see org.gradle.kotlin.dsl.NamedDomainObjectContainerScope for example
-            include("org/gradle/kotlin/dsl/support/delegates/*")
-            include("META-INF/*.kotlin_module")
-            // We do not exclude inlined functions, they are needed for compilation
-        }
-    }
-
-    configurations.apiStubElements.configure {
-        outgoing.artifacts.clear()
-        outgoing.artifact(filterKotlinDslApi)
-    }
+// Do not publish into the Gradle API ABI JAR
+configurations.apiStubElements.configure {
+    outgoing.artifacts.clear()
 }
