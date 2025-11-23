@@ -32,8 +32,9 @@ val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
     launcherJar.from(tasks.jar)
     agentJars.from(resolveAgentsClasspath)
     // The trick below is to use the templates from the current code instead of the wrapper. It does not cover the case where the generation logic is updated though.
-    unixScriptTemplate.from(layout.projectDirectory.file("../../../platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt"))
-    windowsScriptTemplate.from(layout.projectDirectory.file("../../../platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/windowsStartScript.txt"))
+    // TODO uncomment after wrapper upgrade. See #35693
+    //unixScriptTemplate.from(layout.projectDirectory.file("../../../platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt"))
+    //windowsScriptTemplate.from(layout.projectDirectory.file("../../../platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/windowsStartScript.txt"))
 }
 
 configurations {
