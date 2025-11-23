@@ -78,6 +78,8 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
                     registry.register(new BuildEnvironmentBuilder(fileCollectionFactory));
+                    // Provide Help/VersionInfo models for use from build actions
+                    registry.register(new HelpModelBuilder());
                     registry.register(new IsolatedGradleProjectInternalBuilder());
                     registry.register(new IsolatedIdeaModuleInternalBuilder());
                     registry.register(new PluginApplyingBuilder());

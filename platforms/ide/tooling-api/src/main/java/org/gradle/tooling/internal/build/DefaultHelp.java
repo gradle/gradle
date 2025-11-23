@@ -15,24 +15,16 @@
  */
 package org.gradle.tooling.internal.build;
 
-import org.gradle.tooling.internal.protocol.InternalHelp;
-import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
 import org.gradle.tooling.model.build.Help;
 
 import java.io.Serializable;
 
-public class DefaultHelp implements InternalHelp, Help, Serializable {
-    private final BuildIdentifier buildIdentifier;
+public class DefaultHelp implements InternalProtocolInterface, Help, Serializable {
     private final String helpOutput;
 
-    public DefaultHelp(BuildIdentifier buildIdentifier, String helpOutput) {
-        this.buildIdentifier = buildIdentifier;
+    public DefaultHelp(String helpOutput) {
         this.helpOutput = helpOutput;
-    }
-
-    @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
     }
 
     @Override

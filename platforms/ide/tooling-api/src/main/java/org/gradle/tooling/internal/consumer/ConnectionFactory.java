@@ -21,7 +21,6 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.async.DefaultAsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecutor;
-import org.gradle.tooling.internal.consumer.connection.VersionHelpConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.LazyConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ProgressLoggingConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.RethrowingErrorsConsumerActionExecutor;
@@ -41,9 +40,7 @@ public class ConnectionFactory {
     public ProjectConnection create(Distribution distribution, ConnectionParameters parameters, ProjectConnectionCloseListener listener) {
         ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
         ConsumerActionExecutor cancellableConnection = new CancellableConsumerActionExecutor(lazyConnection);
-        // Intercept help/version flags early to avoid unnecessary progress logging and to short-circuit builds when needed
-    ConsumerActionExecutor versionHelpConnection = new VersionHelpConsumerActionExecutor(cancellableConnection, loggingProvider);
-        ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(versionHelpConnection, loggingProvider);
+        ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(cancellableConnection, loggingProvider);
         ConsumerActionExecutor rethrowingErrorsConnection = new RethrowingErrorsConsumerActionExecutor(progressLoggingConnection);
         AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(rethrowingErrorsConnection, executorFactory);
         return new DefaultProjectConnection(asyncConnection, parameters, listener);

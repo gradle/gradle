@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.model.build;
+
+import org.gradle.tooling.model.Model;
 
 /**
- * Internal protocol marker for VersionBanner model.
+ * Plaintext content printed by {@code gradle --version} (the banner including build time, JVM, OS, etc.).
+ * The content is produced by the target Gradle distribution without starting the daemon.
+ *
+ * @since 9.3.0
  */
-public interface InternalVersionBanner extends InternalProtocolInterface {}
-
+public interface VersionInfo extends Model {
+    /**
+     * Returns the exact banner text as printed by {@code gradle --version} for the target distribution.
+     *
+     * @since 9.3.0
+     */
+    String getVersionOutput();
+}
