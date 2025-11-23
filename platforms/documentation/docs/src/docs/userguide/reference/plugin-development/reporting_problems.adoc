@@ -163,9 +163,9 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':sample-project:myFailingTask'.
 > Message from runtime exception
-    This happened because ProblemReporter.throwing() was called
-      This is a demonstration of how to add
-      detailed information to a build failure
+
+  This happened because ProblemReporter.throwing() was called
+  This is a demonstration of how to add detailed information to a build failure
 
 * Try:
 > Remove the Problems.throwing() method call from the task action
