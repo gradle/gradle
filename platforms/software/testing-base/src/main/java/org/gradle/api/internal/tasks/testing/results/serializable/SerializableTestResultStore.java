@@ -215,9 +215,10 @@ public final class SerializableTestResultStore {
 
             // We remove the id here since no further events should come for this test, and it won't be needed as a parent id anymore
             long id = assignedIds.remove(testDescriptor.getId());
+            resultsEncoder.writeSmallLong(id);
             try {
-                OutputEntry outputEntry = outputWriter.finishOutput(id);
-                OutputEntry.SERIALIZER.write(resultsEncoder, outputEntry);
+                OutputRanges outputRanges = outputWriter.finishOutput(id);
+                OutputRanges.SERIALIZER.write(resultsEncoder, outputRanges);
                 SerializableTestResult.Serializer.serialize(testNodeBuilder.build(), resultsEncoder);
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -292,12 +293,7 @@ public final class SerializableTestResultStore {
         public void close() throws IOException {
             try {
                 // Write a 0 id to terminate the file
-                OutputEntry.SERIALIZER.write(resultsEncoder, new OutputEntry(0, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT, OutputEntry.NO_OUTPUT));
-            } catch (Exception e) {
-                if (e instanceof IOException) {
-                    throw (IOException) e;
-                }
-                throw UncheckedException.throwAsUncheckedException(e);
+                resultsEncoder.writeSmallLong(0);
             } finally {
                 CompositeStoppable.stoppable(resultsEncoder, outputWriter).stop();
             }
@@ -320,33 +316,83 @@ public final class SerializableTestResultStore {
     }
 
     /**
-     * Visit every result in the store. Parents are visited <em>AFTER</em> their children, but not necessarily in a breadth-first or depth-first order.
-     * The action is called once for each result.
+     * Processor for test results.
+     */
+    @FunctionalInterface
+    public interface ResultProcessor {
+        /**
+         * Process a single test result.
+         *
+         * @param id the id of the result
+         * @param parentId the id of the parent result, or {@code null} if this is a root result
+         * @param result the test result
+         * @param outputRanges the output ranges for the result
+         * @throws IOException if an error occurs while processing the result
+         */
+        void process(long id, @Nullable Long parentId, SerializableTestResult result, OutputRanges outputRanges) throws IOException;
+    }
+
+    /**
+     * Exists for backwards compatibility with TestFilesCleanupService.
      *
-     * @param action the action to perform on each result
+     * Mirrors the old structure of OutputTrackedResult that was used by TestFilesCleanupService.
+     * Doesn't need to be the original class since the type wasn't explicitly referenced.
+     */
+    public static final class FacadeForOutputTrackedResult {
+        private final SerializableTestResult innerResult;
+
+        public FacadeForOutputTrackedResult(SerializableTestResult innerResult) {
+            this.innerResult = innerResult;
+        }
+
+        public SerializableTestResult getInnerResult() {
+            return innerResult;
+        }
+    }
+
+    /**
+     * Exists for backwards compatibility with TestFilesCleanupService.
+     */
+    @SuppressWarnings("unused")
+    public void forEachResult(Consumer<FacadeForOutputTrackedResult> consumer) throws Exception {
+        forEachResult((id, parentId, result, outputRanges) ->
+            consumer.accept(new FacadeForOutputTrackedResult(result))
+        );
+    }
+
+    /**
+     * Visit every result in the store. Parents are visited <em>AFTER</em> their children, but not necessarily in a breadth-first or depth-first order.
+     * The processor is called once for each result.
+     *
+     * @param processor the processor to call for each result
      * @throws IOException if an error occurs while reading the results
      */
-    public void forEachResult(Consumer<? super OutputTrackedResult> action) throws Exception {
+    public void forEachResult(ResultProcessor processor) throws Exception {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
             while (true) {
-                OutputEntry entry;
+                long id = resultsDecoder.readSmallLong();
+                if (id == 0) {
+                    break;
+                }
+                if (id < 0) {
+                    throw new IllegalStateException("Invalid result id: " + id);
+                }
+                OutputRanges ranges;
                 try {
-                    entry = OutputEntry.SERIALIZER.read(resultsDecoder);
+                    ranges = OutputRanges.SERIALIZER.read(resultsDecoder);
                 } catch (Exception e) {
                     if (e instanceof IOException) {
-                        throw (IOException) e;
+                        throw e;
                     }
                     throw UncheckedException.throwAsUncheckedException(e);
-                }
-                if (entry.id == 0) {
-                    break;
                 }
                 SerializableTestResult testResult = SerializableTestResult.Serializer.deserialize(resultsDecoder);
                 long parentId = resultsDecoder.readSmallLong();
                 if (parentId < 0) {
                     throw new IllegalStateException("Invalid parent id: " + parentId);
                 }
-                action.accept(new OutputTrackedResult(entry, testResult, parentId));
+                Long parentIdObj = parentId == 0 ? null : parentId;
+                processor.process(id, parentIdObj, testResult, ranges);
             }
         }
     }

@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.results.serializable;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 
-/**
- * Represents an entry in the test output events file.
- *
- * <p>
- * Combination of {@link OutputRanges} and an ID.
- * </p>
- */
-public final class OutputEntry {
-    private final long id;
-    private final OutputRanges outputRanges;
-
-    public OutputEntry(long id, OutputRanges outputRanges) {
-        this.id = id;
-        this.outputRanges = outputRanges;
+public class HelloStepdefs {
+    @Given("^I have a hello app with Howdy and /four")
+    public void I_have_a_hello_app_with() {
+        System.out.println("Given");
     }
 
-    public long getId() {
-        return id;
+    @When("^I ask it to say hi and /five/six/seven")
+    public void I_ask_it_to_say_hi() {
+        System.out.println("When");
     }
 
-    public OutputRanges getOutputRanges() {
-        return outputRanges;
+    @Then("^it should answer with Howdy World")
+    public void it_should_answer_with() {
+        System.out.println("Then");
     }
 }

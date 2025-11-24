@@ -33,12 +33,6 @@ li.subTopic :before {
   margin-right: 0.4em;
 }
 
-h4 {
-  margin-top: 1rem;
-  font-size: 1.0625rem;
-  font-style: italic;
-}
-
 pre {
     overflow: auto;
 }

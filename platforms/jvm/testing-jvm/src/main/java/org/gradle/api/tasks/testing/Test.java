@@ -685,11 +685,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         if (store.hasResults()) {
             final Set<String> previousFailedTestClasses = new HashSet<>();
             try {
-                store.forEachResult(result -> {
+                store.forEachResult((id, parentId, result, ranges) -> {
                     // Test class descriptors set both name and class name to the test class name
-                    if (result.getInnerResult().getName().equals(result.getInnerResult().getClassName())) {
-                        if (result.getInnerResult().getResultType() == TestResult.ResultType.FAILURE) {
-                            previousFailedTestClasses.add(result.getInnerResult().getClassName());
+                    if (result.getName().equals(result.getClassName())) {
+                        if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                            previousFailedTestClasses.add(result.getClassName());
                         }
                     }
                 });
