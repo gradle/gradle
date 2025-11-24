@@ -266,7 +266,7 @@ You can learn more in <<composite_builds.adoc#composite_builds,Composite Builds>
 [[sec:convention_plugins_vs_cross_configuration]]
 == Avoid cross-project configuration using `subprojects` and `allprojects`
 
-An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}/org/gradle/api/Project.html#subprojects-groovy.lang.Closure-[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects-groovy.lang.Closure-[`allprojects {}`] DSL constructs.
+An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}/org/gradle/api/Project.html#subprojects(groovy.lang.Closure)[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects(groovy.lang.Closure)[`allprojects {}`] DSL constructs.
 
 With <<glossary.adoc#sub:terminology_cross_configuration,cross-project configuration>>, build logic can be injected into a subproject which is not obvious when looking at its build script.
 

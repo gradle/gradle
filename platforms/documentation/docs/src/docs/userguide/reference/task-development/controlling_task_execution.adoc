@@ -135,7 +135,7 @@ BUILD SUCCESSFUL in 430ms
 
 There are several ways you can define the dependencies of a task.
 
-Defining dependencies using task names and the link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object...-[dependsOn()`] method is simplest.
+Defining dependencies using task names and the link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn(java.lang.Object...)[dependsOn()`] method is simplest.
 
 The following is an example which adds a dependency from `taskX` to `taskY`:
 
@@ -185,8 +185,8 @@ Task ordering can be useful in a number of scenarios:
 
 Two ordering rules are available: "_must run after_" and "_should run after_".
 
-To specify a "must run after" or "should run after" ordering between 2 tasks, you use the link:{javadocPath}/org/gradle/api/Task.html#mustRunAfter-java.lang.Object...-[Task.mustRunAfter(java.lang.Object++...++)] and link:{javadocPath}/org/gradle/api/Task.html#shouldRunAfter-java.lang.Object...-[Task.shouldRunAfter(java.lang.Object++...++)] methods.
-These methods accept a task instance, a task name, or any other input accepted by link:{javadocPath}/org/gradle/api/Task.html#dependsOn-java.lang.Object...-[Task.dependsOn(java.lang.Object++...++)].
+To specify a "must run after" or "should run after" ordering between 2 tasks, you use the link:{javadocPath}/org/gradle/api/Task.html#mustRunAfter(java.lang.Object...)[Task.mustRunAfter(java.lang.Object++...++)] and link:{javadocPath}/org/gradle/api/Task.html#shouldRunAfter(java.lang.Object...)[Task.shouldRunAfter(java.lang.Object++...++)] methods.
+These methods accept a task instance, a task name, or any other input accepted by link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object...)[Task.dependsOn(java.lang.Object++...++)].
 
 When you use "must run after", you specify that `taskY` must always run after `taskX` when the build requires the execution of `taskX` and `taskY`.
 So if you only run `taskY` with `mustRunAfter`, you won't cause `taskX` to run.
@@ -253,8 +253,8 @@ An example of such a resource is a web container that is started before an integ
 
 Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
 
-To specify a finalizer task, you use the link:{javadocPath}/org/gradle/api/Task.html#finalizedBy-java.lang.Object...-[Task.finalizedBy(java.lang.Object...)] method.
-This method accepts a task instance, a task name, or any other input accepted by link:{javadocPath}/org/gradle/api/Task.html#dependsOn-java.lang.Object...-[Task.dependsOn(java.lang.Object...)]:
+To specify a finalizer task, you use the link:{javadocPath}/org/gradle/api/Task.html#finalizedBy(java.lang.Object...)[Task.finalizedBy(java.lang.Object...)] method.
+This method accepts a task instance, a task name, or any other input accepted by link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object...)[Task.dependsOn(java.lang.Object...)]:
 
 ====
 include::sample[dir="snippets/tasks/finalizers/kotlin",files="build.gradle.kts[]"]
@@ -286,7 +286,7 @@ Gradle offers multiple ways to skip the execution of a task.
 [[sec:using_a_predicate]]
 === 1. Using a predicate
 
-You can use link:{javadocPath}/org/gradle/api/Task.html#onlyIf-org.gradle.api.specs.Spec-[`Task.onlyIf`] to attach a predicate to a task.
+You can use link:{javadocPath}/org/gradle/api/Task.html#onlyIf(org.gradle.api.specs.Spec)[`Task.onlyIf`] to attach a predicate to a task.
 The task's actions will only be executed if the predicate is evaluated to be `true`.
 
 The predicate is passed to the task as a parameter and returns `true` if the task will execute and `false` if the task will be skipped.

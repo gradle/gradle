@@ -116,7 +116,7 @@ In this example, each dependency explicitly specifies its location within the fi
 Common methods for referencing these files include:
 
 - link:link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[`Project.files()`]: Accepts one or more file paths directly.
-- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[`ProjectLayout.files()`]: Accepts one or more file paths directly.
+- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files(java.lang.Object...)[`ProjectLayout.files()`]: Accepts one or more file paths directly.
 - link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[`Project.fileTree()`]: Defines a directory and includes or excludes specific file patterns.
 
 [NOTE]

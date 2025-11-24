@@ -168,14 +168,14 @@ include::sample[dir="snippets/maven-publish/conditional-publishing/kotlin",files
 include::sample[dir="snippets/maven-publish/conditional-publishing/groovy",files="build.gradle[tags=shorthand-tasks]"]
 ====
 
-This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] with the link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository] task type. You can do the same with link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository] if you're publishing to Ivy-compatible repositories.
+This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType(java.lang.Class)[TaskCollection.withType(java.lang.Class)] with the link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository] task type. You can do the same with link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository] if you're publishing to Ivy-compatible repositories.
 
 [[sec:configuring_publishing_tasks]]
 == Configuring publishing tasks
 
 The publishing plugins create their non-aggregate tasks after the project has been evaluated, which means you cannot directly reference them from your build script. If you would like to configure any of these tasks, you should use deferred task configuration. This can be done in a number of ways via the project's `tasks` collection.
 
-For example, imagine you want to change where the `generatePomFileFor__PubName__Publication` tasks write their POM files. You can do this by using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] method, as demonstrated by this sample:
+For example, imagine you want to change where the `generatePomFileFor__PubName__Publication` tasks write their POM files. You can do this by using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType(java.lang.Class)[TaskCollection.withType(java.lang.Class)] method, as demonstrated by this sample:
 
 .Configuring a dynamically named task created by the publishing plugins
 ====

@@ -93,8 +93,8 @@ include::sample[dir="snippets/plugins/reportingProblems/groovy",files="plugin/sr
 
 Plugins can report problems in two ways:
 
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-[`report()`] — use for recoverable problems when the build should continue.
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[`throwing()`] — use for non-recoverable problems that should fail the build.
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#report(java.util.Collection)[`report()`] — use for recoverable problems when the build should continue.
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing(java.lang.Throwable,java.util.Collection)[`throwing()`] — use for non-recoverable problems that should fail the build.
 
 Once you have decided what type of problem you want to report, get the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] using `problem.getReporter()`:
 

@@ -63,7 +63,7 @@ All plugins created in this sample contain functional tests that use link:{userM
 
 == Compiling convention plugins
 
-In this sample, convention plugins are implemented as link:{userManualPath}/custom_plugins.html#sec:precompiled_plugins[precompiled script plugins] -
+In this sample, convention plugins are implemented as link:{userManualPath}/plugins.html#sec:precompile_script_plugin[precompiled script plugins] -
 this is the simplest way to start out as you can use one of Gradle's DSLs directly to implement the build logic, just as if the plugin was
 a regular build script.
 
@@ -85,7 +85,7 @@ include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=apply]"
 
 In this sample we are targeting a multi-repo setup. In order to apply the above plugins to separate projects, they have to be published
 to a company's artifact repository.
-Convention plugins are regular Gradle plugins - thus they can be link:{userManualPath}/custom_plugins.html#sec:publishing_your_plugin[published to an external repository like any other Gradle plugin].
+Convention plugins are regular Gradle plugins - thus they can be link:{userManualPath}/publishing_gradle_plugins.html#sec:publishing_your_plugin[published to an external repository like any other Gradle plugin].
 
 Here, we configure the project to publish the plugins using the link:{userManualPath}/publishing_maven.html[maven-publish plugin].
 For demonstration purposes, we publish to a local filesystem directory.
@@ -159,7 +159,7 @@ plugins {
 
 The `com.myorg.java-conventions` plugin uses the SpotBugs plugin to perform static code analysis.
 
-SpotBugs is an external plugin - external plugins link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[need to be added as implementation dependencies] before they can be applied in a convention plugin:
+SpotBugs is an external plugin - external plugins link:{userManualPath}/implementing_gradle_plugins_precompiled.html#sec:applying_external_plugins[need to be added as implementation dependencies] before they can be applied in a convention plugin:
 ====
 include::sample[dir="kotlin",files="convention-plugins/build.gradle.kts[tags=repositories-and-dependencies]"]
 include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=repositories-and-dependencies]"]

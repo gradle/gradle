@@ -57,7 +57,7 @@ Declaring a version as `+`, without any prefix, will include any version.
 
 |`latest-status` version
 |`latest.integration`, `latest.release`
-|Matches the highest version with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
+|Matches the highest version with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus()[ComponentMetadata.getStatus()].
 
 |Maven `SNAPSHOT` version
 |`1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
@@ -379,7 +379,7 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-changin
 ====
 
 Gradle is flexible enough to treat any version as a changing version.
-All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
+All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging(boolean)[ExternalModuleDependency.setChanging(boolean)] to `true`.
 
 [[sec:versioning_file_dependencies]]
 == Versioning file dependencies

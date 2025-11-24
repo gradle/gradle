@@ -237,7 +237,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-attribu
 
 By using attribute-based substitution, you can precisely control which dependencies are replaced, ensuring Gradle resolves the correct versions and variants in your build.
 
-Refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[DependencySubstitutions API] for a complete reference.
+Refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant(org.gradle.api.artifacts.component.ComponentSelector,org.gradle.api.Action)[DependencySubstitutions API] for a complete reference.
 
 WARNING: In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency attributes is not applied.
 When using composites, Gradle will automatically match the requested attributes.
@@ -261,7 +261,7 @@ The `requireCapability` function specifies that the new variant must have the `c
 
 Capabilities within the substitution rule are used to precisely match dependencies, and Gradle only substitutes dependencies that match the required capabilities.
 
-Refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[DependencySubstitutions API] for a complete reference of the variant substitution API.
+Refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant(org.gradle.api.artifacts.component.ComponentSelector,org.gradle.api.Action)[DependencySubstitutions API] for a complete reference of the variant substitution API.
 
 [[sec:substitution-with-classifier]]
 === Substituting a dependency with a classifier or artifact
@@ -314,8 +314,8 @@ If you need to substitute with a specific classifier or artifact, you can specif
 For more detailed information, refer to:
 
 - Artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.Substitution.html[Substitution DSL]
-- Artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitution.html#artifactSelection-org.gradle.api.Action-[DependencySubstitution API]
-- Artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#dependencySubstitution-org.gradle.api.Action-[ResolutionStrategy API]
+- Artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitution.html#artifactSelection(org.gradle.api.Action)[DependencySubstitution API]
+- Artifact selection via the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#dependencySubstitution(org.gradle.api.Action)[ResolutionStrategy API]
 
 [[sec:component-selection-rules]]
 == 4. Component Selection Rules
@@ -458,7 +458,7 @@ By default, Gradle resolves all transitive dependencies for a given module.
 
 However, there are situations where you may want to disable this behavior, such as when you need more control over dependencies or when the dependency metadata is incorrect.
 
-You can tell Gradle to disable transitive dependency management for a dependency by setting link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#setTransitive-boolean-[ModuleDependency.setTransitive(boolean)] to `false`.
+You can tell Gradle to disable transitive dependency management for a dependency by setting link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#setTransitive(boolean)[ModuleDependency.setTransitive(boolean)] to `false`.
 
 In the following example, transitive dependency resolution is disabled for the `guava` dependency:
 
@@ -481,7 +481,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 This disables transitive resolution for all dependencies in the project.
 Be aware that this may require you to manually declare any transitive dependencies that are required at runtime.
 
-For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#setTransitive-boolean-[Configuration.setTransitive(boolean)].
+For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#setTransitive(boolean)[Configuration.setTransitive(boolean)].
 
 [[sec:dependency-resolve-rules]]
 == 9. Dependency Resolve Rules and Other Conditionals

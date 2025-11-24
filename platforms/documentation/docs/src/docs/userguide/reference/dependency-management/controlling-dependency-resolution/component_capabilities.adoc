@@ -192,4 +192,4 @@ Another conflict in the graph may have the module you want to select.
 If no resolution is provided for all conflicts on a given capability, the build will fail because the module chosen for resolution was not found in the graph.
 Additionally, calling `select(null)` will result in an error and should be avoided.
 
-For more information, refer to the link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#capabilitiesResolution[capabilities resolution API].
+For more information, refer to the link:{javadocPath}/org/gradle/api/artifacts/CapabilitiesResolution.html[capabilities resolution API].

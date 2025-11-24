@@ -772,8 +772,8 @@ With Gradle tasks, there are three states to consider:
 2. *Configuring* a task - defining inputs and outputs for a registered task.
 3. *Implementing* a task - creating a custom task class (i.e., custom class type).
 
-*Registration* is commonly done with the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method. +
-*Configuring* a task is commonly done with the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-java.lang.Class-[`named()`] method. +
+*Registration* is commonly done with the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register(java.lang.String,java.lang.Class)[`register()`] method. +
+*Configuring* a task is commonly done with the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named(java.lang.String,java.lang.Class)[`named()`] method. +
 *Implementing* a task is commonly done by extending Gradle's link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] class:
 
 ====
@@ -847,7 +847,7 @@ include::sample[dir="snippets/tasks/defineUsingStringTaskNames/kotlin",files="bu
 include::sample[dir="snippets/tasks/defineUsingStringTaskNames/groovy",files="build.gradle[tags=simple_register]"]
 ====
 
-In the example above, the task is added to the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TasksCollection`] using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method in link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer`].
+In the example above, the task is added to the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TasksCollection`] using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register(java.lang.String,java.lang.Class)[`register()`] method in link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer`].
 
 [[sec:configuring_tasks]]
 === 2. Configuring tasks
