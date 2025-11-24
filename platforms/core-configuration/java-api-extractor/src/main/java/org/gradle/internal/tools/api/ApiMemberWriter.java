@@ -22,6 +22,7 @@ import org.gradle.internal.tools.api.impl.ClassMember;
 import org.gradle.internal.tools.api.impl.FieldMember;
 import org.gradle.internal.tools.api.impl.InnerClassMember;
 import org.gradle.internal.tools.api.impl.MethodMember;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -36,11 +37,11 @@ import java.util.Set;
  * and how to write a new "API class" with them.
  */
 public interface ApiMemberWriter {
-    ModuleVisitor writeModule(String name, int access, String version);
+    ModuleVisitor writeModule(String name, int access, @Nullable String version);
 
     void writeClass(ClassMember classMember, Set<MethodMember> methods, Set<FieldMember> fields, Set<InnerClassMember> innerClasses);
 
-    void writeMethod(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method);
+    void writeMethod(ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method);
 
     void writeClassAnnotations(Set<AnnotationMember> annotationMembers);
 

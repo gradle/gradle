@@ -24,7 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that can be applied to implementations of {@link ProjectFeatureBindingRegistration}
+ * Annotation that can be applied to implementations of {@link ProjectFeatureBinding}
  * to indicate that the registration should be automatically discovered and applied by Gradle.
  *
  * This annotation is used by project plugins that want to contribute project feature bindings.
@@ -33,5 +33,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BindsProjectFeature {
-    Class<? extends ProjectFeatureBindingRegistration> value();
+    Class<? extends ProjectFeatureBinding> value();
 }

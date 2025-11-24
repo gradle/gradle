@@ -22,14 +22,11 @@ import org.gradle.cache.Cache;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.Optional;
 
 @ServiceScope(Scope.Build.class)
@@ -59,9 +56,9 @@ public interface ExecutionEngine {
          *
          * If the cache already contains the outputs for the given work, an already finished {@link Deferrable} will be returned.
          * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
-         * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
+         * The work is looked up by its {@link Identity identity} in the given cache.
          */
-        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, IdentityCacheResult<T>> cache);
+        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, DeferredResult<T>> cache);
     }
 
     interface Result {
@@ -91,88 +88,5 @@ public interface ExecutionEngine {
          */
         @VisibleForTesting
         Optional<ExecutionOutputState> getAfterExecutionOutputState();
-    }
-
-    interface IdentityCacheResult<T> {
-
-        Try<T> getResult();
-
-        /**
-         * The origin metadata of the result.
-         *
-         * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
-         * If the output was produced in this request, then the current execution's origin metadata is returned.
-         */
-        Optional<OriginMetadata> getOriginMetadata();
-    }
-
-    interface Execution {
-        /**
-         * Get how the outputs have been produced.
-         */
-        ExecutionOutcome getOutcome();
-
-        /**
-         * Get the object representing the produced output.
-         * The type of value returned here depends on the {@link UnitOfWork} implementation.
-         */
-        // TODO Parametrize UnitOfWork with this generated result
-        @Nullable
-        Object getOutput(File workspace);
-
-        /**
-         * Whether the outputs of this execution should be stored in the build cache.
-         */
-        default boolean canStoreOutputsInCache() {
-            return true;
-        }
-
-        static Execution skipped(ExecutionOutcome outcome, UnitOfWork work) {
-            return new Execution() {
-                @Override
-                public ExecutionOutcome getOutcome() {
-                    return outcome;
-                }
-
-                @Nullable
-                @Override
-                public Object getOutput(File workspace) {
-                    return work.loadAlreadyProducedOutput(workspace);
-                }
-            };
-        }
-    }
-
-    /**
-     * The way the outputs have been produced.
-     */
-    enum ExecutionOutcome {
-        /**
-         * The outputs haven't been changed, because the work is already up-to-date
-         * (i.e. its inputs and outputs match that of the previous execution in the
-         * same workspace).
-         */
-        UP_TO_DATE,
-
-        /**
-         * The outputs of the work have been loaded from the build cache.
-         */
-        FROM_CACHE,
-
-        /**
-         * Executing the work was not necessary to produce the outputs.
-         * This is usually due to the work having no inputs to process.
-         */
-        SHORT_CIRCUITED,
-
-        /**
-         * The work has been executed with information about the changes that happened since the previous execution.
-         */
-        EXECUTED_INCREMENTALLY,
-
-        /**
-         * The work has been executed with no incremental change information.
-         */
-        EXECUTED_NON_INCREMENTALLY
     }
 }

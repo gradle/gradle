@@ -122,10 +122,10 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.NonLockingMutableWorkspaceProvider;
@@ -271,7 +271,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides
         MutableTransformWorkspaceServices createTransformWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
             Supplier<File> baseDirectory = projectLayout.getBuildDirectory().dir(".transforms").map(Directory::getAsFile)::get;
-            Cache<UnitOfWork.Identity, IdentityCacheResult<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
+            Cache<Identity, DeferredResult<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
             return new MutableTransformWorkspaceServices() {
                 @Override
                 public MutableWorkspaceProvider getWorkspaceProvider() {
@@ -279,7 +279,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public Cache<UnitOfWork.Identity, IdentityCacheResult<TransformWorkspaceResult>> getIdentityCache() {
+                public Cache<Identity, DeferredResult<TransformWorkspaceResult>> getIdentityCache() {
                     return identityCache;
                 }
 

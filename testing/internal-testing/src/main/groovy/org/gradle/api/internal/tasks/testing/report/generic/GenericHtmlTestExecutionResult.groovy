@@ -44,6 +44,7 @@ import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.greaterThanOrEqualTo
+import static org.hamcrest.Matchers.notNullValue
 import static org.junit.jupiter.api.Assertions.fail
 
 class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
@@ -51,7 +52,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         def reportPath = htmlReportDirectory.toPath()
         try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
             return paths.filter {
-                it.getFileName().toString() == "index.html"
+                it.getFileName().toString().endsWith(".html")
             }.map {
                 def html = Jsoup.parse(it.toFile(), null)
                 def breadcrumbs = html.selectFirst(".breadcrumbs")
@@ -220,25 +221,41 @@ Unexpected paths: ${unexpectedPaths}""")
     }
 
     private java.nio.file.Path diskPathForTestPath(String frameworkTestPath) {
-        String processedPath = Strings.isNullOrEmpty(frameworkTestPath) ? "index.html" : GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath))
-        htmlReportDirectory.toPath().resolve(processedPath)
+        if (Strings.isNullOrEmpty(frameworkTestPath)) {
+            return htmlReportDirectory.toPath().resolve("index.html")
+        }
+        java.nio.file.Path nonLeafPath = htmlReportDirectory.toPath().resolve(
+            GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), false)
+        )
+        if (Files.exists(nonLeafPath)) {
+            return nonLeafPath
+        } else {
+            return htmlReportDirectory.toPath().resolve(
+                GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), true)
+            )
+        }
+    }
+
+    private static Map<String, Element> getTabs(Element base) {
+        def container = base.selectFirst('.tab-container')
+        // Check container only for presence. If no container, return empty map.
+        // Otherwise, we expect the structure to be correct.
+        if (container == null) {
+            return Collections.emptyMap()
+        }
+        def tabs = container.select('> .tab')
+        def tabNames = container.select('> .tabLinks > li')
+        assert tabs.size() == tabNames.size()
+        Map<String, Element> result = new LinkedHashMap<>()
+        for (int i = 0; i < tabs.size(); i++) {
+            def tabName = tabNames.get(i).text()
+            assert !result.containsKey(tabName) : "Duplicate tab name: " + tabName
+            result[tabName] = tabs.get(i)
+        }
+        return result
     }
 
     private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
-        private static Map<String, Element> getTabs(Element base) {
-            def container = base.selectFirst('.tab-container')
-            def tabs = container.select('> .tab')
-            def tabNames = container.select('> .tabLinks > li')
-            assert tabs.size() == tabNames.size()
-            Map<String, Element> result = new LinkedHashMap<>();
-            for (int i = 0; i < tabs.size(); i++) {
-                def tabName = tabNames.get(i).text()
-                assert !result.containsKey(tabName) : "Duplicate tab name: " + tabName
-                result[tabName] = tabs.get(i)
-            }
-            return result
-        }
-
         private final TestFramework testFramework
         private final List<String> rootNames = []
         private final List<String> rootDisplayNames = []
@@ -343,23 +360,28 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         private void extractCases() {
-            extractTestCaseTo("tr > td.success:eq(0)", testsSucceeded)
-            extractTestCaseTo("tr > td.failures:eq(0)", testsFailures)
-            extractTestCaseTo("tr > td.skipped:eq(0)", testsSkipped)
+            def summarySection = getTabs(html).get("summary")
+            assertThat("no summary section found", summarySection, notNullValue())
+            def allSection = getTabs(summarySection).get("All")
+            def allTestsContainer = allSection == null ? summarySection : allSection
+            extractTestCaseTo(allTestsContainer, "tr > td.success:eq(0)", testsSucceeded)
+            extractTestCaseTo(allTestsContainer, "tr > td.failures:eq(0)", testsFailures)
+            extractTestCaseTo(allTestsContainer, "tr > td.skipped:eq(0)", testsSkipped)
         }
 
-        private extractTestCaseTo(String cssSelector, Multimap<String, TestInfo> target) {
-            html.select(cssSelector).each {
+        private extractTestCaseTo(Element element, String cssSelector, Multimap<String, TestInfo> target) {
+            def hasNameColumn = hasNameColumn(element)
+            element.select(cssSelector).each {
                 def testDisplayName = it.text().trim()
-                def testName = hasNameColumn() ? it.nextElementSibling().text().trim() : testDisplayName
+                def testName = hasNameColumn ? it.nextElementSibling().text().trim() : testDisplayName
                 def testInfo = new TestInfo(testName, testDisplayName)
                 testsExecuted.put(testName, testInfo)
                 target.put(testName, testInfo)
             }
         }
 
-        private boolean hasNameColumn() {
-            return html.select('tr > th').size() == 7
+        private static boolean hasNameColumn(Element element) {
+            return element.select('tr > th').size() == 7
         }
 
         private ImmutableMultiset<String> frameworkTestNames(String... testNames) {

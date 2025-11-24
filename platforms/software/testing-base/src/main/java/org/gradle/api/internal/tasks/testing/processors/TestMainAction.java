@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -29,14 +29,14 @@ import org.gradle.internal.work.WorkerLeaseService;
 
 public class TestMainAction implements Runnable {
     private final TestDetector detector;
-    private final TestClassProcessor<?> processor;
+    private final TestDefinitionProcessor<?> processor;
     private final TestResultProcessor resultProcessor;
     private final WorkerLeaseService workerLeaseService;
     private final Clock clock;
     private final Object rootTestSuiteId;
     private final String displayName;
 
-    public TestMainAction(TestDetector detector, TestClassProcessor<?> processor, TestResultProcessor resultProcessor, WorkerLeaseService workerLeaseService, Clock clock, Object rootTestSuiteId, String displayName) {
+    public TestMainAction(TestDetector detector, TestDefinitionProcessor<?> processor, TestResultProcessor resultProcessor, WorkerLeaseService workerLeaseService, Clock clock, Object rootTestSuiteId, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);

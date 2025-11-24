@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Formatter;
 import java.util.List;
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
 
 public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);

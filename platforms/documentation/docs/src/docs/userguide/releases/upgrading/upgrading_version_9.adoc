@@ -41,9 +41,21 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== TestNG output may change when using versions before 6.9.13.3
+
+As part of the `AbstractTestTask` refactoring, Gradle’s integration with TestNG has been updated.
+Gradle now relies on a correctly functioning `IClassListener` to report the hierarchy of test classes and methods.
+
+When using TestNG versions **earlier than 6.9.13.3**, this can lead to different or degraded output:
+
+- With older versions, class information may be lost. For example, output that previously looked like: `org.gradle > TestClass > ok` may now be reported simply as: `ok`.
+- For TestNG versions **from 6.9.10 up to (but not including) 6.9.13.3**, the `IClassListener` API exists but is broken. This can result in even worse output, such as empty or missing names.
+
+To get correct and stable output, we recommend upgrading to **TestNG 6.9.13.3 or newer**.
+
 ==== Upgrade to Kotlin 2.2.21
 
-The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[Kotlin 2.2.21].
+The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[2.2.21].
 
 ==== Upgrade to Jansi 2.4.2
 
@@ -55,7 +67,7 @@ ASM was upgraded from 9.8 to https://asm.ow2.io/versions.html[9.9] to ensure ear
 
 ==== Upgrade to Groovy 4.0.29
 
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[Groovy 4.0.29].
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[4.0.29].
 
 ==== Upgrade to JaCoCo 0.8.14
 
@@ -64,16 +76,87 @@ JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[
 === Deprecations
 
 [[deprecated_wrapper_get_available_distribution_types]]
-==== Deprecated `Wrapper.getAvailableDistributionTypes()` method
+==== Deprecation of the `Wrapper.getAvailableDistributionTypes()` method
 
 The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[Wrapper] task has been deprecated and will be removed in Gradle 10.
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
+[[deprecate_unpublished_project_dependencies]]
+==== Deprecation of publishing dependencies on unpublished projects
+
+When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.
+If the target project has no publication, Gradle currently resolves the dependency silently using that project's `group`, `name`, and `version`.
+
+Starting with Gradle 10, this behavior is deprecated.
+Gradle will no longer silently ignore the absence of a publication.
+Publishing a project that depends on another project without a publication will be forbidden and will cause the build to fail.
+This change prevents publishing broken metadata with dependency coordinates that cannot be resolved.
+
+The example below demonstrates a build that triggers the deprecated behavior:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+dependencies {
+    api(project(":other"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+group = "com.example"
+version = "1.0.0"
+----
+
+To avoid this deprecation, ensure that all project dependencies of published projects are also published.
+In the example above, applying the `maven-publish` plugin and configuring a publication in the `:other` project resolves the issue:
+
+.other/build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+group = "com.example"
+version = "1.0.0"
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+----
+
 [[deprecate_legacy_usage_values]]
 ==== Deprecation of legacy `Usage` attribute values
 
-Since Gradle 5.6, the link:{javadocPath}/org/gradle/api/attributes/Usage.html[`Usage`] attribute has been split into a separate link:{javadocPath}/org/gradle/api/attributes/LibraryElements.html[`LibraryElements`] attribute.
+Since Gradle 5.6, the link:{javadocPath}/org/gradle/api/attributes/Usage.html[`Usage`] attribute has been split into an additional link:{javadocPath}/org/gradle/api/attributes/LibraryElements.html[`LibraryElements`] attribute.
 In the JVM ecosystem, `Usage` indicates whether a variant is intended for compilation or runtime, while `LibraryElements` specifies the format of the artifact (for example, a JAR file or a classes directory).
 
 To ease migration, Gradle has automatically mapped legacy `Usage` values to their corresponding `Usage` and `LibraryElements` pairs:
@@ -88,7 +171,50 @@ To ease migration, Gradle has automatically mapped legacy `Usage` values to thei
 |===
 
 Starting with Gradle 10, this automatic mapping will no longer occur when legacy `Usage` values are added directly to an `AttributeContainer` in build logic.
-To maintain backward compatibility, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
+To maintain backward compatibility for already published modules, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
+
+[[module_identity_for_root_component]]
+==== Deprecation of using module coordinates to depend on the current project
+
+Starting with Gradle 10, declaring a dependency on the current project using module coordinates (`group`, `name`, `version`) will no longer resolve to that project.
+Instead, Gradle will attempt to resolve that dependency from a repository.
+
+The example below demonstrates the change in behavior:
+
+.my-project/build.gradle.kts
+[source,kotlin]
+----
+group = "com.example"
+version = "1.0.0"
+
+val deps = configurations.dependencyScope("deps")
+val classpath = configurations.resolvable("classpath") {
+    extendsFrom(deps.get())
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+val elements = configurations.consumable("elements") {
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+}
+
+dependencies {
+    // In Gradle 9.x, this dependency resolves to the `elements` configuration.
+    // In Gradle 10, this dependency will attempt to resolve from a repository.
+    deps("com.example:my-project:1.0.0")
+}
+----
+
+To continue depending on the current project, use a `project` dependency:
+
+.my-project/build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    // Declare a dependency on the current project to continue resolving
+    // to the current project.
+    deps(project)
+}
+----
 
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier

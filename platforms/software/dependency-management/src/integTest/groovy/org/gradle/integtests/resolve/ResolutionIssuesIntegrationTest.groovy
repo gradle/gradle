@@ -144,18 +144,12 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             pluginManagement {
                 ${mavenCentralRepository()}
-                repositories {
-                    google()
-                    maven { url = 'https://jitpack.io' }
-                }
+                ${googleRepository()}
             }
 
             dependencyResolutionManagement {
                 ${mavenCentralRepository()}
-                repositories {
-                    google()
-                    maven { url = 'https://jitpack.io' }
-                }
+                ${googleRepository()}
             }
         """
 
@@ -210,9 +204,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
             dependencyResolutionManagement {
                 ${mavenTestRepository()}
                 ${mavenCentralRepository()}
-                repositories {
-                    google()
-                }
+                ${googleRepository()}
             }
         """
 

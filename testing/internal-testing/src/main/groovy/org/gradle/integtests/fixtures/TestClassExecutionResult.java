@@ -20,6 +20,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.hamcrest.Matcher;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public interface TestClassExecutionResult {
@@ -36,6 +37,23 @@ public interface TestClassExecutionResult {
     TestClassExecutionResult assertTestsExecuted(TestCase... testCases);
 
     TestClassExecutionResult assertTestCount(int tests, int failures);
+
+    /**
+     * Asserts that the provided metadata appears in the result file at the class level
+     */
+    default TestClassExecutionResult assertMetadata(Map<String, String> props) {
+        assert false;
+        return this;
+    }
+
+    /**
+     * Asserts that the provided metadata appears in the result file at the test level
+     */
+    default TestClassExecutionResult assertTestMetadata(String name, Map<String, String> props) {
+        assert false;
+        return this;
+    }
+
 
     int getTestCount();
 

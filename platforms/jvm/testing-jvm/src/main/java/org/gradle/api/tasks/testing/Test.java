@@ -656,7 +656,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        if (!getTestFramework().supportsNonClassBasedTesting() && !getTestDefinitionDirs().isEmpty()) {
+        if (!getTestFramework().supportsNonClassBasedTesting() && !Collections.emptySet().isEmpty()) {
             throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
         }
 
@@ -669,7 +669,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), getTestDefinitionDirs().getFiles(),
+            getCandidateClassFiles(), isScanForTestClasses(), Collections.emptySet(),
             getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
@@ -686,11 +686,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         if (store.hasResults()) {
             final Set<String> previousFailedTestClasses = new HashSet<>();
             try {
-                store.forEachResult(result -> {
+                store.forEachResult((id, parentId, result, ranges) -> {
                     // Test class descriptors set both name and class name to the test class name
-                    if (result.getInnerResult().getName().equals(result.getInnerResult().getClassName())) {
-                        if (result.getInnerResult().getResultType() == TestResult.ResultType.FAILURE) {
-                            previousFailedTestClasses.add(result.getInnerResult().getClassName());
+                    if (result.getName().equals(result.getClassName())) {
+                        if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                            previousFailedTestClasses.add(result.getClassName());
                         }
                     }
                 });
@@ -857,19 +857,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public FileCollection getTestClassesDirs() {
         return testClassesDirs;
     }
-
-    /**
-     * Returns directories to scan for non-class-based test definition files.
-     *
-     * @return The directories holding non-class-based test definition files.
-     * @since 9.3.0
-     */
-    @Incubating
-    @InputFiles
-    @SkipWhenEmpty
-    @IgnoreEmptyDirectories
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract ConfigurableFileCollection getTestDefinitionDirs();
 
     /**
      * Sets the directories to scan for compiled test sources.

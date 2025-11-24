@@ -171,7 +171,7 @@
     "name": "build-operations-trace",
     "path": "platforms/core-runtime/build-operations-trace",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -1376,13 +1376,6 @@
     "path": "platforms/software/testing-base-infrastructure",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "name": "testing-junit-platform",
-    "path": "platforms/jvm/testing-junit-platform",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

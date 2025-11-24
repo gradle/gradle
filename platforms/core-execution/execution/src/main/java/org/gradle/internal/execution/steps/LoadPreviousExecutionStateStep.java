@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.steps;
 
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 
 public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {

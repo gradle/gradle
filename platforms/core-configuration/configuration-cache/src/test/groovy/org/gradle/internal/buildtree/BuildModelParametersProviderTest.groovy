@@ -94,7 +94,7 @@ class BuildModelParametersProviderTest extends Specification {
         given:
         def params = parameters(runsTasks: tasks, createsModel: models) {
             isolatedProjects = Option.Value.value(true)
-            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsConfigureOnDemand.systemPropertyName] = ipConfigureOnDemand
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsConfigureOnDemand.propertyName] = ipConfigureOnDemand
         }
 
         expect:
@@ -136,7 +136,7 @@ class BuildModelParametersProviderTest extends Specification {
         given:
         def params = parameters(runsTasks: tasks, createsModel: models) {
             isolatedProjects = Option.Value.value(true)
-            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsParallel.systemPropertyName] = ipParallel
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsParallel.propertyName] = ipParallel
         }
 
         expect:
@@ -178,7 +178,7 @@ class BuildModelParametersProviderTest extends Specification {
         given:
         def params = parameters(runsTasks: tasks, createsModel: models) {
             isolatedProjects = Option.Value.value(true)
-            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.systemPropertyName] = ipCaching
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.propertyName] = ipCaching
         }
 
         expect:
@@ -213,7 +213,7 @@ class BuildModelParametersProviderTest extends Specification {
     def "caching-ip parameter is unsupported for #value"() {
         when:
         parameters(runsTasks: true, createsModel: false) {
-            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.systemPropertyName] = value
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.propertyName] = value
         }
 
         then:

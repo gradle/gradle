@@ -18,22 +18,20 @@ package org.gradle.internal.composite;
 
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Map;
+import java.util.Set;
 
 @NullMarked
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildIncludeListener {
-    void buildInclusionFailed(BuildState includedBuildSpec, Exception exception);
+    void buildInclusionFailed(BuildState includedBuildSpec);
 
-    Map<BuildState, Failure> getBrokenBuilds();
+    Set<BuildState> getBrokenBuilds();
 
-    void settingsScriptFailed(SettingsInternal settingsScript, LocationAwareException e);
+    void settingsScriptFailed(SettingsInternal settingsScript);
 
-    Map<SettingsInternal, Failure> getBrokenSettings();
+    Set<SettingsInternal> getBrokenSettings();
 }
