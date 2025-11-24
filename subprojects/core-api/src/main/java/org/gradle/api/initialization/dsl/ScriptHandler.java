@@ -18,7 +18,6 @@ package org.gradle.api.initialization.dsl;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
@@ -89,7 +88,6 @@ public interface ScriptHandler {
      * @param action the action to use to configure the repositories.
      * @since 9.4.0
      */
-    @Incubating
     void repositories(Action<? super RepositoryHandler> action);
 
     /**
@@ -125,7 +123,6 @@ public interface ScriptHandler {
      *
      * @since 8.4
      */
-    @Incubating
     void configurations(Action<? super ConfigurationContainer> action);
 
     /**
@@ -153,7 +150,6 @@ public interface ScriptHandler {
      * @param action the action to use to configure dependency locking.
      * @since 9.4.0
      */
-    @Incubating
     void dependencyLocking(Action<? super DependencyLockingHandler> action);
 
     /**

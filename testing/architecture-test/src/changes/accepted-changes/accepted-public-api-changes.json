@@ -9,6 +9,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.initialization.dsl.ScriptHandler",
+            "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.repositories(org.gradle.api.Action)",
+            "acceptation": "de-incubating API",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
             "acceptation": "faulty since detection",
