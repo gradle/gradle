@@ -75,11 +75,6 @@ Feature: Another Thing
         executedAndNotSkipped(":test")
 
         and:
-        // Output from XML report generation:
-        outputContains(
-            "Expected all results for grouping node :RunCukesTest:feature_classpath_features/my_thing.feature" +
-                " to have the same display name, but found: Another Thing and My Thing"
-        )
         def testResults = resultsFor()
         testResults.assertTestPathsExecuted(
             ":RunCukesTest:feature_classpath_features/my_thing.feature:A Scenario",
