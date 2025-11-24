@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.compatibility;
 
+import org.spockframework.runtime.extension.ExtensionAnnotation;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -25,5 +27,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited
+@ExtensionAnnotation(MultiVersionTestCategoryExtension.class)
 public @interface MultiVersionTestCategory {
 }
