@@ -16,6 +16,7 @@
 
 package org.gradle.internal.isolate.actions.services
 
+import org.gradle.internal.isolate.graph.IsolationCodecsProvider
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 import org.gradle.invocation.GradleLifecycleActionExecutor
@@ -25,7 +26,7 @@ internal
 class IsolatedActionServices : AbstractGradleModuleServices() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
-        registration.add(IsolatedActionCodecsFactory::class.java)
+        registration.add(IsolationCodecsProvider::class.java, IsolatedActionCodecsFactory::class.java)
     }
 
     override fun registerBuildServices(registration: ServiceRegistration) {

@@ -132,6 +132,31 @@ class IsolatedProjectsExtensionsAccessIntegrationTest extends AbstractIsolatedPr
         ]
     }
 
+    def "access to non-serializable extensions emits a problem"() {
+        settingsFile """
+            include(":a")
+        """
+        buildFile """
+            extensions.add("number", 42)
+            extensions.add("broken", this)
+        """
+        buildFile ("a/build.gradle", """
+            println("Number is \${rootProject.extensions.getByName('number')}")
+            println("Broken is \${rootProject.extensions.getByName('broken')}")
+        """)
+
+        when:
+        isolatedProjectsFails "help"
+
+        then:
+        outputContains("Number is 42")
+
+        and:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'a/build.gradle': line 2: Extension of ':' cannot be serialized ")
+        }
+    }
+
     //TODO Test isolation of ExtensionContainer.getAsMap
     //TODO Test isolation of ExtensionContainer.getExtensionSchema
     //TODO Test isolation of ExtensionContainer.getExtraProperties

@@ -28,7 +28,10 @@ import org.gradle.internal.isolate.graph.IsolatedActionSerializer
 import org.gradle.internal.isolate.graph.SerializedIsolatedActionGraph
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
+@ServiceScope(Scope.Project::class)
 interface IsolatedExtensionsProvider {
 
     fun <T> findByType(type: TypeOf<T>): Try<T>?
@@ -68,6 +71,7 @@ internal class DefaultIsolatedExtensionsProvider(
         return extensions.get()
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T> findByType(type: TypeOf<T>): Try<T>? {
         val extensionOfExactType = getSerializedExtensions().values.firstOrNull { it.type == type }
         val serialized = extensionOfExactType?.value

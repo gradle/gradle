@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
@@ -38,10 +39,17 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
+import org.gradle.internal.isolate.graph.IsolatedActionDeserializer
+import org.gradle.internal.isolate.graph.IsolatedActionSerializer
+import org.gradle.internal.isolate.graph.IsolationCodecsProvider
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
+import org.gradle.internal.serialize.graph.BeanStateReaderLookup
+import org.gradle.internal.serialize.graph.BeanStateWriterLookup
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -92,7 +100,30 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
     override fun registerProjectServices(registration: ServiceRegistration) {
         registration.run {
-            add(IsolatedExtensionsProvider::class.java, DefaultIsolatedExtensionsProvider::class.java)
+            addProvider(IsolatedExtensionsProviderProvider)
+        }
+    }
+
+    private
+    object IsolatedExtensionsProviderProvider : ServiceRegistrationProvider {
+        @Provides
+        fun createIsolatedExtensionsProvider(
+            project: ProjectInternal,
+            beanStateWriterLookup: BeanStateWriterLookup,
+            beanStateReaderLookup: BeanStateReaderLookup,
+            calculatedValueContainerFactory: CalculatedValueContainerFactory,
+            isolationCodecsProvider: IsolationCodecsProvider
+        ): IsolatedExtensionsProvider {
+            val isolateOwner = object : IsolateOwner {
+                override val delegate: Any = project
+                override fun <T : Any> service(type: Class<T>): T = project.services.get(type)
+            }
+            return DefaultIsolatedExtensionsProvider(
+                project.owner,
+                IsolatedActionSerializer(isolateOwner, beanStateWriterLookup, isolationCodecsProvider),
+                IsolatedActionDeserializer(isolateOwner, beanStateReaderLookup, isolationCodecsProvider),
+                calculatedValueContainerFactory
+            )
         }
     }
 

@@ -176,7 +176,7 @@ class ProblemReportingCrossProjectModelAccess(
                     // TODO too coarse grained lock?
                     IsolatedExtensionsContainer(
                         it.serviceOf(),
-                        super.extensions,
+                        delegate.extensions,
                     ) { isolationException ->
                         val problem = problemFactory.problem(
                             message = StructuredMessage.build {
@@ -192,7 +192,7 @@ class ProblemReportingCrossProjectModelAccess(
                 }
             } else {
                 onIsolationViolation("extensions") // TODO: Lets print a more descriptive error here
-                return super.extensions
+                return delegate.extensions
             }
         }
 
