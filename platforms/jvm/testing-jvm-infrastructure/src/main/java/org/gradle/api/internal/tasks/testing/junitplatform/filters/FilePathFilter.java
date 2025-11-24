@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junitplatform.filters;
 
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
-import org.jspecify.annotations.NullMarked;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
@@ -28,14 +27,12 @@ import org.junit.platform.launcher.PostDiscoveryFilter;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Optional;
 
 /**
  * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
  * file or directory based tests based on their relative paths to the root directory
  * of the project that contains them.
  */
-@NullMarked
 public final class FilePathFilter implements PostDiscoveryFilter {
     private final TestSelectionMatcher matcher;
     private final File baseFilterDir;
@@ -51,12 +48,7 @@ public final class FilePathFilter implements PostDiscoveryFilter {
     }
 
     private boolean shouldRun(TestDescriptor descriptor) {
-        Optional<TestSource> source = descriptor.getSource();
-        if (!source.isPresent()) {
-            throw new IllegalArgumentException("No test source found for " + descriptor);
-        }
-
-        TestSource testSource = source.get();
+        TestSource testSource = descriptor.getSource().orElseThrow(() -> new IllegalArgumentException("No test source found for " + descriptor));
         if (testSource instanceof FileSource || testSource instanceof DirectorySource) {
             return fileMatch(((FileSystemSource) testSource).getFile());
         }

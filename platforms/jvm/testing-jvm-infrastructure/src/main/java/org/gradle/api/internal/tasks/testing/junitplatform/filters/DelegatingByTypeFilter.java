@@ -24,6 +24,18 @@ import org.junit.platform.launcher.PostDiscoveryFilter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A JUnit Platform {@link PostDiscoveryFilter} that delegates filtering to other
+ * {@link PostDiscoveryFilter} instances based on the type of {@link TestSource}
+ * associated with the {@link TestDescriptor}.
+ * <p>
+ * Adding <strong>only</strong> this type to the JUnit Platform launch request
+ * prevents the class-based {@link ClassMethodNameFilter} filter to be run against non-class-based test descriptors
+ * and have to report "included" (and vice versa, with {@link FilePathFilter}).  That
+ * filter is n/a in that situation and can't render a meaningful opinion.  Delegating
+ * by type allows each filter to be applied only to the test descriptors it can
+ * meaningfully filter.
+ */
 public final class DelegatingByTypeFilter implements PostDiscoveryFilter {
     private final Map<Class<? extends TestSource>, PostDiscoveryFilter> delegates = new HashMap<>();
 

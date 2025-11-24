@@ -444,7 +444,6 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         writeTestDefinitions()
-        writeTestDefinitions()
         file("$DEFAULT_DEFINITIONS_LOCATION/subdir1/SomeTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="subfoo" />

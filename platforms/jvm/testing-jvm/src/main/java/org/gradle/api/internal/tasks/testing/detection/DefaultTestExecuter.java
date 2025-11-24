@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -69,7 +68,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     public DefaultTestExecuter(
         WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
         WorkerLeaseService workerLeaseService, int maxWorkerCount,
-        Clock clock, DefaultTestFilter testFilter, ProjectLayout projectLayout
+        Clock clock, DefaultTestFilter testFilter
     ) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;

@@ -29,7 +29,6 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -172,7 +171,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @NullMarked
 @CacheableTask
 public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTestTask.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Test.class);
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
@@ -766,8 +765,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 getServices().get(WorkerLeaseService.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
-                (DefaultTestFilter) getFilter(),
-                getServices().get(ProjectLayout.class));
+                (DefaultTestFilter) getFilter());
         } else {
             return testExecuter;
         }
