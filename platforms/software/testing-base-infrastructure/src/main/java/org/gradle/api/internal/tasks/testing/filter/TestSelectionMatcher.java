@@ -17,14 +17,16 @@ package org.gradle.api.internal.tasks.testing.filter;
 
 
 import org.apache.commons.lang3.StringUtils;
-import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
@@ -47,34 +49,49 @@ public class TestSelectionMatcher {
     private final List<ClassTestPattern> buildScriptExcludePatterns;
     private final List<ClassTestPattern> commandLineIncludePatterns;
 
-    private final List<FileTestPattern> fileBuildScriptIncludePatterns;
-    private final List<FileTestPattern> fileBuildScriptExcludePatterns;
-    private final List<FileTestPattern> fileCommandLineIncludePatterns;
+    private final List<FileTestPattern> pathBuildScriptIncludePatterns;
+    private final List<FileTestPattern> pathBuildScriptExcludePatterns;
+    private final List<FileTestPattern> pathCommandLineIncludePatterns;
 
     public TestSelectionMatcher(TestFilterSpec filter) {
-        buildScriptIncludePatterns = preparePatternList(filter.getIncludedTests());
-        buildScriptExcludePatterns = preparePatternList(filter.getExcludedTests());
-        commandLineIncludePatterns = preparePatternList(filter.getIncludedTestsCommandLine());
+        buildScriptIncludePatterns = prepareClassBasedPatternList(filter.getIncludedTests());
+        buildScriptExcludePatterns = prepareClassBasedPatternList(filter.getExcludedTests());
+        commandLineIncludePatterns = prepareClassBasedPatternList(filter.getIncludedTestsCommandLine());
 
-        fileBuildScriptIncludePatterns = prepareFilePatternList(filter.getIncludedTests());
-        fileBuildScriptExcludePatterns = prepareFilePatternList(filter.getExcludedTests());
-        fileCommandLineIncludePatterns = prepareFilePatternList(filter.getIncludedTestsCommandLine());
+        pathBuildScriptIncludePatterns = preparePathBasedPatternList(filter.getIncludedTests());
+        pathBuildScriptExcludePatterns = preparePathBasedPatternList(filter.getExcludedTests());
+        pathCommandLineIncludePatterns = preparePathBasedPatternList(filter.getIncludedTestsCommandLine());
     }
 
-    private List<ClassTestPattern> preparePatternList(Collection<String> includedTests) {
-        List<ClassTestPattern> includePatterns = new ArrayList<>(includedTests.size());
-        for (String includedTest : includedTests) {
-            includePatterns.add(new ClassTestPattern(includedTest));
-        }
-        return includePatterns;
+    private static List<ClassTestPattern> prepareClassBasedPatternList(Collection<String> includedTests) {
+        return preparePatternList(includedTests, TestSelectionMatcher::isClassBasedPattern, ClassTestPattern::new);
     }
 
-    private List<FileTestPattern> prepareFilePatternList(Collection<String> includedTests) {
-        List<FileTestPattern> includePatterns = new ArrayList<>(includedTests.size());
-        for (String includedTest : includedTests) {
-            includePatterns.add(new FileTestPattern(includedTest));
-        }
-        return includePatterns;
+    private static List<FileTestPattern> preparePathBasedPatternList(Collection<String> includedTests) {
+        return preparePatternList(includedTests, TestSelectionMatcher::isPathBasedPattern, FileTestPattern::new);
+    }
+
+    private static <T> List<T> preparePatternList(Collection<String> includedTests, Predicate<String> patternFilter, Function<String, T> patternCreator) {
+        return includedTests.stream()
+            .filter(patternFilter)
+            .map(patternCreator)
+            .collect(Collectors.toList());
+    }
+
+    private static boolean isClassBasedPattern(String pattern) {
+        return !isPathBasedPattern(pattern);
+    }
+
+    private static boolean isPathBasedPattern(String pattern) {
+        return pattern.contains("/"); // Only Unix-style paths are supported in test selection patterns
+    }
+
+    public boolean hasClassBasedFilters() {
+        return !buildScriptIncludePatterns.isEmpty() || !buildScriptExcludePatterns.isEmpty() || !commandLineIncludePatterns.isEmpty();
+    }
+
+    public boolean hasPathBasedFilters() {
+        return !pathBuildScriptIncludePatterns.isEmpty() || !pathBuildScriptExcludePatterns.isEmpty() || !pathCommandLineIncludePatterns.isEmpty();
     }
 
     public boolean matchesPath(Path path) {
@@ -82,20 +99,20 @@ public class TestSelectionMatcher {
     }
 
     private boolean isIncludedPath(Path path) {
-        boolean isImplicitlyIncluded = fileBuildScriptIncludePatterns.isEmpty() && fileCommandLineIncludePatterns.isEmpty();
-        return isImplicitlyIncluded || matchesPattern(fileBuildScriptIncludePatterns, path) || matchesPattern(fileCommandLineIncludePatterns, path);
+        boolean isImplicitlyIncluded = pathBuildScriptIncludePatterns.isEmpty() && pathCommandLineIncludePatterns.isEmpty();
+        return isImplicitlyIncluded || matchesPattern(pathBuildScriptIncludePatterns, path) || matchesPattern(pathCommandLineIncludePatterns, path);
     }
 
     private boolean isExcludedPath(Path path) {
-        if (fileBuildScriptExcludePatterns.isEmpty()) {
+        if (pathBuildScriptExcludePatterns.isEmpty()) {
             return false;
         }
-        return matchesPattern(fileBuildScriptExcludePatterns, path);
+        return matchesPattern(pathBuildScriptExcludePatterns, path);
     }
 
     private boolean matchesPattern(List<FileTestPattern> patterns, Path path) {
         for (FileTestPattern pattern : patterns) {
-            if (pattern.matches(path.toString())) {
+            if (pattern.matches("/" + path.toString())) { // Add leading slash in target path (will always be optionally present at the start of the regex)
                 return true;
             }
         }
@@ -192,19 +209,12 @@ public class TestSelectionMatcher {
         }
 
         private static Pattern preparePattern(String input) {
-            StringBuilder pattern = new StringBuilder();
-            String[] split = StringUtils.splitPreserveAllTokens(input, '*');
-            for (String s : split) {
-                if (s.isEmpty()) {
-                    pattern.append(".*"); //replace wildcard '*' with '.*'
-                } else {
-                    if (pattern.length() > 0) {
-                        pattern.append(".*"); //replace wildcard '*' with '.*'
-                    }
-                    pattern.append(Pattern.quote(s)); //quote everything else
-                }
+            try {
+                // Add optional leading slash to match both "absolute" and "relative" paths (all paths are treated as relative to project root)
+                return Pattern.compile("/?(" + input + ")");
+            } catch (PatternSyntaxException e) {
+                throw new IllegalArgumentException("Path filter pattern is not a valid regex: " + input, e);
             }
-            return Pattern.compile(TextUtil.normaliseFileSeparators(pattern.toString()));
         }
     }
 

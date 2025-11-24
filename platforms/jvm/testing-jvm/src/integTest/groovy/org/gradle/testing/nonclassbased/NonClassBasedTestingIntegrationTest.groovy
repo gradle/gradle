@@ -16,17 +16,24 @@
 
 package org.gradle.testing.nonclassbased
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
-
 /**
  * Tests that exercise and demonstrate Non-Class-Based Testing using the {@code Test} task
  * and a sample resource-based JUnit Platform Test Engine defined in this project's {@code testFixtures}.
  */
-class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
+class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest implements VerifiesGenericTestReportResults {
     @Override
     List<TestEngines> getEnginesToSetup() {
         return [TestEngines.BASIC_RESOURCE_BASED]
+    }
+
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT_JUPITER
     }
 
     def "resource-based test engine detects and executes test definitions (excluding jupiter engine = #excludingJupiter)"() {
@@ -301,7 +308,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
     }
 
-    def "resource-based test engine can exclude test definitions"() {
+    def "invalid path filter handled gracefully (filter type = #filterType) "() {
         given:
         buildFile << """
             plugins {
@@ -318,7 +325,43 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            excludeTestsMatching "*SomeTestSpec*"
+                            $filterType "mis(matched/parens"
+                        }
+                    }
+                }
+            }
+        """
+        writeTestDefinitions()
+
+        when:
+        fails("test")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("Path filter pattern is not a valid regex: mis(matched/parens")
+
+        where:
+        filterType << ["includeTestsMatching", "excludeTestsMatching"]
+    }
+
+    def "resource-based test engine can exclude test definitions (with leading slash = #leadingSlash)"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            excludeTestsMatching "${leadingSlash ? "/" : ""}src/test/definitions/SomeTestSpec.rbt"
                         }
                     }
                 }
@@ -334,9 +377,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
         outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
         outputContains("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+
+        where:
+        leadingSlash << [true, false]
     }
 
-    def "resource-based test engine can exclude test definitions in subdirectories"() {
+    def "resource-based test engine can exclude test definitions in subdirectories (using pattern = #filterPattern)"() {
         given:
         buildFile << """
             plugins {
@@ -353,7 +399,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            excludeTestsMatching "*Additional*"
+                            excludeTestsMatching "$filterPattern"
                         }
                     }
                 }
@@ -361,7 +407,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         writeTestDefinitions()
-        file("$DEFAULT_DEFINITIONS_LOCATION/subdir1/AdditionalDefs.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+        file("$DEFAULT_DEFINITIONS_LOCATION/subdir1/AdditionalDir/AdditionalDefs.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="foo2" />
             </tests>
@@ -382,9 +428,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
         outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
         outputContains("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+
+        where:
+        filterPattern << ["src/test/definitions/AdditionalDir/.*|src/test/definitions/subdir1/AdditionalDir/.*", ".*/AdditionalDir/.*"]
     }
 
-    def "resource-based test engine can include test definitions"() {
+    def "resource-based test engine can include test definitions (with leading slash = #leadingSlash)"() {
         given:
         buildFile << """
             plugins {
@@ -401,7 +450,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            includeTestsMatching "*SomeTestSpec*"
+                            includeTestsMatching "${leadingSlash ? "/" : ""}src/test/definitions/SomeTestSpec.rbt"
                         }
                     }
                 }
@@ -417,9 +466,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
         outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
         outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+
+        where:
+        leadingSlash << [true, false]
     }
 
-    def "resource-based test engine can include test definitions in subdirectories"() {
+    def "resource-based test engine can include test definitions in subdirectories (using pattern = #filterPattern)"() {
         given:
         buildFile << """
             plugins {
@@ -436,7 +488,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            includeTestsMatching "*subdir1/SomeTestSpec*"
+                            includeTestsMatching ".*/subdir1/SomeTestSpec.*"
                         }
                     }
                 }
@@ -458,6 +510,9 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
         outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
         outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+
+        where:
+        filterPattern << [".*/subdir1/SomeTestSpec.*", ".*/SomeTestSpec.*", ".*/SomeTestSpec.rbt", "/src/test/definitions/subdir1/SomeTestSpec.rbt"]
     }
 
     def "resource-based test engine can include and exclude test definitions"() {
@@ -477,8 +532,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                         testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
 
                         filter {
-                            includeTestsMatching "*SomeTestSpec*"
-                            excludeTestsMatching "*SomeTestSpecThatShoudlntRun*"
+                            includeTestsMatching ".*/SomeTestSpec.*"
+                            excludeTestsMatching ".*/SomeTestSpecThatShouldntRun.*"
                         }
                     }
                 }
@@ -486,7 +541,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         writeTestDefinitions()
-        file("$DEFAULT_DEFINITIONS_LOCATION/SomeTestSpecThatShoudlntRun.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+        file("$DEFAULT_DEFINITIONS_LOCATION/SomeTestSpecThatShouldntRun.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="dontrun" />
             </tests>
@@ -499,8 +554,108 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
         outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
         outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpecThatShoudlntRun.rbt, name=dontrun]")
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpecThatShouldntRun.rbt, name=dontrun]")
     }
 
-    // TODO: Test filters using file separators to ensure they work on all platforms
+    def "when running class-based and non-class-based tests, filters with slashes only apply to non-class-based tests"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            excludeTestsMatching ".*/definitions/SampleTest.*"
+                        }
+                    }
+                }
+            }
+        """
+
+        file("src/test/java/definitions/SampleTest.java") << """
+            package definitions;
+
+            import org.junit.jupiter.api.Test;
+
+            public class SampleTest {
+                @Test
+                public void foo() {
+                    System.out.println("Tested!");
+                }
+            }
+        """
+
+        file("$DEFAULT_DEFINITIONS_LOCATION/SampleTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="foo" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SampleTest.rbt, name=foo]")
+        resultsFor().assertTestPathsExecuted(":definitions.SampleTest:foo()")
+    }
+
+    def "when running class-based and non-class-based tests, filters without slashes only apply to class-based tests"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            excludeTestsMatching "definitions.SampleTest"
+                        }
+                    }
+                }
+            }
+        """
+
+        file("src/test/java/definitions/SampleTest.java") << """
+            package definitions;
+
+            import org.junit.jupiter.api.Test;
+
+            public class SampleTest {
+                @Test
+                public void foo() {
+                    System.out.println("Tested!");
+                }
+            }
+        """
+
+        file("$DEFAULT_DEFINITIONS_LOCATION/SampleTest.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="foo" />
+            </tests>
+        """
+
+        when:
+        succeeds("test", "--info")
+
+        then:
+        outputContains("INFO: Executing resource-based test: Test[file=SampleTest.rbt, name=foo]")
+        resultsFor().assertTestPathsNotExecuted(":definitions.SampleTest:foo()")
+    }
 }

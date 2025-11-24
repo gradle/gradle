@@ -215,14 +215,18 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             if (isNotEmpty(filterSpec)) {
                 TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
 
-                ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
-                FilePathFilter fileFilter = new FilePathFilter(matcher, spec.getBaseDefinitionsDir());
-
                 DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter();
-                delegatingFilter.addDelegate(ClassSource.class, classFilter);
-                delegatingFilter.addDelegate(MethodSource.class, classFilter);
-                delegatingFilter.addDelegate(FileSource.class, fileFilter);
-                delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
+
+                if (matcher.hasClassBasedFilters()) {
+                    ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
+                    delegatingFilter.addDelegate(ClassSource.class, classFilter);
+                    delegatingFilter.addDelegate(MethodSource.class, classFilter);
+                }
+                if (matcher.hasPathBasedFilters()) {
+                    FilePathFilter fileFilter = new FilePathFilter(matcher, spec.getBaseDefinitionsDir());
+                    delegatingFilter.addDelegate(FileSource.class, fileFilter);
+                    delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
+                }
 
                 requestBuilder.filters(delegatingFilter);
             }
