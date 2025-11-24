@@ -724,6 +724,9 @@ tasks.named<Test>("docsTest") {
     filter {
         // TODO(https://github.com/gradle/gradle/issues/22538)
         excludeTestsMatching("org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation")
+        // disable while we're working on https://github.com/gradle/gradle-private/issues/4910
+        excludeTestsMatching("*snippet-dependency-management-declaring-configurations-android_*")
+        excludeTestsMatching("*snippet-dependency-management-declaring-configurations-kmp_*")
     }
 
     if (project.configurationCacheEnabledForDocsTests) {

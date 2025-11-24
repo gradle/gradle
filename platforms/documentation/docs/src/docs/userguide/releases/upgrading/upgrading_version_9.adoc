@@ -73,16 +73,21 @@ tasks.withType<CodeNarc>().configureEach {
 
 === Potential breaking changes
 
-==== TestNG output may be different when using a version before 6.9.13.3
-As a part of the `AbstractTestTask` refactoring, the integration with TestNG has been updated.
-Gradle now relies on a correctly functioning `IClassListener` integration to report the correct hierarchy of test classes and methods.
-This may lead to different output when using TestNG versions before 6.9.13.3, for example, if you had `org.gradle > TestClass > ok` before, it will now emit just `ok`, without any class information.
-Additionally, when using TestNG versions starting with 6.9.10 and before 6.9.13.3, the `IClassListener` exists but is broken, which may lead to even worse output, such as an empty name.
-It is recommended to update to at least TestNG 6.9.13.3 to get the correct output.
+==== TestNG output may change when using versions before 6.9.13.3
+
+As part of the `AbstractTestTask` refactoring, Gradle’s integration with TestNG has been updated.
+Gradle now relies on a correctly functioning `IClassListener` to report the hierarchy of test classes and methods.
+
+When using TestNG versions **earlier than 6.9.13.3**, this can lead to different or degraded output:
+
+- With older versions, class information may be lost. For example, output that previously looked like: `org.gradle > TestClass > ok` may now be reported simply as: `ok`.
+- For TestNG versions **from 6.9.10 up to (but not including) 6.9.13.3**, the `IClassListener` API exists but is broken. This can result in even worse output, such as empty or missing names.
+
+To get correct and stable output, we recommend upgrading to **TestNG 6.9.13.3 or newer**.
 
 ==== Upgrade to Kotlin 2.2.21
 
-The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[Kotlin 2.2.21].
+The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[2.2.21].
 
 ==== Upgrade to Jansi 2.4.2
 
@@ -94,7 +99,7 @@ ASM was upgraded from 9.8 to https://asm.ow2.io/versions.html[9.9] to ensure ear
 
 ==== Upgrade to Groovy 4.0.29
 
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[Groovy 4.0.29].
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[4.0.29].
 
 ==== Upgrade to JaCoCo 0.8.14
 
@@ -103,20 +108,22 @@ JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[
 === Deprecations
 
 [[deprecated_wrapper_get_available_distribution_types]]
-==== Deprecated `Wrapper.getAvailableDistributionTypes()` method
+==== Deprecation of the `Wrapper.getAvailableDistributionTypes()` method
 
 The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[Wrapper] task has been deprecated and will be removed in Gradle 10.
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
-==== Deprecated publishing dependency on an unpublished project
+[[deprecate_unpublished_project_dependencies]]
+==== Deprecation of publishing dependencies on unpublished projects
 
 When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.
-If the target project has no publication, Gradle currently resolves the dependency silently using the target project’s `group`, `name`, and `version`.
+If the target project has no publication, Gradle currently resolves the dependency silently using that project's `group`, `name`, and `version`.
 
-Starting with Gradle 10, this behavior is deprecated. Gradle will no longer silently ignore unpublished projects during publication.
-Publishing a project that depends on another project without a publication will be forbidden.
-This change prevents publishing broken metadata with invalid dependency coordinates.
+Starting with Gradle 10, this behavior is deprecated.
+Gradle will no longer silently ignore the absence of a publication.
+Publishing a project that depends on another project without a publication will be forbidden and will cause the build to fail.
+This change prevents publishing broken metadata with dependency coordinates that cannot be resolved.
 
 The example below demonstrates a build that triggers the deprecated behavior:
 
@@ -181,7 +188,7 @@ publishing {
 [[deprecate_legacy_usage_values]]
 ==== Deprecation of legacy `Usage` attribute values
 
-Since Gradle 5.6, the link:{javadocPath}/org/gradle/api/attributes/Usage.html[`Usage`] attribute has been split into a separate link:{javadocPath}/org/gradle/api/attributes/LibraryElements.html[`LibraryElements`] attribute.
+Since Gradle 5.6, the link:{javadocPath}/org/gradle/api/attributes/Usage.html[`Usage`] attribute has been split into an additional link:{javadocPath}/org/gradle/api/attributes/LibraryElements.html[`LibraryElements`] attribute.
 In the JVM ecosystem, `Usage` indicates whether a variant is intended for compilation or runtime, while `LibraryElements` specifies the format of the artifact (for example, a JAR file or a classes directory).
 
 To ease migration, Gradle has automatically mapped legacy `Usage` values to their corresponding `Usage` and `LibraryElements` pairs:
@@ -196,12 +203,12 @@ To ease migration, Gradle has automatically mapped legacy `Usage` values to thei
 |===
 
 Starting with Gradle 10, this automatic mapping will no longer occur when legacy `Usage` values are added directly to an `AttributeContainer` in build logic.
-To maintain backward compatibility, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
+To maintain backward compatibility for already published modules, Gradle will continue translating legacy `Usage` values found in published Gradle Module Metadata.
 
 [[module_identity_for_root_component]]
-==== Deprecated depending on current project using module coordinates
+==== Deprecation of using module coordinates to depend on the current project
 
-Starting with Gradle 10, declaring a dependency on the resolving project using module coordinates (`group`, `name`, `version`) will no longer resolve to that project.
+Starting with Gradle 10, declaring a dependency on the current project using module coordinates (`group`, `name`, `version`) will no longer resolve to that project.
 Instead, Gradle will attempt to resolve that dependency from a repository.
 
 The example below demonstrates the change in behavior:

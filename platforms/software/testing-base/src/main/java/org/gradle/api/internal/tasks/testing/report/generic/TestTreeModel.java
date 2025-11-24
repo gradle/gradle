@@ -20,7 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.internal.tasks.testing.results.serializable.OutputTrackedResult;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.Path;
@@ -36,7 +37,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalLong;
 import java.util.function.Consumer;
 
 /**
@@ -120,7 +120,7 @@ public class TestTreeModel {
         return rootBuilder.build();
     }
 
-    private static final class StoreLoader implements Consumer<OutputTrackedResult> {
+    private static final class StoreLoader implements SerializableTestResultStore.ResultProcessor {
 
         private static final class Child {
             private final long id;
@@ -145,8 +145,9 @@ public class TestTreeModel {
         }
 
         @Override
-        public void accept(OutputTrackedResult result) {
-            List<Child> children = childrenByParentId.get(result.getId());
+        public void process(long id, @Nullable Long parentId, SerializableTestResult result, OutputRanges outputRanges)
+            throws IOException {
+            List<Child> children = childrenByParentId.get(id);
             int totalLeafCount = 0;
             int failedLeafCount = 0;
             int skippedLeafCount = 0;
@@ -158,9 +159,9 @@ public class TestTreeModel {
             if (children.isEmpty()) {
                 // This is a leaf, so compute the counts for itself.
                 totalLeafCount = 1;
-                if (result.getInnerResult().getResultType() == TestResult.ResultType.FAILURE) {
+                if (result.getResultType() == TestResult.ResultType.FAILURE) {
                     failedLeafCount = 1;
-                } else if (result.getInnerResult().getResultType() == TestResult.ResultType.SKIPPED) {
+                } else if (result.getResultType() == TestResult.ResultType.SKIPPED) {
                     skippedLeafCount = 1;
                 }
             }
@@ -174,13 +175,12 @@ public class TestTreeModel {
                     childIsLeaf.set(i);
                 }
             }
-            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(result, childNames, childIsLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
-            OptionalLong parentOutputId = result.getParentId();
-            if (!parentOutputId.isPresent()) {
+            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(id, result, outputRanges, childNames, childIsLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
+            if (parentId == null) {
                 // We have the root, so now we can resolve all paths and attach to the models.
-                finalizePath(SmallPath.ROOT, result.getId(), thisInfo);
+                finalizePath(SmallPath.ROOT, id, thisInfo);
             } else {
-                childrenByParentId.put(parentOutputId.getAsLong(), new Child(result.getId(), thisInfo));
+                childrenByParentId.put(parentId, new Child(id, thisInfo));
             }
         }
 

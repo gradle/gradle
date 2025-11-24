@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Represents a test result that can be stored for a long time (potentially across process invocations).
@@ -38,6 +38,13 @@ import java.util.Objects;
  * </p>
  */
 public final class SerializableTestResult {
+    public static String getCombinedDisplayName(List<SerializableTestResult> testResults) {
+        return testResults.stream()
+            .map(SerializableTestResult::getDisplayName)
+            .distinct()
+            .collect(Collectors.joining(" / "));
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -316,53 +323,5 @@ public final class SerializableTestResult {
 
     public ImmutableList<TestMetadataEvent> getMetadatas() {
         return metadatas;
-    }
-
-    /**
-     * Merge two test results together. Certain properties must be equal in order to merge two results.
-     *
-     * @return the merged test result
-     */
-    public SerializableTestResult merge(SerializableTestResult other) {
-        if (!name.equals(other.name)) {
-            throw new IllegalArgumentException("Cannot merge test results with different names: " + name + " and " + other.name);
-        }
-        if (!displayName.equals(other.displayName)) {
-            throw new IllegalArgumentException("Cannot merge test results with different display names: " + displayName + " and " + other.displayName);
-        }
-        if (!Objects.equals(className, other.className)) {
-            throw new IllegalArgumentException("Cannot merge test results with different class names: " + className + " and " + other.className);
-        }
-        if (!Objects.equals(classDisplayName, other.classDisplayName)) {
-            throw new IllegalArgumentException("Cannot merge test results with different class display names: " + classDisplayName + " and " + other.classDisplayName);
-        }
-        if (assumptionFailure != null && other.assumptionFailure != null) {
-            throw new IllegalArgumentException("Cannot merge test results with multiple assumption failures");
-        }
-
-        // Merge result type by taking the worst result
-        TestResult.ResultType resultType;
-        if (this.resultType == TestResult.ResultType.FAILURE || other.resultType == TestResult.ResultType.FAILURE) {
-            resultType = TestResult.ResultType.FAILURE;
-        } else if (this.resultType == TestResult.ResultType.SKIPPED || other.resultType == TestResult.ResultType.SKIPPED) {
-            resultType = TestResult.ResultType.SKIPPED;
-        } else {
-            resultType = TestResult.ResultType.SUCCESS;
-        }
-
-        SerializableTestResult.Builder builder = new Builder()
-            .name(name)
-            .displayName(displayName)
-            .className(className)
-            .classDisplayName(classDisplayName)
-            .resultType(resultType)
-            .assumptionFailure(assumptionFailure != null ? assumptionFailure : other.assumptionFailure)
-            .startTime(Math.min(startTime, other.startTime))
-            .endTime(Math.max(endTime, other.endTime));
-        builder.failures.addAll(failures);
-        builder.failures.addAll(other.failures);
-        builder.metadatas.addAll(metadatas);
-        builder.metadatas.addAll(other.metadatas);
-        return builder.build();
     }
 }

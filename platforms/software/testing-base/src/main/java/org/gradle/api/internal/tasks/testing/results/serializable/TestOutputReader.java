@@ -58,9 +58,9 @@ public final class TestOutputReader implements Closeable {
     public boolean hasOutput(OutputEntry entry, TestOutputEvent.Destination destination) {
         switch (destination) {
             case StdOut:
-                return entry.startStdout != OutputEntry.NO_OUTPUT;
+                return entry.getOutputRanges().startStdout != OutputRanges.NO_OUTPUT;
             case StdErr:
-                return entry.startStderr != OutputEntry.NO_OUTPUT;
+                return entry.getOutputRanges().startStderr != OutputRanges.NO_OUTPUT;
             default:
                 throw new IllegalArgumentException("Unknown destination: " + destination);
         }
@@ -68,16 +68,16 @@ public final class TestOutputReader implements Closeable {
 
     public void useTestOutputEvents(OutputEntry entry, TestOutputEvent.Destination destination, IoConsumer<TestOutputEvent> eventConsumer) throws IOException {
         long entryStart = getStart(destination, entry);
-        if (entryStart == OutputEntry.NO_OUTPUT) {
+        if (entryStart == OutputRanges.NO_OUTPUT) {
             return;
         }
 
-        useTestOutputEventsWithInfo(destination, eventConsumer, entryStart, entry.end, id -> entry.id == id);
+        useTestOutputEventsWithInfo(destination, eventConsumer, entryStart, entry.getOutputRanges().end, fileId -> fileId == entry.getId());
     }
 
     public void useTestOutputEvents(Iterable<OutputEntry> entries, TestOutputEvent.Destination destination, IoConsumer<TestOutputEvent> eventConsumer) throws IOException {
         CombinedEntryInfo info = getCombinedEntryInfo(entries, destination);
-        if (info.start == OutputEntry.NO_OUTPUT) {
+        if (info.start == OutputRanges.NO_OUTPUT) {
             return;
         }
         ImmutableSet<Long> ids = info.idsBuilder.build();
@@ -86,25 +86,25 @@ public final class TestOutputReader implements Closeable {
     }
 
     private static final class CombinedEntryInfo {
-        long start = OutputEntry.NO_OUTPUT;
-        long end = OutputEntry.NO_OUTPUT;
+        long start = OutputRanges.NO_OUTPUT;
+        long end = OutputRanges.NO_OUTPUT;
         final ImmutableSet.Builder<Long> idsBuilder = ImmutableSet.builder();
     }
 
     private static CombinedEntryInfo getCombinedEntryInfo(Iterable<OutputEntry> entries, TestOutputEvent.Destination destination) {
         CombinedEntryInfo info = new CombinedEntryInfo();
         for (OutputEntry entry : entries) {
-            long entryStart = getStart(destination, entry);
-            if (entryStart == OutputEntry.NO_OUTPUT) {
+            long rangesStart = getStart(destination, entry);
+            if (rangesStart == OutputRanges.NO_OUTPUT) {
                 continue;
             }
-            if (info.start == OutputEntry.NO_OUTPUT || entryStart < info.start) {
-                info.start = entryStart;
+            if (info.start == OutputRanges.NO_OUTPUT || rangesStart < info.start) {
+                info.start = rangesStart;
             }
-            if (info.end == OutputEntry.NO_OUTPUT || entry.end > info.end) {
-                info.end = entry.end;
+            if (info.end == OutputRanges.NO_OUTPUT || entry.getOutputRanges().end > info.end) {
+                info.end = entry.getOutputRanges().end;
             }
-            info.idsBuilder.add(entry.id);
+            info.idsBuilder.add(entry.getId());
         }
         return info;
     }
@@ -131,9 +131,9 @@ public final class TestOutputReader implements Closeable {
     private static long getStart(TestOutputEvent.Destination destination, OutputEntry entry) {
         switch (destination) {
             case StdOut:
-                return entry.startStdout;
+                return entry.getOutputRanges().startStdout;
             case StdErr:
-                return entry.startStderr;
+                return entry.getOutputRanges().startStderr;
             default:
                 throw new IllegalArgumentException("Unknown destination: " + destination);
         }
