@@ -77,12 +77,6 @@ class K2IntegrationTest : AbstractKotlinIntegrationTest() {
                 kotlin("jvm") version "$kotlinVersion"
             }
             ${mavenCentralRepository(KOTLIN)}
-            tasks.withType<KotlinCompile>().configureEach {
-                compilerOptions {
-                    apiVersion = KotlinVersion.KOTLIN_2_0
-                    languageVersion = KotlinVersion.KOTLIN_2_0
-                }
-            }
             gradlePlugin {
                 plugins {
                     register("my-plugin") {

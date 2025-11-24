@@ -191,7 +191,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        if (['1.8', '1.9'].contains(kotlinLanguageVersion)) {
+        if (['1.8', '1.9', '2.0'].contains(kotlinLanguageVersion)) {
             executer.expectExternalDeprecatedMessage("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
         }
         run "myTask"
