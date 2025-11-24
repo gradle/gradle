@@ -151,7 +151,7 @@ class EdgeState implements DependencyGraphEdge {
             ModuleResolveState module = targetComponent.getModule();
             if (module.isPending()) {
                 selector.getTargetModule().removeUnattachedEdge(this);
-                from.makePending(this);
+                from.removeOutgoingEdge(this);
                 module.registerConstraintProvider(from);
                 return;
             }
@@ -276,6 +276,9 @@ class EdgeState implements DependencyGraphEdge {
 
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
+            while (targetNodeState.getReplacement() != null) {
+                targetNodeState = targetNodeState.getReplacement();
+            }
             this.targetNodes.add(targetNodeState);
         }
     }

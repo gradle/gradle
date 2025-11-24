@@ -46,8 +46,9 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
                 id 'java-library'
             }
 
+            ${mavenCentralRepository()}
+
             repositories {
-                ${mavenCentralRepository()}
                 maven {
                    url = file("./ktor-repo/")
                 }
