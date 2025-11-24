@@ -154,13 +154,6 @@ class KotlinScriptClassPathProvider(
     fun computeCompilationClassPath(scope: ClassLoaderScope): ClassPath =
         gradleKotlinDslAbiClasspath + exportClassPathFromHierarchyOf(scope)
 
-    fun ideClassPathOf(scope: ClassLoaderScope): ClassPath =
-        cachedScopeIdeClassPath.computeIfAbsent(scope, ::computeIdeClassPath)
-
-    private
-    fun computeIdeClassPath(scope: ClassLoaderScope): ClassPath =
-        gradleKotlinDslApiClasspath + exportClassPathFromHierarchyOf(scope)
-
     internal
     fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
         require(scope.isLocked) {
@@ -183,9 +176,6 @@ class KotlinScriptClassPathProvider(
 
     private
     val cachedScopeCompilationClassPath = ConcurrentHashMap<ClassLoaderScope, ClassPath>()
-
-    private
-    val cachedScopeIdeClassPath = ConcurrentHashMap<ClassLoaderScope, ClassPath>()
 
     private
     val cachedClassLoaderClassPath = ClassLoaderClassPathCache()

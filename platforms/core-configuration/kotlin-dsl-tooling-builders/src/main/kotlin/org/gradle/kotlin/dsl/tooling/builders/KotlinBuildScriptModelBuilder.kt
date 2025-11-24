@@ -509,11 +509,11 @@ inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
     projectScript: Boolean,
     getGradle: () -> GradleInternal
 ): ClassPath = try {
-    ideClassPathOf(classLoaderScope)
+    compilationClassPathOf(classLoaderScope)
 } catch (error: Exception) {
     getGradle().run {
         serviceOf<ClassPathModeExceptionCollector>().collect(error)
-        ideClassPathOf(if (projectScript) baseProjectClassLoaderScope() else this.classLoaderScope)
+        compilationClassPathOf(if (projectScript) baseProjectClassLoaderScope() else this.classLoaderScope)
     }
 }
 
