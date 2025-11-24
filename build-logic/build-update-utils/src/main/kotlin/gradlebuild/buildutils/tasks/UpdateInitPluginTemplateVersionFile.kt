@@ -41,7 +41,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
         "-beta.*\\d+",
         "-dev-?\\d+",
         "-dev-\\d+-\\d+",
-        "-rc-?\\d+",
+        "-rc(-?\\d+)?",
         "-M.+",
         "-eap-?\\d+"
     ).map { it.toRegex(RegexOption.IGNORE_CASE) }
