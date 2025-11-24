@@ -66,7 +66,7 @@ abstract class UpdateInitPluginTemplateVersionFile : DefaultTask() {
 
         // Starting with ScalaTest 3.1.0, the third party integration were moved out of the main JAR
         findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:[3.1,)", versionProperties)
-        findLatest("scalatestplus-junit", "org.scalatestplus:junit-4-12_${versionProperties["scala"]}:[3.1,)", versionProperties)
+        findLatest("scalatestplus-junit", "org.scalatestplus:junit-4-13_${versionProperties["scala"]}:[3.1,)", versionProperties)
 
         val groovyVersion = VersionNumber.parse(versionProperties["groovy"] as String)
         versionProperties["spock"] = "2.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
