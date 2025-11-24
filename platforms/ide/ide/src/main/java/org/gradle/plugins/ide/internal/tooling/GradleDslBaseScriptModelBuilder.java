@@ -47,7 +47,7 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
 
         DefaultKotlinDslBaseScriptModel kotlinDslBaseScriptModel = new DefaultKotlinDslBaseScriptModel(
             getKotlinScriptTemplatesClassPath(moduleRegistry),
-            apiClasspathProvider.getGradleKotlinDslApi(),
+            apiClasspathProvider.getGradleKotlinDslAbi(),
             implicitImports.getKotlinDslImplicitImports()
         );
 
