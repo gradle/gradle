@@ -43,6 +43,8 @@ import java.util.stream.Stream;
  */
 public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
+    private static final List<Class<? extends Annotation>> ANNOTATIONS = Collections.singletonList(ManagedObjectProvider.class);
+
     private final @Nullable ManagedObjectRegistry parent;
     private final ReflectionCache reflectionCache;
     private final ConcurrentMap<Class<?>, MethodHandle> factoryByPublicType = new ConcurrentHashMap<>();
@@ -66,7 +68,7 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
     @Override
     public List<Class<? extends Annotation>> getAnnotations() {
-        return Collections.singletonList(ManagedObjectProvider.class);
+        return ANNOTATIONS;
     }
 
     @Override
