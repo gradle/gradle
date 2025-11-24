@@ -87,7 +87,7 @@ public interface ScriptHandler {
      * RepositoryHandler} for this handler.
      *
      * @param action the action to use to configure the repositories.
-     * @since 9.3.0
+     * @since 9.4.0
      */
     @Incubating
     void repositories(Action<? super RepositoryHandler> action);
@@ -151,7 +151,7 @@ public interface ScriptHandler {
      * this handler.
      *
      * @param action the action to use to configure dependency locking.
-     * @since 9.3.0
+     * @since 9.4.0
      */
     @Incubating
     void dependencyLocking(Action<? super DependencyLockingHandler> action);
