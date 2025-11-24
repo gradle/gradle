@@ -197,7 +197,7 @@ fun buildOutputModel(base: ScriptModelBase, model: IntermediateScriptModel): Sta
 private
 fun GradleInternal.baseScriptClassPath(): ClassPath {
     return serviceOf<KotlinScriptClassPathProvider>()
-        .ideClassPathOf(baseProjectClassLoaderScope())
+        .compilationClassPathOf(baseProjectClassLoaderScope())
 }
 
 
