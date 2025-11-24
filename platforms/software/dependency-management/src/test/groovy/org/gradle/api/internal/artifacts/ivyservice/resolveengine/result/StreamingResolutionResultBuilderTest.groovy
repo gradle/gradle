@@ -252,9 +252,9 @@ class StreamingResolutionResultBuilderTest extends Specification {
         def edge = Stub(DependencyGraphEdge)
         _ * edge.requested >> selector.requested
         _ * edge.selector >> selector
-        _ * edge.selected >> selectedId
+        _ * edge.selectedComponentId >> selectedId
         _ * edge.failure >> null
-        _ * edge.selectedVariant >> selectedId
+        _ * edge.selectedVariantId >> selectedId
         return edge
     }
 
@@ -264,7 +264,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         _ * edge.requested >> selector.requested
         _ * edge.reason >> requested()
         _ * edge.failure >> new ModuleVersionResolveException(selector.requested, failure)
-        _ * edge.selectedVariant >> null
+        _ * edge.selectedVariantId >> null
         return edge
     }
 

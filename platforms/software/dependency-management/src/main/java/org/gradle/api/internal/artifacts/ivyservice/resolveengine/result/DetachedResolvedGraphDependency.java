@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The deserialized representation of an edge in the resolution result.
@@ -28,28 +29,52 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 public class DetachedResolvedGraphDependency implements ResolvedGraphDependency {
 
     private final ComponentSelector requested;
-    private final Long selected;
-    private final ComponentSelectionReason reason;
-    private final ModuleVersionResolveException failure;
+    private final @Nullable ModuleVersionResolveException failure;
+    private final @Nullable ComponentSelectionReason reason;
+    private final @Nullable Long selectedComponent;
+    private final @Nullable Long selectedVariant;
     private final boolean constraint;
-    private final Long targetVariant;
 
-    public DetachedResolvedGraphDependency(ComponentSelector requested,
-                                           Long selected,
-                                           ComponentSelectionReason reason,
-                                           ModuleVersionResolveException failure,
-                                           boolean constraint,
-                                           Long targetVariant
+    public static DetachedResolvedGraphDependency failure(
+        ComponentSelector requested,
+        ModuleVersionResolveException failure,
+        ComponentSelectionReason reason,
+        boolean constraint
     ) {
-        assert requested != null;
-        assert failure != null || selected != null;
+        return new DetachedResolvedGraphDependency(requested, reason, failure, null, null, constraint);
+    }
+
+    public static DetachedResolvedGraphDependency success(
+        ComponentSelector requested,
+        long selectedComponent,
+        long selectedVariant,
+        boolean constraint
+    ) {
+        return new DetachedResolvedGraphDependency(requested, null, null, selectedComponent, selectedVariant, constraint);
+    }
+
+    private DetachedResolvedGraphDependency(
+        ComponentSelector requested,
+        @Nullable ComponentSelectionReason reason,
+        @Nullable ModuleVersionResolveException failure,
+        @Nullable Long selectedComponent,
+        @Nullable Long selectedVariant,
+        boolean constraint
+    ) {
+        if (failure != null) {
+            assert reason != null;
+            assert selectedComponent == null && selectedVariant == null;
+        } else {
+            assert reason == null;
+            assert selectedComponent != null && selectedVariant != null;
+        }
 
         this.requested = requested;
         this.reason = reason;
-        this.selected = selected;
+        this.selectedComponent = selectedComponent;
         this.failure = failure;
         this.constraint = constraint;
-        this.targetVariant = targetVariant;
+        this.selectedVariant = selectedVariant;
     }
 
     @Override
@@ -58,18 +83,32 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     }
 
     @Override
-    public Long getSelected() {
-        return selected;
+    public @Nullable ModuleVersionResolveException getFailure() {
+        return failure;
     }
 
     @Override
     public ComponentSelectionReason getReason() {
+        if (reason == null) {
+            throw new IllegalStateException("Edge does not have a failure reason.");
+        }
         return reason;
     }
 
     @Override
-    public ModuleVersionResolveException getFailure() {
-        return failure;
+    public long getSelectedComponentId() {
+        if (selectedComponent == null) {
+            throw new IllegalStateException("Edge does not have a selected component.");
+        }
+        return selectedComponent;
+    }
+
+    @Override
+    public long getSelectedVariantId() {
+        if (selectedVariant == null) {
+            throw new IllegalStateException("Edge does not have a selected variant.");
+        }
+        return selectedVariant;
     }
 
     @Override
@@ -77,8 +116,4 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
         return constraint;
     }
 
-    @Override
-    public Long getSelectedVariant() {
-        return targetVariant;
-    }
 }

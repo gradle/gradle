@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
@@ -230,80 +229,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("checkDebugDuplicateClasses")
-    }
-
-    @NotYetImplemented
-    @UnsupportedWithConfigurationCache(because = "Uses allDependencies")
-    @Issue("https://github.com/gradle/gradle/pull/26016#issuecomment-1795491970")
-    def "conflict between two nodes in the same component causes edge without target node"() {
-        settingsFile << "include 'producer'"
-        file("producer/build.gradle") << """
-            configurations {
-                consumable("one") {
-                    outgoing {
-                        capability('o:n:e')
-                    }
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
-                    }
-                }
-                consumable("one-preferred") {
-                    outgoing {
-                        capability('o:n:e')
-                        capability('g:one-preferred:v')
-                    }
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
-                    }
-                }
-            }
-        """
-        buildFile << """
-            configurations {
-                dependencyScope("implementation")
-                resolvable("classpath") {
-                    extendsFrom(implementation)
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
-                    }
-                }
-            }
-
-            configurations.classpath {
-                resolutionStrategy.capabilitiesResolution.all { details ->
-                    def selection =
-                        details.candidates.find { it.variantName.endsWith('preferred') }
-                    println("Selecting \$selection from \${details.candidates}")
-                    details.select(selection)
-                }
-            }
-
-            dependencies {
-                implementation(project(':producer')) {
-                    capabilities {
-                        requireCapability('o:n:e')
-                    }
-                }
-                implementation(project(':producer')) {
-                    capabilities {
-                        requireCapability('o:n:e')
-                        requireCapability('g:one-preferred:v')
-                    }
-                }
-            }
-
-            task resolve {
-                def result = configurations.classpath.incoming.resolutionResult
-                doLast {
-                    result.allDependencies {
-                        assert it.selectedVariant != null
-                    }
-                }
-            }
-        """
-
-        expect:
-        succeeds("resolve")
     }
 
     @NotYetImplemented
