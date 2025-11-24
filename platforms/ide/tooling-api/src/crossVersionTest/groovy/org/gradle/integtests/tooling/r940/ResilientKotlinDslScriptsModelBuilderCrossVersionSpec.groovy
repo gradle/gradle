@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.tooling.BuildAction
@@ -46,6 +47,56 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
     def setup() {
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
+        file('init.gradle') << """
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.gradle.tooling.provider.model.ToolingModelBuilder
+import javax.inject.Inject
+
+gradle.lifecycle.beforeProject {
+    it.plugins.apply(CustomPlugin)
+}
+
+class CustomModel implements Serializable {
+    static final INSTANCE = new CustomThing()
+    String getValue() { 'greetings' }
+    CustomThing getThing() { return INSTANCE }
+    Set<CustomThing> getThings() { return [INSTANCE] }
+    Map<String, CustomThing> getThingsByName() { return [child: INSTANCE] }
+    CustomThing findThing(String name) { return INSTANCE }
+}
+
+class CustomThing implements Serializable {
+}
+
+class SetupStartParametersBuilder implements ToolingModelBuilder {
+    boolean canBuild(String modelName) {
+        return modelName == '${CustomModel.name}'
+    }
+    Object buildAll(String modelName, Project project) {
+        def tasks = new HashSet<String>(project.gradle.startParameter.taskNames)
+        tasks.add("prepareKotlinBuildScriptModel")
+        tasks.add("printHelloTask")
+        project.gradle.startParameter.setTaskNames(tasks)
+        return new CustomModel()
+    }
+}
+
+class CustomPlugin implements Plugin<Project> {
+    @Inject
+    CustomPlugin(ToolingModelBuilderRegistry registry) {
+        registry.register(new SetupStartParametersBuilder())
+    }
+
+    public void apply(Project project) {
+        project.tasks.register("printHelloTask") {
+            doLast {
+                println "Hello from a task"
+            }
+        }
+        println "Registered SetupStartParametersBuilder for project: " + (project != null ? project.name : "<no project>")
+    }
+}
+"""
     }
 
     def "basic build - nothing broken"() {
@@ -658,6 +709,78 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 Pair.of("build-logic", ".*Execution failed for task ':build-logic:compileKotlin.*"))
     }
 
+    def "test resiliency with projectLoaded and buildPhases when broken convention plugin"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include("a", "b", "c")
+            includeBuild("build-logic")
+        """
+
+        def included = file("build-logic")
+        included.file("settings.gradle.kts") << """
+            rootProject.name = "build-logic"
+
+            pluginManagement {
+                repositories {
+                    mavenCentral()
+                    gradlePluginPortal()
+                }
+            }
+        """
+        included.file("build.gradle.kts") << """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            repositories {
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        """
+        def projectPlugin = included.file("src/main/kotlin/build-logic.gradle.kts") << """"""
+        def a = file("a/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+
+        """
+        def b = file("b/build.gradle.kts") << """
+            plugins {
+                id("build-logic")
+            }
+        """
+        def c = file("c/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+        """
+
+        when:
+        // Uncomment to fail the project configuration
+        // projectPlugin << "throw RuntimeException(\"Failing script\")"
+        def model = null
+        succeeds {
+            action()
+                .projectsLoaded(new SetStartParameterAction()) {
+                    assert it.contains("A problem occurred configuring project ':b'.") || it.contains("greeting")
+                }
+                .buildFinished(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST)) {
+                    model = it
+                }.build()
+                .forTasks([])
+                .withArguments(
+                    "--init-script=${file('init.gradle').absolutePath}",
+                    "-Dorg.gradle.internal.resilient-model-building=true"
+                )
+                .run()
+        }
+
+        then:
+        def scriptsModels = model.getScriptModels().keySet()
+        scriptsModels.size() == 7
+    }
+
     @ToBeImplemented
     def "resilient Kotlin DSL can be queried with null target"() {
         given:
@@ -824,6 +947,18 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             Map<File, Failure> failures = [:]
             queryResilientKotlinDslScriptsModel(controller, build, null, scriptModels, failures)
             return new KotlinModel(scriptModels, failures)
+        }
+    }
+
+    static class SetStartParameterAction implements BuildAction<String>, Serializable {
+        @Override
+        String execute(BuildController controller) {
+            def gradleBuild = controller.getModel(GradleBuild)
+            def result = controller.fetch(gradleBuild.rootProject, CustomModel)
+            if (!result.failures.isEmpty()) {
+                return result.failures[0].message
+            }
+            return result.model.value
         }
     }
 
