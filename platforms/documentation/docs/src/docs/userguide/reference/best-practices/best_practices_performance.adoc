@@ -16,7 +16,7 @@
 = Best Practices for Performance
 
 [[prefer_bin_distribution]]
-== Prefer the `-bin` Gradle distribution
+== Prefer the `-bin` Gradle Distribution
 
 Gradle publishes two distribution variants for each release: `-bin` (binaries only) and `-all` (binaries, sources, and documentation).
 For most builds, you should prefer the smaller `-bin` distribution.
