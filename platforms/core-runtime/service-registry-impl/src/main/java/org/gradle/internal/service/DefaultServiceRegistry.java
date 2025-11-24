@@ -356,8 +356,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     @Override
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
         assertValidServiceType(serviceType);
-        List<T> services = new ArrayList<T>();
         serviceRequested();
+        List<T> services = new ArrayList<T>();
         allServices.getAll(serviceType, null, new InstanceUnpackingVisitor<T>(serviceType, services));
         return services;
     }
@@ -397,7 +397,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private class OwnServices implements ServiceProvider {
         private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
-        private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
+        private final CompositeStoppable stoppable = new CompositeStoppable();
         private final List<SingletonService> services = new ArrayList<SingletonService>();
         private final List<AnnotatedServiceLifecycleHandler> lifecycleHandlers = new ArrayList<AnnotatedServiceLifecycleHandler>();
 
@@ -504,11 +504,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         public void instanceRealized(List<Class<?>> declaredServiceTypes, Supplier<String> displayName, Object instance) {
-            if (instance instanceof AnnotatedServiceLifecycleHandler && !isAssignableFromAnyType(AnnotatedServiceLifecycleHandler.class, declaredServiceTypes)) {
-                throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having %s.",
-                    displayName.get(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
-            }
             if (instance instanceof AnnotatedServiceLifecycleHandler) {
+                if (!isAssignableFromAnyType(AnnotatedServiceLifecycleHandler.class, declaredServiceTypes)) {
+                    throw new IllegalStateException(String.format("%s implements %s but is not declared as a service of this type. This service is declared as having %s.",
+                        displayName.get(), AnnotatedServiceLifecycleHandler.class.getSimpleName(), format("type", declaredServiceTypes)));
+                }
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
             }
             for (AnnotatedServiceLifecycleHandler lifecycleHandler : lifecycleHandlers) {
