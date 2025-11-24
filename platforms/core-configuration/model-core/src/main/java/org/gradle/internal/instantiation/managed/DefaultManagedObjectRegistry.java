@@ -69,12 +69,6 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
         return Collections.singletonList(ManagedObjectProvider.class);
     }
 
-    @Nullable
-    @Override
-    public Class<? extends Annotation> getImplicitAnnotation() {
-        return null;
-    }
-
     @Override
     public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
         assert annotation == ManagedObjectProvider.class;

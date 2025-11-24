@@ -134,6 +134,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         return parentServices;
     }
 
+    /**
+     * Allows a derived class to validate every service registration.
+     */
+    protected void validate(SingletonService service) {}
+
     @Override
     public ServiceProvider asProvider() {
         return thisAsServiceProvider;
@@ -462,6 +467,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             stoppable.add(serviceProvider);
             collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
             services.add(serviceProvider);
+            validate(serviceProvider);
             for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
                 notifyAnnotationHandler(annotationHandler, serviceProvider);
             }
@@ -525,14 +531,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         private void notifyAnnotationHandler(AnnotatedServiceLifecycleHandler annotationHandler, SingletonService candidate) {
-            if (annotationHandler.getImplicitAnnotation() != null) {
-                annotationHandler.whenRegistered(annotationHandler.getImplicitAnnotation(), new RegistrationWrapper(candidate));
-            } else {
-                List<Class<?>> declaredServiceTypes = candidate.getDeclaredServiceTypes();
-                for (Class<? extends Annotation> annotation : annotationHandler.getAnnotations()) {
-                    if (anyTypeHasAnnotation(annotation, declaredServiceTypes)) {
-                        annotationHandler.whenRegistered(annotation, new RegistrationWrapper(candidate));
-                    }
+            List<Class<?>> declaredServiceTypes = candidate.getDeclaredServiceTypes();
+            for (Class<? extends Annotation> annotation : annotationHandler.getAnnotations()) {
+                if (anyTypeHasAnnotation(annotation, declaredServiceTypes)) {
+                    annotationHandler.whenRegistered(annotation, new RegistrationWrapper(candidate));
                 }
             }
         }
@@ -650,7 +652,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    private static abstract class SingletonService extends ManagedObjectServiceProvider {
+    static abstract class SingletonService extends ManagedObjectServiceProvider {
         private enum BindState {UNBOUND, BINDING, BOUND}
 
         protected final ServiceAccessScope accessScope;

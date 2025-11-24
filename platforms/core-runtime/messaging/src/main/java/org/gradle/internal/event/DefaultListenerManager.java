@@ -70,12 +70,6 @@ public class DefaultListenerManager implements ScopedListenerManager {
         return ANNOTATIONS;
     }
 
-    @Nullable
-    @Override
-    public Class<? extends Annotation> getImplicitAnnotation() {
-        return null;
-    }
-
     @Override
     public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
         synchronized (lock) {

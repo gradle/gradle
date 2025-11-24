@@ -23,6 +23,8 @@ import org.gradle.internal.service.scopes.Scope;
  */
 class ScopedServiceRegistry extends DefaultServiceRegistry {
 
+    private final ServiceScopeValidator validator;
+
     public ScopedServiceRegistry(
         Class<? extends Scope> scope,
         boolean strict,
@@ -30,14 +32,11 @@ class ScopedServiceRegistry extends DefaultServiceRegistry {
         ServiceRegistry... parents
     ) {
         super(displayName, parents);
-        addServiceValidator(scope, strict);
+        validator = new ServiceScopeValidator(scope, strict);
     }
 
-    /**
-     * Validator implements a special type of service ({@link AnnotatedServiceLifecycleHandler})
-     * that gets notified about all existing and further service registrations.
-     */
-    private void addServiceValidator(Class<? extends Scope> scope, boolean strict) {
-        add(new ServiceScopeValidator(scope, strict));
+    @Override
+    protected void validate(SingletonService service) {
+        validator.validate(service);
     }
 }

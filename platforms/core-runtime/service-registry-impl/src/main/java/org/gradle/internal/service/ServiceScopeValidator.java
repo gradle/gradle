@@ -20,12 +20,9 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
@@ -38,9 +35,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * Only services that are annotated with {@link ServiceScope} are validated.
  * In {@link #strict}-mode all services must be annotated.
  */
-class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
-
-    private static final List<Class<? extends Annotation>> SCOPE_ANNOTATIONS = Collections.<Class<? extends Annotation>>singletonList(ServiceScope.class);
+class ServiceScopeValidator {
 
     private final Class<? extends Scope> scope;
     private final boolean strict;
@@ -50,19 +45,8 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
         this.strict = strict;
     }
 
-    @Override
-    public List<Class<? extends Annotation>> getAnnotations() {
-        return SCOPE_ANNOTATIONS;
-    }
-
-    @Override
-    public Class<? extends Annotation> getImplicitAnnotation() {
-        return ServiceScope.class;
-    }
-
-    @Override
-    public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
-        for (Class<?> declaredType : registration.getDeclaredTypes()) {
+    void validate(DefaultServiceRegistry.SingletonService registration) {
+        for (Class<?> declaredType : registration.getDeclaredServiceTypes()) {
             validateScope(declaredType);
         }
     }
