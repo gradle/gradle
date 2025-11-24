@@ -17,9 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.jspecify.annotations.NullMarked;
+
+import java.util.Set;
 
 @NullMarked
 public class StrictVersionConstraints {
@@ -105,7 +106,19 @@ public class StrictVersionConstraints {
         if (other == EMPTY) {
             return EMPTY;
         }
-        return of(ImmutableSet.copyOf(Sets.intersection(modules, other.modules)));
+
+        Set<ModuleIdentifier> smaller = (modules.size() < other.modules.size()) ? modules : other.modules;
+        Set<ModuleIdentifier> larger = (smaller == modules) ? other.modules : modules;
+        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(smaller.size());
+
+        // Iterating over the smaller set to minimize the number of contains() checks
+        for (ModuleIdentifier module : smaller) {
+            if (larger.contains(module)) {
+                builder.add(module);
+            }
+        }
+
+        return of(builder.build());
     }
 
     @Override
