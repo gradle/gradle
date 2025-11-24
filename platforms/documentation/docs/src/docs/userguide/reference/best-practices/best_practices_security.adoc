@@ -62,10 +62,9 @@ When you update Gradle, two Wrapper files typically change:
 You should verify that:
 
 - The **Wrapper JAR** is the official binary published by Gradle (not tampered with).
+- The **Wrapper JAR checksum** matches one of the values published at link:https://gradle.org/release-checksums[gradle.org/release-checksums].
 - The **distribution URL** points to the expected Gradle release.
-- The **distribution checksum** (if present) matches the release you intend to use.
-
-Gradle publishes checksums for every distribution at link:https://gradle.org/release-checksums[gradle.org/release-checksums].
+- The **distribution checksum** (if configured via `distributionSha256Sum`) matches the release you intend to use (also listed on link:https://gradle.org/release-checksums[gradle.org/release-checksums]).
 
 Running an unverified Wrapper risks executing untrusted code before any of your build’s safeguards run.
 
