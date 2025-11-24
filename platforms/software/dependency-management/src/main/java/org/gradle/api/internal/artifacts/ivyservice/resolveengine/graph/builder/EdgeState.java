@@ -267,6 +267,9 @@ class EdgeState implements DependencyGraphEdge {
 
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
+            while (targetNodeState.getReplacement() != null) {
+                targetNodeState = targetNodeState.getReplacement();
+            }
             this.targetNodes.add(targetNodeState);
         }
     }

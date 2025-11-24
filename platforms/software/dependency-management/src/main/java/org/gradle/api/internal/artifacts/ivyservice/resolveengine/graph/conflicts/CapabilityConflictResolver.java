@@ -91,12 +91,12 @@ public class CapabilityConflictResolver {
         ImmutableList<Candidate> candidates = discoverCandidates(group, name, nodes);
         SelectedCandidate winner = findSelectedCandidate(group, name, candidates);
         if (winner != null) {
-            // Evict any node from the same component as the selected node, so we don't attach edges to it.
-            // TODO #19788: Eviction currently causes broken graphs.
+            // Evict any node from the same component as the selected node, so we make sure to attach
+            // edges to the winning node instead.
             for (Candidate candidate : candidates) {
                 if (candidate.node.getComponent().getComponentId().equals(winner.node.getComponent().getComponentId())) {
                     if (candidate.node != winner.node) {
-                        candidate.node.evict();
+                        candidate.node.replaceWith(winner.node);
                     }
                 }
             }
