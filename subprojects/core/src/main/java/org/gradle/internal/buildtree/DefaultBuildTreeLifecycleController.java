@@ -82,9 +82,16 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
             if (runTasks && isEligibleToRunTasks()) {
-                ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null);
-                if (!result.getFailures().isEmpty()) {
-                    return result.asFailure();
+                try {
+                    ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null);
+                    if (!result.getFailures().isEmpty()) {
+                        return result.asFailure();
+                    }
+                } catch (Throwable t) {
+                    if (!buildModelParameters.isResilientModelBuilding()) {
+                        throw t;
+                    }
+                    // swallow exception in resilient mode
                 }
             }
             T model = modelCreator.fromBuildModel(action);
