@@ -32,14 +32,14 @@ Each Gradle release provides:
 
 In modern setups:
 
-- IDEs and build tools can download sources and documentation directly from repositories or online docs.
+- IDEs and build tools can download sources and documentation directly from repositories or online docs (even when using `-bin` releases).
 - The `-all` distribution is rarely required outside of specific offline or air-gapped environments.
 
 Preferring `-bin` helps because:
 
 - It **reduces download and cache size** for CI and local builds.
 - There is **less to verify and fewer artifacts to trust** (one smaller archive instead of a larger “everything included” zip).
-- It **shortens the feedback loop** when upgrading Gradle or rotating caches.
+- It **shortens the feedback loop** when upgrading Gradle.
 
 In special cases (for example, fully offline environments), you can still use `-all`, but it should be a conscious exception rather than the default.
 
