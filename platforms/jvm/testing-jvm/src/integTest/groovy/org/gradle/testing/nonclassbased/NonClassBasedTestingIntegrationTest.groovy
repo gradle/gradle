@@ -16,16 +16,8 @@
 
 package org.gradle.testing.nonclassbased
 
-
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
-import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.model.gradle.GradleBuild
-import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
@@ -665,54 +657,5 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         then:
         outputContains("INFO: Executing resource-based test: Test[file=SampleTest.rbt, name=foo]")
         resultsFor().assertTestPathsNotExecuted(":definitions.SampleTest:foo()")
-    }
-
-    @Ignore
-    def "can filter resource-based test with #entryPoint"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing.suites.test {
-                ${enableEngineForSuite()}
-
-                targets.all {
-                    testTask.configure {
-                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
-
-                        filter {
-                            excludeTestsMatching "src/test/definitions/SomeTestSpec.rbt"
-                        }
-                    }
-                }
-            }
-        """
-
-        writeTestDefinitions()
-
-        and:
-        ProgressEvents events = ProgressEvents.create()
-        TestOutputStream stderr = new TestOutputStream()
-        TestOutputStream stdout = new TestOutputStream()
-        final ToolingApi toolingApi = new ToolingApi(null, temporaryFolder, stdout, stderr)
-
-        when:
-        toolingApi.withConnector {
-            entryPointConfiguration(it).addProgressListener(events, OperationType.TEST)."$execMethod"()
-        }
-
-        then:
-        events.tests.size() == 3 // task + executor + 1 test (2 filtered)
-        events.operation('Test subSomeOtherTestSpec.rbt : other')
-
-        where:
-        entryPoint             | entryPointConfiguration                                                    | execMethod
-        'BuildLauncher'        | { ProjectConnection p -> p.newBuild().forTasks("test") }                   | 'run'
-        'TestLauncher'         | { ProjectConnection p -> p.newTestLauncher().forTasks("test") }            | 'run'
-        'ModelBuilder'         | { ProjectConnection p -> p.model(GradleBuild).forTasks("test") }           | 'get'
     }
 }
