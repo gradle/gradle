@@ -121,4 +121,54 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         nonClassBasedTestsExecuted()
     }
+
+    def "when multiple engines do class-based testing and create different class tests with the same name, this is handled sensibly"() {
+        given:
+
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+
+            // Ensure the definitions directory exists even if no definitions are added; otherwsie the task will fail with "Test definitions directory does not exist"
+            project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION").getAsFile().mkdirs()
+        """
+
+        if (classesPresent) {
+            writeTestClasses()
+        }
+        if (nonClassDefinitionsPresent) {
+            writeTestDefinitions()
+        }
+
+        when:
+        succeeds("test")
+
+        then:
+        if (classesPresent) {
+            resultsFor().testPath(":SomeTest").onlyRoot().assertChildCount(1, 0)
+            resultsFor().testPath(":SomeTest:testMethod").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        }
+        if (nonClassDefinitionsPresent) {
+            nonClassBasedTestsExecuted()
+        }
+
+        where:
+        classesPresent | nonClassDefinitionsPresent
+        true           | true
+        true           | false
+        false          | true
+    }
 }
