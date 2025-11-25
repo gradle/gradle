@@ -155,8 +155,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         instant.received < instant.handled
     }
 
-    def "broken listener is quarantined and failure rethrown at completion of build"() {
-        def failure = new RuntimeException()
+    def "broken listener is quarantined and #failure propagated at completion of build"() {
         def brokenListener = Mock(OperationCompletionListener)
         def okListener = Mock(OperationCompletionListener)
 
@@ -180,66 +179,14 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         0 * okListener._
 
         and:
-        def e = thrown(RuntimeException)
-        e.is(failure)
-    }
+        def e = thrown(exceptionType)
+        exceptionCheck.call(e)
 
-    def "broken listener is quarantined and error propagated at completion of build"() {
-        def failure = new Error()
-        def brokenListener = Mock(OperationCompletionListener)
-        def okListener = Mock(OperationCompletionListener)
-
-        when:
-        registry.onTaskCompletion(Providers.of(brokenListener))
-        registry.onTaskCompletion(Providers.of(okListener))
-        async {
-            factory.fire(taskFinishEvent())
-            thread.blockUntil.handled
-            factory.fire(taskFinishEvent())
-            signalBuildFinished()
-        }
-
-        then:
-        1 * brokenListener.onFinish(_) >> {
-            instant.handled
-            throw failure
-        }
-        2 * okListener.onFinish(_)
-        0 * brokenListener._
-        0 * okListener._
-
-        and:
-        def e = thrown(ListenerNotificationException)
-        e.getCauses().get(0).is(failure)
-    }
-
-    def "broken listener is quarantined and throwable propagated at completion of build"() {
-        def failure = new Throwable()
-        def brokenListener = Mock(OperationCompletionListener)
-        def okListener = Mock(OperationCompletionListener)
-
-        when:
-        registry.onTaskCompletion(Providers.of(brokenListener))
-        registry.onTaskCompletion(Providers.of(okListener))
-        async {
-            factory.fire(taskFinishEvent())
-            thread.blockUntil.handled
-            factory.fire(taskFinishEvent())
-            signalBuildFinished()
-        }
-
-        then:
-        1 * brokenListener.onFinish(_) >> {
-            instant.handled
-            throw failure
-        }
-        2 * okListener.onFinish(_)
-        0 * brokenListener._
-        0 * okListener._
-
-        and:
-        def e = thrown(UndeclaredThrowableException)
-        e.getCause().is(failure)
+        where:
+        failure                 | exceptionType                     | exceptionCheck
+        new RuntimeException()  | RuntimeException                  | { t -> t.is(failure) }
+        new Error()             | ListenerNotificationException     | { t -> t.getCauses().get(0).is(failure) }
+        new Throwable()         | UndeclaredThrowableException      | { t -> t.getCause().is(failure) }
     }
 
     private signalBuildFinished() {
