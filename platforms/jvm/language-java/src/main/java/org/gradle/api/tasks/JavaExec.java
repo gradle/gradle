@@ -152,9 +152,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         // The task will only be up-to-date if it has outputs, those outputs are up-to-date,
         // and the Java launcher can be probed (i.e. javaLanguageVersion is not UNKNOWN)
         doNotTrackStateIf("Java launcher cannot be probed",
-            task -> {
-                return javaLauncher.map(launcher -> launcher.getMetadata().getLanguageVersion()).get() == DefaultJavaLanguageVersion.UNKNOWN;
-            });
+            task -> javaLauncher.map(launcher -> launcher.getMetadata().getLanguageVersion()).get() == DefaultJavaLanguageVersion.UNKNOWN);
     }
 
     @TaskAction

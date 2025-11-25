@@ -78,6 +78,9 @@ public class SpecificExecutableToolchainSpec extends DefaultToolchainSpec {
     }
 
     public File getJavaHome() {
+        // This allows for a "normal" JDK layout where the 'java' executable is in JAVA_HOME/bin/java.
+        // If such an executable is provided, and Gradle can probe the executable, the resulting toolchain
+        // could potentially be used to provide other tools as well (e.g. a compiler or javadoc tool).
         return javaExecutable.getParentFile().getParentFile();
     }
 

@@ -78,7 +78,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * @param reason - the reason for not tracking the task state when the condition matches
      * @param spec - the condition to evaluate
      */
-    // TODO We could consider making this a part of the public API
     void doNotTrackStateIf(String reason, Spec<? super TaskInternal> spec);
 
     @Internal
