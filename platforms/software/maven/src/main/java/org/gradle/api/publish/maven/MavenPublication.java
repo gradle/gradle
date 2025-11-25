@@ -365,7 +365,7 @@ public interface MavenPublication extends Publication {
      * This option is only relevant when publishing to a remote Maven repository.
      * Checksums are not generated for any artifacts published to Maven Local.
      *
-     * @since 9.3.0
+     * @since 9.4.0
      */
     @Incubating
     Property<@NonNull Boolean> getEnableChecksumsForDerivedArtifacts();
