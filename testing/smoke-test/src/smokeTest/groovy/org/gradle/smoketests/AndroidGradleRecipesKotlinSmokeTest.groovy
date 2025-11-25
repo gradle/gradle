@@ -54,6 +54,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         file('app/build.gradle.kts') << """
             import com.android.build.api.artifact.*
             import com.android.build.api.variant.*
+            import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
             plugins {
                 id("com.android.application")
@@ -82,7 +83,16 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                 compileSdk = 29
                 buildToolsVersion("${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}")
                 buildFeatures { buildConfig = true }
-                kotlinOptions { jvmTarget = "1.8" }
+                compileOptions {
+                    sourceCompatibility = JavaVersion.VERSION_1_8
+                    targetCompatibility = JavaVersion.VERSION_1_8
+                }
+            }
+
+            kotlin {
+                compilerOptions {
+                    jvmTarget.set(JvmTarget.JVM_1_8)
+                }
             }
 
             androidComponents {
