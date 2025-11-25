@@ -16,6 +16,7 @@
 
 package org.gradle.internal;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.Action;
 import org.jspecify.annotations.Nullable;
 
@@ -115,13 +116,7 @@ public abstract class IoActions {
      * @param resource The resource to be closed
      */
     public static void closeQuietly(@Nullable Closeable resource) {
-        try {
-            if (resource != null) {
-                resource.close();
-            }
-        } catch (IOException e) {
-            // Ignored
-        }
+        IOUtils.closeQuietly(resource);
     }
 
     private static class TextFileWriterIoAction implements Action<Action<? super BufferedWriter>> {
