@@ -201,10 +201,10 @@ class IsolatedProjectsExtensionsAccessIntegrationTest extends AbstractIsolatedPr
                     }
                 }
             }
-            extensions.add("broken", value)
+            extensions.add("mutable", value)
         """
         buildFile("a/build.gradle", """
-            println("Broken is \${rootProject.extensions.getByName('broken')}")
+            println("Mutable is \${rootProject.extensions.getByName('mutable')}")
             def deps = configurations.dependencyScope("deps") {
                 dependencies.add(dependencyFactory.create(rootProject))
             }
@@ -217,15 +217,20 @@ class IsolatedProjectsExtensionsAccessIntegrationTest extends AbstractIsolatedPr
             res.get().getFiles() // Realize a dependency on the parent project at configuration time
         """)
         buildFile("a/b/build.gradle", """
-            println("Broken is \${rootProject.extensions.getByName('broken')}")
+            println("Mutable is \${rootProject.extensions.getByName('mutable')}")
         """)
 
         when:
         isolatedProjectsRun "help"
 
         then:
-        outputContains("Broken is before")
-        outputContains("Broken is before")
+        outputContains """
+> Configure project :a
+Mutable is before
+Setting value to after
+
+> Configure project :a:b
+Mutable is before"""
     }
 
     //TODO Test isolation of ExtensionContainer.getExtensionSchema?
