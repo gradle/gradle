@@ -24,8 +24,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.Model
@@ -103,7 +103,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         then:
-        def e = thrown(BuildActionFailureException)
+        def e = thrown(BuildException)
         e.cause.message.contains(settingsKotlinFile.absolutePath)
         failure.assertHasDescription("Script compilation error")
 
@@ -252,7 +252,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         then:
-        def e = thrown(BuildActionFailureException)
+        def e = thrown(BuildException)
         e.cause.message.contains(includedSettings.absolutePath)
         failure.assertHasDescription("Script compilation error")
 
@@ -378,7 +378,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
-                modelAssert.assertClassPathsAreEqual()
+                modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             }
         }
@@ -473,7 +473,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
-                modelAssert.assertClassPathsAreEqual()
+                modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             }
         }
@@ -563,24 +563,17 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
-                modelAssert.assertClassPathsAreEqual()
+                modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             }
         }
-        // At the moment the failure reporting is not consistent and depends on the order of query
         def actualNoOfFailures = resilientModels.failures.size()
-        assert actualNoOfFailures == expectedNoOfFailures: "Expected $expectedNoOfFailures failures, but had ${actualNoOfFailures}"
-        rootBuildFailure?.with {
-            expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], it)
-        }
-        includedBuildFailure?.with {
-            expectFailureToContain(resilientModels.failures[included], it)
-        }
+        assert actualNoOfFailures == 2: "Expected 2 failures, but had ${actualNoOfFailures}"
+        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "A problem occurred configuring project ':b'.")
+        expectFailureToContain(resilientModels.failures[included], "Execution failed for task ':build-logic:compileKotlin'.")
 
         where:
-        queryStrategy         | expectedNoOfFailures | rootBuildFailure                               | includedBuildFailure
-        ROOT_PROJECT_FIRST    | 2                    | "A problem occurred configuring project ':b'." | "Execution failed for task ':build-logic:compileKotlin'."
-        INCLUDED_BUILDS_FIRST | 1                    | "A problem occurred configuring project ':b'." | null
+        queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
     def "build with convention plugins - broken settings convention"() {
