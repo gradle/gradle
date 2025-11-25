@@ -35,7 +35,7 @@ import static java.nio.file.Files.newBufferedReader;
  * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
  * be processed for generation in proper order later.
  */
-public class MetadataExtracter {
+public class MetadataExtractor {
 
     public XRef extractMetadata(Set<File> sources) {
         antlr.Tool tool = new antlr.Tool();
