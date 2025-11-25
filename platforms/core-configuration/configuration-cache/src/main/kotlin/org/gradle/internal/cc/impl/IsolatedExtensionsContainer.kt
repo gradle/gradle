@@ -19,54 +19,54 @@ package org.gradle.internal.cc.impl
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.reflect.TypeOf.typeOf
-import org.gradle.internal.extensibility.DefaultExtensionsSchema
 import org.gradle.internal.extensibility.DefaultExtraPropertiesExtension
 import org.gradle.internal.extensibility.ExtensionsStorage
 
 internal class IsolatedExtensionsContainer(
     private val projectExtensionsProvider: IsolatedExtensionsProvider,
     private val delegate: ExtensionContainerInternal,
-    private val onExtensionIsolationException: (Throwable) -> Unit,
+    private val onExtensionIsolationException: (String, Throwable) -> Unit,
 ) : ExtensionContainerInternal {
 
-    override fun getAsMap(): Map<String, Any> =
-        // TODO Isolate?
-        delegate.asMap
-
-    override fun getHoldersAsMap(): ImmutableMap<String, ExtensionsStorage.ExtensionHolder<*>> =
-        // TODO Isolate?
-        delegate.holdersAsMap
-
-    override fun getExtensionsSchema(): ExtensionsSchema =
-        DefaultExtensionsSchema.create(delegate.extensionsSchema)
+    override fun getExtensionsSchema(): ExtensionsSchema = projectExtensionsProvider.getExtensionsSchema()
 
     override fun <T : Any> getByType(type: Class<T>): T = getByType(typeOf(type))
 
-    override fun <T : Any> getByType(type: TypeOf<T>): T = findByType(type) ?: delegate.getByType(type) // will throw
+    override fun <T : Any> getByType(type: TypeOf<T>): T = findByType(type) ?: throw UnknownDomainObjectException("Extension of type ${type.simpleName} does not exist")
 
     override fun <T : Any> findByType(type: Class<T>): T? = findByType(typeOf(type))
 
     override fun <T : Any> findByType(type: TypeOf<T>): T? =
         projectExtensionsProvider.findByType(type)?.getOrMapFailure {
-            onExtensionIsolationException(it)
+            onExtensionIsolationException("of type '${type.simpleName}'", it)
             delegate.getByType(type)
         }
 
-    override fun getByName(name: String): Any = findByName(name) ?: delegate.getByName(name) // will throw
+    override fun getByName(name: String): Any = findByName(name) ?: throw UnknownDomainObjectException("Extension with name '$name' does not exist")
 
     override fun findByName(name: String): Any? =
         projectExtensionsProvider.findByName(name)?.getOrMapFailure {
-            onExtensionIsolationException(it)
+            onExtensionIsolationException("with name '$name'", it)
             delegate.getByName(name)
         }
 
     override fun getExtraProperties(): ExtraPropertiesExtension =
+        // TODO: Make sure the returned extensions container is immutable
         DefaultExtraPropertiesExtension(projectExtensionsProvider.getExtraProperties())
+
+    override fun getHoldersAsMap(): ImmutableMap<String, ExtensionsStorage.ExtensionHolder<*>> {
+        throw UnsupportedOperationException()
+    }
+
+    override fun getAsMap(): Map<String, Any> {
+        throw UnsupportedOperationException()
+    }
 
     override fun <T : Any> add(publicType: Class<T>, name: String, extension: T) {
         throw InvalidUserCodeException("Mutation of the isolated extensions is prohibited")

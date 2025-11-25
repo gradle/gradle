@@ -132,6 +132,33 @@ class IsolatedProjectsExtensionsAccessIntegrationTest extends AbstractIsolatedPr
         ]
     }
 
+    def "project's extra properties are isolated"() {
+        settingsFile """
+            include(":a")
+            include(":b")
+        """
+        buildFile """
+            extensions.extraProperties.set("numbers", [42])
+        """
+        buildFile("a/build.gradle", """
+            def numbers = rootProject.extensions.extraProperties.get("numbers")
+            numbers.add(0)
+            println("Project ':a' numbers = \${numbers.value}")
+        """)
+        buildFile("b/build.gradle", """
+            def numbers = rootProject.extensions.extraProperties.get("numbers")
+            numbers.add(1)
+            println("Project ':b' numbers = \${numbers.value}")
+        """)
+
+        when:
+        isolatedProjectsRun "help"
+
+        then:
+        outputContains("Project ':a' numbers = [42, 0]")
+        outputContains("Project ':b' numbers = [42, 1]")
+    }
+
     def "access to non-serializable extensions emits a problem"() {
         settingsFile """
             include(":a")
@@ -140,7 +167,7 @@ class IsolatedProjectsExtensionsAccessIntegrationTest extends AbstractIsolatedPr
             extensions.add("number", 42)
             extensions.add("broken", this)
         """
-        buildFile ("a/build.gradle", """
+        buildFile("a/build.gradle", """
             println("Number is \${rootProject.extensions.getByName('number')}")
             println("Broken is \${rootProject.extensions.getByName('broken')}")
         """)
@@ -153,11 +180,55 @@ class IsolatedProjectsExtensionsAccessIntegrationTest extends AbstractIsolatedPr
 
         and:
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'a/build.gradle': line 2: Extension of ':' cannot be serialized ")
+            withProblem("Build file 'a/build.gradle': line 2: Extension with name 'broken' of project ':' cannot be serialized")
         }
     }
 
-    //TODO Test isolation of ExtensionContainer.getAsMap
-    //TODO Test isolation of ExtensionContainer.getExtensionSchema
-    //TODO Test isolation of ExtensionContainer.getExtraProperties
+    def "project's extensions isolated on the first access and cannot be changed after"() {
+        settingsFile """
+            include(":a")
+            include(":a:b")
+        """
+        buildFile """
+            import java.util.concurrent.atomic.AtomicReference
+            AtomicReference<String> value = new AtomicReference("before")
+            configurations {
+                consumable("foo") {
+                    value.set("after")
+                    println("Setting value to after")
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
+                    }
+                }
+            }
+            extensions.add("broken", value)
+        """
+        buildFile("a/build.gradle", """
+            println("Broken is \${rootProject.extensions.getByName('broken')}")
+            def deps = configurations.dependencyScope("deps") {
+                dependencies.add(dependencyFactory.create(rootProject))
+            }
+            def res = configurations.resolvable("res") {
+                extendsFrom(deps.get())
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
+                }
+            }
+            res.get().getFiles() // Realize a dependency on the parent project at configuration time
+        """)
+        buildFile("a/b/build.gradle", """
+            println("Broken is \${rootProject.extensions.getByName('broken')}")
+        """)
+
+        when:
+        isolatedProjectsRun "help"
+
+        then:
+        outputContains("Broken is before")
+        outputContains("Broken is before")
+    }
+
+    //TODO Test isolation of ExtensionContainer.getExtensionSchema?
+    //TODO Test access to ExtensionContainer.getAsMap?
+    //TODO Test access to ExtensionContainer.getHoldersAsMap?
 }

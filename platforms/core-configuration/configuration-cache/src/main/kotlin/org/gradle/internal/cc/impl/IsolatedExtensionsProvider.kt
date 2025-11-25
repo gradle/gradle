@@ -18,10 +18,14 @@ package org.gradle.internal.cc.impl
 
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.plugins.ExtensionsSchema
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.reflect.TypeOf
+import org.gradle.api.reflect.TypeOf.typeOf
 import org.gradle.internal.Describables
 import org.gradle.internal.Try
 import org.gradle.internal.Try.ofFailable
+import org.gradle.internal.extensibility.DefaultExtensionsSchema
 import org.gradle.internal.extensibility.ExtensionsStorage
 import org.gradle.internal.isolate.graph.IsolatedActionDeserializer
 import org.gradle.internal.isolate.graph.IsolatedActionSerializer
@@ -33,6 +37,8 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 @ServiceScope(Scope.Project::class)
 interface IsolatedExtensionsProvider {
+
+    fun getExtensionsSchema(): ExtensionsSchema
 
     fun <T> findByType(type: TypeOf<T>): Try<T>?
 
@@ -57,8 +63,6 @@ internal class DefaultIsolatedExtensionsProvider(
             }
         }
 
-//    val properties = ....
-
     private fun <T : Any> serialize(holder: ExtensionsStorage.ExtensionHolder<T>): SerializedExtension<T> {
         val type = holder.publicType
         val value = ofFailable<SerializedIsolatedActionGraph<T>> { serializer.serialize(holder.get()) }
@@ -69,6 +73,16 @@ internal class DefaultIsolatedExtensionsProvider(
         // TODO val extensions by lazy {} ?
         extensions.finalizeIfNotAlready();
         return extensions.get()
+    }
+
+    override fun getExtensionsSchema(): ExtensionsSchema {
+        val schemas = getSerializedExtensions().entries.map { (key, extension) ->
+            object : ExtensionsSchema.ExtensionSchema {
+                override fun getName(): String = key
+                override fun getPublicType(): TypeOf<*> = extension.type
+            }
+        }
+        return DefaultExtensionsSchema.create(schemas)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -87,8 +101,10 @@ internal class DefaultIsolatedExtensionsProvider(
     }
 
     override fun getExtraProperties(): ImmutableMap<String, Any> {
-        // TODO It's already serialized, just deserialize it? We potentially may want to keep it serialized separately, if so, we should filter it out of extensions
-        return ImmutableMap.of()
+        val extraProperties = findByType(typeOf(ExtraPropertiesExtension::class.java))
+        return extraProperties?.get()?.properties
+            ?.let { ImmutableMap.copyOf(it) }
+            ?: error("Expected ExtraPropertiesExtension to be present")
     }
 
     data class SerializedExtension<T : Any>(

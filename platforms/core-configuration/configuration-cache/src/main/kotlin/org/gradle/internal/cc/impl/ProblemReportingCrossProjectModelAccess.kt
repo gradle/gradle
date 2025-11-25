@@ -173,17 +173,15 @@ class ProblemReportingCrossProjectModelAccess(
             if (delegate.projectIdentity.isParentOf(referrer.projectIdentity)) {
                 onProjectsCoupled()
                 return delegate.owner.fromMutableState {
-                    // TODO too coarse grained lock?
                     IsolatedExtensionsContainer(
                         it.serviceOf(),
-                        delegate.extensions,
-                    ) { isolationException ->
+                        it.extensions,
+                    ) { extensionDetails, isolationException ->
                         val problem = problemFactory.problem(
                             message = StructuredMessage.build {
-                                text("Extension of ")
+                                text("Extension $extensionDetails of project ")
                                 reference(delegate)
-                                text(" cannot be serialized ")
-                                // TODO Add a name and a type of the extension
+                                text(" cannot be serialized")
                             },
                             exception = isolationException
                         )
