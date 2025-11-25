@@ -122,7 +122,8 @@ public class DeprecationLogger {
     }
 
     /**
-     * Output: ${behaviour}. This behavior is deprecated.
+     * Output: ${behavior}. This behavior is deprecated.
+
      */
     @CheckReturnValue
     public static DeprecationMessageBuilder.DeprecateBehaviour deprecateBehaviour(String behaviour) {
