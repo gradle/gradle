@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -32,6 +33,7 @@ import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
@@ -74,7 +76,12 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         // and treating the root of the repository as the root of the build
         new File(temporaryFolder.testDirectory, "settings.gradle") << ""
         rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
-        executionServices = ProjectExecutionServices.create(rootProject)
+        executionServices = ProjectExecutionServices.create(
+            rootProject.gradle.services,
+            rootProject.services.get(FileResolver),
+            new DefaultRuntimeClasspathNormalization(),
+            file -> false
+        )
     }
 
     final ProjectInternal getProject() {
@@ -91,7 +98,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         def workValidationContext = new DefaultWorkValidationContext(WorkValidationContext.TypeOriginInspector.NO_OP, problems)
         def taskExecutionContext = new DefaultTaskExecutionContext(
             new LocalTaskNode(task as TaskInternal, workValidationContext, { null }),
-            DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
+            DefaultTaskProperties.resolve(project.services.get(PropertyWalker), project.services.get(FileCollectionFactory), task as TaskInternal),
             workValidationContext,
             { context -> }
         )

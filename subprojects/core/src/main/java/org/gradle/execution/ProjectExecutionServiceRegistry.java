@@ -19,13 +19,18 @@ package org.gradle.execution;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
+import org.gradle.internal.file.ReservedFileSystemLocation;
+import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
-import org.jspecify.annotations.NonNull;
+import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
+import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
@@ -38,8 +43,20 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
     private final LoadingCache<ProjectInternal, NodeExecutionContext> projectRegistries = CacheBuilder.newBuilder()
         .build(new CacheLoader<ProjectInternal, NodeExecutionContext>() {
             @Override
-            public NodeExecutionContext load(@NonNull ProjectInternal project) {
-                return new DefaultNodeExecutionContext(ProjectExecutionServices.create(project));
+            public NodeExecutionContext load(ProjectInternal project) {
+                ServiceRegistry projectServices = project.getServices();
+                FileResolver fileResolver = projectServices.get(FileResolver.class);
+                RuntimeClasspathNormalizationInternal runtimeClasspathNormalization =
+                    projectServices.get(InputNormalizationHandlerInternal.class).getRuntimeClasspath();
+                ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry =
+                    new DefaultReservedFileSystemLocationRegistry(projectServices.getAll(ReservedFileSystemLocation.class));
+
+                return new DefaultNodeExecutionContext(ProjectExecutionServices.create(
+                    project.getGradle().getServices(),
+                    fileResolver,
+                    runtimeClasspathNormalization,
+                    reservedFileSystemLocationRegistry
+                ));
             }
         });
 

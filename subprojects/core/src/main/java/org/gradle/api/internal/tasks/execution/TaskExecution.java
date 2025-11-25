@@ -16,22 +16,17 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.DefaultPropertyValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
@@ -72,13 +67,13 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -96,6 +91,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
@@ -115,8 +111,6 @@ public class TaskExecution implements MutableUnitOfWork {
     private final BuildOperationRunner buildOperationRunner;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionHistoryStore executionHistoryStore;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final TaskDependencyFactory taskDependencyFactory;
     private final PathToFileResolver fileResolver;
     private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
@@ -133,13 +127,11 @@ public class TaskExecution implements MutableUnitOfWork {
         BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
-        FileCollectionFactory fileCollectionFactory,
         PathToFileResolver fileResolver,
         InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         TaskCacheabilityResolver taskCacheabilityResolver,
-        TaskDependencyFactory taskDependencyFactory,
         MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         this.task = task;
@@ -150,8 +142,6 @@ public class TaskExecution implements MutableUnitOfWork {
         this.buildOperationRunner = buildOperationRunner;
         this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.taskDependencyFactory = taskDependencyFactory;
         this.fileResolver = fileResolver;
         this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
@@ -167,9 +157,18 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public WorkOutput execute(ExecutionContext executionContext) {
-        FileCollection previousFiles = executionContext.getPreviouslyProducedOutputs()
-            .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs))
-            .orElseGet(FileCollectionFactory::empty);
+        Lazy<Set<File>> previousFiles = Lazy.unsafe().of(() ->
+            executionContext.getPreviouslyProducedOutputs().map(previousOutputs ->
+                previousOutputs.values().stream()
+                    .map(SnapshotUtil::indexByAbsolutePath)
+                    .map(Map::keySet)
+                    .flatMap(Collection::stream)
+                    .map(File::new)
+                    .collect(Collectors.toSet())
+            )
+            .orElse(Collections.emptySet())
+        );
+
         TaskOutputsEnterpriseInternal outputs = (TaskOutputsEnterpriseInternal) task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
         try {
@@ -541,35 +540,6 @@ public class TaskExecution implements MutableUnitOfWork {
     @Override
     public String toString() {
         return getDisplayName();
-    }
-
-    private static class PreviousOutputFileCollection extends LazilyInitializedFileCollection {
-        private final TaskInternal task;
-        private final FileCollectionFactory fileCollectionFactory;
-        private final ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs;
-
-        public PreviousOutputFileCollection(TaskInternal task, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
-            super(taskDependencyFactory);
-            this.task = task;
-            this.fileCollectionFactory = fileCollectionFactory;
-            this.previousOutputs = previousOutputs;
-        }
-
-        @Override
-        public FileCollectionInternal createDelegate() {
-            List<File> outputs = previousOutputs.values().stream()
-                .map(SnapshotUtil::indexByAbsolutePath)
-                .map(Map::keySet)
-                .flatMap(Collection::stream)
-                .map(File::new)
-                .collect(Collectors.toList());
-            return fileCollectionFactory.fixed(outputs);
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "previous output files of " + task;
-        }
     }
 
     @Contextual
