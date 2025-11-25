@@ -311,9 +311,15 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private void serviceRequested() {
-        noLongerMutable();
-        if (state.get() == State.CLOSED) {
-            throw new IllegalStateException(String.format("%s has been closed.", getDisplayName()));
+        State current = state.get();
+        switch (current) {
+            case STARTED:
+                break;
+            case CLOSED:
+                throw new IllegalStateException(String.format("%s has been closed.", getDisplayName()));
+            case INIT:
+                noLongerMutable();
+                break;
         }
     }
 
