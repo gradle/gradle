@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.filter;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
@@ -112,7 +113,8 @@ public class TestSelectionMatcher {
 
     private boolean matchesPattern(List<FileTestPattern> patterns, Path path) {
         for (FileTestPattern pattern : patterns) {
-            if (pattern.matches("/" + path.toString())) { // Add leading slash in target path (will always be optionally present at the start of the regex)
+            String normalizedPath = TextUtil.normaliseFileSeparators(path.toString());
+            if (pattern.matches("/" + normalizedPath)) { // Add leading slash in target path (will always be optionally present at the start of the regex)
                 return true;
             }
         }
@@ -211,7 +213,7 @@ public class TestSelectionMatcher {
         private static Pattern preparePattern(String input) {
             try {
                 // Add optional leading slash to match both "absolute" and "relative" paths (all paths are treated as relative to project root)
-                return Pattern.compile("/?(" + input + ")");
+                return Pattern.compile("/?(" + TextUtil.normaliseFileSeparators(input) + ")");
             } catch (PatternSyntaxException e) {
                 throw new IllegalArgumentException("Path filter pattern is not a valid regex: " + input, e);
             }
