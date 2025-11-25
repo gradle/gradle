@@ -65,7 +65,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         writeTestDefinitions()
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         nonClassBasedTestsExecuted()
@@ -99,10 +99,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
 
         when:
-        succeeds("integrationTest", "--info")
+        succeeds("integrationTest")
 
         then:
-        nonClassBasedTestsExecuted()
+        resultsFor("tests/integrationTest").assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
     }
 
     def "resource-based test engine detects and executes test definitions in multiple locations"() {
@@ -136,11 +136,11 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         nonClassBasedTestsExecuted()
-        outputContains("INFO: Executing resource-based test: Test[file=SomeThirdTestSpec.rbt, name=third]")
+        resultsFor().assertAtLeastTestPathsExecuted(":SomeThirdTestSpec.rbt - third")
     }
 
     def "empty test definitions location skips"() {
@@ -164,10 +164,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        testTaskWasSkippedDueToNoSources()
+        skipped(":test")
     }
 
     def "resource-based test engine detects and executes test definitions only once in overlapping locations"() {
@@ -197,16 +197,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         writeTestDefinitions(childLocation)
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        nonClassBasedTestsExecuted()
-
-        ["INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]",
-         "INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]",
-         "INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]"].forEach {
-            result.getOutput().findAll(it).size() == 1
-        }
+        nonClassBasedTestsExecuted(true)
     }
 
     def "can listen for non-class-based tests"() {
@@ -250,12 +244,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
         containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
 
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar] [SUCCESS] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other]")
-        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt - foo()] [SomeTestSpec.rbt - foo]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt - foo()] [SomeTestSpec.rbt - foo] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt - bar()] [SomeTestSpec.rbt - bar]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt - bar()] [SomeTestSpec.rbt - bar] [SUCCESS] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt - other()] [SomeOtherTestSpec.rbt - other]")
+        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt - other()] [SomeOtherTestSpec.rbt - other] [SUCCESS] [1] [null]")
     }
 
     def "can listen for non-class-based tests using dry-run and tests are reported as skipped"() {
@@ -300,12 +294,12 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         containsLine(result.getOutput(), matchesRegexp("START \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\]"))
         containsLine(result.getOutput(), matchesRegexp("FINISH \\[Gradle Test Executor \\d+\\] \\[Gradle Test Executor \\d+\\] \\[SUCCESS\\] \\[3\\]"))
 
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : foo()] [SomeTestSpec.rbt : foo] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar]")
-        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt : bar()] [SomeTestSpec.rbt : bar] [SKIPPED] [1] [null]")
-        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other]")
-        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt : other()] [SomeOtherTestSpec.rbt : other] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt - foo()] [SomeTestSpec.rbt - foo]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt - foo()] [SomeTestSpec.rbt - foo] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeTestSpec.rbt - bar()] [SomeTestSpec.rbt - bar]")
+        containsLine(result.getOutput(), "FINISH [Test SomeTestSpec.rbt - bar()] [SomeTestSpec.rbt - bar] [SKIPPED] [1] [null]")
+        containsLine(result.getOutput(), "START [Test SomeOtherTestSpec.rbt - other()] [SomeOtherTestSpec.rbt - other]")
+        containsLine(result.getOutput(), "FINISH [Test SomeOtherTestSpec.rbt - other()] [SomeOtherTestSpec.rbt - other] [SKIPPED] [1] [null]")
     }
 
     def "invalid path filter handled gracefully (filter type = #filterType) "() {

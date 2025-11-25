@@ -82,7 +82,7 @@ class NonClassBasedParallelTestExecutionIntegrationTest extends AbstractNonClass
         def handler = blockingServer.expectConcurrentAndBlock(maxConcurrency, calls)
 
         when:
-        def gradle = executer.withArgument("-i").withTasks('test').start()
+        def gradle = executer.withTasks('test').start()
 
         then:
         handler.waitForAllPendingCalls()
@@ -99,9 +99,9 @@ class NonClassBasedParallelTestExecutionIntegrationTest extends AbstractNonClass
         handler.release(maxConcurrency)
 
         then:
-        def finishedResult = gradle.waitForFinish()
+        gradle.waitForFinish()
         testIndices(testCount).each { idx ->
-            finishedResult.assertOutputContains("INFO: Executing resource-based test: Test[file=parallel-${idx}.rbt, name=parallel-$idx]")
+            resultsFor().assertAtLeastTestPathsExecuted(":parallel-${idx}.rbt - parallel-$idx")
         }
 
         where:

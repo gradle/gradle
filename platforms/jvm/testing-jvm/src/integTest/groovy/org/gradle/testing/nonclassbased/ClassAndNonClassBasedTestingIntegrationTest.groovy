@@ -16,8 +16,15 @@
 
 package org.gradle.testing.nonclassbased
 
+import org.gradle.api.tasks.testing.TestResult
+import testengines.TestEnginesFixture.TestEngines
+
 /**
  * Tests that exercise and demonstrate a TestEngines that runs both class and non-class test definitions.
+ * <p>
+ * Note that the {@link TestEngines#RESOURCE_AND_CLASS_BASED} engine is not a complete implementation of
+ * a class-based testing engine, it will only execute the class and because of this only reports results properly for
+ * test classes in the default package.
  */
 class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
@@ -61,11 +68,11 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         }
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         if (classesPresent) {
-            classBasedTestsExecuted()
+            resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         }
         if (nonClassDefinitionsPresent) {
             nonClassBasedTestsExecuted()
@@ -108,10 +115,10 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         writeTestDefinitions(definitionsLocation)
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        classBasedTestsExecuted()
+        resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         nonClassBasedTestsExecuted()
     }
 }
