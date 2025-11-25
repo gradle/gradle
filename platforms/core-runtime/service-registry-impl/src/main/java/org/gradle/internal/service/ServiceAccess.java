@@ -19,6 +19,7 @@ package org.gradle.internal.service;
 
 import org.jspecify.annotations.Nullable;
 
+import java.lang.reflect.Type;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,8 +46,8 @@ class ServiceAccess {
     /**
      * Creates a new unique token.
      */
-    public static ServiceAccessToken createToken(String ownerDisplayName) {
-        return new DefaultServiceAccessToken(NEXT_ID.incrementAndGet(), ownerDisplayName);
+    public static ServiceAccessToken createToken(Type ownerInfo) {
+        return new DefaultServiceAccessToken(NEXT_ID.incrementAndGet(), ownerInfo);
     }
 
     /**

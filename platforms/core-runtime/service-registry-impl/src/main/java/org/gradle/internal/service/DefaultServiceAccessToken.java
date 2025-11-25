@@ -16,14 +16,16 @@
 
 package org.gradle.internal.service;
 
+import java.lang.reflect.Type;
+
 class DefaultServiceAccessToken implements ServiceAccessToken {
 
     private final int id;
-    private final String ownerDisplayName;
+    private final Type owner;
 
-    public DefaultServiceAccessToken(int id, String ownerDisplayName) {
+    public DefaultServiceAccessToken(int id, Type owner) {
         this.id = id;
-        this.ownerDisplayName = ownerDisplayName;
+        this.owner = owner;
     }
 
     @Override
@@ -46,6 +48,6 @@ class DefaultServiceAccessToken implements ServiceAccessToken {
 
     @Override
     public String toString() {
-        return "AccessToken(id=" + id + ", owner=" + ownerDisplayName + ")";
+        return "AccessToken(id=" + id + ", owner=" + TypeStringFormatter.format(owner) + ")";
     }
 }

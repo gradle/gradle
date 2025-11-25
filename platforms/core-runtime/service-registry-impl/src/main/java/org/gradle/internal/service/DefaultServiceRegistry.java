@@ -224,7 +224,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      */
     public void register(ServiceRegistrationAction action) {
         assertMutable();
-        ServiceAccessToken token = ServiceAccess.createToken(format(action.getClass()));
+        ServiceAccessToken token = createTokenFor(action);
         action.registerServices(newRegistration(token));
     }
 
@@ -290,9 +290,13 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      */
     public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
         assertMutable();
-        ServiceAccessToken token = org.gradle.internal.service.ServiceAccess.createToken(format(provider.getClass()));
+        ServiceAccessToken token = createTokenFor(provider);
         findProviderMethods(provider, token);
         return this;
+    }
+
+    private static ServiceAccessToken createTokenFor(Object registration) {
+        return ServiceAccess.createToken(registration.getClass());
     }
 
     /**
