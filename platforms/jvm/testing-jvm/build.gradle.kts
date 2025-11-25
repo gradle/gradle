@@ -58,9 +58,10 @@ dependencies {
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.time))
 
-    integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(testFixtures(projects.languageGroovy))
     integTestImplementation(testFixtures(projects.scala))
+    integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(testFixtures(projects.toolingApi))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
