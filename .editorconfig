@@ -14,7 +14,7 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-spelling_languages = en_US
+spelling_languages = en-US
 
 # Markdown files sometimes need trailing whitespaces.
 [*.md]

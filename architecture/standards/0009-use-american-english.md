@@ -19,11 +19,11 @@ While both American and British English are valid, establishing a single standar
 
 ## Decision
 
-The Gradle project adopts **American English** as the standard language variant for all code, comments, and documentation.
+The Gradle project adopts **American English** as the standard language variant for all code, comments, documentation, user-facing messages, and written communication.
 
 ### Examples
 
-Use American English spelling:
+Use American English spelling, for example:
 
 * `color` (not `colour`)
 * `initialize` (not `initialise`)
