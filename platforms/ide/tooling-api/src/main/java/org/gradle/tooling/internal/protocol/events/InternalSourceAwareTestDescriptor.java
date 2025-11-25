@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build.event.types.test.source;
+package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.test.source.InternalCompositeTestSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
+import org.jspecify.annotations.NullMarked;
 
-import java.io.Serializable;
-import java.util.List;
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 9.4.0
+ */
+@NullMarked
+public interface InternalSourceAwareTestDescriptor extends InternalJvmTestDescriptor {
 
-public class DefaultCompositeTestSource implements InternalCompositeTestSource, Serializable {
-
-    private final List<InternalTestSource> testSources;
-
-    public DefaultCompositeTestSource(List<InternalTestSource> testSources) {
-        this.testSources = testSources;
-    }
-
-    @Override
-    public List<InternalTestSource> getTestSources() {
-        return testSources;
-    }
+    /**
+     * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+     *
+     * @since 9.4.0
+     */
+    InternalTestSource getSource();
 }

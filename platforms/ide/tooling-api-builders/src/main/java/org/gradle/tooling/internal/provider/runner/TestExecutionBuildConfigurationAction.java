@@ -32,15 +32,15 @@ import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
-import org.gradle.internal.build.event.types.BaseTestDescriptor;
+import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
-import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalResourceBasedTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalSourceAwareTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
+import org.gradle.tooling.internal.protocol.test.source.InternalFilesystemSource;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 import org.jspecify.annotations.NullMarked;
 
@@ -201,11 +201,14 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     private static void warnIfUnsupportedTestRerunningForResourceBasedTests(Collection<InternalTestDescriptor> testDescriptors) {
         Set<String> seenTasks = new LinkedHashSet<>();
         for (InternalTestDescriptor descriptor : testDescriptors) {
-            if (descriptor instanceof InternalResourceBasedTestDescriptor) {
-                String taskPath = taskPathOf(descriptor);
-                if (!seenTasks.contains(taskPath)) {
-                    LOG.warn("Re-running resource-based tests is not supported via TestLauncher API. The '{}' task will be scheduled without further filtering.", taskPath);
-                    seenTasks.add(taskPath);
+            if (descriptor instanceof InternalSourceAwareTestDescriptor) {
+                InternalSourceAwareTestDescriptor sd  = (InternalSourceAwareTestDescriptor) descriptor;
+                if (sd.getSource() instanceof InternalFilesystemSource) {
+                    String taskPath = taskPathOf(descriptor);
+                    if (!seenTasks.contains(taskPath)) {
+                        LOG.warn("Re-running resource-based tests is not supported via TestLauncher API. The '{}' task will be scheduled without further filtering.", taskPath);
+                        seenTasks.add(taskPath);
+                    }
                 }
             }
         }
@@ -228,16 +231,19 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private static void includeTestMatching(InternalTestDescriptor descriptor, AbstractTestTask testTask) {
-        if (descriptor instanceof InternalJvmTestDescriptor) {
-            InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
+        if (descriptor instanceof InternalSourceAwareTestDescriptor) {
+            InternalSourceAwareTestDescriptor jvmTestDescriptor = (InternalSourceAwareTestDescriptor) descriptor;
             String className = jvmTestDescriptor.getClassName();
             String methodName = jvmTestDescriptor.getMethodName();
-            if (className == null && methodName == null) {
-                testTask.getFilter().includeTestsMatching("*");
-            } else {
-                testTask.getFilter().includeTest(className, methodName);
+            if (!(jvmTestDescriptor.getSource() instanceof InternalFilesystemSource)) {
+                if (className == null && methodName == null) {
+                    testTask.getFilter().includeTestsMatching("*");
+                } else {
+                    testTask.getFilter().includeTest(className, methodName);
+                }
+                disableResourceBasedTests(testTask);
             }
-            disableResourceBasedTests(testTask);
+
         }
     }
 
@@ -296,6 +302,6 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private static String taskPathOf(InternalTestDescriptor descriptor) {
-        return ((BaseTestDescriptor) descriptor).getTaskPath();
+        return ((DefaultTestDescriptor) descriptor).getTaskPath();
     }
 }

@@ -39,11 +39,4 @@ public interface MethodSource extends TestSource {
      * @since 9.4.0
      */
     String getMethodName();
-
-    /**
-     * Returns the parameter types of the test method.
-     *
-     * @since 9.4.0
-     */
-    String getMethodParameterTypes();
 }

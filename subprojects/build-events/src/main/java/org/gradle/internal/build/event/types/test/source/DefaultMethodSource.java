@@ -24,12 +24,10 @@ public class DefaultMethodSource implements InternalMethodSource, Serializable {
 
     private final String className;
     private final String methodName;
-    private final String methodParameterTypes;
 
-    public DefaultMethodSource(String className, String methodName, String methodParameterTypes) {
+    public DefaultMethodSource(String className, String methodName) {
         this.className = className;
         this.methodName = methodName;
-        this.methodParameterTypes = methodParameterTypes;
     }
 
     @Override
@@ -40,10 +38,5 @@ public class DefaultMethodSource implements InternalMethodSource, Serializable {
     @Override
     public String getMethodName() {
         return methodName;
-    }
-
-    @Override
-    public String getMethodParameterTypes() {
-        return methodParameterTypes;
     }
 }

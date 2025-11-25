@@ -16,7 +16,7 @@
 
 package org.gradle.testing.testengine.engine;
 
-import org.gradle.testing.testengine.descriptor.ResourceBasedTestDescriptor;
+import org.gradle.testing.testengine.descriptor.CustomResourceBasedTestDescriptor;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.junit.platform.engine.DiscoverySelector;
@@ -55,7 +55,7 @@ public class ResourceBasedTestEngine implements TestEngine {
         EngineDescriptor engineDescriptor = new EngineDescriptor(uniqueId, ENGINE_NAME);
 
         EngineDiscoveryRequestResolver.builder()
-            .addSelectorResolver(new ResourceBasedSelectorResolver())
+            .addSelectorResolver(new CustomResourceBasedSelectorResolver())
             .build()
             .resolve(discoveryRequest, engineDescriptor);
 
@@ -68,7 +68,7 @@ public class ResourceBasedTestEngine implements TestEngine {
 
         EngineExecutionListener listener = executionRequest.getEngineExecutionListener();
         executionRequest.getRootTestDescriptor().getChildren().forEach(test -> {
-            if (test instanceof ResourceBasedTestDescriptor) {
+            if (test instanceof CustomResourceBasedTestDescriptor) {
                 listener.executionStarted(test);
                 LOGGER.info(() -> "Executing resource-based test: " + test);
                 listener.executionFinished(test, TestExecutionResult.successful());

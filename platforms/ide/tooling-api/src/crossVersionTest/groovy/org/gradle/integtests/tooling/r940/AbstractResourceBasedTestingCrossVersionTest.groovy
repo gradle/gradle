@@ -17,13 +17,14 @@
 package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.tooling.TestEventsFixture
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import testengines.TestEnginesFixture
 
-abstract class AbstractResourceBasedTestingCrossVersionTest extends ToolingApiSpecification {
+abstract class AbstractResourceBasedTestingCrossVersionTest extends ToolingApiSpecification implements TestEventsFixture {
 
     private static final String ENGINE_COPY_TO_DIR_NAME = "test-engine-build"
 
@@ -87,5 +88,19 @@ abstract class AbstractResourceBasedTestingCrossVersionTest extends ToolingApiSp
                 <test name="other" />
             </tests>
         """
+    }
+
+    protected void assertTestsFromDefinitionsExecuted() {
+        testEvents {
+            task(':test') {
+                nested('Gradle Test Run :test') {
+                    nested('Gradle Test Executor') {
+                        test('Test SomeTestSpec.rbt - foo')
+                        test('Test SomeTestSpec.rbt - bar')
+                        test('Test subSomeOtherTestSpec.rbt - other')
+                    }
+                }
+            }
+        }
     }
 }

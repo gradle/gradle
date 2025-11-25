@@ -16,30 +16,20 @@
 
 package org.gradle.internal.build.event.types.test.source;
 
-import org.gradle.tooling.internal.protocol.events.InternalFilePosition;
 import org.gradle.tooling.internal.protocol.test.source.InternalClassSource;
-import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
 public class DefaultClassSource implements InternalClassSource, Serializable {
 
     private final String className;
-    private final InternalFilePosition position;
 
-    public DefaultClassSource(String className, @Nullable InternalFilePosition position) {
+    public DefaultClassSource(String className) {
         this.className = className;
-        this.position = position;
     }
 
     @Override
     public String getClassName() {
         return className;
-    }
-
-    @Override
-    @Nullable
-    public InternalFilePosition getPosition() {
-        return position;
     }
 }

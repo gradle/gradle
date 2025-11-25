@@ -24,7 +24,7 @@ import java.io.File;
  *
  * @since 9.4.0
  */
-public interface InternalFilesystemSource extends InternalUriSource {
+public interface InternalFilesystemSource extends InternalTestSource {
 
     /**
      *

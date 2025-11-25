@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.build.event.types.DefaultClassBasedTestDescriptor;
+import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -123,7 +123,7 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
         StringBuilder requestDetails = new StringBuilder(INDENT).append("Requested tests:");
         for (InternalTestDescriptor internalTestDescriptor : internalTestExecutionRequest.getTestExecutionDescriptors()) {
             requestDetails.append("\n").append(twoIndent()).append(internalTestDescriptor.getDisplayName());
-            requestDetails.append(" (Task: '").append(((DefaultClassBasedTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
+            requestDetails.append(" (Task: '").append(((DefaultTestDescriptor) internalTestDescriptor).getTaskPath()).append("')");
         }
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = internalTestExecutionRequest.getInternalJvmTestRequests();
 

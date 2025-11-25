@@ -19,18 +19,12 @@ package org.gradle.tooling.events.test.internal.source;
 import org.gradle.tooling.events.test.source.DirectorySource;
 
 import java.io.File;
-import java.net.URI;
 
 public class DefaultDirectorySource implements DirectorySource {
     private final File file;
 
     public DefaultDirectorySource(File file) {
         this.file = file;
-    }
-
-    @Override
-    public final URI getUri() {
-        return getFile().toURI();
     }
 
     @Override

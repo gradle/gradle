@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test.internal.source;
+package org.gradle.tooling.events.test.source;
 
 
-import org.gradle.tooling.events.test.source.UnknownSource;
+import org.gradle.api.Incubating;
 
-public class DefaultUnknownSource implements UnknownSource {
+/**
+ * The test engine declared a test source not recognized by Gradle.
+ *
+ * @since 9.4.0
+ */
+@Incubating
+public interface OtherSource extends TestSource {
 
-    private static final DefaultUnknownSource INSTANCE = new DefaultUnknownSource();
-
-    public static DefaultUnknownSource getInstance() {
-        return INSTANCE;
-    }
 }

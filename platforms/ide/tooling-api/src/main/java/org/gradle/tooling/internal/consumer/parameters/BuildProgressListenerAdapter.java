@@ -127,7 +127,6 @@ import org.gradle.tooling.events.test.TestOutputEvent;
 import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
-import org.gradle.tooling.events.test.internal.DefaultResourceBasedJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
 import org.gradle.tooling.events.test.internal.DefaultTestFileAttachmentMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
@@ -140,16 +139,13 @@ import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
 import org.gradle.tooling.events.test.internal.source.DefaultClassSource;
 import org.gradle.tooling.events.test.internal.source.DefaultClasspathResourceSource;
-import org.gradle.tooling.events.test.internal.source.DefaultCompositeTestSource;
 import org.gradle.tooling.events.test.internal.source.DefaultDirectorySource;
 import org.gradle.tooling.events.test.internal.source.DefaultFilePosition;
 import org.gradle.tooling.events.test.internal.source.DefaultFileSource;
 import org.gradle.tooling.events.test.internal.source.DefaultMethodSource;
-import org.gradle.tooling.events.test.internal.source.DefaultMissingSource;
-import org.gradle.tooling.events.test.internal.source.DefaultPackageSource;
-import org.gradle.tooling.events.test.internal.source.DefaultUnknownSource;
+import org.gradle.tooling.events.test.internal.source.DefaultNoSource;
+import org.gradle.tooling.events.test.internal.source.DefaultOtherSource;
 import org.gradle.tooling.events.test.source.FilePosition;
-import org.gradle.tooling.events.test.source.FilesystemSource;
 import org.gradle.tooling.events.test.source.TestSource;
 import org.gradle.tooling.events.transform.TransformFinishEvent;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
@@ -215,9 +211,9 @@ import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
-import org.gradle.tooling.internal.protocol.events.InternalResourceBasedTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalRootOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalSourceAwareTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalStatusEvent;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
@@ -262,12 +258,10 @@ import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
 import org.gradle.tooling.internal.protocol.test.source.InternalClassSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalClasspathResourceSource;
-import org.gradle.tooling.internal.protocol.test.source.InternalCompositeTestSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalDirectorySource;
 import org.gradle.tooling.internal.protocol.test.source.InternalFileSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalMethodSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalMissingSource;
-import org.gradle.tooling.internal.protocol.test.source.InternalPackageSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -281,7 +275,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableList.builderWithExpectedSize;
 import static java.util.Collections.emptyList;
@@ -912,16 +905,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        TestSource testSource = toTestSource(descriptor);
-        if (descriptor instanceof InternalResourceBasedTestDescriptor) {
-            InternalResourceBasedTestDescriptor jvmTestDescriptor = (InternalResourceBasedTestDescriptor) descriptor;
-            return new DefaultResourceBasedJvmTestOperationDescriptor(
-                jvmTestDescriptor,
-                parent,
-                (FilesystemSource) testSource
-            );
-        } else if (descriptor instanceof InternalJvmTestDescriptor) {
-            InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
+        if (descriptor instanceof InternalSourceAwareTestDescriptor) {
+            TestSource testSource = toTestSource((InternalSourceAwareTestDescriptor) descriptor);
+            InternalSourceAwareTestDescriptor jvmTestDescriptor = (InternalSourceAwareTestDescriptor) descriptor;
             return new DefaultJvmTestOperationDescriptor(
                 jvmTestDescriptor,
                 parent,
@@ -931,19 +917,36 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 jvmTestDescriptor.getMethodName(),
                 testSource
             );
+        } else if (descriptor instanceof InternalJvmTestDescriptor) {
+            InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
+            TestSource testSource = inferLegacyTestSource(jvmTestDescriptor);
+            return new DefaultJvmTestOperationDescriptor(
+                jvmTestDescriptor,
+                parent,
+                toJvmTestKind(jvmTestDescriptor.getTestKind()),
+                jvmTestDescriptor.getSuiteName(),
+                jvmTestDescriptor.getClassName(),
+                jvmTestDescriptor.getMethodName(),
+                testSource);
         } else {
-            return new DefaultTestOperationDescriptor(descriptor, parent, testSource);
+            return new DefaultTestOperationDescriptor(descriptor, parent);
         }
     }
 
-    private static TestSource toTestSource(InternalTestDescriptor descriptor) {
-        try {
-            InternalTestSource testSource = descriptor.getTestSource();
-            return toTestSource(testSource);
-        } catch (AbstractMethodError ignore) {
-            // Older Gradle versions don't have test sources
-            return DefaultUnknownSource.getInstance();
+    private static TestSource inferLegacyTestSource(InternalJvmTestDescriptor descriptor) {
+
+        if (descriptor.getClassName() != null && descriptor.getMethodName() != null) {
+            return new DefaultMethodSource(descriptor.getClassName(), descriptor.getMethodName());
+        } else if (descriptor.getClassName() != null && descriptor.getMethodName() == null) {
+            return new DefaultClassSource(descriptor.getClassName());
+        } else {
+            return DefaultNoSource.getInstance();
         }
+    }
+
+    private static TestSource toTestSource(InternalSourceAwareTestDescriptor descriptor) {
+        InternalTestSource testSource = descriptor.getSource();
+        return toTestSource(testSource);
     }
 
     private static TestSource toTestSource(InternalTestSource testSource) {
@@ -954,22 +957,17 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultDirectorySource(((InternalDirectorySource) testSource).getFile());
         } else if (testSource instanceof InternalClassSource) {
             InternalClassSource classSource = (InternalClassSource) testSource;
-            return new DefaultClassSource(classSource.getClassName(), toFilePosition(classSource.getPosition()));
+            return new DefaultClassSource(classSource.getClassName());
         } else if (testSource instanceof InternalMethodSource) {
             InternalMethodSource methodSource = (InternalMethodSource) testSource;
-            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName(), methodSource.getMethodParameterTypes());
+            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName());
         } else if (testSource instanceof InternalClasspathResourceSource) {
             InternalClasspathResourceSource classpathResourceSource = (InternalClasspathResourceSource) testSource;
             return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), toFilePosition(classpathResourceSource.getPosition()));
-        } else if (testSource instanceof InternalPackageSource) {
-            return new DefaultPackageSource(((InternalPackageSource) testSource).getPackageName());
-        } else if (testSource instanceof InternalCompositeTestSource) {
-            InternalCompositeTestSource compositeTestSource = (InternalCompositeTestSource) testSource;
-            return new DefaultCompositeTestSource(compositeTestSource.getTestSources().stream().map(BuildProgressListenerAdapter::toTestSource).collect(Collectors.toList()));
         } else if (testSource instanceof InternalMissingSource) {
-            return DefaultMissingSource.getInstance();
+            return DefaultNoSource.getInstance();
         } else {
-            return DefaultUnknownSource.getInstance();
+            return DefaultOtherSource.getInstance();
         }
     }
 

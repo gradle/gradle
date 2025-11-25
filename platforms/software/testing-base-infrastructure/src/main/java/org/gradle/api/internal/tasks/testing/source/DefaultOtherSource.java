@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing.source;
+package org.gradle.api.internal.tasks.testing.source;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.tasks.testing.source.OtherSource;
 
-import java.net.URI;
+public class DefaultOtherSource implements OtherSource {
 
-/**
- * A test source that can be identified by a URI.
- *
- * @since 9.4.0
- */
-@Incubating
-public interface UriSource extends TestSource {
+    private static final OtherSource INSTANCE = new DefaultOtherSource();
 
-    /**
-     * Returns the URI of the test source.
-     * @since 9.4.0
-     */
-    URI getUri();
+    private DefaultOtherSource() {}
+
+    public static OtherSource getInstance() {
+        return INSTANCE;
+    }
 }

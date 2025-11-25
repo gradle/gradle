@@ -17,7 +17,6 @@
 package org.gradle.tooling.events.test.source;
 
 import org.gradle.api.Incubating;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Class-based test source.
@@ -33,12 +32,4 @@ public interface ClassSource extends TestSource {
      * @since 9.4.0
      */
     String getClassName();
-
-    /**
-     * Returns the position within the file, or null if not available.
-     *
-     * @since 9.4.0
-     */
-    @Nullable
-    FilePosition getPosition();
 }

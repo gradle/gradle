@@ -17,8 +17,8 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalSourceAwareTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.Serializable;
 
 @NullMarked
-public class DefaultClassBasedTestDescriptor extends BaseTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalOperationDescriptor {
+public class DefaultTestDescriptor implements Serializable, InternalSourceAwareTestDescriptor, InternalOperationDescriptor {
 
     private final OperationIdentifier id;
     private final String operationName;
@@ -37,8 +37,10 @@ public class DefaultClassBasedTestDescriptor extends BaseTestDescriptor implemen
     private final String methodName;
     private final OperationIdentifier parentId;
     private final String testDisplayName;
+    private final String taskPath;
+    private final InternalTestSource testSource;
 
-    public DefaultClassBasedTestDescriptor(
+    public DefaultTestDescriptor(
         OperationIdentifier id,
         String operationName,
         String operationDisplayName,
@@ -51,7 +53,6 @@ public class DefaultClassBasedTestDescriptor extends BaseTestDescriptor implemen
         String taskPath,
         InternalTestSource testSource
     ) {
-        super(taskPath, testSource);
         this.id = id;
         this.operationName = operationName;
         this.operationDisplayName = operationDisplayName;
@@ -61,6 +62,8 @@ public class DefaultClassBasedTestDescriptor extends BaseTestDescriptor implemen
         this.className = className;
         this.methodName = methodName;
         this.parentId = parentId;
+        this.taskPath = taskPath;
+        this.testSource = testSource;
     }
 
     @Override
@@ -109,5 +112,15 @@ public class DefaultClassBasedTestDescriptor extends BaseTestDescriptor implemen
     @Override
     public OperationIdentifier getParentId() {
         return parentId;
+    }
+
+    @Nullable
+    public String getTaskPath() {
+        return taskPath;
+    }
+
+    @Override
+    public InternalTestSource getSource() {
+        return testSource;
     }
 }

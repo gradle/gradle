@@ -21,7 +21,6 @@ import org.gradle.api.tasks.testing.source.FileSource;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.net.URI;
 
 public final class DefaultFileSource implements FileSource {
 
@@ -36,11 +35,6 @@ public final class DefaultFileSource implements FileSource {
     @Override
     public File getFile() {
         return file;
-    }
-
-    @Override
-    public URI getUri() {
-        return getFile().toURI();
     }
 
     @Override

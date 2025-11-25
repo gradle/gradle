@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test.source;
+package org.gradle.tooling.events.test.internal.source;
 
-import org.gradle.api.Incubating;
 
-/**
- * The test engine did not declare any sources for the test at all.
- *
- * This is different from {@link UnknownSource} which indicates that the test engine declared sources, but the sources were not recognized by Gradle.
- *
- * @since 9.4.0
- */
-@Incubating
-public interface MissingSource extends TestSource {
+import org.gradle.tooling.events.test.source.OtherSource;
+
+public class DefaultOtherSource implements OtherSource {
+
+    private static final DefaultOtherSource INSTANCE = new DefaultOtherSource();
+
+    public static DefaultOtherSource getInstance() {
+        return INSTANCE;
+    }
 }

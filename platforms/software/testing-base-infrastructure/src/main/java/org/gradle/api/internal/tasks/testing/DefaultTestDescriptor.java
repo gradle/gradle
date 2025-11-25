@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import com.google.common.base.Strings;
-import org.gradle.api.internal.tasks.testing.source.DefaultMissingSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultNoSource;
 import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.NullMarked;
@@ -38,7 +38,7 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
 
     @UsedByScanPlugin("test-distribution")
     public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName) {
-        this(id, className, name, classDisplayName, displayName, DefaultMissingSource.getInstance());
+        this(id, className, name, classDisplayName, displayName, DefaultNoSource.getInstance());
     }
 
     public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName, TestSource source) {

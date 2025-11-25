@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -33,11 +32,4 @@ public interface InternalTestDescriptor extends InternalOperationDescriptor {
      * @since 8.8
      */
     String getTestDisplayName();
-
-    /**
-     * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
-     *
-     * @since 9.4.0
-     */
-    InternalTestSource getTestSource();
 }

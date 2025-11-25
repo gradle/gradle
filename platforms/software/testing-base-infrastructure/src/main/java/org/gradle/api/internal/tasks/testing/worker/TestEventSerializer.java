@@ -39,29 +39,25 @@ import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
 import org.gradle.api.internal.tasks.testing.source.DefaultClasspathResourceSource;
-import org.gradle.api.internal.tasks.testing.source.DefaultCompositeTestSource;
 import org.gradle.api.internal.tasks.testing.source.DefaultDirectorySource;
 import org.gradle.api.internal.tasks.testing.source.DefaultFilePosition;
 import org.gradle.api.internal.tasks.testing.source.DefaultFileSource;
 import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
-import org.gradle.api.internal.tasks.testing.source.DefaultMissingSource;
-import org.gradle.api.internal.tasks.testing.source.DefaultPackageSource;
-import org.gradle.api.internal.tasks.testing.source.DefaultUnknownSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultNoSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultOtherSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.source.ClassSource;
 import org.gradle.api.tasks.testing.source.ClasspathResourceSource;
-import org.gradle.api.tasks.testing.source.CompositeTestSource;
 import org.gradle.api.tasks.testing.source.DirectorySource;
 import org.gradle.api.tasks.testing.source.FilePosition;
 import org.gradle.api.tasks.testing.source.FileSource;
 import org.gradle.api.tasks.testing.source.MethodSource;
-import org.gradle.api.tasks.testing.source.MissingSource;
-import org.gradle.api.tasks.testing.source.PackageSource;
+import org.gradle.api.tasks.testing.source.NoSource;
+import org.gradle.api.tasks.testing.source.OtherSource;
 import org.gradle.api.tasks.testing.source.TestSource;
-import org.gradle.api.tasks.testing.source.UnknownSource;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -500,9 +496,9 @@ public class TestEventSerializer {
         public TestSource read(Decoder decoder) throws Exception {
             int i = decoder.readSmallInt();
             if (i == 0) {
-                return DefaultUnknownSource.getInstance();
+                return DefaultOtherSource.getInstance();
             } else if (i == 1) {
-                return DefaultMissingSource.getInstance();
+                return DefaultNoSource.getInstance();
             } else if (i == 2) {
                 String absolutePath = decoder.readString();
                 FilePosition filePosition = filePositionSerializer.read(decoder);
@@ -516,23 +512,11 @@ public class TestEventSerializer {
                 return new DefaultClasspathResourceSource(classpathResourceName, position);
             } else if (i == 5) {
                 String className = decoder.readString();
-                FilePosition filePosition = filePositionSerializer.read(decoder);
-                return new DefaultClassSource(className, filePosition);
+                return new DefaultClassSource(className);
             } else if (i == 6) {
                 String className = decoder.readString();
                 String methodName = decoder.readString();
-                String methodParameterTypes = decoder.readString();
-                return new DefaultMethodSource(className, methodName, methodParameterTypes);
-            } else if (i == 7) {
-                String packageName = decoder.readString();
-                return new DefaultPackageSource(packageName);
-            } else if (i == 8) {
-                int size = decoder.readInt();
-                List<TestSource> testSources = new ArrayList<>(size);
-                for (int j = 0; j < size; j++) {
-                    testSources.add(read(decoder));
-                }
-                return new DefaultCompositeTestSource(testSources);
+                return new DefaultMethodSource(className, methodName);
             } else {
                 throw new IllegalArgumentException("Unknown TestSource type id: " + i);
             }
@@ -540,9 +524,9 @@ public class TestEventSerializer {
 
         @Override
         public void write(Encoder encoder, TestSource value) throws Exception {
-            if (value instanceof UnknownSource) {
+            if (value instanceof OtherSource) {
                 encoder.writeSmallInt(0);
-            } else if (value instanceof MissingSource) {
+            } else if (value instanceof NoSource) {
                 encoder.writeSmallInt(1);
             } else if (value instanceof FileSource) {
                 encoder.writeSmallInt(2);
@@ -561,23 +545,11 @@ public class TestEventSerializer {
                 encoder.writeSmallInt(5);
                 ClassSource classSource = (ClassSource) value;
                 encoder.writeString(classSource.getClassName());
-                filePositionSerializer.write(encoder, classSource.getPosition());
             } else if (value instanceof MethodSource) {
                 encoder.writeSmallInt(6);
                 MethodSource methodSource = (MethodSource) value;
                 encoder.writeString(methodSource.getClassName());
                 encoder.writeString(methodSource.getMethodName());
-                encoder.writeString(methodSource.getMethodParameterTypes());
-            } else if (value instanceof PackageSource) {
-                encoder.writeSmallInt(7);
-                encoder.writeString(((PackageSource) value).getPackageName());
-            } else if (value instanceof CompositeTestSource) {
-                encoder.writeSmallInt(8);
-                CompositeTestSource compositeTestSource = (CompositeTestSource) value;
-                encoder.writeInt(compositeTestSource.getTestSources().size());
-                for (TestSource testSource : compositeTestSource.getTestSources()) {
-                    write(encoder, testSource);
-                }
             } else {
                 throw new IllegalArgumentException("Unknown TestSource type: " + value.getClass().getName());
             }

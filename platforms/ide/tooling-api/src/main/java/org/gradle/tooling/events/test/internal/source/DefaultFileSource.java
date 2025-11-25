@@ -20,7 +20,6 @@ import org.gradle.tooling.events.test.source.FilePosition;
 import org.gradle.tooling.events.test.source.FileSource;
 
 import java.io.File;
-import java.net.URI;
 
 public class DefaultFileSource implements FileSource {
     private final File file;
@@ -29,11 +28,6 @@ public class DefaultFileSource implements FileSource {
     public DefaultFileSource(File file, FilePosition position) {
         this.file = file;
         this.position = position;
-    }
-
-    @Override
-    public final URI getUri() {
-        return getFile().toURI();
     }
 
     @Override

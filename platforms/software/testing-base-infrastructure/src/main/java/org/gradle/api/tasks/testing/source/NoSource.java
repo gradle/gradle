@@ -19,12 +19,10 @@ package org.gradle.api.tasks.testing.source;
 import org.gradle.api.Incubating;
 
 /**
- * The test engine declared a test source not recognized by Gradle.
- *
- * This is different from {@link MissingSource} which indicates that the test engine did not declare any sources at all.
+ * The test engine did not declare any sources for the test at all.
  *
  * @since 9.4.0
  */
 @Incubating
-public interface UnknownSource extends TestSource {
+public interface NoSource extends TestSource {
 }

@@ -38,7 +38,7 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
 
     @UsedByScanPlugin("test-distribution")
     public DefaultTestClassDescriptor(Object id, String className, @Nullable String classDisplayName) {
-        this(id, className, classDisplayName, new DefaultClassSource(className, null));
+        this(id, className, classDisplayName, new DefaultClassSource(className));
     }
 
     public DefaultTestClassDescriptor(Object id, String className, @Nullable String classDisplayName, TestSource source) {

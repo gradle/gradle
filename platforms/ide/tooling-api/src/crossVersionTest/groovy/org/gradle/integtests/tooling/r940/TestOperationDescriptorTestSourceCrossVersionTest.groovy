@@ -21,15 +21,11 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor
-import org.gradle.tooling.events.test.ResourceBasedJvmTestOperationDescriptor
-import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.source.ClasspathResourceSource
-import org.gradle.tooling.events.test.source.CompositeTestSource
 import org.gradle.tooling.events.test.source.DirectorySource
 import org.gradle.tooling.events.test.source.FileSource
-import org.gradle.tooling.events.test.source.MissingSource
-import org.gradle.tooling.events.test.source.PackageSource
-import org.gradle.tooling.events.test.source.UnknownSource
+import org.gradle.tooling.events.test.source.NoSource
+import org.gradle.tooling.events.test.source.OtherSource
 import testengines.TestEnginesFixture
 
 @TargetGradleVersion(">=9.4.0")
@@ -72,34 +68,34 @@ class TestOperationDescriptorTestSourceCrossVersionTest extends AbstractResource
 
         when:
         withConnection {
-            it.newBuild().addProgressListener(events, OperationType.TEST).forTasks("test").run()
+             it.newBuild().addProgressListener(events, OperationType.TASK, OperationType.TEST).forTasks("test").run()
         }
 
         then:
-        events.tests.size() == 3 // task + executor + 1 tests
-        def testOperation = events.operation("Test SomeTestSpec.rbt : $testName")
-        testOperation.assertIsTest()
-        def descriptor = testOperation.descriptor as TestOperationDescriptor
-        testSourceType.isAssignableFrom(descriptor.testSource.class)
-        validateTestSource(descriptor.testSource)
-        if (resourceBased) {
-            assert descriptor instanceof ResourceBasedJvmTestOperationDescriptor
-        } else {
-            assert descriptor instanceof JvmTestOperationDescriptor
+        testEvents {
+            task(':test') {
+                nested('Gradle Test Run :test') {
+                    nested('Gradle Test Executor') {
+                        test("Test SomeTestSpec.rbt - $testName")
+                    }
+                }
+            }
         }
+        def testOperation = events.operation("Test SomeTestSpec.rbt - $testName")
+        def descriptor = testOperation.descriptor as JvmTestOperationDescriptor
+        testSourceType.isAssignableFrom(descriptor.source.class)
+        validateTestSource(descriptor.source)
 
         where:
-        testName                            | testSourceType          | resourceBased | validateTestSource
-        'noLocation'                        | MissingSource           | false         | { true }
-        'unknownLocation'                   | UnknownSource           | false         | { true }
-        'fileLocationNoPos'                 | FileSource              | true          | { FileSource s -> s.position == null }
-        'fileLocationOnlyLine'              | FileSource              | true          | { FileSource s -> s.position.line == 1 && s.position.column == null }
-        'fileLocationLineAndCol'            | FileSource              | true          | { FileSource s -> s.position.line == 1 && s.position.column == 2 }
-        'directorySource'                   | DirectorySource         | true          | { DirectorySource s -> s.file.isDirectory() }
-        'classpathResourceSourceNoPos'      | ClasspathResourceSource | false         | { ClasspathResourceSource s -> s.classpathResourceName == "SomeClass" && s.position == null }
-        'classpathResourceSourceOnlyLine'   | ClasspathResourceSource | false         | { ClasspathResourceSource s -> s.classpathResourceName == "SomeClass" && s.position.line == 1 && s.position.column == null }
-        'classpathResourceSourceLineAndCol' | ClasspathResourceSource | false         | { ClasspathResourceSource s -> s.classpathResourceName == "SomeClass" && s.position.line == 1 && s.position.column == 2 }
-        'packageLocation'                   | PackageSource           | false         | { PackageSource s -> s.packageName == "some.package" }
-        'unknownAndFileLocation'            | CompositeTestSource     | false         | { CompositeTestSource s -> s.testSources[0] instanceof UnknownSource && s.testSources[1] instanceof FileSource }
+        testName                            | testSourceType          | validateTestSource
+        'noLocation'                        | NoSource                | { true }
+        'unknownLocation'                   | OtherSource             | { true }
+        'fileLocationNoPos'                 | FileSource              | { FileSource s -> s.position == null }
+        'fileLocationOnlyLine'              | FileSource              | { FileSource s -> s.position.line == 1 && s.position.column == null }
+        'fileLocationLineAndCol'            | FileSource              | { FileSource s -> s.position.line == 1 && s.position.column == 2 }
+        'directorySource'                   | DirectorySource         | { DirectorySource s -> s.file.isDirectory() }
+        'classpathResourceSourceNoPos'      | ClasspathResourceSource | { ClasspathResourceSource s -> s.classpathResourceName == "SomeClass" && s.position == null }
+        'classpathResourceSourceOnlyLine'   | ClasspathResourceSource | { ClasspathResourceSource s -> s.classpathResourceName == "SomeClass" && s.position.line == 1 && s.position.column == null }
+        'classpathResourceSourceLineAndCol' | ClasspathResourceSource | { ClasspathResourceSource s -> s.classpathResourceName == "SomeClass" && s.position.line == 1 && s.position.column == 2 }
     }
 }

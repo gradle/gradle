@@ -23,9 +23,10 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.TestSpecs
 import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.events.test.ResourceBasedJvmTestOperationDescriptor
+import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.source.FileSource
+import org.gradle.tooling.events.test.source.FilesystemSource
 import org.gradle.tooling.model.gradle.GradleBuild
 import testengines.TestEnginesFixture
 
@@ -64,14 +65,11 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
 
         when:
         withConnection {
-            entryPointConfiguration(it).addProgressListener(events, OperationType.TEST)."$execMethod"()
+            entryPointConfiguration(it).addProgressListener(events, OperationType.TASK, OperationType.TEST)."$execMethod"()
         }
 
         then:
-        events.tests.size() == 5 // task + executor + 3 tests
-        events.operation('Test SomeTestSpec.rbt : foo')
-        events.operation('Test SomeTestSpec.rbt : bar')
-        events.operation('Test subSomeOtherTestSpec.rbt : other')
+        assertTestsFromDefinitionsExecuted()
 
         where:
         entryPoint             | entryPointConfiguration                                                    | execMethod
@@ -105,15 +103,23 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
 
         when:
         withConnection {
-            TestLauncher testLauncher = it.newTestLauncher().addProgressListener(events, OperationType.TEST)
+            TestLauncher testLauncher = it.newTestLauncher().addProgressListener(events, OperationType.TASK, OperationType.TEST)
             testConfiguration(testLauncher)
             testLauncher.run()
         }
 
         then:
-        events.tests.size() == 4 // task + executor + 1 test
-        events.operation('Test class SomeTest')
-        events.operation('Test testMethod()(SomeTest)')
+        testEvents {
+            task(':test') {
+                nested('Gradle Test Run :test') {
+                    nested('Gradle Test Executor') {
+                        test('Test class SomeTest') {
+                            test('Test testMethod()(SomeTest)')
+                        }
+                    }
+                }
+            }
+        }
 
         where:
         filterType               | testConfiguration
@@ -151,25 +157,25 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         }
 
         when:
-        def test1 = events.operation('Test SomeTestSpec.rbt : foo')
+        def test1 = events.operation('Test SomeTestSpec.rbt - foo')
 
         then:
-        test1.descriptor instanceof ResourceBasedJvmTestOperationDescriptor
+        (test1.descriptor as JvmTestOperationDescriptor).source instanceof FilesystemSource
 
         when:
         events.clear()
         withConnection {
-            it.newTestLauncher().addProgressListener(events, OperationType.TEST).withTests(test1.descriptor as TestOperationDescriptor).run()
+            it.newTestLauncher().addProgressListener(events, OperationType.TASK, OperationType.TEST).withTests(test1.descriptor as TestOperationDescriptor).run()
         }
 
         then:
-        events.tests.size() == 5 // task + executor + 3 test
+        assertTestsFromDefinitionsExecuted()
         result.output.contains("Re-running resource-based tests is not supported via TestLauncher API. The ':test' task will be scheduled without further filtering.")
     }
 
 
     @ToolingApiVersion(">=8.0 <9.4.0")
-    def "old TAPI client can run resource-based tests"() {
+    def "old client can run resource-based tests"() {
         given:
         buildFile << """
             plugins {
@@ -193,18 +199,11 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
 
         when:
         withConnection {
-            it.newBuild().addProgressListener(events, OperationType.TEST).forTasks("test").run()
+            it.newBuild().addProgressListener(events, OperationType.TASK, OperationType.TEST).forTasks("test").run()
         }
 
         then:
-        events.tests.size() == 5 // task + executor + 3 tests
-        def test1 = events.operation('Test SomeTestSpec.rbt : foo')
-        def test2 = events.operation('Test SomeTestSpec.rbt : bar')
-        def test3 = events.operation('Test subSomeOtherTestSpec.rbt : other')
-
-        test1.assertIsTest()
-        test2.assertIsTest()
-        test3.assertIsTest()
+        assertTestsFromDefinitionsExecuted()
     }
 
     @ToolingApiVersion(">=9.4.0")
@@ -232,33 +231,19 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
 
         when:
         withConnection {
-            it.newBuild().addProgressListener(events, OperationType.TEST).forTasks("test").run()
+            it.newBuild().addProgressListener(events, OperationType.TASK, OperationType.TEST).forTasks("test").run()
         }
 
         then:
-        events.tests.size() == 5 // task + executor + 3 tests
-        def test1 = events.operation('Test SomeTestSpec.rbt : foo')
-        def test2 = events.operation('Test SomeTestSpec.rbt : bar')
-        def test3 = events.operation('Test subSomeOtherTestSpec.rbt : other')
-
-        test1.assertIsTest()
-        test2.assertIsTest()
-        test3.assertIsTest()
-
-        test1.parent.descriptor.displayName.startsWith('Gradle Test Executor')
-        test2.parent.descriptor.displayName.startsWith('Gradle Test Executor')
-        test3.parent.descriptor.displayName.startsWith('Gradle Test Executor')
-        test1.parent.parent == events.operation('Gradle Test Run :test')
-
-        test1.descriptor instanceof ResourceBasedJvmTestOperationDescriptor
-        test2.descriptor instanceof ResourceBasedJvmTestOperationDescriptor
-        test3.descriptor instanceof ResourceBasedJvmTestOperationDescriptor
-
-        (test1.descriptor as ResourceBasedJvmTestOperationDescriptor).testSource instanceof FileSource
-        ((test1.descriptor as ResourceBasedJvmTestOperationDescriptor).testSource as FileSource).file == file('src/test/definitions/SomeTestSpec.rbt')
-        (test2.descriptor as ResourceBasedJvmTestOperationDescriptor).testSource instanceof FileSource
-        ((test2.descriptor as ResourceBasedJvmTestOperationDescriptor).testSource as FileSource).file == file('src/test/definitions/SomeTestSpec.rbt')
-        (test3.descriptor as ResourceBasedJvmTestOperationDescriptor).testSource instanceof FileSource
-        ((test3.descriptor as ResourceBasedJvmTestOperationDescriptor).testSource as FileSource).file == file('src/test/definitions/subSomeOtherTestSpec.rbt')
+        assertTestsFromDefinitionsExecuted()
+        def test1 = events.operation('Test SomeTestSpec.rbt - foo')
+        def test2 = events.operation('Test SomeTestSpec.rbt - bar')
+        def test3 = events.operation('Test subSomeOtherTestSpec.rbt - other')
+        (test1.descriptor as JvmTestOperationDescriptor).source instanceof FileSource
+        ((test1.descriptor as JvmTestOperationDescriptor).source as FileSource).file == file('src/test/definitions/SomeTestSpec.rbt')
+        (test2.descriptor as JvmTestOperationDescriptor).source instanceof FileSource
+        ((test2.descriptor as JvmTestOperationDescriptor).source as FileSource).file == file('src/test/definitions/SomeTestSpec.rbt')
+        (test3.descriptor as JvmTestOperationDescriptor).source instanceof FileSource
+        ((test3.descriptor as JvmTestOperationDescriptor).source as FileSource).file == file('src/test/definitions/subSomeOtherTestSpec.rbt')
     }
 }

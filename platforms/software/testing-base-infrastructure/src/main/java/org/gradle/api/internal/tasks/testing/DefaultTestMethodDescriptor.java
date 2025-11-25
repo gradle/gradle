@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
 
 public class DefaultTestMethodDescriptor extends DefaultTestDescriptor {
     public DefaultTestMethodDescriptor(Object id, String className, String methodName) {
-        super(id, className, methodName, null, methodName, new DefaultMethodSource(className, methodName, ""));
+        super(id, className, methodName, null, methodName, new DefaultMethodSource(className, methodName));
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.test.source.TestSource;
 
 /**
  * Describes a test operation for which an event has occurred.
@@ -35,15 +34,4 @@ public interface TestOperationDescriptor extends OperationDescriptor {
      */
     @Incubating
     String getTestDisplayName();
-
-    /**
-     * Returns the information about where the test was defined.
-     *
-     * For Gradle versions older than 9.4.0, this method will always return {@code UnknownSource}.
-     *
-     * @return the test source.
-     * @since 9.4.0
-     */
-    @Incubating
-    TestSource getTestSource();
 }

@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.source;
+package org.gradle.tooling.events.test.internal.source;
 
-import org.gradle.api.tasks.testing.source.CompositeTestSource;
-import org.gradle.api.tasks.testing.source.TestSource;
 
-import java.util.List;
+import org.gradle.tooling.events.test.source.NoSource;
 
-public final class DefaultCompositeTestSource implements CompositeTestSource {
+public class DefaultNoSource implements NoSource {
 
-    private final List<TestSource> testSources;
+    private static final DefaultNoSource INSTANCE = new DefaultNoSource();
 
-    public DefaultCompositeTestSource(List<TestSource> testSources) {
-        this.testSources = testSources;
-    }
-
-    @Override
-    public List<TestSource> getTestSources() {
-        return testSources;
+    public static DefaultNoSource getInstance() {
+        return INSTANCE;
     }
 }

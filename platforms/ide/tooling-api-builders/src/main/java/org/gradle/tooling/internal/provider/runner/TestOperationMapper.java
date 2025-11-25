@@ -25,21 +25,18 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.source.ClassSource;
 import org.gradle.api.tasks.testing.source.ClasspathResourceSource;
-import org.gradle.api.tasks.testing.source.CompositeTestSource;
 import org.gradle.api.tasks.testing.source.DirectorySource;
 import org.gradle.api.tasks.testing.source.FilePosition;
 import org.gradle.api.tasks.testing.source.FileSource;
 import org.gradle.api.tasks.testing.source.MethodSource;
-import org.gradle.api.tasks.testing.source.MissingSource;
-import org.gradle.api.tasks.testing.source.PackageSource;
+import org.gradle.api.tasks.testing.source.NoSource;
 import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractTestResult;
-import org.gradle.internal.build.event.types.DefaultClassBasedTestDescriptor;
 import org.gradle.internal.build.event.types.DefaultFileComparisonTestAssertionFailure;
 import org.gradle.internal.build.event.types.DefaultFilePosition;
-import org.gradle.internal.build.event.types.DefaultResourceBasedTestDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestAssertionFailure;
+import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestFailureResult;
 import org.gradle.internal.build.event.types.DefaultTestFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTestFrameworkFailure;
@@ -48,13 +45,11 @@ import org.gradle.internal.build.event.types.DefaultTestStartedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTestSuccessResult;
 import org.gradle.internal.build.event.types.test.source.DefaultClassSource;
 import org.gradle.internal.build.event.types.test.source.DefaultClasspathResourceSource;
-import org.gradle.internal.build.event.types.test.source.DefaultCompositeTestSource;
 import org.gradle.internal.build.event.types.test.source.DefaultDirectorySource;
 import org.gradle.internal.build.event.types.test.source.DefaultFileSource;
 import org.gradle.internal.build.event.types.test.source.DefaultMethodSource;
 import org.gradle.internal.build.event.types.test.source.DefaultMissingSource;
-import org.gradle.internal.build.event.types.test.source.DefaultPackageSource;
-import org.gradle.internal.build.event.types.test.source.DefaultUnknownSource;
+import org.gradle.internal.build.event.types.test.source.DefaultOtherSource;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -67,7 +62,6 @@ import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
-import org.gradle.tooling.internal.protocol.test.source.InternalFilesystemSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.Nullable;
 
@@ -113,7 +107,6 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         return new DefaultTestFinishedProgressEvent(testResult.getEndTime(), descriptor, adapt(testResult));
     }
 
-    @SuppressWarnings("all")
     private InternalTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor suite) {
         String methodName = null;
         String operationDisplayName = suite.toString();
@@ -125,11 +118,9 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
         InternalTestSource testSource = toInternalTestSource(suite.getSource());
-        return new DefaultClassBasedTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId),
-            testSource);
+        return new DefaultTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId), testSource);
     }
 
-    @SuppressWarnings("all")
     private InternalTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor test) {
         String operationDisplayName = test.toString();
         TestDescriptor originalDescriptor = getOriginalDescriptor(test);
@@ -138,12 +129,20 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         } else {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
-
         InternalTestSource testSource = toInternalTestSource(test.getSource());
-        if (testSource instanceof InternalFilesystemSource) {
-            return new DefaultResourceBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), parentId, taskTracker.getTaskPath(buildOperationId), (InternalFilesystemSource) testSource);
-        }
-        return new DefaultClassBasedTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId), testSource);
+        return new DefaultTestDescriptor(
+            buildOperationId,
+            test.getName(),
+            operationDisplayName,
+            test.getDisplayName(),
+            InternalJvmTestDescriptor.KIND_ATOMIC,
+            null,
+            test.getClassName(),
+            test.getName(),
+            parentId,
+            taskTracker.getTaskPath(buildOperationId),
+            testSource
+        );
     }
 
     private static InternalTestSource toInternalTestSource(TestSource source) {
@@ -154,25 +153,17 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             return new DefaultDirectorySource(((DirectorySource) source).getFile());
         } else if (source instanceof ClassSource) {
             ClassSource classSource = (ClassSource) source;
-            return new DefaultClassSource(classSource.getClassName(), toFilePosition(classSource.getPosition()));
+            return new DefaultClassSource(classSource.getClassName());
         } else if (source instanceof MethodSource) {
             MethodSource methodSource = (MethodSource) source;
-            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName(), methodSource.getMethodParameterTypes());
+            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName());
         } else if (source instanceof ClasspathResourceSource) {
             ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) source;
             return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), toFilePosition(classpathResourceSource.getPosition()));
-        } else if (source instanceof PackageSource) {
-            return new DefaultPackageSource(((PackageSource) source).getPackageName());
-        } else if (source instanceof CompositeTestSource) {
-            return new DefaultCompositeTestSource(
-                ((CompositeTestSource) source).getTestSources().stream()
-                    .map(TestOperationMapper::toInternalTestSource)
-                    .collect(ImmutableList.toImmutableList())
-            );
-        } else if (source instanceof MissingSource) {
+        } else if (source instanceof NoSource) {
             return DefaultMissingSource.getInstance();
         } else {
-            return DefaultUnknownSource.getInstance();
+            return DefaultOtherSource.getInstance();
         }
     }
 

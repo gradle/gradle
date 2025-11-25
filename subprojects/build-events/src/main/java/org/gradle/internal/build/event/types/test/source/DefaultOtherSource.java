@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test.source;
+package org.gradle.internal.build.event.types.test.source;
 
-import org.gradle.api.Incubating;
+import org.gradle.tooling.internal.protocol.test.source.InternalOtherSource;
 
-import java.util.List;
+import java.io.Serializable;
 
-/**
- * Contains one or more TestSources.
- *
- * @since 9.4.0
- */
-@Incubating
-public interface CompositeTestSource extends TestSource {
+public class DefaultOtherSource implements InternalOtherSource, Serializable {
 
-    /**
-     * Returns the test sources.
-     *
-     * @since 9.4.0
-     */
-    List<TestSource> getTestSources();
+    private static final InternalOtherSource INSTANCE = new DefaultOtherSource();
+
+    public static InternalOtherSource getInstance() {
+        return INSTANCE;
+    }
 }

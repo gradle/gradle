@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test.internal.source;
+package org.gradle.api.internal.tasks.testing.source;
 
-import org.gradle.tooling.events.test.source.PackageSource;
+import org.gradle.api.tasks.testing.source.NoSource;
 
-public class DefaultPackageSource implements PackageSource {
+public class DefaultNoSource implements NoSource {
 
-    private final String packageName;
+    private static final NoSource INSTANCE = new DefaultNoSource();
 
-    public DefaultPackageSource(String className) {
-        this.packageName = className;
-    }
+    private DefaultNoSource() {}
 
-    @Override
-    public String getPackageName() {
-        return packageName;
+    public static NoSource getInstance() {
+        return INSTANCE;
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.source;
 import org.gradle.api.tasks.testing.source.DirectorySource;
 
 import java.io.File;
-import java.net.URI;
 
 public final class DefaultDirectorySource implements DirectorySource {
 
@@ -32,10 +31,5 @@ public final class DefaultDirectorySource implements DirectorySource {
     @Override
     public File getFile() {
         return file;
-    }
-
-    @Override
-    public URI getUri() {
-        return getFile().toURI();
     }
 }

@@ -16,18 +16,19 @@
 
 package org.gradle.integtests.tooling.r940
 
+import org.gradle.integtests.tooling.TestEventsFixture
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.events.test.TestOperationDescriptor
+import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.source.ClassSource
 import org.gradle.tooling.events.test.source.MethodSource
-import org.gradle.tooling.events.test.source.UnknownSource
+import org.gradle.tooling.events.test.source.NoSource
 
 @ToolingApiVersion(">=9.4.0")
-class TestSourceCrossVersionTest extends ToolingApiSpecification {
+class TestSourceCrossVersionTest extends ToolingApiSpecification implements TestEventsFixture {
 
     ProgressEvents events = ProgressEvents.create()
 
@@ -70,10 +71,10 @@ class TestSourceCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        TestOperationDescriptor classDescriptor = events.operation('Test class example.MyTest').descriptor
-        TestOperationDescriptor methodDescriptor = events.operation('Test foo()(example.MyTest)').descriptor
-        classDescriptor.testSource instanceof ClassSource
-        methodDescriptor.testSource instanceof MethodSource
+        JvmTestOperationDescriptor classDescriptor = events.operation('Test class example.MyTest').descriptor
+        JvmTestOperationDescriptor methodDescriptor = events.operation('Test foo()(example.MyTest)').descriptor
+        classDescriptor.source instanceof ClassSource
+        methodDescriptor.source instanceof MethodSource
     }
 
     @TargetGradleVersion("<9.4.0")
@@ -105,20 +106,45 @@ class TestSourceCrossVersionTest extends ToolingApiSpecification {
             }
         """
 
-
         when:
         withConnection {
             it.newBuild()
                 .forTasks(":test")
-                .addProgressListener(events, OperationType.TEST)
+                .addArguments("--info")
+                .addProgressListener(events, OperationType.TASK, OperationType.TEST)
                 .run()
         }
 
         then:
-        TestOperationDescriptor classDescriptor = events.operation('Test class example.MyTest').descriptor
-        TestOperationDescriptor methodDescriptor = events.operation('Test foo()(example.MyTest)').descriptor
-        classDescriptor.testSource instanceof UnknownSource
-        methodDescriptor.testSource instanceof UnknownSource
+        testEvents {
+            task(':test') {
+                nested('Gradle Test Run :test') {
+                    nested('Gradle Test Executor') {
+                        test('Test class example.MyTest') {
+                            test("Test foo()(example.MyTest)")
+                        }
+                    }
+                }
+            }
+        }
+
+        def methodOperation = events.operation('Test foo()(example.MyTest)')
+        def classOperation = events.operation('Test class example.MyTest')
+        def executorOperation = classOperation.parent
+        def testRunOperation = executorOperation.parent
+
+        JvmTestOperationDescriptor methodDescriptor = methodOperation.descriptor
+        JvmTestOperationDescriptor classDescriptor = classOperation.descriptor
+        JvmTestOperationDescriptor executorDescriptor = executorOperation.descriptor
+        JvmTestOperationDescriptor testRunDescriptor = testRunOperation.descriptor
+
+        methodDescriptor.source instanceof MethodSource
+        (methodDescriptor.source as MethodSource).className == 'example.MyTest'
+        (methodDescriptor.source as MethodSource).methodName == 'foo()'
+        classDescriptor.source instanceof ClassSource
+        (classDescriptor.source as ClassSource).className == 'example.MyTest'
+        executorDescriptor.source instanceof NoSource
+        testRunDescriptor.source instanceof NoSource
     }
 }
 

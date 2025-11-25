@@ -35,7 +35,8 @@ import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.event.types.DefaultClassBasedTestDescriptor
+import org.gradle.internal.build.event.types.DefaultTestDescriptor
+import org.gradle.internal.build.event.types.test.source.DefaultMethodSource
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
@@ -159,8 +160,8 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         _ * context.getSelection(TEST_TASK_NAME) >> new TaskSelection(null, null, taskSelectionResult)
     }
 
-    private DefaultClassBasedTestDescriptor testDescriptor() {
-        new DefaultClassBasedTestDescriptor(Stub(OperationIdentifier), "test1", "Test $TEST_METHOD_NAME($TEST_CLASS_NAME)", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, null, TEST_TASK_NAME)
+    private DefaultTestDescriptor testDescriptor() {
+        new DefaultTestDescriptor(Stub(OperationIdentifier), "test1", "Test $TEST_METHOD_NAME($TEST_CLASS_NAME)", "test 1", "ATOMIC", "test suite", TEST_CLASS_NAME, TEST_METHOD_NAME, null, TEST_TASK_NAME, new DefaultMethodSource(TEST_CLASS_NAME, TEST_METHOD_NAME))
     }
 
 }

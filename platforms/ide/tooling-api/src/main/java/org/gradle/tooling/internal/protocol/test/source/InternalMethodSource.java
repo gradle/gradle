@@ -32,9 +32,4 @@ public interface InternalMethodSource extends InternalTestSource {
      * @since 9.4.0
      */
     String getMethodName();
-
-    /**
-     *  @since 9.4.0
-     */
-    String getMethodParameterTypes();
 }

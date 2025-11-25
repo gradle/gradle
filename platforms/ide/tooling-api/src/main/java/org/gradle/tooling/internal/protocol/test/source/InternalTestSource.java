@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.protocol.test.source;
 
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *

@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test.source;
-
+package org.gradle.api.tasks.testing.source;
 
 import org.gradle.api.Incubating;
 
-import java.net.URI;
-
 /**
- * A test source that can be identified by a URI.
+ * The test engine declared a test source not recognized by Gradle.
  *
  * @since 9.4.0
  */
 @Incubating
-public interface UriSource extends TestSource {
-
-    /**
-     * Returns the URI of the test source.
-     *
-     * @since 9.4.0
-     */
-    URI getUri();
+public interface OtherSource extends TestSource {
 }

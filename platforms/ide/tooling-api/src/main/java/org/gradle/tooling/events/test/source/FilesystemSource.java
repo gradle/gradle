@@ -27,7 +27,7 @@ import java.io.File;
  * @since 9.4.0
  */
 @Incubating
-public interface FilesystemSource extends UriSource {
+public interface FilesystemSource extends TestSource {
 
     /**
      * Get the source file or directory.

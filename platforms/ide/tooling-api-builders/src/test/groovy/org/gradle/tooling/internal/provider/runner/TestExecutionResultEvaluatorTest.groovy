@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperatio
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.execution.plan.LocalTaskNode
-import org.gradle.internal.build.event.types.DefaultClassBasedTestDescriptor
+import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import org.gradle.internal.operations.BuildOperationAncestryTracker
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.OperationFinishEvent
@@ -45,7 +45,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
         1 * testExecutionRequest.getTaskSpecs() >> []
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
-        def defaultTestDescriptor = Mock(DefaultClassBasedTestDescriptor)
+        def defaultTestDescriptor = Mock(DefaultTestDescriptor)
         1 * defaultTestDescriptor.getDisplayName() >> "Some Test Descriptor"
         1 * defaultTestDescriptor.getTaskPath() >> ":someTestTask"
 

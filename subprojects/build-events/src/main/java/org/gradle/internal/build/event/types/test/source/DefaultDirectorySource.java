@@ -20,7 +20,6 @@ import org.gradle.tooling.internal.protocol.test.source.InternalDirectorySource;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URI;
 
 public class DefaultDirectorySource implements InternalDirectorySource, Serializable {
 
@@ -28,11 +27,6 @@ public class DefaultDirectorySource implements InternalDirectorySource, Serializ
 
     public DefaultDirectorySource(File file) {
         this.file = file;
-    }
-
-    @Override
-    public final URI getUri() {
-        return getFile().toURI();
     }
 
     @Override

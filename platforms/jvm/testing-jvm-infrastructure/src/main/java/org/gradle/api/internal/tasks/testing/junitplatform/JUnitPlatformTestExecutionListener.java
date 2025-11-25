@@ -37,14 +37,12 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFa
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
 import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
 import org.gradle.api.internal.tasks.testing.source.DefaultClasspathResourceSource;
-import org.gradle.api.internal.tasks.testing.source.DefaultCompositeTestSource;
 import org.gradle.api.internal.tasks.testing.source.DefaultDirectorySource;
 import org.gradle.api.internal.tasks.testing.source.DefaultFilePosition;
 import org.gradle.api.internal.tasks.testing.source.DefaultFileSource;
 import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
-import org.gradle.api.internal.tasks.testing.source.DefaultMissingSource;
-import org.gradle.api.internal.tasks.testing.source.DefaultPackageSource;
-import org.gradle.api.internal.tasks.testing.source.DefaultUnknownSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultNoSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultOtherSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult.ResultType;
 import org.gradle.api.tasks.testing.source.FilePosition;
@@ -62,11 +60,9 @@ import org.junit.platform.engine.reporting.FileEntry;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.ClasspathResourceSource;
-import org.junit.platform.engine.support.descriptor.CompositeTestSource;
 import org.junit.platform.engine.support.descriptor.DirectorySource;
 import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
-import org.junit.platform.engine.support.descriptor.PackageSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
@@ -88,7 +84,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 import static org.junit.platform.engine.TestExecutionResult.Status.ABORTED;
@@ -360,10 +355,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
     @SuppressWarnings("all")
     private static TestSource sourceOf(TestIdentifier node) {
-        return node.getSource().map(s -> sourceOf(s)).orElse(DefaultMissingSource.getInstance());
+        return node.getSource().map(s -> sourceOf(s)).orElse(DefaultNoSource.getInstance());
     }
 
     public static TestSource sourceOf(org.junit.platform.engine.TestSource source) {
+        // TODO (donat) unknown type should have info about the missing type
         if (source instanceof FileSource) {
             FileSource fileSource = (FileSource) source;
             FilePosition position = fileSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
@@ -372,24 +368,16 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             return new DefaultDirectorySource(((DirectorySource) source).getFile());
         } else if (source instanceof ClassSource) {
             ClassSource classSource = (ClassSource) source;
-            FilePosition position = classSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
-            return new DefaultClassSource(classSource.getClassName(), position);
+            return new DefaultClassSource(classSource.getClassName());
         } else if (source instanceof MethodSource) {
             MethodSource methodSource = (MethodSource) source;
-            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName(), methodSource.getMethodParameterTypes());
+            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName());
         } else if (source instanceof ClasspathResourceSource) {
             ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) source;
             FilePosition position = classpathResourceSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
             return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), position);
-        } else if (source instanceof PackageSource) {
-            PackageSource packageSource = (PackageSource) source;
-            return new DefaultPackageSource(packageSource.getPackageName());
-        } else if (source instanceof CompositeTestSource) {
-            CompositeTestSource compositeTestSource = (CompositeTestSource) source;
-            List<TestSource> mappedSources = compositeTestSource.getSources().stream().map(JUnitPlatformTestExecutionListener::sourceOf).collect(Collectors.toList());
-            return new DefaultCompositeTestSource(mappedSources);
         } else {
-            return DefaultUnknownSource.getInstance();
+            return DefaultOtherSource.getInstance();
         }
     }
 

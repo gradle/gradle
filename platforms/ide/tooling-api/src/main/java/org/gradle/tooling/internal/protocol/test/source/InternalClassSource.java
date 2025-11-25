@@ -16,9 +16,6 @@
 
 package org.gradle.tooling.internal.protocol.test.source;
 
-import org.gradle.tooling.internal.protocol.events.InternalFilePosition;
-import org.jspecify.annotations.Nullable;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
@@ -30,11 +27,4 @@ public interface InternalClassSource extends InternalTestSource {
      * @since 9.4.0
      */
     String getClassName();
-
-
-    /**
-     * @since 9.4.0
-     */
-    @Nullable
-    InternalFilePosition getPosition();
 }

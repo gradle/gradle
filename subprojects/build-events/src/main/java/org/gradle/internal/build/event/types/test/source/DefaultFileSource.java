@@ -22,7 +22,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URI;
 
 public class DefaultFileSource implements InternalFileSource, Serializable {
 
@@ -32,11 +31,6 @@ public class DefaultFileSource implements InternalFileSource, Serializable {
     public DefaultFileSource(File file, @Nullable InternalFilePosition position) {
         this.file = file;
         this.position = position;
-    }
-
-    @Override
-    public final URI getUri() {
-        return getFile().toURI();
     }
 
     @Override

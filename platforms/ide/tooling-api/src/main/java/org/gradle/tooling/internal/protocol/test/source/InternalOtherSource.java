@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing.source;
-
-import org.gradle.api.Incubating;
+package org.gradle.tooling.internal.protocol.test.source;
 
 /**
- * The test engine did not declare any sources for the test at all.
- *
- * This is different from {@link UnknownSource} which indicates that the test engine declared sources, but the sources were not recognized by Gradle.
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 9.4.0
  */
-@Incubating
-public interface MissingSource extends TestSource {
+public interface InternalOtherSource extends InternalTestSource {
 }

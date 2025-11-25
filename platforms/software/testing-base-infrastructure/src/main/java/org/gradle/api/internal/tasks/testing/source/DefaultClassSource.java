@@ -17,27 +17,17 @@
 package org.gradle.api.internal.tasks.testing.source;
 
 import org.gradle.api.tasks.testing.source.ClassSource;
-import org.gradle.api.tasks.testing.source.FilePosition;
-import org.jspecify.annotations.Nullable;
 
 public final class DefaultClassSource implements ClassSource {
 
     private final String className;
-    private final FilePosition position;
 
-    public DefaultClassSource(String className, @Nullable FilePosition position) {
+    public DefaultClassSource(String className) {
         this.className = className;
-        this.position = position;
     }
 
     @Override
     public String getClassName() {
         return className;
-    }
-
-    @Override
-    @Nullable
-    public FilePosition getPosition() {
-        return position;
     }
 }
