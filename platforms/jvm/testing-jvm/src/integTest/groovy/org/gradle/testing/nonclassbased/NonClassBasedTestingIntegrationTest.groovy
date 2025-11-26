@@ -670,4 +670,94 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt - foo")
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt - bar")
     }
+
+    def "fails if no currently connected agent matches all requirements"() {
+        given:
+        javaSimpleJunitTestClass()
+
+        settingsFile << """
+            buildscript {
+                repositories {
+                    gradlePluginPortal()
+                }
+
+                dependencies {
+                    classpath("com.gradle:develocity-gradle-plugin:4.2.2")
+                }
+            }
+
+            apply(plugin: com.gradle.develocity.agent.gradle.DevelocityPlugin)
+
+            develocity {
+                buildScan {
+                    termsOfUseUrl = 'https://gradle.com/help/legal-terms-of-use'
+                    termsOfUseAgree = 'yes'
+                }
+            }
+
+            rootProject.name = 'develocity-no-agent-match'
+        """
+
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            test {
+                develocity {
+                    testDistribution {
+                        maxLocalExecutors = 0
+                        requirements = ['os=nonExistingOs']
+                    }
+                }
+            }
+        """
+
+        when:
+        def out = fails("test", "-S").output
+        def lines = out.readLines()
+
+        then:
+        lines.any { it ==~ /.*No executors available for( this project and)? requirements \[(?:os=nonExistingOs, jdk=\d+|jdk=\d+, os=nonExistingOs)].*/ }
+
+        then: 'since the test task itself fails and not the tests, we do not expect a test report'
+        !file("build/reports/tests/test/index.html").exists()
+    }
+
+    private void javaSimpleJunitTestClass(String packageName = 'example',
+                                         String className = 'ExampleTest',
+                                         String testName = 'aTest',
+                                         boolean sleepsSuccessful = true,
+                                         boolean sleepsFailed = true) {
+        file('src/test/java/example/ExampleTest.java') << """
+            package $packageName;
+            public class ${className} {
+                @org.junit.Test
+                public void ${testName}Successful() {
+                    ${sleepsSuccessful ? 'sleep();' : ''}
+                    System.out.println("I feel this test ($testName) will succeed !");
+                    System.err.println("Let's see !");
+                }
+                @org.junit.Test
+                @org.junit.Ignore
+                public void ${testName}Skipped() {
+                    // test is skipped
+                }
+                @org.junit.Test
+                public void ${testName}Failed() {
+                    ${sleepsFailed ? 'sleep();' : ''}
+                    System.out.println("I feel this test ($testName) will fail !");
+                    System.err.println("You're probably right");
+                    org.junit.Assert.fail("${testName} is failing !");
+                }
+                private void sleep(){
+                    try {
+                        Thread.sleep((long)(1+Math.random())*1000);
+                    } catch (InterruptedException e) {
+                        org.junit.Assert.fail();
+                    }
+                }
+            }
+        """.stripIndent(true)
+    }
 }
