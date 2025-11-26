@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.Try;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
@@ -26,6 +27,8 @@ import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DefaultBuildToolingModelController implements BuildToolingModelController {
 
@@ -58,7 +61,8 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
 
         // Force configuration of the build and locate builder for default project
         ProjectState defaultProject = buildController.withProjectsConfigured(gradle -> gradle.getDefaultProject().getOwner());
-        return doLocate(defaultProject, modelName, param, ConfigurationResult.success());
+        Try<ToolingModelScope> toolingModelScope = doLocate(defaultProject, modelName, param, Try.successful(null));
+        return checkNotNull(toolingModelScope.get());
     }
 
     @Override
@@ -68,25 +72,25 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         }
 
         // Force configuration of the containing build and then locate the builder for target project
-        ConfigurationResult configurationResult = configureProjects();
-        return doLocate(target, modelName, param, configurationResult);
+        Try<Void> buildConfiguration = configureBuild();
+        Try<ToolingModelScope> toolingModelScope = doLocate(target, modelName, param, buildConfiguration);
+        return checkNotNull(toolingModelScope.get());
     }
 
-    protected ConfigurationResult configureProjects() {
+    protected Try<Void> configureBuild() {
         return tryRunConfiguration(buildController::configureProjects);
     }
 
-    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param, ConfigurationResult configurationResult) {
-        configurationResult.rethrowIfFailed();
-        return new ProjectToolingScope(target, modelName, param);
+    protected Try<ToolingModelScope> doLocate(ProjectState target, String modelName, boolean param, Try<Void> buildConfiguration) {
+        return buildConfiguration.map(__ -> new ProjectToolingScope(target, modelName, param));
     }
 
-    protected static ConfigurationResult tryRunConfiguration(Runnable configuration) {
+    protected static Try<Void> tryRunConfiguration(Runnable configuration) {
         try {
             configuration.run();
-            return ConfigurationResult.success();
+            return Try.successful(null);
         } catch (GradleException e) {
-            return ConfigurationResult.failure(e);
+            return Try.failure(e);
         }
     }
 
@@ -152,47 +156,6 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             target.ensureConfigured();
             ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
             return lookup.locateForClientOperation(modelName, parameter, target, target.getMutableModel());
-        }
-    }
-
-    protected static class ConfigurationResult {
-
-        @Nullable
-        private final GradleException exception;
-
-        private ConfigurationResult(@Nullable GradleException exception) {
-            this.exception = exception;
-        }
-
-        @Nullable
-        public GradleException getException() {
-            return exception;
-        }
-
-        public static ConfigurationResult failure(GradleException exception) {
-            return new ConfigurationResult(exception);
-        }
-
-        public static ConfigurationResult success() {
-            return new ConfigurationResult(null);
-        }
-
-        public boolean isSuccess() {
-            return exception == null;
-        }
-
-        public boolean isFailure() {
-            return !isSuccess();
-        }
-
-        public void rethrowIfFailed() {
-            if (exception != null) {
-                throw exception;
-            }
-        }
-
-        protected static ConfigurationResult firstFailed(ConfigurationResult first, ConfigurationResult second) {
-            return first.isFailure() ? first : second;
         }
     }
 }

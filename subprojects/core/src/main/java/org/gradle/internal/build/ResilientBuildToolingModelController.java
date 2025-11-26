@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.Try;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
@@ -30,10 +31,9 @@ import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ResilientBuildToolingModelController extends DefaultBuildToolingModelController {
 
@@ -55,38 +55,38 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     @Override
-    protected ConfigurationResult configureProjects() {
+    protected Try<Void> configureBuild() {
         return tryRunConfiguration(buildController::configureProjectsIgnoringLaterFailures);
     }
 
     @Override
-    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param, ConfigurationResult configurationResult) {
-        return new ResilientProjectToolingScope(target, failureFactory, modelName, param, configurationResult);
+    protected Try<ToolingModelScope> doLocate(ProjectState target, String modelName, boolean param, Try<Void> buildConfiguration) {
+        return Try.successful(new ResilientProjectToolingScope(target, failureFactory, modelName, param, buildConfiguration));
     }
 
     private static class ResilientProjectToolingScope extends ProjectToolingScope {
 
         private final FailureFactory failureFactory;
-        private final ConfigurationResult ownerBuildConfigurationResult;
+        private final Try<Void> ownerBuildConfiguration;
 
         public ResilientProjectToolingScope(
             ProjectState target,
             FailureFactory failureFactory,
             String modelName,
             boolean parameter,
-            ConfigurationResult ownerBuildConfigurationResult
+            Try<Void> ownerBuildConfiguration
         ) {
             super(target, modelName, parameter);
             this.failureFactory = failureFactory;
-            this.ownerBuildConfigurationResult = ownerBuildConfigurationResult;
+            this.ownerBuildConfiguration = ownerBuildConfiguration;
         }
 
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             // Force configuration of the target project to ensure all builders have been registered
-            ConfigurationResult configurationResult = ownerBuildConfigurationResult.isSuccess()
+            Try<Void> projectConfiguration = ownerBuildConfiguration.isSuccessful()
                 ? tryRunConfiguration(target::ensureConfigured)
-                : ownerBuildConfigurationResult;
+                : ownerBuildConfiguration;
 
             ProjectInternal project = target.getMutableModelEvenAfterFailure();
             ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
@@ -94,7 +94,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             // We need to query the delegate builder lazily, since builders may not be registered if project configuration fails
             Supplier<ToolingModelBuilderLookup.Builder> builder = () -> lookup.locateForClientOperation(modelName, parameter, target, project);
             boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
-            return new ResilientToolingModelBuilder(builder, configurationResult, failureFactory, canRunEvenIfProjectNotFullyConfigured);
+            return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, canRunEvenIfProjectNotFullyConfigured);
         }
     }
 
@@ -106,18 +106,18 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     private static class ResilientToolingModelBuilder implements ToolingModelBuilderLookup.Builder {
 
         private final Lazy<ToolingModelBuilderLookup.Builder> delegate;
-        private final ConfigurationResult configurationResult;
+        private final Try<Void> projectConfiguration;
         private final FailureFactory failureFactory;
         private final boolean canRunEvenIfProjectNotFullyConfigured;
 
         public ResilientToolingModelBuilder(
             Supplier<ToolingModelBuilderLookup.Builder> delegate,
-            ConfigurationResult result,
+            Try<Void> projectConfiguration,
             FailureFactory failureFactory,
             boolean canRunEvenIfProjectNotFullyConfigured
         ) {
             this.delegate = Lazy.unsafe().of(delegate);
-            this.configurationResult = result;
+            this.projectConfiguration = projectConfiguration;
             this.failureFactory = failureFactory;
             this.canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured;
         }
@@ -129,19 +129,18 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
         @Override
         public Object build(@Nullable Object parameter) {
-            if (configurationResult.isSuccess()) {
+            if (projectConfiguration.isSuccessful()) {
                 return delegate.get().build(parameter);
             }
 
             Object model = canRunEvenIfProjectNotFullyConfigured ? delegate.get().build(parameter) : null;
-            List<Failure> failures = configurationExceptionAsFailure(configurationResult);
+            List<Failure> failures = configurationAsFailure(projectConfiguration);
             return ToolingModelBuilderResultInternal.attachFailures(model, failures);
         }
 
-        private List<Failure> configurationExceptionAsFailure(ConfigurationResult configurationResult) {
-            return configurationResult.isFailure()
-                ? ImmutableList.of(failureFactory.create(checkNotNull(configurationResult.getException())))
-                : ImmutableList.of();
+        private List<Failure> configurationAsFailure(Try<Void> projectConfiguration) {
+            Optional<Throwable> failure = projectConfiguration.getFailure();
+            return failure.map(e -> ImmutableList.of(failureFactory.create(e))).orElseGet(ImmutableList::of);
         }
     }
 }
