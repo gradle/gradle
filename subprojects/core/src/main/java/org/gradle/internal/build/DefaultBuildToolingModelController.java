@@ -16,7 +16,6 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
@@ -86,12 +85,10 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     protected static Try<Void> tryRunConfiguration(Runnable configuration) {
-        try {
+        return Try.ofFailable(() -> {
             configuration.run();
-            return Try.successful(null);
-        } catch (GradleException e) {
-            return Try.failure(e);
-        }
+            return null;
+        });
     }
 
     private static abstract class AbstractToolingScope implements ToolingModelScope {
