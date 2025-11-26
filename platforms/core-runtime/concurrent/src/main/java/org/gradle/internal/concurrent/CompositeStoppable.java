@@ -18,6 +18,7 @@ package org.gradle.internal.concurrent;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,18 +28,13 @@ import java.util.List;
 /**
  * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
  * {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close/stop
- * method is called on that object, otherwise the element is ignored. Elements may be {@code null}, in which case they
+ * method is called on that object; otherwise the element is ignored. Elements may be {@code null}, in which case they
  * are ignored.
  *
  * <p>Attempts to stop as many elements as possible in the presence of failures.</p>
  */
 public class CompositeStoppable implements Stoppable {
-    public static final Stoppable NO_OP_STOPPABLE = new Stoppable() {
-        @Override
-        public void stop() {
-        }
-    };
-    private final List<Stoppable> elements = new ArrayList<Stoppable>();
+    private final List<Stoppable> elements = new ArrayList<>();
 
     public CompositeStoppable() {
     }
@@ -52,11 +48,8 @@ public class CompositeStoppable implements Stoppable {
     }
 
     public CompositeStoppable addFailure(final Throwable failure) {
-        add(new Closeable() {
-            @Override
-            public void close() {
-                throw UncheckedException.throwAsUncheckedException(failure);
-            }
+        add((Closeable) () -> {
+            throw UncheckedException.throwAsUncheckedException(failure);
         });
         return this;
     }
@@ -75,11 +68,20 @@ public class CompositeStoppable implements Stoppable {
         return this;
     }
 
-    public synchronized CompositeStoppable add(Object closeable) {
-        this.elements.add(toStoppable(closeable));
+    public CompositeStoppable add(Object closeable) {
+        Stoppable stoppable = toStoppable(closeable);
+        if (stoppable != null) {
+            add(stoppable);
+        }
         return this;
     }
 
+    public synchronized CompositeStoppable add(Stoppable stoppable) {
+        this.elements.add(stoppable);
+        return this;
+    }
+
+    @Nullable
     private static Stoppable toStoppable(final Object object) {
         if (object instanceof Stoppable) {
             return (Stoppable) object;
@@ -102,7 +104,7 @@ public class CompositeStoppable implements Stoppable {
                 }
             };
         }
-        return NO_OP_STOPPABLE;
+        return null;
     }
 
     @Override
@@ -114,7 +116,7 @@ public class CompositeStoppable implements Stoppable {
                     element.stop();
                 } catch (Throwable throwable) {
                     if (failures == null) {
-                        failures = new ArrayList<Throwable>();
+                        failures = new ArrayList<>();
                     }
                     failures.add(throwable);
                 }

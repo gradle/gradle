@@ -2965,15 +2965,14 @@ h2 {
 }
 
 h3 {
-	font-size: 1.125rem;
+	font-size: 1.25rem;
 }
 
 h4 {
-	font-size: 1.0625rem;
+	font-size: 1.125rem;
 }
 
-h5,
-h6 {
+h5, h6 {
 	font-size: 1rem;
 }
 

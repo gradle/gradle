@@ -549,8 +549,8 @@ To speed up resolution, list the repository hosting most dependencies first, red
 [source,groovy]
 ----
 repositories {
-    mavenCentral()  // ❌ Declared first, but most dependencies are in JitPack
-    maven { url "https://jitpack.io" }
+    mavenCentral()  // ❌ Declared first, but most dependencies are in example.com/repo
+    maven { url "https://example.com/repo" }
 }
 ----
 
@@ -563,7 +563,7 @@ If using a custom repository, create a *virtual repository* that aggregates mult
 [source,groovy]
 ----
 repositories {
-    maven { url "https://repo.mycompany.com/virtual-repo" } // ✅ Uses an aggregated repository
+    maven { url "https://example.com/virtual-repo" } // ✅ Uses an aggregated repository
 }
 ----
 

@@ -60,8 +60,8 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     @Override
-    protected Try<ToolingModelScope> doLocate(ProjectState target, String modelName, boolean param, Try<Void> buildConfiguration) {
-        return Try.successful(new ResilientProjectToolingScope(target, failureFactory, modelName, param, buildConfiguration));
+    protected Try<ToolingModelScope> doLocate(ProjectState targetProject, String modelName, boolean param, Try<Void> buildConfiguration) {
+        return Try.successful(new ResilientProjectToolingScope(targetProject, failureFactory, modelName, param, buildConfiguration));
     }
 
     private static class ResilientProjectToolingScope extends ProjectToolingScope {
@@ -70,13 +70,13 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         private final Try<Void> ownerBuildConfiguration;
 
         public ResilientProjectToolingScope(
-            ProjectState target,
+            ProjectState targetProject,
             FailureFactory failureFactory,
             String modelName,
             boolean parameter,
             Try<Void> ownerBuildConfiguration
         ) {
-            super(target, modelName, parameter);
+            super(targetProject, modelName, parameter);
             this.failureFactory = failureFactory;
             this.ownerBuildConfiguration = ownerBuildConfiguration;
         }
@@ -85,22 +85,23 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             // Force configuration of the target project to ensure all builders have been registered
             Try<Void> projectConfiguration = ownerBuildConfiguration.isSuccessful()
-                ? tryRunConfiguration(target::ensureConfigured)
+                ? tryRunConfiguration(targetProject::ensureConfigured)
                 : ownerBuildConfiguration;
 
-            ProjectInternal project = target.getMutableModelEvenAfterFailure();
-            ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
-
             // We need to query the delegate builder lazily, since builders may not be registered if project configuration fails
-            Supplier<ToolingModelBuilderLookup.Builder> builder = () -> lookup.locateForClientOperation(modelName, parameter, target, project);
-            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
+            Supplier<ToolingModelBuilderLookup.Builder> builder = () -> {
+                ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
+                ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
+                return lookup.locateForClientOperation(modelName, parameter, targetProject, project);
+            };
+            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(targetProject, modelName);
             return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, canRunEvenIfProjectNotFullyConfigured);
         }
     }
 
-    private static boolean canRunEvenIfProjectNotFullyConfigured(String modelName) {
+    private static boolean canRunEvenIfProjectNotFullyConfigured(ProjectState projectState, String modelName) {
         // Some internal model builders can run even if the project is not fully configured.
-        return RESILIENT_MODELS.contains(modelName);
+        return projectState.isCreated() && RESILIENT_MODELS.contains(modelName);
     }
 
     private static class ResilientToolingModelBuilder implements ToolingModelBuilderLookup.Builder {

@@ -19,14 +19,12 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
-import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 
 /**
  * Implementation of {@link WorkerTestDefinitionProcessorFactory} which instantiates a {@code JUnitPlatformTestDefinitionProcessor}.
@@ -42,9 +40,7 @@ class JUnitPlatformTestDefinitionProcessorFactory implements WorkerTestDefinitio
     @Override
     public TestDefinitionProcessor<TestDefinition> create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         try {
-            Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestDefinitionProcessor");
-            Constructor<?> constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
-            return Cast.uncheckedNonnullCast(constructor.newInstance(spec, idGenerator, actorFactory, clock));
+            return new JUnitPlatformTestDefinitionProcessor(spec, idGenerator, actorFactory, clock);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

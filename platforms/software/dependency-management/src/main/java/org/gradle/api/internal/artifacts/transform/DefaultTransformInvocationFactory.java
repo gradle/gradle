@@ -29,11 +29,11 @@ import org.gradle.internal.Try;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildoption.StringInternalOption;
+import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionEngine.IdentityCacheResult;
+import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -88,7 +88,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
 
-        Cache<Identity, IdentityCacheResult<TransformWorkspaceResult>> identityCache;
+        Cache<Identity, DeferredResult<TransformWorkspaceResult>> identityCache;
         UnitOfWork execution;
 
         boolean cachingDisabledByProperty = isCachingDisabledByProperty(transform);

@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures;
 import org.gradle.api.tasks.testing.TestResult;
 import org.hamcrest.Matcher;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -50,6 +51,22 @@ public interface TestClassExecutionResult {
      * Asserts that the provided metadata appears in the result file at the test level
      */
     default TestClassExecutionResult assertTestMetadata(String name, Map<String, String> props) {
+        assert false;
+        return this;
+    }
+
+    /**
+     * Asserts that the provided file attachments appears in the result file at the class level
+     */
+    default TestClassExecutionResult assertHasFileAttachments(File... files) {
+        assert false;
+        return this;
+    }
+
+    /**
+     * Asserts that the provided file attachments appears in the result file at the test level
+     */
+    default TestClassExecutionResult assertTestHasFileAttachments(String name, File... files) {
         assert false;
         return this;
     }

@@ -32,6 +32,8 @@ import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTe
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Serializer;
@@ -59,6 +61,8 @@ import java.util.function.Consumer;
  */
 public final class TestTreeModelResultsProvider implements TestResultsProvider {
 
+    private static final Logger LOGGER = Logging.getLogger(TestTreeModelResultsProvider.class);
+
     public static void useResultsFrom(Path resultsDir, Consumer<TestTreeModelResultsProvider> resultsConsumer) {
         SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDir);
         Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
@@ -66,7 +70,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             TestTreeModel root = TestTreeModel.loadModelFromStores(Collections.singletonList(resultsStore));
             TestTreeModelResultsProvider resultsProvider = new TestTreeModelResultsProvider(root, resultsStore.createOutputReader(testOutputEventSerializer));
             resultsConsumer.accept(resultsProvider);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
@@ -86,14 +90,22 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         }
     }
 
-    private static final Comparator<TestTreeModel.PerRootInfo> PER_ROOT_INFO_BY_START_TIME =
-        Comparator.comparing(leaf -> leaf.getResult().getStartTime());
+    private static final Comparator<PerRootInfo> PER_ROOT_INFO_BY_START_TIME =
+        Comparator.comparing(leaf -> leaf.getResults().get(0).getStartTime());
 
     private static Map<Long, ClassNode> createClasses(TestTreeModel root) {
-        ListMultimap<TestTreeModel, TestTreeModel.PerRootInfo> leavesByGroupingNode = LinkedListMultimap.create();
-        walkLeaves(root, leaf -> {
-            for (TestTreeModel.PerRootInfo perRootInfo : leaf.getPerRootInfo().get(0)) {
-                TestTreeModel groupingNode = findGroupingNode(leaf, perRootInfo.getResult().getClassName());
+        Map<org.gradle.util.Path, TestTreeModel> parentOfPath = buildParentOfPathMap(root);
+        ListMultimap<TestTreeModel, PerRootInfo> leavesByGroupingNode = LinkedListMultimap.create();
+        walkLeaves(parentOfPath, root, leaf -> {
+            for (PerRootInfo perRootInfo : leaf.getPerRootInfo().get(0)) {
+                if (perRootInfo.getResults().size() > 1) {
+                    // Only one of these should be generated per leaf node, multiple results are not merged
+                    throw new IllegalStateException(
+                        "Expected exactly one result for leaf node " + leaf.getPath() +
+                            " but found: " + perRootInfo.getResults().size()
+                    );
+                }
+                TestTreeModel groupingNode = findGroupingNode(parentOfPath, leaf, perRootInfo.getResults().get(0).getClassName());
                 leavesByGroupingNode.put(groupingNode, perRootInfo);
             }
         });
@@ -102,9 +114,9 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             leavesByGroupingNode.keySet().size()
         );
         long nextClassId = 1;
-        for (Map.Entry<TestTreeModel, List<TestTreeModel.PerRootInfo>> entry : Multimaps.asMap(leavesByGroupingNode).entrySet()) {
+        for (Map.Entry<TestTreeModel, List<PerRootInfo>> entry : Multimaps.asMap(leavesByGroupingNode).entrySet()) {
             TestTreeModel groupingNode = entry.getKey();
-            List<TestTreeModel.PerRootInfo> leaves = new ArrayList<>(entry.getValue());
+            List<PerRootInfo> leaves = new ArrayList<>(entry.getValue());
 
             // We want these sorted by start time in order to preserve ordering between runs.
             leaves.sort(PER_ROOT_INFO_BY_START_TIME);
@@ -119,8 +131,12 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
                     // One of our leaves, skip
                     return;
                 }
-                for (TestTreeModel.PerRootInfo perRootInfo : node.getPerRootInfo().get(0)) {
-                    outputEntries.add(perRootInfo.getOutputEntry());
+                for (PerRootInfo perRootInfo : node.getPerRootInfo().get(0)) {
+                    for (OutputEntry outputEntry : perRootInfo.getOutputEntries()) {
+                        if (outputEntry.getOutputRanges().hasOutput()) {
+                            outputEntries.add(outputEntry);
+                        }
+                    }
                 }
             });
 
@@ -129,49 +145,94 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         return classesById.build();
     }
 
+    private static Map<org.gradle.util.Path, TestTreeModel> buildParentOfPathMap(TestTreeModel root) {
+        ImmutableMap.Builder<org.gradle.util.Path, TestTreeModel> parentOfPath = ImmutableMap.builder();
+        addToParentOfPathMap(root, parentOfPath);
+        return parentOfPath.build();
+    }
+
+    private static void addToParentOfPathMap(
+        TestTreeModel node,
+        ImmutableMap.Builder<org.gradle.util.Path, TestTreeModel> parentOfPath
+    ) {
+        for (TestTreeModel child : node.getChildren()) {
+            parentOfPath.put(child.getPath(), node);
+            addToParentOfPathMap(child, parentOfPath);
+        }
+    }
+
     private static TestClassResult buildClassResult(
         TestTreeModel groupingNode,
-        List<TestTreeModel.PerRootInfo> leaves,
+        List<PerRootInfo> leaves,
         long nextClassId,
         ImmutableMap.Builder<Long, OutputEntry> methodOutputEntries
     ) {
         TestClassResult classResult = createEmptyClassResult(groupingNode, nextClassId);
 
-        for (TestTreeModel.PerRootInfo leafPerRootInfo : leaves) {
-            classResult.add(buildMethodResult(leafPerRootInfo));
-            methodOutputEntries.put(leafPerRootInfo.getId(), leafPerRootInfo.getOutputEntry());
+        for (PerRootInfo leaf : leaves) {
+            classResult.add(buildMethodResult(leaf));
+            OutputEntry outputEntry = leaf.getOutputEntries().get(0);
+            if (outputEntry.getOutputRanges().hasOutput()) {
+                methodOutputEntries.put(leaf.getId(), outputEntry);
+            }
         }
         return classResult;
     }
 
     private static TestClassResult createEmptyClassResult(TestTreeModel groupingNode, long nextClassId) {
-        List<TestTreeModel.PerRootInfo> perRootInfos = groupingNode.getPerRootInfo().get(0);
+        List<PerRootInfo> perRootInfos = groupingNode.getPerRootInfo().get(0);
         if (perRootInfos.size() != 1) {
             throw new IllegalStateException(
                 "Expected exactly one run for grouping node " + groupingNode.getPath() +
                     " but found: " + perRootInfos.size()
             );
         }
-        TestTreeModel.PerRootInfo perRootInfo = perRootInfos.get(0);
+        PerRootInfo perRootInfo = perRootInfos.get(0);
+        List<SerializableTestResult> results = perRootInfo.getResults();
+        String name = results.get(0).getName();
+        String displayName = results.get(0).getDisplayName();
+        long earliestStartTime = results.get(0).getStartTime();
+        // Skip first result as we already used it
+        for (int i = 1; i < results.size(); i++) {
+            SerializableTestResult result = results.get(i);
+            // This should never happen, as merging is keyed by name.
+            if (!result.getName().equals(name)) {
+                throw new IllegalStateException(
+                    "Expected all results for grouping node " + groupingNode.getPath() +
+                        " to have the same name, but found: " + name + " and " + result.getName()
+                );
+            }
+            // This can happen for a variety of cases, e.g. parameterized tests or multiple test frameworks.
+            // Therefore, we shouldn't fail, as a slightly broken report is better than a task failure.
+            if (!result.getDisplayName().equals(displayName)) {
+                LOGGER.warn(
+                    "Expected all results for grouping node {} to have the same display name, but found: {} and {}",
+                    groupingNode.getPath(), displayName, result.getDisplayName()
+                );
+            }
+            if (result.getStartTime() < earliestStartTime) {
+                earliestStartTime = result.getStartTime();
+            }
+        }
         return new TestClassResult(
             nextClassId,
-            perRootInfo.getResult().getName(),
-            perRootInfo.getResult().getDisplayName(),
-            perRootInfo.getResult().getStartTime(),
-            perRootInfo.getMetadatas()
+            name,
+            displayName,
+            earliestStartTime,
+            ImmutableList.copyOf(perRootInfo.getMetadatas())
         );
     }
 
-    private static TestMethodResult buildMethodResult(TestTreeModel.PerRootInfo perRootInfo) {
-        SerializableTestResult result = perRootInfo.getResult();
+    private static TestMethodResult buildMethodResult(PerRootInfo leaf) {
+        SerializableTestResult result = leaf.getResults().get(0);
         TestMethodResult methodResult = new TestMethodResult(
-            perRootInfo.getId(),
+            leaf.getId(),
             result.getName(),
             result.getDisplayName(),
             result.getResultType(),
             result.getDuration(),
             result.getEndTime(),
-            perRootInfo.getMetadatas()
+            ImmutableList.copyOf(leaf.getMetadatas())
         );
         methodResult.getFailures().addAll(result.getFailures());
         if (result.getAssumptionFailure() != null) {
@@ -183,16 +244,20 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
         return methodResult;
     }
 
-    private static TestTreeModel findGroupingNode(TestTreeModel leaf, @Nullable String className) {
+    private static TestTreeModel findGroupingNode(
+        Map<org.gradle.util.Path, TestTreeModel> parentOfPath, TestTreeModel leaf, @Nullable String className
+    ) {
         TestTreeModel current = leaf;
         TestTreeModel parent;
-        while ((parent = current.getParent()) != null) {
-            if (className != null && className.equals(parent.getPath().getName())) {
+        while ((parent = parentOfPath.get(current.getPath())) != null) {
+            org.gradle.util.Path parentPath = parent.getPath();
+            if (className != null && className.equals(parentPath.getName())) {
                 return parent;
             }
             // Pick highest non-root node if no class name match
             // But don't group the leaf using itself, that doesn't make sense.
-            if (parent.getParent() == null && current != leaf) {
+            boolean parentHasParent = parentOfPath.containsKey(parentPath);
+            if (!parentHasParent && current != leaf) {
                 // Parent is the root, so the current is the highest non-root node
                 return current;
             }
@@ -203,13 +268,17 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static void walkLeaves(
+        Map<org.gradle.util.Path, TestTreeModel> parentOfPath,
         TestTreeModel base,
         Consumer<TestTreeModel> leafConsumer
     ) {
         base.walkDepthFirst(node -> {
-            // Ignore the root node as a leaf, it is not a test
-            if (node.getChildren().isEmpty() && node.getParent() != null) {
-                leafConsumer.accept(node);
+            if (node.getChildren().isEmpty()) {
+                // Ignore the root node as a leaf, it is not a test
+                boolean hasParent = parentOfPath.containsKey(node.getPath());
+                if (hasParent) {
+                    leafConsumer.accept(node);
+                }
             }
         });
     }

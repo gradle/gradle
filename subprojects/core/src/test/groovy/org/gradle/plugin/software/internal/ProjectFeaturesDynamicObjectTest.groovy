@@ -17,6 +17,8 @@
 package org.gradle.plugin.software.internal
 
 import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.model.ObjectFactory
 import org.gradle.util.TestUtil
@@ -103,7 +105,9 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         return [closure]
     }
 
-    class Foo {
+    class Foo implements Definition<Baz> {
         String bar
     }
+
+    interface Baz extends BuildModel { }
 }

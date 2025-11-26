@@ -18,6 +18,10 @@ package org.gradle.integtests.tooling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.jspecify.annotations.Nullable;
+
+import java.io.File;
+import java.util.Map;
 
 /**
  * Spec builder for asserting that a test task emitted the appropriate events.
@@ -51,14 +55,24 @@ interface GroupTestEventSpec extends TestEventSpec {
  */
 interface TestEventSpec {
     /**
-     * Some output to expect
+     * Expect some output
      */
     void output(String msg);
 
     /**
-     * Some metadata to expect
+     * Expect some metadata with a singleton key-value
      */
-    void metadata(String key, Object value);
+    void metadata(String key, String value);
+
+    /**
+     * Expect some metadata with multiple key-values
+     */
+    void metadata(Map<String, String> values);
+
+    /**
+     * Expect a file attachment
+     */
+    void fileAttachment(File file, @Nullable String mediaType);
 
     /**
      * Set the expected test display name

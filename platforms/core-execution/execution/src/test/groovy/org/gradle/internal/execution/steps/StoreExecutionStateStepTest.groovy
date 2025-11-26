@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.SimpleBuildCacheKey
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
@@ -29,8 +30,6 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
-
-import static org.gradle.internal.execution.ExecutionEngine.Execution
 
 class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> implements SnapshotterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)

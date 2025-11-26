@@ -26,11 +26,11 @@ import org.gradle.api.internal.plugins.BindsProjectFeature;
 import org.gradle.api.internal.plugins.BindsProjectType;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
-import org.gradle.api.internal.plugins.ProjectFeatureBinding;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
-import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration;
+import org.gradle.api.internal.plugins.ProjectFeatureBinding;
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
-import org.gradle.api.internal.plugins.ProjectTypeBindingRegistration;
+import org.gradle.api.internal.plugins.ProjectTypeBinding;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Cast;
@@ -50,7 +50,7 @@ import java.util.Set;
 /**
  * Default implementation of {@link ProjectFeatureDeclarations} that registers project types.
  */
-public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureDeclarations {
+public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarations {
     private final Map<RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses = new LinkedHashMap<>();
     private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
 
@@ -60,12 +60,10 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
     private final Instantiator instantiator;
-    private final LegacyProjectTypeDiscovery legacyProjectTypeDiscovery;
 
     public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator) {
         this.inspectionScheme = inspectionScheme;
         this.instantiator = instantiator;
-        legacyProjectTypeDiscovery = new LegacyProjectTypeDiscovery(inspectionScheme);
     }
 
     @Override
@@ -87,16 +85,13 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
                 registerFeaturesIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, projectFeatureImplementationsBuilder);
             })
         );
-        legacyProjectTypeDiscovery.discoverSoftwareTypeImplementations(registeredTypes, pluginClasses).forEach(implementation -> {
-            projectFeatureImplementationsBuilder.put(implementation.getFeatureName(), implementation);
-        });
         return projectFeatureImplementationsBuilder.build();
     }
 
     private <T extends Definition<V>, V extends BuildModel> void registerFeature(
         RegisteringPluginKey registeringPlugin,
         Class<? extends Plugin<Project>> pluginClass,
-        ProjectFeatureBinding<T, V> binding,
+        ProjectFeatureBindingDeclaration<T, V> binding,
         ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder
     ) {
         String projectFeatureName = binding.getName();
@@ -108,10 +103,10 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
 
         projectFeatureImplementationsBuilder.put(
             projectFeatureName,
-            new DefaultBoundProjectFeatureImplementation<>(
+            new DefaultProjectFeatureImplementation<>(
                 projectFeatureName,
-                binding.getDslType(),
-                binding.getDslImplementationType().orElse(binding.getDslType()),
+                binding.getDefinitionType(),
+                binding.getDefinitionImplementationType().orElse(binding.getDefinitionType()),
                 binding.targetDefinitionType(),
                 binding.getBuildModelType(),
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
@@ -129,13 +124,13 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
         TypeAnnotationMetadata pluginClassAnnotationMetadata,
         ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder
     ) {
-        Optional<BindsProjectFeature> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectFeature.class);
-        if (bindsSoftwareTypeAnnotation.isPresent()) {
-            BindsProjectFeature bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
-            Class<? extends ProjectFeatureBindingRegistration> bindingRegistrationClass = bindsSoftwareType.value();
-            ProjectFeatureBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
+        Optional<BindsProjectFeature> bindsProjectFeatureAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectFeature.class);
+        if (bindsProjectFeatureAnnotation.isPresent()) {
+            BindsProjectFeature bindsSoftwareType = bindsProjectFeatureAnnotation.get();
+            Class<? extends ProjectFeatureBinding> bindingRegistrationClass = bindsSoftwareType.value();
+            ProjectFeatureBinding bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             ProjectFeatureBindingBuilderInternal builder = new DefaultProjectFeatureBindingBuilder();
-            bindingRegistration.register(builder);
+            bindingRegistration.bind(builder);
             builder.build().forEach(binding ->
                 registerFeature(registeringPluginClass, pluginClass, binding, projectFeatureImplementationsBuilder)
             );
@@ -143,13 +138,13 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
     }
 
     private void registerTypeIfPresent(RegisteringPluginKey registeringPluginKey, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder) {
-        Optional<BindsProjectType> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectType.class);
-        if (bindsSoftwareTypeAnnotation.isPresent()) {
-            BindsProjectType bindsProjectType = bindsSoftwareTypeAnnotation.get();
-            Class<? extends ProjectTypeBindingRegistration> bindingRegistrationClass = bindsProjectType.value();
-            ProjectTypeBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
+        Optional<BindsProjectType> bindsProjectTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectType.class);
+        if (bindsProjectTypeAnnotation.isPresent()) {
+            BindsProjectType bindsProjectType = bindsProjectTypeAnnotation.get();
+            Class<? extends ProjectTypeBinding> bindingRegistrationClass = bindsProjectType.value();
+            ProjectTypeBinding bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
             ProjectTypeBindingBuilderInternal builder = new DefaultProjectTypeBindingBuilder();
-            bindingRegistration.register(builder);
+            bindingRegistration.bind(builder);
             builder.build().forEach(binding ->
                 registerFeature(registeringPluginKey, pluginClass, binding, projectFeatureImplementationsBuilder)
             );
@@ -214,13 +209,5 @@ public class DefaultProjectFeatureDeclarations extends CompatibleProjectFeatureD
         public int hashCode() {
             return Objects.hash(pluginClass, pluginId);
         }
-    }
-}
-
-@SuppressWarnings("deprecation")
-abstract class CompatibleProjectFeatureDeclarations implements ProjectFeatureDeclarations, org.gradle.plugin.software.internal.SoftwareTypeRegistry {
-    @Override
-    public void register(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass) {
-        addDeclaration(pluginId, pluginClass, registeringPluginClass);
     }
 }

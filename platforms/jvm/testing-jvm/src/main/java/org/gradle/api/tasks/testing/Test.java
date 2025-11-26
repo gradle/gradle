@@ -25,6 +25,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -90,10 +91,11 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -101,6 +103,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
@@ -168,6 +171,8 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 @NullMarked
 @CacheableTask
 public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Test.class);
+
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
@@ -668,9 +673,37 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
+        Set<File> candidateTestDefinitionDirs = determineCandidateTestDefinitionDirs();
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), getTestDefinitionDirs().getFiles(),
+            getCandidateClassFiles(), isScanForTestClasses(), candidateTestDefinitionDirs,
             getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+    }
+
+    private Set<File> determineCandidateTestDefinitionDirs() {
+        return getTestDefinitionDirs().getFiles().stream()
+            .filter(this::isValidDefinitionDir)
+            .filter(this::matchesPatternSet)
+            .collect(Collectors.toSet());
+    }
+
+    private boolean isValidDefinitionDir(File dir) {
+        if (!dir.exists()) {
+            LOGGER.warn("Test definitions directory does not exist: " + dir.getAbsolutePath());
+            return false;
+        } else if (!dir.isDirectory()) {
+            LOGGER.warn("Test definitions directory is not a directory: " + dir.getAbsolutePath());
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    private boolean matchesPatternSet(File dir) {
+        ConfigurableFileTree fileTree = getObjectFactory().fileTree();
+        fileTree.from(dir);
+        fileTree.include(patternSet.getIncludes());
+        fileTree.exclude(patternSet.getExcludes());
+        return !fileTree.isEmpty();
     }
 
     private void validateExecutableMatchesToolchain() {
@@ -686,15 +719,15 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         if (store.hasResults()) {
             final Set<String> previousFailedTestClasses = new HashSet<>();
             try {
-                store.forEachResult(result -> {
+                store.forEachResult((id, parentId, result, ranges) -> {
                     // Test class descriptors set both name and class name to the test class name
-                    if (result.getInnerResult().getName().equals(result.getInnerResult().getClassName())) {
-                        if (result.getInnerResult().getResultType() == TestResult.ResultType.FAILURE) {
-                            previousFailedTestClasses.add(result.getInnerResult().getClassName());
+                    if (result.getName().equals(result.getClassName())) {
+                        if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                            previousFailedTestClasses.add(result.getClassName());
                         }
                     }
                 });
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
             return previousFailedTestClasses;
@@ -862,7 +895,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Returns directories to scan for non-class-based test definition files.
      *
      * @return The directories holding non-class-based test definition files.
-     * @since 9.3.0
+     * @since 9.4.0
      */
     @Incubating
     @InputFiles

@@ -52,7 +52,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         def reportPath = htmlReportDirectory.toPath()
         try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
             return paths.filter {
-                it.getFileName().toString() == "index.html"
+                it.getFileName().toString().endsWith(".html")
             }.map {
                 def html = Jsoup.parse(it.toFile(), null)
                 def breadcrumbs = html.selectFirst(".breadcrumbs")
@@ -221,8 +221,19 @@ Unexpected paths: ${unexpectedPaths}""")
     }
 
     private java.nio.file.Path diskPathForTestPath(String frameworkTestPath) {
-        String processedPath = Strings.isNullOrEmpty(frameworkTestPath) ? "index.html" : GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath))
-        htmlReportDirectory.toPath().resolve(processedPath)
+        if (Strings.isNullOrEmpty(frameworkTestPath)) {
+            return htmlReportDirectory.toPath().resolve("index.html")
+        }
+        java.nio.file.Path nonLeafPath = htmlReportDirectory.toPath().resolve(
+            GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), false)
+        )
+        if (Files.exists(nonLeafPath)) {
+            return nonLeafPath
+        } else {
+            return htmlReportDirectory.toPath().resolve(
+                GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath), true)
+            )
+        }
     }
 
     private static Map<String, Element> getTabs(Element base) {
@@ -500,6 +511,31 @@ Unexpected paths: ${unexpectedPaths}""")
                 Maps.immutableEntry(it[0], it[1])
             }
             assertThat("in " + displayName, metadata, equalTo(expectedMetadata))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedAttachments) {
+            def fileAttachments = html.select('.attachments tr').findAll { it.getElementsByTag('td').size() > 0 }
+            Map<String, ShowAs> actual = fileAttachments.collectEntries {
+                def columns = it.getElementsByTag("td")
+                assert columns.size() == 2 : "unexpected table"
+                def key = columns[0]
+                def content = columns[1]
+                def shownAs
+                if (content.getElementsByTag("img").size() > 0) {
+                    shownAs = ShowAs.IMAGE
+                } else if (content.getElementsByTag("video").size() > 0) {
+                    shownAs = ShowAs.VIDEO
+                } else if (content.getElementsByTag("a").size() > 0) {
+                    shownAs = ShowAs.LINK
+                } else {
+                    shownAs = null
+                }
+                [key.text(), shownAs]
+            }
+
+            assertThat("in " + displayName, actual, equalTo(expectedAttachments))
             return this
         }
     }

@@ -75,7 +75,7 @@ You can run your tests in parallel by setting this property to a value greater t
 Your tests can distinguish between parallel test processes by using the value of the `org.gradle.test.worker` property, which is unique for each process. You can use this for anything you want, but it's particularly useful for filenames and other resource identifiers to prevent the kind of conflict we just mentioned.
 
 `forkEvery` — default: 0 (no maximum)::
-This property specifies the maximum number of test classes that Gradle should run on a test process before it's disposed of and a fresh one created. This is mainly used as a way to manage leaky tests or frameworks that have static state that can't be cleared or reset between tests.
+This property specifies the maximum number of test classes (or test definitions, for non-class-based testing) that Gradle should run on a test process before it's disposed of and a fresh one created. This is mainly used as a way to manage leaky tests or frameworks that have static state that can't be cleared or reset between tests.
 +
 *Warning: a low value (other than 0) can severely hurt the performance of the tests*
 
@@ -464,7 +464,7 @@ include::sample[dir="snippets/testing/junitplatform-engine/groovy",files="build.
 
 TestNG allows explicit control of the execution order of tests when you use a _testng.xml_ file. Without such a file — or an equivalent one configured by link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html#getSuiteXmlBuilder--[TestNGOptions.getSuiteXmlBuilder()] — you can't specify the test execution order. However, what you _can_ do is control whether all aspects of a test — including its associated `@BeforeXXX` and `@AfterXXX` methods, such as those annotated with `@Before/AfterClass` and `@Before/AfterMethod` — are executed before the next test starts. You do this by setting the link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html#getPreserveOrder--[TestNGOptions.getPreserveOrder()] property to `true`. If you set it to `false`, you may encounter scenarios in which the execution order is something like: `TestA.doBeforeClass()` -> `TestB.doBeforeClass()` -> `TestA` tests.
 
-While preserving the order of tests is the default behavior when directly working with _testng.xml_ files, the https://jitpack.io/com/github/cbeust/testng/master/javadoc/org/testng/TestNG.html[TestNG API] that is used by Gradle's TestNG integration executes tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] The ability to preserve test execution order was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
+While preserving the order of tests is the default behavior when directly working with _testng.xml_ files, the https://javadoc.io/doc/org.testng/testng/latest/org/testng/TestNG.html[TestNG API] that is used by Gradle's TestNG integration executes tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] The ability to preserve test execution order was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
 
 .Preserving order of TestNG tests
 ====
@@ -605,6 +605,8 @@ This can be caused by a variety of issues, such as:
 When using a JUnit 4 version below 4.13, output from `@BeforeClass` and `@AfterClass` methods may be incorrectly assigned to a test earlier or later in the test execution order.
 This is due to a lack of events for when a class is started or finished, which were added in JUnit 4.13.
 
+This also applies to TestNG versions below 6.9.13.3 and its `@BeforeClass` and `@AfterClass` methods.
+
 [[sec:java_testing_modular]]
 == Testing Java Modules
 
@@ -642,7 +644,7 @@ by adding a `module-info.java` file to the corresponding source set (e.g. `integ
 
 You can find a full example that includes blackbox integration tests link:../samples/sample_java_modules_multi_project_with_integration_tests.html[here].
 
-NOTE: In Eclipse, compiling multiple modules in one project is https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667[currently not support].
+NOTE: In Eclipse, compiling multiple modules in one project is currently not supported.
 Therefore the integration test (blackbox) setup described here only works in Eclipse if the tests are moved to a separate subproject.
 
 [[sec:java_testing_modular_patching]]

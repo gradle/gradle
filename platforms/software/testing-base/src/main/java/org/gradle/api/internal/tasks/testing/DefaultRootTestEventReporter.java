@@ -42,6 +42,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private final TestReportGenerator testReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
     private final boolean closeThrowsOnTestFailures;
+    private final boolean addToAggregateReports;
 
     // Mutable state
     @Nullable
@@ -55,7 +56,8 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         SerializableTestResultStore.Writer testResultWriter,
         @Nullable TestReportGenerator testReportGenerator,
         TestExecutionResultsListener executionResultsListener,
-        boolean closeThrowsOnTestFailures
+        boolean closeThrowsOnTestFailures,
+        boolean addToAggregateReports
     ) {
         super(
             listener,
@@ -69,6 +71,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         this.testReportGenerator = testReportGenerator;
         this.executionResultsListener = executionResultsListener;
         this.closeThrowsOnTestFailures = closeThrowsOnTestFailures;
+        this.addToAggregateReports = addToAggregateReports;
     }
 
     @Override
@@ -98,7 +101,9 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
         // Notify aggregate listener of final results
         boolean hasTestFailures = failureMessage != null;
-        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasTestFailures);
+        if (addToAggregateReports) {
+            executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasTestFailures);
+        }
 
         // Throw an exception with rendered test results, if necessary
         if (hasTestFailures && closeThrowsOnTestFailures) {

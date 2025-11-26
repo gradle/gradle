@@ -81,8 +81,8 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         return tryRunConfiguration(buildController::configureProjects);
     }
 
-    protected Try<ToolingModelScope> doLocate(ProjectState target, String modelName, boolean param, Try<Void> buildConfiguration) {
-        return buildConfiguration.map(__ -> new ProjectToolingScope(target, modelName, param));
+    protected Try<ToolingModelScope> doLocate(ProjectState targetProject, String modelName, boolean param, Try<Void> buildConfiguration) {
+        return buildConfiguration.map(__ -> new ProjectToolingScope(targetProject, modelName, param));
     }
 
     protected static Try<Void> tryRunConfiguration(Runnable configuration) {
@@ -130,16 +130,16 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
     }
 
     protected static class ProjectToolingScope extends AbstractToolingScope {
-        protected final ProjectState target;
+        protected final ProjectState targetProject;
         protected final String modelName;
         protected final boolean parameter;
 
         public ProjectToolingScope(
-            ProjectState target,
+            ProjectState targetProject,
             String modelName,
             boolean parameter
         ) {
-            this.target = target;
+            this.targetProject = targetProject;
             this.modelName = modelName;
             this.parameter = parameter;
         }
@@ -147,15 +147,15 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         @Nullable
         @Override
         public ProjectState getTarget() {
-            return target;
+            return targetProject;
         }
 
         @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             // Force configuration of the target project to ensure all builders have been registered
-            target.ensureConfigured();
-            ToolingModelBuilderLookup lookup = target.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
-            return lookup.locateForClientOperation(modelName, parameter, target, target.getMutableModel());
+            targetProject.ensureConfigured();
+            ToolingModelBuilderLookup lookup = targetProject.getMutableModel().getServices().get(ToolingModelBuilderLookup.class);
+            return lookup.locateForClientOperation(modelName, parameter, targetProject, targetProject.getMutableModel());
         }
     }
 }

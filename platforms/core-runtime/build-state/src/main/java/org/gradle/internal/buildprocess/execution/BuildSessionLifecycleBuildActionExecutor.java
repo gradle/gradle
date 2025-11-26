@@ -18,10 +18,13 @@ package org.gradle.internal.buildprocess.execution;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.CrossBuildSessionParameters;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.session.BuildSessionState;
@@ -33,6 +36,7 @@ import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
+import java.io.File;
 import java.util.function.Function;
 
 /**
@@ -55,9 +59,10 @@ public class BuildSessionLifecycleBuildActionExecutor implements BuildActionExec
             startParameter.setContinuous(false);
         }
 
+        File userActionRoot = getUserActionRootDirectory(startParameter);
         ActionImpl actionWrapper = new ActionImpl(action, requestContext);
         try {
-            try (CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter)) {
+            try (CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter, userActionRoot)) {
                 try (BuildSessionState buildSessionState = new BuildSessionState(userHomeServiceRegistry, crossBuildSessionState, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
                     return buildSessionState.run(actionWrapper);
                 }
@@ -75,6 +80,15 @@ public class BuildSessionLifecycleBuildActionExecutor implements BuildActionExec
                 throw UncheckedException.throwAsUncheckedException(actionWrapper.result.addFailure(t).getBuildFailure());
             }
         }
+    }
+
+    /**
+     * @see CrossBuildSessionParameters#getUserActionRootDirectory()
+     */
+    private File getUserActionRootDirectory(StartParameterInternal startParameter) {
+        BuildLayoutFactory buildLayoutFactory = globalServices.get(BuildLayoutFactory.class);
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
+        return layout.getRootDirectory().getAbsoluteFile();
     }
 
     private static class ActionImpl implements Function<BuildSessionContext, BuildActionResult> {

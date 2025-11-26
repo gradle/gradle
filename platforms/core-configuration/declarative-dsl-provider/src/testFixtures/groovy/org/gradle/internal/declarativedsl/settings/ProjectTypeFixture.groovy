@@ -21,10 +21,9 @@ import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.ProjectTypeBindingRegistration
+import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType // codenarc-disable-line UnusedImport
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -239,8 +238,7 @@ trait ProjectTypeFixture {
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.tasks.Nested;
-                import ${SoftwareType.class.name};
-                import ${ProjectTypeBindingRegistration.class.name};
+                import ${ProjectTypeBinding.class.name};
                 import ${BindsProjectType.class.name};
                 import ${ProjectTypeBindingBuilder.class.name};
                 import javax.inject.Inject;
@@ -248,8 +246,8 @@ trait ProjectTypeFixture {
                 @${BindsProjectType.class.simpleName}(${projectTypePluginClassName}.Binding.class)
                 abstract public class ${projectTypePluginClassName} implements Plugin<Project> {
 
-                    static class Binding implements ProjectTypeBindingRegistration {
-                        public void register(ProjectTypeBindingBuilder builder) {
+                    static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                        public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                             builder.bindProjectType("${name}", ${dslTypeClassName}.class, ${dslTypeClassName}.ModelType.class, (context, definition, model) -> {
                                 System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
                                 ${conventions == null ? "" : conventions}
@@ -304,8 +302,8 @@ trait ProjectTypeFixture {
 
             @${BindsProjectType.class.simpleName}(${projectTypePluginClassName}.Binding.class)
             abstract public class ${projectTypePluginClassName} implements Plugin<Project> {
-                static class Binding implements ${ProjectTypeBindingRegistration.class.name} {
-                    public void register(${ProjectTypeBindingBuilder.class.name} builder) {
+                static class Binding implements ${ProjectTypeBinding.class.name} {
+                    public void bind(${ProjectTypeBindingBuilder.class.name} builder) {
                         builder.bindProjectType("testProjectType", ${definitionImplementationTypeClassName}.class, (context, definition, model) -> {
                             System.out.println("Binding " + ${definitionImplementationTypeClassName}.class.getSimpleName());
                             definition.getId().convention("<no id>");

@@ -29,7 +29,6 @@ import org.gradle.api.internal.plugins.BindsProjectFeature;
 import org.gradle.api.internal.plugins.BindsProjectType;
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures;
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
-import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -132,8 +131,7 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
         OutputDirectory.class,
         OutputFile.class,
         OutputFiles.class,
-        ServiceReference.class,
-        SoftwareType.class
+        ServiceReference.class
     );
 
     public static final ImmutableSet<Class<? extends Annotation>> FUNCTION_TYPE_ANNOTATIONS = ImmutableSet.of(

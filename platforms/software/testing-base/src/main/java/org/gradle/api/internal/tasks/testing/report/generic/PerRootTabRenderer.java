@@ -18,11 +18,12 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.net.MediaType;
 import org.apache.commons.lang3.stream.Streams;
-import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -31,25 +32,30 @@ import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.time.TimeFormatting;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabsRenderer;
-import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
 
 public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
+    private final static DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z").withZone(ZoneId.systemDefault());
+
     protected final int rootIndex;
     // Should be private unlike rootIndex, as subclass access should use the passed-in `info` parameter
     private final int perRootInfoIndex;
@@ -64,7 +70,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     @Override
     public void render(TestTreeModel model, SimpleHtmlWriter htmlWriter) throws IOException {
         this.currentModel = model;
-        TestTreeModel.PerRootInfo info = model.getPerRootInfo().get(rootIndex).get(perRootInfoIndex);
+        PerRootInfo info = model.getPerRootInfo().get(rootIndex).get(perRootInfoIndex);
         render(info, htmlWriter);
     }
 
@@ -75,7 +81,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         return currentModel;
     }
 
-    protected abstract void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException;
+    protected abstract void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException;
+
+    private static String formatLogTime(Instant logTime) {
+        return FORMATTER.format(logTime.atOffset(ZoneOffset.UTC));
+    }
 
     public static final class ForSummary extends PerRootTabRenderer {
         public ForSummary(int rootIndex, int perRootInfoIndex) {
@@ -83,9 +93,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         @Override
-        protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+        protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div");
-            renderSummary(info, htmlWriter, info.getResult());
+            renderSummary(info, htmlWriter);
             if (info.getChildren().isEmpty()) {
                 renderLeafDetails(info, htmlWriter);
             } else {
@@ -111,10 +121,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private List<Pair<String, ChildTableRenderer>> getChildTableRenderers() {
-            List<Pair<Path, TestTreeModel.PerRootInfo>> children = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
+            List<ChildEntry> children = Streams.of(getCurrentModel().getChildrenOf(rootIndex))
                 .flatMap(t ->
                     t.getPerRootInfo().get(rootIndex).stream()
-                        .map(p -> Pair.of(t.getPath(), p))
+                        .map(p -> new ChildEntry(t, p))
                 )
                 .collect(Collectors.toList());
             ImmutableList.Builder<Pair<String, ChildTableRenderer>> childTableRenderers = ImmutableList.builder();
@@ -127,30 +137,34 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         private static void addResultTabIfNeeded(
             String name,
             TestResult.ResultType resultType,
-            List<Pair<Path, TestTreeModel.PerRootInfo>> children,
+            List<ChildEntry> children,
             ImmutableList.Builder<Pair<String, ChildTableRenderer>> childListRenderers
         ) {
-            List<Pair<Path, TestTreeModel.PerRootInfo>> matchedChildren = children.stream()
-                .filter(p -> p.right.getResult().getResultType() == resultType)
+            List<ChildEntry> matchedChildren = children.stream()
+                .filter(e ->
+                    e.perRootInfo.getResults().stream().anyMatch(
+                        it -> it.getResultType() == resultType
+                    )
+                )
                 .collect(Collectors.toList());
             if (!matchedChildren.isEmpty()) {
                 childListRenderers.add(Pair.of(name, new ChildTableRenderer(matchedChildren)));
             }
         }
 
-        private static void renderSummary(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter, SerializableTestResult testResult) throws IOException {
+        private static void renderSummary(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div").attribute("class", "summary");
             htmlWriter.startElement("table");
             htmlWriter.startElement("tr");
 
             htmlWriter.startElement("td");
 
-            renderSummaryGroup(info, htmlWriter, testResult);
+            renderSummaryGroup(info, htmlWriter);
 
             htmlWriter.endElement();
 
             htmlWriter.startElement("td");
-            htmlWriter.startElement("div").attribute("class", "infoBox " + getStatusClass(testResult.getResultType()) + " successRate");
+            htmlWriter.startElement("div").attribute("class", "infoBox " + getStatusClass(getResultType(info)) + " successRate");
             htmlWriter.startElement("div").attribute("class", "percent").characters(getFormattedSuccessRate(info)).endElement();
             htmlWriter.startElement("p").characters("successful").endElement();
             htmlWriter.endElement();
@@ -161,7 +175,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.endElement();
         }
 
-        private static void renderSummaryGroup(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter, SerializableTestResult testResult) throws IOException {
+        private static void renderSummaryGroup(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div").attribute("class", "summaryGroup");
             htmlWriter.startElement("table");
             htmlWriter.startElement("tr");
@@ -189,7 +203,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
             htmlWriter.startElement("td");
             htmlWriter.startElement("div").attribute("class", "infoBox duration");
-            htmlWriter.startElement("div").attribute("class", "counter").characters(getFormattedDuration(testResult)).endElement();
+            htmlWriter.startElement("div").attribute("class", "counter").characters(getFormattedDuration(info)).endElement();
             htmlWriter.startElement("p").characters("duration").endElement();
             htmlWriter.endElement();
             htmlWriter.endElement();
@@ -199,33 +213,40 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.endElement();
         }
 
-        private static String getFormattedDuration(SerializableTestResult testResult) {
-            return TimeFormatting.formatDurationVeryTerse(testResult.getDuration());
+        private static String getFormattedDuration(PerRootInfo info) {
+            return info.getResults().stream()
+                .map(r -> TimeFormatting.formatDurationVeryTerse(r.getDuration()))
+                .collect(Collectors.joining(" / "));
         }
 
-        private void renderLeafDetails(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            boolean isSuccess = info.getResult().getResultType() == TestResult.ResultType.SUCCESS;
-            boolean hasFailures = !info.getResult().getFailures().isEmpty();
-            boolean hasAssumptionFailure =  info.getResult().getAssumptionFailure() != null;
+        private void renderLeafDetails(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            if (info.getResults().size() > 1) {
+                throw new IllegalStateException("Leaf nodes should only have one result");
+            }
+            SerializableTestResult result = info.getResults().get(0);
+
+            boolean isSuccess = result.getResultType() == TestResult.ResultType.SUCCESS;
+            boolean hasFailures = !result.getFailures().isEmpty();
+            boolean hasAssumptionFailure =  result.getAssumptionFailure() != null;
 
             if (!isSuccess && (hasFailures || hasAssumptionFailure)) {
                 htmlWriter.startElement("div").attribute("class", "result-details");
 
                 htmlWriter.startElement("h3").characters(
-                    info.getResult().getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
+                    result.getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
                 ).endElement();
 
-                String failureOutputId = "root-" + rootIndex + "-test-failure-" + info.getResult().getName();
+                String failureOutputId = "root-" + rootIndex + "-test-failure-" + result.getName();
                 htmlWriter.startElement("span").attribute("class", "code");
 
                 htmlWriter.startElement("pre").attribute("id", failureOutputId);
                 if (hasFailures) {
-                    for (SerializableFailure failure : info.getResult().getFailures()) {
+                    for (SerializableFailure failure : result.getFailures()) {
                         renderFailure(failure, htmlWriter);
                     }
                 }
                 if (hasAssumptionFailure) {
-                    renderFailure(info.getResult().getAssumptionFailure(), htmlWriter);
+                    renderFailure(result.getAssumptionFailure(), htmlWriter);
                 }
                 htmlWriter.endElement(); // pre
 
@@ -250,10 +271,22 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             }
         }
 
-        private static final class ChildTableRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
-            private final List<Pair<Path, TestTreeModel.PerRootInfo>> children;
+        private static final class ChildEntry {
+            private final TestTreeModel model;
+            private final PerRootInfo perRootInfo;
 
-            public ChildTableRenderer(List<Pair<Path, TestTreeModel.PerRootInfo>> children) {
+            private ChildEntry(TestTreeModel model, PerRootInfo perRootInfo) {
+                this.model = model;
+                this.perRootInfo = perRootInfo;
+            }
+        }
+
+        private static final class ChildTableRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
+            private static final Comparator<ChildEntry> CHILD_PATH_COMPARATOR = Comparator.comparing(e -> e.model.getPath());
+
+            private final List<ChildEntry> children;
+
+            public ChildTableRenderer(List<ChildEntry> children) {
                 this.children = children;
             }
 
@@ -266,8 +299,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 boolean anyNameAndDisplayNameDiffer = Iterables.any(
                     children,
                     child -> {
-                        SerializableTestResult childResult = child.right.getResult();
-                        return !childResult.getName().equals(childResult.getDisplayName());
+                        List<SerializableTestResult> results = child.perRootInfo.getResults();
+                        // If the name is present at the front, even if we have multiple display names we
+                        // don't need the name column
+                        return !results.get(0).getName().equals(results.get(0).getDisplayName());
                     }
                 );
 
@@ -284,35 +319,66 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 htmlWriter.endElement();
                 htmlWriter.endElement();
 
-                List<Pair<Path, TestTreeModel.PerRootInfo>> sortedByName = new ArrayList<>(children);
-                sortedByName.sort(Comparator.comparing(Pair::left));
+                List<ChildEntry> sortedByName = new ArrayList<>(children);
+                sortedByName.sort(CHILD_PATH_COMPARATOR);
 
-                for (Pair<Path, TestTreeModel.PerRootInfo> pair : sortedByName) {
-                    TestTreeModel.PerRootInfo perRootInfo = pair.right;
-                    SerializableTestResult result = perRootInfo.getResult();
-                    String statusClass = getStatusClass(result.getResultType());
+                for (ChildEntry pair : sortedByName) {
+                    PerRootInfo perRootInfo = pair.perRootInfo;
+                    String statusClass = getStatusClass(getResultType(perRootInfo));
                     htmlWriter.startElement("tr");
 
                     htmlWriter.startElement("td").attribute("class", statusClass);
+
+                    String displayName = SerializableTestResult.getCombinedDisplayName(perRootInfo.getResults());
                     htmlWriter.startElement("a")
-                        .attribute("href", GenericPageRenderer.getUrlTo(model.getPath(), pair.left))
-                        .characters(result.getDisplayName()).endElement();
+                        .attribute("href", GenericPageRenderer.getUrlTo(
+                            model.getPath(), false,
+                            pair.model.getPath(), pair.model.getChildren().isEmpty()
+                        ))
+                        .characters(displayName).endElement();
                     htmlWriter.endElement();
 
                     if (anyNameAndDisplayNameDiffer) {
-                        htmlWriter.startElement("td").characters(result.getName()).endElement();
+                        htmlWriter.startElement("td").characters(perRootInfo.getResults().get(0).getName()).endElement();
                     }
 
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getSkippedLeafCount())).endElement();
-                    htmlWriter.startElement("td").characters(getFormattedDuration(result)).endElement();
+                    htmlWriter.startElement("td").characters(getFormattedDuration(perRootInfo)).endElement();
                     htmlWriter.startElement("td").attribute("class", statusClass).characters(getFormattedSuccessRate(perRootInfo)).endElement();
 
                     htmlWriter.endElement();
                 }
                 htmlWriter.endElement();
             }
+        }
+
+        private static TestResult.ResultType getResultType(PerRootInfo info) {
+            if (info.getChildren().isEmpty()) {
+                // There should only be one result for leaf nodes
+                if (info.getResults().size() > 1) {
+                    throw new IllegalStateException("Leaf nodes should only have one result");
+                }
+                return info.getResults().get(0).getResultType();
+            }
+            // For container nodes, merge result types, with FAILURE > SUCCESS > SKIPPED.
+            // Skipped is less than success because if there is any non-skipped child, the container is not skipped.
+            TestResult.ResultType bestType = TestResult.ResultType.SKIPPED;
+            for (SerializableTestResult result : info.getResults()) {
+                if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                    // Promote to failure and stop checking, as we can't change any further
+                    bestType = TestResult.ResultType.FAILURE;
+                    break;
+                } else if (result.getResultType() == TestResult.ResultType.SUCCESS) {
+                    // Promote to success, keep checking in case there is a failure
+                    bestType = TestResult.ResultType.SUCCESS;
+                } else if (result.getResultType() != TestResult.ResultType.SKIPPED) {
+                    throw new IllegalStateException("Unknown result type: " + result.getResultType());
+                }
+                // If it's skipped, do nothing, as we either leave as skipped, or would not change from success to skipped
+            }
+            return bestType;
         }
 
         private static String getStatusClass(TestResult.ResultType resultType) {
@@ -328,7 +394,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             }
         }
 
-        private static String getFormattedSuccessRate(TestTreeModel.PerRootInfo info) {
+        private static String getFormattedSuccessRate(PerRootInfo info) {
             if (info.getTotalLeafCount() == 0) {
                 return "-";
             }
@@ -351,13 +417,13 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         @Override
-        protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            String outputId = "root-" + rootIndex + "-test-" + destination.name().toLowerCase(Locale.ROOT) + "-" + info.getResult().getName();
+        protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            String outputId = "root-" + rootIndex + "-test-" + destination.name().toLowerCase(Locale.ROOT) + "-" + info.getResults().get(0).getName();
             htmlWriter.startElement("span").attribute("class", "code")
                 .startElement("pre")
                 .attribute("id", outputId);
             outputReader.useTestOutputEvents(
-                info.getOutputEntry(), destination,
+                info.getOutputEntries(), destination,
                 event -> htmlWriter.characters(event.getMessage())
             );
             htmlWriter.endElement();
@@ -366,123 +432,156 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
     }
 
-    @SuppressWarnings({"MethodMayBeStatic", "UnusedReturnValue"})
-    public static final class ForMetadata extends PerRootTabRenderer {
-        private final MetadataRendererRegistry metadataRendererRegistry;
-
-        public ForMetadata(int rootIndex, int perRootInfoIndex, MetadataRendererRegistry metadataRendererRegistry) {
+    public static final class ForKeyValues extends PerRootTabRenderer {
+        public ForKeyValues(int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
-            this.metadataRendererRegistry = metadataRendererRegistry;
         }
 
         @Override
-        protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+        protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div").attribute("class", "metadata");
-                renderMetadataTable(info, htmlWriter);
+            List<DefaultTestKeyValueDataEvent> keyValues = ImmutableList.copyOf(Iterables.filter(info.getMetadatas(), DefaultTestKeyValueDataEvent.class));
+            renderKeyValueTable(keyValues, htmlWriter);
             htmlWriter.endElement();
         }
 
-        private void renderMetadataTable(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueTable(List<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("table");
-                renderMetadataTableHeader(htmlWriter);
-                renderMetadataTableBody(info.getMetadatas(), htmlWriter);
+                renderKeyValueHeader(htmlWriter);
+                renderKeyValueValues(metadatas, htmlWriter);
             htmlWriter.endElement();
         }
 
-        private SimpleHtmlWriter renderMetadataTableHeader(SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueHeader(SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("thead")
                 .startElement("tr")
                     .startElement("th")
                         .characters("Time")
                     .endElement()
                     .startElement("th")
-                        .characters("Key(s)")
+                        .characters("Key")
                     .endElement()
                     .startElement("th")
-                        .characters("Value(s)")
+                        .characters("Value")
                     .endElement()
                 .endElement()
             .endElement();
-
-            return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataTableBody(List<SerializedMetadata> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderKeyValueValues(Iterable<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
-            for (int metadataIdx = 0; metadataIdx < metadatas.size(); metadataIdx++) {
-                SerializedMetadata metadata = metadatas.get(metadataIdx);
-                renderFirstMetadataElement(metadata, metadataIdx, htmlWriter);
-                if (metadata.getEntries().size() > 1) {
-                    List<SerializedMetadata.SerializedMetadataElement> additionalEntries = metadata.getEntries().subList(1, metadata.getEntries().size());
-                    renderAdditionalMetadataElements(additionalEntries, metadataIdx, htmlWriter);
+            Iterator<DefaultTestKeyValueDataEvent> metadataIterator = metadatas.iterator();
+            for (int metadataIdx = 0; metadataIterator.hasNext(); metadataIdx++) {
+                DefaultTestKeyValueDataEvent metadata = metadataIterator.next();
+                Map<String, String> elements = metadata.getValues();
+
+                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                htmlWriter.startElement("td").attribute("rowspan", Integer.toString(metadata.getValues().size() + 1))
+                    .startElement("span").attribute("class", "time")
+                        .characters(formatLogTime(metadata.getLogTime()))
+                    .endElement()
+                .endElement();
+                htmlWriter.endElement();
+
+                for (Map.Entry<String, String> element : elements.entrySet()) {
+                    htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                    htmlWriter
+                        .startElement("td").attribute("class", "key")
+                        .characters(element.getKey())
+                        .endElement()
+                        .startElement("td").attribute("class", "value")
+                        .characters(element.getValue())
+                        .endElement();
+                    htmlWriter.endElement();
                 }
             }
             htmlWriter.endElement();
+        }
+    }
 
-            return htmlWriter;
+
+    public static final class ForFileAttachments extends PerRootTabRenderer {
+        public ForFileAttachments(int rootIndex, int perRootInfoIndex) {
+            super(rootIndex, perRootInfoIndex);
         }
 
-        private SimpleHtmlWriter renderFirstMetadataElement(SerializedMetadata metadata, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
-                renderMetadataTimeCell(metadata, htmlWriter);
-                renderMetadataKeyValueCells(metadata.getEntries().get(0), htmlWriter)
+        @Override
+        protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("div").attribute("class", "attachments");
+            List<DefaultTestFileAttachmentDataEvent> keyValues = ImmutableList.copyOf(Iterables.filter(info.getMetadatas(), DefaultTestFileAttachmentDataEvent.class));
+            renderFileAttachments(keyValues, htmlWriter);
+            htmlWriter.endElement();
+        }
+
+        private static void renderFileAttachments(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("table");
+            renderFileAttachmentHeader(htmlWriter);
+            renderFileAttachmentValues(metadatas, htmlWriter);
+            htmlWriter.endElement();
+        }
+
+        private static void renderFileAttachmentHeader(SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("thead")
+                .startElement("tr")
+                    .startElement("th")
+                        .characters("Name")
+                    .endElement()
+                    .startElement("th")
+                        .characters("Content")
+                    .endElement()
+                .endElement()
             .endElement();
-
-            return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderAdditionalMetadataElements(List<SerializedMetadata.SerializedMetadataElement> elements, int metadataIdx, SimpleHtmlWriter htmlWriter) throws IOException {
-            for (SerializedMetadata.SerializedMetadataElement element : elements) {
-                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 1 ? "even" : "odd");
-                    renderMetadataKeyValueCells(element, htmlWriter);
+        private static void renderFileAttachmentValues(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("tbody");
+            for (int metadataIdx = 0; metadataIdx < metadatas.size(); metadataIdx++) {
+                DefaultTestFileAttachmentDataEvent metadata = metadatas.get(metadataIdx);
+                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                htmlWriter.startElement("td").attribute("class", "key").characters(metadata.getPath().getFileName().toString()).endElement();
+
+                htmlWriter.startElement("td").attribute("class", "value");
+                String possibleMediaType = metadata.getMediaType();
+                if (possibleMediaType == null) {
+                    // Might be a directory, just render this as a link
+                    renderLink(htmlWriter, metadata.getPath());
+                } else {
+                    MediaType mediaType = MediaType.parse(possibleMediaType);
+                    if (mediaType.is(MediaType.ANY_IMAGE_TYPE)) {
+                        // render as image
+                        renderImage(htmlWriter, metadata.getPath());
+                    } else if (mediaType.is(MediaType.ANY_VIDEO_TYPE)) {
+                        // render as video
+                        renderVideo(htmlWriter, metadata.getPath());
+                    } else {
+                        // render as a link
+                        renderLink(htmlWriter, metadata.getPath(), mediaType);
+                    }
+                }
+                htmlWriter.endElement();
+
                 htmlWriter.endElement();
             }
-
-            return htmlWriter;
+            htmlWriter.endElement();
         }
 
-        private SimpleHtmlWriter renderMetadataTimeCell(SerializedMetadata metadata, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("td").attribute("rowspan", Integer.toString(metadata.getEntries().size()))
-                .startElement("span").attribute("class", "time")
-                    .characters(formatLogTime(metadata.getLogTime()))
-                .endElement()
+        private static void renderLink(SimpleHtmlWriter htmlWriter, Path path, MediaType mediaType) throws IOException {
+            htmlWriter.startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters(path.getFileName().toString() + " (" + mediaType + ")").endElement();
+        }
+
+        private static void renderLink(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
+            htmlWriter.startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters(path.getFileName().toString()).endElement();
+        }
+
+        private static void renderImage(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
+            htmlWriter.startElement("img").attribute("src", htmlWriter.relativeLink(path)).attribute("alt", path.getFileName().toString()).endElement();
+        }
+        private static void renderVideo(SimpleHtmlWriter htmlWriter, Path path) throws IOException {
+            htmlWriter.startElement("video")
+                .attribute("src", htmlWriter.relativeLink(path)).attribute("controls", "")
+                // If the browser doesn't support this video format, fallback to a link
+                .startElement("a").attribute("href", htmlWriter.relativeLink(path)).characters("Download video").endElement()
             .endElement();
-
-            return htmlWriter;
-        }
-
-        private SimpleHtmlWriter renderMetadataKeyValueCells(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter
-                .startElement("td").attribute("class", "key")
-                    .characters(element.getKey())
-                .endElement()
-                .startElement("td").attribute("class", "value");
-                    renderMetadataValue(element, htmlWriter)
-                .endElement();
-
-            return htmlWriter;
-        }
-
-        private SimpleHtmlWriter renderMetadataValue(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
-            MetadataRenderer renderer = metadataRendererRegistry.getRenderer(element.getValueType());
-
-            try {
-                return renderer.render(element.getValue(), htmlWriter);
-            } catch (Exception e) {
-                return (SimpleHtmlWriter) htmlWriter
-                    .startElement("span").attribute("class", "unrenderable")
-                        .characters("[error rendering value]")
-                    .endElement();
-            }
-        }
-
-        private String formatLogTime(long logTime) {
-            Instant instant = Instant.ofEpochMilli(logTime);
-
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS z")
-                .withZone(ZoneId.systemDefault());
-
-            return formatter.format(instant);
         }
     }
 }

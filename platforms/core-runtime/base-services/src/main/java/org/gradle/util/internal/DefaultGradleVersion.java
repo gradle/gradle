@@ -35,7 +35,7 @@ import static java.lang.String.format;
 import static org.gradle.internal.IoActions.uncheckedClose;
 
 public final class DefaultGradleVersion extends GradleVersion {
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
+    public static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
     private static final int STAGE_UNKNOWN = 1;
     private static final int STAGE_PREVIEW = 2;

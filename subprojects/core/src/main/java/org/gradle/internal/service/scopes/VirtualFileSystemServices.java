@@ -117,7 +117,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
     public static final InternalFlag VFS_DROP_PROPERTY = new InternalFlag("org.gradle.internal.vfs.drop");
     private static final int DEFAULT_MAX_HIERARCHIES_TO_WATCH = 50;
     public static final IntegerInternalOption MAX_HIERARCHIES_TO_WATCH_PROPERTY = new IntegerInternalOption("org.gradle.internal.vfs.watch.hierarchies.max", DEFAULT_MAX_HIERARCHIES_TO_WATCH);
-    private static final int FILE_HASHER_MEMORY_CACHE_SIZE = 400000;
+    private static final int FILE_HASHER_MEMORY_CACHE_SIZE = 300000;
 
     public static boolean isDropVfs(InternalOptions options) {
         return options.getOption(VFS_DROP_PROPERTY).get();

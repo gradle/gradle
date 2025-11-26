@@ -38,6 +38,15 @@ public class ResourceBasedSelectorResolver implements SelectorResolver {
     public static final Logger LOGGER = LoggerFactory.getLogger(ResourceBasedSelectorResolver.class);
 
     private final DirectoryScanner directoryScanner = new DirectoryScanner();
+    private final boolean dynamic;
+
+    public ResourceBasedSelectorResolver() {
+        this(false);
+    }
+
+    public ResourceBasedSelectorResolver(boolean dynamic) {
+        this.dynamic = dynamic;
+    }
 
     @Override
     public Resolution resolve(DirectorySelector selector, Context context) {
@@ -66,7 +75,7 @@ public class ResourceBasedSelectorResolver implements SelectorResolver {
             LOGGER.info(() -> "Test specification file: " + file.getAbsolutePath());
 
             Set<Match> tests = directoryScanner.getTestFileParser().parseTestNames(file).stream()
-                    .map(testName -> context.addToParent(parent -> Optional.of(new ResourceBasedTestDescriptor(parent.getUniqueId(), file, testName))))
+                    .map(testName -> context.addToParent(parent -> Optional.of(new ResourceBasedTestDescriptor(parent.getUniqueId(), file, testName, dynamic))))
                     .map(Optional::get)
                     .map(Match::exact)
                     .collect(Collectors.toSet());
