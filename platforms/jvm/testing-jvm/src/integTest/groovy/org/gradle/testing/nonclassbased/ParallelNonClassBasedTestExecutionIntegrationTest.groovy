@@ -27,8 +27,8 @@ import org.junit.Rule
  * This test uses a {@link BlockingHttpServer} to coordinate and verify parallel execution of tests.
  * See {@link ParallelTestExecutionIntegrationTest} for the basis of this approach.
  */
-@IntegrationTestTimeout(240)
-class NonClassBasedParallelTestExecutionIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
+@IntegrationTestTimeout(300)
+class ParallelNonClassBasedTestExecutionIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Rule
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 

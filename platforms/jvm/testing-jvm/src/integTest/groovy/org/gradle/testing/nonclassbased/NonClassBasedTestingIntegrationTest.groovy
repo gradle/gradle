@@ -366,12 +366,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         writeTestDefinitions()
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
-        outputContains("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+        resultsFor().assertTestPathsExecuted(":SomeOtherTestSpec.rbt - other")
 
         where:
         leadingSlash << [true, false]
@@ -414,15 +412,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=AdditionalDefs.rbt, name=foo2]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=OtherTests.rbt, name=foo3]")
-
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
-        outputContains("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
 
         where:
         filterPattern << ["src/test/definitions/AdditionalDir/.*|src/test/definitions/subdir1/AdditionalDir/.*", ".*/AdditionalDir/.*"]
@@ -455,12 +448,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         writeTestDefinitions()
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar")
 
         where:
         leadingSlash << [true, false]
@@ -498,13 +489,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=subfoo]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
+        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - subfoo")
 
         where:
         filterPattern << [".*/subdir1/SomeTestSpec.*", ".*/SomeTestSpec.*", ".*/SomeTestSpec.rbt", "/src/test/definitions/subdir1/SomeTestSpec.rbt"]
@@ -543,13 +531,10 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
-        outputDoesNotContain("INFO: Executing resource-based test: Test[file=SomeTestSpecThatShouldntRun.rbt, name=dontrun]")
+        resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar")
     }
 
     def "when running class-based and non-class-based tests, filters with slashes only apply to non-class-based tests"() {
