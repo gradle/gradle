@@ -24,6 +24,7 @@ import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
@@ -45,7 +46,6 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
-import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -125,14 +125,24 @@ class DefaultBuildController implements
         BuildTreeModelTarget scopedTarget = resolveTarget(target);
         try {
             Object model = controller.getModel(scopedTarget, modelRequestContext);
-            if (model instanceof ToolingModelBuilderResultInternal) {
-                return (ToolingModelBuilderResultInternal) model;
-            } else {
-                return ToolingModelBuilderResultInternal.of(model);
-            }
+            return getToolingModelBuilderResultInternal(modelRequestContext, model);
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
+    }
+
+    static ToolingModelBuilderResultInternal getToolingModelBuilderResultInternal(ToolingModelRequestContext modelRequestContext, @Nullable Object model) {
+        if (!(model instanceof ToolingModelBuilderResultInternal)) {
+            return ToolingModelBuilderResultInternal.of(model);
+        }
+        ToolingModelBuilderResultInternal resultInternal = (ToolingModelBuilderResultInternal) model;
+        if (modelRequestContext.inResilientContext()) {
+            return resultInternal;
+        }
+        if (resultInternal.getFailures().isEmpty()) {
+            return resultInternal;
+        }
+        throw resultInternal.throwOriginal();
     }
 
     private static BuildTreeModelTarget resolveTarget(@Nullable Object target) {
