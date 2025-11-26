@@ -16,15 +16,20 @@
 
 package org.gradle.plugin.software.internal
 
-import com.google.common.reflect.TypeToken
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectFeatureApplyAction
+import org.gradle.api.internal.plugins.ProjectFeatureBinding
+import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal
+import org.gradle.api.internal.plugins.ProjectTypeApplyAction
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.tasks.properties.InspectionScheme
-import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.Instantiator
@@ -37,13 +42,14 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
     def instantiator = Mock(Instantiator)
     def declarations = new DefaultProjectFeatureDeclarations(inspectionScheme, instantiator)
     def pluginId = "com.example.test"
+    def bindsProjectTypeAnnotation = Mock(BindsProjectType)
+    def bindsProjectFeatureAnnotation = Mock(BindsProjectFeature)
+    def featureBinding = Mock(ProjectFeatureBinding)
+    def typeBinding = Mock(ProjectTypeBinding)
 
-    def "can declare and retrieve a project type (public type = #modelPublicType.simpleName)"() {
+    def "can declare and retrieve a project feature (implementation type = #definitionImplementationType?.simpleName)"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
-        def modelTypeMetadata = Mock(TypeMetadata)
         def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-        def propertyMetadata = Mock(PropertyMetadata)
-        def softwareType = Mock(SoftwareType)
 
         when:
         declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
@@ -52,30 +58,64 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         def implementations = declarations.projectFeatureImplementations.values()
 
         then:
-        2 * inspectionScheme.getMetadataStore() >> metadataStore
-        2 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
+        1 * inspectionScheme.getMetadataStore() >> metadataStore
+        1 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
         1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
-        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
+        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
         1 * typeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
-        1 * pluginTypeMetadata.getPropertiesMetadata() >> [propertyMetadata]
-        1 * propertyMetadata.getPropertyType() >> SoftwareType.class
-        (1..2) * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
-        1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
-        _ * softwareType.name() >> "test"
-        (1..2) * softwareType.modelPublicType() >> modelPublicType
-        1 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
-        1 * modelTypeMetadata.getPropertiesMetadata() >> []
+        1 * bindsProjectFeatureAnnotation.value() >> Binding
+        1 * instantiator.newInstance(Binding) >> featureBinding
+        1 * featureBinding.bind(_) >> { args ->
+            def builder = args[0] as ProjectFeatureBindingBuilderInternal
+            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, Mock(ProjectFeatureApplyAction))
+                .withDefinitionImplementationType(definitionImplementationType)
+        }
 
         and:
         implementations.size() == 1
-        implementations[0].definitionPublicType == TestModel
+        implementations[0].definitionPublicType == TestDefinition
+        implementations[0].definitionImplementationType == definitionImplementationType ?: TestDefinition
         implementations[0].featureName == "test"
 
         where:
-        modelPublicType << [TestModel, Void]
+        definitionImplementationType << [TestDefinitionImpl, null]
     }
 
-    def "cannot declare a plugin that is not a project type"() {
+    def "can declare and retrieve a project type (implementation type = #definitionImplementationType?.simpleName)"() {
+        def pluginTypeMetadata = Mock(TypeMetadata)
+        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+
+        when:
+        declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
+
+        and:
+        def implementations = declarations.projectFeatureImplementations.values()
+
+        then:
+        1 * inspectionScheme.getMetadataStore() >> metadataStore
+        1 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
+        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
+        1 * typeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.of(bindsProjectTypeAnnotation)
+        1 * bindsProjectTypeAnnotation.value() >> Binding
+        1 * instantiator.newInstance(Binding) >> typeBinding
+        1 * typeBinding.bind(_) >> { args ->
+            def builder = args[0] as ProjectTypeBindingBuilder
+            builder.bindProjectType("test", TestDefinition, Mock(ProjectTypeApplyAction))
+                .withDefinitionImplementationType(definitionImplementationType)
+        }
+
+        and:
+        implementations.size() == 1
+        implementations[0].definitionPublicType == TestDefinition
+        implementations[0].definitionImplementationType == definitionImplementationType ?: TestDefinition
+        implementations[0].featureName == "test"
+
+        where:
+        definitionImplementationType << [TestDefinitionImpl, null]
+    }
+
+    def "cannot declare a plugin that does not bind a project feature"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
@@ -84,12 +124,11 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         def implementations = declarations.projectFeatureImplementations
 
         then:
-        2 * inspectionScheme.getMetadataStore() >> metadataStore
-        2 * metadataStore.getTypeMetadata(NotAProjectTypeImpl) >> pluginTypeMetadata
+        1 * inspectionScheme.getMetadataStore() >> metadataStore
+        1 * metadataStore.getTypeMetadata(NotAProjectTypeImpl) >> pluginTypeMetadata
         1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
         1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
         1 * typeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
-        1 * pluginTypeMetadata.getPropertiesMetadata() >> []
 
         and:
         implementations.isEmpty()
@@ -97,10 +136,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
 
     def "registering the same plugin twice does not add two implementations"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
-        def modelTypeMetadata = Mock(TypeMetadata)
-        def propertyMetadata = Mock(PropertyMetadata)
         def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-        def softwareType = Mock(SoftwareType)
 
         when:
         declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
@@ -108,19 +144,17 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         def implementations = declarations.projectFeatureImplementations
 
         then:
-        2 * inspectionScheme.getMetadataStore() >> metadataStore
-        2 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
+        1 * inspectionScheme.getMetadataStore() >> metadataStore
+        1 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
         1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
-        1 * pluginTypeMetadata.getPropertiesMetadata() >> [propertyMetadata]
-        1 * propertyMetadata.getPropertyType() >> SoftwareType.class
-        1 * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
-        1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
-        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
+        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
         1 * typeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
-        _ * softwareType.name() >> "test"
-        2 * softwareType.modelPublicType() >> TestModel
-        1 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
-        1 * modelTypeMetadata.getPropertiesMetadata() >> []
+        1 * bindsProjectFeatureAnnotation.value() >> Binding
+        1 * instantiator.newInstance(Binding) >> featureBinding
+        1 * featureBinding.bind(_) >> { args ->
+            def builder = args[0] as ProjectFeatureBindingBuilderInternal
+            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, Mock(ProjectFeatureApplyAction))
+        }
 
         and:
         implementations.size() == 1
@@ -129,10 +163,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
     def "cannot declare two plugins with the same project type"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def duplicateTypeMetadata = Mock(TypeMetadata)
-        def modelTypeMetadata = Mock(TypeMetadata)
-        def propertyMetadata = Mock(PropertyMetadata)
-        def duplicatePropertyMetadata = Mock(PropertyMetadata)
-        def softwareType = Mock(SoftwareType)
         def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
         def duplicateTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
@@ -142,34 +172,44 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         declarations.getProjectFeatureImplementations()
 
         then:
-        4 * inspectionScheme.getMetadataStore() >> metadataStore
-        2 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
-        2 * metadataStore.getTypeMetadata(DuplicateProjectTypeImpl) >> duplicateTypeMetadata
+        2 * inspectionScheme.getMetadataStore() >> metadataStore
+        1 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
+        1 * metadataStore.getTypeMetadata(DuplicateProjectTypeImpl) >> duplicateTypeMetadata
         1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
         1 * duplicateTypeMetadata.getTypeAnnotationMetadata() >> duplicateTypeAnnotationMetadata
-        1 * pluginTypeMetadata.getPropertiesMetadata() >> [propertyMetadata]
-        1 * duplicateTypeMetadata.getPropertiesMetadata() >> [duplicatePropertyMetadata]
-        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
+
+        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
         1 * typeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
-        1 * duplicateTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.empty()
+        1 * bindsProjectFeatureAnnotation.value() >> Binding
+        1 * instantiator.newInstance(Binding) >> featureBinding
+        1 * featureBinding.bind(_) >> { args ->
+            def builder = args[0] as ProjectFeatureBindingBuilderInternal
+            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentBuildModel, Mock(ProjectFeatureApplyAction))
+        }
+
+        1 * duplicateTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
         1 * duplicateTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
-        1 * propertyMetadata.getPropertyType() >> SoftwareType.class
-        1 * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
-        1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
-        1 * duplicatePropertyMetadata.getPropertyType() >> SoftwareType.class
-        1 * duplicatePropertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
-        1 * duplicatePropertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
-        _ * softwareType.name() >> "test"
-        2 * softwareType.modelPublicType() >> TestModel
-        2 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
-        1 * modelTypeMetadata.getPropertiesMetadata() >> []
+        1 * bindsProjectFeatureAnnotation.value() >> Binding
+        1 * instantiator.newInstance(Binding) >> featureBinding
+        1 * featureBinding.bind(_) >> { args ->
+            def builder = args[0] as ProjectFeatureBindingBuilderInternal
+            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentBuildModel, Mock(ProjectFeatureApplyAction))
+        }
 
         and:
         def e = thrown(IllegalArgumentException)
-        e.message == "Project type 'test' is registered by both '${this.class.name}\$DuplicateProjectTypeImpl' and '${this.class.name}\$ProjectTypeImpl'"
+        e.message == "Project feature 'test' is registered by both '${this.class.name}\$DuplicateProjectTypeImpl' and '${this.class.name}\$ProjectTypeImpl'"
     }
 
-    private static class TestModel { }
+    private interface ParentDefinition extends Definition<ParentBuildModel> { }
+
+    private interface ParentBuildModel extends BuildModel { }
+
+    private interface TestDefinition extends Definition<TestModel> { }
+
+    private interface TestDefinitionImpl extends TestDefinition {}
+
+    private interface TestModel extends BuildModel { }
 
     private abstract static class DeclaringPlugin implements Plugin<Settings> { }
 
@@ -178,4 +218,6 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
     private abstract static class NotAProjectTypeImpl implements Plugin<Project> { }
 
     private abstract static class DuplicateProjectTypeImpl implements Plugin<Project> { }
+
+    private abstract static class Binding implements ProjectFeatureBinding { }
 }

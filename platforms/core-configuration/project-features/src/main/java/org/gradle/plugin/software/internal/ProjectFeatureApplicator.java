@@ -17,6 +17,8 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -37,5 +39,5 @@ public interface ProjectFeatureApplicator {
      * @param <T> the type of the public model object for the feature
      * @since 8.12
      */
-    <T, V> T applyFeatureTo(DynamicObjectAware target, ProjectFeatureImplementation<T, V> projectFeature);
+    <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(DynamicObjectAware target, ProjectFeatureImplementation<T, V> projectFeature);
 }

@@ -19,6 +19,8 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.jspecify.annotations.Nullable;
@@ -30,9 +32,8 @@ import org.jspecify.annotations.Nullable;
  * definition and model type limitations.
  * Therefore, it can be used for project features with any definition and model types.
  *
- * TODO: Move the type constraints from {@link BoundProjectFeatureImplementation} to here once the migration from legacy project types is done.
  */
-public interface ProjectFeatureImplementation<T, V> {
+public interface ProjectFeatureImplementation<T extends Definition<V>, V extends BuildModel> {
     String getFeatureName();
 
     Class<T> getDefinitionPublicType();
