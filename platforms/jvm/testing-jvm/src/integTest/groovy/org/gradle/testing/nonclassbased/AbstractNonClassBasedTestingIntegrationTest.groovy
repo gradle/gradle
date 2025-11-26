@@ -29,14 +29,14 @@ abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractInteg
 
     @Override
     TestFramework getTestFramework() {
-        return TestFramework.JUNIT_JUPITER
+        return TestFramework.CUSTOM
     }
 
     protected void sourcesPresentAndNoTestsFound() {
         failureCauseContains("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
     }
 
-    protected void nonClassBasedTestsExecuted(boolean exactlyTheseTests = false) {
+    protected void nonClassBasedTestsExecuted(boolean exactlyTheseTests = true) {
         if (exactlyTheseTests) {
             resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
         } else {
@@ -44,7 +44,7 @@ abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractInteg
         }
     }
 
-    protected void classBasedTestsExecuted(boolean exactlyTheseTests = false) {
+    protected void classBasedTestsExecuted(boolean exactlyTheseTests = true) {
         if (exactlyTheseTests) {
             resultsFor().assertTestPathsExecuted(":SomeTest:testMethod()")
         } else {

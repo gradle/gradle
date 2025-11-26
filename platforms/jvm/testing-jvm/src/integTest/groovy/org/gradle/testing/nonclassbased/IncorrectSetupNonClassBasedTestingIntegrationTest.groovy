@@ -213,7 +213,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
         then:
         outputContains("Test definitions directory is not a directory: " + testDirectory.file(badPath).absolutePath)
-        nonClassBasedTestsExecuted()
+        nonClassBasedTestsExecuted(false)
     }
 
     def "missing test classes and/or definitions is skipped or fails when appropriate (scan for test classes = #scanForTestClasses, has test classes = #hasTestClasses, add test defs dir = #addTestDefsDir, has test defs = #hasTestDefs)"() {
@@ -262,10 +262,10 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
             sourcesPresentAndNoTestsFound()
         } else {
             if (scanForTestClasses && hasTestClasses) {
-                classBasedTestsExecuted()
+                classBasedTestsExecuted(false)
             }
             if (addTestDefsDir && hasTestDefs) {
-                nonClassBasedTestsExecuted()
+                nonClassBasedTestsExecuted(false)
             }
         }
 

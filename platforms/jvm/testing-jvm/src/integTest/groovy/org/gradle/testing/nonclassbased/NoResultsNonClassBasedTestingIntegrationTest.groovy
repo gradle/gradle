@@ -18,7 +18,7 @@ package org.gradle.testing.nonclassbased
 
 /**
  * More tests that exercise and demonstrate incorrect Non-Class-Based Testing setups,
- * that can't be included in {@link IncorrectSetupNonClassBasedTestingIntegrationTest} for some reason.
+ * based on an engine that doesn't return any tests.
  */
 class NoResultsNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override

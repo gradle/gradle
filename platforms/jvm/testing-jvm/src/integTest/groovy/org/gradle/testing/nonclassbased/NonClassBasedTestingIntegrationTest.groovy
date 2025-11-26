@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
+
 /**
  * Tests that exercise and demonstrate Non-Class-Based Testing using the {@code Test} task
  * and a sample resource-based JUnit Platform Test Engine defined in this project's {@code testFixtures}.
@@ -139,7 +140,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test")
 
         then:
-        nonClassBasedTestsExecuted()
+        nonClassBasedTestsExecuted(false)
         resultsFor().assertAtLeastTestPathsExecuted(":SomeThirdTestSpec.rbt - third")
     }
 
@@ -200,7 +201,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test")
 
         then:
-        nonClassBasedTestsExecuted(true)
+        nonClassBasedTestsExecuted()
     }
 
     def "can listen for non-class-based tests"() {

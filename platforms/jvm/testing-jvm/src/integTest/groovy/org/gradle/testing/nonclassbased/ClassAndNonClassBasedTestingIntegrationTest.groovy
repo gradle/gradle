@@ -75,7 +75,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
             resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         }
         if (nonClassDefinitionsPresent) {
-            nonClassBasedTestsExecuted()
+            nonClassBasedTestsExecuted(false)
         }
 
         where:
@@ -119,7 +119,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
 
         then:
         resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
-        nonClassBasedTestsExecuted()
+        nonClassBasedTestsExecuted(false)
     }
 
     def "when multiple engines do class-based testing and create different class tests with the same name, this is handled sensibly"() {
@@ -141,9 +141,6 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
                     }
                 }
             }
-
-            // Ensure the definitions directory exists even if no definitions are added; otherwsie the task will fail with "Test definitions directory does not exist"
-            project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION").getAsFile().mkdirs()
         """
 
         if (classesPresent) {
@@ -158,11 +155,12 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
 
         then:
         if (classesPresent) {
-            resultsFor().testPath(":SomeTest").onlyRoot().assertChildCount(1, 0)
-            resultsFor().testPath(":SomeTest:testMethod").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+            def results = resultsFor()
+            results.testPathPreNormalized(":SomeTest").onlyRoot().assertChildCount(1, 0)
+            results.testPathPreNormalized(":SomeTest:testMethod()").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         }
         if (nonClassDefinitionsPresent) {
-            nonClassBasedTestsExecuted()
+            nonClassBasedTestsExecuted(false)
         }
 
         where:
