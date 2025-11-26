@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.fingerprint
 
-import io.usethesource.capsule.Set.Immutable
 import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -242,10 +241,10 @@ class ConfigurationCacheFingerprintWriter(
     class FineGrainedPropertyTracking : PropertyTracking {
 
         private
-        val gradleProperties = ConcurrentHashMap<GradlePropertyScope, AtomicReference<Immutable<String>>>()
+        val gradleProperties = ConcurrentHashMap<GradlePropertyScope, AtomicSet<String>>()
 
         private
-        val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, AtomicReference<Immutable<String>>>()
+        val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, AtomicSet<String>>()
 
         override fun shouldTrackPropertyAccess(propertyScope: GradlePropertyScope, propertyName: String): Boolean =
             (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)
@@ -256,7 +255,7 @@ class ConfigurationCacheFingerprintWriter(
 
         private
         fun shouldTrackGradlePropertyInput(
-            keysPerScope: ConcurrentHashMap<GradlePropertyScope, AtomicReference<Immutable<String>>>,
+            keysPerScope: ConcurrentHashMap<GradlePropertyScope, AtomicSet<String>>,
             propertyScope: GradlePropertyScope,
             propertyKey: String
         ): Boolean = keysPerScope
@@ -1116,48 +1115,3 @@ fun jvmFingerprint() =
         System.getProperty("java.vm.vendor"),
         System.getProperty("java.vm.version")
     ).joinToString(separator = "|")
-
-
-private
-fun <T> newAtomicSet(): AtomicReference<Immutable<T>> =
-    AtomicReference<Immutable<T>>(Immutable.of())
-
-
-private
-fun <T> AtomicReference<Immutable<T>>.remove(value: T) {
-    updateAndGet {
-        it.__remove(value)
-    }
-}
-
-
-private
-fun <T> AtomicReference<Immutable<T>>.clear() {
-    set(Immutable.of())
-}
-
-
-private
-fun <T> AtomicReference<Immutable<T>>.addAll(values: Collection<T>) {
-    if (values.isNotEmpty()) {
-        updateAndGet {
-            it.asTransient().apply {
-                for (value in values) {
-                    __insert(value)
-                }
-            }.freeze()
-        }
-    }
-}
-
-
-private
-fun <T> AtomicReference<Immutable<T>>.add(value: T): Boolean {
-    var result = false
-    updateAndGet { prev ->
-        prev.__insert(value).also { next ->
-            result = next !== prev
-        }
-    }
-    return result
-}
