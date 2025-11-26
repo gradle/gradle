@@ -30,7 +30,7 @@ import static org.gradle.integtests.tooling.r930.CustomResilientModelCrossVersio
 import static org.gradle.integtests.tooling.r930.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.ROOT_BUILD_FIRST
 
 @ToolingApiVersion('>=9.3')
-@TargetGradleVersion('>=9.3')
+@TargetGradleVersion('>=9.4')
 class CustomResilientModelCrossVersionSpec extends ToolingApiSpecification {
 
     private static final List<String> IP_CONFIGURE_ON_DEMAND_FLAGS = [
