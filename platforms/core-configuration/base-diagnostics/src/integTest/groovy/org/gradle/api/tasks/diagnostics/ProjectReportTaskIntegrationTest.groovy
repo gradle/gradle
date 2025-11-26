@@ -15,8 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.api.internal.plugins.BindsProjectType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
+import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
@@ -227,11 +231,15 @@ Root project 'my-root-project'
 
             import org.gradle.api.provider.Property;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import ${Definition.class.name};
+            import ${BuildModel.class.name};
 
             @Restricted
-            public abstract interface LibraryExtension {
+            public abstract interface LibraryExtension extends ${Definition.class.simpleName}<LibraryExtension.Model> {
                 @Restricted
                 Property<String> getName();
+
+                interface Model extends ${BuildModel.class.simpleName} { }
             }
         """
         file("build-logic/src/main/java/com/example/restricted/ApplicationExtension.java") << """
@@ -239,11 +247,15 @@ Root project 'my-root-project'
 
             import org.gradle.api.provider.Property;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import ${Definition.class.name};
+            import ${BuildModel.class.name};
 
             @Restricted
-            public abstract interface ApplicationExtension {
+            public abstract interface ApplicationExtension extends ${Definition.class.simpleName}<ApplicationExtension.Model> {
                 @Restricted
                 Property<String> getName();
+
+                interface Model extends ${BuildModel.class.simpleName} { }
             }
         """
         file("build-logic/src/main/java/com/example/restricted/UtilityExtension.java") << """
@@ -251,11 +263,15 @@ Root project 'my-root-project'
 
             import org.gradle.api.provider.Property;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import ${Definition.class.name};
+            import ${BuildModel.class.name};
 
             @Restricted
-            public abstract interface UtilityExtension {
+            public abstract interface UtilityExtension extends ${Definition.class.simpleName}<UtilityExtension.Model> {
                 @Restricted
                 Property<String> getName();
+
+                interface Model extends ${BuildModel.class.simpleName} { }
             }
         """
         file("build-logic/src/main/java/com/example/restricted/LibraryPlugin.java") << """
@@ -263,11 +279,19 @@ Root project 'my-root-project'
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
 
+            @${BindsProjectType.class.simpleName}(LibraryPlugin.Binding.class)
             public abstract class LibraryPlugin implements Plugin<Project> {
-                @SoftwareType(name = "library", modelPublicType = LibraryExtension.class)
-                public abstract LibraryExtension getLibrary();
+                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType("library", LibraryExtension.class, (context, definition, model) -> {
+                            // binding logic
+                        });
+                    }
+                }
 
                 @Override
                 public void apply(Project project) { }
@@ -278,11 +302,19 @@ Root project 'my-root-project'
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
 
+            @${BindsProjectType.class.simpleName}(ApplicationPlugin.Binding.class)
             public abstract class ApplicationPlugin implements Plugin<Project> {
-                @SoftwareType(name = "application", modelPublicType = ApplicationExtension.class)
-                public abstract ApplicationExtension getApplication();
+                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType("application", ApplicationExtension.class, (context, definition, model) -> {
+                            // binding logic
+                        });
+                    }
+                }
 
                 @Override
                 public void apply(Project project) { }
@@ -293,11 +325,19 @@ Root project 'my-root-project'
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
 
+            @${BindsProjectType.class.simpleName}(UtilityPlugin.Binding.class)
             public abstract class UtilityPlugin implements Plugin<Project> {
-                @SoftwareType(name = "utility", modelPublicType = UtilityExtension.class)
-                public abstract UtilityExtension getUtility();
+                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType("utility", UtilityExtension.class, (context, definition, model) -> {
+                            // binding logic
+                        });
+                    }
+                }
 
                 @Override
                 public void apply(Project project) { }
@@ -309,9 +349,9 @@ Root project 'my-root-project'
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-            import ${ RegistersSoftwareTypes.class.name};
+            import ${ RegistersProjectFeatures.class.name};
 
-            @RegistersSoftwareTypes({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
+            @${RegistersProjectFeatures.class.simpleName}({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {}

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal;
-
-public interface LegacyProjectTypeImplementation<T> extends ProjectFeatureImplementation<T, T> {
-}
+/**
+ * Package containing JUnit Platform {@link org.junit.platform.launcher.PostDiscoveryFilter PostDiscoveryFilter}s
+ * used by Gradle to filter tests.
+ */
+@org.jspecify.annotations.NullMarked
+package org.gradle.api.internal.tasks.testing.junitplatform.filters;

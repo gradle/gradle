@@ -39,8 +39,13 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
 
     @Override
     public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
-        ProjectFeatureApplyAction<T, V, ?> featureTransform = (ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) ->
-            transform.transform(context, definition, buildModel);
+        // This needs to be an anonymous class for configuration cache compatibility
+        ProjectFeatureApplyAction<T, V, ?> featureTransform = new ProjectFeatureApplyAction<T, V, Object>() {
+            @Override
+            public void transform(ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) {
+                transform.transform(context, definition, buildModel);
+            }
+        };
 
         DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(definitionClass,
             buildModelClass,
