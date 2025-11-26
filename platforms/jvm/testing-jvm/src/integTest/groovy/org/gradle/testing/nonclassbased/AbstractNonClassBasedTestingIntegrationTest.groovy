@@ -38,7 +38,7 @@ abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractInteg
     protected void nonClassBasedTestsExecuted() {
         outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
         outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
-        outputContains("INFO: Executing resource-based test: Test[file=subSomeOtherTestSpec.rbt, name=other]")
+        outputContains("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
     }
 
     // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
@@ -66,7 +66,7 @@ abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractInteg
                 <test name="bar" />
             </tests>
         """
-        file("$path/subSomeOtherTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+        file("$path/sub/SomeOtherTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
             <tests>
                 <test name="other" />
             </tests>

@@ -16,37 +16,18 @@
 
 package org.gradle.plugin.software.internal;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
-import org.gradle.api.internal.plugins.software.SoftwareType;
-import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Cast;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.properties.PropertyValue;
-import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.plugin.software.internal.ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext;
-import org.jspecify.annotations.NullMarked;
-
-import java.util.Objects;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
  * Applies project features to a target object by registering the software model as an extension of the target object (unless
@@ -57,24 +38,20 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator {
     private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final ModelDefaultsApplicator modelDefaultsApplicator;
-    private final InspectionScheme inspectionScheme;
-    private final InternalProblems problems;
     private final PluginManagerInternal pluginManager;
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory objectFactory;
 
-    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
+    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
         this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.modelDefaultsApplicator = modelDefaultsApplicator;
-        this.inspectionScheme = inspectionScheme;
-        this.problems = problems;
         this.pluginManager = pluginManager;
         this.classLoaderScope = classLoaderScope;
         this.objectFactory = objectFactory;
     }
 
     @Override
-    public <T, V> T applyFeatureTo(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
+    public <T extends Definition<V>, V extends BuildModel> T applyFeatureTo(DynamicObjectAware parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
         ProjectFeatureDefinitionContext parentDefinitionContext = ProjectFeatureSupportInternal.getContext(parentDefinition);
 
         ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult result = parentDefinitionContext.getOrAddChildDefinition(projectFeature, () -> {
@@ -83,11 +60,8 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
             }
 
             pluginManager.apply(projectFeature.getPluginClass());
-            Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(projectFeature.getPluginClass());
 
-            Object definition = (projectFeature instanceof BoundProjectFeatureImplementation) ?
-                instantiateBoundFeatureObjectsAndApply(parentDefinition, Cast.uncheckedCast(projectFeature)) :
-                instantiateLegacyProjectTypeDefinition(parentDefinition, projectFeature, plugin);
+            Object definition = instantiateBoundFeatureObjectsAndApply(parentDefinition, projectFeature);
 
             return Cast.uncheckedNonnullCast(definition);
         });
@@ -100,7 +74,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         return Cast.uncheckedNonnullCast(result.definition);
     }
 
-    private static <T, V> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<T, V> projectFeature) {
+    private static <T extends Definition<V>, V extends BuildModel> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, ProjectFeatureImplementation<T, V> projectFeature) {
         context.childrenDefinitions().keySet().stream().findFirst().ifPresent(projectTypeAlreadyApplied -> {
             throw new IllegalStateException(
                 "The project has already applied the '" +
@@ -112,12 +86,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         });
     }
 
-    private Object instantiateLegacyProjectTypeDefinition(Object parentDefinition, ProjectFeatureImplementation<?, ?> projectFeature, Plugin<?> plugin) {
-        applyAndMaybeRegisterExtension(parentDefinition, projectFeature, plugin);
-        return ((ExtensionAware) parentDefinition).getExtensions().getByName(projectFeature.getFeatureName());
-    }
-
-    private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, BoundProjectFeatureImplementation<T, V> projectFeature) {
+    private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
         T definition = instantiateDefinitionObject(parentDefinition, projectFeature);
         V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, definition, projectFeature);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
@@ -130,7 +99,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         return definition;
     }
 
-    private <T, V> T instantiateDefinitionObject(Object target, ProjectFeatureImplementation<T, V> projectFeature) {
+    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(Object target, ProjectFeatureImplementation<T, V> projectFeature) {
         Class<? extends T> dslType = projectFeature.getDefinitionImplementationType();
 
         if (Named.class.isAssignableFrom(dslType)) {
@@ -142,106 +111,6 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
             }
         } else {
             return objectFactory.newInstance(dslType);
-        }
-    }
-
-    private <T, V> void applyAndMaybeRegisterExtension(Object target, ProjectFeatureImplementation<T, V> projectFeature, Plugin<?> plugin) {
-        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(projectFeature.getPluginClass(), false, problems);
-
-        ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>((ExtensionAware) target, typeValidationContext, projectFeatureDeclarations, this, objectFactory);
-        inspectionScheme.getPropertyWalker().visitProperties(
-            plugin,
-            typeValidationContext,
-            extensionAddingVisitor
-        );
-
-        if (!typeValidationContext.getProblems().isEmpty()) {
-            throw new DefaultMultiCauseException(
-                String.format(typeValidationContext.getProblems().size() == 1
-                        ? "A problem was found with the %s plugin."
-                        : "Some problems were found with the %s plugin.",
-                    getPluginObjectDisplayName(plugin)),
-                typeValidationContext.getProblems().stream()
-                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(toImmutableList())
-            );
-        }
-    }
-
-    private static String getPluginObjectDisplayName(Object parameterObject) {
-        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
-    }
-
-    @NullMarked
-    public static class ExtensionAddingVisitor<T> implements PropertyVisitor {
-        private final ExtensionAware target;
-        private final DefaultTypeValidationContext validationContext;
-        private final ProjectFeatureApplicator applicator;
-        private final ProjectFeatureDeclarations projectFeatureDeclarations;
-        private final ObjectFactory objectFactory;
-
-        public ExtensionAddingVisitor(
-            ExtensionAware target,
-            DefaultTypeValidationContext validationContext,
-            ProjectFeatureDeclarations projectFeatureDeclarations,
-            ProjectFeatureApplicator applicator,
-            ObjectFactory objectFactory
-        ) {
-            this.target = target;
-            this.validationContext = validationContext;
-            this.projectFeatureDeclarations = projectFeatureDeclarations;
-            this.applicator = applicator;
-            this.objectFactory = objectFactory;
-        }
-
-        /**
-         * Checks the invariants related to the plugin's project type property and its effects on the runtime model.
-         *
-         * The extension must have been already added in {@link ProjectFeatureApplicator#applyFeatureTo}
-         */
-        @Override
-        public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
-            T publicModelObject = Cast.uncheckedNonnullCast(Objects.requireNonNull(value.call()));
-
-            ProjectFeatureSupportInternal.attachLegacyDefinitionContext(publicModelObject, applicator, projectFeatureDeclarations, objectFactory);
-
-            if (softwareType.disableModelManagement()) {
-                Object extension = target.getExtensions().findByName(softwareType.name());
-                if (extension == null) {
-                    validationContext.visitPropertyProblem(problem ->
-                        problem
-                            .forProperty(propertyName)
-                            .id("extension-not-registered-for-software-type", "was not registered as an extension", GradleCoreProblemGroup.validation().property())
-                            .contextualLabel("has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name '" + softwareType.name() + "' was registered")
-                            .severity(Severity.ERROR)
-                            .details("When 'disableModelManagement' is set, the plugin must register the '" + propertyName + "' property as an extension with the same name as the software type.")
-                            .solution("During plugin application, register the '" + propertyName + "' property as an extension with the name '" + softwareType.name() + "'.")
-                            .solution("Set 'disableModelManagement' to false or remove the parameter from the @SoftwareType annotation.")
-                    );
-                } else if (extension != publicModelObject) {
-                    validationContext.visitPropertyProblem(problem ->
-                        problem
-                            .forProperty(propertyName)
-                            .id("mismatched-extension-registered-for-software-type", "does not match the extension registered as '" + softwareType.name(), GradleCoreProblemGroup.validation().property())
-                            .contextualLabel("has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name '" + softwareType.name() + "' does not match the value of the property")
-                            .severity(Severity.ERROR)
-                            .details("When 'disableModelManagement' is set, the plugin must register the '" + propertyName + "' property as an extension with the same name as the software type.")
-                            .solution("During plugin application, register the '" + propertyName + "' property as an extension with the name '" + softwareType.name() + "'.")
-                    );
-                }
-            } else {
-                target.getExtensions().add(
-                    publicTypeFrom(softwareType.modelPublicType(), declaredPropertyType),
-                    softwareType.name(),
-                    publicModelObject
-                );
-            }
-        }
-
-        private Class<? super T> publicTypeFrom(Class<?> fromAnnotation, Class<?> declaredPropertyType) {
-            return Cast.uncheckedCast(fromAnnotation == Void.class ? declaredPropertyType : fromAnnotation);
         }
     }
 

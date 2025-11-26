@@ -24,7 +24,6 @@ import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType // codenarc-disable-line UnusedImport
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -239,7 +238,6 @@ trait ProjectTypeFixture {
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.tasks.Nested;
-                import ${SoftwareType.class.name};
                 import ${ProjectTypeBinding.class.name};
                 import ${BindsProjectType.class.name};
                 import ${ProjectTypeBindingBuilder.class.name};

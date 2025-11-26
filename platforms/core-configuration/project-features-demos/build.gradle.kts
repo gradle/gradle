@@ -28,7 +28,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.declarativeDslApi)
     api(projects.reporting)
-    api(projects.projectFeatures)
+    api(projects.projectFeaturesApi)
 
     api(libs.kotlinStdlib)
     api(libs.inject)
@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
+    implementation(projects.projectFeatures)
 
     implementation(libs.commonsLang)
 

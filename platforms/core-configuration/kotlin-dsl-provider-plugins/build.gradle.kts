@@ -28,6 +28,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.pluginDevelopment)
     implementation(projects.platformJvm)
+    implementation(projects.projectFeaturesApi)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
     implementation(projects.toolingApi)
