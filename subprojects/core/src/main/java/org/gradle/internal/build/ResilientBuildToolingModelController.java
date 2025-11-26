@@ -27,6 +27,7 @@ import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
@@ -34,6 +35,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class ResilientBuildToolingModelController extends DefaultBuildToolingModelController {
 
@@ -82,6 +85,16 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         }
 
         @Override
+        public Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+            // If evaluation of settings fails, a project could not be created, and we should return the failure before locateBuilder is called
+            if (!targetProject.isCreated()) {
+                checkArgument(!ownerBuildConfiguration.isSuccessful(), "Project has not been created, but build configuration has succeeded, this is a bug, please report.");
+                return ToolingModelBuilderResultInternal.of(getConfigurationFailure(failureFactory, ownerBuildConfiguration));
+            }
+            return super.getModel(modelName, parameter);
+        }
+
+        @Override
         ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException {
             // Force configuration of the target project to ensure all builders have been registered
             Try<Void> projectConfiguration = ownerBuildConfiguration.isSuccessful()
@@ -89,19 +102,23 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
                 : ownerBuildConfiguration;
 
             // We need to query the delegate builder lazily, since builders may not be registered if project configuration fails
-            Supplier<ToolingModelBuilderLookup.Builder> builder = () -> {
-                ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
-                ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
-                return lookup.locateForClientOperation(modelName, parameter, targetProject, project);
-            };
-            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(targetProject, modelName);
+            ProjectInternal project = targetProject.getMutableModelEvenAfterFailure();
+            ToolingModelBuilderLookup lookup = project.getServices().get(ToolingModelBuilderLookup.class);
+
+            Supplier<ToolingModelBuilderLookup.Builder> builder = () -> lookup.locateForClientOperation(modelName, parameter, targetProject, project);
+            boolean canRunEvenIfProjectNotFullyConfigured = canRunEvenIfProjectNotFullyConfigured(modelName);
             return new ResilientToolingModelBuilder(builder, projectConfiguration, failureFactory, canRunEvenIfProjectNotFullyConfigured);
         }
     }
 
-    private static boolean canRunEvenIfProjectNotFullyConfigured(ProjectState projectState, String modelName) {
+    private static boolean canRunEvenIfProjectNotFullyConfigured(String modelName) {
         // Some internal model builders can run even if the project is not fully configured.
-        return projectState.isCreated() && RESILIENT_MODELS.contains(modelName);
+        return RESILIENT_MODELS.contains(modelName);
+    }
+
+    private static List<Failure> getConfigurationFailure(FailureFactory failureFactory, Try<Void> configuration) {
+        Optional<Throwable> failure = configuration.getFailure();
+        return failure.map(e -> ImmutableList.of(failureFactory.create(e))).orElseGet(ImmutableList::of);
     }
 
     private static class ResilientToolingModelBuilder implements ToolingModelBuilderLookup.Builder {
@@ -135,13 +152,8 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             }
 
             Object model = canRunEvenIfProjectNotFullyConfigured ? delegate.get().build(parameter) : null;
-            List<Failure> failures = configurationAsFailure(projectConfiguration);
+            List<Failure> failures = getConfigurationFailure(failureFactory, projectConfiguration);
             return ToolingModelBuilderResultInternal.attachFailures(model, failures);
-        }
-
-        private List<Failure> configurationAsFailure(Try<Void> projectConfiguration) {
-            Optional<Throwable> failure = projectConfiguration.getFailure();
-            return failure.map(e -> ImmutableList.of(failureFactory.create(e))).orElseGet(ImmutableList::of);
         }
     }
 }
