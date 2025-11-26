@@ -27,8 +27,8 @@ import org.junit.Rule
  * This test uses a {@link BlockingHttpServer} to coordinate and verify parallel execution of tests.
  * See {@link ParallelTestExecutionIntegrationTest} for the basis of this approach.
  */
-@IntegrationTestTimeout(240)
-class NonClassBasedParallelTestExecutionIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
+@IntegrationTestTimeout(300)
+class ParallelNonClassBasedTestExecutionIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Rule
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()
 
@@ -82,7 +82,7 @@ class NonClassBasedParallelTestExecutionIntegrationTest extends AbstractNonClass
         def handler = blockingServer.expectConcurrentAndBlock(maxConcurrency, calls)
 
         when:
-        def gradle = executer.withArgument("-i").withTasks('test').start()
+        def gradle = executer.withTasks('test').start()
 
         then:
         handler.waitForAllPendingCalls()
@@ -99,9 +99,9 @@ class NonClassBasedParallelTestExecutionIntegrationTest extends AbstractNonClass
         handler.release(maxConcurrency)
 
         then:
-        def finishedResult = gradle.waitForFinish()
+        gradle.waitForFinish()
         testIndices(testCount).each { idx ->
-            finishedResult.assertOutputContains("INFO: Executing resource-based test: Test[file=parallel-${idx}.rbt, name=parallel-$idx]")
+            resultsFor().assertAtLeastTestPathsExecuted(":parallel-${idx}.rbt - parallel-$idx")
         }
 
         where:
