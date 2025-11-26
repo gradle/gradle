@@ -1,0 +1,201 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[validating-dependencies]]
+== Validating Dependencies
+
+Dependencies are the most commonly attacked part of the software supply chain.
+
+Assume we’re building an application that uses the `trusty-lib:1.0` library.
+This library comes from a public repository, which Gradle fetches from during the build.
+
+Recently, an attacker successfully replaced `trusty-lib` in the repository with a malicious version.
+This malicious library has the same `group`, `name`, and `version`, `trusty-lib:1.0`, but the JAR file has been modified: `trusty-lib-1.0.jar`
+
+In the next build, Gradle downloads the malicious `trusty-lib:1.0`, and the application is now built with compromised code.
+
+image::trusty-lib-attack.png[]
+
+To prevent this from happening, Gradle provides two complementary mechanisms:
+
+1. *Checksums* – Authenticate the *file contents* of the library or plugin.
+2. *Signatures* – Authenticate the *publisher* of the library or plugin.
+
+Used together, they help ensure you get the right library or plugin from a trustworthy author.
+
+[[checksums]]
+== Checksums
+
+A checksum is a short *fingerprint* of a file’s contents.
+
+To produce a checksum, the library or plugin file is passed through a cryptographic hash function (for example, SHA-256), which returns a fixed-length string that uniquely represents that exact content.
+If the file changes in any way, the checksum will also change.
+
+For example, the checksum entry for `trusty-lib-1.0.jar` might look like this:
+
+[source,xml]
+.verification-metadata.xml
+----
+<artifact name="trusty-lib-1.0.jar">
+    <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff235bd15"/>
+</artifact>
+----
+
+With *checksums*, the build tool keeps a list of expected hashes for each artifact:
+
+* You record the expected checksum (for example, SHA-256) of a library or plugin in a trusted file: `gradle/verification-metadata.xml`.
+* When the build downloads that artifact, it computes the checksum of the downloaded bytes.
+* If the computed checksum doesn’t match the expected value, the build fails instead of using the tampered file.
+
+image::checksum-verification.png[]
+
+[[signatures]]
+== Signatures
+
+A signature is a cryptographic *stamp*.
+
+To produce a signature, the author uses their *private key* to create a digital signature over the library or plugin (typically over its checksum).
+To produce a signature, the author of the library or plugin uses their *private key* to encrypt its checksum.
+
+For `trusty-lib-1.0.jar`, a combined checksum and signature entry might look like this:
+
+[source,xml]
+.verification-metadata.xml
+----
+<artifact name="trusty-lib-1.0.jar">
+    <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff235bd15"/>
+    <pgp value="D4C89EA4AAF455FD88B22087EFE8086F9E93774E"/>
+</artifact>
+----
+
+With *signatures*, you verify *who* produced the artifact, not just that it hasn’t changed:
+
+* The author signs the artifact's checksum using their private key.
+* Your build tool trusts a set of public keys.
+* When the artifact is downloaded, the build verifies the signature against the trusted public key.
+* If the signature is missing, invalid, or signed by an untrusted key, the build fails.
+
+image::checksum-verification.png[]
+
+[[how-to-enable]]
+== How to enable dependency verification
+
+You configure dependency verification in an XML file called `verification-metadata.xml`, which stores the approved checksums and signatures for the libraries and plugins used by your build.
+
+To generate both checksums and signatures, run Gradle with the `--write-verification-metadata` flag in your project:
+
+[source,shell]
+----
+$ ./gradlew --write-verification-metadata sha256,pgp
+----
+
+To generate checksum entries only (no signatures, *not recommended* if signatures are available), run:
+
+[source,shell]
+----
+./gradlew --write-verification-metadata sha256
+----
+
+Gradle will:
+
+* Resolve your dependencies.
+* Download and/or generate the required verification information.
+* Write it in a VCS-friendly XML file at `gradle/verification-metadata.xml`.
+
+[TIP]
+====
+Checksum calculation can use different hash algorithms. Keep in mind:
+
+* SHA-256 is currently considered secure for general use.
+* SHA-1 has known collisions and is considered weak.
+* MD5 should not be used.
+====
+
+A snippet of the resulting `verification-metadata.xml` looks like this:
+
+[source,xml]
+.verification-metadata.xml
+----
+<verification-metadata
+    xmlns="https://schema.gradle.org/dependency-verification"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+
+    <components>
+
+        <!-- BOTH SIGNATURE AND CHECKSUM -->
+        <component group="com.google.guava" name="failureaccess" version="1.0.3">
+            <artifact name="failureaccess-1.0.3.jar">
+                <pgp value="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE"/>
+                <sha256 value="cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb"
+                        origin="Verified"
+                        reason="Added manually to fix CI"/>
+            </artifact>
+        </component>
+
+        <!-- CHECKSUM ONLY -->
+        <component group="antlr" name="antlr" version="2.7.7">
+            <artifact name="antlr-2.7.7.jar">
+                <sha256 value="88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c"
+                        origin="Verified"
+                        reason="Artifact is not signed"/>
+            </artifact>
+        </component>
+
+        <!-- SIGNATURE ONLY -->
+        <component group="com.beust" name="jcommander" version="1.78">
+            <artifact name="jcommander-1.78.jar">
+                <pgp value="C70B844F002F21F6D2B9C87522E44AC0622B91C3"/>
+                <pgp value="DCBA03381EF6C89096ACD985AC5EC74981F9CDA6"/>
+            </artifact>
+        </component>
+
+    </components>
+</verification-metadata>
+----
+
+[NOTE]
+====
+The strongest posture is to use *both* signatures and checksums:
+
+* *Checksums* verify *what* you downloaded (content integrity).
+* *Signatures* verify *who* produced it (publisher authenticity).
+
+Use signatures whenever they are available, and fall back to checksums when artifacts are not signed.
+====
+
+[[trusted-keys]]
+== Trusted keys and key-servers
+
+Because public keys are part of the verification process, Gradle also records trusted public keys in `verification-metadata.xml` on a group-level basis:
+
+[source,xml]
+.verification-metadata.xml
+----
+<trusted-keys>
+    <trusted-key
+        id="06D34ED6FF73DE368A772A781063FE98BCECB758"
+        group="com.puppycrawl.tools"
+        name="checkstyle"/>
+</trusted-keys>
+----
+
+Public keys are typically fetched from key-servers, which are repositories for public keys, such as:
+
+* https://keyserver.ubuntu.com
+* https://keys.openpgp.org
+* https://pgp.mit.edu
+
+Gradle uses these trusted keys plus the checksum/signature data in `verification-metadata.xml` to ensure that dependencies come from the expected author and have not been tampered with.
+
