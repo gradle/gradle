@@ -168,12 +168,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
 
         // JUnit Platform will emit FileEntry before a test starts if the FileEntry is published from the class constructor.
         if (wasStarted(testIdentifier)) {
-            resultProcessor.published(getId(testIdentifier), new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath(), mediaType));
+            resultProcessor.published(getId(testIdentifier), new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath().toAbsolutePath(), mediaType));
         } else {
             // The test has not started yet, so see if we can find a close ancestor and associate the FileEntry with it
             Object closestStartedAncestor = getIdOfClosestStartedAncestor(testIdentifier);
             if (closestStartedAncestor != null) {
-                resultProcessor.published(closestStartedAncestor, new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath(), mediaType));
+                resultProcessor.published(closestStartedAncestor, new DefaultTestFileAttachmentDataEvent(convertToInstant(entry.getTimestamp()), entry.getPath().toAbsolutePath(), mediaType));
             }
             // otherwise, we don't know what to associate this FileEntry with
         }
