@@ -671,6 +671,9 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt - bar")
     }
 
+    // This test fails, as it creates a report file
+    // Creating the report is probably not a problem, but the fact that it shows 100% success is bad.
+    // This is because the distribution executor reports Distributed Test Run :test prior to failing.
     def "dv distribution fails if no currently connected agent matches all requirements"() {
         given:
         javaSimpleJunitTestClass()
@@ -736,6 +739,8 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         !file("build/reports/tests/test/index.html").exists()
     }
 
+    // This shows the behavior of a basic failing executor that hasn't reported
+    // any events prior to failing
     def "executer fails during execution"() {
         given:
         buildFile << """
@@ -772,6 +777,58 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
 
         when:
         fails("test")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("Bad executer always fails")
+
+        then: 'since the test task itself fails and not the tests, we do not expect a test report'
+        !file("build/reports/tests/test/index.html").exists()
+    }
+
+    // This should show the desired behavior when an executor fails, but handles exceptions and
+    // reports a failure properly
+    def "executer fails during execution reporting failure"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            class BadExecuter implements org.gradle.api.internal.tasks.testing.TestExecuter {
+                @Override
+                public void execute(org.gradle.api.internal.tasks.testing.TestExecutionSpec spec, org.gradle.api.internal.tasks.testing.TestResultProcessor resultProcessor) {
+                    try {
+                        resultProcessor.started(new org.gradle.api.internal.tasks.testing.DefaultTestDescriptor("executor", "executor", "executor"), new org.gradle.api.internal.tasks.testing.TestStartEvent(System.currentTimeMillis()))
+                        throw new RuntimeException("Bad executer always fails")
+                    } catch (Exception e) {
+                        resultProcessor.completed("executor", new org.gradle.api.internal.tasks.testing.TestCompleteEvent(System.currentTimeMillis(), org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE))
+                    }
+                }
+
+                @Override
+                public void stopNow() {
+
+                }
+            }
+
+            testing.suites.test {
+                useJUnitJupiter()
+
+                targets.all {
+                    testTask.configure {
+                        setTestExecuter(new BadExecuter())
+                    }
+                }
+            }
+        """
+
+        writeTestClasses()
+
+        when:
+        fails("test", "-S")
 
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
