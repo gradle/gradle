@@ -56,6 +56,7 @@ import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readPropertyValue
+import org.gradle.internal.serialize.graph.readStringsSet
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
@@ -63,6 +64,7 @@ import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeEnum
 import org.gradle.internal.serialize.graph.writePropertyValue
+import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.util.internal.DeferredUtil
 
 
@@ -163,15 +165,13 @@ class TaskNodeCodec(
 
     private
     fun WriteContext.writeReasonNotToTrackState(task: TaskInternal) {
-        writeNullableString(task.reasonNotToTrackState.orElse(null))
+        writeStrings(task.reasonsNotToTrackState)
     }
 
     private
     fun ReadContext.readReasonNotToTrackState(task: TaskInternal) {
-        val reasonNotToTrackState = readNullableString()
-        if (reasonNotToTrackState != null) {
-            task.doNotTrackState(reasonNotToTrackState)
-        }
+        val reasonsNotToTrackState = readStringsSet()
+        reasonsNotToTrackState.forEach { reason -> task.doNotTrackState(reason) }
     }
 
     private
