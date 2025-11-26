@@ -846,8 +846,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
     }
 
     Jvm getLowerJvm() {
-        def lower = AvailableJavaHomes.getAvailableJdk { element -> element.getLanguageVersion() < Jvm.current().javaVersion }
-        Assume.assumeTrue(lower != null)
-        return lower
+        return AvailableJavaHomes.getAvailableJdk { element -> element.getLanguageVersion() < Jvm.current().javaVersion }.get()
     }
 }

@@ -70,6 +70,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -290,14 +291,12 @@ public abstract class AvailableJavaHomes {
         return jdksByVersion;
     }
 
-    @Nullable
-    public static Jvm getAvailableJdk(final Spec<? super JvmInstallationMetadata> filter) {
-        return Iterables.getFirst(getAvailableJdks(filter), null);
+    public static Optional<Jvm> getAvailableJdk(final Spec<? super JvmInstallationMetadata> filter) {
+        return getAvailableJdks(filter).stream().findFirst();
     }
 
-    @Nullable
     private static Jvm getSupportedJdk(final Spec<? super JvmInstallationMetadata> filter) {
-        return getAvailableJdk(it -> isSupportedDaemonVersion(it) && filter.isSatisfiedBy(it));
+        return getAvailableJdk(filter).get();
     }
 
     @Nullable

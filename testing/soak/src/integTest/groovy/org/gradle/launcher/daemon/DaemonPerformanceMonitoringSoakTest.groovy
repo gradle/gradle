@@ -28,7 +28,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
             jvmArgs = file("gradle.properties").getProperties().getOrDefault("org.gradle.jvmargs", "")
         }
         file("gradle.properties").writeProperties(
-            "org.gradle.java.home": jdk.javaHome.absolutePath,
+            "org.gradle.java.home": jdk.get().javaHome.absolutePath,
             "org.gradle.jvmargs": jvmArgs + " " + version.gc.jvmArgs
         )
     }

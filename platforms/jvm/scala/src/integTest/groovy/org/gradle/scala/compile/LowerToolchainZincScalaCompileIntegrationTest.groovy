@@ -27,6 +27,6 @@ class LowerToolchainZincScalaCompileIntegrationTest extends AbstractToolchainZin
     Jvm computeJdkForTest() {
         AvailableJavaHomes.getAvailableJdk {
             it.languageVersion < Jvm.current().javaVersion && it.languageVersion.isJava8Compatible()
-        }
+        }.get()
     }
 }

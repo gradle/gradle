@@ -61,7 +61,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
             .useInstallation(gradleDist.gradleHomeDir)
             .connect()
             .newBuild()
-            .setJavaHome(AvailableJavaHomes.getAvailableJdk { md -> gradleDist.daemonWorksWith(md.javaMajorVersion)}.getJavaHome())
+            .setJavaHome(AvailableJavaHomes.getAvailableJdk { md -> gradleDist.daemonWorksWith(md.javaMajorVersion)}.get().getJavaHome())
             .forTasks("jar")
             .run()
 

@@ -33,9 +33,9 @@ class HigherToolchainZincScalaCompileIntegrationTest extends AbstractToolchainZi
     }
 
     private static jdkForTest() {
-        AvailableJavaHomes.getAvailableJdk {
+        return AvailableJavaHomes.getAvailableJdk {
             it.languageVersion > Jvm.current().javaVersion && JavaVersion.VERSION_16.isCompatibleWith(it.languageVersion)
-        }
+        }.orElse(null)
     }
 
     @Override

@@ -16,14 +16,12 @@
 
 package org.gradle.launcher.daemon.fixtures
 
-
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.util.EmptyStatement
-import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -36,11 +34,7 @@ class DaemonMultiJdkIntegrationTest extends DaemonIntegrationSpec {
     static def version
     @Rule IgnoreIfJdkNotFound ignoreRule = new IgnoreIfJdkNotFound()
 
-    JavaInfo jdk
-
-    static VersionNumber getVersionNumber() {
-        VersionNumber.parse(version.toString())
-    }
+    Optional<JavaInfo> jdk
 
     class IgnoreIfJdkNotFound implements TestRule {
         @Override
@@ -48,16 +42,13 @@ class DaemonMultiJdkIntegrationTest extends DaemonIntegrationSpec {
             jdk = getAvailableJdk(new Spec<JvmInstallationMetadata>() {
                 @Override
                 boolean isSatisfiedBy(JvmInstallationMetadata install) {
-                    if (version.hasProperty("vendor")) {
-                        if(install.getVendor().getKnownVendor() != version.vendor) {
-                            return false
-                        }
-                    }
-                    return install.languageVersion == version.version
+                    return !(version.hasProperty("vendor") && install.getVendor().getKnownVendor() != version.vendor)
+                        ? install.languageVersion == version.version
+                        : false
                 }
             })
 
-            if (jdk != null) {
+            if (jdk.isPresent()) {
                 return base
             } else {
                 return EmptyStatement.INSTANCE

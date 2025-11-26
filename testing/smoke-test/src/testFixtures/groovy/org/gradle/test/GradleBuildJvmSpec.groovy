@@ -24,7 +24,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 class GradleBuildJvmSpec implements Spec<JvmInstallationMetadata> {
 
     static boolean isAvailable() {
-        return AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec()) != null
+        return AvailableJavaHomes.getAvailableJdk(new GradleBuildJvmSpec()).isPresent()
     }
 
     @Override

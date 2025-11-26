@@ -21,17 +21,12 @@ import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.VersionNumber
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
 @MultiVersionTest
 @Requires(UnitTestPreconditions.Jdk11OrEarlier)
 abstract class AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest extends AbstractPlayExternalContinuousBuildIntegrationTest {
     static def version
-
-    static VersionNumber getVersionNumber() {
-        VersionNumber.parse(version.toString())
-    }
 
     def setup() {
         buildFile << playPlatformConfiguration(version.toString())
