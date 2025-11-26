@@ -3342,7 +3342,6 @@ Class <org.gradle.plugins.ide.internal.tooling.BuildEnvironmentBuilder> is not a
 Class <org.gradle.plugins.ide.internal.tooling.BuildInvocationsBuilder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (BuildInvocationsBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder$ClasspathElements> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (EclipseModelBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (EclipseModelBuilder.java:0)
-Class <org.gradle.plugins.ide.internal.tooling.GradleBuildBuilder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GradleBuildBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GradleProjectBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.IdeaModelBuilder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IdeaModelBuilder.java:0)
 Class <org.gradle.plugins.ide.internal.tooling.PublicationsBuilder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (PublicationsBuilder.java:0)

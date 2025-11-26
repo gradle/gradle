@@ -21,13 +21,14 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelAction;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.internal.buildtree.ToolingModelRequestContext;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
@@ -80,7 +81,16 @@ public class BuildModelActionRunner implements BuildActionRunner {
         public Object fromBuildModel(BuildTreeModelController controller) {
             String modelName = buildModelAction.getModelName();
             try {
-                return controller.getModel(BuildTreeModelTarget.ofDefault(), new ToolingModelRequestContext(modelName, null, false));
+                ToolingModelRequestContext modelRequestContext = new ToolingModelRequestContext(modelName, null, false);
+                Object model = controller.getModel(BuildTreeModelTarget.ofDefault(), modelRequestContext);
+                if (model instanceof ToolingModelBuilderResultInternal) {
+                    ToolingModelBuilderResultInternal resultInternal = (ToolingModelBuilderResultInternal) model;
+                    if (resultInternal.getFailures().isEmpty()) {
+                        return resultInternal.getModel();
+                    }
+                    throw resultInternal.throwOriginal();
+                }
+                return model;
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;
                 throw e;
