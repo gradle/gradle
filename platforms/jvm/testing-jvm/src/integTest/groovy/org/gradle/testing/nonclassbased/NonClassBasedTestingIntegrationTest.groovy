@@ -671,7 +671,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
             .assertTestPathsNotExecuted(":SomeTestSpec.rbt - bar")
     }
 
-    def "fails if no currently connected agent matches all requirements"() {
+    def "dv distribution fails if no currently connected agent matches all requirements"() {
         given:
         javaSimpleJunitTestClass()
 
@@ -703,9 +703,21 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
                 id 'java-library'
             }
 
+            ${mavenCentralRepository()}
+
+            dependencies {
+                testImplementation 'junit:junit:4.13.2'
+                testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.13.4'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.13.4'
+            }
+
             test {
+                useJUnitPlatform()
+
                 develocity {
                     testDistribution {
+                        enabled = true
+                        allowUntrustedServer = true
                         maxLocalExecutors = 0
                         requirements = ['os=nonExistingOs']
                     }
@@ -714,11 +726,56 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         """
 
         when:
-        def out = fails("test", "-S").output
-        def lines = out.readLines()
+        fails("test", "-S")
 
         then:
-        lines.any { it ==~ /.*No executors available for( this project and)? requirements \[(?:os=nonExistingOs, jdk=\d+|jdk=\d+, os=nonExistingOs)].*/ }
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("Remote executors cannot be used as no Develocity server is configured. Try setting maxLocalExecutors > 0.")
+
+        then: 'since the test task itself fails and not the tests, we do not expect a test report'
+        !file("build/reports/tests/test/index.html").exists()
+    }
+
+    def "executer fails during execution"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            class BadExecuter implements org.gradle.api.internal.tasks.testing.TestExecuter {
+                @Override
+                public void execute(org.gradle.api.internal.tasks.testing.TestExecutionSpec spec, org.gradle.api.internal.tasks.testing.TestResultProcessor resultProcessor) {
+                    throw new RuntimeException("Bad executer always fails")
+                }
+
+                @Override
+                public void stopNow() {
+
+                }
+            }
+
+            testing.suites.test {
+                useJUnitJupiter()
+
+                targets.all {
+                    testTask.configure {
+                        setTestExecuter(new BadExecuter())
+                    }
+                }
+            }
+        """
+
+        writeTestClasses()
+
+        when:
+        fails("test")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("Bad executer always fails")
 
         then: 'since the test task itself fails and not the tests, we do not expect a test report'
         !file("build/reports/tests/test/index.html").exists()

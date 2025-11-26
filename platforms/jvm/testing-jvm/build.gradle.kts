@@ -66,7 +66,7 @@ dependencies {
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 
     testFixturesImplementation(projects.internalIntegTesting)
 }
