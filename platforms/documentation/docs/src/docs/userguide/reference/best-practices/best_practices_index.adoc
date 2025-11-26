@@ -18,7 +18,7 @@
 The table below provides a complete list of documented Gradle Best Practices.
 
 ****
-There are currently *31 Best Practices*.
+There are currently *32 Best Practices*.
 ****
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
@@ -64,4 +64,5 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_performance.adoc#prefer_bin_distribution,Prefer the `-bin` Gradle Distribution>> | Performance | 9.4.0
 
 | <<best_practices_security.adoc#best_practices_for_security,Validate the Gradle Distribution SHA-256 Checksum>> | Security | 9.1.0
+| <<best_practices_security.adoc#validate_wrapper_checksum,Validate the Gradle Wrapper on every Upgrade>> | Security | 9.3.0
 |===
