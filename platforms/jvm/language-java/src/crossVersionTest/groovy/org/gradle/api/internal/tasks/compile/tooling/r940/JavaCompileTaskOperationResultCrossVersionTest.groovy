@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.tooling.r67
+package org.gradle.api.internal.tasks.compile.tooling.r940
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -24,7 +24,7 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
 import spock.lang.Issue
 
-@TargetGradleVersion('>=6.7')
+@TargetGradleVersion('>=9.4.0')
 class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecification {
 
     def setup() {
@@ -51,7 +51,6 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13990")
-    @TargetGradleVersion('<9.4.0')
     def "reports annotation processor results for JavaCompile task even when build event listener is used"() {
         settingsFile << """
             import javax.inject.Inject
@@ -65,12 +64,7 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
 
             abstract class ListenerImpl implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
                 void onFinish(FinishEvent event) {
-                    // This test doesn't work correctly: the assert condition isn't always true
-                    // (multiple task finished events pass through here and the condition doesn't hold for java compilation tasks),
-                    // but the test is not failing because the AssertionError gets swallowed.
-                    // Problem is fixed in Gradle 9.4.0, see the cross version test for that version 
-                    // (org.gradle.api.internal.tasks.compile.tooling.r940.JavaCompileTaskOperationResultCrossVersionTest)
-                    assert !(event.result instanceof JavaCompileTaskOperationResult)
+                    assert (event.result instanceof JavaCompileTaskOperationResult) == event.descriptor.taskPath.endsWith("compileJava")
                 }
             }
 
