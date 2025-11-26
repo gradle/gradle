@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
-import spock.lang.Issue
 
 import java.time.Duration
 
