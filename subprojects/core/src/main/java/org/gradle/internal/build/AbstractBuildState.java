@@ -165,8 +165,8 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
-    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
-        return getBuildController().withToolingModels(action);
+    public <T> T withToolingModels(boolean inResilientContext, Function<? super BuildToolingModelController, T> action) {
+        return getBuildController().withToolingModels(inResilientContext, action);
     }
 
 }

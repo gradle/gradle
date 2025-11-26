@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildToolingModelController
+import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
 
@@ -30,12 +31,12 @@ class ConfigurationCacheAwareBuildToolingModelController(
 ) : BuildToolingModelController {
     override fun getConfiguredModel(): GradleInternal = delegate.configuredModel
 
-    override fun locateBuilderForTarget(modelName: String, param: Boolean): ToolingModelScope {
-        return wrap(delegate.locateBuilderForTarget(modelName, param))
+    override fun locateBuilderForTarget(toolingModelRequestContext: ToolingModelRequestContext): ToolingModelScope {
+        return wrap(delegate.locateBuilderForTarget(toolingModelRequestContext))
     }
 
-    override fun locateBuilderForTarget(target: ProjectState, modelName: String, param: Boolean): ToolingModelScope {
-        return wrap(delegate.locateBuilderForTarget(target, modelName, param))
+    override fun locateBuilderForTarget(target: ProjectState, toolingModelRequestContext: ToolingModelRequestContext): ToolingModelScope {
+        return wrap(delegate.locateBuilderForTarget(target, toolingModelRequestContext))
     }
 
     private
