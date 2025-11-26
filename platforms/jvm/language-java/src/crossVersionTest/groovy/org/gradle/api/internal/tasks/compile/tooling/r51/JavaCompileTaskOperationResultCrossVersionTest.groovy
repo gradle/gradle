@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.tooling
+package org.gradle.api.internal.tasks.compile.tooling.r51
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
-import spock.lang.Issue
 
 import java.time.Duration
 
 import static org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.ISOLATING
 
-@TargetGradleVersion('>=4.6')
+@TargetGradleVersion('>=5.1')
 class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecification {
 
     def setup() {
@@ -55,7 +53,6 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
         fixture.writeSupportLibraryTo(processorProjectDir)
     }
 
-    @TargetGradleVersion(">=5.1")
     def "reports annotation processor results for JavaCompile task"() {
         when:
         def events = runBuild("compileJava")
@@ -80,66 +77,14 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
         ((JavaCompileTaskOperationResult) processorOperation.result).annotationProcessorResults.empty
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/13990")
-    @TargetGradleVersion(">=6.7")
-    def "reports annotation processor results for JavaCompile task even when build event listener is used"() {
-        settingsFile << """
-            import javax.inject.Inject
-            import org.gradle.api.services.BuildService
-            import org.gradle.api.services.BuildServiceParameters
-            import org.gradle.tooling.events.OperationCompletionListener
-            import org.gradle.tooling.events.FinishEvent
-            import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
-
-            apply plugin: SomePlugin
-
-            abstract class ListenerImpl implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
-                void onFinish(FinishEvent event) {
-                    // Only generic task details are exposed for now
-                    assert !(event.result instanceof JavaCompileTaskOperationResult)
-                }
-            }
-
-            abstract class SomePlugin implements Plugin<Settings> {
-                @Inject
-                abstract BuildEventsListenerRegistry getRegistry();
-
-                void apply(Settings settings) {
-                    def service = settings.gradle.sharedServices.registerIfAbsent("listener", ListenerImpl) { }
-                    registry.onTaskCompletion(service)
-                }
-            }
-        """
-
-        when:
-        def events = runBuild("compileJava")
-
-        then:
-        def operation = events.operation("Task :compileJava")
-        operation.assertIsTask()
-        operation.result instanceof JavaCompileTaskOperationResult
-    }
-
-    @TargetGradleVersion(">=4.6 <5.1")
-    def "reports regular success result for older Gradle versions"() {
-        when:
-        def events = runBuild("compileJava")
-
-        then:
-        def operation = events.operation("Task :compileJava")
-        operation.assertIsTask()
-        operation.result instanceof TaskSuccessResult
-        !(operation.result instanceof JavaCompileTaskOperationResult)
-    }
-
     private ProgressEvents runBuild(task) {
         ProgressEvents events = ProgressEvents.create()
         withConnection {
             newBuild()
-                .forTasks(task)
-                .setStandardOutput(System.out)
-                .addProgressListener(events, OperationType.TASK)
-                .run()
+                    .forTasks(task)
+                    .setStandardOutput(System.out)
+                    .addProgressListener(events, OperationType.TASK)
+                    .run()
         }
         events
     }
