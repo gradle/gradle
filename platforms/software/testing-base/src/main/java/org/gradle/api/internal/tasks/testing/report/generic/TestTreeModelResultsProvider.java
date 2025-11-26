@@ -37,7 +37,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Serializer;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -105,7 +104,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
                             " but found: " + perRootInfo.getResults().size()
                     );
                 }
-                TestTreeModel groupingNode = findGroupingNode(parentOfPath, leaf, perRootInfo.getResults().get(0).getClassName());
+                TestTreeModel groupingNode = findGroupingNode(parentOfPath, leaf);
                 leavesByGroupingNode.put(groupingNode, perRootInfo);
             }
         });
@@ -245,16 +244,13 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static TestTreeModel findGroupingNode(
-        Map<org.gradle.util.Path, TestTreeModel> parentOfPath, TestTreeModel leaf, @Nullable String className
+        Map<org.gradle.util.Path, TestTreeModel> parentOfPath, TestTreeModel leaf
     ) {
         TestTreeModel current = leaf;
         TestTreeModel parent;
         while ((parent = parentOfPath.get(current.getPath())) != null) {
             org.gradle.util.Path parentPath = parent.getPath();
-            if (className != null && className.equals(parentPath.getName())) {
-                return parent;
-            }
-            // Pick highest non-root node if no class name match
+            // Pick highest non-root node
             // But don't group the leaf using itself, that doesn't make sense.
             boolean parentHasParent = parentOfPath.containsKey(parentPath);
             if (!parentHasParent && current != leaf) {
