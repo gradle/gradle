@@ -638,4 +638,36 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         outputContains("INFO: Executing resource-based test: Test[file=SampleTest.rbt, name=foo]")
         resultsFor().assertTestPathsNotExecuted(":definitions.SampleTest:foo()")
     }
+
+    def "resource-based test engine can select test definitions using --tests"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+        """
+
+        writeTestDefinitions()
+
+        when:
+        succeeds("test", "--tests", "src/test/definitions/sub/SomeOtherTestSpec.rbt")
+
+        then:
+        resultsFor()
+            .assertTestPathsExecuted(":SomeOtherTestSpec.rbt - other")
+            .assertTestPathsNotExecuted(":SomeTestSpec.rbt - foo")
+            .assertTestPathsNotExecuted(":SomeTestSpec.rbt - bar")
+    }
 }
