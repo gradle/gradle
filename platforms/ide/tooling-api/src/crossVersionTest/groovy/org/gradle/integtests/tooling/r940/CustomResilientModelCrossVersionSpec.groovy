@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r930
+package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -26,8 +26,8 @@ import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
-import static org.gradle.integtests.tooling.r930.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
-import static org.gradle.integtests.tooling.r930.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.ROOT_BUILD_FIRST
+import static org.gradle.integtests.tooling.r940.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
+import static org.gradle.integtests.tooling.r940.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.ROOT_BUILD_FIRST
 
 @ToolingApiVersion('>=9.3')
 @TargetGradleVersion('>=9.4')
