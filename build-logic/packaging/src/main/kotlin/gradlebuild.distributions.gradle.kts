@@ -86,7 +86,7 @@ val pluginsRuntimeOnly = configurations.dependencyScope("pluginsRuntimeOnly") {
 val agentsRuntimeOnly = configurations.dependencyScope("agentsRuntimeOnly") {
     description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
 }
-val publicApiOnly = configurations.dependencyScope("publicApiOnly") {
+val publicAbiOnly = configurations.dependencyScope("publicAbiOnly") {
     description = "To define dependencies to the Gradle modules that make up the public API (lib/api/*.jar)"
 }
 
@@ -96,7 +96,7 @@ coreRuntimeOnly {
         project.dependencies.platform(project.dependencies.create(project(":distributions-dependencies")))
     })
 }
-publicApiOnly {
+publicAbiOnly {
     dependencies.addLater(provider {
         project.dependencies.platform(project.dependencies.create(project(":distributions-dependencies")))
     })
@@ -119,9 +119,9 @@ runtimeLibraryResolver(
     extends = listOf(agentsRuntimeOnly)
 )
 apiLibraryResolver(
-    name = "gradlePublicApiRuntimeClasspath",
+    name = "gradlePublicAbiClasspath",
     desc = "Resolves all Jars that make up the public API of Gradle",
-    extends = listOf(publicApiOnly)
+    extends = listOf(publicAbiOnly)
 )
 startScriptResolver(
     name = "gradleScriptPath",
