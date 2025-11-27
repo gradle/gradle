@@ -326,10 +326,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         state.compareAndSet(State.INIT, State.STARTED);
     }
 
-    public boolean isClosed() {
-        return state.get() == State.CLOSED;
-    }
-
     @Override
     public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
         return serviceType.cast(get((Type) serviceType));
