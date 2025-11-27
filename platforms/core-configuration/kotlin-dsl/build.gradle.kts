@@ -221,6 +221,4 @@ tasks.isolatedProjectsIntegTest {
 }
 
 // Do not publish into the Gradle API ABI JAR
-configurations.apiStubElements.configure {
-    outgoing.artifacts.clear()
-}
+configurations.remove(configurations.apiStubElements.get())
