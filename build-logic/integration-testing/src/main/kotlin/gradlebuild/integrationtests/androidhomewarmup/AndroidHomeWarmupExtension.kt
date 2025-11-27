@@ -21,9 +21,11 @@ import org.gradle.api.provider.ListProperty
 import java.io.Serializable
 
 /**
- * Configuration for the Android home warmup tasks. 
+ * Configuration for the Android home warmup tasks.
  */
 abstract class AndroidHomeWarmupExtension {
+    // using project.rootProject.layout will trigger IP error "cannot access 'Project.layout' functionality on another project ':'"
+    abstract val rootProjectDir: DirectoryProperty
     abstract val warmupProjectsDirectory: DirectoryProperty
     abstract val sdkVersions: ListProperty<SdkVersion>
 }

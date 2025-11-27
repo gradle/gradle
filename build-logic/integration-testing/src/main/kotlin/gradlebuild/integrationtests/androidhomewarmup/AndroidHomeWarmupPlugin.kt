@@ -18,8 +18,6 @@ package gradlebuild.integrationtests.androidhomewarmup
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.register
 
 /**
@@ -47,8 +45,7 @@ class AndroidHomeWarmupPlugin : Plugin<Project> {
         project.tasks.register("androidHomeWarmup", AndroidHomeWarmupTask::class) {
             warmupProjectsDirectory.set(extension.warmupProjectsDirectory)
             sdkVersions.set(extension.sdkVersions)
-            val wrapperName = if (OperatingSystem.current().isWindows) "gradlew.bat" else "gradlew"
-            rootProjectGradlew.set(project.rootProject.layout.projectDirectory.file(wrapperName))
+            rootProjectDir.set(extension.rootProjectDir)
         }
     }
 }

@@ -18,20 +18,20 @@ package gradlebuild.integrationtests.androidhomewarmup
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.provider.Provider
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import java.io.File
 import javax.inject.Inject
 import org.gradle.work.DisableCachingByDefault
 
-@DisableCachingByDefault(because = "Not worth caching")
+@DisableCachingByDefault(because = "Must not cache because it modifies global Android home")
 abstract class AndroidHomeWarmupTask : DefaultTask() {
 
     @get:OutputDirectory
@@ -41,7 +41,7 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
     abstract val sdkVersions: ListProperty<SdkVersion>
 
     @get:Internal
-    abstract val rootProjectGradlew: RegularFileProperty
+    abstract val rootProjectDir: DirectoryProperty
 
     @get:Inject
     abstract val execOperations: ExecOperations
@@ -143,14 +143,15 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
         """.trimMargin()
 
     private fun buildProject(projectDir: File) {
-        val gradleExecutable = rootProjectGradlew.get().asFile.absolutePath
+        val wrapperName = if (OperatingSystem.current().isWindows) "gradlew.bat" else "gradlew"
+        val gradleExecutable = rootProjectDir.file(wrapperName).get().asFile.absolutePath
 
         logger.info("Building project in $projectDir using $gradleExecutable")
 
         val result: ExecResult = execOperations.exec {
             workingDir = projectDir
             executable = gradleExecutable
-            args = listOf("build", "--quiet", "-x", "lint", "-x", "lintDebug", "-x", "lintRelease")
+            args = listOf("build", "--no-daemon", "--quiet", "-x", "lint", "-x", "lintDebug", "-x", "lintRelease")
             isIgnoreExitValue = false
         }
 
