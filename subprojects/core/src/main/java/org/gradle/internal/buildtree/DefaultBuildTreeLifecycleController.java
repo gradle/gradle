@@ -23,10 +23,12 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -74,7 +76,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks(@Nullable EntryTaskSelector selector) {
-        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector));
+        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector).getExecutionResultOrThrow());
     }
 
     @Override
@@ -82,21 +84,25 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
             if (runTasks && isEligibleToRunTasks()) {
-                try {
-                    ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null);
-                    if (!result.getFailures().isEmpty()) {
-                        return result.asFailure();
-                    }
-                } catch (Throwable t) {
-                    if (!buildModelParameters.isResilientModelBuilding()) {
-                        throw t;
-                    }
-                    // swallow exception in resilient mode
+                ExecutionResult<Void> result = runTasks();
+                if (!result.getFailures().isEmpty()) {
+                    return result.asFailure();
                 }
             }
             T model = modelCreator.fromBuildModel(action);
             return ExecutionResult.succeeded(model);
         });
+    }
+
+    private ExecutionResult<Void> runTasks() {
+        TaskRunResult result = workController.scheduleAndRunRequestedTasks(null);
+        if (!buildModelParameters.isResilientModelBuilding()) {
+            return result.getExecutionResultOrThrow();
+        }
+
+        // Ignore any configuration failures in resilient mode
+        Optional<ExecutionResult<Void>> executionResult = result.getExecutionResult();
+        return executionResult.orElseGet(ExecutionResult::succeeded);
     }
 
     @Override
