@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.precondition.TestPrecondition
 
+import static org.gradle.integtests.fixtures.AvailableJavaHomes.isDifferentJdkAvailable
+
 class IntegTestPreconditions {
 
     static final class IsLongLivingProcess implements TestPrecondition {
@@ -299,10 +301,10 @@ class IntegTestPreconditions {
         }
     }
 
-    static class JavaHomeWithDifferentVersionAvailable implements TestPrecondition {
+    static class JavaHomeWithDifferentVersionAvailable extends DifferentJdkAvailable {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.differentVersion != null
+            return super.isSatisfied() && AvailableJavaHomes.differentVersion != null
         }
     }
 
@@ -328,7 +330,7 @@ class IntegTestPreconditions {
     static class DifferentJdkAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.differentJdk != null
+            return isDifferentJdkAvailable().isPresent()
         }
     }
 

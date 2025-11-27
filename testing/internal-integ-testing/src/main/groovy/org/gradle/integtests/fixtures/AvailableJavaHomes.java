@@ -70,10 +70,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
 import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
 /**
@@ -220,6 +222,7 @@ public abstract class AvailableJavaHomes {
 
     @Nullable
     public static Jvm getJdk(final JavaVersion version) {
+        // consider throw? https://github.com/gradle/gradle/issues/35766#issuecomment-3572168575
         return Iterables.getFirst(getAvailableJdks(version), null);
     }
 
@@ -307,6 +310,10 @@ public abstract class AvailableJavaHomes {
 
     private static boolean isSupportedDaemonVersion(JvmInstallationMetadata jvmInstallation) {
         return DISTRIBUTION.daemonWorksWith(jvmFromMetadata(jvmInstallation).getJavaVersionMajor());
+    }
+
+    public static Optional<Jvm> isDifferentJdkAvailable() {
+        return ofNullable(getDifferentJdk());
     }
 
     /**
