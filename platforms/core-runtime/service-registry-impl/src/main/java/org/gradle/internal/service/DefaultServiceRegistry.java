@@ -173,20 +173,20 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         return getDisplayName();
     }
 
-    private void findProviderMethods(ServiceRegistrationProvider target, ServiceAccessToken token) {
-        Class<? extends ServiceRegistrationProvider> type = target.getClass();
+    private void applyProviderMethods(ServiceRegistrationProvider provider, ServiceAccessToken token) {
+        Class<? extends ServiceRegistrationProvider> type = provider.getClass();
         RelevantMethods methods = RelevantMethods.getMethods(type);
         for (ServiceMethod method : methods.decorators) {
             if (parentServices == null) {
                 throw new ServiceLookupException(String.format("Cannot use decorator method %s.%s() when no parent registry is provided.", type.getSimpleName(), method.getName()));
             }
-            ownServices.add(new FactoryMethodService(this, determineAccessScope(method, token), token, target, method));
+            ownServices.add(new FactoryMethodService(this, determineAccessScope(method, token), token, provider, method));
         }
         for (ServiceMethod method : methods.factories) {
-            ownServices.add(new FactoryMethodService(this, determineAccessScope(method, token), token, target, method));
+            ownServices.add(new FactoryMethodService(this, determineAccessScope(method, token), token, provider, method));
         }
         for (ServiceMethod method : methods.configurers) {
-            applyConfigureMethod(token, method, target);
+            applyConfigureMethod(token, method, provider);
         }
     }
 
@@ -225,7 +225,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      * Adds services to this container using the given action.
      */
     public void register(ServiceRegistrationAction action) {
-        assertMutable();
         ServiceAccessToken token = createTokenFor(action);
         action.registerServices(newRegistration(token));
     }
@@ -283,7 +282,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private <T> void add(ServiceAccessScope accessScope, Class<? extends T> serviceType, T serviceInstance) {
-        assertMutable();
         ownServices.add(new FixedInstanceService(this, accessScope, serviceType, serviceInstance));
     }
 
@@ -291,9 +289,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      * Adds a service provider bean to this registry. This provider may define factory and decorator methods.
      */
     public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
-        assertMutable();
         ServiceAccessToken token = createTokenFor(provider);
-        findProviderMethods(provider, token);
+        applyProviderMethods(provider, token);
         return this;
     }
 
