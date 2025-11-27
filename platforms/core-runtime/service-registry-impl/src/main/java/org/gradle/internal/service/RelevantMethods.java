@@ -21,13 +21,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static org.gradle.util.internal.ArrayUtils.contains;
 
 class RelevantMethods {
-    private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<>();
+    @SuppressWarnings("unchecked")
+    private static final ClassValue<RelevantMethods> METHODS_CACHE = new ClassValue<RelevantMethods>() {
+        @Override
+        protected RelevantMethods computeValue(Class<?> type) {
+            return new RelevantMethodsBuilder((Class<? extends ServiceRegistrationProvider>) type).build();
+        }
+    };
     private static final ServiceMethodFactory SERVICE_METHOD_FACTORY = new DefaultServiceMethodFactory();
 
     final List<ServiceMethod> decorators;
@@ -41,12 +45,7 @@ class RelevantMethods {
     }
 
     public static RelevantMethods getMethods(Class<? extends ServiceRegistrationProvider> type) {
-        RelevantMethods relevantMethods = METHODS_CACHE.get(type);
-        if (relevantMethods == null) {
-            relevantMethods = new RelevantMethodsBuilder(type).build();
-            METHODS_CACHE.putIfAbsent(type, relevantMethods);
-        }
-        return relevantMethods;
+        return METHODS_CACHE.get(type);
     }
 
     private static class RelevantMethodsBuilder {
