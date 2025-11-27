@@ -12,9 +12,9 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release brings [error and warning reporting improvements](#error-and-warning-reporting-improvements), with Problems API reports now rendered in the console when using `--warning-mode=all` and clearer explanations for some exit codes.
+This release brings [test reporting improvements](#test-reporting-improvements), including an improved HTML test report for nested, parameterized, and suite-based tests, with better aggregate reporting.
 
-It also adds [test reporting improvements](#test-reporting-improvements), including an improved HTML test report for nested, parameterized, and suite-based tests, with better aggregate reporting.
+It also adds [error and warning reporting improvements](#error-and-warning-reporting-improvements), with Problems API reports now rendered in the console when using `--warning-mode=all` and clearer explanations for some exit codes.
 
 Finally, [build authoring enhancements](#build-authoring-improvements) include a new method on `AttributeContainer` and a new streaming API in TestKit for efficiently reading build output.
 
@@ -53,57 +53,6 @@ See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@b
 For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
-
-### Error and warning reporting improvements
-
-Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
-
-#### Simple console rendering for Problem Reports
-
-The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
-
-Previously, a limitation was that the problem report was linked to in the console output, but the problems themselves were not displayed:
-
-```bash
-$ ./gradlew :test --warning-mode=all
-
-> Configure project :
-[Incubating] Problems report is available at: file:///Users/user/test-report-aggregation-sample/build/reports/problems/problems-report.html
-```
-
-In this release, we've taken a first step toward full console integration.
-Relevant problems in the report are now rendered in the console output when you use `--warning-mode=all`:
-
-```bash
-$ ./gradlew :test --warning-mode=all
-
-> Configure project :
-Build file '/Users/lkassovic/Downloads/test-report-aggregation-sample/build.gradle': line 16
-The Wrapper.getAvailableDistributionTypes method has been deprecated...
-        at build_5teuix0v7qf7ou93kgnmvnicp.run(/Users/user/test-report-aggregation-sample/build.gradle:16)
-        (Run with --stacktrace to get the full stack trace of this deprecation warning.)
-[Incubating] Problems report is available at: file:///Users/user/test-report-aggregation-sample/build/reports/problems/problems-report.html
-```
-
-#### Clearer explanation for worker process exit codes
-
-Gradle now provides a short explanation when a [worker process](userguide/gradle_daemon.html#understanding_daemon) exits with a code that typically indicates it was killed by the operating system.
-
-Previously, you would see:
-
-```bash
-> Process 'Gradle Worker Daemon 87' finished with non-zero exit value 137
-```
-
-Now, Gradle adds a helpful hint:
-
-```bash
-> Process 'Gradle Worker Daemon 87' finished with non-zero exit value 137 
-(this value may indicate that the process was terminated with the SIGKILL 
-signal, which is often caused by the system running out of memory)
-```
-
-This makes it easier to understand failures caused by conditions such as running out of memory.
 
 ### Test reporting improvements
 
@@ -265,6 +214,57 @@ Now, each individual report source is represented as a separate tab.
 To see the tests from a specific source, select its corresponding tab:
 
 ![new-aggregate-report.png](release-notes-assets/new-aggregate-report.png)
+
+### Error and warning reporting improvements
+
+Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
+
+#### Simple console rendering for Problem Reports
+
+The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
+
+Previously, a limitation was that the problem report was linked to in the console output, but the problems themselves were not displayed:
+
+```bash
+$ ./gradlew :test --warning-mode=all
+
+> Configure project :
+[Incubating] Problems report is available at: file:///Users/user/test-report-aggregation-sample/build/reports/problems/problems-report.html
+```
+
+In this release, we've taken a first step toward full console integration.
+Relevant problems in the report are now rendered in the console output when you use `--warning-mode=all`:
+
+```bash
+$ ./gradlew :test --warning-mode=all
+
+> Configure project :
+Build file '/Users/lkassovic/Downloads/test-report-aggregation-sample/build.gradle': line 16
+The Wrapper.getAvailableDistributionTypes method has been deprecated...
+        at build_5teuix0v7qf7ou93kgnmvnicp.run(/Users/user/test-report-aggregation-sample/build.gradle:16)
+        (Run with --stacktrace to get the full stack trace of this deprecation warning.)
+[Incubating] Problems report is available at: file:///Users/user/test-report-aggregation-sample/build/reports/problems/problems-report.html
+```
+
+#### Clearer explanation for worker process exit codes
+
+Gradle now provides a short explanation when a [worker process](userguide/gradle_daemon.html#understanding_daemon) exits with a code that typically indicates it was killed by the operating system.
+
+Previously, you would see:
+
+```bash
+> Process 'Gradle Worker Daemon 87' finished with non-zero exit value 137
+```
+
+Now, Gradle adds a helpful hint:
+
+```bash
+> Process 'Gradle Worker Daemon 87' finished with non-zero exit value 137 
+(this value may indicate that the process was terminated with the SIGKILL 
+signal, which is often caused by the system running out of memory)
+```
+
+This makes it easier to understand failures caused by conditions such as running out of memory.
 
 ### Build authoring improvements
 
