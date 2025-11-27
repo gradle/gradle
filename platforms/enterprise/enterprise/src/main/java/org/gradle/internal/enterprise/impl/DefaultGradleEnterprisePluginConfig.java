@@ -18,18 +18,23 @@ package org.gradle.internal.enterprise.impl;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildType;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePluginConfig {
 
     private final BuildScanRequest buildScanRequest;
     private final boolean taskExecutingBuild;
     private final boolean autoApplied;
+    @Nullable
+    private final String develocityUrl;
 
     public DefaultGradleEnterprisePluginConfig(StartParameter startParameter, BuildType buildType, GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus) {
         this.buildScanRequest = buildScanRequest(startParameter);
         this.taskExecutingBuild = buildType == BuildType.TASKS;
         this.autoApplied = autoAppliedStatus.isAutoApplied();
+        this.develocityUrl = ((StartParameterInternal) startParameter).getDevelocityUrl();
     }
 
     @Override
@@ -45,6 +50,12 @@ public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePlug
     @Override
     public boolean isAutoApplied() {
         return autoApplied;
+    }
+
+    @Override
+    @Nullable
+    public String getDevelocityUrl() {
+        return develocityUrl;
     }
 
     private BuildScanRequest buildScanRequest(StartParameter startParameter) {
