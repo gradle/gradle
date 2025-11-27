@@ -232,7 +232,7 @@ $ ./gradlew :test --warning-mode=all
 [Incubating] Problems report is available at: file:///Users/user/test-report-aggregation-sample/build/reports/problems/problems-report.html
 ```
 
-In this release, we've taken a first step toward full console integration.
+In this release, we've added basic console integration.
 Relevant problems in the report are now rendered in the console output when you use `--warning-mode=all`:
 
 ```bash
