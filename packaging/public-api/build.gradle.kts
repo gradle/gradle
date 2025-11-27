@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.assign
-
 /*
  * Copyright 2024 the original author or authors.
  *
@@ -31,17 +29,6 @@ dependencies {
 
     // Groovy is part of our API
     externalApi(libs.groovy)
-    // Groovy modules that are part of our API
-    // See DependencyClassPathProvider and DependencyClassPathNotationConverter
-    externalApi(libs.groovyAnt)
-    externalApi(libs.groovyAstbuilder)
-    externalApi(libs.groovyDatetime)
-    externalApi(libs.groovyDateUtil)
-    externalApi(libs.groovyDoc)
-    externalApi(libs.groovyJson)
-    externalApi(libs.groovyNio)
-    externalApi(libs.groovyTemplates)
-    externalApi(libs.groovyXml)
     // Required to inject services into tasks and other objects
     externalApi(libs.inject)
     // JSpecify is part of the public API for nullability annotations
