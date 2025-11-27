@@ -17,7 +17,7 @@
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
-import gradlebuild.jar.configureGradleJarTasks
+import gradlebuild.jar.configureGradleModuleJarTasks
 
 plugins {
     id("gradlebuild.dependency-modules")
@@ -46,6 +46,20 @@ val externalRuntimeClasspath = configurations.resolvable("externalRuntimeClasspa
     configureAsRuntimeJarClasspath(objects)
 }
 
+// Defines configurations used to resolve external dependencies
+// that the legacy public API depends on.
+val legacyExternalApi = configurations.dependencyScope("legacyExternalApi") {
+    description = "External dependencies that the legacy public Gradle API depends on"
+}
+val legacyExternalRuntimeOnly = configurations.dependencyScope("legacyExternalRuntimeOnly") {
+    dependencies.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
+}
+val legacyExternalRuntimeClasspath = configurations.resolvable("legacyExternalRuntimeClasspath") {
+    extendsFrom(legacyExternalApi.get())
+    extendsFrom(legacyExternalRuntimeOnly.get())
+    configureAsRuntimeJarClasspath(objects)
+}
+
 // Defines configurations used to resolve the public Gradle API.
 val distribution = configurations.dependencyScope("distribution") {
     description = "Dependencies to extract the public Gradle API from"
@@ -65,7 +79,15 @@ val classpathManifest = tasks.register<ClasspathManifest>("classpathManifest") {
     externalDependencies.from(externalRuntimeClasspath)
 }
 
-val task = tasks.register<Jar>("jarGradleApi") {
+val legacyClasspathManifest = tasks.register<ClasspathManifest>("legacyClasspathManifest") {
+    manifestFile = layout.buildDirectory.dir("generated-resources/legacy-classpath-manifest")
+        .zip(gradleModule.identity.baseName) { dir, baseName ->
+            dir.file("$baseName-classpath.properties")
+        }
+    externalDependencies.from(legacyExternalRuntimeClasspath)
+}
+
+fun Jar.commonPublicApiJarConfiguration() {
     // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of api stubs artifacts
     // Some projects simply don't have one, which excludes them
     from(distributionClasspath.map { configuration ->
@@ -82,12 +104,20 @@ val task = tasks.register<Jar>("jarGradleApi") {
         include("**/*.class")
         include("META-INF/*.kotlin_module")
     }
-    from(classpathManifest)
-    destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
     // This is needed because of the duplicate package-info.class files, it is safe thanks to PackageInfoTest
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
-configureGradleJarTasks()
+val task = tasks.register<Jar>("jarGradleApi") {
+    commonPublicApiJarConfiguration()
+    from(classpathManifest)
+    destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
+}
+val legacyTask = tasks.register<Jar>("jarGradleApiLegacy") {
+    commonPublicApiJarConfiguration()
+    from(legacyClasspathManifest)
+    destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api-legacy")
+}
+configureGradleModuleJarTasks()
 
 // The consumable configuration containing the public Gradle API artifact
 // and its external dependencies.
@@ -97,14 +127,27 @@ val gradleApiElements = configurations.consumable("gradleApiElements") {
     configureAsApiElements(objects)
 }
 
+val legacyGradleApiElements = configurations.consumable("legacyGradleApiElements") {
+    extendsFrom(legacyExternalApi.get())
+    outgoing.artifact(legacyTask)
+    configureAsApiElements(objects)
+}
+
 // TODO: SoftwareComponentFactoryProvider can be replaced with PublishingExtension#getSoftwareComponentFactory()
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
 
 val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFactoryProvider::class.java).factory
-val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")
-components.add(gradleApiComponent)
 
 // Published component containing the public Gradle API
+val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")
+components.add(gradleApiComponent)
 gradleApiComponent.addVariantsFromConfiguration(gradleApiElements.get()) {
+    mapToMavenScope("compile")
+}
+
+// Published component containing the legacypublic Gradle API
+val legacyGradleApiComponent = softwareComponentFactory.adhoc("legacyGradleApi")
+components.add(legacyGradleApiComponent)
+legacyGradleApiComponent.addVariantsFromConfiguration(legacyGradleApiElements.get()) {
     mapToMavenScope("compile")
 }

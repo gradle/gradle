@@ -372,7 +372,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/agents/gradle-instrumentation-agent-${baseVersion}.jar"))
 
         // Public API
-        assertIsGradleJar(contentsDir.file("lib/api/gradle-public-api-internal-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/api/gradle-public-api-legacy-${baseVersion}.jar"))
 
         // Docs
         contentsDir.file('README').assertIsFile()

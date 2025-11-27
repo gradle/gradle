@@ -41,6 +41,28 @@ dependencies {
     externalApi(libs.slf4jApi)
     // We only need this because of AntTarget :o
     externalApi(libs.ant)
+
+    // Modules that are part of the legacy gradleApi() dependency
+    // See DependencyClassPathProvider and DependencyClassPathNotationConverter
+    legacyExternalApi(libs.groovyAnt)
+    legacyExternalApi(libs.groovyAstbuilder)
+    legacyExternalApi(libs.groovyDatetime)
+    legacyExternalApi(libs.groovyDateUtil)
+    legacyExternalApi(libs.groovyDoc)
+    legacyExternalApi(libs.groovyJson)
+    legacyExternalApi(libs.groovyNio)
+    legacyExternalApi(libs.groovyTemplates)
+    legacyExternalApi(libs.groovyXml)
+    legacyExternalApi(libs.kotlinStdlib)
+    legacyExternalApi(libs.kotlinReflect)
+    legacyExternalApi(libs.nativePlatform)
+    legacyExternalApi(libs.log4jToSlf4j)
+}
+// These are relocated impldeps that we should exclude
+configurations.legacyExternalApi {
+    extendsFrom(configurations.externalApi.get())
+    exclude(module = "qdox")
+    exclude(module = "javaparser-core")
 }
 
 // The JAR built by this module includes the ABI of internals
@@ -58,6 +80,25 @@ configurations {
     gradleApiElements {
         outgoing {
             capability(internalBaseName.map { "$group:$it:$version" })
+        }
+    }
+}
+
+// Legacy Gradle API
+val legacyBaseName = gradleModule.identity.baseName.map { "$it-legacy" }
+tasks.jarGradleApiLegacy {
+    archiveBaseName = legacyBaseName
+}
+tasks.legacyClasspathManifest {
+    manifestFile = layout.buildDirectory.dir("generated-resources/legacy-classpath-manifest")
+        .zip(legacyBaseName) { dir, baseName ->
+            dir.file("$baseName-classpath.properties")
+        }
+}
+configurations {
+    legacyGradleApiElements {
+        outgoing {
+            capability(legacyBaseName.map { "$group:$it:$version" })
         }
     }
 }
