@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release brings [error and warning reporting improvements](#error-and-warning-reporting-improvements), with Problems API reports now rendered in the console when using `--warning-mode=all` and clearer explanations for some exit codes.
 
-It also adds [testing reporting improvements](#testing-improvements), including an improved HTML test report for nested, parameterized, and suite-based tests, with better aggregate reporting.
+It also adds [test reporting improvements](#test-reporting-improvements), including an improved HTML test report for nested, parameterized, and suite-based tests, with better aggregate reporting.
 
 Finally, [build authoring enhancements](#build-authoring-improvements) include a new method on `AttributeContainer` and a new streaming API in TestKit for efficiently reading build output.
 
@@ -105,7 +105,7 @@ signal, which is often caused by the system running out of memory)
 
 This makes it easier to understand failures caused by conditions such as running out of memory.
 
-### Testing reporting improvements
+### Test reporting improvements
 
 Gradle provides a [rich set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 

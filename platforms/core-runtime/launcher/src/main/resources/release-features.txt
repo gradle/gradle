@@ -1,3 +1,3 @@
  - Error and warning improvements
- - Testing reporting improvements
+ - Test reporting improvements
  - Build authoring improvements
