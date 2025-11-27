@@ -66,6 +66,7 @@ class PublishedPluginsStricterValidationIntegrationSpec extends AbstractIntegrat
         where:
         publishingPlugin                                  | _
         "id('maven-publish')"                             | _
+        "id('ivy-publish')"                               | _
         "id('com.gradle.plugin-publish') version '2.0.0'" | _
     }
 }
