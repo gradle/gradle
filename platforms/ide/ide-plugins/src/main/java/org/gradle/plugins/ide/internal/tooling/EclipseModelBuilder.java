@@ -265,7 +265,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             classpathEntries = classpath.getEntries();
         }
 
-        final Map<String, DefaultEclipseProjectDependency> projectDependencyMap = new HashMap<>();
+        final Map<String, DefaultEclipseProjectDependency> projectDependencyMap = new LinkedHashMap<>();
 
         for (ClasspathEntry entry : classpathEntries) {
             //we don't handle Variables at the moment because users didn't request it yet
