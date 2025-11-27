@@ -96,13 +96,19 @@ public final class CliTextPrinter {
 
 
     public static String renderHelp(BuildClientMetaData metaData, CommandLineParser parser, String suggestedTaskSelector) {
+        return renderHelp(metaData, parser, suggestedTaskSelector, true);
+    }
+
+    public static String renderHelp(BuildClientMetaData metaData, CommandLineParser parser, String suggestedTaskSelector, boolean includeProjectContextHelp) {
         StringWriter sw = new StringWriter();
         PrintWriter out = new PrintWriter(sw);
 
-        out.println();
-        out.print("To see help contextual to the project, use ");
-        metaData.describeCommand(out, "help");
-        out.println();
+        if (includeProjectContextHelp) {
+            out.println();
+            out.print("To see help contextual to the project, use ");
+            metaData.describeCommand(out, "help");
+            out.println();
+        }
 
         out.println();
         out.print("To see more detail about a task, run ");

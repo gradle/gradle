@@ -3,7 +3,7 @@
         {
             "type": "org.gradle.api.initialization.dsl.ScriptHandler",
             "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking(org.gradle.api.Action)",
-            "acceptation": "faulty since detection",
+            "acceptation": "Changes in ScriptHandler",
             "changes": [
                 "Method added to interface"
             ]
@@ -11,7 +11,7 @@
         {
             "type": "org.gradle.api.initialization.dsl.ScriptHandler",
             "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.repositories(org.gradle.api.Action)",
-            "acceptation": "de-incubating API",
+            "acceptation": "Changes in ScriptHandler",
             "changes": [
                 "Method added to interface"
             ]
@@ -27,7 +27,7 @@
         {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
-            "acceptation": "faulty since detection",
+            "acceptation": "Changes in ScriptHandlerScope",
             "changes": [
                 "Method added to public class"
             ]
@@ -35,17 +35,9 @@
         {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.repositories(org.gradle.api.Action)",
-            "acceptation": "faulty since detection",
+            "acceptation": "Changes in ScriptHandlerScope",
             "changes": [
                 "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.plugin.management.PluginRequest",
-            "member": "Method org.gradle.plugin.management.PluginRequest.getSelector()",
-            "acceptation": "No need to incubate",
-            "changes": [
-                "Method added to interface"
             ]
         },
         {

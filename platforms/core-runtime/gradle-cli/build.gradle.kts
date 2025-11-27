@@ -38,7 +38,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.commonsIo)
-    implementation(libs.ant)
+    testImplementation(libs.ant)
     runtimeOnly(libs.groovy)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)

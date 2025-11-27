@@ -170,7 +170,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             System.err.println();
             System.err.println(exception.getMessage());
-            String output = CliTextPrinter.renderHelp(clientMetaData(), parser, getSuggestedTaskSelector());
+            String output = CliTextPrinter.renderHelp(clientMetaData(), parser, getSuggestedTaskSelector(), false);
             System.err.print(output);
             executionListener.onFailure(exception);
         }
