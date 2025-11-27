@@ -12,11 +12,11 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release brings a set of [testing improvements](#testing-reporting-improvements), including a more detailed HTML test report for nested, parameterized, and suite-based tests, better aggregate reporting, and a new streaming API in TestKit for efficiently reading build output. 
+This release brings [error and warning reporting improvements](#error-and-warning-reporting-improvements), with Problems API reports now rendered in the console when using `--warning-mode=all` and clearer explanations for some exit codes.
 
-It also [enhances build authoring](#build-authoring-improvements) with a new `AttributeContainer.named()` convenience method for more concise attribute configuration. 
+It also adds [testing reporting improvements](#testing-improvements), including an improved HTML test report for nested, parameterized, and suite-based tests, with better aggregate reporting.
 
-Finally, there are [error and warning reporting improvements](#error-and-warning-reporting-improvements), with Problems API reports now rendered in the console when using `--warning-mode=all`.
+Finally, [build authoring enhancements](#build-authoring-improvements) include a new method on `AttributeContainer` and a new streaming API in TestKit for efficiently reading build output.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Adam](https://github.com/adam-enko),
