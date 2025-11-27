@@ -75,10 +75,9 @@ public class BuildStateFactory {
     public NestedBuildTree createNestedTree(
         BuildInvocationScopeId buildInvocationScopeId,
         BuildDefinition buildDefinition,
-        Path identityPath,
-        BuildState owner
+        Path identityPath
     ) {
-        return new DefaultNestedBuildTree(buildInvocationScopeId, buildDefinition, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+        return new DefaultNestedBuildTree(buildInvocationScopeId, buildDefinition, identityPath, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
     }
 
     public BuildDefinition buildDefinitionFor(File buildSrcDir, BuildState owner) {
