@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import org.junit.AssumptionViolatedException
 
@@ -172,7 +171,7 @@ class RetryConditions {
 
     static private boolean didSocketDisappearOnWindows(Throwable failure, Object specification, daemonsFixture, checkDaemonLogs = true) {
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): gradle/gradle#1111
-        if (isAffectedBySocketDisappearanceIssue() && daemonsFixture != null) {
+        if (daemonsFixture != null) {
             if (getRootCauseMessage(failure) == "An existing connection was forcibly closed by the remote host" ||
                 getRootCauseMessage(failure) == "An established connection was aborted by the software in your host machine" ||
                 getRootCauseMessage(failure) == "Connection refused: no further information") {
@@ -211,9 +210,5 @@ class RetryConditions {
             throwable = throwable.cause
         }
         list
-    }
-
-    static boolean isAffectedBySocketDisappearanceIssue() {
-        return new UnitTestPreconditions.IsKnownWindowsSocketDisappearanceIssue().isSatisfied()
     }
 }
