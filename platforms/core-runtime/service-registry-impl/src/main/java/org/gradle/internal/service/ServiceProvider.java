@@ -40,6 +40,7 @@ interface ServiceProvider extends Stoppable {
     Visitor getAll(Class<?> serviceType, @Nullable ServiceAccessToken token, Visitor visitor);
 
     interface Visitor {
+        @SuppressWarnings("ClassEscapesDefinedScope")
         void visit(Service service);
     }
 }

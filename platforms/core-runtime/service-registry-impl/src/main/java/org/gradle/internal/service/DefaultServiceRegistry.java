@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
 
@@ -37,14 +36,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.join;
 
@@ -61,7 +62,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * <p>Service interfaces should be annotated with {@link org.gradle.internal.service.scopes.ServiceScope} to indicate their intended usage.</p>
  *
  * <p>Service interfaces can be annotated with {@link org.gradle.internal.service.scopes.StatefulListener} to indicate that services instances that implement the interface should
- * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
+ * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that they should be
  * registered as a listener.</p>
  */
 public class DefaultServiceRegistry implements CloseableServiceRegistry, ContainsServices {
@@ -84,12 +85,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     private final ClassInspector inspector;
     private final OwnServices ownServices;
     private final ServiceProvider allServices;
-    private final ServiceProvider parentServices;
-    @Nullable
-    private final String displayName;
+    private final @Nullable ServiceProvider parentServices;
+    private final @Nullable String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
-    private final AtomicReference<State> state = new AtomicReference<State>(State.INIT);
+    private final AtomicReference<State> state = new AtomicReference<>(State.INIT);
 
     public DefaultServiceRegistry() {
         this(null, NO_PARENTS);
@@ -137,8 +137,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     /**
      * Allows a derived class to validate every service registration.
      */
+    @SuppressWarnings("ClassEscapesDefinedScope")
     protected void validate(SingletonService service) {}
 
+    @SuppressWarnings("ClassEscapesDefinedScope")
     @Override
     public ServiceProvider asProvider() {
         return thisAsServiceProvider;
@@ -306,7 +308,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     public void close() {
         noLongerMutable();
         if (state.compareAndSet(State.STARTED, State.CLOSED)) {
-            CompositeStoppable.stoppable(allServices).stop();
+            stoppable(allServices).stop();
         }
     }
 
@@ -351,7 +353,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     @Override
-    public Object find(Type serviceType) throws ServiceLookupException {
+    public @Nullable Object find(Type serviceType) throws ServiceLookupException {
         assertValidServiceType(unwrap(serviceType));
         Service provider = getService(serviceType);
         return provider == null ? null : provider.get();
@@ -367,8 +369,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
         assertValidServiceType(serviceType);
         serviceRequested();
-        List<T> services = new ArrayList<T>();
-        allServices.getAll(serviceType, null, new InstanceUnpackingVisitor<T>(serviceType, services));
+        List<T> services = new ArrayList<>();
+        allServices.getAll(serviceType, null, new InstanceUnpackingVisitor<>(serviceType, services));
         return services;
     }
 
@@ -406,17 +408,16 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private class OwnServices implements ServiceProvider {
-        private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
-        private final CompositeStoppable stoppable = new CompositeStoppable();
-        private final List<SingletonService> services = new ArrayList<SingletonService>();
-        private final List<AnnotatedServiceLifecycleHandler> lifecycleHandlers = new ArrayList<AnnotatedServiceLifecycleHandler>();
+        private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<>(16, 0.5f);
+        private final List<SingletonService> services = new ArrayList<>();
+        private final List<AnnotatedServiceLifecycleHandler> lifecycleHandlers = new ArrayList<>();
 
         public OwnServices() {
-            providersByType.put(ServiceRegistry.class, Collections.<ServiceProvider>singletonList(new ThisAsService(ServiceAccess.getPublicScope())));
+            providersByType.put(ServiceRegistry.class, Collections.singletonList(new ThisAsService(ServiceAccess.getPublicScope())));
         }
 
         @Override
-        public Service getService(Type type, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type type, @Nullable ServiceAccessToken token) {
             List<ServiceProvider> serviceProviders = getProviders(unwrap(type));
             if (serviceProviders.isEmpty()) {
                 return null;
@@ -425,7 +426,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 return serviceProviders.get(0).getService(type, token);
             }
 
-            List<Service> services = new ArrayList<Service>(serviceProviders.size());
+            List<Service> services = new ArrayList<>(serviceProviders.size());
             for (ServiceProvider serviceProvider : serviceProviders) {
                 Service service = serviceProvider.getService(type, token);
                 if (service != null) {
@@ -441,22 +442,21 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 return services.get(0);
             }
 
-            Set<String> descriptions = new TreeSet<String>();
-            for (Service candidate : services) {
-                descriptions.add(candidate.getDisplayName());
-            }
-
             Formatter formatter = new Formatter();
             formatter.format("Multiple services of type %s available in %s:", format(type), getDisplayName());
-            for (String description : descriptions) {
+            for (String description : sortedDisplayNamesOf(services)) {
                 formatter.format("%n   - %s", description);
             }
             throw new ServiceLookupException(formatter.toString());
         }
 
+        private List<String> sortedDisplayNamesOf(List<Service> services) {
+            return services.stream().map(Service::getDisplayName).sorted().collect(Collectors.toList());
+        }
+
         private List<ServiceProvider> getProviders(Class<?> type) {
             List<ServiceProvider> providers = providersByType.get(type);
-            return providers == null ? Collections.<ServiceProvider>emptyList() : providers;
+            return providers == null ? Collections.emptyList() : providers;
         }
 
         @Override
@@ -469,12 +469,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         @Override
         public void stop() {
-            stoppable.stop();
+            stoppable(services).stop();
         }
 
         public void add(SingletonService serviceProvider) {
             assertMutable();
-            stoppable.add(serviceProvider);
             collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
             services.add(serviceProvider);
             validate(serviceProvider);
@@ -501,7 +500,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         private void putServiceType(Class<?> type, ServiceProvider serviceProvider) {
             List<ServiceProvider> serviceProviders = providersByType.get(type);
             if (serviceProviders == null) {
-                serviceProviders = new ArrayList<ServiceProvider>(2);
+                serviceProviders = new ArrayList<>(2);
                 serviceProviders.add(serviceProvider);
                 providersByType.put(type, serviceProviders);
                 return;
@@ -585,7 +584,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private static Class<?> unwrap(Type type) {
         if (type instanceof Class) {
-            return (Class) type;
+            return uncheckedCast(type);
         } else {
             if (type instanceof WildcardType) {
                 final WildcardType wildcardType = (WildcardType) type;
@@ -594,14 +593,14 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 }
             }
             ParameterizedType parameterizedType = (ParameterizedType) type;
-            return (Class) parameterizedType.getRawType();
+            return uncheckedCast(parameterizedType.getRawType());
         }
     }
 
     private static abstract class ManagedObjectServiceProvider implements ServiceProvider, Service {
         protected final DefaultServiceRegistry owner;
-        private final Queue<ServiceProvider> dependents = new ConcurrentLinkedQueue<ServiceProvider>();
-        private volatile Object instance;
+        private final Queue<ServiceProvider> dependents = new ConcurrentLinkedQueue<>();
+        private volatile @Nullable Object instance;
 
         protected ManagedObjectServiceProvider(DefaultServiceRegistry owner) {
             this.owner = owner;
@@ -621,16 +620,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         public final Object getInstance() {
             Object result = instance;
-            if (result == null) {
-                synchronized (this) {
-                    result = instance;
-                    if (result == null) {
-                        setInstance(createServiceInstance());
-                        result = instance;
-                    }
-                }
+            if (result != null) {
+                return result;
             }
-            return result;
+            synchronized (this) {
+                result = instance;
+                if (result != null) {
+                    return result;
+                }
+                Object serviceInstance = createServiceInstance();
+                setInstance(serviceInstance);
+                return serviceInstance;
+            }
         }
 
         /**
@@ -652,8 +653,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         @Override
         public final synchronized void stop() {
             try {
+                Object instance = this.instance;
                 if (instance != null) {
-                    CompositeStoppable.stoppable(dependents).add(instance).stop();
+                    stoppable(dependents).add(instance).stop();
                 }
             } finally {
                 dependents.clear();
@@ -737,7 +739,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             if (!accessScope.contains(token)) {
                 return null;
             }
@@ -761,10 +763,15 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private static abstract class FactoryService extends SingletonService {
         private final ServiceAccessToken accessToken;
-        private Service[] paramServices;
-        private Service decorates;
+        private Service @Nullable [] paramServices;
+        private @Nullable Service decorates;
 
-        protected FactoryService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken accessToken, List<? extends Type> serviceTypes) {
+        protected FactoryService(
+            DefaultServiceRegistry owner,
+            ServiceAccessScope accessScope,
+            ServiceAccessToken accessToken,
+            List<? extends Type> serviceTypes
+        ) {
             super(owner, accessScope, serviceTypes);
             this.accessToken = accessToken;
         }
@@ -785,7 +792,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 Type paramType = parameterTypes[i];
                 if (isEqualToAnyType(paramType, serviceTypes)) {
                     // A decorating factory
-                    Service paramProvider = find(paramType, accessToken, owner.parentServices);
+                    ServiceProvider parentServices = owner.parentServices;
+                    Service paramProvider = parentServices != null
+                        ? find(paramType, accessToken, parentServices)
+                        : null;
                     if (paramProvider == null) {
                         throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
                             format("type", serviceTypes),
@@ -824,12 +834,16 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         protected Object createServiceInstance() {
             Object[] params = assembleParameters();
             Object result = invokeMethod(params);
-            // Can discard the state required to create instance
+            // Can discard the state required to create an instance
             paramServices = null;
             return result;
         }
 
         private Object[] assembleParameters() {
+            Service[] paramServices = this.paramServices;
+            if (paramServices == null) {
+                throw new IllegalStateException("Factory has not been bound yet!");
+            }
             if (paramServices == NO_DEPENDENTS) {
                 return NO_PARAMS;
             }
@@ -847,13 +861,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             if (decorates == null) {
                 return visitor;
             } else {
-                return new Visitor() {
-                    @Override
-                    public void visit(Service service) {
-                        // Ignore the decorated service
-                        if (service != decorates) {
-                            visitor.visit(service);
-                        }
+                return service -> {
+                    // Ignore the decorated service
+                    if (service != decorates) {
+                        visitor.visit(service);
                     }
                 };
             }
@@ -1071,7 +1082,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             for (ServiceProvider serviceProvider : serviceProviders) {
                 Service service = serviceProvider.getService(serviceType, token);
                 if (service != null) {
@@ -1092,7 +1103,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         @Override
         public void stop() {
             try {
-                CompositeStoppable.stoppable(Arrays.asList(serviceProviders)).stop();
+                stoppable(Arrays.asList(serviceProviders)).stop();
             } finally {
                 Arrays.fill(serviceProviders, null);
             }
@@ -1115,7 +1126,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             return parent.getService(serviceType, token);
         }
 
@@ -1173,9 +1184,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private static Service getCollectionService(Class<?> elementClass, @Nullable ServiceAccessToken token, ServiceProvider serviceProvider) {
         assertValidServiceType(elementClass);
-        List<Service> providers = new ArrayList<Service>();
+        List<Service> providers = new ArrayList<>();
         serviceProvider.getAll(elementClass, token, new CollectingVisitor(providers));
-        List<Object> services = new ArrayList<Object>(providers.size());
+        List<Object> services = new ArrayList<>(providers.size());
         for (Service service : providers) {
             services.add(service.get());
         }
@@ -1255,7 +1266,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         if (actual instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) actual;
             if (parameterizedType.getRawType() instanceof Class) {
-                return expectedClass.isAssignableFrom((Class) parameterizedType.getRawType());
+                return expectedClass.isAssignableFrom(uncheckedCast(parameterizedType.getRawType()));
             }
         } else if (actual instanceof Class) {
             Class<?> other = (Class<?>) actual;
@@ -1324,7 +1335,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             if (!accessScope.contains(token)) {
                 return null;
             }
@@ -1365,7 +1376,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private static class ClassInspector {
-        private final ConcurrentMap<Class<?>, ClassDetails> classes = new ConcurrentHashMap<Class<?>, ClassDetails>();
+        private final ConcurrentMap<Class<?>, ClassDetails> classes = new ConcurrentHashMap<>();
 
         /**
          * Does the given class have the given annotation somewhere in its hierarchy?
@@ -1392,14 +1403,14 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         private static class ClassDetails {
-            private final Set<Class<?>> types = new HashSet<Class<?>>();
-            private final ConcurrentMap<Class<? extends Annotation>, Boolean> annotations = new ConcurrentHashMap<Class<? extends Annotation>, Boolean>();
+            private final Set<Class<?>> types = new HashSet<>();
+            private final ConcurrentMap<Class<? extends Annotation>, Boolean> annotations = new ConcurrentHashMap<>();
 
             public ClassDetails(Class<?> type) {
                 collectTypes(type, types);
             }
 
-            private void collectTypes(@Nullable Class<?> type, Set<Class<?>> types) {
+            private static void collectTypes(@Nullable Class<?> type, Set<Class<?>> types) {
                 if (type == null || !types.add(type)) {
                     return;
                 }

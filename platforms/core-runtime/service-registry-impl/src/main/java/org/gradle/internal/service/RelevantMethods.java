@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
 import static org.gradle.util.internal.ArrayUtils.contains;
 
 class RelevantMethods {
-    private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<Class<?>, RelevantMethods>();
+    private static final ConcurrentMap<Class<?>, RelevantMethods> METHODS_CACHE = new ConcurrentHashMap<>();
     private static final ServiceMethodFactory SERVICE_METHOD_FACTORY = new DefaultServiceMethodFactory();
 
     final List<ServiceMethod> decorators;
@@ -51,11 +51,11 @@ class RelevantMethods {
 
     private static class RelevantMethodsBuilder {
         private final Class<?> type;
-        private final List<ServiceMethod> decorators = new ArrayList<ServiceMethod>();
-        private final List<ServiceMethod> factories = new ArrayList<ServiceMethod>();
-        private final List<ServiceMethod> configurers = new ArrayList<ServiceMethod>();
+        private final List<ServiceMethod> decorators = new ArrayList<>();
+        private final List<ServiceMethod> factories = new ArrayList<>();
+        private final List<ServiceMethod> configurers = new ArrayList<>();
 
-        private final Set<String> seen = new HashSet<String>();
+        private final Set<String> seen = new HashSet<>();
 
         public RelevantMethodsBuilder(Class<? extends ServiceRegistrationProvider> type) {
             this.type = type;
