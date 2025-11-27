@@ -3,9 +3,11 @@ import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.android-home-warmup")
 }
 
 val smokeTestSourceSet = sourceSets.create("smokeTest") {
@@ -44,6 +46,15 @@ dependencies {
     smokeTestImplementation(testFixtures(projects.modelReflect))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
+}
+
+androidHomeWarmup {
+    sdkVersions.set(
+        listOf(
+            // Build-tools 35.0.0 (used by AGP >= 8.8)
+            SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.13.1"),
+        ),
+    )
 }
 
 tasks {
@@ -156,6 +167,8 @@ tasks {
                 includeTestsMatching(santaTrackerTestPattern)
             }
         }
+
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
@@ -169,6 +182,8 @@ tasks {
                 includeTestsMatching(santaTrackerTestPattern)
             }
         }
+
+        dependsOn("androidHomeWarmup")
     }
 }
 
