@@ -34,6 +34,7 @@ import java.io.File;
 
 @ServiceScope(Scope.UserHome.class)
 public class GradleUserHomeCleanupService implements Stoppable {
+
     private final Deleter deleter;
     private final GradleUserHomeDirProvider userHomeDirProvider;
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
@@ -72,6 +73,17 @@ public class GradleUserHomeCleanupService implements Stoppable {
         if (wasCleanedUp) {
             execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
         }
+
+        // Cleanup daemon log files using the standard cleanup infrastructure
+        File daemonBaseDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), "daemon");
+        execute(
+            new DaemonLogsCleanupAction(
+                daemonBaseDir,
+                cacheConfigurations.getReleasedWrappers().getEntryRetentionTimestampSupplier(),
+                deleter
+            )
+        );
+
         alreadyCleaned = true;
     }
 
