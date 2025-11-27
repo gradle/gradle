@@ -49,6 +49,7 @@ dependencies {
 }
 
 androidHomeWarmup {
+    rootProjectDir = project.layout.projectDirectory.dir("../..")
     sdkVersions.set(
         listOf(
             // Build-tools 35.0.0 (used by AGP >= 8.8)
