@@ -84,7 +84,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
 
     def "is configured when passing a Develocity URL via environment variable"() {
         given:
-        executer.withEnvironmentVars(['COM_GRADLE_DEVELOCITY_URL': 'https://example.com'])
+        executer.withEnvironmentVars(['COM_GRADLE_DEVELOCITY_DEFAULT_URL': 'https://example.com'])
 
         when:
         succeeds "t"
@@ -99,7 +99,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
     def "is configured when passing a Develocity URL via properties"() {
         given:
         propertiesFile << """
-            com.gradle.develocity.url=https://example.com
+            com.gradle.develocity.default.url=https://example.com
         """
 
         when:
@@ -114,7 +114,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
 
     def "is configured when passing a Develocity URL on the CLI"() {
         when:
-        succeeds "t", "-Dcom.gradle.develocity.url=https://example.com"
+        succeeds "t", "--develocity-default-url=https://example.com"
 
         then:
         plugin.assertBuildScanRequest(output, NONE)
@@ -126,7 +126,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
     def "is suppressed when configuring a Develocity URL via properties and passing --no-scan"() {
         given:
         propertiesFile << """
-            com.gradle.develocity.url=https://example.com
+            com.gradle.develocity.default.url=https://example.com
         """
 
         when:
@@ -144,7 +144,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << plugin.plugins()
 
         when:
-        succeeds "t", "-Dcom.gradle.develocity.url=https://example.com"
+        succeeds "t", "--develocity-default-url=https://example.com"
 
         then:
         plugin.assertAutoApplied(output, false)
@@ -175,7 +175,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "t", "-Dcom.gradle.develocity.url=https://example.com", "--init-script", initScript.absolutePath
+        succeeds "t", "--develocity-default-url=https://example.com", "--init-script", initScript.absolutePath
 
         then:
         plugin.assertAutoApplied(output, true)
@@ -206,7 +206,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "t", "-Dcom.gradle.develocity.url=https://example.com", "--init-script", initScript.absolutePath
+        succeeds "t", "--develocity-default-url=https://example.com", "--init-script", initScript.absolutePath
 
         then:
         plugin.assertAutoApplied(output, false)
