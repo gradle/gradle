@@ -13,7 +13,7 @@ dependencies {
 
     publicAbiOnly(projects.publicApi) {
         capabilities {
-            requireCapability("org.gradle.experimental:gradle-public-api-internal")
+            requireCapability("org.gradle.experimental:gradle-public-api-legacy")
         }
     }
 

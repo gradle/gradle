@@ -24,7 +24,7 @@ import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 import java.util.jar.Attributes
 
-fun Project.configureGradleJarTasks() {
+fun Project.configureGradleModuleJarTasks() {
     val gradleModule = the<GradleModuleExtension>()
     tasks.withType<Jar>().configureEach {
         archiveBaseName = gradleModule.identity.baseName

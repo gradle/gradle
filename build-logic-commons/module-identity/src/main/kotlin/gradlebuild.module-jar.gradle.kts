@@ -1,6 +1,6 @@
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.identity.extension.GradleModuleExtension
-import gradlebuild.jar.configureGradleJarTasks
+import gradlebuild.jar.configureGradleModuleJarTasks
 
 plugins {
     id("gradlebuild.module-identity")
@@ -8,7 +8,7 @@ plugins {
 
 val gradleModule = the<GradleModuleExtension>()
 
-configureGradleJarTasks()
+configureGradleModuleJarTasks()
 
 pluginManager.withPlugin("java-base") {
     configureClasspathManifestGeneration()

@@ -208,7 +208,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
         assertHasErrorsInScriptModels(model,
             Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-public-api-internal")
+        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-public-api-legacy")
     }
 
     def "basic build with included build - broken build file in included build - intact plugins block"() {
@@ -270,7 +270,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasErrorsInScriptModels(model,
             Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
             Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-public-api-internal")
+        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-public-api-legacy")
     }
 
     @ToBeImplemented
