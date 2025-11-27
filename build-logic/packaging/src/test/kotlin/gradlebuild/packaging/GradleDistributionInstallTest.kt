@@ -226,7 +226,7 @@ class GradleDistributionInstallTest {
         val coreRuntimeClasspath by configurations.creating
         val runtimeClasspath by configurations.creating
         val agentsRuntimeClasspath by configurations.creating
-        val gradlePublicApiRuntimeClasspath by configurations.creating
+        val gradlePublicAbiClasspath by configurations.creating
 
         tasks.register("runtimeApiInfoJar", Jar::class){
             archiveVersion.set("8.2")
