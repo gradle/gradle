@@ -78,7 +78,9 @@ class KotlinScriptClassPathProvider(
 
     private
     val gradleAbiClasspath: ClassPath by lazy {
-        moduleRegistry.findModule("gradle-public-api-internal")
+        // Must match gradlebuild.basics.PublicApiVariants.LEGACY_MODULE_NAME in build-logic,
+        // which names the ABI jar shipped in the distribution's lib/api/ directory.
+        moduleRegistry.findModule("gradle-public-api-legacy")
             ?.allRequiredModulesClasspath
             ?.asFiles
             ?.let { files -> DefaultClassPath.of(files) }
