@@ -51,7 +51,7 @@ Daemon logs older than 14 days are now automatically cleaned up when the daemon 
 
 For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
 
-In order not to break your builds, this does not apply to local plugins (in `buildSrc` or a `build-logic` included build).
+In order not to break your builds, this does not apply to local plugins (in `buildSrc` or included builds containing build logic).
 However, we encourage you to always enable stricter validation:
 
 ```kotlin
