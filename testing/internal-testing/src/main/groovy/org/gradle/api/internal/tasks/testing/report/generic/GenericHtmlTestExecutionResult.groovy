@@ -29,6 +29,7 @@ import com.google.common.collect.Streams
 import org.gradle.api.Action
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.lazy.Lazy
+import org.gradle.internal.time.TimeFormatting
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
@@ -37,6 +38,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
 import java.nio.file.Files
+import java.time.Duration
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
@@ -244,6 +246,12 @@ Unexpected paths: ${unexpectedPaths}""")
 
                     @Override
                     TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher) {
                         assert false
                         return this
                     }
@@ -638,6 +646,16 @@ Unexpected paths: ${unexpectedPaths}""")
         @Override
         TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
             assertThat("in " + displayName, getFailureMessages(), matcher)
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher) {
+            def durationText = html.selectFirst('.summary .infoBox.duration .counter').text()
+            def durationTexts = durationText.split(' ')
+            assertThat("multiple durations in " + displayName, durationTexts.length, equalTo(1))
+            def duration = TimeFormatting.parseDurationVeryTerse(durationTexts[0])
+            assertThat("in " + displayName, duration, matcher)
             return this
         }
 
