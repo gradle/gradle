@@ -144,7 +144,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         val programHost = safeMockProgramHost {
             on { accessorsClassPathFor(scriptHost) } doReturn ClassPath.EMPTY
         }
-        val stage2ProgramId = ProgramId(stage2SettingsTemplateId, sourceHash, mock())
+        val stage2ProgramId = ProgramId(stage2SettingsTemplateId, scriptHost.scriptSource.fileName, scriptHost.scriptSource.className, sourceHash, mock())
 
         withExecutableProgramFor(
             Dynamic(Static(CloseTargetScope), source),
@@ -628,7 +628,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         }
 
         val scriptTemplateId = "Project/TopLevel/stage2"
-        val programId = ProgramId(scriptTemplateId, sourceHash, mock())
+        val programId = ProgramId(scriptTemplateId, scriptHost.scriptSource.fileName, scriptHost.scriptSource.className, sourceHash, mock())
 
         private
         fun verifyStandardOutput(program: ExecutableProgram) {
