@@ -18,7 +18,6 @@ package org.gradle.internal.execution;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import org.gradle.cache.Cache;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
@@ -58,7 +57,7 @@ public interface ExecutionEngine {
          * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
          * The work is looked up by its {@link Identity identity} in the given cache.
          */
-        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, DeferredResult<T>> cache);
+        <T> Deferrable<Try<T>> executeDeferred(IdentityCache<T> cache);
     }
 
     interface Result {
