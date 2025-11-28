@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,46 +16,14 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.snapshot.ValueSnapshot;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
-public class BeforeExecutionContext extends PreviousExecutionContext {
-    @Nullable
-    private final BeforeExecutionState beforeExecutionState;
-
-    public BeforeExecutionContext(PreviousExecutionContext parent, @Nullable BeforeExecutionState beforeExecutionState) {
-        super(parent);
-        this.beforeExecutionState = beforeExecutionState;
-    }
-
-    protected BeforeExecutionContext(BeforeExecutionContext parent) {
-        this(parent, parent.getBeforeExecutionState().orElse(null));
-    }
-
+public interface BeforeExecutionContext extends IdentifyingContext {
     /**
      * Returns the execution state before execution.
      * Empty if execution state was not observed before execution.
      */
-    public Optional<BeforeExecutionState> getBeforeExecutionState() {
-        return Optional.ofNullable(beforeExecutionState);
-    }
-
-    @Override
-    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-        return getBeforeExecutionState()
-            .map(BeforeExecutionState::getInputProperties)
-            .orElseGet(super::getInputProperties);
-    }
-
-    @Override
-    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-        return getBeforeExecutionState()
-            .map(BeforeExecutionState::getInputFileProperties)
-            .orElseGet(super::getInputFileProperties);
-    }
+    Optional<BeforeExecutionState> getBeforeExecutionState();
 }

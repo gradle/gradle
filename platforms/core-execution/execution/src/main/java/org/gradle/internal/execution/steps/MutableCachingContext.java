@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,22 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingState;
 
-public class NoInputChangesStep<C extends ValidationFinishedContext & CachingContext, R extends Result> implements Step<C, R> {
-    private final Step<? super InputChangesContext, ? extends R> delegate;
+public class MutableCachingContext extends MutableChangesContext implements CachingContext {
 
-    public NoInputChangesStep(Step<? super InputChangesContext, ? extends R> delegate) {
-        this.delegate = delegate;
+    private final CachingState cachingState;
+
+    public MutableCachingContext(MutableChangesContext parent, CachingState cachingState) {
+        super(parent);
+        this.cachingState = cachingState;
     }
 
+    /**
+     * The resolved state of caching for the work.
+     */
     @Override
-    public R execute(UnitOfWork work, C context) {
-        return delegate.execute(work, new InputChangesContext(context, null, context.getCachingState()));
+    public CachingState getCachingState() {
+        return cachingState;
     }
 }

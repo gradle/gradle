@@ -19,28 +19,19 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.UnitOfWork
 
-class CaptureNonIncrementalStateBeforeExecutionStepTest extends AbstractCaptureStateBeforeExecutionStepTest<PreviousExecutionContext> {
+class CaptureImmutableStateBeforeExecutionStepTest extends StepSpec<WorkspaceContext> {
 
-    AbstractCaptureStateBeforeExecutionStep<PreviousExecutionContext, CachingResult> step
-        = new CaptureNonIncrementalStateBeforeExecutionStep(buildOperationRunner, classloaderHierarchyHasher, delegate)
-
-    def setup() {
-        _ * work.inputFingerprinter >> inputFingerprinter
-    }
+    final step = new CaptureImmutableStateBeforeExecutionStep(delegate)
 
     def "output file properties are snapshotted as empty"() {
         when:
         step.execute(work, context)
 
         then:
-        interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as ImmutableBeforeExecutionContext) >> { UnitOfWork work, ImmutableBeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
-            assert !state.detectedOverlappingOutputs.present
             assert state.outputFileLocationSnapshots == ImmutableSortedMap.of()
         }
         0 * _
-
-        assertOperation()
     }
 }

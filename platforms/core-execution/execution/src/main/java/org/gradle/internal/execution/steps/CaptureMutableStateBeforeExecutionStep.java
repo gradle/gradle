@@ -16,56 +16,65 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor;
+import org.gradle.internal.execution.MutableUnitOfWork;
+import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionInputState;
+import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
-public abstract class AbstractCaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCaptureStateBeforeExecutionStep.class);
+import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS;
 
-    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final Step<? super BeforeExecutionContext, ? extends R> delegate;
+public class CaptureMutableStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
+    private final OutputSnapshotter outputSnapshotter;
+    private final OverlappingOutputDetector overlappingOutputDetector;
+    private final Step<? super MutableBeforeExecutionContext, ? extends R> delegate;
 
-    public AbstractCaptureStateBeforeExecutionStep(
+    public CaptureMutableStateBeforeExecutionStep(
         BuildOperationRunner buildOperationRunner,
-        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        Step<? super BeforeExecutionContext, ? extends R> delegate
+        OutputSnapshotter outputSnapshotter,
+        OverlappingOutputDetector overlappingOutputDetector,
+        Step<? super MutableBeforeExecutionContext, ? extends R> delegate
     ) {
         super(buildOperationRunner);
-        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.outputSnapshotter = outputSnapshotter;
+        this.overlappingOutputDetector = overlappingOutputDetector;
         this.delegate = delegate;
     }
 
     @Override
     public R execute(UnitOfWork work, C context) {
+        // TODO Make steps generic over mutable and immutable work
+        return executeMutable((MutableUnitOfWork) work, context);
+    }
+
+    private R executeMutable(MutableUnitOfWork work, C context) {
         BeforeExecutionState beforeExecutionState;
-        if (context.shouldCaptureBeforeExecutionState()) {
+        OverlappingOutputs overlappingOutputs;
+        boolean shouldCaptureBeforeExecutionState = work.getHistory().isPresent();
+        if (shouldCaptureBeforeExecutionState) {
             beforeExecutionState = captureExecutionState(work, context);
+            overlappingOutputs = detectOverlappingOutputs(work, context, beforeExecutionState.getOutputFileLocationSnapshots());
         } else {
             beforeExecutionState = null;
+            overlappingOutputs = null;
             // We still need to visit the inputs to ensure that the dependencies are validated
             work.visitMutableInputs(new InputVisitor() {
                 @Override
@@ -74,18 +83,15 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
                 }
             });
         }
-        return delegate.execute(work, new BeforeExecutionContext(context, beforeExecutionState));
+        return delegate.execute(work, new MutableBeforeExecutionContext(context, beforeExecutionState, overlappingOutputs));
     }
 
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
         // TODO Remove once IntelliJ stops complaining about possible NPE
         //noinspection DataFlowIssue
         return operation(operationContext -> {
-                ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = captureOutputSnapshots(work, context);
-
-                OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(work, context, unfilteredOutputSnapshots);
-
-                BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots, overlappingOutputs);
+                ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
+                BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return executionState;
             },
@@ -95,23 +101,18 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         );
     }
 
-    abstract protected ImmutableSortedMap<String, FileSystemSnapshot> captureOutputSnapshots(UnitOfWork work, WorkspaceContext context);
-
     @Nullable
-    abstract protected OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots);
-
-    private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
-        // TODO We should probably capture these during identify step
-        ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
-        work.visitImplementations(implementationsBuilder);
-        ImplementationSnapshot implementation = implementationsBuilder.getImplementation();
-        ImmutableList<ImplementationSnapshot> additionalImplementations = implementationsBuilder.getAdditionalImplementations();
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Implementation for {}: {}", work.getDisplayName(), implementation);
-            LOGGER.debug("Additional implementations for {}: {}", work.getDisplayName(), additionalImplementations);
+    private OverlappingOutputs detectOverlappingOutputs(MutableUnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
+        if (work.getOverlappingOutputHandling() == IGNORE_OVERLAPS) {
+            return null;
         }
+        ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = context.getPreviousExecutionState()
+            .map(PreviousExecutionState::getOutputFilesProducedByWork)
+            .orElse(ImmutableSortedMap.of());
+        return overlappingOutputDetector.detect(previousOutputSnapshots, unfilteredOutputSnapshots);
+    }
 
+    private static BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
         Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
         ImmutableSortedMap<String, ValueSnapshot> previousInputPropertySnapshots = previousExecutionState
             .map(ExecutionInputState::getInputProperties)
@@ -130,45 +131,12 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
         );
 
         return new DefaultBeforeExecutionState(
-            implementation,
-            additionalImplementations,
+            context.getImplementation(),
+            context.getAdditionalImplementations(),
             newInputs.getAllValueSnapshots(),
             newInputs.getAllFileFingerprints(),
-            unfilteredOutputSnapshots,
-            overlappingOutputs
+            unfilteredOutputSnapshots
         );
-    }
-
-    private static class ImplementationsBuilder implements ImplementationVisitor {
-        private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-        @Nullable
-        private ImplementationSnapshot implementation;
-        private final ImmutableList.Builder<ImplementationSnapshot> additionalImplementations = ImmutableList.builder();
-
-        public ImplementationsBuilder(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-            this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        }
-
-        @Override
-        public void visitImplementation(Class<?> implementation) {
-            this.implementation = ImplementationSnapshot.of(implementation, classLoaderHierarchyHasher);
-        }
-
-        @Override
-        public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
-            this.additionalImplementations.add(implementation);
-        }
-
-        public ImplementationSnapshot getImplementation() {
-            if (implementation == null) {
-                throw new IllegalStateException("No implementation is set");
-            }
-            return implementation;
-        }
-
-        public ImmutableList<ImplementationSnapshot> getAdditionalImplementations() {
-            return additionalImplementations.build();
-        }
     }
 
     /*
