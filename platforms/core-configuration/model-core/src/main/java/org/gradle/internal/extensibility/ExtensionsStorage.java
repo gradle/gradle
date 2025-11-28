@@ -16,6 +16,7 @@
 
 package org.gradle.internal.extensibility;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.ExtensionsSchema;
@@ -52,6 +53,10 @@ public class ExtensionsStorage {
             rawExtensions.put(entry.getKey(), entry.getValue().get());
         }
         return rawExtensions;
+    }
+
+    public ImmutableMap<String, ExtensionHolder<?>> getHoldersAsMap() {
+        return ImmutableMap.copyOf(extensions);
     }
 
     public ExtensionsSchema getSchema() {
@@ -148,7 +153,7 @@ public class ExtensionsStorage {
         throw new UnknownDomainObjectException("Extension with name '" + name + "' does not exist. Currently registered extension names: " + extensions.keySet());
     }
 
-    private static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {
+    public static class ExtensionHolder<T> implements ExtensionsSchema.ExtensionSchema {
         private final String name;
         private final TypeOf<T> publicType;
         protected final T extension;

@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.internal.extensibility.ExtensionsStorage;
 
 import java.util.Map;
 
@@ -26,4 +28,6 @@ public interface ExtensionContainerInternal extends ExtensionContainer {
      * @return A map of extensions, keyed by name.
      */
     Map<String, Object> getAsMap();
+
+    ImmutableMap<String, ExtensionsStorage.ExtensionHolder<?>> getHoldersAsMap();
 }
