@@ -159,6 +159,13 @@ trait LanguageSpecificTestFileFixture {
     }
 
     /**
+     * <b>Appends</b> provided content to the {@link #getPropertiesFile() gradle.properties file}.
+     */
+    TestFile propertiesFile(@Language("properties") String append) {
+        propertiesFile << append
+    }
+
+    /**
      * Provides syntax highlighting for the snippet of the build script code.
      *
      * @return the same snippet
