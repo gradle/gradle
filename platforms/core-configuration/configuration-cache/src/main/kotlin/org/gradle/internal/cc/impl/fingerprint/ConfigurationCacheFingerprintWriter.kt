@@ -16,8 +16,6 @@
 
 package org.gradle.internal.cc.impl.fingerprint
 
-import com.google.common.collect.Sets.newConcurrentHashSet
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -156,31 +154,31 @@ class ConfigurationCacheFingerprintWriter(
     val projectForThread = ThreadLocal<ProjectScopedSink>()
 
     private
-    val projectDependencies = newConcurrentHashSet<ProjectSpecificFingerprint>()
+    val projectDependencies = newAtomicSet<ProjectSpecificFingerprint>()
 
     private
-    val undeclaredSystemProperties = newConcurrentHashSet<String>()
+    val undeclaredSystemProperties = newAtomicSet<String>()
 
     private
-    val systemPropertiesPrefixedBy = newConcurrentHashSet<String>()
+    val systemPropertiesPrefixedBy = newAtomicSet<String>()
 
     private
-    val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
+    val undeclaredEnvironmentVariables = newAtomicSet<String>()
 
     private
-    val environmentVariablesPrefixedBy = newConcurrentHashSet<String>()
+    val environmentVariablesPrefixedBy = newAtomicSet<String>()
 
     private
-    val reportedFiles = newConcurrentHashSet<File>()
+    val reportedFiles = newAtomicSet<File>()
 
     private
-    val reportedDirectories = newConcurrentHashSet<File>()
+    val reportedDirectories = newAtomicSet<File>()
 
     private
-    val reportedFileSystemEntries = newConcurrentHashSet<File>()
+    val reportedFileSystemEntries = newAtomicSet<File>()
 
     private
-    val reportedValueSources = newConcurrentHashSet<String>()
+    val reportedValueSources = newAtomicSet<String>()
 
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
@@ -243,10 +241,10 @@ class ConfigurationCacheFingerprintWriter(
     class FineGrainedPropertyTracking : PropertyTracking {
 
         private
-        val gradleProperties = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+        val gradleProperties = ConcurrentHashMap<GradlePropertyScope, AtomicSet<String>>()
 
         private
-        val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+        val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, AtomicSet<String>>()
 
         override fun shouldTrackPropertyAccess(propertyScope: GradlePropertyScope, propertyName: String): Boolean =
             (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)
@@ -257,11 +255,11 @@ class ConfigurationCacheFingerprintWriter(
 
         private
         fun shouldTrackGradlePropertyInput(
-            keysPerScope: ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>,
+            keysPerScope: ConcurrentHashMap<GradlePropertyScope, AtomicSet<String>>,
             propertyScope: GradlePropertyScope,
             propertyKey: String
         ): Boolean = keysPerScope
-            .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
+            .computeIfAbsent(propertyScope) { newAtomicSet() }
             .add(propertyKey)
     }
 
@@ -880,18 +878,18 @@ class ConfigurationCacheFingerprintWriter(
     abstract class Sink(
         private val host: Host
     ) {
-        val capturedFiles: MutableSet<File> = newConcurrentHashSet()
-        val capturedDirectories: MutableSet<File> = newConcurrentHashSet()
-        val capturedFileSystemEntries: MutableSet<File> = newConcurrentHashSet()
+        val capturedFiles = newAtomicSet<File>()
+        val capturedDirectories = newAtomicSet<File>()
+        val capturedFileSystemEntries = newAtomicSet<File>()
 
         private
-        val undeclaredSystemProperties = newConcurrentHashSet<String>()
+        val undeclaredSystemProperties = newAtomicSet<Any>()
 
         private
-        val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
+        val undeclaredEnvironmentVariables = newAtomicSet<String>()
 
         private
-        val remoteScriptsUris = newConcurrentHashSet<URI>()
+        val remoteScriptsUris = newAtomicSet<URI>()
 
         fun captureFile(file: File) {
             if (!capturedFiles.add(file)) {
@@ -1056,20 +1054,6 @@ class ConfigurationCacheFingerprintWriter(
             reportGradlePropertyInput(propertyScope, propertyName)
         }
     }
-
-    private
-    fun shouldTrackGradlePropertyInput(
-        keysPerScope: ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>,
-        propertyScope: GradlePropertyScope,
-        propertyKey: String
-    ): Boolean = keysPerScope
-        .computeIfAbsent(propertyScope) {
-            ObjectOpenHashSet()
-        }.let { keys ->
-            synchronized(keys) {
-                keys.add(propertyKey)
-            }
-        }
 
     private
     fun reportGradlePropertyInput(
