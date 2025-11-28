@@ -34,7 +34,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -74,7 +73,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -341,11 +340,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     private byte[] createChecksumFile(File src, String algorithm) {
         HashCode hash = checksumService.hash(src, algorithm);
         String formattedHashString = hash.toString();
-        try {
-            return formattedHashString.getBytes("US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return formattedHashString.getBytes(StandardCharsets.US_ASCII);
     }
 
     public List<String> getIvyPatterns() {

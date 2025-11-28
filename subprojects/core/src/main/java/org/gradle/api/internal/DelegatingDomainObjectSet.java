@@ -171,7 +171,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
-    public <T> T[] toArray(T[] a) {
+    public <S> S[] toArray(S[] a) {
         return delegate.toArray(a);
     }
 

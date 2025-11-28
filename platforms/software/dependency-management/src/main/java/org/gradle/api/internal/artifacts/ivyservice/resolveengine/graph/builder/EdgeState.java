@@ -431,6 +431,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Nullable
     @Override
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Long getSelectedVariant() {
         NodeState node = getSelectedNode();
         if (node == null) {

@@ -23,6 +23,7 @@ import org.jspecify.annotations.NullMarked;
 import java.util.Set;
 
 @NullMarked
+@SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
 public class StrictVersionConstraints {
 
     public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints(ImmutableSet.of()) {
