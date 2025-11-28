@@ -21,8 +21,12 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
+import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
+
 
 class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
 
@@ -47,6 +51,37 @@ class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest imp
             ":RunCukesTest:feature_classpath_features/helloworld.feature:Say hello /two/three",
             ":RunCukesTest:feature_classpath_features/secondhello.feature:Say hi /two/three",
         )
+    }
+
+    @Requires(value = UnitTestPreconditions.NotWindows, reason = "Cannot use ':' in file names on Windows")
+    def junit5SuiteNameClash() {
+        given:
+        // Has exact same content as my_thing.feature, but with different Feature name
+        testDirectory.file("src/test/resources/features/my:thing.feature").text = '''
+Feature: Another Thing
+
+    @bar
+    Scenario: A Scenario
+        Given I have a hello app with Howdy and /four
+        When I ask it to say hi and /five/six/seven
+        Then it should answer with Howdy World
+
+        '''
+
+        when:
+        run "test"
+
+        then:
+        executedAndNotSkipped(":test")
+
+        and:
+        def testResults = resultsFor()
+        testResults.assertTestPathsExecuted(
+            ":RunCukesTest:feature_classpath_features/my_thing.feature:A Scenario",
+        )
+        // "Another Thing" comes first due to lexical ordering of '_' vs ':'
+        testResults.testPath(":RunCukesTest:feature_classpath_features/my_thing.feature").onlyRoot()
+            .assertDisplayName(Matchers.is("Another Thing / My Thing"))
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2739")

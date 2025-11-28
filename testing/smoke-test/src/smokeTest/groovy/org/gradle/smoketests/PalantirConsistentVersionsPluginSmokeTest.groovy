@@ -18,26 +18,10 @@ package org.gradle.smoketests
 
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 
 @Requires(UnitTestPreconditions.Jdk11OrLater)
 class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
-    /*
-      TODO: Until all the commented out deprecations (which became failures in Gradle 9.0) are fixed in a new version of the plugin,
-      this test will fail in many, many ways.  We just expect the first one, so that in case a new version of the plugin is released and
-      fixes it we'll notice.
-
-> Method call not allowed
-    Calling setCanBeConsumed(true) on configuration ':compileClasspathCopy' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.
-
-Called here: https://github.com/tresat/gradle-consistent-versions/blob/develop/src/main/java/com/palantir/gradle/versions/VersionsLockPlugin.java#L662
-due to:
-https://github.com/tresat/gradle-consistent-versions/blob/23e53fa3b6f7071df8788cecbaeac16f93e90660/src/main/java/com/palantir/gradle/versions/VersionsLockPlugin.java#L640
-because of:
-https://github.com/tresat/gradle-consistent-versions/blob/23e53fa3b6f7071df8788cecbaeac16f93e90660/src/main/java/com/palantir/gradle/versions/VersionsLockPlugin.java#L609
-    */
-    @ToBeImplemented("see commented out deprecations - all are not failures in Gradle 9.0")
     def 'basic functionality'() {
         given:
         buildFile << """
@@ -63,13 +47,15 @@ https://github.com/tresat/gradle-consistent-versions/blob/23e53fa3b6f7071df8788c
         file("versions.props") << "com.google.guava:guava = 17.0"
 
         when:
-        SmokeTestGradleRunner.SmokeTestBuildResult result = runner('--write-locks')
-            // They are doing some weird stuff in an afterEvaluate
-            // See: https://github.com/palantir/gradle-consistent-versions/blob/28a604723c936f5c93c6591e144c4a1731d570ad/src/main/java/com/palantir/gradle/versions/VersionsLockPlugin.java#L277
-            // Previously, we expected a ton of deprecation warnings, but with 9.0 this plugin just fails.  Check the history to see them.
-            .buildAndFail()
+        runner('--write-locks').build()
+
         then:
-        result.getOutput().contains("Failed to notify project evaluation listener.")
-        result.getOutput().contains("'org.gradle.api.Project org.gradle.api.artifacts.ProjectDependency.getDependencyProject()'")
+        file("versions.lock").exists()
+
+        when:
+        def result = runner("other:dependencies").build()
+
+        then:
+        result.output.contains("com.google.guava:guava -> 17.0")
     }
 }

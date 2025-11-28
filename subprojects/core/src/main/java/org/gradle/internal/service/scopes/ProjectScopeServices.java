@@ -366,7 +366,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
-        return ConfigurationTargetIdentifier.of(project);
+        return ConfigurationTargetIdentifier.of(project.getProjectIdentity());
     }
 
     @Provides

@@ -81,17 +81,17 @@ class EdgeState implements DependencyGraphEdge {
         this.isConstraint = dependencyMetadata.isConstraint();
     }
 
-    void computeSelector(StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges, boolean deferSelection) {
+    boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions, boolean deferSelection) {
         boolean ignoreVersion = !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
         SelectorState newSelector = resolveState.computeSelectorFor(dependencyState, ignoreVersion);
         if (this.selector != newSelector) {
             clearSelector();
             newSelector.use(deferSelection);
             this.selector = newSelector;
-
-            // The selector changed. We need to perform selection.
-            discoveredEdges.add(this);
+            return true;
         }
+
+        return false;
     }
 
     public void clearSelector() {
@@ -431,6 +431,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Nullable
     @Override
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Long getSelectedVariant() {
         NodeState node = getSelectedNode();
         if (node == null) {
@@ -512,7 +513,9 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     void recomputeSelectorAndRequeueTargetNodes(StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
-        computeSelector(ancestorsStrictVersions, discoveredEdges, false);
+        if (computeSelector(ancestorsStrictVersions, false)) {
+            discoveredEdges.add(this);
+        }
         // TODO: If we compute the selector for this edge and it changes, we shouldn't add the (potentially) invalid target nodes to the queue.
         // If we added this edge to `discoveredEdges`, then we will recompute target nodes and there is no point in adding the current target nodes to the queue.
         for (NodeState targetNode : targetNodes) {

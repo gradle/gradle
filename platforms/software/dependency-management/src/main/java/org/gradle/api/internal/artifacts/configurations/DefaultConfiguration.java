@@ -1271,6 +1271,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (!isProperUsage(properUsages)) {
             String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
             String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
+            @SuppressWarnings("InlineFormatString")
             String msgTemplate = "Calling configuration method '%s' is not allowed for configuration '%s', which has permitted usage(s):\n" +
                 "%s\n" +
                 "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";

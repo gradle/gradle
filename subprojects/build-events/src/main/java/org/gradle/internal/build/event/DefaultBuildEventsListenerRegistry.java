@@ -200,7 +200,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         private final UserCodeSource registrationPoint;
         private final ManagedExecutor executor;
         private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
-        private final AtomicReference<Exception> failure = new AtomicReference<>();
+        private final AtomicReference<Throwable> failure = new AtomicReference<>();
 
         public AbstractListener(@Nullable UserCodeSource registrationPoint, ExecutorFactory executorFactory) {
             this.registrationPoint = registrationPoint;
@@ -226,8 +226,8 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
                 }
                 try {
                     handle(Cast.uncheckedNonnullCast(next));
-                } catch (Exception e) {
-                    failure.set(e);
+                } catch (Throwable t) {
+                    failure.set(t);
                     break;
                 }
             }
@@ -251,7 +251,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         public void close() {
             events.add(END);
             executor.stop(60, TimeUnit.SECONDS);
-            Exception failure = this.failure.get();
+            Throwable failure = this.failure.get();
             if (failure != null) {
                 throw UncheckedException.throwAsUncheckedException(failure);
             }

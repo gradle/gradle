@@ -1,3 +1,44 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.initialization.dsl.ScriptHandler",
+            "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking(org.gradle.api.Action)",
+            "acceptation": "faulty since detection",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.initialization.dsl.ScriptHandler",
+            "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.repositories(org.gradle.api.Action)",
+            "acceptation": "de-incubating API",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
+            "acceptation": "Internal and unpublished API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
+            "acceptation": "faulty since detection",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.repositories(org.gradle.api.Action)",
+            "acceptation": "faulty since detection",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
 }

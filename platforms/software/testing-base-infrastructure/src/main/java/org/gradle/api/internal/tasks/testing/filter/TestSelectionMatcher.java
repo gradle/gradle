@@ -17,11 +17,17 @@ package org.gradle.api.internal.tasks.testing.filter;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
 
-import java.util.ArrayList;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.splitPreserveAllTokens;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
@@ -36,26 +42,83 @@ import static org.apache.commons.lang3.StringUtils.substringAfterLast;
  * </ul>
  *
  * In both cases, if the pattern starts with an upper-case letter, it will be used to match
- * simple class name;
- * otherwise, it will be used to match full qualified class name.
+ * the simple class name;
+ * otherwise, it will be used to match the fully qualified class name.
  */
 public class TestSelectionMatcher {
-    private final List<TestPattern> buildScriptIncludePatterns;
-    private final List<TestPattern> buildScriptExcludePatterns;
-    private final List<TestPattern> commandLineIncludePatterns;
+    private final List<ClassTestPattern> buildScriptIncludePatterns;
+    private final List<ClassTestPattern> buildScriptExcludePatterns;
+    private final List<ClassTestPattern> commandLineIncludePatterns;
+
+    private final List<FileTestPattern> pathBuildScriptIncludePatterns;
+    private final List<FileTestPattern> pathBuildScriptExcludePatterns;
+    private final List<FileTestPattern> pathCommandLineIncludePatterns;
 
     public TestSelectionMatcher(TestFilterSpec filter) {
-        buildScriptIncludePatterns = preparePatternList(filter.getIncludedTests());
-        buildScriptExcludePatterns = preparePatternList(filter.getExcludedTests());
-        commandLineIncludePatterns = preparePatternList(filter.getIncludedTestsCommandLine());
+        buildScriptIncludePatterns = prepareClassBasedPatternList(filter.getIncludedTests());
+        buildScriptExcludePatterns = prepareClassBasedPatternList(filter.getExcludedTests());
+        commandLineIncludePatterns = prepareClassBasedPatternList(filter.getIncludedTestsCommandLine());
+
+        pathBuildScriptIncludePatterns = preparePathBasedPatternList(filter.getIncludedTests());
+        pathBuildScriptExcludePatterns = preparePathBasedPatternList(filter.getExcludedTests());
+        pathCommandLineIncludePatterns = preparePathBasedPatternList(filter.getIncludedTestsCommandLine());
     }
 
-    private List<TestPattern> preparePatternList(Collection<String> includedTests) {
-        List<TestPattern> includePatterns = new ArrayList<TestPattern>(includedTests.size());
-        for (String includedTest : includedTests) {
-            includePatterns.add(new TestPattern(includedTest));
+    private static List<ClassTestPattern> prepareClassBasedPatternList(Collection<String> includedTests) {
+        return preparePatternList(includedTests, TestSelectionMatcher::isClassBasedPattern, ClassTestPattern::new);
+    }
+
+    private static List<FileTestPattern> preparePathBasedPatternList(Collection<String> includedTests) {
+        return preparePatternList(includedTests, TestSelectionMatcher::isPathBasedPattern, FileTestPattern::new);
+    }
+
+    private static <T> List<T> preparePatternList(Collection<String> includedTests, Predicate<String> patternFilter, Function<String, T> patternCreator) {
+        return includedTests.stream()
+            .filter(patternFilter)
+            .map(patternCreator)
+            .collect(Collectors.toList());
+    }
+
+    private static boolean isClassBasedPattern(String pattern) {
+        return !isPathBasedPattern(pattern);
+    }
+
+    private static boolean isPathBasedPattern(String pattern) {
+        return pattern.contains("/"); // Only Unix-style paths are supported in test selection patterns
+    }
+
+    public boolean hasClassBasedFilters() {
+        return !buildScriptIncludePatterns.isEmpty() || !buildScriptExcludePatterns.isEmpty() || !commandLineIncludePatterns.isEmpty();
+    }
+
+    public boolean hasPathBasedFilters() {
+        return !pathBuildScriptIncludePatterns.isEmpty() || !pathBuildScriptExcludePatterns.isEmpty() || !pathCommandLineIncludePatterns.isEmpty();
+    }
+
+    public boolean matchesPath(Path path) {
+        return isIncludedPath(path) && !isExcludedPath(path);
+    }
+
+    private boolean isIncludedPath(Path path) {
+        boolean isImplicitlyIncluded = pathBuildScriptIncludePatterns.isEmpty() && pathCommandLineIncludePatterns.isEmpty();
+        return isImplicitlyIncluded || matchesPattern(pathBuildScriptIncludePatterns, path) || matchesPattern(pathCommandLineIncludePatterns, path);
+    }
+
+    private boolean isExcludedPath(Path path) {
+        if (pathBuildScriptExcludePatterns.isEmpty()) {
+            return false;
         }
-        return includePatterns;
+        return matchesPattern(pathBuildScriptExcludePatterns, path);
+    }
+
+    private boolean matchesPattern(List<FileTestPattern> patterns, Path path) {
+        for (FileTestPattern pattern : patterns) {
+            String normalizedPath = TextUtil.normaliseFileSeparators(path.toString());
+            if (pattern.matches("/" + normalizedPath)) { // Add leading slash in target path (will always be optionally present at the start of the regex)
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean matchesTest(String className, String methodName) {
@@ -70,7 +133,7 @@ public class TestSelectionMatcher {
             && !mayExcludeClass(fullQualifiedClassName);
     }
 
-    private boolean mayIncludeClass(List<TestPattern> includePatterns, String fullQualifiedName) {
+    private boolean mayIncludeClass(List<ClassTestPattern> includePatterns, String fullQualifiedName) {
         if (includePatterns.isEmpty()) {
             return true;
         }
@@ -84,8 +147,8 @@ public class TestSelectionMatcher {
         return matchesClass(buildScriptExcludePatterns, fullQualifiedName);
     }
 
-    private boolean matchesClass(List<TestPattern> patterns, String fullQualifiedName) {
-        for (TestPattern pattern : patterns) {
+    private boolean matchesClass(List<ClassTestPattern> patterns, String fullQualifiedName) {
+        for (ClassTestPattern pattern : patterns) {
             if (pattern.matchesClass(fullQualifiedName)) {
                 return true;
             }
@@ -93,8 +156,8 @@ public class TestSelectionMatcher {
         return false;
     }
 
-    private boolean mayMatchClass(List<TestPattern> patterns, String fullQualifiedName) {
-        for (TestPattern pattern : patterns) {
+    private boolean mayMatchClass(List<ClassTestPattern> patterns, String fullQualifiedName) {
+        for (ClassTestPattern pattern : patterns) {
             if (pattern.mayIncludeClass(fullQualifiedName)) {
                 return true;
             }
@@ -102,8 +165,7 @@ public class TestSelectionMatcher {
         return false;
     }
 
-    private boolean matchesPattern(List<TestPattern> includePatterns, String className,
-        String methodName) {
+    private boolean matchesPattern(List<ClassTestPattern> includePatterns, String className, String methodName) {
         if (includePatterns.isEmpty()) {
             return true;
         }
@@ -124,9 +186,8 @@ public class TestSelectionMatcher {
         return matchesClassAndMethod(buildScriptExcludePatterns, className, methodName);
     }
 
-    private boolean matchesClassAndMethod(List<TestPattern> patterns, String className,
-        String methodName) {
-        for (TestPattern pattern : patterns) {
+    private boolean matchesClassAndMethod(List<ClassTestPattern> patterns, String className, String methodName) {
+        for (ClassTestPattern pattern : patterns) {
             if (pattern.matchesClassAndMethod(className, methodName)) {
                 return true;
             }
@@ -137,13 +198,35 @@ public class TestSelectionMatcher {
         return false;
     }
 
-    private static class TestPattern {
-        private Pattern pattern;
+    @NullMarked
+    private static final class FileTestPattern {
+        private final Pattern pattern;
+
+        private FileTestPattern(String path) {
+            pattern = preparePattern(path);
+        }
+
+        private boolean matches(String input) {
+            return pattern.matcher(input).matches();
+        }
+
+        private static Pattern preparePattern(String input) {
+            try {
+                // Add optional leading slash to match both "absolute" and "relative" paths (all paths are treated as relative to project root)
+                return Pattern.compile("/?(" + TextUtil.normaliseFileSeparators(input) + ")");
+            } catch (PatternSyntaxException e) {
+                throw new IllegalArgumentException("Path filter pattern is not a valid regex: " + input, e);
+            }
+        }
+    }
+
+    private static final class ClassTestPattern {
+        private final Pattern pattern;
         private String[] segments;
         private LastElementMatcher lastElementMatcher;
-        private ClassNameSelector classNameSelector;
+        private final ClassNameSelector classNameSelector;
 
-        private TestPattern(String pattern) {
+        private ClassTestPattern(String pattern) {
             this.pattern = preparePattern(pattern);
             this.classNameSelector = patternStartsWithUpperCase(pattern) ?
                 new SimpleClassNameSelector() : new FullQualifiedClassNameSelector();
@@ -168,7 +251,7 @@ public class TestSelectionMatcher {
             StringBuilder pattern = new StringBuilder();
             String[] split = StringUtils.splitPreserveAllTokens(input, '*');
             for (String s : split) {
-                if (s.equals("")) {
+                if (s.isEmpty()) {
                     pattern.append(".*"); //replace wildcard '*' with '.*'
                 } else {
                     if (pattern.length() > 0) {
@@ -231,7 +314,7 @@ public class TestSelectionMatcher {
         }
 
         private boolean patternStartsWithUpperCase(String pattern) {
-            return pattern.length() > 0 && Character.isUpperCase(pattern.charAt(0));
+            return !pattern.isEmpty() && Character.isUpperCase(pattern.charAt(0));
         }
     }
 

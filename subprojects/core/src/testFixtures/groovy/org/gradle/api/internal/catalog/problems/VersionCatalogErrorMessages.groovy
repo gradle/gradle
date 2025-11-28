@@ -262,7 +262,7 @@ trait VersionCatalogErrorMessages {
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, alias '${alias}' is not a valid alias.
+            """${intro}  - Problem: In version catalog ${catalog}, alias '${alias}' is a reserved alias.
 
     Reason: $message.
 
@@ -522,7 +522,7 @@ ${solution}
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, no files are resolved to be imported.
+            """${intro}  - Problem: In version catalog ${catalog}, ${VersionCatalogProblemId.NO_IMPORT_FILES.displayName.uncapitalize()}.
 
     Reason: The imported dependency doesn't resolve into any file.
 
@@ -540,7 +540,7 @@ ${solution}
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, importing multiple files are not supported.
+            """${intro}  - Problem: In version catalog ${catalog}, ${VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName.uncapitalize()}.
 
     Reason: The import consists of multiple files.
 

@@ -123,6 +123,7 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
+    @SuppressWarnings("FutureReturnValueIgnored") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void startExecution(ExecutorService executorService, Consumer<ExecutionResult<Void>> completionHandler) {
         assertInState(State.ReadyToRun);
         executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get(), completionHandler));

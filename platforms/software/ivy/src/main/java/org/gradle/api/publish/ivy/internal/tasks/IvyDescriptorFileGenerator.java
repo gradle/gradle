@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -309,11 +308,11 @@ public final class IvyDescriptorFileGenerator {
     public static void insertGradleMetadataMarker(XmlProvider xmlProvider) {
         String comment = Joiner.on("").join(
             Streams.concat(
-                Arrays.stream(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES),
-                Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
-            )
-            .map(content -> "<!-- " + content + " -->\n  ")
-            .iterator()
+                    MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES.stream(),
+                    Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
+                )
+                .map(content -> "<!-- " + content + " -->\n  ")
+                .iterator()
         );
 
         StringBuilder builder = xmlProvider.asString();

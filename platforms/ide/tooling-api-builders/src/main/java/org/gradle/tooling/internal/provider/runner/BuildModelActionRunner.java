@@ -27,6 +27,7 @@ import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
@@ -79,7 +80,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         public Object fromBuildModel(BuildTreeModelController controller) {
             String modelName = buildModelAction.getModelName();
             try {
-                return controller.getModel(BuildTreeModelTarget.ofDefault(), modelName, null);
+                return controller.getModel(BuildTreeModelTarget.ofDefault(), new ToolingModelRequestContext(modelName, null, false));
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;
                 throw e;

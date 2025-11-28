@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
@@ -36,7 +37,8 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     public ResilientBuildToolingModelController(
         BuildState buildState,
         BuildLifecycleController buildController,
-        ToolingModelBuilderLookup buildScopeLookup) {
+        ToolingModelBuilderLookup buildScopeLookup
+    ) {
         super(buildState, buildController, buildScopeLookup);
     }
 
@@ -59,18 +61,17 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             // the model we are building is not a resilient one, no point in pushing further
             throw e;
         }
-
         // swallowing the exception, there is hope of going further
     }
 
     @Override
-    protected ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
-        return new ResilientProjectToolingScope(target, modelName, param);
+    protected ToolingModelScope doLocate(ProjectState target, ToolingModelRequestContext toolingModelContext) {
+        return new ResilientProjectToolingScope(target, toolingModelContext);
     }
 
     private static class ResilientProjectToolingScope extends ProjectToolingScope {
-        public ResilientProjectToolingScope(ProjectState target, String modelName, boolean parameter) {
-            super(target, modelName, parameter);
+        public ResilientProjectToolingScope(ProjectState target, ToolingModelRequestContext toolingModelContext) {
+            super(target, toolingModelContext.getModelName(), toolingModelContext.getParameter().isPresent());
         }
 
         @Override
