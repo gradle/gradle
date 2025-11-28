@@ -518,7 +518,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
             ServicesSnapshot snapshot = services.updateAndGet(it -> it.addLifecycleHandler(annotationHandler));
-            @Nullable ServiceList list = snapshot.services;
+            ServiceList list = snapshot.services;
             while (list != null) {
                 notifyAnnotationHandler(annotationHandler, list.service);
                 list = list.next;
@@ -1419,7 +1419,16 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    static class ServicesSnapshot {
+    /**
+     * Carries a snapshot of the current set of services and lifecycle handlers so they can change together.
+     *
+     * Lifecycle handlers are maintained in a copy-on-write array since there are at most 3 lifecycle handler instances
+     * per registry, and they are iterated frequently (for every service registration).
+     *
+     * Services are maintained in a linked list since there are many, they are frequently written and iterated very
+     * rarely (once per lifecycle handler).
+     */
+    private static class ServicesSnapshot {
         static final ServicesSnapshot EMPTY = new ServicesSnapshot(null, new AnnotatedServiceLifecycleHandler[0]);
 
         final @Nullable ServiceList services;
@@ -1452,7 +1461,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
-    static class ServiceList {
+    private static class ServiceList {
         final SingletonService service;
         final @Nullable ServiceList next;
 
