@@ -31,11 +31,11 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
 
-public final class CustomResourceBasedTestDescriptor extends AbstractTestDescriptor {
+public final class CustomSourceTestDescriptor extends AbstractTestDescriptor {
     private final File file;
     private final String name;
 
-    public CustomResourceBasedTestDescriptor(UniqueId parentId, File file, String name) {
+    public CustomSourceTestDescriptor(UniqueId parentId, File file, String name) {
         super(parentId.append("testDefinitionFile", file.getName()).append("testDefinition", name), file.getName() + " - " + name);
         this.file = file;
         this.name = name;

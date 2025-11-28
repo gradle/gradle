@@ -32,8 +32,12 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAsse
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
+import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultOtherSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
@@ -446,15 +450,26 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private static TestDescriptorInternal descriptor(Object id, Description description) {
-        return new DefaultTestDescriptor(id, className(description), methodName(description));
+        String className = className(description);
+        String methodName = methodName(description);
+        TestSource source;
+        if (className != null && methodName != null) {
+            source = new DefaultMethodSource(className, methodName);
+        } else if (className != null && methodName == null) {
+            source = new DefaultClassSource(className);
+        } else {
+            source = DefaultOtherSource.getInstance();
+        }
+        return new DefaultTestDescriptor(id, className, methodName, source);
     }
 
     private static TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
         String methodName = methodName(description);
+        String className = className(description);
         if (methodName != null) {
-            return new DefaultTestDescriptor(id, className(description), methodName);
+            return new DefaultTestDescriptor(id, className, methodName, new DefaultMethodSource(className, methodName));
         } else {
-            return new DefaultTestDescriptor(id, className(description), "classMethod");
+            return new DefaultTestDescriptor(id, className, "classMethod", new DefaultMethodSource(className, "classMethod"));
         }
     }
 

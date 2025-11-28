@@ -20,9 +20,9 @@ import org.gradle.tooling.internal.protocol.test.source.InternalMissingSource;
 
 import java.io.Serializable;
 
-public class DefaultMissingSource implements InternalMissingSource, Serializable {
+public class DefaultNoSource implements InternalMissingSource, Serializable {
 
-    private static final InternalMissingSource INSTANCE = new DefaultMissingSource();
+    private static final InternalMissingSource INSTANCE = new DefaultNoSource();
 
     public static InternalMissingSource getInstance() {
         return INSTANCE;

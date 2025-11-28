@@ -48,7 +48,7 @@ import org.gradle.internal.build.event.types.test.source.DefaultClasspathResourc
 import org.gradle.internal.build.event.types.test.source.DefaultDirectorySource;
 import org.gradle.internal.build.event.types.test.source.DefaultFileSource;
 import org.gradle.internal.build.event.types.test.source.DefaultMethodSource;
-import org.gradle.internal.build.event.types.test.source.DefaultMissingSource;
+import org.gradle.internal.build.event.types.test.source.DefaultNoSource;
 import org.gradle.internal.build.event.types.test.source.DefaultOtherSource;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -161,7 +161,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
             ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) source;
             return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), toFilePosition(classpathResourceSource.getPosition()));
         } else if (source instanceof NoSource) {
-            return DefaultMissingSource.getInstance();
+            return DefaultNoSource.getInstance();
         } else {
             return DefaultOtherSource.getInstance();
         }

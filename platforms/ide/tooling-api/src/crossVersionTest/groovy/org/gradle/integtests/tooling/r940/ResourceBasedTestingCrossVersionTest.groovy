@@ -28,7 +28,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import testengines.TestEnginesFixture
 
 @TargetGradleVersion(">=9.4.0")
-class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingCrossVersionTest {
+class  ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingCrossVersionTest {
 
     @Override
     List<TestEnginesFixture.TestEngines> getEnginesToSetup() {

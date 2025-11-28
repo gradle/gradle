@@ -16,7 +16,7 @@
 
 package org.gradle.testing.testengine.engine;
 
-import org.gradle.testing.testengine.descriptor.CustomResourceBasedTestDescriptor;
+import org.gradle.testing.testengine.descriptor.CustomSourceTestDescriptor;
 import org.gradle.testing.testengine.util.DirectoryScanner;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
@@ -66,7 +66,7 @@ public class CustomResourceBasedSelectorResolver implements SelectorResolver {
             LOGGER.info(() -> "Test specification file: " + file.getAbsolutePath());
 
             Set<Match> tests = directoryScanner.getTestFileParser().parseTestNames(file).stream()
-                    .map(testName -> context.addToParent(parent -> Optional.of(new CustomResourceBasedTestDescriptor(parent.getUniqueId(), file, testName))))
+                    .map(testName -> context.addToParent(parent -> Optional.of(new CustomSourceTestDescriptor(parent.getUniqueId(), file, testName))))
                     .map(Optional::get)
                     .map(Match::exact)
                     .collect(Collectors.toSet());

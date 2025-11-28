@@ -359,7 +359,6 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     public static TestSource sourceOf(org.junit.platform.engine.TestSource source) {
-        // TODO (donat) unknown type should have info about the missing type
         if (source instanceof FileSource) {
             FileSource fileSource = (FileSource) source;
             FilePosition position = fileSource.getPosition().map(p -> new DefaultFilePosition(p.getLine(), p.getColumn().orElse(null))).orElse(null);
