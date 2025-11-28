@@ -16,11 +16,10 @@
 
 package org.gradle.problems.internal.rendering
 
-
+import org.gradle.api.problems.PredefinedProblemGroups
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer
 import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.internal.isolation.IsolatableFactory
@@ -150,11 +149,11 @@ display-name
     def "java compilation reports are properly separated"() {
         given:
         def problem1 = createProblemBuilder()
-            .id("id", "display-name", GradleCoreProblemGroup.compilation().java())
+            .id("id", "display-name", PredefinedProblemGroups.compilation().java())
             .details("Unused variable a in line 10")
             .build()
         def problem2 = createProblemBuilder()
-            .id("id", "display-name", GradleCoreProblemGroup.compilation().java())
+            .id("id", "display-name", PredefinedProblemGroups.compilation().java())
             .details("Unused variable a in line 20")
             .build()
 

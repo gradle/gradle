@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.ProblemGroup;
 
-public abstract class GradleCoreProblemGroup {
+package org.gradle.api.problems;
+
+import org.gradle.api.Incubating;
+
+/**
+ * Groups of problems that are common to the Gradle.
+ *
+ * @since 9.4.0
+ */
+@Incubating
+public abstract class PredefinedProblemGroups {
+
+    private PredefinedProblemGroups(){}
 
     private static final DefaultCompilationProblemGroup COMPILATION_PROBLEM_GROUP = new DefaultCompilationProblemGroup();
     private static final ProblemGroup DEPRECATION_PROBLEM_GROUP = ProblemGroup.create("deprecation", "Deprecation");
@@ -30,42 +40,102 @@ public abstract class GradleCoreProblemGroup {
     private static final ProblemGroup CONFIGURATION_USAGE_PROBLEM_GROUP = ProblemGroup.create("configuration-usage", "Configuration usage");
     private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
 
+    /**
+     *  Problem group for compilation problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static CompilationProblemGroup compilation() {
         return COMPILATION_PROBLEM_GROUP;
     }
 
+    /**
+     * Problem group for deprecated features.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static ProblemGroup deprecation() {
         return DEPRECATION_PROBLEM_GROUP;
     }
 
+    /**
+     * Problem group for validation problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static ValidationProblemGroup validation() {
         return VALIDATION_PROBLEM_GROUP;
     }
 
+    /**
+     * Problem group for plugin application problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static ProblemGroup pluginApplication() {
         return PLUGIN_APPLICATION_PROBLEM_GROUP;
     }
 
+    /**
+     * Problem group for task selection problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static ProblemGroup taskSelection() {
         return TASK_SELECTION_PROBLEM_GROUP;
     }
 
+    /**
+     * Problem group for version catalog problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static ProblemGroup versionCatalog() {
         return VERSION_CATALOG_PROBLEM_GROUP;
     }
 
+    /**
+     * Problem group for variant resolution problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static ProblemGroup variantResolution() {
         return VARIANT_RESOLUTION_PROBLEM_GROUP;
     }
 
+    /**
+     * Problem group for configuration usage problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static ProblemGroup configurationUsage() {
         return CONFIGURATION_USAGE_PROBLEM_GROUP;
     }
 
+    /**
+     * Problem group for daemon toolchain problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public static DaemonToolchainProblemGroup daemonToolchain() {
         return DAEMON_TOOLCHAIN_PROBLEM_GROUP;
     }
 
+    /**
+     *  Interface for a Problem group for compilation problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public interface CompilationProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup java();
@@ -73,18 +143,30 @@ public abstract class GradleCoreProblemGroup {
         ProblemGroup groovyDsl();
     }
 
+    /**
+     *  Interface for a Problem group for validation problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public interface ValidationProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup property();
         ProblemGroup type();
     }
 
+    /**
+     *  Interface for a Problem group for daemon toolchain problems.
+     *
+     *  @since 9.4.0
+     */
+    @Incubating
     public interface DaemonToolchainProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup configurationGeneration();
     }
 
-    private static class DefaultCompilationProblemGroup implements CompilationProblemGroup {
+     private static class DefaultCompilationProblemGroup implements CompilationProblemGroup {
 
         private final ProblemGroup thisGroup = ProblemGroup.create("compilation", "Compilation");
         private final ProblemGroup java = ProblemGroup.create("java", "Java compilation", thisGroup);
