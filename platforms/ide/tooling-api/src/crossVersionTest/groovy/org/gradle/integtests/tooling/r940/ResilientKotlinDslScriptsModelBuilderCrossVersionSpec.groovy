@@ -115,7 +115,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -123,7 +123,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def resilientModels = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -148,7 +148,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         fails {
-            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -158,7 +158,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -186,7 +186,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -207,7 +207,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -240,7 +240,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -268,7 +268,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -297,7 +297,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         fails {
-            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -307,7 +307,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -348,7 +348,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -356,7 +356,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def resilientModels = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -403,7 +403,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            KotlinModelAction.originalModel(it, queryStrategy, initScriptFile.absolutePath)
+            KotlinModelAction.originalModel(it, queryStrategy, initScriptFile)
         }
 
         then:
@@ -412,7 +412,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         c << """$breakage"""
         def resilientModels = succeeds {
-            KotlinModelAction.resilientModel(it, queryStrategy, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, queryStrategy, initScriptFile)
         }
 
         then:
@@ -493,7 +493,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            KotlinModelAction.originalModel(it, queryStrategy, initScriptFile.absolutePath)
+            KotlinModelAction.originalModel(it, queryStrategy, initScriptFile)
         }
 
         then:
@@ -502,7 +502,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         projectPlugin << "throw RuntimeException(\"Failing script\")"
         def resilientModels = succeeds {
-            KotlinModelAction.resilientModel(it, queryStrategy, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, queryStrategy, initScriptFile)
         }
 
         then:
@@ -584,7 +584,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            KotlinModelAction.originalModel(it, queryStrategy, initScriptFile.absolutePath)
+            KotlinModelAction.originalModel(it, queryStrategy, initScriptFile)
         }
 
         then:
@@ -593,7 +593,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         projectPlugin << """ broken !!! """
         def resilientModels = succeeds {
-            KotlinModelAction.resilientModel(it, queryStrategy, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, queryStrategy, initScriptFile)
         }
 
         then:
@@ -662,7 +662,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -671,7 +671,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         settingsPlugin << """ broken !!! """
         def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile.absolutePath)
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
         }
 
         then:
@@ -835,18 +835,18 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
 
-        static KotlinModel resilientModel(ProjectConnection conn, QueryStrategy queryStrategy, String initScriptPath) {
-            return model(conn, true, queryStrategy, initScriptPath)
+        static KotlinModel resilientModel(ProjectConnection conn, QueryStrategy queryStrategy, File initScript) {
+            return model(conn, true, queryStrategy, initScript)
         }
 
-        static KotlinModel originalModel(ProjectConnection conn, QueryStrategy queryStrategy, String initScriptPath) {
-            return model(conn, false, queryStrategy, initScriptPath)
+        static KotlinModel originalModel(ProjectConnection conn, QueryStrategy queryStrategy, File initScript) {
+            return model(conn, false, queryStrategy, initScript)
         }
 
-        private static KotlinModel model(ProjectConnection conn, boolean resilient, QueryStrategy queryStrategy, String initFilePath) {
+        private static KotlinModel model(ProjectConnection conn, boolean resilient, QueryStrategy queryStrategy, File initScript) {
             def model = null
 
-            Iterable<String> arguments = [ "--init-script=${initFilePath}"]
+            Iterable<String> arguments = [ "--init-script=${initScript.absolutePath}"]
             if (resilient) {
                 arguments += "-Dorg.gradle.internal.resilient-model-building=true"
             }
