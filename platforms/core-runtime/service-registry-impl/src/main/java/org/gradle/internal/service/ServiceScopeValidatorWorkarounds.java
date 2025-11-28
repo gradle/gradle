@@ -22,7 +22,7 @@ import java.util.Set;
 
 class ServiceScopeValidatorWorkarounds {
 
-    private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = new HashSet<String>(Arrays.asList(
+    private static final Set<String> SUPPRESSED_VALIDATION_CLASSES = new HashSet<>(Arrays.asList(
         "com.google.common.collect.ImmutableList",
         "java.util.Properties",
 
