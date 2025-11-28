@@ -25,6 +25,7 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.build.VersionInfo;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
@@ -47,9 +48,10 @@ public class ModelMapping {
         map.put(Void.class, "1.0-milestone-3");
         map.put(GradleBuild.class, "1.8");
         map.put(ProjectPublications.class, "1.12");
-    }
-
-    public ModelIdentifier getModelIdentifierFromModelType(final Class<?> modelType) {
+        // Introduced in Gradle 9.3
+        map.put(VersionInfo.class, "9.3");
+        map.put(org.gradle.tooling.model.build.Help.class, "9.3");
+    }    public ModelIdentifier getModelIdentifierFromModelType(final Class<?> modelType) {
         if (modelType.equals(Void.class)) {
             return new DefaultModelIdentifier(ModelIdentifier.NULL_MODEL);
         }
