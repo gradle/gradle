@@ -29,6 +29,8 @@ import org.gradle.api.Incubating;
 public interface ProblemSpec {
     /**
      * Declares a short, but context-dependent message for this problem.
+     * <p>
+     * The label is expected to span a single line. Any newline characters will be removed.
      *
      * @param contextualLabel the short message
      * @return this
