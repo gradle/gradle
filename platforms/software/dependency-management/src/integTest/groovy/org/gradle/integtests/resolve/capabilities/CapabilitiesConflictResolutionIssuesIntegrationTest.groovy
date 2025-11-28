@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -902,6 +903,98 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         then:
         failure.assertHasCause("Component is the target of multiple version constraints with conflicting requirements")
+    }
+
+    @UnsupportedWithConfigurationCache(because = "Uses allDependencies")
+    @Issue("https://github.com/gradle/gradle/pull/26016#issuecomment-1795491970")
+    def "conflict between two nodes in the same component does not cause edge without target node"() {
+        settingsFile << """
+            include("producer")
+        """
+        file("producer/build.gradle") << """
+            configurations {
+                consumable("one") {
+                    outgoing {
+                        capability("o:n:e")
+                    }
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
+                    }
+                }
+                consumable("one-preferred") {
+                    outgoing {
+                        capability("o:n:e")
+                        capability("g:one-preferred:v")
+                    }
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
+                    }
+                }
+            }
+        """
+        buildFile << """
+            configurations {
+                dependencyScope("implementation")
+                resolvable("runtimeClasspath") {
+                    extendsFrom(implementation)
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
+                    }
+                }
+            }
+
+            configurations.runtimeClasspath {
+                resolutionStrategy.capabilitiesResolution.all { details ->
+                    def selection =
+                        details.candidates.find { it.variantName.endsWith("preferred") }
+                    assert selection != null
+                    details.select(selection)
+                }
+            }
+
+            dependencies {
+                implementation(project(":producer")) {
+                    capabilities {
+                        requireCapability('o:n:e')
+                    }
+                }
+                implementation(project(":producer")) {
+                    capabilities {
+                        requireCapability("o:n:e")
+                        requireCapability("g:one-preferred:v")
+                    }
+                }
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            tasks.register("noNullVariants") {
+                def result = configurations.runtimeClasspath.incoming.resolutionResult
+                doLast {
+                    result.allDependencies {
+                        assert it.selectedVariant != null
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds(":checkDeps", ":noNullVariants")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(":producer", "test:producer:") {
+                    variant('one-preferred', ['org.gradle.usage': 'foo'])
+                    byConflictResolution("Explicit selection of project :producer variant one-preferred")
+                    noArtifacts()
+                }
+                project(":producer", "test:producer:") {
+                    variant('one-preferred', ['org.gradle.usage': 'foo'])
+                    noArtifacts()
+                }
+            }
+        }
     }
 
     // region test fixtures
