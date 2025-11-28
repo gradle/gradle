@@ -121,7 +121,7 @@
   {
     "name": "build-discovery",
     "path": "platforms/core-runtime/build-discovery",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },

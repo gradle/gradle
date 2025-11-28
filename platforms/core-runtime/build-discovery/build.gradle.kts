@@ -29,6 +29,6 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.baseServices)
 
-
+    testImplementation(testFixtures(projects.problemsApi))
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
