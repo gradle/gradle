@@ -31,8 +31,31 @@ import java.util.stream.Collectors;
 
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
+/**
+ * Factory for resolving {@link InternalOptions} from {@code gradle.properties} files and system arguments.
+ * <p>
+ * This factory is separate from {@link org.gradle.api.internal.properties.GradlePropertiesController GradlePropertiesController}, because
+ * we require internal properties very early in the Gradle invocation lifecycle (even before we have the root build tree).
+ * The {@code GradlePropertiesController} on the other hand is only available within a build-tree,
+ * and concerns itself with the user-facing set of properties and the tracking of their access.
+ */
 public class InternalOptionsFactory {
 
+    /**
+     * Creates {@link InternalOptions} by collecting internal options from multiple sources.
+     * <p>
+     * Internal options are properties with {@code org.gradle.internal.} prefix (with some {@link InternalOption#isInternalOption(String) exceptions}).
+     * <p>
+     * The options are merged from multiple places with the following priority (higher to lower):
+     * <ul>
+     * <li>{@code startParameter.systemPropertiesArgs} aka {@code -D} arguments</li>
+     * <li>{@code <Gradle User Home>/gradle.properties}</li>
+     * <li>{@code <build-root directory>/gradle.properties}</li>
+     * <li>{@code <Gradle Home>/gradle.properties}</li>
+     * </ul>
+     *
+     * @see InternalOption#isInternalOption(String)
+     */
     public static InternalOptions createInternalOptions(
         StartParameterInternal startParameter,
         File rootBuildDir
