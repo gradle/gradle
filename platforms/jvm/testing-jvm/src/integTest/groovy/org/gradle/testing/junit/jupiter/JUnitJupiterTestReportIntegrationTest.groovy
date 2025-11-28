@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestReportIntegrationTest
+import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 import static org.hamcrest.CoreMatchers.containsString
@@ -134,5 +135,68 @@ class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegratio
             .assertFailureMessages(containsString("Could not complete execution"))
             .assertStdout(containsString("System.out from ThrowingListener"))
             .assertStderr(containsString("System.err from ThrowingListener"))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/15075")
+    def "class nested in base that is extended has both failures"() {
+        given:
+        buildFile """
+            $junitSetup
+        """
+        file("src/test/java/SomeBaseTest.java") << """
+            ${testFrameworkImports}
+
+            public abstract class SomeBaseTest {
+                @Nested
+                public class NestedInBase {
+                    @Test
+                    public void test() {
+                        fail("failure in NestedInBase");
+                    }
+                }
+            }
+        """
+        file("src/test/java/SomeTest1.java") << """
+            ${testFrameworkImports}
+
+            public class SomeTest1 extends SomeBaseTest {
+            }
+        """
+        file("src/test/java/SomeTest2.java") << """
+            ${testFrameworkImports}
+
+            public class SomeTest2 extends SomeBaseTest {
+            }
+        """
+
+        when:
+        fails "test"
+
+        then:
+        def testResults = resultsFor(testDirectory)
+        testResults.assertTestPathsExecuted(":SomeTest1:SomeBaseTest\$NestedInBase:test", ":SomeTest2:SomeBaseTest\$NestedInBase:test")
+        testResults.testPath(":SomeTest1:SomeBaseTest\$NestedInBase:test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("failure in NestedInBase"))
+        testResults.testPath(":SomeTest2:SomeBaseTest\$NestedInBase:test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("failure in NestedInBase"))
+
+        def xml = new JUnitXmlTestExecutionResult(testDirectory)
+        xml.assertTestClassesExecuted("SomeTest1", "SomeTest2")
+        xml.testClass("SomeTest1")
+            .withResult {
+                it.@classname.toString() == "SomeBaseTest\$NestedInBase"
+            }
+            .assertTestFailed(
+                "test", containsString("failure in NestedInBase")
+            )
+        xml.testClass("SomeTest2")
+            .withResult {
+                it.@classname.toString() == "SomeBaseTest\$NestedInBase"
+            }
+            .assertTestFailed(
+                "test", containsString("failure in NestedInBase")
+            )
     }
 }
