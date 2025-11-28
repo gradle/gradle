@@ -151,7 +151,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.SimpleMapInterner;
 
 import java.io.File;
@@ -275,7 +274,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableTransformWorkspaceServices() {
                 @Override
                 public MutableWorkspaceProvider getWorkspaceProvider() {
-                    return new NonLockingMutableWorkspaceProvider(executionHistoryStore, baseDirectory.get());
+                    return new NonLockingMutableWorkspaceProvider(baseDirectory.get());
+                }
+
+                @Override
+                public ExecutionHistoryStore getExecutionHistoryStore() {
+                    return executionHistoryStore;
                 }
 
                 @Override
@@ -293,7 +297,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides
         TransformInvocationFactory createTransformInvocationFactory(
             ExecutionEngine executionEngine,
-            FileSystemAccess fileSystemAccess,
             InternalOptions internalOptions,
             ImmutableTransformWorkspaceServices transformWorkspaceServices,
             TransformExecutionListener transformExecutionListener,
@@ -304,7 +307,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ) {
             return new DefaultTransformInvocationFactory(
                 executionEngine,
-                fileSystemAccess,
                 internalOptions,
                 transformExecutionListener,
                 transformWorkspaceServices,

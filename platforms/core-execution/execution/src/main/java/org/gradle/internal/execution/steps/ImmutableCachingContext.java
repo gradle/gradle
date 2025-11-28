@@ -18,11 +18,11 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.caching.CachingState;
 
-public class NonIncrementalCachingContext extends ValidationFinishedContext implements CachingContext {
+public class ImmutableCachingContext extends ImmutableValidationFinishedContext implements CachingContext {
 
     private final CachingState cachingState;
 
-    public NonIncrementalCachingContext(ValidationFinishedContext parent, CachingState cachingState) {
+    public ImmutableCachingContext(ImmutableValidationFinishedContext parent, CachingState cachingState) {
         super(parent);
         this.cachingState = cachingState;
     }

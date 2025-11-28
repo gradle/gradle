@@ -44,7 +44,80 @@ import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
 
-public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Result> {
+public abstract class ExecuteStep<C extends WorkspaceContext> implements Step<C, Result> {
+
+    public static class Immutable extends ExecuteStep<WorkspaceContext> {
+        public Immutable(BuildOperationRunner buildOperationRunner) {
+            super(buildOperationRunner);
+        }
+
+        @Override
+        protected ExecutionContext createExecutionContext(WorkspaceContext context) {
+            return new ExecutionContext() {
+                @Override
+                public File getWorkspace() {
+                    return context.getWorkspace();
+                }
+
+                @Override
+                public Optional<InputChangesInternal> getInputChanges() {
+                    return Optional.empty();
+                }
+
+                @Override
+                public Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs() {
+                    return Optional.empty();
+                }
+            };
+        }
+
+        @Override
+        protected ExecutionOutcome determineOutcome(WorkspaceContext context, WorkOutput workOutput) {
+            return EXECUTED_NON_INCREMENTALLY;
+        }
+    }
+
+    public static class Mutable extends ExecuteStep<InputChangesContext> {
+        public Mutable(BuildOperationRunner buildOperationRunner) {
+            super(buildOperationRunner);
+        }
+
+        @Override
+        protected ExecutionContext createExecutionContext(InputChangesContext context) {
+            return new ExecutionContext() {
+                @Override
+                public File getWorkspace() {
+                    return context.getWorkspace();
+                }
+
+                @Override
+                public Optional<InputChangesInternal> getInputChanges() {
+                    return context.getInputChanges();
+                }
+
+                @Override
+                public Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs() {
+                    return context.getPreviousExecutionState()
+                        .map(PreviousExecutionState::getOutputFilesProducedByWork);
+                }
+            };
+        }
+
+        @Override
+        protected ExecutionOutcome determineOutcome(InputChangesContext context, WorkOutput workOutput) {
+            switch (workOutput.getDidWork()) {
+                case DID_NO_WORK:
+                    return UP_TO_DATE;
+                case DID_WORK:
+                    return context.getInputChanges()
+                        .filter(InputChanges::isIncremental)
+                        .map(Functions.constant(EXECUTED_INCREMENTALLY))
+                        .orElse(EXECUTED_NON_INCREMENTALLY);
+                default:
+                    throw new AssertionError();
+            }
+        }
+    }
 
     private final BuildOperationRunner buildOperationRunner;
 
@@ -85,24 +158,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         });
     }
 
-    private static Result executeInternal(UnitOfWork work, InputChangesContext context) {
-        ExecutionContext executionRequest = new ExecutionContext() {
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<InputChangesInternal> getInputChanges() {
-                return context.getInputChanges();
-            }
-
-            @Override
-            public Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs() {
-                return context.getPreviousExecutionState()
-                    .map(PreviousExecutionState::getOutputFilesProducedByWork);
-            }
-        };
+    private Result executeInternal(UnitOfWork work, C context) {
+        ExecutionContext executionRequest = createExecutionContext(context);
         WorkOutput workOutput;
 
         Timer timer = Time.startTimer();
@@ -133,20 +190,9 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         });
     }
 
-    private static ExecutionOutcome determineOutcome(InputChangesContext context, WorkOutput workOutput) {
-        switch (workOutput.getDidWork()) {
-            case DID_NO_WORK:
-                return UP_TO_DATE;
-            case DID_WORK:
-                return context.getInputChanges()
-                    .filter(InputChanges::isIncremental)
-                    .map(Functions.constant(EXECUTED_INCREMENTALLY))
-                    .orElse(EXECUTED_NON_INCREMENTALLY);
-            default:
-                throw new AssertionError();
-        }
-    }
+    protected abstract ExecutionContext createExecutionContext(C context);
 
+    protected abstract ExecutionOutcome determineOutcome(C context, WorkOutput workOutput);
     /*
      * This operation is only used here temporarily. Should be replaced with a more stable operation in the long term.
      */

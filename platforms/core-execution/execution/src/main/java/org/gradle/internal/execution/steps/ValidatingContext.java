@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,8 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.WorkValidationContext;
 
-public class IncrementalCachingContext extends IncrementalChangesContext implements CachingContext {
-
-    private final CachingState cachingState;
-
-    public IncrementalCachingContext(IncrementalChangesContext parent, CachingState cachingState) {
-        super(parent);
-        this.cachingState = cachingState;
-    }
-
-    /**
-     * The resolved state of caching for the work.
-     */
-    @Override
-    public CachingState getCachingState() {
-        return cachingState;
-    }
+public interface ValidatingContext extends Context {
+    WorkValidationContext getValidationContext();
 }

@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.gradle.internal.execution.MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL;
 
-public class ResolveInputChangesStep<C extends IncrementalCachingContext, R extends Result> extends MutableStep<C, R> {
+public class ResolveInputChangesStep<C extends MutableCachingContext, R extends Result> extends MutableStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveInputChangesStep.class);
 
     private final Step<? super InputChangesContext, ? extends R> delegate;
@@ -40,7 +40,7 @@ public class ResolveInputChangesStep<C extends IncrementalCachingContext, R exte
     }
 
     @Nullable
-    private static InputChangesInternal determineInputChanges(MutableUnitOfWork work, IncrementalChangesContext context) {
+    private static InputChangesInternal determineInputChanges(MutableUnitOfWork work, MutableChangesContext context) {
         if (work.getExecutionBehavior() == NON_INCREMENTAL) {
             return null;
         }

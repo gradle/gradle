@@ -105,7 +105,7 @@ class CaptureOutputsAfterExecutionStepTest extends StepSpec<TestCachingContext> 
 
         then:
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
-        1 * outputFilter.filterOutputs(context, beforeExecutionState, outputSnapshots) >> filteredOutputSnapshots
+        1 * outputFilter.filterOutputs(context, outputSnapshots) >> filteredOutputSnapshots
         _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(buildCacheKey), beforeExecutionState)
         0 * _
     }

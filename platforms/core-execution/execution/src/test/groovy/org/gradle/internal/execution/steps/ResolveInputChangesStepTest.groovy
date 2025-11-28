@@ -22,7 +22,7 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 
-class ResolveInputChangesStepTest extends StepSpec<IncrementalCachingContext> {
+class ResolveInputChangesStepTest extends StepSpec<MutableCachingContext> {
 
     def step = new ResolveInputChangesStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)

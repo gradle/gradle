@@ -20,7 +20,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.file.TreeType
 
-class PreCreateOutputParentsStepTest extends StepSpec<ChangingOutputsContext> {
+class PreCreateOutputParentsStepTest extends StepSpec<WorkspaceContext> {
     def step = new PreCreateOutputParentsStep<>(delegate)
 
     def "outputs are created"() {
