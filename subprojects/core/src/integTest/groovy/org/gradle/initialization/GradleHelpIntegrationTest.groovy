@@ -51,6 +51,7 @@ USAGE: gradle [option...] [task...]
 -d, --debug                        Log in debug mode (includes normal stacktrace).
 --daemon                           Uses the Gradle daemon to run the build. Starts the daemon if not running.
 --no-daemon                        Do not use the Gradle daemon to run the build. Useful occasionally if you have configured Gradle to always run with the daemon by default.
+--develocity-default-url           Specify the default URL of the Develocity server to use for Build Scans. If the Develocity plugin is configured, this value is ignored.
 --export-keys                      Exports the public keys used for dependency verification.
 -F, --dependency-verification      Configures the dependency verification mode. Values are 'strict', 'lenient' or 'off'.
 --foreground                       Starts the Gradle daemon in the foreground.

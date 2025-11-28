@@ -82,6 +82,138 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
         plugin.assertAutoApplied(output, false)
     }
 
+    def "is configured when passing a Develocity URL via environment variable"() {
+        given:
+        executer.withEnvironmentVars(['COM_GRADLE_DEVELOCITY_DEFAULT_URL': 'https://example.com'])
+
+        when:
+        succeeds "t"
+
+        then:
+        plugin.assertBuildScanRequest(output, NONE)
+        plugin.assertConfiguredDevelocityUrl(output, "https://example.com")
+        plugin.assertAutoApplied(output, true)
+        plugin.assertExtensionDevelocityUrl(output, "https://example.com")
+    }
+
+    def "is configured when passing a Develocity URL via properties"() {
+        given:
+        propertiesFile << """
+            com.gradle.develocity.default.url=https://example.com
+        """
+
+        when:
+        succeeds "t"
+
+        then:
+        plugin.assertBuildScanRequest(output, NONE)
+        plugin.assertConfiguredDevelocityUrl(output, "https://example.com")
+        plugin.assertAutoApplied(output, true)
+        plugin.assertExtensionDevelocityUrl(output, "https://example.com")
+    }
+
+    def "is configured when passing a Develocity URL on the CLI"() {
+        when:
+        succeeds "t", "--develocity-default-url=https://example.com"
+
+        then:
+        plugin.assertBuildScanRequest(output, NONE)
+        plugin.assertConfiguredDevelocityUrl(output, "https://example.com")
+        plugin.assertAutoApplied(output, true)
+        plugin.assertExtensionDevelocityUrl(output, "https://example.com")
+    }
+
+    def "is suppressed when configuring a Develocity URL via properties and passing --no-scan"() {
+        given:
+        propertiesFile << """
+            com.gradle.develocity.default.url=https://example.com
+        """
+
+        when:
+        succeeds "t", "--no-scan"
+
+        then:
+        plugin.assertBuildScanRequest(output, SUPPRESSED)
+        plugin.assertConfiguredDevelocityUrl(output, "https://example.com")
+        plugin.assertAutoApplied(output, true)
+        plugin.assertExtensionDevelocityUrl(output, "https://example.com")
+    }
+
+    def "ignores Develocity URL when plugin is already applied"() {
+        given:
+        settingsFile << plugin.plugins()
+
+        when:
+        succeeds "t", "--develocity-default-url=https://example.com"
+
+        then:
+        plugin.assertAutoApplied(output, false)
+        plugin.assertConfiguredDevelocityUrl(output, "https://example.com")
+        plugin.assertExtensionDevelocityUrl(output, "unset")
+    }
+
+    def "is requested when passing Develocity URL and having a init script doing late configuration"() {
+        given:
+        def pluginArtifactId = "com.gradle:develocity-gradle-plugin:${plugin.runtimeVersion}"
+        def initScript = file("build-scan-init.gradle") << """
+            initscript {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath("${pluginArtifactId}")
+                }
+            }
+            gradle.settingsEvaluated { settings ->
+                if (settings.pluginManager.hasPlugin('${plugin.id}')) {
+                    logger.lifecycle("${plugin.id} is already applied")
+                } else {
+                    logger.lifecycle("Applying ${plugin.className} via init script")
+                    settings.pluginManager.apply(initscript.classLoader.loadClass('${plugin.className}'))
+                }
+            }
+        """
+
+        when:
+        succeeds "t", "--develocity-default-url=https://example.com", "--init-script", initScript.absolutePath
+
+        then:
+        plugin.assertAutoApplied(output, true)
+        plugin.assertExtensionDevelocityUrl(output, "https://example.com")
+        outputContains("${plugin.id} is already applied")
+    }
+
+    def "ignores Develocity URL when having an init script doing early configuration"() {
+        given:
+        def pluginArtifactId = "com.gradle:develocity-gradle-plugin:${plugin.runtimeVersion}"
+        def initScript = file("build-scan-init.gradle") << """
+            initscript {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath("${pluginArtifactId}")
+                }
+            }
+            gradle.beforeSettings { settings ->
+                if (settings.pluginManager.hasPlugin('${plugin.id}')) {
+                    logger.lifecycle("${plugin.id} is already applied")
+                } else {
+                    logger.lifecycle("Applying ${plugin.className} via init script")
+                    settings.pluginManager.apply(initscript.classLoader.loadClass('${plugin.className}'))
+                }
+            }
+        """
+
+        when:
+        succeeds "t", "--develocity-default-url=https://example.com", "--init-script", initScript.absolutePath
+
+        then:
+        plugin.assertAutoApplied(output, false)
+        plugin.assertExtensionDevelocityUrl(output, "unset")
+        outputContains("Applying ${plugin.className} via init script")
+    }
+
     def "is not auto-applied when added to classpath via buildscript block"() {
         given:
         def coordinates = "${groupId}:${artifactId}:${plugin.runtimeVersion}"
