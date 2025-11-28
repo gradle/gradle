@@ -41,6 +41,22 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Stricter validation for published plugins
+
+For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
+
+In order not to break your builds, this does not apply to local plugins (in `buildSrc` or included builds containing build logic).
+However, we encourage you to always enable stricter validation:
+
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+----
+
+
 ==== CodeNarc compilation classpath is set by default
 
 Some of the rulesets included with CodeNarc make use of link:https://codenarc.org/codenarc-enhanced-classpath-rules.html[enhanced classpath rules], which require additional dependencies to be present on the CodeNarc task's compilation classpath.
