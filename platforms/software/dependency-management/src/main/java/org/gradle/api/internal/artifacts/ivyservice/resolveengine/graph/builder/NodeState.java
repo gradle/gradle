@@ -941,6 +941,7 @@ public class NodeState implements DependencyGraphNode {
      * strict version for that module. For this reason, we compute the intersection of strict
      * versions coming from all incoming edges.
      */
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private StrictVersionConstraints collectAncestorsStrictVersions() {
         if (incomingEdges.isEmpty()) {
             return StrictVersionConstraints.EMPTY;
@@ -1071,6 +1072,7 @@ public class NodeState implements DependencyGraphNode {
      * Cleans up the outgoing state of this node, undoing any effects this node has on the graph.
      * To be called when this node is removed from the graph.
      */
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void removeOutgoingEdges() {
         if (previousTraversalExclusions == null) {
             return;
@@ -1118,6 +1120,7 @@ public class NodeState implements DependencyGraphNode {
         outgoingEdge.clearSelector();
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void restart(ComponentState selected) {
         // Restarting this configuration after conflict resolution.
         // If this configuration belongs to the select version, queue ourselves up for traversal.

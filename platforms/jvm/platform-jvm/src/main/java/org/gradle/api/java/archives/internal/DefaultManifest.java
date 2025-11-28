@@ -277,6 +277,7 @@ public class DefaultManifest implements ManifestInternal {
         return true;
     }
 
+    @SuppressWarnings("StringCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void read(Object manifestPath) {
         File manifestFile = fileResolver.resolve(manifestPath);
         try {

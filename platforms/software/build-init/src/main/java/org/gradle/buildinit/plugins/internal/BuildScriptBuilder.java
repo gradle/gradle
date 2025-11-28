@@ -43,11 +43,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor.PLUGINS_BUILD_LOCATION;
 
@@ -488,7 +489,7 @@ public class BuildScriptBuilder {
 
             File target = getTargetFile(targetDirectory);
             GFileUtils.mkdirs(target.getParentFile());
-            try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
+            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(target.toPath(), UTF_8))) {
                 PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, comments);
                 if (!comments.equals(BuildInitComments.OFF)) {
                     printer.printFileHeader(headerCommentLines);
@@ -592,6 +593,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        @SuppressWarnings("GetClassOnEnum") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public String with(Syntax syntax) {
             return literal.getClass().getSimpleName() + "." + literal.name();
         }
@@ -1387,6 +1389,7 @@ public class BuildScriptBuilder {
             TEST_NG(new MethodInvocationExpression("useTestNG"), "TestNG");
 
             final String displayName;
+            @SuppressWarnings("ImmutableEnumChecker") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
             final MethodInvocationExpression method;
 
             TestSuiteFramework(MethodInvocationExpression method, String displayName) {

@@ -117,7 +117,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         }
     }
 
-    private <T extends ResolvableSelectorState> void doAddWhenListHasManyElements(List<T> selectors, T selector, int size) {
+    private void doAddWhenListHasManyElements(List<T> selectors, T selector, int size) {
         int insertionPoint = Collections.binarySearch(selectors, selector, selectorComparator);
         insertionPoint = advanceToPreserveOrder(selectors, selector, size, insertionPoint);
         if (insertionPoint < 0) {
@@ -126,7 +126,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         selectors.add(insertionPoint, selector);
     }
 
-    private <T extends ResolvableSelectorState> int advanceToPreserveOrder(List<T> selectors, T selector, int size, int insertionPoint) {
+    private int advanceToPreserveOrder(List<T> selectors, T selector, int size, int insertionPoint) {
         while (insertionPoint > 0 && insertionPoint < size && selectorComparator.compare(selectors.get(insertionPoint), selector) == 0) {
             insertionPoint++;
         }
