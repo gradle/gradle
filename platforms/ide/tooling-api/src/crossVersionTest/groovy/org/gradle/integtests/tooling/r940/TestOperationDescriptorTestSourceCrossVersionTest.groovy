@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r940
 
-import org.gradle.integtests.tooling.fixture.ProgressEvents
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.OperationType
@@ -32,9 +32,6 @@ import testengines.TestEnginesFixture
 @ToolingApiVersion(">=9.4.0")
 class TestOperationDescriptorTestSourceCrossVersionTest extends AbstractResourceBasedTestingCrossVersionTest {
 
-    public static final DEFAULT_DEFINITIONS_LOCATION = "src/test/definitions"
-
-    ProgressEvents events = ProgressEvents.create()
     @Override
     List<TestEnginesFixture.TestEngines> getEnginesToSetup() {
         return [TestEnginesFixture.TestEngines.CUSTOM_SOURCE_ENGINE]

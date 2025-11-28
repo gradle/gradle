@@ -16,12 +16,9 @@
 
 package org.gradle.integtests.tooling.r940
 
-import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.TestLauncher
-import org.gradle.tooling.TestSpecs
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
@@ -33,9 +30,6 @@ import testengines.TestEnginesFixture
 @TargetGradleVersion(">=9.4.0")
 class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingCrossVersionTest {
 
-    public static final DEFAULT_DEFINITIONS_LOCATION = "src/test/definitions"
-
-    ProgressEvents events = ProgressEvents.create()
     @Override
     List<TestEnginesFixture.TestEngines> getEnginesToSetup() {
         return [TestEnginesFixture.TestEngines.BASIC_RESOURCE_BASED]
@@ -60,7 +54,6 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
                 }
             }
         """
-
         writeTestDefinitions()
 
         when:
@@ -69,7 +62,7 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         }
 
         then:
-        assertTestsFromDefinitionsExecuted()
+        assertTestsFromAllDefinitionsExecuted()
 
         where:
         entryPoint             | entryPointConfiguration                                                    | execMethod
@@ -79,54 +72,46 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         'BuildActionExecuter'  | { ProjectConnection p -> p.action(new FetchIdeaModel()).forTasks("test") } | 'run'
     }
 
-    def "filtering class-based filters with #filterType in TestLauncher will prevent scanning for resource-based tests"() {
+    def "can filter resource-based tests"() {
         given:
         buildFile << """
-            plugins {
-                id 'java-library'
-            }
+         plugins {
+             id 'java-library'
+         }
 
-            ${mavenCentralRepository()}
+         ${mavenCentralRepository()}
 
-            testing.suites.test {
-                ${enableEngineForSuite()}
+         testing.suites.test {
+             ${enableEngineForSuite()}
 
-                targets.all {
-                    testTask.configure {
-                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
-                    }
-                }
-            }
-        """
+             targets.all {
+                 testTask.configure {
+                     testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                     options {
+                         excludeEngines("junit-jupiter")
+                     }
+                 }
+             }
+         }
+
+         // Ensure the definitions directory exists even if no definitions are added; otherwsie the task will fail with "Test definitions directory does not exist"
+         project.layout.projectDirectory.file("$DEFAULT_DEFINITIONS_LOCATION").getAsFile().mkdirs()
+     """
         writeTestDefinitions()
-        writeTestClasses()
 
         when:
         withConnection {
-            TestLauncher testLauncher = it.newTestLauncher().addProgressListener(events, OperationType.TASK, OperationType.TEST)
-            testConfiguration(testLauncher)
-            testLauncher.run()
+            it.newTestLauncher()
+                .addProgressListener(events, OperationType.TASK, OperationType.TEST)
+                .withTestsFor { tests ->
+                    tests.forTaskPath(':test').includePattern("$DEFAULT_DEFINITIONS_LOCATION/subSomeOtherTestSpec.rbt")
+                }
+                .run()
         }
 
         then:
-        testEvents {
-            task(':test') {
-                nested('Gradle Test Run :test') {
-                    nested('Gradle Test Executor') {
-                        test('Test class SomeTest') {
-                            test('Test testMethod()(SomeTest)')
-                        }
-                    }
-                }
-            }
-        }
-
-        where:
-        filterType               | testConfiguration
-        'withJvmTestClasses'     | { TestLauncher tl -> tl.withJvmTestClasses('SomeTest') }
-        'withJvmTestMethods'     | { TestLauncher tl -> tl.withJvmTestMethods('SomeTest', 'testMethod') }
-        'withTaskAndTestClasses' | { TestLauncher tl -> tl.withTaskAndTestClasses(':test', ['SomeTest']) }
-        'withTestsFor'           | { TestLauncher tl -> tl.withTestsFor { TestSpecs spec -> spec.forTaskPath(':test').includeMethod('SomeTest', 'testMethod') } }
+        assertTestsFromSecondDefinitionsExecuted()
     }
 
     @ToolingApiVersion(">=9.4.0")
@@ -149,14 +134,13 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
                 }
             }
         """
-
         writeTestDefinitions()
-
         withConnection {
-            it.newTestLauncher().addProgressListener(events, OperationType.TEST).forTasks("test").run()
+            it.newTestLauncher().addProgressListener(events, OperationType.TASK, OperationType.TEST).forTasks("test").run()
         }
 
         when:
+        assertTestsFromAllDefinitionsExecuted()
         def test1 = events.operation('Test SomeTestSpec.rbt - foo')
 
         then:
@@ -169,7 +153,7 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         }
 
         then:
-        assertTestsFromDefinitionsExecuted()
+        assertTestsFromAllDefinitionsExecuted()
         result.output.contains("Re-running resource-based tests is not supported via TestLauncher API. The ':test' task will be scheduled without further filtering.")
     }
 
@@ -194,7 +178,6 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
                 }
             }
         """
-
         writeTestDefinitions()
 
         when:
@@ -203,7 +186,7 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         }
 
         then:
-        assertTestsFromDefinitionsExecuted()
+        assertTestsFromAllDefinitionsExecuted()
     }
 
     @ToolingApiVersion(">=9.4.0")
@@ -226,7 +209,6 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
                 }
             }
         """
-
         writeTestDefinitions()
 
         when:
@@ -235,7 +217,7 @@ class ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingC
         }
 
         then:
-        assertTestsFromDefinitionsExecuted()
+        assertTestsFromAllDefinitionsExecuted()
         def test1 = events.operation('Test SomeTestSpec.rbt - foo')
         def test2 = events.operation('Test SomeTestSpec.rbt - bar')
         def test3 = events.operation('Test subSomeOtherTestSpec.rbt - other')

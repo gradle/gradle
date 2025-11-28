@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.tooling.TestEventsFixture
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -26,9 +27,10 @@ import testengines.TestEnginesFixture
 
 abstract class AbstractResourceBasedTestingCrossVersionTest extends ToolingApiSpecification implements TestEventsFixture {
 
-    private static final String ENGINE_COPY_TO_DIR_NAME = "test-engine-build"
-
+    protected static final DEFAULT_DEFINITIONS_LOCATION = "src/test/definitions"
     private static File engineJarLib
+
+    ProgressEvents events = ProgressEvents.create()
 
     abstract List<TestEnginesFixture.TestEngines> getEnginesToSetup()
 
@@ -44,12 +46,13 @@ abstract class AbstractResourceBasedTestingCrossVersionTest extends ToolingApiSp
                 resources.maybeCopy(it.name)
             }
 
-            File engineBuildDir = testClassDirectoryProvider.testDirectory.file(ENGINE_COPY_TO_DIR_NAME)
+            String engineCopyToDirName = "test-engine-build"
+            File engineBuildDir = testClassDirectoryProvider.testDirectory.file(engineCopyToDirName)
 
             withConnection(connector().forProjectDirectory(engineBuildDir)) {
                 it.newBuild().forTasks("build").run()
             }
-            engineJarLib = engineBuildDir.file("build/libs/${ENGINE_COPY_TO_DIR_NAME}.jar")
+            engineJarLib = engineBuildDir.file("build/libs/${engineCopyToDirName}.jar")
         }
     }
 
@@ -60,19 +63,6 @@ abstract class AbstractResourceBasedTestingCrossVersionTest extends ToolingApiSp
                 dependencies {
                     implementation files("${TextUtil.normaliseFileSeparators(engineJarLib.absolutePath)}")
                 }
-        """
-    }
-
-    protected void writeTestClasses() {
-        file("src/test/java/SomeTest.java") << """
-            import org.junit.jupiter.api.Test;
-
-            public class SomeTest {
-                @Test
-                public void testMethod() {
-                    System.out.println("Tested!");
-                }
-            }
         """
     }
 
@@ -90,13 +80,25 @@ abstract class AbstractResourceBasedTestingCrossVersionTest extends ToolingApiSp
         """
     }
 
-    protected void assertTestsFromDefinitionsExecuted() {
+    protected void assertTestsFromAllDefinitionsExecuted() {
         testEvents {
             task(':test') {
                 nested('Gradle Test Run :test') {
                     nested('Gradle Test Executor') {
                         test('Test SomeTestSpec.rbt - foo')
                         test('Test SomeTestSpec.rbt - bar')
+                        test('Test subSomeOtherTestSpec.rbt - other')
+                    }
+                }
+            }
+        }
+    }
+
+    protected void assertTestsFromSecondDefinitionsExecuted() {
+        testEvents {
+            task(':test') {
+                nested('Gradle Test Run :test') {
+                    nested('Gradle Test Executor') {
                         test('Test subSomeOtherTestSpec.rbt - other')
                     }
                 }

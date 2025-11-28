@@ -34,13 +34,17 @@ import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
+import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalSourceAwareTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
+import org.gradle.tooling.internal.protocol.test.source.InternalClassSource;
 import org.gradle.tooling.internal.protocol.test.source.InternalFilesystemSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalMethodSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 import org.jspecify.annotations.NullMarked;
 
@@ -124,7 +128,6 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 for (InternalJvmTestRequest jvmTestRequest : entry.getValue()) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
-                    disableResourceBasedTests(testTask);
                 }
             }
         }
@@ -137,29 +140,20 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                     DefaultTestFilter filter = (DefaultTestFilter) task.getFilter();
                     for (String cls : testSpec.getClasses()) {
                         filter.includeCommandLineTest(cls, null);
-                        disableResourceBasedTests(task);
                     }
                     for (Map.Entry<String, List<String>> entry : testSpec.getMethods().entrySet()) {
                         String cls = entry.getKey();
                         for (String method : entry.getValue()) {
                             filter.includeCommandLineTest(cls, method);
-                            disableResourceBasedTests(task);
                         }
                     }
                     Set<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns();
                     commandLineIncludePatterns.addAll(testSpec.getPatterns());
                     for (String pkg : testSpec.getPackages()) {
                         commandLineIncludePatterns.add(pkg + ".*");
-                        disableResourceBasedTests(task);
                     }
                 }
             }
-        }
-    }
-
-    private static void disableResourceBasedTests(AbstractTestTask testTask) {
-        if (testTask instanceof Test) {
-            ((Test) testTask).getTestDefinitionDirs().setFrom();
         }
     }
 
@@ -176,7 +170,6 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
-                    disableResourceBasedTests(testTask);
                 }
             }
         });
@@ -191,7 +184,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 configureTestTask(testTask);
                 for (InternalTestDescriptor testDescriptor : testDescriptors) {
                     if (taskPathOf(testDescriptor).equals(testTaskPath)) {
-                        includeTestMatching(testDescriptor, testTask);
+                        includeTestMatching((InternalJvmTestDescriptor) testDescriptor, testTask);
                     }
                 }
             }
@@ -230,20 +223,26 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
     }
 
-    private static void includeTestMatching(InternalTestDescriptor descriptor, AbstractTestTask testTask) {
-        if (descriptor instanceof InternalSourceAwareTestDescriptor) {
-            InternalSourceAwareTestDescriptor jvmTestDescriptor = (InternalSourceAwareTestDescriptor) descriptor;
-            String className = jvmTestDescriptor.getClassName();
-            String methodName = jvmTestDescriptor.getMethodName();
-            if (!(jvmTestDescriptor.getSource() instanceof InternalFilesystemSource)) {
-                if (className == null && methodName == null) {
-                    testTask.getFilter().includeTestsMatching("*");
-                } else {
-                    testTask.getFilter().includeTest(className, methodName);
-                }
-                disableResourceBasedTests(testTask);
+    private static void includeTestMatching(InternalJvmTestDescriptor descriptor, AbstractTestTask testTask) {
+        String className = descriptor.getClassName();
+        String methodName = descriptor.getMethodName();
+        // for resource-based tests, don't apply any class-based filtering
+        if (isClassBasedTestDescriptor(descriptor)) {
+            if (className == null && methodName == null) {
+                testTask.getFilter().includeTestsMatching("*");
+            } else {
+                testTask.getFilter().includeTest(className, methodName);
             }
+        }
+    }
 
+    private static boolean isClassBasedTestDescriptor(InternalJvmTestDescriptor descriptor) {
+        if (descriptor instanceof InternalSourceAwareTestDescriptor) {
+            InternalTestSource source = ((InternalSourceAwareTestDescriptor) descriptor).getSource();
+            return source instanceof InternalClassSource || source instanceof InternalMethodSource;
+        } else {
+            // assume class-based when no source information is available
+            return true;
         }
     }
 
