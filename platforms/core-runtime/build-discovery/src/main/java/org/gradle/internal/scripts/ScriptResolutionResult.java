@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class ScriptResolutionResult {
@@ -72,6 +73,8 @@ public class ScriptResolutionResult {
     }
 
     public static ScriptResolutionResult fromSingleFile(String basename, File scriptFile) {
+        Objects.requireNonNull(basename);
+        Objects.requireNonNull(scriptFile);
         return new ScriptResolutionResult(scriptFile.getParentFile(), basename, scriptFile, Collections.emptyList());
     }
 

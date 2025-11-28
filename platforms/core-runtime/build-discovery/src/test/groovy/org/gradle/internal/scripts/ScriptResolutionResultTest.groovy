@@ -150,14 +150,23 @@ class ScriptResolutionResultTest extends Specification {
         result.ignoredCandidates.isEmpty()
     }
 
-    def "fromSingleFile with null file creates result with no selected candidate"() {
+    def "fromSingleFile will throw you NullPointerException when basename is null"() {
+        given:
+        def scriptFile = Mock(File)
+
         when:
-        def result = ScriptResolutionResult.fromSingleFile("build", null)
+        ScriptResolutionResult.fromSingleFile(null, scriptFile)
 
         then:
-        result.selectedCandidate == null
-        !result.scriptFound
-        result.ignoredCandidates.isEmpty()
+        thrown(NullPointerException)
+    }
+
+    def "fromSingleFile will throw you NullPointerException when scriptFile is null"() {
+        when:
+        ScriptResolutionResult.fromSingleFile("build", null)
+
+        then:
+        thrown(NullPointerException)
     }
 
 }
