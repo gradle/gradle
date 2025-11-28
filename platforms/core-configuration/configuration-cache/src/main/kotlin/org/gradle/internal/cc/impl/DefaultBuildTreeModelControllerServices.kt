@@ -27,9 +27,9 @@ import org.gradle.api.logging.Logging
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.Environment
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
@@ -38,6 +38,7 @@ import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
+import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
 import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
@@ -77,7 +78,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
     private val logger = Logging.getLogger(BuildTreeModelControllerServices::class.java)
 
-    override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
+    override fun servicesForBuildTree(requirements: BuildActionModelRequirements, options: InternalOptions): BuildTreeModelControllerServices.Supplier {
         val startParameter = requirements.startParameter
 
         // Isolated projects also implies configuration cache
@@ -88,7 +89,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
-        val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter, configurationCacheLogLevel)
+        val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter, options, configurationCacheLogLevel)
         logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
         if (modelParameters.isIsolatedProjects) {

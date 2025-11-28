@@ -51,6 +51,7 @@ import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildprocess.BuildProcessScopeServices;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
@@ -161,7 +162,9 @@ public class ProjectBuilderImpl {
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter, userActionRootDir);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-        BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(new RunTasksRequirements(startParameter));
+        InternalOptions options = crossBuildSessionState.getServices().get(InternalOptions.class);
+        BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class)
+            .servicesForBuildTree(new RunTasksRequirements(startParameter), options);
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
         BuildTreeState buildTreeState = new BuildTreeState(buildInvocationScopeId, buildSessionState.getServices(), modelServices);
         TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeState);
