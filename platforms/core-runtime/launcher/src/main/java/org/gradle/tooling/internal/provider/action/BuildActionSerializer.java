@@ -23,6 +23,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
@@ -79,6 +80,7 @@ public class BuildActionSerializer {
         private final Serializer<LogLevel> logLevelSerializer;
         private final Serializer<ShowStacktrace> showStacktraceSerializer;
         private final Serializer<ConsoleOutput> consoleOutputSerializer;
+        private final Serializer<ConsoleUnicodeSupport> consoleUnicodeSupportSerializer;
         private final Serializer<WarningMode> warningModeSerializer;
         private final Serializer<File> nullableFileSerializer = new NullableFileSerializer();
         private final Serializer<List<String>> stringListSerializer = new ListSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
@@ -91,6 +93,7 @@ public class BuildActionSerializer {
             logLevelSerializer = serializerFactory.getSerializerFor(LogLevel.class);
             showStacktraceSerializer = serializerFactory.getSerializerFor(ShowStacktrace.class);
             consoleOutputSerializer = serializerFactory.getSerializerFor(ConsoleOutput.class);
+            consoleUnicodeSupportSerializer = serializerFactory.getSerializerFor(ConsoleUnicodeSupport.class);
             warningModeSerializer = serializerFactory.getSerializerFor(WarningMode.class);
         }
 
@@ -100,6 +103,7 @@ public class BuildActionSerializer {
             logLevelSerializer.write(encoder, startParameter.getLogLevel());
             showStacktraceSerializer.write(encoder, startParameter.getShowStacktrace());
             consoleOutputSerializer.write(encoder, startParameter.getConsoleOutput());
+            consoleUnicodeSupportSerializer.write(encoder, startParameter.getConsoleUnicodeSupport());
             warningModeSerializer.write(encoder, startParameter.getWarningMode());
 
             // Parallel configuration
@@ -196,6 +200,7 @@ public class BuildActionSerializer {
             startParameter.setLogLevel(logLevelSerializer.read(decoder));
             startParameter.setShowStacktrace(showStacktraceSerializer.read(decoder));
             startParameter.setConsoleOutput(consoleOutputSerializer.read(decoder));
+            startParameter.setConsoleUnicodeSupport(consoleUnicodeSupportSerializer.read(decoder));
             startParameter.setWarningMode(warningModeSerializer.read(decoder));
 
             // Parallel configuration
