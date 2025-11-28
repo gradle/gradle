@@ -124,7 +124,7 @@ fun DevelocityConfiguration.extractCiData() {
                 link("Build Type Scans", customValueSearchUrl(mapOf(tcBuildTypeName to buildType)))
             }
             System.getProperty("buildScan.PartOf")?.let {
-                it.toString().split(",").forEach { partOf ->
+                it.split(",").forEach { partOf ->
                     value("PartOf", partOf)
                 }
             }
