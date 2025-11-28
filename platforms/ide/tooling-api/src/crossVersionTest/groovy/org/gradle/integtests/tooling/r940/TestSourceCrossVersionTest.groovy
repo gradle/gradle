@@ -77,7 +77,7 @@ class TestSourceCrossVersionTest extends ToolingApiSpecification implements Test
         methodDescriptor.source instanceof MethodSource
     }
 
-    @TargetGradleVersion("<9.4.0")
+    @TargetGradleVersion(">7.7 <9.4.0") // 7.6 and older has slightly different event hierarchy
     def "class-based tests provide unknown sources for older Gradle versions"() {
         setup:
         buildFile << """
@@ -147,4 +147,3 @@ class TestSourceCrossVersionTest extends ToolingApiSpecification implements Test
         testRunDescriptor.source instanceof NoSource
     }
 }
-
