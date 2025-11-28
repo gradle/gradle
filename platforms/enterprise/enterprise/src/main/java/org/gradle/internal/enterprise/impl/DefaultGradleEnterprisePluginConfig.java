@@ -34,7 +34,7 @@ public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePlug
         this.buildScanRequest = buildScanRequest(startParameter);
         this.taskExecutingBuild = buildType == BuildType.TASKS;
         this.autoApplied = autoAppliedStatus.isAutoApplied();
-        this.develocityUrl = ((StartParameterInternal) startParameter).getDevelocityUrl();
+        this.develocityUrl = ((StartParameterInternal) startParameter).getDefaultDevelocityUrl();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePlug
 
     @Override
     @Nullable
-    public String getDevelocityUrl() {
+    public String getDefaultDevelocityUrl() {
         return develocityUrl;
     }
 

@@ -180,7 +180,7 @@ class ConfigurationCacheStartParameter internal constructor(
         get() = startParameter.isNoBuildScan
 
     val develocityUrl: String?
-        get() = startParameter.develocityUrl
+        get() = startParameter.defaultDevelocityUrl
 
     /**
      * Determines whether Isolated Projects option was enabled.

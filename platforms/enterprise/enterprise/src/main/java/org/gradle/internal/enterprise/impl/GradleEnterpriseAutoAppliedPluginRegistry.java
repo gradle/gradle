@@ -61,7 +61,7 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
         Gradle gradle = settings.getGradle();
         StartParameterInternal startParameter = (StartParameterInternal) gradle.getStartParameter();
         return (startParameter.isBuildScan()
-                || !Strings.isNullOrEmpty(startParameter.getDevelocityUrl()))
+                || !Strings.isNullOrEmpty(startParameter.getDefaultDevelocityUrl()))
             && gradle.getParent() == null;
     }
 

@@ -44,7 +44,7 @@ public class DevelocityAutoAppliedPluginConfigurationAction implements Action<Ap
     @Override
     public void execute(AppliedPlugin plugin) {
         GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus = settings.getServices().get(GradleEnterprisePluginAutoAppliedStatus.class);
-        String develocityUrl = ((StartParameterInternal) settings.getStartParameter()).getDevelocityUrl();
+        String develocityUrl = ((StartParameterInternal) settings.getStartParameter()).getDefaultDevelocityUrl();
         if (autoAppliedStatus.isAutoApplied() && develocityUrl != null) {
             Object develocityConfiguration = settings.getExtensions().getByName("develocity");
             try {

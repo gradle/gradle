@@ -26,8 +26,17 @@ import org.jspecify.annotations.Nullable;
 @ServiceScope(Scope.BuildTree.class)
 public interface GradleEnterprisePluginConfig {
 
+    /**
+     * The default Develocity URL to use for this build, or null if none is configured.
+     * <p>
+     * The value configured here should be ignored if the plugin is not {@link #isAutoApplied() auto-applied}.
+     *
+     * @return the default Develocity URL or {@code null} if none is configured
+     *
+     * @since 9.3
+     */
     @Nullable
-    String getDevelocityUrl();
+    String getDefaultDevelocityUrl();
 
     enum BuildScanRequest {
         NONE, // no explicit request
@@ -40,7 +49,7 @@ public interface GradleEnterprisePluginConfig {
     boolean isTaskExecutingBuild();
 
     /**
-     * Whether the plugin was auto-applied via {@code --scan} without being explicitly applied.
+     * Whether the plugin was auto-applied via {@code --scan} or {@link #getDefaultDevelocityUrl()} without being explicitly applied.
      *
      * @since 8.0
      */

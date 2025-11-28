@@ -64,7 +64,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new WatchFileSystemOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
-        new DevelocityUrlOption(),
+        new DefaultDevelocityUrlOption(),
         new DependencyLockingWriteOption(),
         new DependencyVerificationWriteOption(),
         new DependencyVerificationModeOption(),
@@ -362,26 +362,26 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class DevelocityUrlOption extends StringBuildOption<StartParameterInternal> {
+    public static class DefaultDevelocityUrlOption extends StringBuildOption<StartParameterInternal> {
         public static final String LONG_OPTION = "develocity-default-url";
         public static final String GRADLE_PROPERTY = "com.gradle.develocity.default.url";
         public static final String ENVIRONMENT_VARIABLE = "COM_GRADLE_DEVELOCITY_DEFAULT_URL";
 
-        public DevelocityUrlOption() {
+        public DefaultDevelocityUrlOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
                 "Specify the default URL of the Develocity server to use for Build Scans. If the Develocity plugin is configured, this value is ignored."));
         }
 
         @Override
         public void applyTo(String value, StartParameterInternal settings, Origin origin) {
-            settings.setDevelocityUrl(value);
+            settings.setDefaultDevelocityUrl(value);
         }
 
         @Override
         public void applyFromEnvVar(Map<String, String> envVars, StartParameterInternal settings) {
             String develocityUrlEnvVar = envVars.get(ENVIRONMENT_VARIABLE);
             if (develocityUrlEnvVar != null) {
-                settings.setDevelocityUrl(develocityUrlEnvVar);
+                settings.setDefaultDevelocityUrl(develocityUrlEnvVar);
             }
         }
     }
