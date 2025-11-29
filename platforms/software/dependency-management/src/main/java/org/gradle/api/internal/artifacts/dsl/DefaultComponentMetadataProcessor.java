@@ -42,7 +42,6 @@ import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ivy.DefaultIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.RealisedIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
@@ -67,11 +66,8 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     private final static boolean FORCE_REALIZE = Boolean.getBoolean("org.gradle.integtest.force.realize.metadata");
 
-    private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT = componentMetadataContext -> {
-        ModuleComponentResolveMetadata metadata = componentMetadataContext
-            .getImmutableMetadataWithDerivationStrategy(componentMetadataContext.getVariantDerivationStrategy());
-        return realizeMetadata(metadata);
-    };
+    private static final Transformer<ModuleComponentResolveMetadata, WrappingComponentMetadataContext> DETAILS_TO_RESULT =
+        componentMetadataContext -> realizeMetadata(componentMetadataContext.getImmutableMetadataWithDerivationStrategy(componentMetadataContext.getVariantDerivationStrategy()));
 
     private ModuleComponentResolveMetadata maybeForceRealisation(ModuleComponentResolveMetadata metadata) {
         if (FORCE_REALIZE) {
@@ -94,13 +90,21 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     private ModuleComponentResolveMetadata forceSerialization(ModuleComponentResolveMetadata metadata) {
         Serializer<ModuleComponentResolveMetadata> serializer = ruleExecutor.getComponentMetadataContextSerializer();
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            serializer.write(new OutputStreamBackedEncoder(baos), metadata);
-            // TODO: CC cannot enable this assertion because moduleSource is not serialized, so doesn't appear in the deserialized form
-            //assert metadata.equals(rereadMetadata);
-            metadata = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(baos.toByteArray())));
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            serializer.write(new OutputStreamBackedEncoder(out), metadata);
+            // Deserialize the metadata
+            try {
+                // TODO: CC cannot enable this assertion because moduleSource is not serialized, so doesn't appear in the deserialized form
+                //assert metadata.equals(forceRead);
+                metadata = serializer.read(
+                    new InputStreamBackedDecoder(new ByteArrayInputStream(out.toByteArray())) // Serialize the metadata
+                );
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize module component metadata", e);
+            }
+
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to serialize module component metadata", e);
         }
         return metadata;
     }
@@ -137,8 +141,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     @Override
     public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata origin) {
-        VariantDerivationStrategy curStrategy = metadataRuleContainer.getVariantDerivationStrategy();
-        ModuleComponentResolveMetadata metadata = origin.withDerivationStrategy(curStrategy);
+        ModuleComponentResolveMetadata metadata = origin.withDerivationStrategy(metadataRuleContainer.getVariantDerivationStrategy());
         ModuleComponentResolveMetadata updatedMetadata;
         if (metadataRuleContainer.isEmpty()) {
             updatedMetadata = maybeForceRealisation(metadata);
@@ -158,8 +161,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             }
         } else {
             MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
-            ComponentMetadataDetails details = createDetails(mutableMetadata);
-            processAllRules(metadata, details, metadata.getModuleVersionId());
+            processAllRules(metadata, createDetails(mutableMetadata), metadata.getModuleVersionId());
             updatedMetadata = maybeForceRealisation(mutableMetadata.asImmutable());
         }
 

@@ -32,6 +32,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Function;
 
+import static java.lang.Thread.interrupted;
+
 public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService, Closeable {
     private final Object lock = new Object();
     private final Set<Action<ResourceLock>> releaseHandlers = new LinkedHashSet<Action<ResourceLock>>();
@@ -109,7 +111,8 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                                 // Interrupting the state lock thread means something changed,
                                 // so let's retry obtaining the lock.
                                 // Clear the interrupted flag.
-                                boolean ignored = Thread.interrupted();
+                                //noinspection ResultOfMethodCallIgnored
+                                interrupted();
                             }
                             startOperation(resourceLockState);
                             break;

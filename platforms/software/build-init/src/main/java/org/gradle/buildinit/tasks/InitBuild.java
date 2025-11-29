@@ -302,8 +302,7 @@ public abstract class InitBuild extends DefaultTask {
     private void doInitSpecProjectGeneration(UserInputHandler inputHandler) {
         BuildInitConfig config = inputHandler.askUser(this::selectAndConfigureSpec).get();
         BuildInitGenerator generator = createGenerator(config);
-        boolean userInterrupted = inputHandler.interrupted();
-        if (userInterrupted) {
+        if (inputHandler.interrupted()) {
             throw new BuildCancelledException();
         }
         getLogger().lifecycle("Generate '{}'", config.getBuildSpec().getDisplayName());
@@ -345,16 +344,12 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private void doStandardProjectGeneration(UserInputHandler inputHandler) {
-        GenerationSettings settings = inputHandler.askUser(this::calculateGenerationSettings).get();
-
-        boolean userInterrupted = inputHandler.interrupted();
-        if (userInterrupted) {
+        if (inputHandler.interrupted()) {
             throw new BuildCancelledException();
         }
-
+        GenerationSettings settings = inputHandler.askUser(this::calculateGenerationSettings).get();
         settings.getInitializer().generate(settings.getSettings());
         generateWrapper();
-
         settings.getInitializer().getFurtherReading(settings.getSettings())
             .ifPresent(link -> getLogger().lifecycle(link));
     }

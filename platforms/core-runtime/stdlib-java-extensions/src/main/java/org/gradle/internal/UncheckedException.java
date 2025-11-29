@@ -35,6 +35,10 @@ public final class UncheckedException extends RuntimeException {
         super(message, cause);
     }
 
+    public static RuntimeException asUncheckedException(Throwable t) {
+        return throwAsUncheckedException(t, false);
+    }
+
     /**
      * Note: always throws the failure in some form. The return value is to keep the compiler happy.
      */

@@ -783,11 +783,13 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
             import java.io.File;
             import java.io.OutputStreamWriter;
 
+            import static java.nio.charset.StandardCharsets.UTF_8;
+
             class Main {
                 public static void main(String[] args) throws Exception {
                     // Some lowercase greek letters
                     String content = "\u03b1\u03b2\u03b3";
-                    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8");
+                    OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), UTF_8);
                     writer.write(content);
                     writer.close();
                 }

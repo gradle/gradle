@@ -52,7 +52,7 @@ abstract class AbstractModule implements Module {
         } else {
             writeContents(tmpFile, cl)
             // normalize line endings
-            tmpFile.setText(TextUtil.normaliseLineSeparators(tmpFile.getText("utf-8")), "utf-8")
+            tmpFile.setText(TextUtil.normaliseLineSeparators(tmpFile.getText("utf-8")), UTF_8)
         }
 
         def hashAfter = Hashing.sha1().hashFile(tmpFile)

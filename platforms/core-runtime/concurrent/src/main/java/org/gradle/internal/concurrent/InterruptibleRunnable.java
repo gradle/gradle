@@ -21,6 +21,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.lang.Thread.interrupted;
+
 /**
  * Wraps a runnable so that it can be interrupted. Useful when {@link java.util.concurrent.Future} is not available or its behavior is not desired.
  *
@@ -62,7 +64,8 @@ public final class InterruptibleRunnable implements Runnable {
     private void afterRun() {
         stateLock.lock();
         try {
-            Thread.interrupted();
+            //noinspection ResultOfMethodCallIgnored
+            interrupted();
             thread = null;
         } finally {
             stateLock.unlock();
