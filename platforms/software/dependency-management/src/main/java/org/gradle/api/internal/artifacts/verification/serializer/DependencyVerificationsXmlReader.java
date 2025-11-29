@@ -77,21 +77,17 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 
 public class DependencyVerificationsXmlReader {
     public static void readFromXml(InputStream in, DependencyVerifierBuilder builder) {
-        try {
+        try (InputStream is = in) {
             SAXParser saxParser = createSecureParser();
             XMLReader xmlReader = saxParser.getXMLReader();
             VerifiersHandler handler = new VerifiersHandler(builder);
             xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
             xmlReader.setContentHandler(handler);
-            xmlReader.parse(new InputSource(in));
+            xmlReader.parse(new InputSource(is));
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         } catch (Exception e) {
             throw new DependencyVerificationException("Unable to read dependency verification metadata", e);
-        } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
         }
     }
 

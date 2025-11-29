@@ -36,8 +36,8 @@ import java.util.Map;
  */
 final class TestOutputWriter implements Closeable {
     private static final class OutputStarts {
-        private long startStdout = OutputEntry.NO_OUTPUT;
-        private long startStderr = OutputEntry.NO_OUTPUT;
+        private long startStdout = OutputRanges.NO_OUTPUT;
+        private long startStderr = OutputRanges.NO_OUTPUT;
     }
 
     /**
@@ -58,12 +58,12 @@ final class TestOutputWriter implements Closeable {
         OutputStarts ranges = outputEntryRangeStarts.computeIfAbsent(id, i -> new OutputStarts());
         switch (event.getDestination()) {
             case StdOut:
-                if (ranges.startStdout == OutputEntry.NO_OUTPUT) {
+                if (ranges.startStdout == OutputRanges.NO_OUTPUT) {
                     ranges.startStdout = outputEventsEncoder.getWritePosition();
                 }
                 break;
             case StdErr:
-                if (ranges.startStderr == OutputEntry.NO_OUTPUT) {
+                if (ranges.startStderr == OutputRanges.NO_OUTPUT) {
                     ranges.startStderr = outputEventsEncoder.getWritePosition();
                 }
                 break;
@@ -80,13 +80,12 @@ final class TestOutputWriter implements Closeable {
         }
     }
 
-    public OutputEntry finishOutput(long id) {
+    public OutputRanges finishOutput(long id) {
         OutputStarts outputStarts = outputEntryRangeStarts.remove(id);
-        return new OutputEntry(
-            id,
-            outputStarts != null ? outputStarts.startStdout : OutputEntry.NO_OUTPUT,
-            outputStarts != null ? outputStarts.startStderr : OutputEntry.NO_OUTPUT,
-            outputStarts != null ? outputEventsEncoder.getWritePosition() : OutputEntry.NO_OUTPUT
+        return OutputRanges.of(
+            outputStarts != null ? outputStarts.startStdout : OutputRanges.NO_OUTPUT,
+            outputStarts != null ? outputStarts.startStderr : OutputRanges.NO_OUTPUT,
+            outputStarts != null ? outputEventsEncoder.getWritePosition() : OutputRanges.NO_OUTPUT
         );
     }
 

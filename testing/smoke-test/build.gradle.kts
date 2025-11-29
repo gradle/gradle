@@ -5,9 +5,11 @@ import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.android-home-warmup")
 }
 
 val smokeTestSourceSet = sourceSets.create("smokeTest") {
@@ -57,6 +59,19 @@ dependencies {
     smokeTestImplementation(testFixtures(projects.versionControl))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
+}
+
+androidHomeWarmup {
+    rootProjectDir = project.layout.projectDirectory.dir("../..")
+    sdkVersions.set(
+        listOf(
+            // Build-tools 35.0.0 (used by AGP < 9.0)
+            SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.13.1"),
+
+            // Build-tools 36.0.0 (used by AGP >= 9.0)
+            SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.0-beta02"),
+        ),
+    )
 }
 
 tasks {
@@ -155,6 +170,8 @@ tasks {
         description = "Runs Android project Smoke tests"
         configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("configCacheAndroidProjectSmokeTest") {
@@ -163,6 +180,8 @@ tasks {
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
+
+        dependsOn("androidHomeWarmup")
     }
 }
 

@@ -16,26 +16,53 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class IdentityContext extends ExecutionRequestContext {
+public class IdentityContext extends ExecutionRequestContext implements IdentifyingContext {
 
+    private final ImplementationSnapshot implementation;
+    private final ImmutableList<ImplementationSnapshot> additionalImplementations;
     private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
     private final Identity identity;
 
-    public IdentityContext(ExecutionRequestContext parent, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties, Identity identity) {
+    public IdentityContext(
+        ExecutionRequestContext parent,
+        ImplementationSnapshot implementation,
+        ImmutableList<ImplementationSnapshot> additionalImplementations,
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        Identity identity) {
         super(parent);
+        this.implementation = implementation;
+        this.additionalImplementations = additionalImplementations;
         this.inputProperties = inputProperties;
         this.inputFileProperties = inputFileProperties;
         this.identity = identity;
     }
 
     protected IdentityContext(IdentityContext parent) {
-        this(parent, parent.getInputProperties(), parent.getInputFileProperties(), parent.getIdentity());
+        this(
+            parent,
+            parent.getImplementation(),
+            parent.getAdditionalImplementations(),
+            parent.getInputProperties(),
+            parent.getInputFileProperties(),
+            parent.getIdentity()
+        );
+    }
+
+    public ImplementationSnapshot getImplementation() {
+        return implementation;
+    }
+
+    public ImmutableList<ImplementationSnapshot> getAdditionalImplementations() {
+        return additionalImplementations;
     }
 
     /**
@@ -52,10 +79,7 @@ public class IdentityContext extends ExecutionRequestContext {
         return inputFileProperties;
     }
 
-    /**
-     * Returns an identity for the given work item that uniquely identifies it
-     * among all the other work items of the same type in the current build.
-     */
+    @Override
     public Identity getIdentity() {
         return identity;
     }

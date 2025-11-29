@@ -32,6 +32,8 @@ import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTe
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Serializer;
@@ -58,6 +60,8 @@ import java.util.function.Consumer;
  * </p>
  */
 public final class TestTreeModelResultsProvider implements TestResultsProvider {
+
+    private static final Logger LOGGER = Logging.getLogger(TestTreeModelResultsProvider.class);
 
     public static void useResultsFrom(Path resultsDir, Consumer<TestTreeModelResultsProvider> resultsConsumer) {
         SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDir);
@@ -87,14 +91,21 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static final Comparator<PerRootInfo> PER_ROOT_INFO_BY_START_TIME =
-        Comparator.comparing(leaf -> leaf.getResult().getStartTime());
+        Comparator.comparing(leaf -> leaf.getResults().get(0).getStartTime());
 
     private static Map<Long, ClassNode> createClasses(TestTreeModel root) {
         Map<org.gradle.util.Path, TestTreeModel> parentOfPath = buildParentOfPathMap(root);
         ListMultimap<TestTreeModel, PerRootInfo> leavesByGroupingNode = LinkedListMultimap.create();
         walkLeaves(parentOfPath, root, leaf -> {
             for (PerRootInfo perRootInfo : leaf.getPerRootInfo().get(0)) {
-                TestTreeModel groupingNode = findGroupingNode(parentOfPath, leaf, perRootInfo.getResult().getClassName());
+                if (perRootInfo.getResults().size() > 1) {
+                    // Only one of these should be generated per leaf node, multiple results are not merged
+                    throw new IllegalStateException(
+                        "Expected exactly one result for leaf node " + leaf.getPath() +
+                            " but found: " + perRootInfo.getResults().size()
+                    );
+                }
+                TestTreeModel groupingNode = findGroupingNode(parentOfPath, leaf, perRootInfo.getResults().get(0).getClassName());
                 leavesByGroupingNode.put(groupingNode, perRootInfo);
             }
         });
@@ -121,9 +132,10 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
                     return;
                 }
                 for (PerRootInfo perRootInfo : node.getPerRootInfo().get(0)) {
-                    OutputEntry outputEntry = perRootInfo.getOutputEntry();
-                    if (outputEntry != null) {
-                        outputEntries.add(outputEntry);
+                    for (OutputEntry outputEntry : perRootInfo.getOutputEntries()) {
+                        if (outputEntry.getOutputRanges().hasOutput()) {
+                            outputEntries.add(outputEntry);
+                        }
                     }
                 }
             });
@@ -157,11 +169,11 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     ) {
         TestClassResult classResult = createEmptyClassResult(groupingNode, nextClassId);
 
-        for (PerRootInfo leafPerRootInfo : leaves) {
-            classResult.add(buildMethodResult(leafPerRootInfo));
-            OutputEntry outputEntry = leafPerRootInfo.getOutputEntry();
-            if (outputEntry != null) {
-                methodOutputEntries.put(leafPerRootInfo.getId(), outputEntry);
+        for (PerRootInfo leaf : leaves) {
+            classResult.add(buildMethodResult(leaf));
+            OutputEntry outputEntry = leaf.getOutputEntries().get(0);
+            if (outputEntry.getOutputRanges().hasOutput()) {
+                methodOutputEntries.put(leaf.getId(), outputEntry);
             }
         }
         return classResult;
@@ -176,25 +188,51 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             );
         }
         PerRootInfo perRootInfo = perRootInfos.get(0);
+        List<SerializableTestResult> results = perRootInfo.getResults();
+        String name = results.get(0).getName();
+        String displayName = results.get(0).getDisplayName();
+        long earliestStartTime = results.get(0).getStartTime();
+        // Skip first result as we already used it
+        for (int i = 1; i < results.size(); i++) {
+            SerializableTestResult result = results.get(i);
+            // This should never happen, as merging is keyed by name.
+            if (!result.getName().equals(name)) {
+                throw new IllegalStateException(
+                    "Expected all results for grouping node " + groupingNode.getPath() +
+                        " to have the same name, but found: " + name + " and " + result.getName()
+                );
+            }
+            // This can happen for a variety of cases, e.g. parameterized tests or multiple test frameworks.
+            // Therefore, we shouldn't fail, as a slightly broken report is better than a task failure.
+            if (!result.getDisplayName().equals(displayName)) {
+                LOGGER.warn(
+                    "Expected all results for grouping node {} to have the same display name, but found: {} and {}",
+                    groupingNode.getPath(), displayName, result.getDisplayName()
+                );
+            }
+            if (result.getStartTime() < earliestStartTime) {
+                earliestStartTime = result.getStartTime();
+            }
+        }
         return new TestClassResult(
             nextClassId,
-            perRootInfo.getResult().getName(),
-            perRootInfo.getResult().getDisplayName(),
-            perRootInfo.getResult().getStartTime(),
-            perRootInfo.getMetadatas()
+            name,
+            displayName,
+            earliestStartTime,
+            ImmutableList.copyOf(perRootInfo.getMetadatas())
         );
     }
 
-    private static TestMethodResult buildMethodResult(PerRootInfo perRootInfo) {
-        SerializableTestResult result = perRootInfo.getResult();
+    private static TestMethodResult buildMethodResult(PerRootInfo leaf) {
+        SerializableTestResult result = leaf.getResults().get(0);
         TestMethodResult methodResult = new TestMethodResult(
-            perRootInfo.getId(),
+            leaf.getId(),
             result.getName(),
             result.getDisplayName(),
             result.getResultType(),
             result.getDuration(),
             result.getEndTime(),
-            perRootInfo.getMetadatas()
+            ImmutableList.copyOf(leaf.getMetadatas())
         );
         methodResult.getFailures().addAll(result.getFailures());
         if (result.getAssumptionFailure() != null) {

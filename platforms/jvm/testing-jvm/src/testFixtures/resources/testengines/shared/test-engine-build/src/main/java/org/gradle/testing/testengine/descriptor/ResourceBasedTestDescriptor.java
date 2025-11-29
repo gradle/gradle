@@ -34,7 +34,7 @@ public final class ResourceBasedTestDescriptor extends AbstractTestDescriptor {
     }
 
     public ResourceBasedTestDescriptor(UniqueId parentId, File file, String name, boolean dynamic) {
-        super(parentId.append("testDefinitionFile", file.getName()).append("testDefinition", name), file.getName() + " : " + name);
+        super(parentId.append("testDefinitionFile", file.getName()).append("testDefinition", name), file.getName() + " - " + name);
         this.file = file;
         this.name = name;
         this.dynamic = dynamic;

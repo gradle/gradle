@@ -98,6 +98,9 @@ public class CompilerMetaDataProviderFactory {
 
         @Override
         public boolean equals(Object obj) {
+            if (!(obj instanceof Key)) {
+                return false;
+            }
             Key other = (Key) obj;
             return other.gccBinary.equals(gccBinary) && other.args.equals(args) && other.path.equals(path) && other.environmentVariables.equals(environmentVariables);
         }

@@ -9,26 +9,6 @@ description = """This project contains most of the dependency management logic o
     |
     |DSL facing APIs are to be found in 'core-api'""".trimMargin()
 
-errorprone {
-    disabledChecks.addAll(
-        "AmbiguousMethodReference", // 1 occurrences
-        "ClassCanBeStatic",
-        "DefaultCharset", // 3 occurrences
-        "Finally", // 4 occurrences
-        "IdentityHashMapUsage", // 2 occurrences
-        "InlineFormatString", // 5 occurrences
-        "InvalidParam", // 1 occurrences
-        "MutablePublicArray", // 1 occurrences
-        "NonApiType", // 3 occurrences
-        "NonCanonicalType", // 3 occurrences
-        "ReferenceEquality", // 10 occurrences
-        "StringCharset", // 1 occurrences
-        "TypeParameterShadowing", // 4 occurrences
-        "TypeParameterUnusedInFormals", // 2 occurrences
-    )
-}
-
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)

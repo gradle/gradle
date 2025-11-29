@@ -188,6 +188,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             gson.toJson(entries, writer);
         }
 
+        @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public void writeToFile(File outputFile) {
             try (Writer writer = new PrintWriter(outputFile)) {
                 toJson(writer);

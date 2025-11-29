@@ -215,6 +215,7 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
+    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static Stream<String> intercept_lines(
         Path path,
         @CallerClassName String consumer
@@ -225,6 +226,7 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
+    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static Stream<String> intercept_lines(
         Path path,
         Charset charset,
@@ -236,6 +238,7 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
+    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static DirectoryStream<Path> intercept_newDirectoryStream(
         Path path,
         @CallerClassName String consumer
@@ -246,6 +249,7 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
+    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static DirectoryStream<Path> intercept_newDirectoryStream(
         Path path,
         String glob,
@@ -257,6 +261,7 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
+    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static DirectoryStream<Path> intercept_newDirectoryStream(
         Path path,
         DirectoryStream.Filter<?> filter,
@@ -268,6 +273,7 @@ public class NioFileInterceptors {
 
     @InterceptCalls
     @StaticMethod(ofClass = Files.class)
+    @SuppressWarnings("StreamResourceLeak") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static Stream<Path> intercept_list(
         Path path,
         @CallerClassName String consumer

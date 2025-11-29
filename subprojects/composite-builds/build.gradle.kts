@@ -4,13 +4,6 @@ plugins {
 
 description = "Included build controller and composite build infrastructure"
 
-errorprone {
-    disabledChecks.addAll(
-        "FutureReturnValueIgnored", // 1 occurrences
-        "ThreadLocalUsage", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)

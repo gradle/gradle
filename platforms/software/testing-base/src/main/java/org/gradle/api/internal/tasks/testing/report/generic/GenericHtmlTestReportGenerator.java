@@ -24,6 +24,7 @@ import com.google.common.collect.Multimaps;
 import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
@@ -154,14 +155,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
             for (int i = 0; i < model.getPerRootInfo().size(); i++) {
                 // Roots should always have exactly one PerRootInfo entry
-                List<PerRootInfo> perRootInfos = model.getPerRootInfo().get(i);
-                if (perRootInfos.isEmpty()) {
-                    throw new IllegalStateException("Root model is missing display name info for root index " + i);
-                }
-                if (perRootInfos.size() > 1) {
-                    throw new IllegalStateException("Root model has multiple display name infos for root index " + i + ": " + Iterables.toString(perRootInfos));
-                }
-                String displayName = perRootInfos.get(0).getResult().getDisplayName();
+                String displayName = getDisplayName(model, i);
                 rootDisplayNames.add(displayName);
                 namesToIndexes.put(displayName, i);
             }
@@ -208,6 +202,17 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         } catch (Exception e) {
             throw new GradleException(String.format("Could not generate test report to '%s'.", reportsDirectory), e);
         }
+    }
+
+    private static String getDisplayName(TestTreeModel model, int rootIndex) {
+        List<PerRootInfo> perRootInfos = model.getPerRootInfo().get(rootIndex);
+        if (perRootInfos.isEmpty()) {
+            throw new IllegalStateException("Root model is missing display name info for root index " + rootIndex);
+        }
+        if (perRootInfos.size() > 1) {
+            throw new IllegalStateException("Root model has multiple display name infos for root index " + rootIndex + ": " + Iterables.toString(perRootInfos));
+        }
+        return SerializableTestResult.getCombinedDisplayName(perRootInfos.get(0).getResults());
     }
 
     private static final class HtmlReportFileGenerator implements RunnableBuildOperation {

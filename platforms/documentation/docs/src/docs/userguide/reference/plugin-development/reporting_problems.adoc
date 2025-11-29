@@ -163,13 +163,13 @@ FAILURE: Build failed with an exception.
 * What went wrong:
 Execution failed for task ':sample-project:myFailingTask'.
 > Message from runtime exception
-    This happened because ProblemReporter.throwing() was called
-      This is a demonstration of how to add
-      detailed information to a build failure
+
+  This happened because ProblemReporter.throwing() was called
+  This is a demonstration of how to add detailed information to a build failure
 
 * Try:
 > Remove the Problems.throwing() method call from the task action
-> Run with --scan to generate a Build Scan (powered by Develocity).
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
 
 BUILD FAILED in 0ms
 ----

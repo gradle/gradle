@@ -47,6 +47,7 @@ import java.util.Set;
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
+    @SuppressWarnings("InlineFormatString")
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;

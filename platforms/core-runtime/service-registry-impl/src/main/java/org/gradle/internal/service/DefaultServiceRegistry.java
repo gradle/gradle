@@ -393,8 +393,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     private class OwnServices implements ServiceProvider {
         private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
         private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
-        private final List<SingletonService> services = new ArrayList<SingletonService>();
-        private final List<AnnotatedServiceLifecycleHandler> lifecycleHandlers = new ArrayList<AnnotatedServiceLifecycleHandler>();
+        private final AtomicReference<ServicesSnapshot> services = new AtomicReference<>(ServicesSnapshot.EMPTY);
 
         public OwnServices() {
             providersByType.put(ServiceRegistry.class, Collections.<ServiceProvider>singletonList(new ThisAsService(ServiceAccess.getPublicScope())));
@@ -461,8 +460,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             assertMutable();
             stoppable.add(serviceProvider);
             collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
-            services.add(serviceProvider);
-            for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
+            ServicesSnapshot snapshot = services.updateAndGet(it -> it.addService(serviceProvider));
+            for (AnnotatedServiceLifecycleHandler annotationHandler : snapshot.lifecycleHandlers) {
                 notifyAnnotationHandler(annotationHandler, serviceProvider);
             }
         }
@@ -505,7 +504,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             if (instance instanceof AnnotatedServiceLifecycleHandler) {
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
             }
-            for (AnnotatedServiceLifecycleHandler lifecycleHandler : lifecycleHandlers) {
+            for (AnnotatedServiceLifecycleHandler lifecycleHandler : services.get().lifecycleHandlers) {
                 for (Class<? extends Annotation> annotation : lifecycleHandler.getAnnotations()) {
                     boolean implementationHasAnnotation = inspector.hasAnnotation(instance.getClass(), annotation);
                     boolean declaredWithAnnotation = anyTypeHasAnnotation(annotation, declaredServiceTypes);
@@ -518,9 +517,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
-            lifecycleHandlers.add(annotationHandler);
-            for (SingletonService candidate : services) {
-                notifyAnnotationHandler(annotationHandler, candidate);
+            ServicesSnapshot snapshot = services.updateAndGet(it -> it.addLifecycleHandler(annotationHandler));
+            ServiceList list = snapshot.services;
+            while (list != null) {
+                notifyAnnotationHandler(annotationHandler, list.service);
+                list = list.next;
             }
         }
 
@@ -1415,6 +1416,58 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 }
                 return false;
             }
+        }
+    }
+
+    /**
+     * Carries a snapshot of the current set of services and lifecycle handlers so they can change together.
+     *
+     * Lifecycle handlers are maintained in a copy-on-write array since there are at most 3 lifecycle handler instances
+     * per registry, and they are iterated frequently (for every service registration).
+     *
+     * Services are maintained in a linked list since there are many, they are frequently written and iterated very
+     * rarely (once per lifecycle handler).
+     */
+    private static class ServicesSnapshot {
+        static final ServicesSnapshot EMPTY = new ServicesSnapshot(null, new AnnotatedServiceLifecycleHandler[0]);
+
+        final @Nullable ServiceList services;
+        final AnnotatedServiceLifecycleHandler[] lifecycleHandlers;
+
+        ServicesSnapshot(@Nullable ServiceList services, AnnotatedServiceLifecycleHandler[] lifecycleHandlers) {
+            this.services = services;
+            this.lifecycleHandlers = lifecycleHandlers;
+        }
+
+        ServicesSnapshot addService(SingletonService service) {
+            return new ServicesSnapshot(
+                new ServiceList(service, services),
+                lifecycleHandlers
+            );
+        }
+
+        ServicesSnapshot addLifecycleHandler(AnnotatedServiceLifecycleHandler lifecycleHandler) {
+            return new ServicesSnapshot(
+                services,
+                append(lifecycleHandlers, lifecycleHandler)
+            );
+        }
+
+        private static AnnotatedServiceLifecycleHandler[] append(AnnotatedServiceLifecycleHandler[] array, AnnotatedServiceLifecycleHandler annotationHandler) {
+            AnnotatedServiceLifecycleHandler[] newArray = new AnnotatedServiceLifecycleHandler[array.length + 1];
+            System.arraycopy(array, 0, newArray, 0, array.length);
+            newArray[array.length] = annotationHandler;
+            return newArray;
+        }
+    }
+
+    private static class ServiceList {
+        final SingletonService service;
+        final @Nullable ServiceList next;
+
+        ServiceList(SingletonService head, @Nullable ServiceList next) {
+            this.service = head;
+            this.next = next;
         }
     }
 }

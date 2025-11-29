@@ -408,7 +408,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
+        <T> T withToolingModels(boolean inResilientContext, Function<? super BuildToolingModelController, T> action) {
             throw new UnsupportedOperationException()
         }
 
