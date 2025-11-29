@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class HtmlReportRenderer {
     /**
      * Renders a multi-page HTML report from the given model, into the given directory.
@@ -119,7 +121,7 @@ public class HtmlReportRenderer {
         @Override
         public <T> void renderHtmlPage(final String name, final T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer) {
             File outputFile = new File(outputDirectory, name);
-            IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
+            IoActions.writeTextFile(outputFile, UTF_8, new ErroringAction<Writer>() {
                 @Override
                 protected void doExecute(@NonNull Writer writer) throws Exception {
                     SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, outputFile.getParentFile().toPath(), "");
@@ -133,7 +135,7 @@ public class HtmlReportRenderer {
         @Override
         public <T> void renderRawHtmlPage(final String name, final T model, final ReportRenderer<T, HtmlPageBuilder<Writer>> renderer) {
             File outputFile = new File(outputDirectory, name);
-            IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
+            IoActions.writeTextFile(outputFile, UTF_8, new ErroringAction<Writer>() {
                 @Override
                 protected void doExecute(@NonNull Writer writer) throws Exception {
                     renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), writer));
