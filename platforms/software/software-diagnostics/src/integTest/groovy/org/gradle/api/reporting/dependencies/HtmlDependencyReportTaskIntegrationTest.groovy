@@ -656,6 +656,6 @@ rootProject.name = 'root'
 
     private def readGeneratedHtml(fileNameWithoutExtension) {
         TestFile htmlReport = file("build/reports/project/dependencies/" + fileNameWithoutExtension + ".html")
-        return Jsoup.parse(htmlReport, "utf-8")
+        return Jsoup.parse(htmlReport, UTF_8)
     }
 }

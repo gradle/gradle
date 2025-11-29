@@ -104,11 +104,8 @@ public class S3ResourceConnector extends AbstractExternalResourceAccessor implem
     @Override
     public void upload(ReadableContent resource, ExternalResourceName destination) throws IOException {
         LOGGER.debug("Attempting to upload stream to : {}", destination);
-        InputStream inputStream = resource.open();
-        try {
+        try (InputStream inputStream = resource.open()) {
             s3Client.put(inputStream, resource.getContentLength(), destination.getUri());
-        } finally {
-            inputStream.close();
         }
     }
 }

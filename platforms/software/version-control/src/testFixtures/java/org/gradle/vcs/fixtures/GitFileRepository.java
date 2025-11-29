@@ -111,17 +111,11 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
     }
 
     public RevCommit addSubmodule(GitFileRepository submoduleRepo) throws GitAPIException {
-        Repository submodule = null;
-        try {
-            submodule = git.submoduleAdd().
-                setURI(submoduleRepo.getWorkTree().toString()).
-                setPath(submoduleRepo.getName()).
-                call();
+        try (Repository submodule = git.submoduleAdd().
+            setURI(submoduleRepo.getWorkTree().toString()).
+            setPath(submoduleRepo.getName()).
+            call()) {
             return commit("add submodule " + submoduleRepo.getName(), submoduleRepo.getName());
-        } finally {
-            if (submodule != null) {
-                submodule.close();
-            }
         }
     }
 
@@ -131,19 +125,13 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
     public RevCommit updateSubmodulesToLatest() throws GitAPIException {
         List<String> submodulePaths = new ArrayList<>();
         try {
-            SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
-            try {
+            try (SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository())) {
                 while (walker.next()) {
-                    Repository submodule = walker.getRepository();
-                    try {
+                    try (Repository submodule = walker.getRepository()) {
                         submodulePaths.add(walker.getPath());
                         Git.wrap(submodule).pull().call();
-                    } finally {
-                        submodule.close();
                     }
                 }
-            } finally {
-                walker.close();
             }
             return commit("update submodules", submodulePaths.toArray(new String[submodulePaths.size()]));
         } catch (IOException e) {

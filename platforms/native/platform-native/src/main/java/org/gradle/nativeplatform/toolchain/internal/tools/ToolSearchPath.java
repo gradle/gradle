@@ -28,11 +28,12 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ToolSearchPath {
     private final Map<String, File> executables = new HashMap<String, File>();
@@ -112,18 +113,15 @@ public class ToolSearchPath {
         }
 
         String pathStr;
-        DataInputStream instr = new DataInputStream(new BufferedInputStream(new FileInputStream(symlink)));
-        try {
+        try (DataInputStream instr = new DataInputStream(new BufferedInputStream(new FileInputStream(symlink)))) {
             byte[] header = new byte[10];
             instr.readFully(header);
-            if (!new String(header, StandardCharsets.UTF_8).equals("!<symlink>")) {
+            if (!new String(header, UTF_8).equals("!<symlink>")) {
                 return null;
             }
             byte[] pathContent = new byte[(int) symlink.length() - 11];
             instr.readFully(pathContent);
-            pathStr = new String(pathContent, StandardCharsets.UTF_8);
-        } finally {
-            instr.close();
+            pathStr = new String(pathContent, UTF_8);
         }
 
         symlink = new File(symlink.getParentFile(), pathStr);

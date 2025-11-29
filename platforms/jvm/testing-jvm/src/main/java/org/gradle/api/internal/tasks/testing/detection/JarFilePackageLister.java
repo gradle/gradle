@@ -45,8 +45,7 @@ public class JarFilePackageLister {
         }
 
         try {
-            ZipFile zipFile = new ZipFile(jarFile);
-            try {
+            try (ZipFile zipFile = new ZipFile(jarFile)) {
                 final Enumeration<? extends ZipEntry> zipFileEntries = zipFile.entries();
 
                 while (zipFileEntries.hasMoreElements()) {
@@ -59,8 +58,6 @@ public class JarFilePackageLister {
                         listener.receivePackage(packageName);
                     }
                 }
-            } finally {
-                zipFile.close();
             }
         } catch (IOException e) {
             throw new GradleException("failed to scan jar file for packages (" + jarFileAbsolutePath + ")", e);

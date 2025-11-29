@@ -20,14 +20,13 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.UnitOfWork;
 
+import static java.lang.Thread.interrupted;
+
 public class CancelExecutionStep<C extends Context, R extends Result> implements Step<C, R> {
     private final BuildCancellationToken cancellationToken;
     private final Step<? super C, ? extends R> delegate;
 
-    public CancelExecutionStep(
-        BuildCancellationToken cancellationToken,
-        Step<? super C, ? extends R> delegate
-    ) {
+    public CancelExecutionStep(BuildCancellationToken cancellationToken, Step<? super C, ? extends R> delegate) {
         this.cancellationToken = cancellationToken;
         this.delegate = delegate;
     }
@@ -35,8 +34,7 @@ public class CancelExecutionStep<C extends Context, R extends Result> implements
     @SuppressWarnings("Finally")
     @Override
     public R execute(UnitOfWork work, C context) {
-        Thread thread = Thread.currentThread();
-        Runnable interrupt = thread::interrupt;
+        Runnable interrupt = Thread.currentThread()::interrupt;
         try {
             cancellationToken.addCallback(interrupt);
             return delegate.execute(work, context);
@@ -44,7 +42,7 @@ public class CancelExecutionStep<C extends Context, R extends Result> implements
             cancellationToken.removeCallback(interrupt);
             if (cancellationToken.isCancellationRequested()) {
                 //noinspection ResultOfMethodCallIgnored
-                Thread.interrupted();
+                interrupted();
                 //noinspection ThrowFromFinallyBlock
                 throw new BuildCancelledException("Build cancelled while executing " + work.getDisplayName());
             }
