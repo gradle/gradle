@@ -169,4 +169,39 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         true           | false
         false          | true
     }
+
+    def "resource-based test engine can select test definitions using --tests"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+        """
+
+        writeTestClasses()
+        writeTestDefinitions()
+
+        when:
+        succeeds("test", "--tests", "src/test/definitions/sub/SomeOtherTestSpec.rbt", "--tests", "!")
+
+        then:
+        resultsFor()
+            .assertTestPathsExecuted(":SomeOtherTestSpec.rbt - other")
+            .assertTestPathsNotExecuted(":SomeTestSpec.rbt - foo")
+            .assertTestPathsNotExecuted(":SomeTestSpec.rbt - bar")
+            .assertTestPathsNotExecuted(":SomeTest")
+            .assertTestPathsNotExecuted(":SomeTest:testMethod()")
+    }
 }

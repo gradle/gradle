@@ -20,6 +20,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
@@ -33,11 +35,16 @@ import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalSourceAwareTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
+import org.gradle.tooling.internal.protocol.test.source.InternalClassSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalFilesystemSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalMethodSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 import org.jspecify.annotations.NullMarked;
 
@@ -50,6 +57,9 @@ import java.util.function.Consumer;
 
 @NullMarked
 class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
+
+    private static final Logger LOG = Logging.getLogger(TestExecutionBuildConfigurationAction.class);
+
     private final TestExecutionRequestAction testExecutionRequest;
 
     public TestExecutionBuildConfigurationAction(TestExecutionRequestAction testExecutionRequest) {
@@ -167,6 +177,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
 
     private void configureTestTasksInBuild(Context context) {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
+        warnIfUnsupportedTestRerunningForResourceBasedTests(testDescriptors);
         for (final InternalTestDescriptor descriptor : testDescriptors) {
             final String testTaskPath = taskPathOf(descriptor);
             for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
@@ -174,6 +185,22 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 for (InternalTestDescriptor testDescriptor : testDescriptors) {
                     if (taskPathOf(testDescriptor).equals(testTaskPath)) {
                         includeTestMatching((InternalJvmTestDescriptor) testDescriptor, testTask);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void warnIfUnsupportedTestRerunningForResourceBasedTests(Collection<InternalTestDescriptor> testDescriptors) {
+        Set<String> seenTasks = new LinkedHashSet<>();
+        for (InternalTestDescriptor descriptor : testDescriptors) {
+            if (descriptor instanceof InternalSourceAwareTestDescriptor) {
+                InternalSourceAwareTestDescriptor sd  = (InternalSourceAwareTestDescriptor) descriptor;
+                if (sd.getSource() instanceof InternalFilesystemSource) {
+                    String taskPath = taskPathOf(descriptor);
+                    if (!seenTasks.contains(taskPath)) {
+                        LOG.warn("Re-running resource-based tests is not supported via TestLauncher API. The '{}' task will be scheduled without further filtering.", taskPath);
+                        seenTasks.add(taskPath);
                     }
                 }
             }
@@ -199,10 +226,23 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     private static void includeTestMatching(InternalJvmTestDescriptor descriptor, AbstractTestTask testTask) {
         String className = descriptor.getClassName();
         String methodName = descriptor.getMethodName();
-        if (className == null && methodName == null) {
-            testTask.getFilter().includeTestsMatching("*");
+        // for resource-based tests, don't apply any class-based filtering
+        if (isClassBasedTestDescriptor(descriptor)) {
+            if (className == null && methodName == null) {
+                testTask.getFilter().includeTestsMatching("*");
+            } else {
+                testTask.getFilter().includeTest(className, methodName);
+            }
+        }
+    }
+
+    private static boolean isClassBasedTestDescriptor(InternalJvmTestDescriptor descriptor) {
+        if (descriptor instanceof InternalSourceAwareTestDescriptor) {
+            InternalTestSource source = ((InternalSourceAwareTestDescriptor) descriptor).getSource();
+            return source instanceof InternalClassSource || source instanceof InternalMethodSource;
         } else {
-            testTask.getFilter().includeTest(className, methodName);
+            // assume class-based when no source information is available
+            return true;
         }
     }
 
