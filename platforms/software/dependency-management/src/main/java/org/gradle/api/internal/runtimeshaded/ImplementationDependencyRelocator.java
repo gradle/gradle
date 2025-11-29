@@ -36,6 +36,15 @@ class ImplementationDependencyRelocator extends Remapper {
     private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)");
     private final Trie prefixes;
 
+    /**
+     * Reads {@code [type]-relocated.txt} from classpath resources in this class' package.
+     *
+     * These resources are created by the gradle/gradle build for each {@link RuntimeShadedJarType}.
+     * <ul>
+     *     <li>API by the {@code :distribution-*} projects in the {@code gradle-runtime-api-info} module</li>
+     *     <li>TEST_KIT by the {@code :test-kit} project in the {@code gradle-test-kit} module</li>
+     * </ul>
+     */
     private static Trie readPrefixes(RuntimeShadedJarType type) {
         final Trie.Builder builder = new Trie.Builder();
         IoActions.withResource(ImplementationDependencyRelocator.class.getResourceAsStream(type.getIdentifier() + "-relocated.txt"), new ErroringAction<InputStream>() {

@@ -92,14 +92,12 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
 ) {
 
     private
-    val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
+    val classPathCache = ConcurrentHashMap<Pair<ClassLoaderScope, ClassPath>, AccessorsClassPath>()
 
     fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
         val classLoaderScope = classLoaderScopeOf(scriptTarget)
-        if (classLoaderScope == null) {
-            return AccessorsClassPath.empty
-        }
-        return classPathCache.computeIfAbsent(classLoaderScope) {
+            ?: return AccessorsClassPath.empty
+        return classPathCache.computeIfAbsent(classLoaderScope to classPath) {
             buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
                 ?: AccessorsClassPath.empty
         }
@@ -145,8 +143,11 @@ fun isDclEnabledForScriptTarget(target: Any): Boolean {
         is Settings -> target.serviceOf<GradleProperties>()
         else -> null
     }
-    return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
+    return gradleProperties?.isDclEnabled ?: false
 }
+
+internal val GradleProperties.isDclEnabled: Boolean
+    get() = getBooleanKotlinDslOption(this, DCL_ENABLED_PROPERTY_NAME, false)
 
 const val DCL_ENABLED_PROPERTY_NAME = "org.gradle.kotlin.dsl.dcl"
 
