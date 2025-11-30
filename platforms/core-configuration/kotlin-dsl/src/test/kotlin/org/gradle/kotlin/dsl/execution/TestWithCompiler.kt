@@ -94,7 +94,10 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     })
 
     private
-    fun scriptSource(): ScriptSource = mock { on { fileName } doReturn "script.gradle.kts" }
+    fun scriptSource(): ScriptSource = mock {
+        on { fileName } doReturn "script.gradle.kts"
+        on { className } doReturn "Script_gradle"
+    }
 }
 
 

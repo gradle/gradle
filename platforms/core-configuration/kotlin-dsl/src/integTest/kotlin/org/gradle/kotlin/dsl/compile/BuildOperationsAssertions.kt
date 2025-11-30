@@ -23,12 +23,12 @@ import org.hamcrest.MatcherAssert
 import java.util.regex.Pattern
 
 
-class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, val output: String, val expectWarnings: Boolean = false) {
+class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, val output: String, val expectWarnings: Boolean = false, scriptFileName: String = "build.gradle.kts") {
     private
-    val classpathCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script build.gradle.kts \\(CLASSPATH\\)"))
+    val classpathCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script ${Pattern.quote(scriptFileName)} \\(CLASSPATH\\)"))
 
     private
-    val bodyCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script build.gradle.kts \\(BODY\\)"))
+    val bodyCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script ${Pattern.quote(scriptFileName)} \\(BODY\\)"))
 
     private
     val compileAvoidanceWarnings = output.lines()
