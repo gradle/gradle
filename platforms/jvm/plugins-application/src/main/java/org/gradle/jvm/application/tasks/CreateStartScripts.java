@@ -133,7 +133,6 @@ public abstract class CreateStartScripts extends ConventionTask {
     private final Property<String> mainClass;
     private Iterable<String> defaultJvmOpts = new LinkedList<>();
     private String applicationName;
-    private final Property<String> gitRef;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
     private FileCollection classpath;
@@ -144,7 +143,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     public CreateStartScripts() {
         this.mainModule = getObjectFactory().property(String.class);
         this.mainClass = getObjectFactory().property(String.class);
-        this.gitRef = getObjectFactory().property(String.class).convention("HEAD");
+        getGitRef().convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
 
@@ -300,12 +299,10 @@ public abstract class CreateStartScripts extends ConventionTask {
      *
      * @since 9.4.0
      */
-    @Input
-    @Optional
     @Incubating
-    public Property<String> getGitRef() {
-        return gitRef;
-    }
+    @Optional
+    @Input
+    public abstract Property<String> getGitRef();
 
     public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
         this.optsEnvironmentVar = optsEnvironmentVar;
