@@ -18,7 +18,6 @@ package org.gradle.test.preconditions
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.TestPrecondition
@@ -70,13 +69,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class WorkingDir implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() < JavaVersion.VERSION_11
-        }
-    }
-
     static final class MandatoryFileLockOnOpen implements TestPrecondition {
         @Override
         boolean isSatisfied() {
@@ -116,28 +108,6 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             return TestPrecondition.notSatisfied(Windows) || TestPrecondition.satisfied(Jdk11OrLater)
-        }
-    }
-
-    /**
-     * @see <a href="https://github.com/gradle/gradle/issues/1111">Link</a>
-     */
-    static final class IsKnownWindowsSocketDisappearanceIssue implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return Jvm.current().javaVersionMajor >= 7 &&
-                Jvm.current().javaVersionMajor <= 8 &&
-                OperatingSystem.current().isWindows()
-        }
-    }
-
-    /**
-     * @see <a href="https://github.com/gradle/gradle/issues/1111">Link</a>
-     */
-    static final class IsNotKnownWindowsSocketDisappearanceIssue implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return TestPrecondition.notSatisfied(IsKnownWindowsSocketDisappearanceIssue)
         }
     }
 
@@ -237,24 +207,10 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk8OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_1_8
-        }
-    }
-
     static final class Jdk9OrLater implements TestPrecondition {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() >= JavaVersion.VERSION_1_9
-        }
-    }
-
-    static final class Jdk9OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_1_9
         }
     }
 
@@ -269,13 +225,6 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() >= JavaVersion.VERSION_11
-        }
-    }
-
-    static final class Jdk11OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_11
         }
     }
 
@@ -297,13 +246,6 @@ class UnitTestPreconditions {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() >= JavaVersion.VERSION_14
-        }
-    }
-
-    static final class Jdk15OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_15
         }
     }
 

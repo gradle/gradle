@@ -18,7 +18,6 @@ package org.gradle.testing
 
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -173,67 +172,6 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
             .assertStderr(Matchers.containsText("ERROR via slf4j"))
             .assertStderr(Matchers.containsText("WARN via slf4j"))
             .assertStderr(Matchers.containsText("INFO via slf4j"))
-    }
-
-    @Requires(
-        value = UnitTestPreconditions.Jdk8OrEarlier,
-        reason = "Hangs on Java 9"
-    )
-    def "can run tests with custom system classloader and java agent"() {
-        given:
-        file('src/main/java/org/gradle/MySystemClassLoader.java') << customSystemClassLoaderClass
-        file('src/main/java/org/gradle/MyAgent.java') << """
-            package org.gradle;
-
-            import java.lang.instrument.Instrumentation;
-
-            public class MyAgent {
-                public static void premain(String args, Instrumentation instrumentation) {
-                    System.setProperty("using.custom.agent", "true");
-
-                    // This agent should be loaded via the custom system ClassLoader
-                    assert ClassLoader.getSystemClassLoader() instanceof MySystemClassLoader : "systemClassLoader is not an instanceof MySystemClassLoader";
-                    assert MyAgent.class.getClassLoader() == ClassLoader.getSystemClassLoader().getParent() : "MyAgent is not loaded via the system classloader: " + MyAgent.class.getClassLoader().getClass().getName();
-                }
-            }
-        """.stripIndent()
-        file('src/test/java/org/gradle/JUnitTest.java') << """
-            package org.gradle;
-
-            ${testFrameworkImports}
-
-            public class JUnitTest {
-                @Test
-                public void mySystemClassLoaderIsUsed() throws ClassNotFoundException {
-                    assertEquals("true", System.getProperty("using.custom.agent"));
-
-                    // This test class should be loaded via the custom system ClassLoader
-                    assertTrue(ClassLoader.getSystemClassLoader() instanceof MySystemClassLoader);
-                    assertTrue(getClass().getClassLoader() == ClassLoader.getSystemClassLoader().getParent());
-                }
-            }
-        """.stripIndent()
-        buildFile << """
-            jar {
-                manifest {
-                    attributes 'Premain-Class': 'org.gradle.MyAgent'
-                }
-            }
-
-            test {
-                dependsOn jar
-                systemProperties('java.system.class.loader':'org.gradle.MySystemClassLoader')
-                jvmArgs("-javaagent:\${jar.archiveFile.asFile.get()}")
-            }
-        """.stripIndent()
-
-        when:
-        run 'test'
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
-        result.assertTestClassesExecuted('org.gradle.JUnitTest')
-        result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 
     @Requires(IntegTestPreconditions.Java11HomeAvailable)

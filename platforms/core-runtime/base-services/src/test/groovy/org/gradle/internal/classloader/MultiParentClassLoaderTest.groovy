@@ -15,8 +15,7 @@
  */
 package org.gradle.internal.classloader
 
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import spock.lang.Specification
 
 class MultiParentClassLoaderTest extends Specification {
@@ -53,37 +52,6 @@ class MultiParentClassLoaderTest extends Specification {
         then:
         ClassNotFoundException e = thrown()
         e.message == 'string not found.'
-    }
-
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    // todo: find a way to mock this in JDK 9+, where `getDefinedPackage` is final
-    public void loadsPackageFromParentsInOrderSpecified() {
-        def stringPackage = String.class.getPackage()
-        def listPackage = List.class.getPackage()
-
-        given:
-        _ * parent1.getPackage('string') >> stringPackage
-        _ * parent1.getPackage('list') >> null
-        _ * parent2.getPackage('list') >> listPackage
-
-        expect:
-        loader.getPackage('string') == stringPackage
-        loader.getPackage('list') == listPackage
-    }
-
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    // todo: find a way to mock this in JDK 9+, where `getDefinedPackages` is final
-    public void containsUnionOfPackagesFromAllParents() {
-        def package1 = Stub(Package)
-        def package2 = Stub(Package)
-        def package3 = Stub(Package)
-
-        given:
-        _ * parent1.getPackages() >> ([package1] as Package[])
-        _ * parent2.getPackages() >> ([package1, package2, package3] as Package[])
-
-        expect:
-        loader.getPackages() == [package1, package2, package3] as Package[]
     }
 
     public void loadsResourceFromParentsInOrderSpecified() {
