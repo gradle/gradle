@@ -91,15 +91,12 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
-                    PersistentCache workerClassPathCache = cacheBuilderFactory
+                    try (PersistentCache workerClassPathCache = cacheBuilderFactory
                         .createCacheBuilder("workerMain")
                         .withInitialLockMode(FileLockManager.LockMode.Exclusive)
                         .withInitializer(new CacheInitializer())
-                        .open();
-                    try {
+                        .open()) {
                         workerClassPath = DefaultClassPath.of(jarFile(workerClassPathCache));
-                    } finally {
-                        workerClassPathCache.close();
                     }
                 }
                 LOGGER.debug("Using worker process classpath: {}", workerClassPath);

@@ -100,11 +100,8 @@ public class FileZipInput implements ZipInput {
 
         @Override
         public <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
-            InputStream inputStream = getInputStream();
-            try {
+            try (InputStream inputStream = getInputStream()) {
                 return action.apply(inputStream);
-            } finally {
-                inputStream.close();
             }
         }
 

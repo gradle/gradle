@@ -44,9 +44,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.security.AccessControlException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+
+import static java.lang.Thread.interrupted;
 
 /**
  * Processes tests in a remote process with the given {@link TestDefinitionProcessor} until a stop command is received.  Requires that
@@ -176,11 +177,10 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
                 }
                 try {
                     processor.processTestDefinition(testDefinition);
-                } catch (AccessControlException e) {
-                    throw e;
-                } finally {
+                } finally { // rv: Caught exception 'e' is immediately rethrown
                     // Clean the interrupted status
-                    Thread.interrupted();
+                    //noinspection ResultOfMethodCallIgnored
+                    interrupted();
                 }
             }
         });
@@ -197,7 +197,8 @@ public class TestWorker<D extends TestDefinition> implements Action<WorkerProces
                     state = State.STOPPED;
                     // Clean the interrupted status
                     // because some test class processors do work here, e.g. JUnitPlatform
-                    Thread.interrupted();
+                    //noinspection ResultOfMethodCallIgnored
+                    interrupted();
                 }
             }
         });

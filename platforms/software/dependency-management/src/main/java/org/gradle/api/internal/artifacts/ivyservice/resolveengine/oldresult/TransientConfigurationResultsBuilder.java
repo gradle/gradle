@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGrap
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.BinaryStore;
+import org.gradle.cache.internal.BinaryStore.BinaryData;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -67,7 +68,7 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
     private final BuildOperationExecutor buildOperationExecutor;
     private final ResolutionHost resolutionHost;
     private final ModuleVersionIdentifierSerializer moduleVersionIdSerializer;
-    private BinaryStore.BinaryData binaryData;
+    private BinaryData binaryData;
 
     public TransientConfigurationResultsBuilder(
         BinaryStore binaryStore,
@@ -137,8 +138,8 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
     public TransientConfigurationResults load(final SelectedArtifactResults artifactResults) {
         synchronized (lock) {
             return cache.load(() -> {
-                try (BinaryStore.BinaryData reader = binaryData) {
-                    return reader.read(decoder -> deserialize(decoder, artifactResults, buildOperationExecutor, resolutionHost));
+                try (BinaryData localBinaryData = binaryData) {
+                    return localBinaryData.read(decoder -> deserialize(decoder, artifactResults, buildOperationExecutor, resolutionHost));
                 } catch (IOException e) {
                     throw throwAsUncheckedException(e);
                 }

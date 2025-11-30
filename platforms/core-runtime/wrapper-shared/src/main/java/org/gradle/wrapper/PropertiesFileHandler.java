@@ -72,11 +72,8 @@ public class PropertiesFileHandler {
     private static Properties loadProperties(File propertiesFile) {
         Properties properties = new Properties();
         try {
-            FileInputStream inStream = new FileInputStream(propertiesFile);
-            try {
+            try (FileInputStream inStream = new FileInputStream(propertiesFile)) {
                 properties.load(inStream);
-            } finally {
-                inStream.close();
             }
         } catch (IOException e) {
             throw new RuntimeException("Error when loading properties file=" + propertiesFile, e);

@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static java.lang.System.setProperty;
+
 public class JansiBootPathConfigurer {
     private static final String JANSI_LIBRARY_PATH_SYS_PROP = "library.jansi.path";
     private final JansiStorageLocator locator = new JansiStorageLocator();
@@ -41,41 +43,28 @@ public class JansiBootPathConfigurer {
      */
     public void configure(File storageDir) {
         JansiStorage jansiStorage = locator.locate(storageDir);
-
         if (jansiStorage != null) {
             File libFile = jansiStorage.getTargetLibFile();
             libFile.getParentFile().mkdirs();
-
             if (!libFile.exists()) {
-                InputStream libraryInputStream = getClass().getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath());
-                try {
-                    if (libraryInputStream != null) {
-                        copyLibrary(libraryInputStream, libFile);
-                    }
-                } finally {
-                    IoActions.closeQuietly(libraryInputStream);
-                }
+                copyLibraryQuietly(
+                    getClass().getResourceAsStream(jansiStorage.getJansiLibrary().getResourcePath()),
+                    libFile
+                );
             }
-
-            System.setProperty(JANSI_LIBRARY_PATH_SYS_PROP, libFile.getParent());
+            setProperty(JANSI_LIBRARY_PATH_SYS_PROP, libFile.getParent());
         }
     }
 
-    private void copyLibrary(InputStream lib, File libFile) {
+    private static void copyLibraryQuietly(InputStream lib, File libFile) {
         try {
-            try {
-                FileOutputStream outputStream = new FileOutputStream(libFile);
-
-                try {
-                    IOUtils.copy(lib, outputStream);
-                } finally {
-                    outputStream.close();
-                }
-            } finally {
-                lib.close();
+            try (FileOutputStream out = new FileOutputStream(libFile)) {
+                IOUtils.copy(lib, out);
             }
         } catch (IOException e) {
             throw new NativeIntegrationException(String.format("Could not create Jansi native library '%s'.", libFile), e);
+        } finally {
+            IoActions.closeQuietly(lib);
         }
     }
 }

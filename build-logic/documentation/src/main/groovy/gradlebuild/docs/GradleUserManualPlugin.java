@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -158,7 +159,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("reproducible", "");
             attributes.put("docinfo", "");
             attributes.put("lang", "en-US");
-            attributes.put("encoding", "utf-8");
+            attributes.put("encoding", UTF_8);
             attributes.put("idprefix", "");
             attributes.put("website", "https://gradle.org");
             // TODO: This breaks the provider

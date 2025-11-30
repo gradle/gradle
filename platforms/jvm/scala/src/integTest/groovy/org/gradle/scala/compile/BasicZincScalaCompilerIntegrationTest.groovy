@@ -253,7 +253,7 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
                 def main(args: Array[String]): Unit = {
                     // Some lowercase greek letters
                     val content = "\u03b1\u03b2\u03b3"
-                    val writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8")
+                    val writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), UTF_8)
                     writer.write(content)
                     writer.close()
                 }

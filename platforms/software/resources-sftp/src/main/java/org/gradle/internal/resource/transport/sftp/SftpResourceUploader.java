@@ -46,11 +46,8 @@ public class SftpResourceUploader implements ExternalResourceUploader {
         try {
             ChannelSftp channel = client.getSftpClient();
             ensureParentDirectoryExists(channel, destination.getUri());
-            InputStream sourceStream = resource.open();
-            try {
+            try (InputStream sourceStream = resource.open()) {
                 channel.put(sourceStream, destination.getPath());
-            } finally {
-                sourceStream.close();
             }
         } catch (com.jcraft.jsch.SftpException e) {
             throw ResourceExceptions.putFailed(destination.getUri(), e);

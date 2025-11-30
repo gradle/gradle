@@ -43,12 +43,14 @@ import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * A {@link TextResource} implementation backed by a URI. Defaults content encoding to UTF-8.
  */
 public class UriTextResource implements TextResource {
     private static final HashCode SIGNATURE = Hashing.signature(UriTextResource.class);
-    protected static final Charset DEFAULT_ENCODING = Charset.forName("utf-8");
+    protected static final Charset DEFAULT_ENCODING = UTF_8;
     private static final String USER_AGENT;
 
     static {
@@ -131,12 +133,9 @@ public class UriTextResource implements TextResource {
             }
             return file.length() == 0;
         }
-        Reader reader = getAsReader();
         try {
-            try {
+            try (Reader reader = getAsReader()) {
                 return reader.read() == -1;
-            } finally {
-                reader.close();
             }
         } catch (Exception e) {
             throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
@@ -156,12 +155,9 @@ public class UriTextResource implements TextResource {
                 throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
             }
         }
-        Reader reader = getAsReader();
         try {
-            try {
+            try (Reader reader = getAsReader()) {
                 return IOUtils.toString(reader);
-            } finally {
-                reader.close();
             }
         } catch (Exception e) {
             throw ResourceExceptions.failure(sourceUri, String.format("Could not read %s.", getDisplayName()), e);
@@ -201,11 +197,8 @@ public class UriTextResource implements TextResource {
             return file.exists();
         }
         try {
-            Reader reader = openReader();
-            try {
+            try (Reader reader = openReader()) {
                 return true;
-            } finally {
-                reader.close();
             }
         } catch (FileNotFoundException e) {
             return false;

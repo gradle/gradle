@@ -184,11 +184,8 @@ public class TransformReplacer implements Closeable {
                 // Injected classes reuse the protection domain. See ClassLoaderUtils.define and defineDecorator.
                 return null;
             }
-            InputStream classBytes = jarFile.getInputStream(classEntry);
-            try {
+            try (InputStream classBytes = jarFile.getInputStream(classEntry)) {
                 return StreamByteBuffer.of(classBytes).readAsByteArray();
-            } finally {
-                classBytes.close();
             }
         }
 
@@ -216,11 +213,8 @@ public class TransformReplacer implements Closeable {
     private static boolean isTransformed(JarFile jarFile) throws IOException {
         JarEntry entry = jarFile.getJarEntry(MarkerResource.RESOURCE_NAME);
         if (entry != null) {
-            InputStream in = jarFile.getInputStream(entry);
-            try {
+            try (InputStream in = jarFile.getInputStream(entry)) {
                 return MarkerResource.TRANSFORMED.equals(MarkerResource.readFromStream(in));
-            } finally {
-                in.close();
             }
         }
         return false;
@@ -243,11 +237,8 @@ public class TransformReplacer implements Closeable {
                 //  file, we're going to use originals silently.
                 return null;
             }
-            InputStream classBytes = new FileInputStream(classFile);
-            try {
+            try (InputStream classBytes = new FileInputStream(classFile)) {
                 return StreamByteBuffer.of(classBytes).readAsByteArray();
-            } finally {
-                classBytes.close();
             }
         }
     }

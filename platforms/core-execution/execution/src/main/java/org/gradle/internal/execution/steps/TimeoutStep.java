@@ -19,12 +19,14 @@ package org.gradle.internal.execution.steps;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.timeout.Timeout;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
 import java.time.Duration;
 import java.util.Optional;
+
+import static java.lang.Thread.currentThread;
+import static java.lang.Thread.interrupted;
 
 public class TimeoutStep<C extends Context, R extends Result> implements Step<C, R> {
 
@@ -58,13 +60,12 @@ public class TimeoutStep<C extends Context, R extends Result> implements Step<C,
 
     @SuppressWarnings("Finally")
     private R executeWithTimeout(UnitOfWork work, C context, Duration timeout) {
-        Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout, work, currentBuildOperationRef.get());
         try {
             return executeWithoutTimeout(work, context);
         } finally {
-            if (taskTimeout.stop()) {
+            if (timeoutHandler.start(currentThread(), timeout, work, currentBuildOperationRef.get()).stop()) {
                 //noinspection ResultOfMethodCallIgnored
-                Thread.interrupted();
+                interrupted();
                 //noinspection ThrowFromFinallyBlock
                 throw new GradleException("Timeout has been exceeded");
             }

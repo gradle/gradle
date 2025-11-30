@@ -114,15 +114,15 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
         transformers.add(new Transformer<Reader, Reader>() {
             @Override
             public Reader transform(Reader original) {
+                Template template;
+                try (Reader reader = original) {
+                    SimpleTemplateEngine engine = new SimpleTemplateEngine();
+                    engine.setEscapeBackslash(escapeBackslash.get());
+                    template = engine.createTemplate(reader);
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
                 try {
-                    Template template;
-                    try {
-                        SimpleTemplateEngine engine = new SimpleTemplateEngine();
-                        engine.setEscapeBackslash(escapeBackslash.get());
-                        template = engine.createTemplate(original);
-                    } finally {
-                        original.close();
-                    }
                     StringWriter writer = new StringWriter();
                     // SimpleTemplateEngine expects to be able to mutate the map internally.
                     template.make(new LinkedHashMap<>(properties)).writeTo(writer);

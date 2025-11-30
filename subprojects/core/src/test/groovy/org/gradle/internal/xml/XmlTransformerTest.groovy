@@ -369,7 +369,7 @@ class XmlTransformerTest extends Specification {
 
     private void looksLike(String expected, byte[] actual) {
         DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(actual))
-        assert removeTrailingWhitespace(new String(actual, "utf-8")) == removeTrailingWhitespace(TextUtil.toPlatformLineSeparators("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + expected))
+        assert removeTrailingWhitespace(new String(actual, UTF_8)) == removeTrailingWhitespace(TextUtil.toPlatformLineSeparators("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + expected))
     }
 
     private String removeTrailingWhitespace(String value) {

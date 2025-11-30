@@ -20,10 +20,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+
+import static java.util.Collections.singletonList;
 
 public class ArgWriter implements ArgCollector {
 
@@ -82,25 +83,20 @@ public class ArgWriter implements ArgCollector {
         return args -> generateArgsFile(argsFile, argWriterFactory, args);
     }
 
+    @SuppressWarnings("DefaultCharset") // This method is documented as "uses platform text encoding" TODO: https://github.com/gradle/gradle/issues/30304
     private static List<String> generateArgsFile(File argsFile, Function<PrintWriter, ArgWriter> argWriterFactory, List<String> args) {
         if (args.isEmpty()) {
             return args;
         }
-        argsFile.getParentFile().mkdirs();
         try {
-            // TODO(https://github.com/gradle/gradle/issues/29303)
-            @SuppressWarnings("DefaultCharset") // This method is documented as "uses platform text encoding"
-            PrintWriter writer = new PrintWriter(argsFile);
-            try {
-                ArgWriter argWriter = argWriterFactory.apply(writer);
-                argWriter.args(args);
-            } finally {
-                writer.close();
+            argsFile.getParentFile().mkdirs();
+            try (PrintWriter writer = new PrintWriter(argsFile)) {
+                argWriterFactory.apply(writer).args(args);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
         }
-        return Collections.singletonList("@" + argsFile.getAbsolutePath());
+        return singletonList("@" + argsFile.getAbsolutePath());
     }
 
     /**

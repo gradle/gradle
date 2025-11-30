@@ -89,11 +89,8 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     }
 
     private byte[] loadBytecode(URL resource) throws IOException {
-        InputStream inputStream = resource.openStream();
-        try {
+        try (InputStream inputStream = resource.openStream()) {
             return ByteStreams.toByteArray(inputStream);
-        } finally {
-            inputStream.close();
         }
     }
 

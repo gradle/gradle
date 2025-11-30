@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class LogContent {
     // see org.gradle.internal.logging.console.StyledTextOutputBackedRenderer.ISO_8601_DATE_TIME_FORMAT
     private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[-+]\\d{4} \\[\\w+] \\[.+?] ");
@@ -243,8 +245,7 @@ public class LogContent {
 
     private AnsiConsole interpretAnsiChars() throws IOException {
         AnsiConsole console = new AnsiConsole();
-        AnsiParser parser = new AnsiParser();
-        Writer writer = new OutputStreamWriter(parser.newParser("utf-8", console));
+        Writer writer = new OutputStreamWriter(new AnsiParser().newParser(UTF_8.toString(), console));
         for (int i = 0; i < lines.size(); i++) {
             if (i > 0) {
                 writer.write("\n");
