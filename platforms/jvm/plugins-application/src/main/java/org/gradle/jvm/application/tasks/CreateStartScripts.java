@@ -18,6 +18,7 @@ package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.AppEntryPoint;
@@ -132,7 +133,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     private final Property<String> mainClass;
     private Iterable<String> defaultJvmOpts = new LinkedList<>();
     private String applicationName;
-    private String gitRef;
+    private final Property<String> gitRef;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
     private FileCollection classpath;
@@ -143,6 +144,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     public CreateStartScripts() {
         this.mainModule = getObjectFactory().property(String.class);
         this.mainClass = getObjectFactory().property(String.class);
+        this.gitRef = getObjectFactory().property(String.class).convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
 
@@ -293,15 +295,16 @@ public abstract class CreateStartScripts extends ConventionTask {
         this.applicationName = applicationName;
     }
 
-    @Nullable
+    /**
+     * The Git revision or tag.
+     *
+     * @since 9.4.0
+     */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getGitRef() {
+    @Optional
+    @Incubating
+    public Property<String> getGitRef() {
         return gitRef;
-    }
-
-    public void setGitRef(@Nullable String gitRef) {
-        this.gitRef = gitRef;
     }
 
     public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
@@ -370,7 +373,7 @@ public abstract class CreateStartScripts extends ConventionTask {
         StartScriptGenerator generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         generator.setApplicationName(getApplicationName());
-        generator.setGitRef(getGitRef());
+        generator.setGitRef(getGitRef().get());
         generator.setEntryPoint(getEntryPoint());
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());

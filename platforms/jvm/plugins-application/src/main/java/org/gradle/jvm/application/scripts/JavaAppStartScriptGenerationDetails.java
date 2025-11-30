@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.application.scripts;
 
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -32,7 +33,10 @@ public interface JavaAppStartScriptGenerationDetails {
 
     /**
      * The Git revision or tag
+     *
+     * @since 9.4.0
      */
+    @Incubating
     String getGitRef();
 
     /**
