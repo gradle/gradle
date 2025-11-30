@@ -58,7 +58,7 @@ public interface TextResource extends Buildable {
      * If this resource is backed by a file with a matching encoding, that file may be
      * returned. Otherwise, a temporary file will be created and returned.
      *
-     * @param charset a character encoding (e.g. {@code "utf-8"})
+     * @param charset a character encoding (e.g. {@link java.nio.charset.StandardCharsets#UTF_8})
      *
      * @return a file containing the resource's text and using the given character encoding
      */
