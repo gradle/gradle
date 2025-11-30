@@ -20,6 +20,10 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 
+/**
+ * Configuration model for generating the HTML Release Notes page.
+ *
+ */
 public abstract class ReleaseNotes {
     /**
      * The source markdown file for the release notes.
@@ -51,7 +55,10 @@ public abstract class ReleaseNotes {
      */
     public abstract ConfigurableFileCollection getJquery();
 
-    // TODO: Need staging root property too
+    /**
+     * Working directory for intermediate release notes.
+     */
+    public abstract DirectoryProperty getStagingRoot();
 
     /**
      * The collection of rendered documentation.
