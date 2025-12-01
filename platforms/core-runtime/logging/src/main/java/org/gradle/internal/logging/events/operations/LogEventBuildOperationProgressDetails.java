@@ -27,8 +27,8 @@ import org.gradle.internal.scan.UsedByScanPlugin;
  * @since 4.7
  */
 @UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
-@Deprecated
-@SuppressWarnings("DeprecatedIsStillUsed")
+//@Deprecated
+//@SuppressWarnings("DeprecatedIsStillUsed")
 public interface LogEventBuildOperationProgressDetails extends org.gradle.internal.operations.logging.LogEventBuildOperationProgressDetails {
     /**
      * Replaced by {@link #getLevel()}.

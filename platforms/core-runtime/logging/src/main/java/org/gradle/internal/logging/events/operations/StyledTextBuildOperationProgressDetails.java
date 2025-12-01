@@ -29,8 +29,8 @@ import java.util.List;
  * @since 4.7
  */
 @UsedByScanPlugin("Non-internal replacement available since Gradle 7.4")
-@Deprecated
-@SuppressWarnings("DeprecatedIsStillUsed")
+//@Deprecated
+//@SuppressWarnings("DeprecatedIsStillUsed")
 public interface StyledTextBuildOperationProgressDetails extends org.gradle.internal.operations.logging.StyledTextBuildOperationProgressDetails {
     LogLevel getLogLevel();
 
