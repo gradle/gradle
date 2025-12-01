@@ -73,34 +73,6 @@ You can use link:{javadocPath}/org/gradle/tooling/GradleConnector.html#connect--
 A `ProjectConnection` connects to a single Gradle project.
 Using the connection you can execute tasks, tests and retrieve models relative to this project.
 
-[[sec:tapi_version_info]]
-=== Getting CLI version info
-
-Starting with 9.3, the Tooling API exposes a lightweight model that returns the exact command-line text without starting a Gradle daemon:
-
-* link:{javadocPath}/org/gradle/tooling/model/build/VersionInfo.html[org.gradle.tooling.model.build.VersionInfo] — the banner printed by `gradle --version`.
-
-You can fetch it like any other model:
-
-----
-try (var connection = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) {
-	var versionInfo = connection.getModel(org.gradle.tooling.model.build.VersionInfo.class);
-	System.out.println(versionInfo.getVersionOutput());
-}
-----
-
-For convenience, the existing link:{javadocPath}/org/gradle/tooling/model/build/GradleEnvironment.html#getVersionOutput--[GradleEnvironment#getVersionOutput()] also returns the same banner text when you already query the BuildEnvironment model.
-
-Additionally, when you execute operations via the Tooling API consumer and pass CLI flags, the following flags are honored the same way as on the command line:
-
-* `-?`, `-h`, `--help` — print help and short-circuit the operation.
-* `-v`, `--version` — print the version banner and short-circuit the operation.
-* `-V`, `--show-version` — print the version banner and continue with the operation.
-
-When targeting older Gradle versions that do not provide these models or methods, the Tooling API will throw the usual
-link:{javadocPath}/org/gradle/tooling/UnknownModelException.html[UnknownModelException] for unknown models and
-link:{javadocPath}/org/gradle/tooling/UnsupportedVersionException.html[UnsupportedVersionException] for unsupported methods. Feature‑detect and fall back as needed.
-
 [[sec:embedding_compatibility]]
 === Compatibility of Java and Gradle versions
 

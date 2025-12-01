@@ -17,7 +17,4 @@
 /**
  * Tooling models for the build environment, which includes information such as Gradle or Java versions.
  */
-@NullMarked
 package org.gradle.tooling.model.build;
-
-import org.jspecify.annotations.NullMarked;

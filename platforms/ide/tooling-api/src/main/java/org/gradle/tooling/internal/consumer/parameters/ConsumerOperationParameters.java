@@ -161,11 +161,6 @@ public class ConsumerOperationParameters implements BuildParameters {
         }
 
         public Builder setLaunchables(Iterable<? extends Launchable> launchables) {
-            if (launchables == null) {
-                this.launchables = null;
-                this.tasks = null;
-                return this;
-            }
             Set<String> taskPaths = new LinkedHashSet<String>();
             List<InternalLaunchable> launchablesParams = new ArrayList<>();
             for (Launchable launchable : launchables) {
@@ -253,7 +248,6 @@ public class ConsumerOperationParameters implements BuildParameters {
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
-            parameters = operationParameters.parameters;
             tasks = operationParameters.tasks;
             launchables = operationParameters.launchables;
             cancellationToken = operationParameters.cancellationToken;

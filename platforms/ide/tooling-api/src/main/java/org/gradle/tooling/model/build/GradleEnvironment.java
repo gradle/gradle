@@ -41,11 +41,4 @@ public interface GradleEnvironment {
      */
     String getGradleVersion();
 
-    /**
-     * Returns the plaintext banner printed by {@code gradle --version}, including build time, JVMs and OS.
-     *
-     * @since 9.3.0
-     */
-    String getVersionOutput();
-
 }

@@ -16,20 +16,19 @@
 package org.gradle.tooling.internal.build;
 
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
-import org.gradle.tooling.model.build.Help;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 
-public class DefaultHelp implements InternalProtocolInterface, Help, Serializable {
+@NullMarked
+public class DefaultHelp implements InternalProtocolInterface, Serializable {
     private final String helpOutput;
 
     public DefaultHelp(String helpOutput) {
         this.helpOutput = helpOutput;
     }
 
-    @Override
-    public String getHelpOutput() {
+    public String getRenderedText() {
         return helpOutput;
     }
 }
-
