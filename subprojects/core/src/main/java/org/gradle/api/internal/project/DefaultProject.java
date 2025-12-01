@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
+import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
@@ -96,6 +97,7 @@ import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
@@ -429,7 +431,119 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public DynamicObject getInheritedScope() {
-        return extensibleDynamicObject.getInheritable();
+        return new DeprecatedDynamicObject(extensibleDynamicObject.getInheritable());
+    }
+
+    private static class DeprecatedDynamicObject implements DynamicObject {
+
+        private final DynamicObject delegate;
+
+        public DeprecatedDynamicObject(DynamicObject delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public MissingPropertyException getMissingProperty(String name) {
+            return delegate.getMissingProperty(name);
+        }
+
+        @Override
+        public MissingPropertyException setMissingProperty(String name) {
+            return delegate.setMissingProperty(name);
+        }
+
+        @Override
+        public MissingMethodException methodMissingException(String name, @Nullable Object... params) {
+            return delegate.methodMissingException(name, params);
+        }
+
+        @Override
+        public @Nullable Object getProperty(String name) throws MissingPropertyException {
+            Object property = delegate.getProperty(name);
+            if (property != null) {
+                emitDeprecation();
+            }
+            return property;
+        }
+
+        @Override
+        public void setProperty(String name, @Nullable Object value) throws MissingPropertyException {
+            emitDeprecation();
+            delegate.setProperty(name, value);
+        }
+
+        @Override
+        public @Nullable Object invokeMethod(String name, @Nullable Object... arguments) throws MissingMethodException {
+            emitDeprecation();
+            return delegate.invokeMethod(name, arguments);
+        }
+
+        @Override
+        public boolean hasMethod(String name, @Nullable Object... arguments) {
+            boolean doesHaveMethod = delegate.hasMethod(name, arguments);
+            if (doesHaveMethod) {
+                emitDeprecation();
+            }
+            return doesHaveMethod;
+        }
+
+        @Override
+        public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
+            DynamicInvokeResult result = delegate.tryInvokeMethod(name, arguments);
+            if (result.isFound()) {
+                emitDeprecation();
+            }
+            return result;
+        }
+
+        @Override
+        public boolean hasProperty(String name) {
+            boolean doesHaveProperty = delegate.hasProperty(name);
+            if (doesHaveProperty) {
+                emitDeprecation();
+            }
+            return doesHaveProperty;
+        }
+
+        @Override
+        public DynamicInvokeResult tryGetProperty(String name) {
+            DynamicInvokeResult result = delegate.tryGetProperty(name);
+            if (result.isFound()) {
+                emitDeprecation();
+            }
+            return result;
+        }
+
+        @Override
+        public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
+            DynamicInvokeResult result = delegate.trySetProperty(name, value);
+            if (result.isFound()) {
+                emitDeprecation();
+            }
+            return result;
+        }
+
+        @Override
+        public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+            DynamicInvokeResult result = delegate.trySetPropertyWithoutInstrumentation(name, value);
+            if (result.isFound()) {
+                emitDeprecation();
+            }
+            return result;
+        }
+
+        @Override
+        public Map<String, ? extends @Nullable Object> getProperties() {
+            emitDeprecation();
+            return delegate.getProperties();
+        }
+
+        private void emitDeprecation() {
+            DeprecationLogger.deprecateAction("Getting property from parent")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+        }
     }
 
     @Override

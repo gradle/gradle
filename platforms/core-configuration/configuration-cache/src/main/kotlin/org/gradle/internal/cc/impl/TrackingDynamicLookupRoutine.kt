@@ -53,7 +53,7 @@ class TrackingDynamicLookupRoutine(
 
     override fun getProperties(receiver: DynamicObject): Map<String, *>? =
         withDynamicCall(receiver) {
-            DeprecationLogger.whileDisabled(Factory<Map<String, *>> { receiver.properties })
+            receiver.properties
         }
 
     @Suppress("SpreadOperator")
