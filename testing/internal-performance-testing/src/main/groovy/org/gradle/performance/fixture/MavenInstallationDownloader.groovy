@@ -23,6 +23,7 @@ import org.gradle.internal.UncheckedException
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
@@ -30,6 +31,10 @@ import java.util.concurrent.locks.ReentrantLock
 class MavenInstallationDownloader {
 
     private final static Lock LOCK = new ReentrantLock()
+    private final static int NETWORK_TIMEOUT_MS = 60 * 1000 // 60 seconds
+    // Lock timeout: worst case is ~2-3 minutes (multiple network timeouts + extraction),
+    // but we use 5 minutes as a safety net for edge cases (thread crashes, JVM issues, etc.)
+    private final static int LOCK_TIMEOUT_SECONDS = 5 * 60 // 5 minutes
     private final File installsRoot
 
     MavenInstallationDownloader(File installsRoot) {
@@ -37,7 +42,14 @@ class MavenInstallationDownloader {
     }
 
     MavenInstallation getMavenInstallation(String mavenVersion) {
-        LOCK.lock()
+        try {
+            if (!LOCK.tryLock(LOCK_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Unable to acquire lock for Maven installation download after ${LOCK_TIMEOUT_SECONDS} seconds")
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt()
+            throw UncheckedException.throwAsUncheckedException(e)
+        }
         try {
             def home = mavenInstallDirectory(installsRoot, mavenVersion)
             if (MavenInstallation.valid(home)) {
@@ -53,9 +65,15 @@ class MavenInstallationDownloader {
 
     private static File downloadAndExtractMavenBinArchiveWithRetry(String mavenVersion) {
         def binArchiveUrls = [
-            new URL("https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
-            new URL(fetchPreferredUrl(mavenVersion))
+            new URL("https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip")
         ]
+        
+        // Try to get preferred URL, but don't fail if it times out
+        try {
+            binArchiveUrls << new URL(fetchPreferredUrl(mavenVersion))
+        } catch (Exception e) {
+            log.warn "Unable to fetch preferred Maven mirror URL, will use primary repository only", e
+        }
 
         for (int i = 0; i < binArchiveUrls.size(); i++) {
             File mavenBinArchive = downloadMavenBinArchive(mavenVersion, binArchiveUrls[i])
@@ -86,14 +104,25 @@ class MavenInstallationDownloader {
     private static String fetchPreferredUrl(String mavenVersion) {
         // Use ASF preferred mirror resolution
         def url = "https://www.apache.org/dyn/closer.cgi/maven/maven-3/$mavenVersion/binaries/apache-maven-$mavenVersion-bin.zip?as_json=1"
-        def parsed = new JsonSlurper().parse(new URL(url))
+        def urlConnection = new URL(url).openConnection()
+        urlConnection.setConnectTimeout(NETWORK_TIMEOUT_MS)
+        urlConnection.setReadTimeout(NETWORK_TIMEOUT_MS)
+        def parsed
+        urlConnection.getInputStream().withCloseable { inputStream ->
+            parsed = new JsonSlurper().parse(inputStream)
+        }
         parsed.preferred + parsed.path_info
     }
 
     private static File downloadBinArchive(String mavenVersion, URL binArchiveUrl) {
         def target = File.createTempFile("maven-bin-$mavenVersion-", ".zip")
+        def urlConnection = binArchiveUrl.openConnection()
+        urlConnection.setConnectTimeout(NETWORK_TIMEOUT_MS)
+        urlConnection.setReadTimeout(NETWORK_TIMEOUT_MS)
         target.withOutputStream { out ->
-            out << binArchiveUrl.openStream()
+            urlConnection.getInputStream().withCloseable { input ->
+                out << input
+            }
         }
         target
     }
