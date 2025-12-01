@@ -52,6 +52,13 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
+    public org.gradle.process.ExecHandle executeAsync() {
+        final ExecHandle execHandle = execHandleBuilder.build();
+        execHandle.start();
+        return execHandle;
+    }
+
+    @Override
     public String getExecutable() {
         return execHandleBuilder.getExecutable();
     }
