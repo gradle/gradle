@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestMetadataListener;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
 import org.gradle.api.tasks.testing.TestResult;
@@ -30,7 +32,7 @@ import org.gradle.util.internal.TextUtil;
 /**
  * Console logger for test events.
  */
-public class TestEventLogger extends AbstractTestLogger implements TestListener, TestOutputListener {
+public class TestEventLogger extends AbstractTestLogger implements TestListener, TestOutputListener, TestMetadataListener {
     private static final String INDENT = "    ";
 
     private final TestExceptionFormatter exceptionFormatter;
@@ -71,6 +73,11 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
                 && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
             logEvent(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
         }
+    }
+
+    @Override
+    public void onMetadata(TestDescriptor testDescriptor, TestMetadataEvent metadataEvent) {
+        // No-op for now
     }
 
     private void before(TestDescriptor descriptor) {

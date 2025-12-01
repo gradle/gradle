@@ -29,6 +29,7 @@ Method <org.gradle.api.tasks.testing.AbstractTestTask.afterSuite(groovy.lang.Clo
 Method <org.gradle.api.tasks.testing.AbstractTestTask.afterTest(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (AbstractTestTask.java:0)
 Method <org.gradle.api.tasks.testing.AbstractTestTask.beforeSuite(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (AbstractTestTask.java:0)
 Method <org.gradle.api.tasks.testing.AbstractTestTask.beforeTest(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (AbstractTestTask.java:0)
+Method <org.gradle.api.tasks.testing.AbstractTestTask.onMetadata(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (AbstractTestTask.java:0)
 Method <org.gradle.api.tasks.testing.AbstractTestTask.onOutput(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (AbstractTestTask.java:0)
 Method <org.gradle.api.tasks.testing.Test.testFramework(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (Test.java:0)
 Method <org.gradle.kotlin.dsl.GroovyInteroperabilityKt.invoke(groovy.lang.Closure)> has Closure but does not have equivalent Gradle type method in (GroovyInteroperability.kt:0)
