@@ -25,7 +25,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 class DefaultServiceMethodFactory implements ServiceMethodFactory {
     private final ServiceMethodFactory delegate = getOptimalServiceMethodFactory();
 
-    private ServiceMethodFactory getOptimalServiceMethodFactory() {
+    private static ServiceMethodFactory getOptimalServiceMethodFactory() {
         try {
             return uncheckedNonnullCast(
                 Class.forName("org.gradle.internal.service.MethodHandleBasedServiceMethodFactory").getConstructor().newInstance()

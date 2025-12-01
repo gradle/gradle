@@ -14,8 +14,9 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jspecify)
     api(libs.errorProneAnnotations)
+
+    compileOnly(libs.jspecify)
 }
 
 errorprone {

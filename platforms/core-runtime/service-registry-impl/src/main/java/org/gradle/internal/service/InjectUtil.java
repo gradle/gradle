@@ -45,7 +45,7 @@ final class InjectUtil {
         if (constructors.length == 1) {
             Constructor<?> constructor = constructors[0];
             if (isPublicOrPackageScoped(constructor)) {
-                // If there is a single constructor, and that constructor is public or package private we select it.
+                // If there is a single constructor, and that constructor is public or package private, we select it.
                 return constructor;
             }
             if (constructor.getAnnotation(Inject.class) != null) {
