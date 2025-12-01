@@ -18,7 +18,7 @@ package org.gradle.api.artifacts;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Data class that represents an artifact included in a {@link org.gradle.api.artifacts.Dependency}.
+ * Data class that represents an artifact included in a {@link Dependency}.
  */
 public interface DependencyArtifact {
     String DEFAULT_TYPE = "jar";

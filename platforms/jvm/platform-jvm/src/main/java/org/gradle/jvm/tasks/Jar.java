@@ -43,6 +43,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import java.nio.charset.Charset;
 
+import static org.apache.commons.codec.CharEncoding.UTF_8;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
@@ -58,7 +59,7 @@ public abstract class Jar extends Zip {
 
     public Jar() {
         getArchiveExtension().set(DEFAULT_EXTENSION);
-        setMetadataCharset("UTF-8");
+        setMetadataCharset(UTF_8);
 
         manifest = new DefaultManifest(getFileResolver());
         // Add these as separate specs, so they are not affected by the changes to the main spec
@@ -190,7 +191,7 @@ public abstract class Jar extends Zip {
     /**
      * Configures the manifest for this JAR archive.
      *
-     * <p>The given closure is executed to configure the manifest. The {@link org.gradle.api.java.archives.Manifest} is passed to the closure as its delegate.</p>
+     * <p>The given closure is executed to configure the manifest. The {@link Manifest} is passed to the closure as its delegate.</p>
      *
      * @param configureClosure The closure.
      * @return This.
@@ -230,7 +231,7 @@ public abstract class Jar extends Zip {
     /**
      * Adds content to this JAR archive's META-INF directory.
      *
-     * <p>The given closure is executed to configure a {@code CopySpec}. The {@link org.gradle.api.file.CopySpec} is passed to the closure as its delegate.</p>
+     * <p>The given closure is executed to configure a {@code CopySpec}. The {@link CopySpec} is passed to the closure as its delegate.</p>
      *
      * @param configureClosure The closure.
      * @return The created {@code CopySpec}

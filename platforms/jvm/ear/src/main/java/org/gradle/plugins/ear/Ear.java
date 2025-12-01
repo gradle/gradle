@@ -49,6 +49,7 @@ import java.io.OutputStreamWriter;
 import java.util.Locale;
 
 import static java.util.Collections.singleton;
+import static org.apache.commons.codec.CharEncoding.UTF_8;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.callable;
 import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
@@ -69,7 +70,7 @@ public abstract class Ear extends Jar {
     @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
-        setMetadataCharset("UTF-8");
+        setMetadataCharset(UTF_8);
         generateDeploymentDescriptor = getObjectFactory().property(Boolean.class);
         generateDeploymentDescriptor.convention(true);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(

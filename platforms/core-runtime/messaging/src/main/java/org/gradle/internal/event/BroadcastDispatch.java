@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * An immutable composite {@link org.gradle.internal.dispatch.Dispatch} implementation. Optimized for a small number of elements, and for infrequent modification.
+ * An immutable composite {@link Dispatch} implementation. Optimized for a small number of elements, and for infrequent modification.
  */
 public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> {
     private BroadcastDispatch(Class<T> type) {

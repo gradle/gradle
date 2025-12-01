@@ -36,19 +36,19 @@ public interface NativeBinarySpec extends BinarySpec {
     NativeComponentSpec getComponent();
 
     /**
-     * The {@link org.gradle.nativeplatform.Flavor} that this binary was built with.
+     * The {@link Flavor} that this binary was built with.
      */
     @Variant
     Flavor getFlavor();
 
     /**
-     * Returns the {@link org.gradle.nativeplatform.platform.NativePlatform} that this binary is targeted to run on.
+     * Returns the {@link NativePlatform} that this binary is targeted to run on.
      */
     @Variant
     NativePlatform getTargetPlatform();
 
     /**
-     * Returns the {@link org.gradle.nativeplatform.BuildType} used to construct this binary.
+     * Returns the {@link BuildType} used to construct this binary.
      */
     @Variant
     BuildType getBuildType();
@@ -80,7 +80,7 @@ public interface NativeBinarySpec extends BinarySpec {
     void lib(Object library);
 
     /**
-     * Returns the {@link org.gradle.nativeplatform.toolchain.NativeToolChain} that will be used to build this binary.
+     * Returns the {@link NativeToolChain} that will be used to build this binary.
      */
     NativeToolChain getToolChain();
 

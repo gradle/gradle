@@ -39,9 +39,9 @@ import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
  *
  * <p>You can have as many schemes as you want, but only one can be active at a time. You can include a scheme in a project—in which case it’s available in every workspace that includes that project, or in the workspace—in which case it’s available only in that workspace.</p>
  *
- * <p>This task is used in conjunction with {@link org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask}.</p>
+ * <p>This task is used in conjunction with {@link GenerateXcodeProjectFileTask}.</p>
  *
- * @see org.gradle.ide.xcode.XcodeProject
+ * @see XcodeProject
  * @since 4.2
  */
 @Incubating

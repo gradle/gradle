@@ -22,7 +22,7 @@ import org.gradle.util.GradleVersion;
  * Thrown when a build was executed with a target Gradle version that does not support a specific feature.
  *
  * @since 2.11
- * @see GradleRunner#withGradleVersion(java.lang.String)
+ * @see GradleRunner#withGradleVersion(String)
  * @see GradleRunner#withGradleInstallation(java.io.File)
  * @see GradleRunner#withGradleDistribution(java.net.URI)
  */

@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.io.FileUtils;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -164,7 +165,7 @@ public class DefaultFileLockManager implements FileLockManager {
             this.lockFile = determineLockTargetFile(target);
 
             try {
-                org.apache.commons.io.FileUtils.forceMkdirParent(lockFile);
+                FileUtils.forceMkdirParent(lockFile);
                 lockFile.createNewFile();
             } catch (IOException e) {
                 LOGGER.info("Couldn't create lock file for {}", lockFile);

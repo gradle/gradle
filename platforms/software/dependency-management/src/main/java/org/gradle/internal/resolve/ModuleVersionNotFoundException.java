@@ -34,7 +34,7 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
     private List<String> resolutions = ImmutableList.of();
 
     /**
-     * This is used by {@link ModuleVersionResolveException#withIncomingPaths(java.util.Collection)}.
+     * This is used by {@link ModuleVersionResolveException#withIncomingPaths(Collection)}.
      */
     @SuppressWarnings("UnusedDeclaration")
     public ModuleVersionNotFoundException(ComponentSelector selector, Factory<String> message, Collection<String> resolutions) {

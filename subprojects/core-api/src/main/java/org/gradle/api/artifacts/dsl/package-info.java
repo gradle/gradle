@@ -17,5 +17,7 @@
 /**
  * Classes used in the artifact DSL.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.artifacts.dsl;
+
+import org.jspecify.annotations.NullMarked;

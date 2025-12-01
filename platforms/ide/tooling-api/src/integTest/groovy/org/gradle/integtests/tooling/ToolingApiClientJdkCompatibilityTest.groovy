@@ -95,6 +95,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         file("test-project/build.gradle") << "println 'Hello from ' + gradle.gradleVersion"
         file("test-project/settings.gradle") << "rootProject.name = 'target-project'"
         file("src/main/java/ToolingApiCompatibilityClient.java").java("""
+            import org.gradle.tooling.GradleConnectionException;
             import org.gradle.tooling.GradleConnector;
             import org.gradle.tooling.ProjectConnection;
 
@@ -129,7 +130,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                             buildAction(projectDir, gradleVersion, javaHome, gradleUserHome);
                         }
                         System.exit(0);
-                    } catch (org.gradle.tooling.GradleConnectionException e) {
+                    } catch (GradleConnectionException e) {
                         if (allowUnusable && e.getCause()!=null && e.getCause().getClass().getSimpleName().equals("NoUsableDaemonFoundException")) {
                             System.out.println("Daemon registry is in a bad state and we cannot connect to the daemon.");
                             System.exit(0);

@@ -40,7 +40,7 @@ import javax.inject.Inject;
  * <p>
  * To integrate a new type of value source, create an abstract subclass of this interface
  * and use {@link ProviderFactory#of(Class, Action)} to get a provider to a configured source.
- * The returned {@link org.gradle.api.provider.Provider} can be passed to tasks or queried
+ * The returned {@link Provider} can be passed to tasks or queried
  * by build logic during the configuration phase. In the latter case, the source would be automatically
  * considered as an input to the work graph cache.
  * </p>

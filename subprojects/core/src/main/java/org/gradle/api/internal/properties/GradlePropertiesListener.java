@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Allows registering Gradle property access as build configuration inputs.
  *
- * @see org.gradle.api.internal.properties.GradleProperties
+ * @see GradleProperties
  */
 @EventScope(Scope.BuildTree.class)
 public interface GradlePropertiesListener {

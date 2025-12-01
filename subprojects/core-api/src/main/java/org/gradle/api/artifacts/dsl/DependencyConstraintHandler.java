@@ -35,7 +35,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * <code><i>configurationName</i>(&lt;instance&gt;)</code>
  *
- * <p>Dependency constraints can also be declared with a {@link org.gradle.api.provider.Provider} that provides any of the other supported dependency constraint notations.</p>
+ * <p>Dependency constraints can also be declared with a {@link Provider} that provides any of the other supported dependency constraint notations.</p>
  *
  * <h3>External dependencies</h3>
  *

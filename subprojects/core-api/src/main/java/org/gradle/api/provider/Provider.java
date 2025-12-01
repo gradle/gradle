@@ -66,7 +66,7 @@ import java.util.function.BiFunction;
  *     <li>Calling {@link #map(Transformer)} to create a new provider from an existing provider.</li>
  *     <li>Using the return value of {@link org.gradle.api.tasks.TaskContainer#register(String)}, which is a provider that represents the task instance.</li>
  *     <li>Using the methods on {@link org.gradle.api.file.Directory} and {@link org.gradle.api.file.DirectoryProperty} to produce file providers.</li>
- *     <li>By calling {@link ProviderFactory#provider(Callable)} or {@link org.gradle.api.Project#provider(Callable)} to create a new provider from a {@link Callable}.</li>
+ *     <li>By calling {@link ProviderFactory#provider(Callable)} or {@link Project#provider(Callable)} to create a new provider from a {@link Callable}.</li>
  * </ul>
  *
  * <p>

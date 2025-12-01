@@ -41,8 +41,12 @@ import org.gradle.internal.build.event.types.DefaultContextualLabel;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
 import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultFileLocation;
 import org.gradle.internal.build.event.types.DefaultInternalAdditionalData;
 import org.gradle.internal.build.event.types.DefaultInternalPayloadSerializedAdditionalData;
+import org.gradle.internal.build.event.types.DefaultLineInFileLocation;
+import org.gradle.internal.build.event.types.DefaultOffsetInFileLocation;
+import org.gradle.internal.build.event.types.DefaultPluginIdLocation;
 import org.gradle.internal.build.event.types.DefaultProblemDefinition;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
@@ -53,6 +57,7 @@ import org.gradle.internal.build.event.types.DefaultProblemSummary;
 import org.gradle.internal.build.event.types.DefaultProblemsSummariesDetails;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
+import org.gradle.internal.build.event.types.DefaultTaskPathLocation;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
@@ -185,19 +190,19 @@ public class ProblemsProgressEventUtils {
             .map(location -> {
                 if (location instanceof LineInFileLocation) {
                     LineInFileLocation fileLocation = (LineInFileLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+                    return new DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
                 } else if (location instanceof OffsetInFileLocation) {
                     OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
+                    return new DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
                 } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
                     FileLocation fileLocation = (FileLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
+                    return new DefaultFileLocation(fileLocation.getPath());
                 } else if (location instanceof PluginIdLocation) {
                     PluginIdLocation pluginLocation = (PluginIdLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
+                    return new DefaultPluginIdLocation(pluginLocation.getPluginId());
                 } else if (location instanceof TaskLocation) {
                     TaskLocation taskLocation = (TaskLocation) location;
-                    return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
+                    return new DefaultTaskPathLocation(taskLocation.getBuildTreePath());
                 } else {
                     throw new RuntimeException("No mapping defined for " + location.getClass().getName());
                 }

@@ -48,6 +48,7 @@ import org.objectweb.asm.Opcodes;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -92,7 +93,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
                 Files.asCharSink(output, StandardCharsets.UTF_8).write(gson.toJson(problemMessages));
             } catch (IOException ex) {
-                throw new java.io.UncheckedIOException(ex);
+                throw new UncheckedIOException(ex);
             }
         }
     }

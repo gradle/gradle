@@ -23,8 +23,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class NotSpecTest {
     @Test
     public void testIsSatisfiedBy() {
-        assertThat(new org.gradle.api.specs.NotSpec(createFilterSpec()).isSatisfiedBy(true), equalTo(false));
-        assertThat(new org.gradle.api.specs.NotSpec(createFilterSpec()).isSatisfiedBy(false), equalTo(true));
+        assertThat(new NotSpec(createFilterSpec()).isSatisfiedBy(true), equalTo(false));
+        assertThat(new NotSpec(createFilterSpec()).isSatisfiedBy(false), equalTo(true));
     }
 
     private Spec<Boolean> createFilterSpec() {

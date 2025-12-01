@@ -272,8 +272,8 @@ public interface ResolutionStrategy {
     /**
      * Sets the length of time that dynamic versions will be cached, with units expressed as a String.
      *
-     * <p>A convenience method for {@link #cacheDynamicVersionsFor(int, java.util.concurrent.TimeUnit)} with units expressed as a String.
-     * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
+     * <p>A convenience method for {@link #cacheDynamicVersionsFor(int, TimeUnit)} with units expressed as a String.
+     * Units are resolved by calling the {@code valueOf(String)} method of {@link TimeUnit} with the upper-cased string value.</p>
      *
      * @param value The number of time units
      * @param units The units
@@ -297,8 +297,8 @@ public interface ResolutionStrategy {
     /**
      * Sets the length of time that changing modules will be cached, with units expressed as a String.
      *
-     * <p>A convenience method for {@link #cacheChangingModulesFor(int, java.util.concurrent.TimeUnit)} with units expressed as a String.
-     * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
+     * <p>A convenience method for {@link #cacheChangingModulesFor(int, TimeUnit)} with units expressed as a String.
+     * Units are resolved by calling the {@code valueOf(String)} method of {@link TimeUnit} with the upper-cased string value.</p>
      *
      * @param value The number of time units
      * @param units The units

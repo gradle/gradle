@@ -34,11 +34,11 @@ import java.lang.annotation.Target;
  *
  * <p>This annotation can be used with the following annotations:</p>
  *
- * <ul><li>{@link org.gradle.api.tasks.InputFiles}</li>
+ * <ul><li>{@link InputFiles}</li>
  *
- * <li>{@link org.gradle.api.tasks.InputDirectory}</li>
+ * <li>{@link InputDirectory}</li>
  *
- * <li>{@link org.gradle.api.tasks.SkipWhenEmpty}</li>
+ * <li>{@link SkipWhenEmpty}</li>
  *
  * <li>{@link org.gradle.api.artifacts.transform.InputArtifact}</li>
  *

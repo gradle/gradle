@@ -63,7 +63,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
+ * A {@link FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, OwnerAware, HasConfigurableValueInternal, LazyGroovySupport {
     private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();

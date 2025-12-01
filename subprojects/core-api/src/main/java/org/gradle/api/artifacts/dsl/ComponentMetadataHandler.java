@@ -149,7 +149,7 @@ public interface ComponentMetadataHandler {
     /**
      * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
      *
-     * <p>The rule closure parameter is subject to the same requirements as {@link #all(groovy.lang.Closure)}.
+     * <p>The rule closure parameter is subject to the same requirements as {@link #all(Closure)}.
      *
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param rule the rule to be added

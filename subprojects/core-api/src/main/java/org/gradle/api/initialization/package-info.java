@@ -17,5 +17,7 @@
 /**
  * Classes for managing and monitoring build initialization.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.initialization;
+
+import org.jspecify.annotations.NullMarked;

@@ -26,7 +26,7 @@ import org.gradle.util.internal.ClosureBackedAction;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
- * Used as the superclass for views for types that extend {@link org.gradle.model.ModelMap}. Mixes in Groovy DSL support.
+ * Used as the superclass for views for types that extend {@link ModelMap}. Mixes in Groovy DSL support.
  */
 // TODO - mix in Groovy support using bytecode decoration instead
 // TODO - validate closure parameters to check they are within bounds

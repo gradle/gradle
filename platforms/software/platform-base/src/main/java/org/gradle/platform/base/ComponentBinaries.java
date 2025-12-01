@@ -24,11 +24,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Declares the binaries that should be built for a custom {@link org.gradle.platform.base.ComponentSpec} type.
+ * Declares the binaries that should be built for a custom {@link ComponentSpec} type.
  *
  * The following example demonstrates how to register a binary for a custom component type using a plugin with a
- * {@link org.gradle.platform.base.ComponentBinaries} annotation.
- * Furthermore the plugin registers 'DefaultSampleBinary' as implementation for {@link org.gradle.platform.base.BinarySpec}.
+ * {@link ComponentBinaries} annotation.
+ * Furthermore the plugin registers 'DefaultSampleBinary' as implementation for {@link BinarySpec}.
  *
  * <pre class='autoTested'>
  * interface SampleComponent extends VariantComponentSpec {}

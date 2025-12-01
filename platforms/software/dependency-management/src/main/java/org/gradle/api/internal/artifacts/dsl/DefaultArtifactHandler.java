@@ -47,7 +47,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     @SuppressWarnings("rawtypes")
-    private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
+    private PublishArtifact pushArtifact(Configuration configuration, Object notation, Closure configureClosure) {
         Action<Object> configureAction = ConfigureUtil.configureUsing(configureClosure);
         return pushArtifact(configuration, notation, configureAction);
     }

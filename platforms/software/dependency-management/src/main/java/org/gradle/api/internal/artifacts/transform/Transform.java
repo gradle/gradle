@@ -34,7 +34,7 @@ import java.io.File;
 /**
  * The actual code which needs to be executed to transform a file.
  *
- * This encapsulates the public interface {@link org.gradle.api.artifacts.transform.TransformAction} into an internal type.
+ * This encapsulates the public interface {@link TransformAction} into an internal type.
  */
 public interface Transform extends Describable, TaskDependencyContainer {
     Class<? extends TransformAction<?>> getImplementationClass();

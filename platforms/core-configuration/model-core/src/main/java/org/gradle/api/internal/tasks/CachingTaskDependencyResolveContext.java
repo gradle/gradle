@@ -34,18 +34,18 @@ import static java.lang.String.format;
 
 /**
  * <p>A {@link TaskDependencyResolveContext} which caches the dependencies for each {@link
- * org.gradle.api.tasks.TaskDependency} and {@link org.gradle.api.Buildable} instance during traversal of task
+ * org.gradle.api.tasks.TaskDependency} and {@link Buildable} instance during traversal of task
  * dependencies.</p>
  *
  * <p>Supported types:</p> <ul>
  *
- * <li>{@link org.gradle.api.Task}</li>
+ * <li>{@link Task}</li>
  *
  * <li>{@link org.gradle.api.tasks.TaskDependency}</li>
  *
- * <li>{@link org.gradle.api.internal.tasks.TaskDependencyInternal}</li>
+ * <li>{@link TaskDependencyInternal}</li>
  *
- * <li>{@link org.gradle.api.Buildable}</li>
+ * <li>{@link Buildable}</li>
  *
  * </ul>
  */

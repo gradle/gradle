@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Contains serializable structural information about a test failure.
  *
- * @see org.gradle.api.tasks.testing.TestFailure
+ * @see TestFailure
  * @since 7.6
  */
 @Incubating

@@ -52,12 +52,12 @@ public class DefaultColorMap implements ColorMap {
     private final Map<String, String> defaults = new HashMap<String, String>();
 
     /**
-     * Maps a {@link StyledTextOutput.Style} to the {@link org.gradle.internal.logging.console.ColorMap.Color} that has been created for it
+     * Maps a {@link StyledTextOutput.Style} to the {@link ColorMap.Color} that has been created for it
      */
     private final Map<String, Color> colorByStyle = new HashMap<String, Color>();
 
     /**
-     * Maps a color spec to the {@link org.gradle.internal.logging.console.ColorMap.Color} that has been created for it
+     * Maps a color spec to the {@link ColorMap.Color} that has been created for it
      */
     private final Map<String, Color> colorBySpec = new HashMap<String, Color>();
 

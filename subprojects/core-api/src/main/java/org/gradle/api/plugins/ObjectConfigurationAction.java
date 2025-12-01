@@ -18,7 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 
 /**
- * <p>An {@code ObjectConfigurationAction} allows you to apply {@link org.gradle.api.Plugin}s and scripts to an object
+ * <p>An {@code ObjectConfigurationAction} allows you to apply {@link Plugin}s and scripts to an object
  * or objects.</p>
  */
 public interface ObjectConfigurationAction {
@@ -43,7 +43,7 @@ public interface ObjectConfigurationAction {
     ObjectConfigurationAction from(Object script);
 
     /**
-     * Adds a {@link org.gradle.api.Plugin} to use to configure the target objects. You can call this method multiple
+     * Adds a {@link Plugin} to use to configure the target objects. You can call this method multiple
      * times, to use multiple plugins. Scripts and plugins are applied in the order that they are added.
      *
      * @param pluginClass The plugin to apply.
@@ -63,7 +63,7 @@ public interface ObjectConfigurationAction {
     ObjectConfigurationAction type(Class<?> pluginClass);
 
     /**
-     * Adds a {@link org.gradle.api.Plugin} to use to configure the target objects. You can call this method multiple
+     * Adds a {@link Plugin} to use to configure the target objects. You can call this method multiple
      * times, to use multiple plugins. Scripts and plugins are applied in the order that they are added.
      *
      * @param pluginId The id of the plugin to apply.

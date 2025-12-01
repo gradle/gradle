@@ -42,10 +42,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultManifest implements ManifestInternal {
-    public static final String DEFAULT_CONTENT_CHARSET = "UTF-8";
+    public static final String DEFAULT_CONTENT_CHARSET = UTF_8.toString();
 
     private List<ManifestMergeSpec> manifestMergeSpecs = new ArrayList<ManifestMergeSpec>();
 

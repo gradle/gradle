@@ -17,12 +17,12 @@
 package org.gradle.tooling;
 
 /**
- * A {@code CancellationTokenSource} allows you to issue cancellation requests to one or more {@link org.gradle.tooling.LongRunningOperation}
+ * A {@code CancellationTokenSource} allows you to issue cancellation requests to one or more {@link LongRunningOperation}
  * instances. To use a token source:
  *
  * <ul>
  *     <li>Create a token source using {@link GradleConnector#newCancellationTokenSource()}.</li>
- *     <li>Attach the token to one or more operations using {@link org.gradle.tooling.LongRunningOperation#withCancellationToken(CancellationToken)}.
+ *     <li>Attach the token to one or more operations using {@link LongRunningOperation#withCancellationToken(CancellationToken)}.
  *     You need to do this before you start the operation.
  *     </li>
  *     <li>Later, you can cancel the associated operations by calling {@link #cancel()} on this token source.</li>
@@ -38,7 +38,7 @@ public interface CancellationTokenSource {
      *
      * <p>It is assumed that the implementation will do 'best-effort' attempt to perform cancellation.
      * This method returns immediately and if the cancellation is successful the cancelled operation
-     * will notify its {@link org.gradle.tooling.ResultHandler#onFailure(GradleConnectionException)}
+     * will notify its {@link ResultHandler#onFailure(GradleConnectionException)}
      * with a {@link BuildCancelledException} describing how it was cancelled.
      * </p>
      */

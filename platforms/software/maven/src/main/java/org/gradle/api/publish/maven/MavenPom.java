@@ -26,7 +26,7 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 /**
  * The POM for a Maven publication.
  *
- * <p>The {@link #withXml(org.gradle.api.Action)} method can be used to modify the
+ * <p>The {@link #withXml(Action)} method can be used to modify the
  * descriptor after it has been generated according to the publication data.
  * However, the preferred way to customize the project information to be published
  * is to use the dedicated properties exposed by this class, e.g.

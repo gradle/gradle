@@ -33,6 +33,7 @@ import org.gradle.api.logging.Logging;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
  * RetryHttpInitializerWrapper will automatically retry upon RPC failures, preserving the
@@ -97,6 +98,6 @@ final class RetryHttpInitializerWrapper implements HttpRequestInitializer {
     }
 
     private static void disableHttpTransportLogging() {
-        java.util.logging.Logger.getLogger(HttpTransport.class.getName()).setLevel(java.util.logging.Level.OFF);
+        java.util.logging.Logger.getLogger(HttpTransport.class.getName()).setLevel(Level.OFF);
     }
 }

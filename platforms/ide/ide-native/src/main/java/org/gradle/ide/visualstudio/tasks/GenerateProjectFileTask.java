@@ -39,6 +39,7 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.util.internal.VersionNumber;
 import org.gradle.work.DisableCachingByDefault;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -60,7 +61,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     private transient DefaultVisualStudioProject visualStudioProject;
     private final Cached<ProjectSpec> spec = Cached.of(this::calculateSpec);
     private final Provider<File> outputFile = getProject().provider(SerializableLambdas.callable(() -> visualStudioProject.getProjectFile().getLocation()));
-    private final Cached<Transformer<@org.jetbrains.annotations.NotNull String, File>> transformer = Cached.of(this::getTransformer);
+    private final Cached<Transformer<@NotNull String, File>> transformer = Cached.of(this::getTransformer);
     private String gradleExe;
     private String gradleArgs;
 
@@ -95,7 +96,7 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
     }
 
     @Internal
-    public Transformer<@org.jetbrains.annotations.NotNull String, File> getTransformer() {
+    public Transformer<@NotNull String, File> getTransformer() {
         return RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getProjectFile().getLocation());
     }
 

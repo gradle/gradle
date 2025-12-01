@@ -34,7 +34,7 @@ public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata 
      *
      * For information and examples please see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
      *
-     * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link org.gradle.api.artifacts.ModuleVersionIdentifier}, null is not permitted
+     * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link ModuleVersionIdentifier}, null is not permitted
      */
     void replacedBy(Object moduleNotation);
 
@@ -47,7 +47,7 @@ public interface ComponentModuleMetadataDetails extends ComponentModuleMetadata 
      *
      * For information and examples please see {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler}.
      *
-     * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link org.gradle.api.artifacts.ModuleVersionIdentifier}, null is not permitted
+     * @param moduleNotation a String like 'com.google.guava:guava', an instance of {@link ModuleVersionIdentifier}, null is not permitted
      * @param reason the reason for the replacement, for diagnostics
      *
      * @since 4.5

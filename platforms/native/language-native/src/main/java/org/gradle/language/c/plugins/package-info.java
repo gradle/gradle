@@ -17,5 +17,7 @@
 /**
  * Plugins for building from C language sources.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.language.c.plugins;
+
+import org.gradle.api.Incubating;

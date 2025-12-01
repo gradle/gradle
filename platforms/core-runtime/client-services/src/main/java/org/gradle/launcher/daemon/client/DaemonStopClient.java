@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  *
  * <ul>
  * <li>The client creates a connection to daemon.</li>
- * <li>The client sends exactly one {@link org.gradle.launcher.daemon.protocol.Stop} message.</li>
+ * <li>The client sends exactly one {@link Stop} message.</li>
  * <li>The daemon sends exactly one {@link org.gradle.launcher.daemon.protocol.Result} message. It may no longer send any messages.</li>
  * <li>The client sends a {@link org.gradle.launcher.daemon.protocol.Finished} message once it has received the {@link org.gradle.launcher.daemon.protocol.Result} message.
  *     It may no longer send any messages.</li>

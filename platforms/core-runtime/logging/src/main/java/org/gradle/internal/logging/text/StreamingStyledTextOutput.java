@@ -56,7 +56,7 @@ public class StreamingStyledTextOutput extends AbstractStyledTextOutput implemen
     }
 
     /**
-     * Closes the target object if it implements {@link java.io.Closeable}.
+     * Closes the target object if it implements {@link Closeable}.
      */
     @Override
     public void close() throws IOException {

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * Represents a test result that can be stored for a long time (potentially across process invocations).
  *
  * <p>
- * This is different from {@link org.gradle.api.tasks.testing.TestResult} which contains no identifying information about the test that produced it, and is not designed to be stored.
+ * This is different from {@link TestResult} which contains no identifying information about the test that produced it, and is not designed to be stored.
  * Specifically, this class does not contain exception objects.
  * </p>
  */

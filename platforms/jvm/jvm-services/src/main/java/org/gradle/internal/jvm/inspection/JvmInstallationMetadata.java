@@ -67,42 +67,42 @@ public interface JvmInstallationMetadata {
     /**
      * A wrapper around the raw value of the toolchain vendor.
      *
-     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#JAVA_VENDOR
+     * @see ProbedSystemProperty#JAVA_VENDOR
      */
     JvmVendor getVendor();
 
     /**
-     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#JAVA_VERSION
+     * @see ProbedSystemProperty#JAVA_VERSION
      */
     String getJavaVersion();
 
     /**
-     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#RUNTIME_NAME
+     * @see ProbedSystemProperty#RUNTIME_NAME
      */
     String getRuntimeName();
 
     /**
-     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#RUNTIME_VERSION
+     * @see ProbedSystemProperty#RUNTIME_VERSION
      */
     String getRuntimeVersion();
 
     /**
-     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#VM_NAME
+     * @see ProbedSystemProperty#VM_NAME
      */
     String getJvmName();
 
     /**
-     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#VM_VERSION
+     * @see ProbedSystemProperty#VM_VERSION
      */
     String getJvmVersion();
 
     /**
-     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#VM_VENDOR
+     * @see ProbedSystemProperty#VM_VENDOR
      */
     String getJvmVendor();
 
     /**
-     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#OS_ARCH
+     * @see ProbedSystemProperty#OS_ARCH
      */
     String getArchitecture();
 

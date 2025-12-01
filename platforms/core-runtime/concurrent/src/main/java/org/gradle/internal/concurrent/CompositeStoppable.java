@@ -27,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@link org.gradle.internal.concurrent.Stoppable} that stops a collection of things. If an element implements
- * {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable} then the appropriate close/stop
+ * A {@link Stoppable} that stops a collection of things. If an element implements
+ * {@link Closeable} or {@link Stoppable} then the appropriate close/stop
  * method is called on that object; otherwise the element is ignored. Elements may be {@code null}, in which case they
  * are ignored.
  *

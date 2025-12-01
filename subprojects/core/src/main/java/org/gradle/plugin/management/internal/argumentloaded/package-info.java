@@ -19,5 +19,7 @@
  * <p>
  * This is currently used by the {@code init} task, but is implemented as a general-purpose plugin loading mechanism.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.plugin.management.internal.argumentloaded;
+
+import org.jspecify.annotations.NullMarked;

@@ -19,7 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.provider.Provider;
 
 /**
- * A {@link org.gradle.api.provider.Provider} that always has a value defined. The value may not necessarily be final.
+ * A {@link Provider} that always has a value defined. The value may not necessarily be final.
  */
 public abstract class AbstractProviderWithValue<T> extends AbstractMinimalProvider<T> {
     @Override

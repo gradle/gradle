@@ -29,7 +29,7 @@ public interface CloseableServiceRegistry extends ServiceRegistry, Closeable {
     /**
      * Closes this registry by stopping and closing all members managed by it.
      * <p>
-     * If a member implements {@link java.io.Closeable#close() Closeable} or
+     * If a member implements {@link Closeable#close() Closeable} or
      * {@link org.gradle.internal.concurrent.Stoppable#stop() Stoppable} then the appropriate
      * method is called to dispose of it.
      * <p>

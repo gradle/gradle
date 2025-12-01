@@ -134,7 +134,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     /**
      * This is a workaround for Kotlin Gradle Plugin <a href="https://github.com/JetBrains/kotlin/blob/1d38040a6bef2dba31d447bf28c220b81665a710/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/plugin/internal/MppTestReportHelper.kt#L55-L64">overriding TestDescriptor</a>.
      * The problem only occurs in IntelliJ IDEA with multiplatform projects.
-     * Once this code is removed, the workaround can be removed as well and {@link org.gradle.api.internal.tasks.testing.AbstractTestDescriptor#getMethodName()} can be moved to {@link TestDescriptor}.
+     * Once this code is removed, the workaround can be removed as well and {@link AbstractTestDescriptor#getMethodName()} can be moved to {@link TestDescriptor}.
      * Alternatively, it can be removed in Gradle 10.
      */
     private static String getLegacyOperationDisplayName(String operationDisplayName, TestDescriptor testDescriptor) {

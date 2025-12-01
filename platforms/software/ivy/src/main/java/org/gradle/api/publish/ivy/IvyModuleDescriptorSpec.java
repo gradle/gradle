@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * Corresponds to the <a href="http://ant.apache.org/ivy/history/latest-milestone/ivyfile.html">XML version of the Ivy Module Descriptor</a>.
  * <p>
- * The {@link #withXml(org.gradle.api.Action)} method can be used to modify the descriptor after it has been generated according to the publication data.
+ * The {@link #withXml(Action)} method can be used to modify the descriptor after it has been generated according to the publication data.
  * However, the preferred way to customize the project information to be published is to use the dedicated configuration methods exposed by this class, e.g.
  * {@link #description(Action)}.
  *

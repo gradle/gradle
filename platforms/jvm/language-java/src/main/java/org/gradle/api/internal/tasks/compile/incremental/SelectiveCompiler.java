@@ -41,7 +41,7 @@ import java.util.Objects;
 /**
  * A compiler that selects classes for compilation. It also handles restore of output state in case of a compile failure.
  */
-class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<T> {
+class SelectiveCompiler<T extends JavaCompileSpec> implements Compiler<T> {
     private static final Logger LOG = LoggerFactory.getLogger(SelectiveCompiler.class);
     private final CleaningJavaCompiler<T> cleaningCompiler;
     private final Compiler<T> rebuildAllCompiler;

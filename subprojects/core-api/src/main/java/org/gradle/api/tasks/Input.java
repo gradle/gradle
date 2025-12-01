@@ -25,10 +25,10 @@ import java.lang.annotation.*;
  *
  * <p>This will cause the task to be considered out-of-date when the property has changed.
  * This annotation cannot be used on a {@link java.io.File} object. If you want to refer to the file path,
- * independently of its contents, return a {@link java.lang.String String} instead which returns the absolute
+ * independently of its contents, return a {@link String String} instead which returns the absolute
  * path.
  * If, instead, you want to refer to the contents and path of a file or a directory, use
- * {@link org.gradle.api.tasks.InputFile} or {@link org.gradle.api.tasks.InputDirectory} respectively.
+ * {@link InputFile} or {@link InputDirectory} respectively.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

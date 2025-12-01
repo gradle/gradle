@@ -35,8 +35,11 @@ import sbt.internal.inc.ScalaInstance;
 import sbt.internal.inc.ZincUtil;
 import sbt.internal.inc.classpath.ClassLoaderCache;
 import scala.Option;
+import scala.collection.Iterable;
 import scala.collection.JavaConverters;
+import scala.runtime.BoxedUnit;
 import xsbti.ArtifactInfo;
+import xsbti.Reporter;
 import xsbti.compile.ClasspathOptionsUtil;
 import xsbti.compile.ScalaCompiler;
 import xsbti.compile.ZincCompilerUtil;
@@ -123,7 +126,7 @@ public class ZincScalaCompilerFactory {
             scalaInstance,
             ZincUtil.constantBridgeProvider(scalaInstance, compilerBridgeJar),
             ClasspathOptionsUtil.manual(),
-            k -> scala.runtime.BoxedUnit.UNIT,
+            k -> BoxedUnit.UNIT,
             Option.apply(COMPILER_CLASSLOADER_CACHE)
         );
 
@@ -181,7 +184,7 @@ public class ZincScalaCompilerFactory {
         ClassLoader scalaLibraryClassLoader;
         ClassLoader scalaClassLoader;
         if (isScala3) {
-            scalaLibraryClassLoader = new ScalaCompilerLoader(libraryUrls, xsbti.Reporter.class.getClassLoader());
+            scalaLibraryClassLoader = new ScalaCompilerLoader(libraryUrls, Reporter.class.getClassLoader());
             scalaClassLoader = getCachedClassLoader(hashedScalaClasspath, scalaLibraryClassLoader);
         } else {
             scalaLibraryClassLoader = getClassLoader(DefaultClassPath.of(libraryJar), null);
@@ -217,9 +220,9 @@ public class ZincScalaCompilerFactory {
                 // generate from sources jar
                 final Timer timer = Time.startTimer();
                 RawCompiler rawCompiler = new RawCompiler(scalaInstance, ClasspathOptionsUtil.manual(), logger);
-                scala.collection.Iterable<Path> sourceJars = JavaConverters.collectionAsScalaIterable(Collections.singletonList(compilerBridgeSourceJar.toPath()));
+                Iterable<Path> sourceJars = JavaConverters.collectionAsScalaIterable(Collections.singletonList(compilerBridgeSourceJar.toPath()));
                 List<Path> xsbtiJarsAsPath = Arrays.stream(scalaInstance.allJars()).map(File::toPath).collect(Collectors.toList());
-                scala.collection.Iterable<Path> xsbtiJars = JavaConverters.collectionAsScalaIterable(xsbtiJarsAsPath);
+                Iterable<Path> xsbtiJars = JavaConverters.collectionAsScalaIterable(xsbtiJarsAsPath);
                 AnalyzingCompiler$.MODULE$.compileSources(sourceJars, bridgeJar.toPath(), xsbtiJars, "compiler-bridge", rawCompiler, logger);
 
                 final String interfaceCompletedMessage = String.format("Scala Compiler interface compilation took %s", timer.getElapsed());

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -54,7 +55,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationRunner buildOperationRunner;
     private final AsyncWorkTracker asyncWorkTracker;
-    private final org.gradle.api.execution.TaskActionListener actionListener;
+    private final TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionEngine executionEngine;
@@ -70,7 +71,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationRunner buildOperationRunner,
         AsyncWorkTracker asyncWorkTracker,
-        org.gradle.api.execution.TaskActionListener actionListener,
+        TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionEngine executionEngine,

@@ -44,7 +44,8 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Creates a XCTest bundle with a run script so it can be easily executed.
@@ -99,7 +100,7 @@ public abstract class InstallXCTestBundle extends DefaultTask {
 
         File outputFile = new File(bundleDir, "Contents/Info.plist");
 
-        Files.asCharSink(outputFile, Charset.forName("UTF-8")).write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        Files.asCharSink(outputFile, UTF_8).write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
             + "<plist version=\"1.0\">\n"
             + "<dict/>\n"

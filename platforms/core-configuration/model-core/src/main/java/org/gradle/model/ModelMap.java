@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * Model backed map like structure allowing adding of items where instantiation is managed.
  * <p>
- * {@link org.gradle.model.Managed} types may declare model map properties.
+ * {@link Managed} types may declare model map properties.
  * Model maps can only contain managed types.
  *
  * @param <T> the contract type for all items
@@ -143,8 +143,8 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Applies the given action to the given item, when the item is required.
      *
-     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)} and {@link #create(String,
-     * org.gradle.api.Action)}.
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(Action)} and {@link #create(String,
+     * Action)}.
      *
      * @param name The name.
      * @param configAction An action that configures the item. The action is executed when the item is required.
@@ -169,7 +169,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Applies the given action to each item in this collection, as each item is required.
      *
-     * <p>The given action is invoked to configure the item when the item is required. It is called before any actions provided to {@link #create(String, org.gradle.api.Action)}.
+     * <p>The given action is invoked to configure the item when the item is required. It is called before any actions provided to {@link #create(String, Action)}.
      *
      * @param configAction An action that configures the item. The action is executed when the item is required.
      */
@@ -178,7 +178,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Applies the given action to each item of the given type in this collection, as each item is required.
      *
-     * <p>The given action is invoked to configure the item when the item is required. It is called before any actions provided to {@link #create(String, org.gradle.api.Action)}.
+     * <p>The given action is invoked to configure the item when the item is required. It is called before any actions provided to {@link #create(String, Action)}.
      *
      * @param type The type of elements to apply the action to.
      * @param configAction An action that configures the item. The action is executed when the item is required.
@@ -188,8 +188,8 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Applies the given action to each item in the collection, as each item is required.
      *
-     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)} and {@link #create(String,
-     * org.gradle.api.Action)}.
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(Action)} and {@link #create(String,
+     * Action)}.
      *
      * @param configAction An action that configures the item. The action is executed when the item is required.
      */
@@ -198,8 +198,8 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Applies the given action to each item of the given type in the collection, as each item is required.
      *
-     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)} and {@link #create(String,
-     * org.gradle.api.Action)}.
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(Action)} and {@link #create(String,
+     * Action)}.
      *
      * @param type The type of elements to apply the action to.
      * @param configAction An action that configures the item. The action is executed when the item is required.
@@ -217,8 +217,8 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Applies the given action to each item in the collection, as each item is required.
      *
-     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)}, {@link #create(String,
-     * org.gradle.api.Action)}, and other mutation methods.
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(Action)}, {@link #create(String,
+     * Action)}, and other mutation methods.
      *
      * @param configAction An action that configures the item. The action is executed when the item is required.
      */
@@ -227,8 +227,8 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Applies the given action to each item of the given type in the collection, as each item is required.
      *
-     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(org.gradle.api.Action)}, {@link #create(String,
-     * org.gradle.api.Action)}, and other mutation methods.
+     * <p>The given action is invoked to configure the item when the item is required. It is called after any actions provided to {@link #beforeEach(Action)}, {@link #create(String,
+     * Action)}, and other mutation methods.
      *
      * @param type The type of elements to apply the action to.
      * @param configAction An action that configures the item. The action is executed when the item is required.

@@ -32,11 +32,11 @@ public interface TaskDependencyResolveContext extends Action<Task> {
      *
      * <ul>
      *
-     * <li>{@link org.gradle.api.Task}</li>
+     * <li>{@link Task}</li>
      *
      * <li>{@link org.gradle.api.tasks.TaskDependency}</li>
      *
-     * <li>{@link org.gradle.api.internal.tasks.TaskDependencyContainer}</li>
+     * <li>{@link TaskDependencyContainer}</li>
      *
      * <li>{@link org.gradle.api.Buildable}</li>
      *

@@ -85,7 +85,7 @@ import java.util.Map;
  * <li>Forcing certain dependency version in case of the conflict.</li>
  * <li>Excluding certain dependencies by name, group or both.
  *      More details about per-dependency exclusions can be found in
- *      docs for {@link org.gradle.api.artifacts.ModuleDependency#exclude(java.util.Map)}.</li>
+ *      docs for {@link org.gradle.api.artifacts.ModuleDependency#exclude(Map)}.</li>
  * <li>Avoiding transitive dependencies for certain dependency.</li>
  * </ul>
  *
@@ -115,7 +115,7 @@ import java.util.Map;
  * Below are more examples of advanced configuration, which may be useful when a target component has multiple artifacts:
  * <ul>
  *   <li>Declaring dependency on a specific configuration of the component.</li>
- *   <li>Declaring explicit artifact requests. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(groovy.lang.Closure)}.</li>
+ *   <li>Declaring explicit artifact requests. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(Closure)}.</li>
  * </ul>
  *
  * <pre class='autoTested'>
@@ -152,11 +152,11 @@ import java.util.Map;
  * dependency.</p>
  *
  * <p>You can also always add instances of
- * {@link org.gradle.api.artifacts.Dependency} directly:</p>
+ * {@link Dependency} directly:</p>
  *
  * <code><i>configurationName</i>(&lt;instance&gt;)</code>
  *
- * <p>Dependencies can also be declared with a {@link org.gradle.api.provider.Provider} that provides any of the other supported dependency notations.</p>
+ * <p>Dependencies can also be declared with a {@link Provider} that provides any of the other supported dependency notations.</p>
  *
  * <h3>External dependencies</h3>
  *
@@ -167,7 +167,7 @@ import java.util.Map;
  * <p>All properties, except name, are optional.</p>
  *
  * <p>External dependencies are represented by a {@link
- * org.gradle.api.artifacts.ExternalModuleDependency}.</p>
+ * ExternalModuleDependency}.</p>
  *
  * <pre class='autoTested'>
  * plugins {
@@ -363,7 +363,7 @@ public interface DependencyHandler extends ExtensionAware {
     /**
      * Configures dependency constraint for this project.
      *
-     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.DependencyConstraintHandler} for this project.</p>
+     * <p>This method executes the given action against the {@link DependencyConstraintHandler} for this project.</p>
      *
      * @param configureAction the action to use to configure module metadata
      * @since 4.5
@@ -382,7 +382,7 @@ public interface DependencyHandler extends ExtensionAware {
     /**
      * Configures component metadata for this project.
      *
-     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project.</p>
+     * <p>This method executes the given action against the {@link ComponentMetadataHandler} for this project.</p>
      *
      * @param configureAction the action to use to configure module metadata
      * @since 1.8
@@ -401,7 +401,7 @@ public interface DependencyHandler extends ExtensionAware {
     /**
      * Configures module metadata for this project.
      *
-     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler} for this project.
+     * <p>This method executes the given action against the {@link ComponentModuleMetadataHandler} for this project.
      *
      * @param configureAction the action to use to configure module metadata
      * @since 2.2

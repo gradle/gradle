@@ -25,7 +25,7 @@ package org.gradle.api.tasks;
  * This normalization applies to not only files directly on the classpath, but also
  * to any ZIP/JAR files found inside directories or nested inside other ZIP/JAR files.
  *
- * @see org.gradle.api.tasks.Classpath
+ * @see Classpath
  *
  * @since 4.3
  */

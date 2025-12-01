@@ -946,7 +946,7 @@ public class TestFile extends File {
      * Fails if this TestFile was created in a way that did not provide a relative base.
      *
      * @see #relativizeFrom(TestFile)
-     * @see java.nio.file.Path#relativize(Path)
+     * @see Path#relativize(Path)
      */
     public String getRelativePathFromBase() {
         assertNotEquals("relativeBase must have been set during construction", relativeBase.toPath(), this.toPath());

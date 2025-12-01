@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import spock.lang.Specification
+import sun.nio.cs.UTF_8
 
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
@@ -32,7 +33,7 @@ class PropertyResourceBundleFallbackCharsetTest extends Specification {
         CharBuffer result = charset.newDecoder().decode(buffer(utf8bytes))
 
         then:
-        result.toString() == new String(utf8bytes, "UTF-8")
+        result.toString() == new String(utf8bytes, UTF_8.toString())
         result.toString() != new String(utf8bytes, "ISO-8859-1")
     }
 
@@ -42,7 +43,7 @@ class PropertyResourceBundleFallbackCharsetTest extends Specification {
 
         then:
         result.toString() == new String(iso8859bytes, "ISO-8859-1")
-        result.toString() != new String(iso8859bytes, "UTF-8")
+        result.toString() != new String(iso8859bytes, UTF_8.toString())
     }
 
     static ByteBuffer buffer(byte[] bytes) {

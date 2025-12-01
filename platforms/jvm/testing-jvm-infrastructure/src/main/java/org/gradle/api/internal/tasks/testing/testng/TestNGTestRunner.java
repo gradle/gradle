@@ -154,7 +154,7 @@ public class TestNGTestRunner {
 
         try {
             JavaMethod.of(TestNG.class, Object.class, "setConfigFailurePolicy", argType).invoke(testNg, argValue);
-        } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             if (!argValue.equals(DEFAULT_CONFIG_FAILURE_POLICY)) {
                 String message = String.format("The version of TestNG used does not support setting config failure policy to '%s'.", value);
                 throw new InvalidUserDataException(message);
@@ -165,7 +165,7 @@ public class TestNGTestRunner {
     private void setPreserveOrder(TestNG testNg, boolean value) {
         try {
             JavaMethod.of(TestNG.class, Object.class, "setPreserveOrder", boolean.class).invoke(testNg, value);
-        } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             if (value) {
                 throw new InvalidUserDataException("Preserving the order of tests is not supported by this version of TestNG.");
             }
@@ -175,7 +175,7 @@ public class TestNGTestRunner {
     private void setGroupByInstances(TestNG testNg, boolean value) {
         try {
             JavaMethod.of(TestNG.class, Object.class, "setGroupByInstances", boolean.class).invoke(testNg, value);
-        } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             if (value) {
                 throw new InvalidUserDataException("Grouping tests by instances is not supported by this version of TestNG.");
             }
@@ -185,7 +185,7 @@ public class TestNGTestRunner {
     private void setThreadPoolFactoryClass(TestNG testNg, String threadPoolFactoryClass) {
         try {
             JavaMethod.of(TestNG.class, Object.class, "setExecutorFactoryClass", String.class).invoke(testNg, threadPoolFactoryClass);
-        } catch (org.gradle.internal.reflect.NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             throw new InvalidUserDataException("The version of TestNG used does not support setting thread pool factory class.");
         }
     }

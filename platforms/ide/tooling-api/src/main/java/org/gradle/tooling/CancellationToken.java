@@ -17,7 +17,7 @@
 package org.gradle.tooling;
 
 /**
- * Token that propagates notification that an operation should be cancelled. See {@link org.gradle.tooling.CancellationTokenSource} for details.
+ * Token that propagates notification that an operation should be cancelled. See {@link CancellationTokenSource} for details.
  *
  * <p>All implementations of this interface are required to be thread safe.</p>
  *

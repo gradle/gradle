@@ -17,5 +17,7 @@
 /**
  * Generic DSL related tooling models.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.tooling.model.dsl;
+
+import org.jspecify.annotations.NullMarked;

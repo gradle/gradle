@@ -30,17 +30,17 @@ import java.lang.annotation.Target;
  *
  * <p>This annotation can be used with the following annotations:</p>
  *
- * <ul> <li>{@link org.gradle.api.tasks.Input}</li>
+ * <ul> <li>{@link Input}</li>
  *
- * <li>{@link org.gradle.api.tasks.InputFile}</li>
+ * <li>{@link InputFile}</li>
  *
- * <li>{@link org.gradle.api.tasks.InputDirectory}</li>
+ * <li>{@link InputDirectory}</li>
  *
- * <li>{@link org.gradle.api.tasks.InputFiles}</li>
+ * <li>{@link InputFiles}</li>
  *
- * <li>{@link org.gradle.api.tasks.OutputFile}</li>
+ * <li>{@link OutputFile}</li>
  *
- * <li>{@link org.gradle.api.tasks.OutputDirectory}</li> </ul>
+ * <li>{@link OutputDirectory}</li> </ul>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

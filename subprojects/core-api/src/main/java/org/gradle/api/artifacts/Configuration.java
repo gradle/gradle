@@ -99,7 +99,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      *
      * @implSpec Usage: This method should only be called on resolvable configurations, but will not warn if used otherwise.
      *
-     * @see org.gradle.api.artifacts.Configuration.State
+     * @see Configuration.State
      * @return The state of the configuration
      */
     State getState();
@@ -325,14 +325,14 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Returns the exclude rules applied for resolving any dependency of this configuration.
      *
-     * @see #exclude(java.util.Map)
+     * @see #exclude(Map)
      * @return The exclude rules
      */
     Set<ExcludeRule> getExcludeRules();
 
     /**
      * Adds an exclude rule to exclude transitive dependencies for all dependencies of this configuration.
-     * You can also add exclude rules per-dependency. See {@link ModuleDependency#exclude(java.util.Map)}.
+     * You can also add exclude rules per-dependency. See {@link ModuleDependency#exclude(Map)}.
      *
      * @param excludeProperties the properties to define the exclude rule.
      * @return this
@@ -533,7 +533,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration copyRecursive(Spec<? super Dependency> dependencySpec);
 
     /**
-     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copy(org.gradle.api.specs.Spec)}
+     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copy(Spec)}
      *  <p>
      * This method is only intended for use for specific situations involving resolvable configuration, it is
      * <strong>NOT</strong> intended as a general-purpose copying mechanism.
@@ -547,7 +547,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration copy(Closure dependencySpec);
 
     /**
-     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copyRecursive(org.gradle.api.specs.Spec)}
+     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copyRecursive(Spec)}
      * <p>
      * This method is only intended for use for specific situations involving resolvable configuration, it is
      * <strong>NOT</strong> intended as a general-purpose copying mechanism.

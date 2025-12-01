@@ -60,7 +60,7 @@ import java.util.Set;
  *
  * <p>Each task has a name, which can be used to refer to the task within its owning project, and a fully qualified
  * path, which is unique across all tasks in all projects. The path is the concatenation of the owning project's path
- * and the task's name. Path elements are separated using the {@value org.gradle.api.Project#PATH_SEPARATOR}
+ * and the task's name. Path elements are separated using the {@value Project#PATH_SEPARATOR}
  * character.</p>
  *
  * <h2>Task Actions</h2>
@@ -70,8 +70,8 @@ import java.util.Set;
  * #doFirst(Action)} or {@link #doLast(Action)}.</p>
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
- * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
- * {@link #doLast(groovy.lang.Closure)}.</p>
+ * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(Closure)} or
+ * {@link #doLast(Closure)}.</p>
  *
  * <p>There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
  * build. A task action can abort execution of the action and continue to the next action of the task by throwing a
@@ -502,7 +502,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     Logger getLogger();
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
+     * Returns the {@link LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this task. By default, System.out is redirected to the Gradle logging system at
      * the QUIET log level, and System.err is redirected at the ERROR log level.
      *
@@ -554,7 +554,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * </ol>
      *
-     * If the property is not found, a {@link groovy.lang.MissingPropertyException} is thrown.
+     * If the property is not found, a {@link MissingPropertyException} is thrown.
      *
      * @param name The name of the property
      * @param value The value of the property

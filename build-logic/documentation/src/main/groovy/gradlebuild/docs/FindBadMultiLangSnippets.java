@@ -29,6 +29,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Checks adoc files for reversed multi-language snippet order.
@@ -63,15 +65,15 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
         }
     }
 
-    private static final java.util.regex.Pattern SOURCE_LANG_PATTERN =
-        java.util.regex.Pattern.compile(
+    private static final Pattern SOURCE_LANG_PATTERN =
+        Pattern.compile(
             "^\\[\\s*source(?:%[\\w-]+)*\\s*,\\s*([\\w.+-]+)\\s*(?:,.*)?\\]$",
-            java.util.regex.Pattern.CASE_INSENSITIVE
+            Pattern.CASE_INSENSITIVE
         );
 
     private void gatherBadSnippetsInFile(File file, Map<File, List<Error>> errors) {
         List<String> lines = new ArrayList<>();
-        try (java.util.stream.Stream<String> stream = Files.lines(file.toPath())) {
+        try (Stream<String> stream = Files.lines(file.toPath())) {
             stream.forEach(lines::add);
         } catch (IOException ex) {
             // If a file can't be read, add an error

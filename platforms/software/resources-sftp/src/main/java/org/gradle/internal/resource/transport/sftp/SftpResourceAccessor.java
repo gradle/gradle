@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -45,7 +46,7 @@ public class SftpResourceAccessor extends AbstractExternalResourceAccessor imple
         try {
             SftpATTRS attributes = sftpClient.getSftpClient().lstat(location.getPath());
             return attributes != null ? toMetaData(location.getUri(), attributes) : null;
-        } catch (com.jcraft.jsch.SftpException e) {
+        } catch (SftpException e) {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }

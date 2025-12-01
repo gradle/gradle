@@ -250,7 +250,7 @@ public abstract class IdeaModule {
 
     /**
      * The keys of this map are the IDEA scopes. Each key points to another map that has two keys, plus and minus.
-     * The values of those keys are collections of {@link org.gradle.api.artifacts.Configuration} objects. The files of the
+     * The values of those keys are collections of {@link Configuration} objects. The files of the
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:

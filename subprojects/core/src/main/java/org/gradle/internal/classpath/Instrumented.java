@@ -66,7 +66,7 @@ public class Instrumented {
     }
 
     /**
-     * This API follows the requirements in {@link org.gradle.internal.classpath.GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
+     * This API follows the requirements in {@link GroovyCallInterceptorsProvider.ClassSourceGroovyCallInterceptorsProvider}.
      *
      * @deprecated This should not be called from the sources.
      */

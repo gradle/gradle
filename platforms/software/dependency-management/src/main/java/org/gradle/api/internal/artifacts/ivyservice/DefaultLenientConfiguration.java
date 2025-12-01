@@ -35,6 +35,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.resolve.ArtifactResolveException;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -137,7 +138,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
                 // Only record the artifact if the file is accessible
                 artifacts.add(resolvedArtifact);
-            } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
+            } catch (ArtifactResolveException e) {
                 // Ignore
                 // TODO: Would be nice to not use exceptions for control flow
             } catch (Exception e) {

@@ -27,7 +27,7 @@ import java.net.URI;
  *
  * <li>Call {@link #newConnector()} to create a new connector instance.</li>
  *
- * <li>Configure the connector. You must call {@link #forProjectDirectory(java.io.File)} to specify which project you wish to connect to. Other methods are optional.</li>
+ * <li>Configure the connector. You must call {@link #forProjectDirectory(File)} to specify which project you wish to connect to. Other methods are optional.</li>
  *
  * <li>Call {@link #connect()} to create the connection to a project.</li>
  *
@@ -86,7 +86,7 @@ public abstract class GradleConnector {
     }
 
     /**
-     * Creates a new {@link CancellationTokenSource} that can be used to cancel one or more {@link org.gradle.tooling.LongRunningOperation} executions.
+     * Creates a new {@link CancellationTokenSource} that can be used to cancel one or more {@link LongRunningOperation} executions.
      *
      * @return The instance. Never returns {@code null}.
      * @since 2.1
@@ -154,7 +154,7 @@ public abstract class GradleConnector {
     public abstract GradleConnector useGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
-     * Creates a connection to the project in the specified project directory. You should call {@link org.gradle.tooling.ProjectConnection#close()} when you are finished with the connection.
+     * Creates a connection to the project in the specified project directory. You should call {@link ProjectConnection#close()} when you are finished with the connection.
      *
      * <p>
      * Note, that the returned instance does not automatically pick up changes if the connection configuration (e.g. the gradle.properties file) changes. It's the client's responsibility to close the connection and create a new one in that scenario.

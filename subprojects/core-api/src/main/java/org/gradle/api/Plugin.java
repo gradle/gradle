@@ -17,7 +17,7 @@ package org.gradle.api;
 
 /**
  * <p>A <code>Plugin</code> represents an extension to Gradle. A plugin applies some configuration to a target object.
- * Usually, this target object is a {@link org.gradle.api.Project}, but plugins can be applied to any type of
+ * Usually, this target object is a {@link Project}, but plugins can be applied to any type of
  * objects.</p>
  *
  * @param <T> The type of object which this plugin can configure.

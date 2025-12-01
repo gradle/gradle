@@ -24,7 +24,7 @@ package org.gradle.api.tasks;
  * Compared to {@link ClasspathNormalizer} this normalizer only snapshots the ABIs of class files,
  * and ignores any non-class resource.
  *
- * @see org.gradle.api.tasks.CompileClasspath
+ * @see CompileClasspath
  *
  * @since 4.3
  */

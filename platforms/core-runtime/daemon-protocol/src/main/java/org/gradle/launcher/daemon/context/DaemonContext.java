@@ -30,7 +30,7 @@ import java.util.Collection;
  * This is used by clients to determine whether or not a daemon meets its requirements
  * such as JDK version, special system properties etc.
  * <p>
- * Instances are serialized by {@link org.gradle.launcher.daemon.context.DefaultDaemonContext.Serializer}
+ * Instances are serialized by {@link DefaultDaemonContext.Serializer}
  * and shared via the Daemon Registry.
  *
  * Implementation is immutable.

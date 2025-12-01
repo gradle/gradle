@@ -100,7 +100,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement, Pr
      * Returns a path to the project for the full build tree
      *
      * @return a path to the project for the full build tree
-     * @throws org.gradle.tooling.model.UnsupportedMethodException When the target Gradle version does not support this method.
+     * @throws UnsupportedMethodException When the target Gradle version does not support this method.
      * @since 9.2.0
      */
     @Incubating

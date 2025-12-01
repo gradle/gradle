@@ -24,7 +24,7 @@ import org.gradle.tooling.model.Task;
  * Instances of {@code BuildLauncher} are not thread-safe. You use a {@code BuildLauncher} as follows:
  *
  * <ul>
- * <li>Create an instance of {@code BuildLauncher} by calling {@link org.gradle.tooling.ProjectConnection#newBuild()}.
+ * <li>Create an instance of {@code BuildLauncher} by calling {@link ProjectConnection#newBuild()}.
  * <li>Configure the launcher as appropriate.
  * <li>Call either {@link #run()} or {@link #run(ResultHandler)} to execute the build.
  * <li>Optionally, you can reuse the launcher to launch additional builds.

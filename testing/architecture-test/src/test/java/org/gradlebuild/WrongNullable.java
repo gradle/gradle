@@ -16,8 +16,10 @@
 
 package org.gradlebuild;
 
-public abstract class WrongNullable {
-    abstract @org.jetbrains.annotations.Nullable String returnsNull();
+import org.jetbrains.annotations.Nullable;
 
-    abstract void acceptsNull(@org.jetbrains.annotations.Nullable String s);
+public abstract class WrongNullable {
+    abstract @Nullable String returnsNull();
+
+    abstract void acceptsNull(@Nullable String s);
 }

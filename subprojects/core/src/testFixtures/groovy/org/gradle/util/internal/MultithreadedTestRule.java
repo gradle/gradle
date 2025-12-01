@@ -49,15 +49,15 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * <p>A rule for testing concurrent code.</p>
  *
- * <p>Provides several ways to start and manage threads. You can use the {@link #start(groovy.lang.Closure)} or {@link
- * #run(groovy.lang.Closure)} methods to execute test code in other threads. You can use {@link #waitForAll()} to wait
+ * <p>Provides several ways to start and manage threads. You can use the {@link #start(Closure)} or {@link
+ * #run(Closure)} methods to execute test code in other threads. You can use {@link #waitForAll()} to wait
  * for all test threads to complete. In addition, the test tear-down method blocks until all test threads have stopped
  * and ensures that no exceptions were thrown in any test threads.</p>
  *
  * <p>Provides an {@link java.util.concurrent.Executor} implementation, which uses test threads to execute any tasks
  * submitted to it.</p>
  *
- * <p>You can use {@link #syncAt(int)} and {@link #expectBlocksUntil(int, groovy.lang.Closure)} to synchronise between
+ * <p>You can use {@link #syncAt(int)} and {@link #expectBlocksUntil(int, Closure)} to synchronise between
  * test threads.</p>
  */
 public class MultithreadedTestRule extends ExternalResource {
@@ -298,7 +298,7 @@ public class MultithreadedTestRule extends ExternalResource {
 
     /**
      * Blocks until the clock has reached the given tick. The clock advances to the given tick when all test threads
-     * have called {@link #syncAt(int)} or {@link #expectBlocksUntil(int, groovy.lang.Closure)} with the given tick, and
+     * have called {@link #syncAt(int)} or {@link #expectBlocksUntil(int, Closure)} with the given tick, and
      * there are least 2 test threads.
      *
      * @param tick The expected clock tick
@@ -424,7 +424,7 @@ public class MultithreadedTestRule extends ExternalResource {
 
     /**
      * Executes the given action in another thread, and asserts that the action blocks until all actions provided to
-     * {@link #expectUnblocks(groovy.lang.Closure)} have been executed.
+     * {@link #expectUnblocks(Closure)} have been executed.
      *
      * @param action The action to execute.
      */
@@ -434,7 +434,7 @@ public class MultithreadedTestRule extends ExternalResource {
 
     /**
      * Executes the given action, asserting that it unblocks all actions provided to {@link
-     * #expectBlocks(groovy.lang.Closure)}
+     * #expectBlocks(Closure)}
      *
      * @param action The action to execute.
      */

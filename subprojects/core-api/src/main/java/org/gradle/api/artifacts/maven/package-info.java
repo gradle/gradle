@@ -17,5 +17,7 @@
 /**
  * Classes for declaring and using Maven modules.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.artifacts.maven;
+
+import org.jspecify.annotations.NullMarked;

@@ -87,7 +87,7 @@ import static com.google.common.base.Strings.emptyToNull;
 /**
  * Base plugin for component support.
  *
- * Adds a {@link org.gradle.platform.base.ComponentSpecContainer} named {@code components} to the model.
+ * Adds a {@link ComponentSpecContainer} named {@code components} to the model.
  *
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */

@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Represents an object that can be used to launch a Gradle build, such as a task.
  *
- * <p>To launch a build, you pass one or more {@link org.gradle.tooling.model.Launchable} instances
+ * <p>To launch a build, you pass one or more {@link Launchable} instances
  * to either {@link org.gradle.tooling.BuildLauncher#forTasks(Iterable)} or {@link org.gradle.tooling.BuildLauncher#forLaunchables(Iterable)}.</p>
  *
  * @since 1.12

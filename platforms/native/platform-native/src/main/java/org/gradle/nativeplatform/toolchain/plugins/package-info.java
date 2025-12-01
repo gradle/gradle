@@ -17,5 +17,7 @@
 /**
  * Built-in tool chain support.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.nativeplatform.toolchain.plugins;
+
+import org.gradle.api.Incubating;

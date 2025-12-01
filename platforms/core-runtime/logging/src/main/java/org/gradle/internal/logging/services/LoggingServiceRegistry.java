@@ -39,7 +39,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 
 /**
- * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
+ * A {@link ServiceRegistry} implementation that provides the logging services. To use this:
  *
  * <ol>
  * <li>Create an instance using one of the static factory methods below.</li>
@@ -71,7 +71,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
      * <li>Replaces System.out and System.err with implementations that route output through the logging system as per {@link LoggingManagerInternal#captureSystemSources()}.</li>
      * <li>Configures slf4j, log4j and java util logging to route log messages through the logging system.</li>
      * <li>Routes logging output to the original System.out and System.err as per {@link LoggingManagerInternal#attachSystemOutAndErr()}.</li>
-     * <li>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</li>
+     * <li>Sets log level to {@link LogLevel#LIFECYCLE}.</li>
      * </ul>
      *
      * <p>Does nothing until started.</p>
@@ -91,7 +91,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
      *
      * <ul>
      * <li>Configures slf4j and log4j to route log messages through the logging system.</li>
-     * <li>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</li>
+     * <li>Sets log level to {@link LogLevel#LIFECYCLE}.</li>
      * </ul>
      *
      * <p>Does not:</p>
@@ -112,7 +112,7 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
      * Creates a set of logging services to set up a new logging scope that does nothing by default. The methods on {@link LoggingManagerInternal} can be used to configure the
      * logging services do useful things.
      *
-     * <p>Sets log level to {@link org.gradle.api.logging.LogLevel#LIFECYCLE}.</p>
+     * <p>Sets log level to {@link LogLevel#LIFECYCLE}.</p>
      */
     public static ServiceRegistry newNestedLogging() {
         return ServiceRegistryBuilder.builder()

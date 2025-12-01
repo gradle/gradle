@@ -53,10 +53,10 @@ public interface PluginAware {
      * <p>
      * The given closure is used to configure an {@link ObjectConfigurationAction}, which "builds" the plugin application.
      * <p>
-     * This method differs from {@link #apply(java.util.Map)} in that it allows methods of the configuration action to be invoked more than once.
+     * This method differs from {@link #apply(Map)} in that it allows methods of the configuration action to be invoked more than once.
      *
      * @param closure the closure to configure an {@link ObjectConfigurationAction} with before "executing" it
-     * @see #apply(java.util.Map)
+     * @see #apply(Map)
      */
     void apply(@DelegatesTo(ObjectConfigurationAction.class) Closure closure);
 
@@ -65,10 +65,10 @@ public interface PluginAware {
      * <p>
      * The given closure is used to configure an {@link ObjectConfigurationAction}, which "builds" the plugin application.
      * <p>
-     * This method differs from {@link #apply(java.util.Map)} in that it allows methods of the configuration action to be invoked more than once.
+     * This method differs from {@link #apply(Map)} in that it allows methods of the configuration action to be invoked more than once.
      *
      * @param action the action to configure an {@link ObjectConfigurationAction} with before "executing" it
-     * @see #apply(java.util.Map)
+     * @see #apply(Map)
      */
     void apply(Action<? super ObjectConfigurationAction> action);
 

@@ -17,5 +17,7 @@
 /**
  * Classes used for querying the artifacts.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.artifacts.query;
+
+import org.jspecify.annotations.NullMarked;

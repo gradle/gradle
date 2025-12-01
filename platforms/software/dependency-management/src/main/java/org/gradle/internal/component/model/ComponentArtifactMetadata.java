@@ -61,7 +61,7 @@ public interface ComponentArtifactMetadata {
      * <p>Defaults to {@link Optional#empty()}
      *
      * @return an optional artifact metadata, which if present will be resolved if this artifact's resolution fails
-     * @see DefaultModuleComponentArtifactMetadata#DefaultModuleComponentArtifactMetadata(org.gradle.api.artifacts.component.ModuleComponentIdentifier, org.gradle.internal.component.model.IvyArtifactName, org.gradle.internal.component.model.ComponentArtifactMetadata)
+     * @see DefaultModuleComponentArtifactMetadata#DefaultModuleComponentArtifactMetadata(org.gradle.api.artifacts.component.ModuleComponentIdentifier, IvyArtifactName, ComponentArtifactMetadata)
      */
     default Optional<ComponentArtifactMetadata> getAlternativeArtifact() {
         return Optional.empty();

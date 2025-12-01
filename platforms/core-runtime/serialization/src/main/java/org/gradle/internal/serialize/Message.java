@@ -25,7 +25,7 @@ import java.io.OutputStream;
 public abstract class Message {
     /**
      * Serialize the <code>message</code> onto the provided <code>outputStream</code>, replacing all {@link Throwable}s in the object graph with a placeholder object that can be read back by {@link
-     * #receive(java.io.InputStream, ClassLoader)}.
+     * #receive(InputStream, ClassLoader)}.
      *
      * @param message object to serialize
      * @param outputSteam stream to serialize onto
@@ -40,7 +40,7 @@ public abstract class Message {
     }
 
     /**
-     * Read back an object from the provided stream that has been serialized by a call to {@link #send(Object, java.io.OutputStream)}. Any {@link Throwable} that cannot be de-serialized (for whatever
+     * Read back an object from the provided stream that has been serialized by a call to {@link #send(Object, OutputStream)}. Any {@link Throwable} that cannot be de-serialized (for whatever
      * reason) will be replaced by a {@link PlaceholderException}.
      *
      * @param inputSteam stream to read the object from

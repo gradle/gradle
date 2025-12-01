@@ -74,7 +74,7 @@ public interface FileLockManager {
          * <br><br>
          *
          * For {@link PersistentCache} the file lock is created with {@link PersistentCache#useCache} or {@link PersistentCache#withFileLock} method.
-         * Lock is released when another process requests it via ping requests, see {@link org.gradle.cache.internal.DefaultFileLockManager.DefaultFileLock#lock(org.gradle.cache.FileLockManager.LockMode)}.
+         * Lock is released when another process requests it via ping requests, see {@link org.gradle.cache.internal.DefaultFileLockManager.DefaultFileLock#lock(FileLockManager.LockMode)}.
          * <br><br>
          *
          * Not supported by {@link FileLockManager}.
@@ -89,7 +89,7 @@ public interface FileLockManager {
          * <br><br>
          *
          * For {@link PersistentCache} the file lock is created with {@link PersistentCache#useCache} or {@link PersistentCache#withFileLock} method.
-         * Lock is released when no longer needed, see {@link org.gradle.cache.internal.DefaultFileLockManager.DefaultFileLock#lock(org.gradle.cache.FileLockManager.LockMode)}.
+         * Lock is released when no longer needed, see {@link org.gradle.cache.internal.DefaultFileLockManager.DefaultFileLock#lock(FileLockManager.LockMode)}.
          * <br><br>
          *
          * Not supported by {@link FileLockManager}.

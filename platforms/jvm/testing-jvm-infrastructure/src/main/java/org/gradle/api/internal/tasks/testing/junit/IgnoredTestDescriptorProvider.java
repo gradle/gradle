@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import junit.framework.TestCase;
 import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException;
+import org.junit.internal.runners.InitializationError;
 import org.junit.internal.runners.JUnit38ClassRunner;
+import org.junit.internal.runners.JUnit4ClassRunner;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.RunWith;
@@ -69,15 +72,15 @@ public class IgnoredTestDescriptorProvider {
                 return runnerClass.getConstructor(Class.class).newInstance(testClass);
             } catch (NoSuchMethodException e) {
                 String simpleName = runnerClass.getSimpleName();
-                throw new org.junit.internal.runners.InitializationError("Custom runner class " + simpleName +
+                throw new InitializationError("Custom runner class " + simpleName +
                     " should have a public constructor with signature " + simpleName + "(Class testClass)");
             }
         } else if (hasSuiteMethod(testClass)) {
             return new AllTests(testClass);
-        } else if (junit.framework.TestCase.class.isAssignableFrom(testClass)) {
+        } else if (TestCase.class.isAssignableFrom(testClass)) {
             return new JUnit38ClassRunner(testClass);
         } else {
-            return new org.junit.internal.runners.JUnit4ClassRunner(testClass);
+            return new JUnit4ClassRunner(testClass);
         }
     }
 

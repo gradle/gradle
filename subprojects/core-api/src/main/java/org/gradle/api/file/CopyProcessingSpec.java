@@ -133,7 +133,7 @@ public interface CopyProcessingSpec extends ContentFilterable {
 
     /**
      * Adds an action to be applied to each file as it about to be copied into its destination. The given closure is
-     * called with a {@link org.gradle.api.file.FileCopyDetails} as its parameter. Actions are executed in the order
+     * called with a {@link FileCopyDetails} as its parameter. Actions are executed in the order
      * added, and are inherited from the parent spec.
      *
      * @param closure The action to execute.

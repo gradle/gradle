@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A {@link org.gradle.api.internal.tasks.TaskExecuter} which skips tasks whose onlyIf predicate evaluates to false
+ * A {@link TaskExecuter} which skips tasks whose onlyIf predicate evaluates to false
  */
 public class SkipOnlyIfTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipOnlyIfTaskExecuter.class);

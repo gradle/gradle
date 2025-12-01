@@ -32,11 +32,11 @@ public interface ProgressListener {
      *</p>
      * <p>
      * You can find out more about the operation for which progress is reported
-     * by querying the descriptor using {@link org.gradle.tooling.events.ProgressEvent#getDescriptor()}.
+     * by querying the descriptor using {@link ProgressEvent#getDescriptor()}.
      * </p>
      *
      * @param event An event describing the operation progress.
-     * @see org.gradle.tooling.events.ProgressEvent
+     * @see ProgressEvent
      * @see OperationType
      */
     void statusChanged(ProgressEvent event);

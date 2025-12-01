@@ -17,5 +17,7 @@
 /**
  * The top-level package for the Gradle build system.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle;
+
+import org.jspecify.annotations.NullMarked;

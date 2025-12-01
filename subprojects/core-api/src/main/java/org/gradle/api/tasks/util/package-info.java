@@ -17,5 +17,7 @@
 /**
  * Utility classes used by the standard task implementations.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.tasks.util;
+
+import org.jspecify.annotations.NullMarked;

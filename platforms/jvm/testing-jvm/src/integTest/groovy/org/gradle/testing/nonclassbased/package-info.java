@@ -17,5 +17,7 @@
 /**
  * Contains tests demonstrating JUnit TestEngines that discover and execute tests using non-class-based testing.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.testing.nonclassbased;
+
+import org.jspecify.annotations.NullMarked;

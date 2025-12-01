@@ -19,7 +19,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * A {@code ScalaSourceDirectorySet} defines the properties and methods added to a {@link org.gradle.api.tasks.SourceSet} by the {@code ScalaPlugin}.
+ * A {@code ScalaSourceDirectorySet} defines the properties and methods added to a {@link SourceSet} by the {@code ScalaPlugin}.
  *
  * @since 7.1
  */

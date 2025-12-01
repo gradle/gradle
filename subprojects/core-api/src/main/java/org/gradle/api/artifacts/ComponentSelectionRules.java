@@ -84,7 +84,7 @@ public interface ComponentSelectionRules {
      * This rule method:
      * <ul>
      *     <li>must return void.</li>
-     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as its parameter.</li>
+     *     <li>must have {@link ComponentSelection} as its parameter.</li>
      * </ul>
      *
      * @param ruleSource an instance providing a rule implementation
@@ -98,7 +98,7 @@ public interface ComponentSelectionRules {
      * Adds a component selection rule that will apply to the specified module.
      * Each rule will receive a {@link ComponentSelection} object as an argument.
      *
-     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param id the module to apply this rule to in "group:module" format or as a {@link ModuleIdentifier}
      * @param selectionAction the Action that implements a rule to be applied
      * @return this
      */
@@ -109,7 +109,7 @@ public interface ComponentSelectionRules {
      *
      * Each rule will receive a {@link ComponentSelection} object as an argument.
      *
-     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param id the module to apply this rule to in "group:module" format or as a {@link ModuleIdentifier}
      * @param closure the Closure that implements a rule to be applied
      * @return this
      */
@@ -123,10 +123,10 @@ public interface ComponentSelectionRules {
      * This rule method:
      * <ul>
      *     <li>must return void.</li>
-     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as its parameter.</li>
+     *     <li>must have {@link ComponentSelection} as its parameter.</li>
      * </ul>
      *
-     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
+     * @param id the module to apply this rule to in "group:module" format or as a {@link ModuleIdentifier}
      * @param ruleSource an instance providing a rule implementation
      * @return this
      * @deprecated use {@link #withModule(Object,Action)} instead.

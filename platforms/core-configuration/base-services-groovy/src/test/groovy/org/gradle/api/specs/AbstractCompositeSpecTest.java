@@ -29,9 +29,9 @@ public abstract class AbstractCompositeSpecTest {
     private Spec spec1;
     private Spec spec2;
 
-    public abstract org.gradle.api.specs.CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs);
+    public abstract CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs);
 
-    public abstract org.gradle.api.specs.CompositeSpec<Object> createOtherCompositeSpec(Spec<Object>... specs);
+    public abstract CompositeSpec<Object> createOtherCompositeSpec(Spec<Object>... specs);
 
     @Before
     public void setUp() {
@@ -49,7 +49,7 @@ public abstract class AbstractCompositeSpecTest {
 
     @Test
     public void init() {
-        org.gradle.api.specs.CompositeSpec<Object> compositeSpec = createCompositeSpec(spec1, spec2);
+        CompositeSpec<Object> compositeSpec = createCompositeSpec(spec1, spec2);
         Assert.assertEquals(CollectionUtils.flattenCollections(spec1, spec2), compositeSpec.getSpecs());
     }
 

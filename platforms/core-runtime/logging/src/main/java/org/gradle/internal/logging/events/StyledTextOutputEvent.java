@@ -18,6 +18,7 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.logging.LogEventLevel;
@@ -28,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class StyledTextOutputEvent extends RenderableOutputEvent implements org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails {
+public class StyledTextOutputEvent extends RenderableOutputEvent implements StyledTextBuildOperationProgressDetails {
     public static final StyledTextOutputEvent.Span EOL = new StyledTextOutputEvent.Span(SystemProperties.getInstance().getLineSeparator());
 
     private final List<Span> spans;
@@ -86,7 +87,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
         return LogLevelConverter.convert(getLogLevel());
     }
 
-    public static class Span implements org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails.Span {
+    public static class Span implements StyledTextBuildOperationProgressDetails.Span {
         private final String text;
         private final StyledTextOutput.Style style;
 

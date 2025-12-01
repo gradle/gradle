@@ -17,5 +17,7 @@
 /**
  * Types responsible for generating dependency reports.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.reporting.dependencies;
+
+import org.jspecify.annotations.NullMarked;

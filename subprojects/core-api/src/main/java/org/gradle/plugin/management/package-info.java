@@ -18,5 +18,7 @@
  * APIs to influence how plugins are resolved.
  * @since 3.5
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.plugin.management;
+
+import org.jspecify.annotations.NullMarked;

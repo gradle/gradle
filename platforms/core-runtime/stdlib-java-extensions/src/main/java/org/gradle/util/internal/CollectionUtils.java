@@ -463,7 +463,7 @@ public abstract class CollectionUtils {
      * The result of diffing two sets.
      *
      * @param <T> The type of element the sets contain
-     * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, Function)
+     * @see CollectionUtils#diffSetsBy(Set, Set, Function)
      */
     public static class SetDiff<T> {
         public Set<T> leftOnly = new HashSet<T>();

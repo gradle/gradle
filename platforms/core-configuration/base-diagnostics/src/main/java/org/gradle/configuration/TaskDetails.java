@@ -149,7 +149,7 @@ class TaskDetails {
     private static Class<?> getDeclaredTaskType(Task original) {
         Class<?> clazz = new DslObject(original).getDeclaredType();
         if (clazz.equals(DefaultTask.class)) {
-            return org.gradle.api.Task.class;
+            return Task.class;
         } else {
             return clazz;
         }

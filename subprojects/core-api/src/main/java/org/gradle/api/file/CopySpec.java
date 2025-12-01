@@ -87,7 +87,7 @@ import java.util.regex.Pattern;
  * </pre>
  *
  * @see org.gradle.api.tasks.Copy Copy Task
- * @see org.gradle.api.Project#copy(groovy.lang.Closure) Project.copy()
+ * @see org.gradle.api.Project#copy(Closure) Project.copy()
  */
 @HasInternalProtocol
 public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFilterable {
@@ -126,7 +126,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * <p>
      * The value can be set with a case insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
      * <p>
-     * This strategy can be overridden for individual files by using {@link #eachFile(org.gradle.api.Action)} or {@link #filesMatching(String, org.gradle.api.Action)}.
+     * This strategy can be overridden for individual files by using {@link #eachFile(Action)} or {@link #filesMatching(String, Action)}.
      *
      * @return the strategy to use for files included by this copy spec.
      * @see DuplicatesStrategy
@@ -142,7 +142,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setDuplicatesStrategy(DuplicatesStrategy strategy);
 
     /**
-     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
+     * Configure the {@link FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
      * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
      *
      * @param pattern Ant-style pattern used to match against files' relative paths
@@ -152,7 +152,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action);
 
     /**
-     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches any of the specified Ant-style patterns.
+     * Configure the {@link FileCopyDetails} for each file whose path matches any of the specified Ant-style patterns.
      * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
      *
      * @param patterns Ant-style patterns used to match against files' relative paths
@@ -162,7 +162,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     CopySpec filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action);
 
     /**
-     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
+     * Configure the {@link FileCopyDetails} for each file whose path does not match the specified
      * Ant-style pattern. This is equivalent to using eachFile() and selectively applying a configuration based on the
      * file's path.
      *
@@ -173,7 +173,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action);
 
     /**
-     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match any of the specified
+     * Configure the {@link FileCopyDetails} for each file whose path does not match any of the specified
      * Ant-style patterns. This is equivalent to using eachFile() and selectively applying a configuration based on the
      * file's path.
      *
@@ -232,7 +232,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec setIncludes(Iterable<String> includes);
@@ -240,7 +240,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec setExcludes(Iterable<String> excludes);
@@ -248,7 +248,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec include(String... includes);
@@ -256,7 +256,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec include(Iterable<String> includes);
@@ -264,7 +264,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec include(Spec<FileTreeElement> includeSpec);
@@ -272,7 +272,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec include(Closure includeSpec);
@@ -280,7 +280,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec exclude(String... excludes);
@@ -288,7 +288,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec exclude(Iterable<String> excludes);
@@ -296,7 +296,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec exclude(Spec<FileTreeElement> excludeSpec);
@@ -304,7 +304,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable Pattern Format
      */
     @Override
     CopySpec exclude(Closure excludeSpec);

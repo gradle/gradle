@@ -34,7 +34,7 @@ public abstract class EncodedStream {
 
         private final InputStream delegate;
 
-        public EncodedInput(java.io.InputStream delegate) {
+        public EncodedInput(InputStream delegate) {
             this.delegate = delegate;
         }
 

@@ -39,7 +39,7 @@ public interface PublishingExtension {
     /**
      * The container of possible repositories to publish to.
      * <p>
-     * See {@link #repositories(org.gradle.api.Action)} for more information.
+     * See {@link #repositories(Action)} for more information.
      *
      * @return The container of possible repositories to publish to.
      */
@@ -65,7 +65,7 @@ public interface PublishingExtension {
      * </pre>
      *
      * The {@code repositories} block is backed by a {@link RepositoryHandler}, which is the same DSL as that that is used for declaring repositories to consume dependencies from. However,
-     * certain types of repositories that can be created by the repository handler are not valid for publishing, such as {@link org.gradle.api.artifacts.dsl.RepositoryHandler#mavenCentral()}.
+     * certain types of repositories that can be created by the repository handler are not valid for publishing, such as {@link RepositoryHandler#mavenCentral()}.
      * <p>
      * At this time, only repositories created by the {@code ivy()} factory method have any effect. Please see {@link org.gradle.api.publish.ivy.IvyPublication}
      * for information on how this can be used for publishing to Ivy repositories.
@@ -77,7 +77,7 @@ public interface PublishingExtension {
     /**
      * The publications of the project.
      * <p>
-     * See {@link #publications(org.gradle.api.Action)} for more information.
+     * See {@link #publications(Action)} for more information.
      *
      * @return The publications of this project.
      */

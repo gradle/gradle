@@ -17,5 +17,7 @@
 /**
  * Plugins for cunit testing.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.nativeplatform.test.cunit.plugins;
+
+import org.gradle.api.Incubating;

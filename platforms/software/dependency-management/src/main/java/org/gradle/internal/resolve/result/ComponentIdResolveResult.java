@@ -41,14 +41,14 @@ public interface ComponentIdResolveResult extends ResolveResult {
     /**
      * Returns the identifier of the component.
      *
-     * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
     ComponentIdentifier getId();
 
     /**
      * Returns the module version id of the component.
      *
-     * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
+     * @throws ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
     ModuleVersionIdentifier getModuleVersionId();
 

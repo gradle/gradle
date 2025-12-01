@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.execution.TaskActionListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
@@ -110,7 +112,7 @@ public class TaskExecution implements MutableUnitOfWork {
     private final TaskInternal task;
     private final TaskExecutionContext context;
 
-    private final org.gradle.api.execution.TaskActionListener actionListener;
+    private final TaskActionListener actionListener;
     private final AsyncWorkTracker asyncWorkTracker;
     private final BuildOperationRunner buildOperationRunner;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -128,7 +130,7 @@ public class TaskExecution implements MutableUnitOfWork {
         TaskInternal task,
         TaskExecutionContext context,
 
-        org.gradle.api.execution.TaskActionListener actionListener,
+        TaskActionListener actionListener,
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
@@ -216,7 +218,7 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
-        boolean hasTaskListener = listenerManager.hasListeners(org.gradle.api.execution.TaskActionListener.class) || listenerManager.hasListeners(org.gradle.api.execution.TaskExecutionListener.class);
+        boolean hasTaskListener = listenerManager.hasListeners(TaskActionListener.class) || listenerManager.hasListeners(TaskExecutionListener.class);
         Iterator<InputChangesAwareTaskAction> actions = new ArrayList<>(task.getTaskActions()).iterator();
         while (actions.hasNext()) {
             InputChangesAwareTaskAction action = actions.next();

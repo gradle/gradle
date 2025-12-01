@@ -49,19 +49,19 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  * </ul>
  *
  * <p>
- * For certain common use cases, it's often sufficient to specify the component to publish, using ({@link #from(org.gradle.api.component.SoftwareComponent)}.
+ * For certain common use cases, it's often sufficient to specify the component to publish, using ({@link #from(SoftwareComponent)}.
  * The published component is used to determine which artifacts to publish, and which configurations and dependencies should be listed in the generated ivy descriptor file.
  * </p><p>
- * You can add configurations to the generated ivy descriptor file, by supplying a Closure to the {@link #configurations(org.gradle.api.Action)} method.
+ * You can add configurations to the generated ivy descriptor file, by supplying a Closure to the {@link #configurations(Action)} method.
  * </p><p>
- * To add additional artifacts to the set published, use the {@link #artifact(Object)} and {@link #artifact(Object, org.gradle.api.Action)} methods.
+ * To add additional artifacts to the set published, use the {@link #artifact(Object)} and {@link #artifact(Object, Action)} methods.
  * You can also completely replace the set of published artifacts using {@link #setArtifacts(Iterable)}.
  * Together, these methods give you full control over the artifacts to be published.
  * </p><p>
  * In addition, {@link IvyModuleDescriptorSpec} provides configuration methods to customize licenses, authors, and the description to be published in the Ivy module descriptor.
  * </p><p>
  * For any other tweaks to the publication, it is possible to modify the generated Ivy descriptor file prior to publication. This is done using
- * the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method, normally via a Closure passed to the {@link #descriptor(org.gradle.api.Action)} method.
+ * the {@link IvyModuleDescriptorSpec#withXml(Action)} method, normally via a Closure passed to the {@link #descriptor(Action)} method.
  * </p>
  *
  * <pre class='autoTested'>
@@ -116,7 +116,7 @@ public interface IvyPublication extends Publication {
     /**
      * Configures the descriptor that will be published.
      * <p>
-     * The descriptor XML can be modified by using the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method.
+     * The descriptor XML can be modified by using the {@link IvyModuleDescriptorSpec#withXml(Action)} method.
      *
      * @param configure The configuration action.
      */

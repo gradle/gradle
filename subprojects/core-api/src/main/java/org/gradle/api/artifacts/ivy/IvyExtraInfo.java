@@ -30,7 +30,7 @@ import java.util.Map;
 public interface IvyExtraInfo {
     /**
      * Returns the value of the element with the unique element name.  If there are multiple elements with the same element name,
-     * in different namespaces, a {@link org.gradle.api.InvalidUserDataException} will be thrown.
+     * in different namespaces, a {@link InvalidUserDataException} will be thrown.
      *
      * @param name The unique name of the element whose value should be returned
      * @return The value of the element, or null if there is no such element.

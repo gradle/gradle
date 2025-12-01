@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
+import org.fusesource.jansi.Ansi;
+
 import java.io.File;
 
 public class JansiStorageLocator {
@@ -39,7 +41,7 @@ public class JansiStorageLocator {
     }
 
     private File makeVersionSpecificDir(File storageDir) {
-        String jansiVersion = org.fusesource.jansi.Ansi.class.getPackage().getImplementationVersion();
+        String jansiVersion = Ansi.class.getPackage().getImplementationVersion();
         return new File(storageDir, "jansi/" + jansiVersion);
     }
 }

@@ -65,7 +65,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @org.jspecify.annotations.Nullable ClassLoaderScopeOrigin origin) {
+    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin) {
         if (origin instanceof ClassLoaderScopeOrigin.Script) {
             ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
             lock.lock();
@@ -78,7 +78,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @org.jspecify.annotations.Nullable HashCode implementationHash) {
+    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash) {
     }
 
     @Override

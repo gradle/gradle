@@ -17,5 +17,7 @@
 /**
  * Plugin classes for generic support for testing.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.testing.base.plugins;
+
+import org.jspecify.annotations.NullMarked;

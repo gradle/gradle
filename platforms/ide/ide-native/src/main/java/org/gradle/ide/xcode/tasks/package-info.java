@@ -19,5 +19,7 @@
  *
  * @since 4.2
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.ide.xcode.tasks;
+
+import org.gradle.api.Incubating;

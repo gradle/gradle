@@ -51,6 +51,7 @@ import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -571,7 +572,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
-    public org.gradle.api.logging.LoggingManager getLogging() {
+    public LoggingManager getLogging() {
         return loggingManager();
     }
 

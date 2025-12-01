@@ -23,7 +23,9 @@ import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvide
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalFetchAwareBuildController;
@@ -32,11 +34,11 @@ import java.io.File;
 
 /**
  * Adapter to create {@link org.gradle.tooling.internal.protocol.InternalBuildAction}
- * from an instance of {@link org.gradle.tooling.BuildAction}.
+ * from an instance of {@link BuildAction}.
  * Used by consumer connections 1.8+.
  */
 @SuppressWarnings("deprecation")
-public class InternalBuildActionAdapter<T> implements org.gradle.tooling.internal.protocol.InternalBuildAction<T>, InternalBuildActionVersion2<T> {
+public class InternalBuildActionAdapter<T> implements InternalBuildAction<T>, InternalBuildActionVersion2<T> {
     private final BuildAction<? extends T> action;
     private final File rootDir;
     private final VersionDetails versionDetails;
@@ -51,7 +53,7 @@ public class InternalBuildActionAdapter<T> implements org.gradle.tooling.interna
      * This is used by providers 1.8-rc-1 to 4.3
      */
     @Override
-    public T execute(final org.gradle.tooling.internal.protocol.InternalBuildController buildController) {
+    public T execute(final InternalBuildController buildController) {
         ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
         BuildController buildControllerAdapter = new BuildControllerWithoutParameterSupport(buildController, protocolToModelAdapter, new ModelMapping(), rootDir, versionDetails);
         return action.execute(buildControllerAdapter);

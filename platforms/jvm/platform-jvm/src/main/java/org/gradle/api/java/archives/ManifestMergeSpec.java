@@ -46,7 +46,7 @@ public interface ManifestMergeSpec {
 
     /**
      * Adds a merge path to a manifest that should be merged into the base manifest. A merge path can be either another
-     * {@link org.gradle.api.java.archives.Manifest} or a path that is evaluated as per
+     * {@link Manifest} or a path that is evaluated as per
      * {@link org.gradle.api.Project#file(Object)} . If multiple merge paths are specified, the manifest are merged
      * in the order in which they are added.
      *
@@ -58,7 +58,7 @@ public interface ManifestMergeSpec {
     /**
      * Adds an action to be applied to each key-value tuple in a merge operation. If multiple merge paths are specified,
      * the action is called for each key-value tuple of each merge operation. The given action is called with a
-     * {@link org.gradle.api.java.archives.ManifestMergeDetails} as its parameter. Actions are executed
+     * {@link ManifestMergeDetails} as its parameter. Actions are executed
      * in the order added.
      *
      * @param mergeAction A merge action to be executed.
@@ -69,7 +69,7 @@ public interface ManifestMergeSpec {
     /**
      * Adds an action to be applied to each key-value tuple in a merge operation. If multiple merge paths are specified,
      * the action is called for each key-value tuple of each merge operation. The given closure is called with a
-     * {@link org.gradle.api.java.archives.ManifestMergeDetails} as its parameter. Actions are executed
+     * {@link ManifestMergeDetails} as its parameter. Actions are executed
      * in the order added.
      *
      * @param mergeAction The action to execute.

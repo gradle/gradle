@@ -17,5 +17,7 @@
 /**
  * Classes for dealing with configuration and artifact attributes.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.attributes;
+
+import org.jspecify.annotations.NullMarked;

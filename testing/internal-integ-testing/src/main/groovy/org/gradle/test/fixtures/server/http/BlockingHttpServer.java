@@ -420,7 +420,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     /**
-     * To help with debugging the underlying {@link com.sun.net.httpserver.HttpServer}.
+     * To help with debugging the underlying {@link HttpServer}.
      */
     public static void enableServerLogging() {
         final ConsoleHandler handler = new ConsoleHandler();

@@ -51,12 +51,12 @@ public interface HashFunction {
     HashCode hashString(CharSequence string);
 
     /**
-     * Hash the contents of the given {@link java.io.InputStream}.
+     * Hash the contents of the given {@link InputStream}.
      */
     HashCode hashStream(InputStream stream) throws IOException;
 
     /**
-     * Hash the contents of the given {@link java.io.File}.
+     * Hash the contents of the given {@link File}.
      */
     HashCode hashFile(File file) throws IOException;
 

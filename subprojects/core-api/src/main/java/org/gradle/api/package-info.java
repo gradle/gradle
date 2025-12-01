@@ -18,5 +18,7 @@
  * <p>Gradle's build language API, which is available from your build files.
  * Location of the main interfaces involved in build scripts.</p>
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api;
+
+import org.jspecify.annotations.NullMarked;

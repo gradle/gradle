@@ -17,5 +17,7 @@
 /**
  * General purpose types for runtime support.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.platform.base;
+
+import org.gradle.api.Incubating;

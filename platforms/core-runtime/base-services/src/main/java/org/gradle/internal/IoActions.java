@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.function.Function;
@@ -33,6 +34,10 @@ import java.util.function.Function;
  * Various utilities for dealing with IO actions.
  */
 public abstract class IoActions {
+
+    public static void writeTextFile(File outputFile, Charset encoding, Action<? super Writer> action) {
+        createTextFileWriteAction(outputFile, encoding.toString()).execute(action);
+    }
 
     /**
      * Gives a writer for the given file/encoding to the given write action, managing the streams.

@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * <p>A {@code TaskContainer} is responsible for managing a set of {@link Task} instances.</p>
  *
- * <p>You can obtain a {@code TaskContainer} instance by calling {@link org.gradle.api.Project#getTasks()}, or using the
+ * <p>You can obtain a {@code TaskContainer} instance by calling {@link Project#getTasks()}, or using the
  * {@code tasks} property in your build script.</p>
  */
 @HasInternalProtocol
@@ -113,7 +113,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
 
     /**
      * <p>Creates a {@link Task} adds it to this container. A map of creation options can be passed to this method to
-     * control how the task is created. See {@link #create(java.util.Map)} for the list of options available. The given
+     * control how the task is created. See {@link #create(Map)} for the list of options available. The given
      * closure is used to configure the task before it is returned by this method.</p>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
@@ -244,9 +244,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     Task create(String name, Action<? super Task> configuration) throws InvalidUserDataException;
 
     /**
-     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(java.lang.String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
+     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
-     * <p>It is generally more efficient to use this method instead of {@link NamedDomainObjectContainer#create(java.lang.String, org.gradle.api.Action)} or {@link #create(java.lang.String)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     * <p>It is generally more efficient to use this method instead of {@link NamedDomainObjectContainer#create(String, Action)} or {@link #create(String)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
      *
      * @param name The name of the task.
      * @param configurationAction The action to run to configure the task. This action runs when the task is required.
@@ -258,9 +258,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException;
 
     /**
-     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(java.lang.String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
+     * Defines a new task, which will be created and configured when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
-     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String, java.lang.Class, org.gradle.api.Action)} or {@link #create(java.lang.String, java.lang.Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation and configuration until required.</p>
      *
      * @param name The name of the task.
      * @param type The task type.
@@ -274,9 +274,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> TaskProvider<T> register(String name, Class<T> type, Action<? super T> configurationAction) throws InvalidUserDataException;
 
     /**
-     * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(java.lang.String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
+     * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
-     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String, java.lang.Class, org.gradle.api.Action)} or {@link #create(java.lang.String, java.lang.Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
      * @param name The name of the task.
      * @param type The task type.
@@ -289,9 +289,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> TaskProvider<T> register(String name, Class<T> type) throws InvalidUserDataException;
 
     /**
-     * Defines a new task, which will be created when it is required passing the given arguments to the {@code @Inject}-annotated constructor. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(java.lang.String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method. All values passed to the task constructor must be non-null; otherwise a {@code NullPointerException} will be thrown
+     * Defines a new task, which will be created when it is required passing the given arguments to the {@code @Inject}-annotated constructor. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method. All values passed to the task constructor must be non-null; otherwise a {@code NullPointerException} will be thrown
      *
-     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String, java.lang.Class, org.gradle.api.Action)} or {@link #create(java.lang.String, java.lang.Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     * <p>It is generally more efficient to use this method instead of {@link #create(String, Class, Action)} or {@link #create(String, Class)}, as those methods will eagerly create and configure the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
      * @param name The name of the task.
      * @param type The task type.
@@ -304,9 +304,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     <T extends Task> TaskProvider<T> register(String name, Class<T> type, Object... constructorArgs) throws InvalidUserDataException;
 
     /**
-     * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(java.lang.String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
+     * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
-     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that method will eagerly create the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     * <p>It is generally more efficient to use this method instead of {@link #create(String)}, as that method will eagerly create the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
      * @param name The name of the task.
      * @return A {@link Provider} whose value will be the task, when queried.

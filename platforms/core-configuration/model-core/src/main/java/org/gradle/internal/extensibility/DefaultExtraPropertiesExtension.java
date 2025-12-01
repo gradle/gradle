@@ -18,6 +18,7 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
+import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
@@ -147,7 +148,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
             Closure closure = (Closure) item;
             return closure.call((Object[]) args);
         } else {
-            throw new groovy.lang.MissingMethodException(name, getClass(), (Object[]) args);
+            throw new MissingMethodException(name, getClass(), (Object[]) args);
         }
     }
 

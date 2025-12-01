@@ -26,7 +26,7 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.language.base.internal.plugins.CleanRule;
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle.</p>
+ * <p>A {@link Plugin} which defines a basic project lifecycle.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
  */

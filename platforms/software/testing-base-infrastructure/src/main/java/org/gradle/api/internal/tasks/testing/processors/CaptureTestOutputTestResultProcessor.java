@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A {@link org.gradle.api.internal.tasks.testing.TestResultProcessor} which redirect stdout and stderr during the
+ * A {@link TestResultProcessor} which redirect stdout and stderr during the
  * execution of a test suite.
  */
 public class CaptureTestOutputTestResultProcessor implements TestResultProcessor {

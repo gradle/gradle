@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.specs;
 
+import org.apache.commons.lang3.text.WordUtils;
 import org.gradle.api.Describable;
 import org.gradle.api.Incubating;
 
@@ -44,7 +45,7 @@ public interface BuildInitSpec extends Describable {
     default String getDisplayName() {
         String spaced = getType().replace("-", " ");
         @SuppressWarnings("deprecation")
-        String capitalized =  org.apache.commons.lang3.text.WordUtils.capitalizeFully(spaced);
+        String capitalized =  WordUtils.capitalizeFully(spaced);
         return capitalized;
     }
 

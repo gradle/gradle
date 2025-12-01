@@ -76,7 +76,7 @@ public class CommandLineParser {
      *
      * @param commandLine The command-line.
      * @return The parsed command line.
-     * @throws org.gradle.cli.CommandLineArgumentException
+     * @throws CommandLineArgumentException
      *          On parse failure.
      */
     public ParsedCommandLine parse(String... commandLine) throws CommandLineArgumentException {
@@ -88,7 +88,7 @@ public class CommandLineParser {
      *
      * @param commandLine The command-line.
      * @return The parsed command line.
-     * @throws org.gradle.cli.CommandLineArgumentException
+     * @throws CommandLineArgumentException
      *          On parse failure.
      */
     public ParsedCommandLine parse(Iterable<String> commandLine) throws CommandLineArgumentException {

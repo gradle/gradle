@@ -17,5 +17,7 @@
 /**
  * Infrastructure to parse and resolve values of build options, flags and properties.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.internal.buildoption;
+
+import org.jspecify.annotations.NullMarked;

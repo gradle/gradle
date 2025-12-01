@@ -55,8 +55,10 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,18 +100,7 @@ public class GradleModuleMetadataParser {
         resource.withContent(inputStream -> {
             String version = null;
             try {
-                JsonReader reader = new JsonReader(new InputStreamReader(inputStream, UTF_8));
-                reader.beginObject();
-                if (reader.peek() != JsonToken.NAME) {
-                    throw new RuntimeException("Module metadata should contain a 'formatVersion' value.");
-                }
-                String name = reader.nextName();
-                if (!name.equals("formatVersion")) {
-                    throw new RuntimeException(String.format("The 'formatVersion' value should be the first value in a module metadata. Found '%s' instead.", name));
-                }
-                if (reader.peek() != JsonToken.STRING) {
-                    throw new RuntimeException("The 'formatVersion' value should have a string value.");
-                }
+                JsonReader reader = getJsonReader(inputStream);
                 version = reader.nextString();
                 consumeTopLevelElements(reader, metadata);
                 File file = resource.getFile();
@@ -125,6 +116,23 @@ public class GradleModuleMetadataParser {
             }
         });
         maybeAddEnforcedPlatformVariant(metadata);
+    }
+
+    @Nonnull
+    private static JsonReader getJsonReader(InputStream inputStream) throws IOException {
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream, UTF_8));
+        reader.beginObject();
+        if (reader.peek() != JsonToken.NAME) {
+            throw new RuntimeException("Module metadata should contain a 'formatVersion' value.");
+        }
+        String name = reader.nextName();
+        if (!name.equals("formatVersion")) {
+            throw new RuntimeException(String.format("The 'formatVersion' value should be the first value in a module metadata. Found '%s' instead.", name));
+        }
+        if (reader.peek() != JsonToken.STRING) {
+            throw new RuntimeException("The 'formatVersion' value should have a string value.");
+        }
+        return reader;
     }
 
     private void maybeAddEnforcedPlatformVariant(MutableModuleComponentResolveMetadata metadata) {

@@ -220,7 +220,7 @@ public class KillLeakingJavaProcesses {
         private final String stdout;
         private final String stderr;
 
-        public ExecResult(String[] args, int code, String stdout, String stderr) {
+        ExecResult(String[] args, int code, String stdout, String stderr) {
             this.args = args;
             this.code = code;
             this.stdout = stdout;

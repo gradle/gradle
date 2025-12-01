@@ -24,10 +24,10 @@ import java.util.Set;
 /**
  * A set of managed model objects.
  * <p>
- * {@link org.gradle.model.Managed} types may declare managed set properties.
+ * {@link Managed} types may declare managed set properties.
  * Managed sets can only contain managed types.
  * <p>
- * Managed set objects cannot be mutated via the mutative methods of the {@link java.util.Set} interface (e.g. {@link java.util.Set#add(Object)}, {@link java.util.Set#clear()}).
+ * Managed set objects cannot be mutated via the mutative methods of the {@link Set} interface (e.g. {@link Set#add(Object)}, {@link Set#clear()}).
  * To add elements to the set, the {@link #create(Action)} method can be used.
  *
  * @param <T> the type of model object
@@ -45,7 +45,7 @@ public interface ModelSet<T> extends Set<T>, ModelElement {
     /**
      * Apply the given action to each set element just after it is created.
      * <p>
-     * The configuration action is equivalent in terms of lifecycle to {@link org.gradle.model.Defaults} rule methods.
+     * The configuration action is equivalent in terms of lifecycle to {@link Defaults} rule methods.
      *
      * @param configAction the object configuration
      */
@@ -54,7 +54,7 @@ public interface ModelSet<T> extends Set<T>, ModelElement {
     /**
      * Apply the given action to each set element just before it is considered to be realised.
      * <p>
-     * The configuration action is equivalent in terms of lifecycle to {@link org.gradle.model.Finalize} rule methods.
+     * The configuration action is equivalent in terms of lifecycle to {@link Finalize} rule methods.
      *
      * @param configAction the object configuration
      */

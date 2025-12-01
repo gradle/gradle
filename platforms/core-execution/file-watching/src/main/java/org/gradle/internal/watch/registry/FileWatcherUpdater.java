@@ -49,7 +49,7 @@ import java.util.List;
  *     that we actually accessed.</dd>
  *
  *     <dt>watched files</dt>
- *     <dd>A {@link org.gradle.internal.file.FileHierarchySet} of the files that we are currently watching.
+ *     <dd>A {@link FileHierarchySet} of the files that we are currently watching.
  *     This helps decide whether or not something is being watched in a quick way.</dd>
  *
  *     <dt>watched hierarchies</dt>
@@ -93,7 +93,7 @@ public interface FileWatcherUpdater {
     /**
      * Remove watched hierarchies that have been moved.
      *
-     * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode, java.util.List)
+     * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode, List)
      */
     @CheckReturnValue
     SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);

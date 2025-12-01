@@ -52,7 +52,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * A hierarchical {@link ServiceRegistry} implementation.
  *
  * <p>Service instances are closed when the registry that created them is closed using {@link #close()}.
- * If a service instance implements {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable}
+ * If a service instance implements {@link Closeable} or {@link Stoppable}
  * then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called.
  * Instances are closed in reverse dependency order.
  *
@@ -285,7 +285,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      */
     public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
         assertMutable();
-        ServiceAccessToken token = org.gradle.internal.service.ServiceAccess.createToken(format(provider.getClass()));
+        ServiceAccessToken token = ServiceAccess.createToken(format(provider.getClass()));
         findProviderMethods(provider, token);
         return this;
     }

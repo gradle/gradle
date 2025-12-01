@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
+import antlr.Tool;
 import antlr.preprocessor.Hierarchy;
 import org.jspecify.annotations.Nullable;
 
@@ -39,7 +40,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 public class MetadataExtractor {
 
     public static XRef extractMetadata(Set<File> sources) {
-        Hierarchy hierarchy = new Hierarchy(new antlr.Tool()); // extracting into methods will break test somehow.
+        Hierarchy hierarchy = new Hierarchy(new Tool()); // extracting into methods will break test somehow.
         // first let antlr preprocess the grammars...
         for (File grammarFile : sources) {
             try {

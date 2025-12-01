@@ -17,5 +17,7 @@
 /**
  * Internal types used for detecting tests.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.internal.tasks.testing.detection;
+
+import org.jspecify.annotations.NullMarked;

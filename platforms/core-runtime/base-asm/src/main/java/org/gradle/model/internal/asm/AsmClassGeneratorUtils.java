@@ -113,7 +113,7 @@ public class AsmClassGeneratorUtils {
         builder.append(')');
     }
 
-    public static String getterSignature(java.lang.reflect.Type returnType) {
+    public static String getterSignature(Type returnType) {
         StringBuilder builder = new StringBuilder();
         builder.append("()");
         visitType(returnType, builder);
@@ -133,7 +133,7 @@ public class AsmClassGeneratorUtils {
     }
 
     private static void visitExceptions(Type[] exceptionTypes, StringBuilder builder) {
-        for (java.lang.reflect.Type exceptionType : exceptionTypes) {
+        for (Type exceptionType : exceptionTypes) {
             builder.append('^');
             visitType(exceptionType, builder);
         }
@@ -156,7 +156,7 @@ public class AsmClassGeneratorUtils {
             builder.append('<');
             for (TypeVariable<?> typeVariable : typeParameters) {
                 builder.append(typeVariable.getName());
-                for (java.lang.reflect.Type bound : typeVariable.getBounds()) {
+                for (Type bound : typeVariable.getBounds()) {
                     builder.append(':');
                     visitType(bound, builder);
                 }
@@ -165,7 +165,7 @@ public class AsmClassGeneratorUtils {
         }
     }
 
-    private static void visitType(java.lang.reflect.Type type, StringBuilder builder) {
+    private static void visitType(Type type, StringBuilder builder) {
         if (type instanceof Class) {
             visitClass((Class<?>) type, builder);
         } else if (type instanceof ParameterizedType) {
@@ -199,7 +199,7 @@ public class AsmClassGeneratorUtils {
         builder.append(">;");
     }
 
-    private static void visitRawType(java.lang.reflect.Type type, StringBuilder builder) {
+    private static void visitRawType(Type type, StringBuilder builder) {
         if (type instanceof Class) {
             Class<?> cl = (Class<?>) type;
             if (cl.isPrimitive()) {

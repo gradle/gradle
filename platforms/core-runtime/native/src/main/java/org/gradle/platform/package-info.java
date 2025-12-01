@@ -17,5 +17,7 @@
 /**
  * Types to define build environment.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.platform;
+
+import org.gradle.api.Incubating;

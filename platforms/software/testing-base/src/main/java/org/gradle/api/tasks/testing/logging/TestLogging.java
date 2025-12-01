@@ -229,7 +229,7 @@ public interface TestLogging {
     void setStackTraceFilters(Iterable<?> stackTraces);
 
     /**
-     * Convenience method for {@link #setStackTraceFilters(java.lang.Iterable)}. Accepts both enum values and Strings.
+     * Convenience method for {@link #setStackTraceFilters(Iterable)}. Accepts both enum values and Strings.
      */
     void stackTraceFilters(Object... stackTraces);
 

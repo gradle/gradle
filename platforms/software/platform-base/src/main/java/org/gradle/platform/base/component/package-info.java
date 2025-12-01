@@ -17,5 +17,7 @@
 /**
  * General purpose types for library support.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.platform.base.component;
+
+import org.gradle.api.Incubating;

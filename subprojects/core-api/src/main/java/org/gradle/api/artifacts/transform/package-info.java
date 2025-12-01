@@ -24,5 +24,7 @@
  *
  * <p>If you want to create a new artifact transform action, have a look at {@link org.gradle.api.artifacts.transform.TransformAction}.</p>
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.artifacts.transform;
+
+import org.jspecify.annotations.NullMarked;

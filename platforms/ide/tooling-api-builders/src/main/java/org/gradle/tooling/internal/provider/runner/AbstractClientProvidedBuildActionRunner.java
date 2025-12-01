@@ -20,6 +20,7 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelAction;
 import org.gradle.internal.buildtree.BuildTreeModelController;
+import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
@@ -107,7 +108,7 @@ public abstract class AbstractClientProvidedBuildActionRunner implements BuildAc
             if (action instanceof InternalBuildActionVersion2<?>) {
                 return ((InternalBuildActionVersion2) action).execute(internalBuildController);
             } else {
-                return ((org.gradle.tooling.internal.protocol.InternalBuildAction) action).execute(internalBuildController);
+                return ((InternalBuildAction) action).execute(internalBuildController);
             }
         }
     }

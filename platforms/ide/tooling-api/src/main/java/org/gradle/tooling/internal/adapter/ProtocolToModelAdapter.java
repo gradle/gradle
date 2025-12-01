@@ -30,6 +30,7 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.ref.SoftReference;
@@ -453,7 +454,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             return viewWeakRef.get();
         }
 
-        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             views = new WeakIdentityHashMap<>();
         }
@@ -500,7 +501,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             setup();
         }
 
-        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             setup();
             graphDetails.putViewFor(sourceObject, new ViewKey(targetType, decoration), proxy);

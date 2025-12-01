@@ -32,10 +32,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Static util class which provides utilities to check if an {@link Attribute} is {@link org.gradle.api.Incubating}.
+ * Static util class which provides utilities to check if an {@link Attribute} is {@link Incubating}.
  *
- * An attribute is incubating iff it is a type annotated with {@link org.gradle.api.Incubating}, or if the value is equal to the value of a constant defined
- * in the corresponding attribute interface which is annotated with {@link org.gradle.api.Incubating}.
+ * An attribute is incubating iff it is a type annotated with {@link Incubating}, or if the value is equal to the value of a constant defined
+ * in the corresponding attribute interface which is annotated with {@link Incubating}.
  *
  * For example, any attribute named {@link org.gradle.api.attributes.TestSuiteName} is currently incubating, as is a {@link Category#CATEGORY_ATTRIBUTE} with a value
  * equal to {@link Category#VERIFICATION}.

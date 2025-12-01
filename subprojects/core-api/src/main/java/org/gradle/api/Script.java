@@ -131,7 +131,7 @@ public interface Script {
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The file collection is configured
-     * using the given closure. This method works as described for {@link Project#files(Object, groovy.lang.Closure)}.
+     * using the given closure. This method works as described for {@link Project#files(Object, Closure)}.
      * Relative paths are resolved relative to the directory containing this script.</p>
      *
      * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
@@ -200,7 +200,7 @@ public interface Script {
 
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
-     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(Closure)}
      * method to unzip a ZIP file.</p>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
@@ -225,7 +225,7 @@ public interface Script {
      * <p>
      * Unless custom implementation of resources is passed, the tar tree attempts to guess the compression based on the file extension.
      * <p>
-     * You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * You can combine this method with the {@link #copy(Closure)}
      * method to untar a TAR file:
      *
      * <pre class='autoTested'>
@@ -250,7 +250,7 @@ public interface Script {
     FileTree tarTree(Object tarPath);
 
     /**
-     * Copy the specified files.  The given closure is used to configure a {@link org.gradle.api.file.CopySpec}, which
+     * Copy the specified files.  The given closure is used to configure a {@link CopySpec}, which
      * is then used to copy the files. Example:
      * <pre>
      * copy {
@@ -274,13 +274,13 @@ public interface Script {
      * </pre>
      *
      * @param closure Closure to configure the CopySpec
-     * @return {@link org.gradle.api.tasks.WorkResult} that can be used to check if the copy did any work.
+     * @return {@link WorkResult} that can be used to check if the copy did any work.
      */
     WorkResult copy(Closure closure);
 
     /**
-     * Creates a {@link org.gradle.api.file.CopySpec} which can later be used to copy files or create an archive. The
-     * given closure is used to configure the {@link org.gradle.api.file.CopySpec} before it is returned by this
+     * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The
+     * given closure is used to configure the {@link CopySpec} before it is returned by this
      * method.
      *
      * @param closure Closure to configure the CopySpec
@@ -293,20 +293,20 @@ public interface Script {
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
      * @return the created directory
-     * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     * @throws InvalidUserDataException If the path points to an existing file.
      */
     File mkdir(Object path);
 
     /**
      * Deletes files and directories.
      *
-     * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @param paths Any type of object accepted by {@link Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
     boolean delete(@Nullable Object... paths);
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
+     * Returns the {@link LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this script. By default, System.out is redirected to the Gradle logging system
      * at the QUIET log level, and System.err is redirected at the ERROR log level.
      *
@@ -348,7 +348,7 @@ public interface Script {
      *
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
+     * @throws InvalidUserDataException If the provided value is null.
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */

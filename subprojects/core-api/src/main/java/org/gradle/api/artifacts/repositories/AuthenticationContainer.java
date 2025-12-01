@@ -20,7 +20,7 @@ import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.authentication.Authentication;
 
 /**
- * Container for configuring repository authentication schemes of type {@link org.gradle.authentication.Authentication}.
+ * Container for configuring repository authentication schemes of type {@link Authentication}.
  */
 public interface AuthenticationContainer extends PolymorphicDomainObjectContainer<Authentication> {
 }

@@ -17,5 +17,7 @@
 /**
  * Model classes for managing language sources.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.language.nativeplatform;
+
+import org.gradle.api.Incubating;

@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.codec.CharEncoding.UTF_8;
+
 /**
  * Compilation options to be passed to the Groovy compiler.
  */
@@ -49,7 +51,7 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     private boolean listFiles;
 
-    private String encoding = "UTF-8";
+    private String encoding = UTF_8;
 
     private boolean fork = true;
 

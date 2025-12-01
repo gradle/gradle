@@ -18,6 +18,7 @@ package org.gradle.util.internal;
 
 import com.google.common.base.Objects;
 import groovy.lang.Closure;
+import groovy.lang.MissingMethodException;
 import org.codehaus.groovy.runtime.metaclass.MissingMethodExecutionFailed;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
@@ -73,7 +74,7 @@ public class ClosureBackedAction<T> implements Action<T> {
                     copy.call(delegate);
                 }
             }
-        } catch (groovy.lang.MissingMethodException e) {
+        } catch (MissingMethodException e) {
             if (Objects.equal(e.getType(), closure.getClass()) && Objects.equal(e.getMethod(), "doCall")) {
                 throw new InvalidActionClosureException(closure, delegate);
             }

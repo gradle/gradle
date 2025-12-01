@@ -140,7 +140,7 @@ public class IvyModuleDescriptorConverter {
             excludes));
     }
 
-    private Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
+    private Exclude forIvyExclude(ExcludeRule excludeRule) {
         ArtifactId id = excludeRule.getId();
         IvyArtifactName artifactExclusion = artifactForIvyExclude(id);
         return new DefaultExclude(

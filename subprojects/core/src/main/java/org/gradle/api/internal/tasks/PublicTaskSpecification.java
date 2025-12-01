@@ -21,7 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 
 /**
- * Decides whether a {@link org.gradle.api.Task} is a public task or not.
+ * Decides whether a {@link Task} is a public task or not.
  */
 public final class PublicTaskSpecification implements Spec<Task> {
 

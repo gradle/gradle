@@ -22,7 +22,7 @@ package org.gradle.tooling;
  * You use a {@code ModelBuilder} as follows:
  *
  * <ul>
- * <li>Create an instance of {@code ModelBuilder} by calling {@link org.gradle.tooling.ProjectConnection#model(Class)}.
+ * <li>Create an instance of {@code ModelBuilder} by calling {@link ProjectConnection#model(Class)}.
  * <li>Configure the builder as appropriate.
  * <li>Call either {@link #get()} or {@link #get(ResultHandler)} to build the model.
  * <li>Optionally, you can reuse the builder to build the model multiple times.

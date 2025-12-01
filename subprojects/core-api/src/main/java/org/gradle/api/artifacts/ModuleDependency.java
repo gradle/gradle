@@ -32,7 +32,7 @@ import java.util.Set;
 import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
- * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a component that exists
+ * A {@code ModuleDependency} is a {@link Dependency} on a component that exists
  * outside of the current project.
  * <p>
  * Modules can supply {@link ModuleDependency#getArtifacts() multiple artifacts} in addition to the
@@ -40,7 +40,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * available in a module can be selected by a consumer by specifying a classifier or extension
  * when declaring a dependency on that module.
  * <p>
- * For examples on configuring exclude rules for modules please refer to {@link #exclude(java.util.Map)}.
+ * For examples on configuring exclude rules for modules please refer to {@link #exclude(Map)}.
  */
 public interface ModuleDependency extends Dependency, HasConfigurableAttributes<ModuleDependency> {
     /**
@@ -82,7 +82,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     /**
      * Returns the exclude rules for this dependency.
      *
-     * @see #exclude(java.util.Map)
+     * @see #exclude(Map)
      */
     Set<ExcludeRule> getExcludeRules();
 
@@ -116,7 +116,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
 
     /**
      * <p>Adds an artifact to this dependency. The given closure is passed a {@link
-     * org.gradle.api.artifacts.DependencyArtifact} instance, which it can configure.</p>
+     * DependencyArtifact} instance, which it can configure.</p>
      *
      * <p>If no artifact is added to a dependency, an implicit default artifact is used. This default artifact has the
      * same name as the module and its type and extension is {@code jar}. If at least one artifact is explicitly added,
@@ -130,7 +130,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
 
     /**
      * <p>Adds an artifact to this dependency. The given action is passed a {@link
-     * org.gradle.api.artifacts.DependencyArtifact} instance, which it can configure.</p>
+     * DependencyArtifact} instance, which it can configure.</p>
      *
      * <p>If no artifact is added to a dependency, an implicit default artifact is used. This default artifact has the
      * same name as the module and its type and extension is {@code jar}. If at least one artifact is explicitly added,

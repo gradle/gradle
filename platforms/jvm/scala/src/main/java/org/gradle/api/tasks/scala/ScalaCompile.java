@@ -30,6 +30,7 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
@@ -45,7 +46,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private FileCollection scalaCompilerPlugins;
-    private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
+    private Compiler<ScalaJavaJointCompileSpec> compiler;
 
     @Nested
     @Override
@@ -113,12 +114,12 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     /**
      * For testing only.
      */
-    public void setCompiler(org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler) {
+    public void setCompiler(Compiler<ScalaJavaJointCompileSpec> compiler) {
         this.compiler = compiler;
     }
 
     @Override
-    protected org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
+    protected Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec) {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {
             WorkerDaemonFactory workerDaemonFactory = getServices().get(WorkerDaemonFactory.class);

@@ -51,7 +51,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Builds the {@link org.gradle.tooling.model.idea.IdeaProject} model in Isolated Projects-compatible way.
+ * Builds the {@link IdeaProject} model in Isolated Projects-compatible way.
  */
 @NullMarked
 public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInternal, ParameterizedToolingModelBuilder<IdeaModelParameter> {

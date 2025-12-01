@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  * <p>This annotation implies {@link IgnoreEmptyDirectories}.</p>
  *
  * <p><strong>Note:</strong> To make the task dependent on the directory's location but not its
- * contents, expose the path of the directory as an {@link org.gradle.api.tasks.Input} property instead.</p>
+ * contents, expose the path of the directory as an {@link Input} property instead.</p>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

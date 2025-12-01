@@ -67,7 +67,7 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
 /**
  * Task for generating a Xcode project file (e.g. {@code Foo.xcodeproj/project.pbxproj}). A project contains all the elements used to build your products and maintains the relationships between those elements. It contains one or more targets, which specify how to build products. A project defines default build settings for all the targets in the project (each target can also specify its own build settings, which override the project build settings).
  *
- * @see org.gradle.ide.xcode.XcodeProject
+ * @see XcodeProject
  * @since 4.2
  */
 @Incubating

@@ -19,5 +19,7 @@
  *
  * @since 4.0
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.normalization;
+
+import org.jspecify.annotations.NullMarked;

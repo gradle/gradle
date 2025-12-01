@@ -36,6 +36,8 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 @ServiceScope(Scope.BuildSession.class)
 public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
     private static final Logger LOGGER = Logging.getLogger(CommandLineToolVersionLocator.class);
@@ -86,7 +88,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
 
         int exitValue = result.getExitValue();
         if (exitValue == 0) {
-            return buffer.readAsString("UTF-8");
+            return buffer.readAsString(UTF_8);
         } else {
             LOGGER.debug("vswhere.exe returned a non-zero exit value ({}) - ignoring", result.getExitValue());
             return null;

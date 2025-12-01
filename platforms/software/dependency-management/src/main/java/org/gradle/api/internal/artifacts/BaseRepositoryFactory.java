@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Factory for {@link org.gradle.api.artifacts.repositories.ArtifactRepository} implementations.
+ * Factory for {@link ArtifactRepository} implementations.
  */
 @ServiceScope(Scope.Project.class)
 public interface BaseRepositoryFactory {

@@ -32,7 +32,7 @@ import java.lang.annotation.RetentionPolicy;
  * To create a managed property, declare an abstract getter method for the given type.
  *
  * For the managed property to be created properly, the object containing it must be
- * instantiated using the {@link org.gradle.api.model.ObjectFactory#newInstance(Class, Object...)}
+ * instantiated using the {@link ObjectFactory#newInstance(Class, Object...)}
  * or as a managed {@link org.gradle.api.tasks.Nested} property.
  *
  * The example below creates a {@code ConfigurableFileCollection} and {@code RegularFileProperty}

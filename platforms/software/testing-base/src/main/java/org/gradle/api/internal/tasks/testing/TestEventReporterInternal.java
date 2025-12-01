@@ -30,7 +30,7 @@ public interface TestEventReporterInternal extends TestEventReporter {
      * Emit a failure event for the test. May not be called before {@link #started(Instant)}.
      *
      * <p>
-     * This allows passing the raw {@link org.gradle.api.tasks.testing.TestFailure TestFailures} to the reporter.
+     * This allows passing the raw {@link TestFailure TestFailures} to the reporter.
      * </p>
      *
      * @param endTime the time the test completed

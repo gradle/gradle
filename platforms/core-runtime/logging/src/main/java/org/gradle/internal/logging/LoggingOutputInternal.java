@@ -43,7 +43,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
     void attachProcessConsole(ConsoleOutput consoleOutput);
 
     /**
-     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences, depending on the requested output format.
+     * Adds the given {@link OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences, depending on the requested output format.
      *
      * Assumes that a console is attached to stderr.
      *
@@ -56,7 +56,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
     void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput);
 
     /**
-     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences, depending on the requested output format.
+     * Adds the given {@link OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences, depending on the requested output format.
      *
      * <p>Removes System.out and System.err as logging destinations, if present, as a side-effect.
      *
@@ -68,13 +68,13 @@ public interface LoggingOutputInternal extends LoggingOutput {
     void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, @Nullable ConsoleMetaData consoleMetadata);
 
     /**
-     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout logging formatted according to the current logging settings and
+     * Adds the given {@link OutputStream} as a logging destination. The stream receives stdout logging formatted according to the current logging settings and
      * encoded using the system character encoding.
      */
     void addStandardOutputListener(OutputStream outputStream);
 
     /**
-     * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stderr logging formatted according to the current logging settings and
+     * Adds the given {@link OutputStream} as a logging destination. The stream receives stderr logging formatted according to the current logging settings and
      * encoded using the system character encoding.
      */
     void addStandardErrorListener(OutputStream outputStream);

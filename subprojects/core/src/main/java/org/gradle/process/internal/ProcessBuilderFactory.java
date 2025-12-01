@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Creates a {@link java.lang.ProcessBuilder} based on a {@link ExecHandle}.
+ * Creates a {@link ProcessBuilder} based on a {@link ExecHandle}.
  */
 public class ProcessBuilderFactory {
     public ProcessBuilder createProcessBuilder(ProcessSettings processSettings) {

@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * <p>Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.</p>
+ * <p>Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link GradleConnector#connect()}.</p>
  *
  * <pre class='autoTested'>
  *

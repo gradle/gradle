@@ -32,7 +32,7 @@ import java.util.Set;
  *
  * <p>The <code>TaskExecutionGraph</code> is populated only after all the projects in the build have been evaluated. It
  * is empty before then. You can receive a notification when the graph is populated, using {@link
- * #whenReady(groovy.lang.Closure)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
+ * #whenReady(Closure)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
  */
 public interface TaskExecutionGraph {
     /**

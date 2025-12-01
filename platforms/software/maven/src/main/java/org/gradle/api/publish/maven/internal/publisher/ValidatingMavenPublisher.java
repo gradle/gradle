@@ -37,7 +37,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newBufferedReader;
 
 public class ValidatingMavenPublisher implements MavenPublisher {
-    private static final java.lang.String ID_REGEX = "[A-Za-z0-9_\\-.]+";
+    private static final String ID_REGEX = "[A-Za-z0-9_\\-.]+";
     private final MavenPublisher delegate;
 
     public ValidatingMavenPublisher(MavenPublisher delegate) {

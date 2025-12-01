@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * A {@link org.gradle.api.specs.Spec} which aggregates a sequence of other {@code Spec} instances.
+ * A {@link Spec} which aggregates a sequence of other {@code Spec} instances.
  *
  * @param <T> The target type for this Spec
  */

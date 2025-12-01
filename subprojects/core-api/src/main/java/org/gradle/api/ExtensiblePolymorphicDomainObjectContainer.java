@@ -20,7 +20,7 @@ import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
 import org.gradle.api.model.ManagedType;
 
 /**
- * A {@link org.gradle.api.PolymorphicDomainObjectContainer} that can be extended at runtime to
+ * A {@link PolymorphicDomainObjectContainer} that can be extended at runtime to
  * create elements of new types.
  *
  * @param <T> the (base) container element type

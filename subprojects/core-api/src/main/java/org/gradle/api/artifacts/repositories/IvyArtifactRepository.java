@@ -34,7 +34,7 @@ import java.net.URI;
  * <li>If no URL has been specified but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then the first defined pattern will be used.</li>
  * </ol>
  * <p>
- * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#ivy(org.gradle.api.Action)} group of methods.
+ * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#ivy(Action)} group of methods.
  */
 public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 

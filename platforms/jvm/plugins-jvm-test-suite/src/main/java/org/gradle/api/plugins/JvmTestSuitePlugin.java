@@ -26,7 +26,7 @@ import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
 
 /**
- * A {@link org.gradle.api.Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
+ * A {@link Plugin} that adds extensions for declaring, compiling and running {@link JvmTestSuite}s.
  * <p>
  * This plugin provides conventions for several things:
  * <ul>

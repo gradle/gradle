@@ -74,7 +74,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
+ * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  *
  * This plugin is automatically applied to most projects that build any JVM language source.  It creates a {@link JavaPluginExtension}
  * extension named {@code java} that is used to configure all jvm-related components in the project.

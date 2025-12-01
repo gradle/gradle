@@ -17,5 +17,7 @@
 /**
  * Internal types used by the {@link org.gradle.api.tasks.javadoc.Javadoc} task implementations.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.tasks.javadoc.internal;
+
+import org.jspecify.annotations.NullMarked;

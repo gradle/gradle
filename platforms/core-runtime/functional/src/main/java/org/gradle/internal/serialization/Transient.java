@@ -18,10 +18,12 @@ package org.gradle.internal.serialization;
 
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
+
 /**
  * A value that gets discarded during serialization.
  */
-public abstract class Transient<T> implements java.io.Serializable {
+public abstract class Transient<T> implements Serializable {
 
     /**
      * A mutable variable that gets discarded during serialization.

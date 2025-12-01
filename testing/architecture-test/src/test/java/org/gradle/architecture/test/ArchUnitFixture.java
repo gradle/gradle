@@ -39,6 +39,7 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import groovy.lang.Closure;
+import kotlin.Metadata;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -88,7 +89,7 @@ import static java.util.stream.Collectors.toSet;
 @NullMarked
 public interface ArchUnitFixture {
     DescribedPredicate<JavaClass> classes_not_written_in_kotlin =
-        not(annotatedOrInPackageAnnotatedWith(kotlin.Metadata.class))
+        not(annotatedOrInPackageAnnotatedWith(Metadata.class))
             .and(resideOutsideOfPackages("org.gradle.kotlin..")) // a few relocated kotlinx-metadata classes violate the nullability annotation rules
             .as("classes written in Java or Groovy");
 

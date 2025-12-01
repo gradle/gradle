@@ -67,7 +67,7 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
     /**
      * Adapts a {@link FileSystemLocationSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
-     * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.
+     * passing it to a {@link PatternSet} for filtering.
      */
     private static class LogicalFileTreeElement implements FileTreeElement, Describable {
         private final Iterable<String> relativePathIterable;

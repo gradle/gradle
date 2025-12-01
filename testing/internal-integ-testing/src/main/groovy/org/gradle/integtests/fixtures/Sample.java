@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 
 /**
  * A Junit rule which copies a sample into the test directory before the test executes. Looks for a
- * {@link org.gradle.integtests.fixtures.UsesSample} annotation on the test method to determine which sample the
+ * {@link UsesSample} annotation on the test method to determine which sample the
  * test requires. If not found, uses the default sample provided in the constructor.
  */
 public class Sample implements TestRule {

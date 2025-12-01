@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * <p>A {@code TaskOutputs} represents the outputs of a task.</p>
  *
- * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
+ * <p>You can obtain a {@code TaskOutputs} instance using {@link Task#getOutputs()}.</p>
  */
 @HasInternalProtocol
 public interface TaskOutputs {

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
@@ -491,7 +492,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         final List<String> taskStatusLines = new ArrayList<>();
 
         getMainContent().eachLine(line -> {
-            java.util.regex.Matcher matcher = pattern.matcher(line);
+            Matcher matcher = pattern.matcher(line);
             if (matcher.matches()) {
                 String taskStatusLine = matcher.group().replace(TASK_PREFIX, "");
                 String taskName = matcher.group(2);

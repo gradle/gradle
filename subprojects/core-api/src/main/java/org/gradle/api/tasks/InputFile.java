@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
  * have changed.</p>
  *
  * <p><strong>Note:</strong> To make the task dependent on the file's location but not its
- * contents, expose the path of the file as an {@link org.gradle.api.tasks.Input} property instead.</p>
+ * contents, expose the path of the file as an {@link Input} property instead.</p>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

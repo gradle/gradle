@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.Scope;
 /**
  * <p>A {@code TaskExecutionListener} is notified of the execution of the tasks in a build.</p>
  *
- * <p>You can add a {@code TaskExecutionListener} to a build using {@link org.gradle.api.execution.TaskExecutionGraph#addTaskExecutionListener}
+ * <p>You can add a {@code TaskExecutionListener} to a build using {@link TaskExecutionGraph#addTaskExecutionListener}
  *
  * @deprecated This type is not supported when configuration caching is enabled.
  */

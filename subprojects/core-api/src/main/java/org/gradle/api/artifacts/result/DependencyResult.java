@@ -29,7 +29,7 @@ public interface DependencyResult {
     /**
      * <p>Returns the requested component.
      *
-     * <p>The return type is declared as an opaque {@link org.gradle.api.artifacts.component.ComponentSelector}, however the selector may also implement one of the following interfaces:</p>
+     * <p>The return type is declared as an opaque {@link ComponentSelector}, however the selector may also implement one of the following interfaces:</p>
      *
      * <ul>
      *     <li>{@link org.gradle.api.artifacts.component.ProjectComponentSelector} for those dependencies that request a component from some other project in the current build.</li>

@@ -155,7 +155,7 @@ public abstract class EclipseWtpComponent {
     private Map<String, File> pathVariables = new HashMap<>();
 
     @Inject
-    public EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {
+    public EclipseWtpComponent(Project project, XmlFileContentMerger file) {
         this.project = project;
         this.file = file;
     }

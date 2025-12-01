@@ -22,6 +22,7 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.Model;
@@ -31,9 +32,9 @@ import java.io.File;
 
 @SuppressWarnings("deprecation")
 public class BuildControllerWithoutParameterSupport extends UnparameterizedBuildController {
-    private final org.gradle.tooling.internal.protocol.InternalBuildController buildController;
+    private final InternalBuildController buildController;
 
-    public BuildControllerWithoutParameterSupport(org.gradle.tooling.internal.protocol.InternalBuildController buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir, VersionDetails gradleVersion) {
+    public BuildControllerWithoutParameterSupport(InternalBuildController buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir, VersionDetails gradleVersion) {
         super(adapter, modelMapping, gradleVersion, rootDir);
         this.buildController = buildController;
     }

@@ -253,7 +253,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
         return true;
     }
 
-    private static class MethodNameFilter extends org.junit.runner.manipulation.Filter {
+    private static class MethodNameFilter extends Filter {
 
         private final TestSelectionMatcher matcher;
 

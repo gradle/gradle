@@ -17,5 +17,7 @@
 /**
  * The diagnostic {@link org.gradle.api.Task} implementations.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.tasks.diagnostics;
+
+import org.jspecify.annotations.NullMarked;

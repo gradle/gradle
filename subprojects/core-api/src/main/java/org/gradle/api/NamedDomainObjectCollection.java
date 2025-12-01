@@ -47,7 +47,7 @@ import java.util.SortedSet;
  * </pre>
  *
  * <p>A dynamic method is added for each object which takes a configuration closure. This is equivalent to calling
- * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
+ * {@link #getByName(String, Closure)}. For example:</p>
  *
  * <pre>
  * books.add(new Book(name: "gradle", title: null))

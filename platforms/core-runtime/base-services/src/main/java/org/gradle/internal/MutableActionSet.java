@@ -22,7 +22,7 @@ import org.gradle.api.Action;
  *
  * This type is not thread-safe.
  *
- * Consider using {@link org.gradle.internal.ImmutableActionSet} instead of this.
+ * Consider using {@link ImmutableActionSet} instead of this.
  *
  * Implements {@link InternalListener} as components themselves should be decorated if appropriate.
  */

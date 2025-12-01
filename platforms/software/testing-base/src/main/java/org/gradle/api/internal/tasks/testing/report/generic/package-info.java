@@ -14,5 +14,7 @@
  * limitations under the License.
  */
 
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.internal.tasks.testing.report.generic;
+
+import org.jspecify.annotations.NullMarked;

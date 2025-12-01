@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class WelcomeMessageAction implements Action<ExecutionListener> {
     public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
 
@@ -132,7 +134,7 @@ public class WelcomeMessageAction implements Action<ExecutionListener> {
             StringWriter writer = new StringWriter();
 
             try {
-                IOUtils.copy(inputStream, writer, "UTF-8");
+                IOUtils.copy(inputStream, writer, UTF_8);
                 return writer.toString();
             } catch (IOException e) {
                 // do not fail the build as feature is non-critical

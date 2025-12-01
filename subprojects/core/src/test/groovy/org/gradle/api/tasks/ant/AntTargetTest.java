@@ -18,6 +18,7 @@ package org.gradle.api.tasks.ant;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
+import org.apache.tools.ant.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
@@ -67,7 +68,7 @@ public class AntTargetTest {
         assertThat(task.getDescription(), equalTo("new description"));
     }
 
-    public class TestTask extends org.apache.tools.ant.Task {
+    public class TestTask extends Task {
         boolean executed;
 
         @Override

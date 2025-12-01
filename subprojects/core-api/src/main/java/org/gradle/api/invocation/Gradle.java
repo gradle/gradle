@@ -214,7 +214,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Adds a closure to be called when the build settings have been loaded and evaluated.
      *
      * The settings object is fully configured and is ready to use to load the build projects. The
-     * {@link org.gradle.api.initialization.Settings} object is passed to the closure as a parameter.
+     * {@link Settings} object is passed to the closure as a parameter.
      *
      * @param closure The closure to execute.
      */
@@ -324,7 +324,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      *
      * <ul>
      * <li>{@link org.gradle.api.execution.TaskExecutionGraphListener}
-     * <li>{@link org.gradle.api.ProjectEvaluationListener}
+     * <li>{@link ProjectEvaluationListener}
      * <li>{@link org.gradle.api.artifacts.DependencyResolutionListener}
      * </ul>
      *
@@ -332,7 +332,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Their usage is deprecated and adding a listener of these types become an error in a future Gradle version:</p>
      *
      * <ul>
-     * <li>{@link org.gradle.BuildListener}
+     * <li>{@link BuildListener}
      * <li>{@link org.gradle.api.execution.TaskExecutionListener}
      * <li>{@link org.gradle.api.execution.TaskActionListener}
      * <li>{@link org.gradle.api.tasks.testing.TestListener}

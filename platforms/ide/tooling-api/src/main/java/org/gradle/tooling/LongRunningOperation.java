@@ -43,7 +43,7 @@ import java.util.Set;
 public interface LongRunningOperation {
 
     /**
-     * Sets the {@link java.io.OutputStream} which should receive standard output logging generated while running the operation.
+     * Sets the {@link OutputStream} which should receive standard output logging generated while running the operation.
      * The default is to discard the output.
      *
      * @param outputStream The output stream. The system default character encoding will be used to encode characters written to this stream.
@@ -74,7 +74,7 @@ public interface LongRunningOperation {
     LongRunningOperation setColorOutput(boolean colorOutput);
 
     /**
-     * Sets the {@link java.io.InputStream} that will be used as standard input for this operation.
+     * Sets the {@link InputStream} that will be used as standard input for this operation.
      * Defaults to an empty input stream.
      *
      * @param inputStream The input stream

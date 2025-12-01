@@ -18,5 +18,7 @@
  * Internal immutable value types responsible for containing the model of Artifact Transform data in a project
  * for use in reporting.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model;
+
+import org.jspecify.annotations.NullMarked;

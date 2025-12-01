@@ -24,7 +24,7 @@ import org.gradle.api.specs.Spec;
 import java.util.Collection;
 
 /**
- * <p>A {@code PluginCollection} represents a collection of {@link org.gradle.api.Plugin} instances.</p>
+ * <p>A {@code PluginCollection} represents a collection of {@link Plugin} instances.</p>
  *
  * @param <T> The type of plugins which this collection contains.
  */

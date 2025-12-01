@@ -38,7 +38,7 @@ import java.util.Properties;
 public class PropertiesUtils {
 
     /**
-     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     * Writes {@link Properties} in a way that the results can be expected to be reproducible.
      *
      * Uses defaults for the arguments of {@link PropertiesUtils#store(Properties, File, String, Charset, String)}:
      * <ul>
@@ -52,7 +52,7 @@ public class PropertiesUtils {
     }
 
     /**
-     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     * Writes {@link Properties} in a way that the results can be expected to be reproducible.
      *
      * Uses defaults for the arguments of {@link PropertiesUtils#store(Properties, File, String, Charset, String)}:
      * <ul>
@@ -66,7 +66,7 @@ public class PropertiesUtils {
     }
 
     /**
-     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     * Writes {@link Properties} in a way that the results can be expected to be reproducible.
      *
      * See {@link #store(Properties, OutputStream, String, Charset, String)} for more details.
      */
@@ -80,16 +80,16 @@ public class PropertiesUtils {
     }
 
     /**
-     * Writes {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+     * Writes {@link Properties} in a way that the results can be expected to be reproducible.
      *
-     * <p>There are a number of differences compared to {@link java.util.Properties#store(java.io.Writer, String)}:</p>
+     * <p>There are a number of differences compared to {@link Properties#store(java.io.Writer, String)}:</p>
      * <ul>
      *     <li>no timestamp comment is generated at the beginning of the file</li>
      *     <li>the lines in the resulting files are separated by a pre-set separator instead of the system default line separator</li>
      *     <li>the properties are sorted alphabetically</li>
      * </ul>
      *
-     * <p>Like with {@link java.util.Properties#store(java.io.OutputStream, String)}, Unicode characters are
+     * <p>Like with {@link Properties#store(OutputStream, String)}, Unicode characters are
      * escaped when using the default Latin-1 (ISO-8559-1) encoding.</p>
      */
     public static void store(Properties properties, OutputStream outputStream, @Nullable String comment, Charset charset, String lineSeparator) throws IOException {

@@ -34,6 +34,7 @@ import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.TextUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import javax.xml.transform.OutputKeys;
@@ -51,10 +52,11 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class XmlTransformer implements Transformer<String, String> {
     private final List<Action<? super XmlProvider>> actions = new ArrayList<>();
@@ -210,8 +212,8 @@ public class XmlTransformer implements Transformer<String, String> {
         }
 
         public void writeTo(OutputStream stream) {
-            try(Writer writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
-                doWriteTo(writer, "UTF-8");
+            try(Writer writer = new BufferedWriter(new OutputStreamWriter(stream, UTF_8))) {
+                doWriteTo(writer, UTF_8.toString());
                 writer.flush();
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -339,7 +341,7 @@ public class XmlTransformer implements Transformer<String, String> {
         }
 
         private void removeEmptyTextNodes(org.w3c.dom.Node node) {
-            org.w3c.dom.NodeList children = node.getChildNodes();
+            NodeList children = node.getChildNodes();
 
             for (int i = 0; i < children.getLength(); i++) {
                 org.w3c.dom.Node child = children.item(i);

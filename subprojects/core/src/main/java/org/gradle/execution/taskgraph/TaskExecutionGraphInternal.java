@@ -17,6 +17,7 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.internal.build.ExecutionResult;
@@ -88,5 +89,5 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     void resetState();
 
     @SuppressWarnings("deprecation")
-    org.gradle.api.execution.TaskExecutionListener getLegacyTaskListenerBroadcast();
+    TaskExecutionListener getLegacyTaskListenerBroadcast();
 }

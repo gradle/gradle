@@ -237,7 +237,7 @@ public class GFileUtils {
      *
      * @param child The file to create the parent dir for
      * @return The parent dir file
-     * @see #mkdirs(java.io.File)
+     * @see #mkdirs(File)
      */
     public static File parentMkdirs(File child) {
         File parent = child.getParentFile();
@@ -246,7 +246,7 @@ public class GFileUtils {
     }
 
     /**
-     * Like {@link java.io.File#mkdirs()}, except throws an informative error if a dir cannot be created.
+     * Like {@link File#mkdirs()}, except throws an informative error if a dir cannot be created.
      *
      * @param dir The dir to create, including any non existent parent dirs.
      */

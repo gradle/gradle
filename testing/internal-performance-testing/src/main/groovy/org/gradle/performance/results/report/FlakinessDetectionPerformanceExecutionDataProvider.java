@@ -42,7 +42,7 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
         comparing(PerformanceReportScenario::isBuildFailed).reversed()
             .thenComparing(PerformanceReportScenario::isSuccessful)
             .thenComparing(comparing(PerformanceReportScenario::isBuildFailed).reversed())
-            .thenComparing(comparing(org.gradle.performance.results.report.FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).reversed())
+            .thenComparing(comparing(FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).reversed())
             .thenComparing(comparing(PerformanceReportScenario::getDifferencePercentage).reversed())
             .thenComparing(PerformanceReportScenario::getName);
 

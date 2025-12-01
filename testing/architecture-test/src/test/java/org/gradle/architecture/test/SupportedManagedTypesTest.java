@@ -20,7 +20,21 @@ import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectList;
+import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ManagedType;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
 import java.util.Set;
 
@@ -41,20 +55,20 @@ public class SupportedManagedTypesTest {
      * @see <a href="https://docs.gradle.org/current/userguide/properties_providers.html">link</a>
      */
     private static final Set<String> ALLOWED_CLASSES = Set.of(
-        org.gradle.api.DomainObjectSet.class.getName(),
-        org.gradle.api.ExtensiblePolymorphicDomainObjectContainer.class.getName(),
-        org.gradle.api.NamedDomainObjectContainer.class.getName(),
-        org.gradle.api.NamedDomainObjectList.class.getName(),
-        org.gradle.api.NamedDomainObjectSet.class.getName(),
-        org.gradle.api.artifacts.dsl.DependencyCollector.class.getName(),
-        org.gradle.api.file.ConfigurableFileCollection.class.getName(),
-        org.gradle.api.file.ConfigurableFileTree.class.getName(),
-        org.gradle.api.file.DirectoryProperty.class.getName(),
-        org.gradle.api.file.RegularFileProperty.class.getName(),
-        org.gradle.api.provider.ListProperty.class.getName(),
-        org.gradle.api.provider.MapProperty.class.getName(),
-        org.gradle.api.provider.Property.class.getName(),
-        org.gradle.api.provider.SetProperty.class.getName()
+        DomainObjectSet.class.getName(),
+        ExtensiblePolymorphicDomainObjectContainer.class.getName(),
+        NamedDomainObjectContainer.class.getName(),
+        NamedDomainObjectList.class.getName(),
+        NamedDomainObjectSet.class.getName(),
+        DependencyCollector.class.getName(),
+        ConfigurableFileCollection.class.getName(),
+        ConfigurableFileTree.class.getName(),
+        DirectoryProperty.class.getName(),
+        RegularFileProperty.class.getName(),
+        ListProperty.class.getName(),
+        MapProperty.class.getName(),
+        Property.class.getName(),
+        SetProperty.class.getName()
     );
 
     private static final DescribedPredicate<JavaClass> A_KNOWN_MANAGED_TYPE = new DescribedPredicate<>("a known managed type") {

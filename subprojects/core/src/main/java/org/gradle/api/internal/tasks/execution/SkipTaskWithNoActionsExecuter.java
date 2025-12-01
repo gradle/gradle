@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A {@link org.gradle.api.internal.tasks.TaskExecuter} which skips tasks that have no actions.
+ * A {@link TaskExecuter} which skips tasks that have no actions.
  */
 public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipTaskWithNoActionsExecuter.class);

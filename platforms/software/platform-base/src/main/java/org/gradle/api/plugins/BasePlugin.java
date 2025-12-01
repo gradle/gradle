@@ -35,7 +35,7 @@ import static org.gradle.api.artifacts.Dependency.ARCHIVES_CONFIGURATION;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED;
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
+ * <p>A {@link Plugin} which defines a basic project lifecycle and some common convention properties.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
  */

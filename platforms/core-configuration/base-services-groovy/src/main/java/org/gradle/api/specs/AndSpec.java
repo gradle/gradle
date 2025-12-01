@@ -23,7 +23,7 @@ import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.
+ * A {@link CompositeSpec} which requires all its specs to be true in order to evaluate to true.
  * Uses lazy evaluation.
  *
  * @param <T> The target type for this Spec

@@ -17,5 +17,7 @@
 /**
  * Classes that operate upon the Gradle model.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.model;
+
+import org.gradle.api.Incubating;

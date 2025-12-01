@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * Thrown when the {@link org.gradle.tooling.TestLauncher} cannot run tests, or when one or more tests fail.
+ * Thrown when the {@link TestLauncher} cannot run tests, or when one or more tests fail.
  *
  * @since 2.6
  */

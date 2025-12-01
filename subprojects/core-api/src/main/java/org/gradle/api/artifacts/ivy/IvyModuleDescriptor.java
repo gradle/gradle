@@ -39,12 +39,12 @@ public interface IvyModuleDescriptor {
     String getIvyStatus();
 
     /**
-     * Returns an {@link org.gradle.api.artifacts.ivy.IvyExtraInfo} representing the "extra" info declared
+     * Returns an {@link IvyExtraInfo} representing the "extra" info declared
      * in this descriptor.
      * <p>
      * The extra info is the set of all non-standard subelements of the <em>info</em> element.
      *
-     * @return an {@link org.gradle.api.artifacts.ivy.IvyExtraInfo} representing the extra info declared in this descriptor
+     * @return an {@link IvyExtraInfo} representing the extra info declared in this descriptor
      */
     IvyExtraInfo getExtraInfo();
 }

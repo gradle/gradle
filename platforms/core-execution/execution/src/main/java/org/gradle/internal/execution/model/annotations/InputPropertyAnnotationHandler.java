@@ -34,6 +34,7 @@ import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
@@ -94,7 +95,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
         if (File.class.isAssignableFrom(valueType)
             || RegularFile.class.isAssignableFrom(valueType)
             || RegularFileProperty.class.isAssignableFrom(valueType)
-            || java.nio.file.Path.class.isAssignableFrom(valueType)
+            || Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(problem ->
                 problem

@@ -81,7 +81,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Sets the default character encoding to use.
      *
      * Note: Many JVM implementations support the setting of this attribute via system property on startup (namely, the {@code file.encoding} property). For JVMs
-     * where this is the case, setting the {@code file.encoding} property via {@link #setSystemProperties(java.util.Map)} or similar will have no effect as
+     * where this is the case, setting the {@code file.encoding} property via {@link #setSystemProperties(Map)} or similar will have no effect as
      * this value will be overridden by the value specified by {@link #getDefaultCharacterEncoding()}.
      *
      * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}

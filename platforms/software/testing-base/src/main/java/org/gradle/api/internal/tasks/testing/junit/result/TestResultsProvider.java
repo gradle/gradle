@@ -24,7 +24,7 @@ import java.io.Writer;
 
 public interface TestResultsProvider extends Closeable {
     /**
-     * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
+     * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(Action)}.
      *
      * Writes all output for the test class.
      */
@@ -33,7 +33,7 @@ public interface TestResultsProvider extends Closeable {
     void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, Writer writer);
 
     /**
-     * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
+     * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(Action)}.
      *
      * Write all output for the given test case name of the test class.
      */

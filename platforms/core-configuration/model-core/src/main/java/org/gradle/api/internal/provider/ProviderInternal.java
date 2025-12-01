@@ -59,7 +59,7 @@ import java.util.function.Supplier;
  *     </li>
  * </ul>
  *
- * <p>See {@link org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue}, which represents these states.</p>
+ * <p>See {@link ValueSupplier.ExecutionTimeValue}, which represents these states.</p>
  *
  * <p>The value itself might be "missing", which means there is no value available, or "broken", which means the calculation failed with some exception, or some object.
  * Behavior for broken values is currently provider implementation specific. Some implementations collect the failure and rethrow it each time the value is queried, and

@@ -84,7 +84,7 @@ class SwiftPlatformToolProvider extends AbstractPlatformToolProvider {
     }
 
     @Override
-    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
+    public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
         if (SwiftCompileSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createSwiftCompiler());
         }

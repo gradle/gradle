@@ -31,7 +31,7 @@ public interface XmlProvider {
     StringBuilder asString();
 
     /**
-     * Returns the XML document as a Groovy {@link groovy.util.Node}. Changes to the returned instance will be applied
+     * Returns the XML document as a Groovy {@link Node}. Changes to the returned instance will be applied
      * to the XML. The returned instance is only valid until one of the other methods on this interface are called.
      *
      * @return A {@code Node} representation of the XML.
@@ -39,7 +39,7 @@ public interface XmlProvider {
     Node asNode();
 
     /**
-     * Returns the XML document as a DOM {@link org.w3c.dom.Element}. Changes to the returned instance will be applied
+     * Returns the XML document as a DOM {@link Element}. Changes to the returned instance will be applied
      * to the XML. The returned instance is only valid until one of the other methods on this interface are called.
      *
      * @return An {@code Element} representation of the XML.

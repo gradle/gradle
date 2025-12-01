@@ -26,7 +26,7 @@ import org.gradle.api.reporting.ReportingExtension;
  *
  * <ul>
  *
- * <li>{@link org.gradle.api.reporting.ReportingExtension}</li>
+ * <li>{@link ReportingExtension}</li>
  *
  * </ul>
  * @see <a href="https://docs.gradle.org/current/userguide/project_report_plugin.html">Project Report plugin reference</a>

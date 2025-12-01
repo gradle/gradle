@@ -40,7 +40,7 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             }
 
             dependencies {
-                errorprone("com.google.errorprone:error_prone_core:2.8.0")
+                errorprone("com.google.errorprone:error_prone_core:2.42.0")
             }
 
             tasks.withType(JavaCompile).configureEach {

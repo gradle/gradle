@@ -76,7 +76,7 @@ public interface FileCollectionFactory {
      *
      * @param contents The file set contents for the constructed file collection
      * @param visitTaskDependencies The implementation of visiting dependencies for the constructed file collection's {@link Buildable#getBuildDependencies()}
-     * @see org.gradle.api.internal.tasks.TaskDependencyFactory#visitingDependencies(Consumer)
+     * @see TaskDependencyFactory#visitingDependencies(Consumer)
      */
     FileCollectionInternal create(MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies);
 

@@ -17,5 +17,7 @@
 /**
  * Classes for managing and monitoring build execution.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.execution;
+
+import org.jspecify.annotations.NullMarked;

@@ -40,7 +40,7 @@ import org.gradle.api.problems.internal.DefaultProblemId;
  * </pre>
  *
  * @since 8.13
- * @see org.gradle.api.problems.ProblemDefinition
+ * @see ProblemDefinition
  */
 @Incubating
 public abstract class ProblemId {

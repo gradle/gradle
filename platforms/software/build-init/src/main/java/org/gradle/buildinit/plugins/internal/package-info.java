@@ -14,5 +14,7 @@
  * limitations under the License.
  */
 
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.buildinit.plugins.internal;
+
+import org.jspecify.annotations.NullMarked;

@@ -99,11 +99,11 @@ import java.util.concurrent.Callable;
  *
  * <p>A project generally has a number of dependencies it needs in order to do its work.  Also, a project generally
  * produces a number of artifacts, which other projects can use. Those dependencies are grouped in configurations, and
- * can be retrieved and uploaded from repositories. You use the {@link org.gradle.api.artifacts.ConfigurationContainer}
+ * can be retrieved and uploaded from repositories. You use the {@link ConfigurationContainer}
  * returned by {@link #getConfigurations()} method to manage the configurations. The {@link
- * org.gradle.api.artifacts.dsl.DependencyHandler} returned by {@link #getDependencies()} method to manage the
- * dependencies. The {@link org.gradle.api.artifacts.dsl.ArtifactHandler} returned by {@link #getArtifacts()} method to
- * manage the artifacts. The {@link org.gradle.api.artifacts.dsl.RepositoryHandler} returned by {@link
+ * DependencyHandler} returned by {@link #getDependencies()} method to manage the
+ * dependencies. The {@link ArtifactHandler} returned by {@link #getArtifacts()} method to
+ * manage the artifacts. The {@link RepositoryHandler} returned by {@link
  * #getRepositories()} method to manage the repositories.</p>
  *
  * <h2>Multi-project Builds</h2>
@@ -115,7 +115,7 @@ import java.util.concurrent.Callable;
  *
  * <p>
  * Plugins can be used to modularise and reuse project configuration.
- * Plugins can be applied using the {@link PluginAware#apply(java.util.Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
+ * Plugins can be applied using the {@link PluginAware#apply(Map)} method, or by using the {@link org.gradle.plugin.use.PluginDependenciesSpec} plugins script block.
  * </p>
  *
  * <h2 id="properties">Dynamic Project Properties</h2>
@@ -197,10 +197,10 @@ import java.util.concurrent.Callable;
  * <li>The build file. The project searches for a matching method declared in the build file.</li>
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
- * a closure or {@link org.gradle.api.Action} as a parameter.</li>
+ * a closure or {@link Action} as a parameter.</li>
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
- * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
+ * taking a single closure or {@link Action} parameter. The method calls the {@link Task#configure(Closure)} method for the
  * associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
  * method is added with the following signature: <code>void compile(Closure configureClosure)</code>.</li>
  *
@@ -407,7 +407,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * </ol>
      *
-     * If the property is not found, a {@link groovy.lang.MissingPropertyException} is thrown.
+     * If the property is not found, a {@link MissingPropertyException} is thrown.
      *
      * @param name The name of the property
      * @param value The value of the property
@@ -449,7 +449,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Calling this method is equivalent to
-     * calling {@link #task(java.util.Map, String)} with an empty options map.</p>
+     * calling {@link #task(Map, String)} with an empty options map.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
      * reference the task by name in your build file. See <a href="#properties">properties</a> for more details</p>
@@ -474,23 +474,23 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
+     * <tr><td><code>{@value Task#TASK_TYPE}</code></td><td>The class of the task to
      * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
+     * <tr><td><code>{@value Task#TASK_OVERWRITE}</code></td><td>Replace an existing
      * task?</td><td><code>false</code></td></tr>
      *
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>A task name or set of task names which
+     * <tr><td><code>{@value Task#TASK_DEPENDS_ON}</code></td><td>A task name or set of task names which
      * this task depends on</td><td><code>[]</code></td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>A closure or {@link Action} to add to the
+     * <tr><td><code>{@value Task#TASK_ACTION}</code></td><td>A closure or {@link Action} to add to the
      * task.</td><td><code>null</code></td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_DESCRIPTION}</code></td><td>A description of the task.
+     * <tr><td><code>{@value Task#TASK_DESCRIPTION}</code></td><td>A description of the task.
      * </td><td><code>null</code></td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_GROUP}</code></td><td>A task group which this task belongs to.
+     * <tr><td><code>{@value Task#TASK_GROUP}</code></td><td>A task group which this task belongs to.
      * </td><td><code>null</code></td></tr>
      *
      * </table>
@@ -514,7 +514,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
      * closure is executed to configure the task. A map of creation options can be passed to this method to control how
-     * the task is created. See {@link #task(java.util.Map, String)} for the available options.</p>
+     * the task is created. See {@link #task(Map, String)} for the available options.</p>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can
      * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
@@ -709,7 +709,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>A {@link java.nio.file.Path}. The path must be associated with the default provider and is treated the
      * same way as an instance of {@code File}.</li>
      *
-     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Only {@code file:} URLs are supported.</li>
+     * <li>A {@link URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Only {@code file:} URLs are supported.</li>
      *
      * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
      *
@@ -719,7 +719,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A Groovy {@link Closure} or Kotlin function that returns any supported type. The closure's return value is resolved recursively.</li>
      *
-     * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The callable's return value is resolved recursively.</li>
+     * <li>A {@link Callable} that returns any supported type. The callable's return value is resolved recursively.</li>
      *
      * </ul>
      *
@@ -769,7 +769,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link java.nio.file.Path}, as per {@link #file(Object)}.</li>
      *
-     * <li>A {@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Only {@code file:} URLs are supported.</li>
+     * <li>A {@link URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Only {@code file:} URLs are supported.</li>
      *
      * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
      *
@@ -777,11 +777,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link org.gradle.api.file.FileCollection}. The contents of the collection are included in the returned collection.</li>
      *
-     * <li>A {@link org.gradle.api.file.FileTree} or {@link org.gradle.api.file.DirectoryTree}. The contents of the tree are included in the returned collection.</li>
+     * <li>A {@link FileTree} or {@link org.gradle.api.file.DirectoryTree}. The contents of the tree are included in the returned collection.</li>
      *
      * <li>A {@link Provider} of any supported type. The provider's value is recursively converted to files. If the provider represents an output of a task, that task is executed if the file collection is used as an input to another task.
      *
-     * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
+     * <li>A {@link Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
      * <li>A Groovy {@link Closure} or Kotlin function that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
@@ -1023,7 +1023,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param value The {@link Callable} use to calculate the value.
      * @return The provider. Never returns null.
-     * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
+     * @see ProviderFactory#provider(Callable)
      * @since 4.0
      */
     <T> Provider<T> provider(Callable<? extends @Nullable T> value);
@@ -1054,7 +1054,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param path The path for the directory to be created. Evaluated as per {@link #file(Object)}.
      * @return the created directory
-     * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     * @throws InvalidUserDataException If the path points to an existing file.
      */
     File mkdir(Object path);
 
@@ -1063,7 +1063,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>
      * This will not follow symlinks. If you need to follow symlinks too use {@link #delete(Action)}.
      *
-     * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @param paths Any type of object accepted by {@link Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
     boolean delete(@Nullable Object... paths);
@@ -1467,14 +1467,14 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Logger getLogger();
 
     /**
-     * <p>Returns the {@link org.gradle.api.invocation.Gradle} invocation which this project belongs to.</p>
+     * <p>Returns the {@link Gradle} invocation which this project belongs to.</p>
      *
      * @return The Gradle object. Never returns null.
      */
     Gradle getGradle();
 
     /**
-     * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
+     * Returns the {@link LoggingManager} which can be used to receive logging and to control the
      * standard output/error capture for this project's build script. By default, System.out is redirected to the Gradle
      * logging system at the QUIET log level, and System.err is redirected at the ERROR log level.
      *
@@ -1512,7 +1512,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Configures a collection of objects via a closure. This is equivalent to calling {@link #configure(Object,
-     * groovy.lang.Closure)} for each of the given objects.
+     * Closure)} for each of the given objects.
      *
      * @param objects The objects to configure
      * @param configureClosure The closure with configure statements

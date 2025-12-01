@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.project;
 
+import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.apache.tools.ant.Task;
+import org.slf4j.LoggerFactory;
 
 public class TestAntTask extends Task {
     @Override
     public void execute() {
-        org.apache.commons.logging.LogFactory.getLog("ant-test").info("a jcl log message");
-        org.slf4j.LoggerFactory.getLogger("ant-test").info("an slf4j log message");
-        org.apache.log4j.Logger.getLogger("ant-test").info("a log4j log message");
+        LogFactory.getLog("ant-test").info("a jcl log message");
+        LoggerFactory.getLogger("ant-test").info("an slf4j log message");
+        Logger.getLogger("ant-test").info("a log4j log message");
     }
 }

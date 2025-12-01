@@ -20,7 +20,7 @@ package org.gradle.api.provider;
  * Marker interface for parameter objects to {@link ValueSource}s.
  *
  * <p>
- * Parameter types should be interfaces, only declaring getters for {@link org.gradle.api.provider.Property}-like objects.
+ * Parameter types should be interfaces, only declaring getters for {@link Property}-like objects.
  * </p>
  * <pre class='autoTested'>
  * public interface MyParameters extends ValueSourceParameters {

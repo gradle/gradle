@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Provides a number of {@link org.gradle.api.specs.Spec} implementations.
+ * Provides a number of {@link Spec} implementations.
  */
 public class Specs {
 

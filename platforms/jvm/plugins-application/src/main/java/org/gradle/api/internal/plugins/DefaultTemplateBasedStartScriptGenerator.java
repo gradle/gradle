@@ -18,14 +18,11 @@ package org.gradle.api.internal.plugins;
 
 import com.google.common.io.CharSource;
 import groovy.text.SimpleTemplateEngine;
-import groovy.text.Template;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.resources.CharSourceBackedTextResource;
 import org.gradle.api.resources.TextResource;
-import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,8 +30,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+import static org.gradle.util.internal.TextUtil.convertLineSeparators;
 
 public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator {
 
@@ -52,11 +52,9 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
     @Override
     public void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
         try {
-            Map<String, String> binding = bindingFactory.transform(details);
-            String scriptContent = generateStartScriptContentFromTemplate(binding);
-            destination.write(scriptContent);
+            destination.write(generateStartScriptContentFromTemplate(bindingFactory.transform(details)));
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw throwAsUncheckedException(e);
         }
     }
 
@@ -72,24 +70,21 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
 
     private String generateStartScriptContentFromTemplate(final Map<String, String> binding) {
         try (Reader reader = getTemplate().asReader()) {
-            SimpleTemplateEngine engine = new SimpleTemplateEngine();
-            Template template = engine.createTemplate(reader);
-            String output = template.make(binding).toString();
-            return TextUtil.convertLineSeparators(output, lineSeparator);
+            return convertLineSeparators(new SimpleTemplateEngine().createTemplate(reader).make(binding).toString(), lineSeparator);
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw throwAsUncheckedException(e);
         }
     }
 
     protected static TextResource utf8ClassPathResource(final Class<?> clazz, final String filename) {
         return new CharSourceBackedTextResource("Classpath resource '" + filename + "'", new CharSource() {
             @Override
-            public Reader openStream() throws IOException {
+            public Reader openStream() {
                 InputStream stream = clazz.getResourceAsStream(filename);
                 if (stream == null) {
                     throw new IllegalStateException("Could not find class path resource " + filename + " relative to " + clazz.getName());
                 }
-                return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+                return new BufferedReader(new InputStreamReader(stream, UTF_8));
             }
         });
     }

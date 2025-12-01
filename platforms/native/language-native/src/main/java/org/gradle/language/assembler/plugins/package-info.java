@@ -17,5 +17,7 @@
 /**
  * Plugins for building from Assembler language sources.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.language.assembler.plugins;
+
+import org.gradle.api.Incubating;

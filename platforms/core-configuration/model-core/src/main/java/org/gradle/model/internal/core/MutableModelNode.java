@@ -139,7 +139,7 @@ public interface MutableModelNode extends ModelNode {
     Object getPrivateData();
 
     /**
-     * Change the target of this reference node. Works only on reference nodes that are in the {@link org.gradle.model.internal.core.ModelNode.State#Registered} state.
+     * Change the target of this reference node. Works only on reference nodes that are in the {@link ModelNode.State#Registered} state.
      */
     void setTarget(ModelNode target);
 

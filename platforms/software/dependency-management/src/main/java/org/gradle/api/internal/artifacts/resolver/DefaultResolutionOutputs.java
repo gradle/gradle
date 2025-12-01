@@ -53,9 +53,9 @@ import javax.inject.Inject;
  * <ul>
  *     <li>{@link org.gradle.api.file.FileCollection}</li>
  *     <li>{@link org.gradle.api.artifacts.ArtifactCollection}</li>
- *     <li>{@link org.gradle.api.artifacts.ArtifactView}</li>
- *     <li>{@link org.gradle.api.artifacts.result.ResolvedVariantResult}</li>
- *     <li>{@link org.gradle.api.artifacts.result.ResolvedComponentResult}</li>
+ *     <li>{@link ArtifactView}</li>
+ *     <li>{@link ResolvedVariantResult}</li>
+ *     <li>{@link ResolvedComponentResult}</li>
  * </ul>
  */
 public class DefaultResolutionOutputs implements ResolutionOutputsInternal {

@@ -17,5 +17,7 @@
 /**
  * Classes that compose the resolution result
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.artifacts.result;
+
+import org.jspecify.annotations.NullMarked;

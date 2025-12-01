@@ -39,7 +39,7 @@ import java.util.Properties;
 import java.util.concurrent.Callable;
 
 /**
- * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
+ * Writes a {@link Properties} in a way that the results can be expected to be reproducible.
  *
  * <p>There are a number of differences compared to how properties are stored:</p>
  * <ul>
@@ -49,10 +49,10 @@ import java.util.concurrent.Callable;
  *     <li>the properties are sorted alphabetically</li>
  * </ul>
  *
- * <p>Like with {@link java.util.Properties}, Unicode characters are escaped when using the
+ * <p>Like with {@link Properties}, Unicode characters are escaped when using the
  * default Latin-1 (ISO-8559-1) encoding.</p>
  *
- * @see java.util.Properties#store(OutputStream, String)
+ * @see Properties#store(OutputStream, String)
  * @since 3.3
  */
 @CacheableTask

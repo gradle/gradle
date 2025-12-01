@@ -38,7 +38,7 @@ public interface ResourceLockCoordinationService {
     /**
      * Attempts to atomically change the state of resource locks.  Only one thread can alter the resource lock
      * states at one time.  Other threads will block until the resource lock state is free.  The provided
-     * {@link Function} should return a {@link org.gradle.internal.resources.ResourceLockState.Disposition}
+     * {@link Function} should return a {@link ResourceLockState.Disposition}
      * that tells the resource coordinator how to proceed:
      *
      * FINISHED - All locks were acquired, release the state lock

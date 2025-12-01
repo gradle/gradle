@@ -19,6 +19,7 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.diagnostics.internal.DiagnosticsTaskNames;
 import org.jspecify.annotations.NullMarked;
 
@@ -34,12 +35,12 @@ abstract public class ModelReportingTasksPlugin implements Plugin<Project> {
     @Override
     @SuppressWarnings("deprecation")
     public void apply(Project project) {
-        project.getTasks().register(DiagnosticsTaskNames.MODEL_TASK, org.gradle.api.reporting.model.ModelReport.class, new ModelReportAction(project.toString()));
+        project.getTasks().register(DiagnosticsTaskNames.MODEL_TASK, ModelReport.class, new ModelReportAction(project.toString()));
     }
 
     @SuppressWarnings("deprecation")
     @NullMarked
-    private static class ModelReportAction implements Action<org.gradle.api.reporting.model.ModelReport> {
+    private static class ModelReportAction implements Action<ModelReport> {
         private final String projectName;
 
         public ModelReportAction(String projectName) {
@@ -47,7 +48,7 @@ abstract public class ModelReportingTasksPlugin implements Plugin<Project> {
         }
 
         @Override
-        public void execute(org.gradle.api.reporting.model.ModelReport task) {
+        public void execute(ModelReport task) {
             task.setDescription("Displays the configuration model of " + projectName + ". [deprecated]");
             task.setImpliesSubProjects(true);
         }

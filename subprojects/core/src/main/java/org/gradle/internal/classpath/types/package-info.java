@@ -17,5 +17,7 @@
 /**
  * A package containing code for discovering types and instrumenting inherited methods.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.internal.classpath.types;
+
+import org.jspecify.annotations.NullMarked;

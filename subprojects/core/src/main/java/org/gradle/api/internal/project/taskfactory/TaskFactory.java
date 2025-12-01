@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reflect.ObjectInstantiationException;
@@ -65,7 +66,7 @@ public class TaskFactory implements ITaskFactory {
             implType = DefaultTask.class;
         } else if (DefaultTask.class.isAssignableFrom(identity.getTaskType())) {
             implType = identity.getTaskType().asSubclass(DefaultTask.class);
-        } else if (identity.getTaskType() == org.gradle.api.internal.AbstractTask.class || identity.getTaskType() == TaskInternal.class) {
+        } else if (identity.getTaskType() == AbstractTask.class || identity.getTaskType() == TaskInternal.class) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as this type is not supported for task registration.",
                 identity.getBuildTreePath().asString(),
@@ -79,7 +80,7 @@ public class TaskFactory implements ITaskFactory {
 
         Describable displayName = Describables.withTypeAndName("task", identity.getBuildTreePath().asString());
 
-        return org.gradle.api.internal.AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
+        return AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
             @Override
             public S call() {
                 try {
@@ -87,7 +88,7 @@ public class TaskFactory implements ITaskFactory {
                     if (constructorArgs != null) {
                         instance = instantiationScheme.instantiator().newInstanceWithDisplayName(implType, displayName, constructorArgs);
                     } else {
-                        instance = instantiationScheme.deserializationInstantiator().newInstance(implType, org.gradle.api.internal.AbstractTask.class);
+                        instance = instantiationScheme.deserializationInstantiator().newInstance(implType, AbstractTask.class);
                     }
                     return identity.getTaskType().cast(instance);
                 } catch (ObjectInstantiationException e) {

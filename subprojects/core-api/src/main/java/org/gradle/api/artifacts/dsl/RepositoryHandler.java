@@ -111,7 +111,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}.
+     * {@value ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}.
      *
      * <p>The following parameter are accepted as keys for the map:
      *
@@ -121,7 +121,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
      *     <td><em>(optional)</em> The name of the repository. The default is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME} is used as the name. A name
+     * {@value ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME} is used as the name. A name
      * must be unique amongst a repository group.
      * </td></tr>
      * <tr><td><code>artifactUrls</code></td>
@@ -145,8 +145,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
+     * {@value ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
+     * {@value ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
      * <p>Examples:</p>
      * <pre class='autoTested'>
@@ -156,15 +156,15 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * </pre>
      *
      * @return the added resolver
-     * @see #mavenCentral(java.util.Map)
+     * @see #mavenCentral(Map)
      */
     @Adding
     MavenArtifactRepository mavenCentral();
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
+     * {@value ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
+     * {@value ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
      * <p>Examples:</p>
      * <pre class='autoTested'>
@@ -181,7 +181,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
+     * {@value ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *
      * <p>Examples:</p>
      * <pre class='autoTested'>
@@ -205,7 +205,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
+     * {@value ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *
      * <p>Examples:</p>
      * <pre class='autoTested'>

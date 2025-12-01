@@ -64,7 +64,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * This extension is used to implicitly configure all JVM-related {@link org.gradle.api.component.Component}s
  * in the project.  Some methods - such as {@link #registerFeature(String, Action)} -
  * are not applicable in this manner and will throw exceptions if used when multiple
- * {@link org.gradle.jvm.component.internal.JvmSoftwareComponentInternal JvmSoftwareComponentInternal}
+ * {@link JvmSoftwareComponentInternal JvmSoftwareComponentInternal}
  * components are present.
  *
  * At present there should only ever be one such component - the {@code java} component added by the {@link org.gradle.api.plugins.JavaPlugin JavaPlugin} - but

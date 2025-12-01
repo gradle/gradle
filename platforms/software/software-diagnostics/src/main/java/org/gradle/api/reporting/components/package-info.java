@@ -17,5 +17,7 @@
 /**
  * Reporting components used by software reports.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.reporting.components;
+
+import org.jspecify.annotations.NullMarked;

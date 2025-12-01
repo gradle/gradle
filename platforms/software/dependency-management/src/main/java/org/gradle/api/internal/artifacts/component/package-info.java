@@ -17,5 +17,7 @@
 /**
  * Internal types related to components.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.internal.artifacts.component;
+
+import org.jspecify.annotations.NullMarked;

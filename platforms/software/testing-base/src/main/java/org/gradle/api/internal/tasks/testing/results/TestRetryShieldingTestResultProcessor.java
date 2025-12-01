@@ -22,8 +22,9 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.jspecify.annotations.NullMarked;
 
-@org.jspecify.annotations.NullMarked
+@NullMarked
 public class TestRetryShieldingTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor delegate;
 

@@ -25,7 +25,7 @@ import org.gradle.work.DisableCachingByDefault;
 /**
  * Task for generating a Xcode workspace settings file (e.g. {@code Foo.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings}).
  *
- * <p>This task is used in conjunction with {@link org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask}.</p>
+ * <p>This task is used in conjunction with {@link GenerateXcodeWorkspaceFileTask}.</p>
  *
  * @see org.gradle.ide.xcode.XcodeWorkspace
  * @since 4.2

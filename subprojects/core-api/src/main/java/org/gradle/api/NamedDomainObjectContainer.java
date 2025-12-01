@@ -94,9 +94,9 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
     NamedDomainObjectContainer<T> configure(Closure configureClosure);
 
     /**
-     * Defines a new object, which will be created and configured when it is required. An object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(java.lang.String)} or when {@link Provider#get()} is called on the return value of this method.
+     * Defines a new object, which will be created and configured when it is required. An object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(String)} or when {@link Provider#get()} is called on the return value of this method.
      * <p>
-     * It is generally more efficient to use this method instead of {@link #create(java.lang.String, org.gradle.api.Action)} or {@link #create(java.lang.String)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not.
+     * It is generally more efficient to use this method instead of {@link #create(String, Action)} or {@link #create(String)}, as those methods will eagerly create and configure the object, regardless of whether that object is required for the current build or not.
      * This method, on the other hand, will defer creation and configuration until required.
      * <p>
      * This operation is lazy, the returned element is NOT realized.
@@ -111,9 +111,9 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
     NamedDomainObjectProvider<T> register(String name, Action<? super T> configurationAction) throws InvalidUserDataException;
 
     /**
-     * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(java.lang.String)} or when {@link Provider#get()} is called on the return value of this method.
+     * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(String)} or when {@link Provider#get()} is called on the return value of this method.
      * <p>
-     * It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that method will eagerly create the object, regardless of whether that object is required for the current build or not.
+     * It is generally more efficient to use this method instead of {@link #create(String)}, as that method will eagerly create the object, regardless of whether that object is required for the current build or not.
      * This method, on the other hand, will defer creation until required.
      * <p>
      * This operation is lazy, the returned element is NOT realized.

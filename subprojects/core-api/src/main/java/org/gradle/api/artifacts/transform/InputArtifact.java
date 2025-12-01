@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * Attach this annotation to an abstract getter that should receive the <em>input artifact</em> for an artifact transform.
  * This is the artifact that the transform is applied to.
  *
- * <p>The abstract getter must be declared as type {@link Provider}&lt;{@link org.gradle.api.file.FileSystemLocation}&gt;.</p>
+ * <p>The abstract getter must be declared as type {@link Provider}&lt;{@link FileSystemLocation}&gt;.</p>
  *
  * <p>Example usage:</p>
  *

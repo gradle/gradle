@@ -22,7 +22,7 @@ import org.gradle.api.specs.Spec;
 import java.util.List;
 
 /**
- * <p>A specialization of {@link org.gradle.api.NamedDomainObjectCollection} that also implements {@link java.util.List}.</p>
+ * <p>A specialization of {@link NamedDomainObjectCollection} that also implements {@link List}.</p>
  *
  * <p>All object equality is determined in terms of object names. That is, calling {@code remove()} with an object that is NOT equal to
  * an existing object in terms of {@code equals}, but IS in terms of name equality will result in the existing collection item with

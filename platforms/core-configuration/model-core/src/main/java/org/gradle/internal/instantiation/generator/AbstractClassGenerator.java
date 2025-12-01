@@ -95,9 +95,9 @@ import static org.gradle.api.internal.GeneratedSubclasses.unpack;
  * <li>For each property, a convention mapping is applied. These properties may have a setter method.</li>
  * <li>For each property whose getter is annotated with {@link Inject}, service instance will be injected instead. These properties may have a setter method and may be abstract.</li>
  * <li>For each mutable property as set method is generated.</li>
- * <li>For each method whose last parameter is an {@link org.gradle.api.Action}, an override is generated that accepts a {@link groovy.lang.Closure} instead.</li>
+ * <li>For each method whose last parameter is an {@link Action}, an override is generated that accepts a {@link Closure} instead.</li>
  * <li>Coercion from string to enum property is mixed in.</li>
- * <li>{@link groovy.lang.GroovyObject} and {@link DynamicObjectAware} is mixed in to the class.</li>
+ * <li>{@link GroovyObject} and {@link DynamicObjectAware} is mixed in to the class.</li>
  * <li>An {@link ExtensionAware} implementation is added, unless {@link NonExtensible} is attached to the class.</li>
  * <li>An {@link IConventionAware} implementation is added, unless {@link NoConventionMapping} is attached to the class.</li>
  * </ul>

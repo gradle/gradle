@@ -116,9 +116,9 @@ public abstract class TypeOf<T> {
     }
 
     /**
-     * Queries whether the type represented by this object is public ({@link java.lang.reflect.Modifier#isPublic(int)}).
+     * Queries whether the type represented by this object is public ({@link Modifier#isPublic(int)}).
      *
-     * @see java.lang.reflect.Modifier#isPublic(int)
+     * @see Modifier#isPublic(int)
      * @see Class#getModifiers()
      */
     public boolean isPublic() {
@@ -255,7 +255,7 @@ public abstract class TypeOf<T> {
 
     /**
      * <p>
-     * This returns the underlying, concrete Java {@link java.lang.Class}.
+     * This returns the underlying, concrete Java {@link Class}.
      * </p>
      * <p>
      * For example, a simple {@code TypeOf<String>} will be the given generic type {@code String.class}.

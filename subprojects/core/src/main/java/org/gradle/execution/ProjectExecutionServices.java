@@ -17,6 +17,7 @@
 package org.gradle.execution;
 
 import org.gradle.StartParameter;
+import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
@@ -113,7 +114,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             executionHistoryStore,
             buildOperationRunner,
             asyncWorkTracker,
-            listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class),
+            listenerManager.getBroadcaster(TaskActionListener.class),
             taskCacheabilityResolver,
             classLoaderHierarchyHasher,
             executionEngine,

@@ -96,14 +96,14 @@ public class Hashing {
     }
 
     /**
-     * Hash the contents of the given {@link java.io.InputStream} with the default hash function.
+     * Hash the contents of the given {@link InputStream} with the default hash function.
      */
     public static HashCode hashStream(InputStream stream) throws IOException {
         return DEFAULT.hashStream(stream);
     }
 
     /**
-     * Hash the contents of the given {@link java.io.File} with the default hash function.
+     * Hash the contents of the given {@link File} with the default hash function.
      */
     public static HashCode hashFile(File file) throws IOException {
         return DEFAULT.hashFile(file);

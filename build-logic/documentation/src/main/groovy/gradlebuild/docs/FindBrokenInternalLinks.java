@@ -29,6 +29,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.logging.ConsoleRenderer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -136,7 +137,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        throw new GradleException("Documentation assertion failed: found invalid internal links. See " + new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile));
+        throw new GradleException("Documentation assertion failed: found invalid internal links. See " + new ConsoleRenderer().asClickableFileUrl(reportFile));
     }
 
     private void writeHeader(PrintWriter fw) {

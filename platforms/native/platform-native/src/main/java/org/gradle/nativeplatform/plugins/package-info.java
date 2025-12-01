@@ -17,5 +17,7 @@
 /**
  * Plugins for building native component projects.
  */
-@org.gradle.api.Incubating
+@Incubating
 package org.gradle.nativeplatform.plugins;
+
+import org.gradle.api.Incubating;

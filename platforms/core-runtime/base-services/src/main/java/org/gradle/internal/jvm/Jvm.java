@@ -103,7 +103,7 @@ public class Jvm implements JavaInfo {
      *
      * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
-     * @throws org.gradle.internal.jvm.JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
+     * @throws JavaHomeException when supplied javaHome does not seem to be a valid jdk or jre location
      * @throws IllegalArgumentException when supplied javaHome is not a valid folder
      */
     public static JavaInfo forHome(File javaHome) throws JavaHomeException, IllegalArgumentException {

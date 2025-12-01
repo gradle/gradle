@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.util.Collections.emptyMap;
 
 /**
- * Tracks plugin versions available at different {@link org.gradle.api.internal.initialization.ClassLoaderScope scopes}.
+ * Tracks plugin versions available at different {@link ClassLoaderScope scopes}.
  */
 @ServiceScope(Scope.Build.class)
 public class PluginVersionTracker {

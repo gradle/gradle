@@ -26,17 +26,17 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 @Incubating
 public interface NativeBinary extends Binary {
     /**
-     * The {@link org.gradle.nativeplatform.Flavor} that this binary was built with.
+     * The {@link Flavor} that this binary was built with.
      */
     Flavor getFlavor();
 
     /**
-     * Returns the {@link org.gradle.nativeplatform.platform.NativePlatform} that this binary is targeted to run on.
+     * Returns the {@link NativePlatform} that this binary is targeted to run on.
      */
     NativePlatform getTargetPlatform();
 
     /**
-     * Returns the {@link org.gradle.nativeplatform.BuildType} used to construct this binary.
+     * Returns the {@link BuildType} used to construct this binary.
      */
     BuildType getBuildType();
 }

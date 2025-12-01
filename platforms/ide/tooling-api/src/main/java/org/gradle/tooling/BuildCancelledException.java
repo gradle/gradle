@@ -17,7 +17,7 @@
 package org.gradle.tooling;
 
 /**
- * Thrown when a {@link org.gradle.tooling.LongRunningOperation} is cancelled before the operation completes.
+ * Thrown when a {@link LongRunningOperation} is cancelled before the operation completes.
  *
  * @since 2.1
  */

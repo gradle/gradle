@@ -50,7 +50,7 @@ import java.util.function.Supplier;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
- * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
+ * Extends {@link JavaBasePlugin} to provide support for compiling and documenting Groovy
  * source files.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/groovy_plugin.html">Groovy plugin reference</a>

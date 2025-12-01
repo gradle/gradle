@@ -41,7 +41,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * </pre>
  *
  * <p>A dynamic method is added for each configuration which takes a configuration closure. This is equivalent to
- * calling {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
+ * calling {@link #getByName(String, Closure)}. For example:</p>
  *
  * <pre class='autoTested'>
  * configurations.create('myConfiguration')

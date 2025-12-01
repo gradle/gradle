@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-@org.jspecify.annotations.NullMarked
+@NullMarked
 public class FileComparisonFailureDetails extends AssertionFailureDetails {
     private final byte @Nullable [] expectedContent;
     private final byte @Nullable [] actualContent;

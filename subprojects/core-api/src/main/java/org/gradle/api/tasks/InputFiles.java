@@ -24,7 +24,7 @@ import java.lang.annotation.*;
  * Annotations on setters or just the field in Java are ignored.</p>
  *
  * <p>This will cause the task to be considered out-of-date when the file paths or contents
- * have changed. Also see {@link org.gradle.api.tasks.InputDirectory}.
+ * have changed. Also see {@link InputDirectory}.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

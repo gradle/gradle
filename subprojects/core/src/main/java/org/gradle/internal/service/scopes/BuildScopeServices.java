@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.flow.FlowScope;
@@ -61,6 +62,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
+import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
@@ -398,9 +400,9 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @SuppressWarnings("deprecation")
     @UsedByScanPlugin("ImportJUnitXmlReports")
-    @Provides({ProjectRegistry.class, org.gradle.api.internal.project.DefaultProjectRegistry.class})
-    protected org.gradle.api.internal.project.DefaultProjectRegistry createProjectRegistry() {
-        return new org.gradle.api.internal.project.DefaultProjectRegistry();
+    @Provides({ProjectRegistry.class, DefaultProjectRegistry.class})
+    protected DefaultProjectRegistry createProjectRegistry() {
+        return new DefaultProjectRegistry();
     }
 
     @Provides
@@ -933,7 +935,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             gradleInternal,
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
-            listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class),
+            listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class),
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
             gradleScopedServices
         );

@@ -28,7 +28,7 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * <p>Provider compatibility: This interface is implemented by all provider versions from 4.8.</p>
  *
  * @since 4.8
- * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
+ * @see ConnectionVersion4
  */
 public interface InternalPhasedActionConnection extends InternalProtocolInterface {
 

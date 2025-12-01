@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.Scope;
 /**
  * <p>A {@code BuildListener} is notified of the major lifecycle events as a build is executed.</p>
  *
- * @see org.gradle.api.invocation.Gradle#addListener(Object)
+ * @see Gradle#addListener(Object)
  */
 @EventScope(Scope.Build.class)
 @DeprecatedInGradleScope

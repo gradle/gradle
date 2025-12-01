@@ -17,5 +17,7 @@
 /**
  * Interfaces and API for the 'Resources' concept.
  */
-@org.jspecify.annotations.NullMarked
+@NullMarked
 package org.gradle.api.resources;
+
+import org.jspecify.annotations.NullMarked;

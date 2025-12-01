@@ -66,7 +66,7 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static org.gradle.internal.FileUtils.hasExtension;
 
-public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
+public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
     private final Compiler<JavaCompileSpec> javaCompiler;
     private final ObjectFactory objectFactory;
 
