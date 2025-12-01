@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
@@ -55,6 +56,7 @@ public interface Dependencies {
      * @see DependencyFactory
      */
     @Inject
+    @HiddenInDeclarativeDsl
     DependencyFactory getDependencyFactory();
 
     /**
@@ -66,6 +68,7 @@ public interface Dependencies {
      * @see DependencyConstraintFactory
      */
     @Inject
+    @HiddenInDeclarativeDsl
     DependencyConstraintFactory getDependencyConstraintFactory();
 
     /**
@@ -77,6 +80,7 @@ public interface Dependencies {
      * @since 8.0
      */
     @Inject
+    @HiddenInDeclarativeDsl
     Project getProject();
 
     /**
@@ -99,6 +103,7 @@ public interface Dependencies {
      *
      * @return the current project as a dependency
      */
+    @HiddenInDeclarativeDsl
     default ProjectDependency project() {
         return getDependencyFactory().create(getProject());
     }
@@ -110,6 +115,7 @@ public interface Dependencies {
      * @return the new dependency
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
+    @HiddenInDeclarativeDsl
     default ExternalModuleDependency module(CharSequence dependencyNotation) {
         return getDependencyFactory().create(dependencyNotation);
     }
@@ -125,6 +131,7 @@ public interface Dependencies {
      *
      * @deprecated This method will be removed in Gradle 10. Use single-string notation instead.
      */
+    @HiddenInDeclarativeDsl
     @Deprecated
     default ExternalModuleDependency module(@Nullable String group, String name, @Nullable String version) {
         String suggestedNotation = (group == null ? "" : group)  + ":" + name + (version == null ? "" : ":" + version);
@@ -146,6 +153,7 @@ public interface Dependencies {
      * @see DependencyConstraintFactory#create(CharSequence) Valid dependency constraint notation for this method
      * @since 8.7
      */
+    @HiddenInDeclarativeDsl
     default DependencyConstraint constraint(CharSequence dependencyConstraintNotation) {
         return getDependencyConstraintFactory().create(dependencyConstraintNotation);
     }
@@ -158,6 +166,7 @@ public interface Dependencies {
      * @since 8.7
      */
     @Incubating
+    @HiddenInDeclarativeDsl
     default Provider<? extends DependencyConstraint> constraint(Provider<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return dependencyConstraint.map(getDependencyConstraintFactory()::create);
     }
@@ -170,6 +179,7 @@ public interface Dependencies {
      * @since 8.7
      */
     @Incubating
+    @HiddenInDeclarativeDsl
     default Provider<? extends DependencyConstraint> constraint(ProviderConvertible<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return constraint(dependencyConstraint.asProvider());
     }
@@ -181,6 +191,7 @@ public interface Dependencies {
      * @return the new dependency constraint
      * @since 8.7
      */
+    @HiddenInDeclarativeDsl
     default DependencyConstraint constraint(ProjectDependency project) {
         return getDependencyConstraintFactory().create(project);
     }
@@ -195,5 +206,6 @@ public interface Dependencies {
      */
     @Inject
     @Deprecated
+    @HiddenInDeclarativeDsl
     ObjectFactory getObjectFactory();
 }

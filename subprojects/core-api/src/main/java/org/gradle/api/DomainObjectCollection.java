@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
 import java.util.Collection;
 
@@ -44,6 +45,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param provider A {@link Provider} that can provide the element when required.
      * @since 4.8
      */
+    @HiddenInDeclarativeDsl
     void addLater(Provider<? extends T> provider);
 
     /**
@@ -52,6 +54,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param provider A {@link Provider} of {@link Iterable} that can provide the elements when required.
      * @since 5.0
      */
+    @HiddenInDeclarativeDsl
     void addAllLater(Provider<? extends Iterable<T>> provider);
 
     /**
@@ -64,6 +67,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param type The type of objects to find.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
+    @HiddenInDeclarativeDsl
     <S extends T> DomainObjectCollection<S> withType(Class<S> type);
 
     /**
@@ -76,6 +80,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param configureAction The action to execute for each object in the resulting collection.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
+    @HiddenInDeclarativeDsl
     <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction);
 
     /**
@@ -88,6 +93,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param configureClosure The closure to execute for each object in the resulting collection.
      * @return The matching objects. Returns an empty collection if there are no such objects in this collection.
      */
+    @HiddenInDeclarativeDsl
     <S extends T> DomainObjectCollection<S> withType(@DelegatesTo.Target Class<S> type, @DelegatesTo(genericTypeIndex = 0) Closure configureClosure);
 
     /**
@@ -101,6 +107,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
      */
+    @HiddenInDeclarativeDsl
     DomainObjectCollection<T> matching(Spec<? super T> spec);
 
     /**
@@ -114,6 +121,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
      */
+    @HiddenInDeclarativeDsl
     DomainObjectCollection<T> matching(Closure spec);
 
     /**
@@ -124,6 +132,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param action The action to be executed
      * @return the supplied action
      */
+    @HiddenInDeclarativeDsl
     Action<? super T> whenObjectAdded(Action<? super T> action);
 
     /**
@@ -135,6 +144,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param action The closure to be called
      * @see #whenObjectAdded(Action)
      */
+    @HiddenInDeclarativeDsl
     void whenObjectAdded(Closure action);
 
     /**
@@ -147,6 +157,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param action The action to be executed
      * @return the supplied action
      */
+    @HiddenInDeclarativeDsl
     Action<? super T> whenObjectRemoved(Action<? super T> action);
 
     /**
@@ -159,6 +170,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * @param action The closure to be called
      */
+    @HiddenInDeclarativeDsl
     void whenObjectRemoved(Closure action);
 
     /**
@@ -169,6 +181,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * @param action The action to be executed
      */
+    @HiddenInDeclarativeDsl
     void all(Action<? super T> action);
 
     /**
@@ -179,6 +192,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      *
      * @param action The action to be executed
      */
+    @HiddenInDeclarativeDsl
     void all(Closure action);
 
     /**
@@ -189,6 +203,7 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param action A {@link Action} that can configure the element when required.
      * @since 4.9
      */
+    @HiddenInDeclarativeDsl
     void configureEach(Action<? super T> action);
 
     // note: this is here to override the default Groovy Collection.findAll { } method.
@@ -201,5 +216,6 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
      */
+    @HiddenInDeclarativeDsl
     Collection<T> findAll(Closure spec);
 }

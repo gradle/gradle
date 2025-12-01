@@ -33,6 +33,7 @@ import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.Configuring;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -122,6 +123,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @param projectPaths the projects to add.
      */
+    @HiddenInDeclarativeDsl
     default void include(String... projectPaths) {
         include(Arrays.asList(projectPaths));
     }
@@ -161,6 +163,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 7.4
      */
+    @HiddenInDeclarativeDsl
     void include(Iterable<String> projectPaths);
 
     /**
@@ -175,6 +178,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @param projectNames the projects to add.
      */
+    @HiddenInDeclarativeDsl
     default void includeFlat(String... projectNames) {
         includeFlat(Arrays.asList(projectNames));
     }
@@ -193,6 +197,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 7.4
      */
+    @HiddenInDeclarativeDsl
     void includeFlat(Iterable<String> projectNames);
 
     /**
@@ -200,6 +205,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @return This settings object. Never returns null.
      */
+    @HiddenInDeclarativeDsl
     Settings getSettings();
 
     /**
@@ -208,6 +214,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 8.5
      */
     @Incubating
+    @HiddenInDeclarativeDsl
     BuildLayout getLayout();
 
     /**
@@ -218,6 +225,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.4
      */
+    @HiddenInDeclarativeDsl
     ScriptHandler getBuildscript();
 
     /**
@@ -226,6 +234,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @return The settings directory. Never returns null.
      */
+    @HiddenInDeclarativeDsl
     File getSettingsDir();
 
     /**
@@ -233,6 +242,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @return The root directory. Never returns null.
      */
+    @HiddenInDeclarativeDsl
     File getRootDir();
 
     /**
@@ -250,6 +260,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
      */
+    @HiddenInDeclarativeDsl
     ProjectDescriptor project(String path) throws UnknownProjectException;
 
     /**
@@ -259,6 +270,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @return The project with the given path. Returns null if no such project exists.
      */
     @Nullable
+    @HiddenInDeclarativeDsl
     ProjectDescriptor findProject(String path);
 
     /**
@@ -268,6 +280,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @return The project with the given project directory. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
      */
+    @HiddenInDeclarativeDsl
     ProjectDescriptor project(File projectDir) throws UnknownProjectException;
 
     /**
@@ -277,6 +290,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @return The project with the given project directory. Returns null if no such project exists.
      */
     @Nullable
+    @HiddenInDeclarativeDsl
     ProjectDescriptor findProject(File projectDir);
 
     /**
@@ -284,6 +298,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @return The parameters. Never returns null.
      */
+    @HiddenInDeclarativeDsl
     StartParameter getStartParameter();
 
     /**
@@ -291,6 +306,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
+    @HiddenInDeclarativeDsl
     ProviderFactory getProviders();
 
     /**
@@ -298,6 +314,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @return The Gradle instance. Never returns null.
      */
+    @HiddenInDeclarativeDsl
     Gradle getGradle();
 
     /**
@@ -306,6 +323,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.1
      */
+    @HiddenInDeclarativeDsl
     void includeBuild(Object rootProject);
 
     /**
@@ -315,6 +333,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.1
      */
+    @HiddenInDeclarativeDsl
     void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration);
 
     /**
@@ -322,6 +341,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
+    @HiddenInDeclarativeDsl
     BuildCacheConfiguration getBuildCache();
 
     /**
@@ -329,6 +349,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
+    @HiddenInDeclarativeDsl
     void buildCache(Action<? super BuildCacheConfiguration> action);
 
     /**
@@ -336,7 +357,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
-    @Configuring
+    @HiddenInDeclarativeDsl
     void pluginManagement(Action<? super PluginManagementSpec> pluginManagementSpec);
 
     /**
@@ -351,6 +372,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.4
      */
+    @HiddenInDeclarativeDsl
     void sourceControl(Action<? super SourceControl> configuration);
 
     /**
@@ -358,6 +380,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 4.4
      */
+    @HiddenInDeclarativeDsl
     SourceControl getSourceControl();
 
     /**
@@ -392,6 +415,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 7.6
      */
     @Incubating
+    @HiddenInDeclarativeDsl
     void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration);
 
     /**
@@ -400,6 +424,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 7.6
      */
     @Incubating
+    @HiddenInDeclarativeDsl
     ToolchainManagement getToolchainManagement();
 
     /**
@@ -408,6 +433,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 8.0
      */
     @Incubating
+    @HiddenInDeclarativeDsl
     CacheConfigurations getCaches();
 
     /**
@@ -418,6 +444,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 8.0
      */
     @Incubating
+    @HiddenInDeclarativeDsl
     void caches(Action<? super CacheConfigurations> cachesConfiguration);
 
     /**
@@ -440,5 +467,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 8.10
      */
     @Incubating
+    @HiddenInDeclarativeDsl
     void defaults(Action<? super SharedModelDefaults> action);
 }

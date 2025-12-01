@@ -20,6 +20,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 import org.gradle.util.Configurable;
 
 /**
@@ -58,6 +59,7 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * @param repository The repository to add.
      */
     @Override
+    @HiddenInDeclarativeDsl
     boolean add(ArtifactRepository repository);
 
     /**
@@ -65,6 +67,7 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      *
      * @param repository The repository to add.
      */
+    @HiddenInDeclarativeDsl
     void addFirst(ArtifactRepository repository);
 
     /**
@@ -72,29 +75,34 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      *
      * @param repository The repository to add.
      */
+    @HiddenInDeclarativeDsl
     void addLast(ArtifactRepository repository);
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @HiddenInDeclarativeDsl
     ArtifactRepository getByName(String name) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @HiddenInDeclarativeDsl
     ArtifactRepository getByName(String name, @DelegatesTo(ArtifactRepository.class) Closure configureClosure) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @HiddenInDeclarativeDsl
     ArtifactRepository getByName(String name, Action<? super ArtifactRepository> configureAction) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @HiddenInDeclarativeDsl
     ArtifactRepository getAt(String name) throws UnknownRepositoryException;
 }

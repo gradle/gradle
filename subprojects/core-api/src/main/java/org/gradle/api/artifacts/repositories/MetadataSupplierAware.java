@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.api.artifacts.ComponentMetadataVersionLister;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
 /**
  * Interface for repositories which support custom metadata suppliers and/or version listers.
@@ -39,6 +40,7 @@ public interface MetadataSupplierAware {
      *
      * @since 4.9
      */
+    @HiddenInDeclarativeDsl
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule);
 
     /**
@@ -49,6 +51,7 @@ public interface MetadataSupplierAware {
      *
      * @since 4.9
      */
+    @HiddenInDeclarativeDsl
     void setMetadataSupplier(Class<? extends ComponentMetadataSupplier> rule, Action<? super ActionConfiguration> configureAction);
 
     /**
@@ -58,6 +61,7 @@ public interface MetadataSupplierAware {
      *
      * @since 4.9
      */
+    @HiddenInDeclarativeDsl
     void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister);
 
     /**
@@ -68,6 +72,7 @@ public interface MetadataSupplierAware {
      *
      * @since 4.9
      */
+    @HiddenInDeclarativeDsl
     void setComponentVersionsLister(Class<? extends ComponentMetadataVersionLister> lister, Action<? super ActionConfiguration> configureAction);
 
 }
