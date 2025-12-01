@@ -87,6 +87,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
             import javax.inject.Inject;
 
@@ -103,7 +104,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                     return sub;
                 }
 
-                @Configuring
+                @HiddenInDeclarativeDsl
                 public void sub(Action<? super SubDependencies> configure) {
                     configure.execute(getSub());
                 }
@@ -569,6 +570,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
             import javax.inject.Inject;
 
@@ -585,7 +587,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                     return dependencies;
                 }
 
-                @Configuring
+                @HiddenInDeclarativeDsl
                 public void dependencies(Action<? super DependenciesExtension> configure) {
                     configure.execute(dependencies);
                 }
@@ -645,6 +647,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.model.ObjectFactory
             import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.Restricted
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 
             import javax.inject.Inject
 
@@ -652,7 +655,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             abstract class LibraryExtension @Inject constructor(objectFactory: ObjectFactory) {
                 val dependencies: DependenciesExtension = objectFactory.newInstance(DependenciesExtension::class.java)
 
-                @Configuring
+                @HiddenInDeclarativeDsl
                 fun dependencies(configure: Action<DependenciesExtension>) {
                     configure.execute(dependencies)
                 }

@@ -19,7 +19,6 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
-import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
@@ -31,7 +30,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
-import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
+import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndNotHidden
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -110,7 +109,6 @@ class AccessorTest {
                 )
             } else emptyList()
 
-        override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
         override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
     }
 
@@ -119,7 +117,7 @@ class AccessorTest {
     val schema = schemaFromTypes(
         MyReceiver::class,
         this::class.nestedClasses,
-        functionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndRestricted) + functionContributorWithCustomAccessor
+        functionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndNotHidden) + functionContributorWithCustomAccessor
     )
 
     internal

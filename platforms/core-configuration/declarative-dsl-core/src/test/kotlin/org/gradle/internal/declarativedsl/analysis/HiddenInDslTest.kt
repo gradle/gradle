@@ -31,7 +31,6 @@ class HasHiddenProperty {
     @get:Restricted
     var x: Int = 0
 
-    @get:Restricted
     @get:HiddenInDeclarativeDsl
     var y: Int = 0
 }
@@ -43,7 +42,7 @@ class HiddenInDslTest {
     @Test
     fun `handles the hidden properties correctly`() {
         val aType = schema.dataClassTypesByFqName.getValue(DefaultFqName.parse(HasHiddenProperty::class.qualifiedName!!)) as DataClass
-        assertTrue { aType.properties.single { it.name == "y" }.isHiddenInDsl }
+        assertTrue { aType.properties.none { it.name == "y" } }
 
         val result = schema.resolve(
             """

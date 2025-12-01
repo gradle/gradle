@@ -23,12 +23,14 @@ import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
 import java.util.Locale
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
+import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
@@ -44,6 +46,10 @@ interface PropertyExtractor {
     }
 }
 
+class TypeFilteringPropertyExtractor(val delegate: PropertyExtractor, val includeType: (KClass<*>) -> Boolean) : PropertyExtractor {
+    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
+        if (includeType(kClass)) delegate.extractProperties(host, kClass, propertyNamePredicate) else emptyList()
+}
 
 class CompositePropertyExtractor(internal val extractors: Iterable<PropertyExtractor>) : PropertyExtractor {
     override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> = buildList {
@@ -79,8 +85,9 @@ data class CollectedPropertyInformation(
     val claimedFunctions: List<KFunction<*>>
 )
 
-
-class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = isPublicAndRestricted) : PropertyExtractor {
+class DefaultPropertyExtractor(
+    private val includeMemberFilter: MemberFilter = isPublicAndNotHidden
+) : PropertyExtractor {
     override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean) =
         (propertiesFromAccessorsOf(host, kClass, propertyNamePredicate) + memberPropertiesOf(host, kClass, propertyNamePredicate)).distinctBy { it }
 
@@ -90,23 +97,30 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
         val getters = functionsByName
             .filterKeys { it.startsWith("get") && it.substringAfter("get").firstOrNull()?.isUpperCase() == true }
             .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.all { it == fn.instanceParameter } } }
-            .filterValues { it != null && includeMemberFilter.shouldIncludeMember(it) }
+            .filterValues { it != null && includeMemberFilter.shouldIncludeMember(it) && it.hasValidPropertyType }
         return getters.mapNotNull { (name, getter) ->
             checkNotNull(getter)
             host.inContextOfModelMember(getter) {
                 val nameAfterGet = name.substringAfter("get")
                 val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-                if (!propertyNamePredicate(propertyName))
+                if (!propertyNamePredicate(propertyName)) {
                     return@inContextOfModelMember null
+                }
+                val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
 
                 val type = getter.returnTypeToRefOrError(host)
                 val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
                 val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
-                val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
-                val mode = run {
-                    if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly
-                }
-                CollectedPropertyInformation(propertyName, getter.returnType, type, mode, true, isHidden, isDirectAccessOnly, listOfNotNull(getter, setter))
+                CollectedPropertyInformation(
+                    propertyName,
+                    getter.returnType,
+                    type,
+                    if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly,
+                    true,
+                    isHidden,
+                    isDirectAccessOnly,
+                    listOfNotNull(getter, setter)
+                )
             }
         }
     }
@@ -117,6 +131,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             includeMemberFilter.shouldIncludeMember(property)
                 && property.visibility == KVisibility.PUBLIC
                 && propertyNamePredicate(property.name)
+                && property.hasValidPropertyType
         }.map { property ->
             host.inContextOfModelMember(property) {
                 kPropertyInformation(host, property)
@@ -141,4 +156,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             claimedFunctions = emptyList()
         )
     }
+
+    private val KCallable<*>.hasValidPropertyType: Boolean
+        get() = (returnType.classifier as? KClass<*>)?.allSuperclasses?.none { it.java.name == "org.gradle.api.provider.Provider" } == true
 }

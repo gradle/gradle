@@ -24,7 +24,10 @@ import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType // codenarc-disable-line UnusedImport
+import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+
+// codenarc-disable-line UnusedImport
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -458,6 +461,7 @@ trait ProjectTypeFixture {
 
                 import org.gradle.declarative.dsl.model.annotations.Configuring;
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
@@ -482,13 +486,13 @@ trait ProjectTypeFixture {
                     public abstract Property<String> getId();
 
                     public Foo getFoo() {
+                        isFooConfigured = true;
                         return foo;
                     }
 
-                    @Configuring
+                    @HiddenInDeclarativeDsl
                     public void foo(Action<? super Foo> action) {
-                        isFooConfigured = true;
-                        action.execute(foo);
+                        action.execute(getFoo());
                     }
 
                     public abstract static class Foo implements ${Definition.class.simpleName}<FooBuildModel> {
@@ -626,6 +630,7 @@ trait ProjectTypeFixture {
 
                 import org.gradle.declarative.dsl.model.annotations.Configuring;
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import ${HiddenInDeclarativeDsl.class.name};
 
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.Action;
@@ -639,7 +644,7 @@ trait ProjectTypeFixture {
 
                     Foo getFoo();
 
-                    @Configuring
+                    @HiddenInDeclarativeDsl
                     default void foo(Action<? super Foo> action) {
                         action.execute(getFoo());
                     }
@@ -678,6 +683,7 @@ trait ProjectTypeFixture {
                 import org.gradle.declarative.dsl.model.annotations.Adding;
                 import org.gradle.declarative.dsl.model.annotations.Configuring;
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
@@ -700,7 +706,7 @@ trait ProjectTypeFixture {
                     @Nested
                     public abstract Bar getBar();
 
-                    @Configuring
+                    @HiddenInDeclarativeDsl
                     public void bar(Action<? super Bar> action) {
                         action.execute(getBar());
                     }
@@ -748,6 +754,7 @@ trait ProjectTypeFixture {
                 import org.gradle.api.artifacts.dsl.DependencyCollector;
                 import org.gradle.declarative.dsl.model.annotations.Configuring;
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
                 import org.gradle.declarative.dsl.model.annotations.Adding;
                 import org.gradle.api.tasks.Nested;
 
@@ -764,7 +771,7 @@ trait ProjectTypeFixture {
                     @Nested
                     abstract public LibraryDependencies getDependencies();
 
-                    @Configuring
+                    @HiddenInDeclarativeDsl
                     public void dependencies(Action<? super LibraryDependencies> action) {
                         action.execute(getDependencies());
                     }
@@ -780,7 +787,7 @@ trait ProjectTypeFixture {
                     @Nested
                     public abstract Bar getBar();
 
-                    @Configuring
+                    @HiddenInDeclarativeDsl
                     public void bar(Action<? super Bar> action) {
                         action.execute(getBar());
                     }

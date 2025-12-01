@@ -352,6 +352,7 @@ trait LegacyProjectTypeFixture extends ProjectTypeFixture {
             import org.gradle.declarative.dsl.model.annotations.Adding;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
 
@@ -392,7 +393,7 @@ trait LegacyProjectTypeFixture extends ProjectTypeFixture {
                         return foo;
                     }
 
-                    @Configuring
+                    @HiddenInDeclarativeDsl
                     public void foo(Action<? super Foo> action) {
                         action.execute(foo);
                     }

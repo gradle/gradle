@@ -16,15 +16,31 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.api.NamedDomainObjectCollection
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.NamedDomainObjectList
+import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.api.Task
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemLocationProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionSchema
-import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.DefaultEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
@@ -36,12 +52,18 @@ import org.gradle.internal.declarativedsl.schemaBuilder.CompositePropertyExtract
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultImportsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.FilteringTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeFilteringFunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeFilteringPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import java.nio.CharBuffer
+import java.util.Spliterator
 import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
 
 internal interface EvaluationSchemaBuilder {
@@ -171,15 +193,42 @@ fun analysisSchema(
         listOf(topLevelReceiverType),
         externalFunctionDiscovery = CompositeTopLevelFunctionDiscovery(builder.topLevelFunctionDiscovery),
         configureLambdas = gradleConfigureLambdas,
-        propertyExtractor = CompositePropertyExtractor(builder.propertyExtractors),
-        functionExtractor = CompositeFunctionExtractor(builder.functionExtractors),
-        typeDiscovery = CompositeTypeDiscovery(builder.typeDiscoveries),
+        propertyExtractor = TypeFilteringPropertyExtractor(CompositePropertyExtractor(builder.propertyExtractors), ::isValidMemberHolder),
+        functionExtractor = TypeFilteringFunctionExtractor(CompositeFunctionExtractor(builder.functionExtractors), ::isValidMemberHolder),
+        typeDiscovery = FilteringTypeDiscovery(CompositeTypeDiscovery(builder.typeDiscoveries), ::isValidTypeForDiscovery),
         defaultImports = CompositeDefaultImportsProvider(builder.defaultImportsProviders).defaultImports(),
         augmentationsProvider = CompositeAugmentationsProvider(builder.augmentationsProviders)
     )
     return analysisSchema
 }
 
+private fun isValidTypeForDiscovery(kClass: KClass<*>): Boolean = when (kClass) {
+    Provider::class, Property::class,
+    ListProperty::class, MapProperty::class,
+    Comparator::class, Iterable::class, Iterator::class, Spliterator::class,
+    FileSystemLocationProperty::class, FileCollection::class, DirectoryProperty::class -> false
+
+    CharBuffer::class -> false
+
+    else -> kClass.javaPrimitiveType == null && !kClass.java.isArray
+        && !(kClass.java.name.startsWith("kotlin."))
+}
+
+private fun isValidMemberHolder(kClass: KClass<*>): Boolean = when {
+    kClass.isSubclassOf(NamedDomainObjectCollection::class) && !kClass.isSubclassOf(RepositoryHandler::class)-> false
+    kClass == RegularFileProperty::class -> false
+    kClass == DirectoryProperty::class -> false
+    kClass == SetProperty::class -> false
+    kClass == ListProperty::class -> false
+    kClass == NamedDomainObjectProvider::class -> false
+    kClass == NamedDomainObjectContainer::class -> false
+    kClass == NamedDomainObjectCollection::class -> false
+    kClass == NamedDomainObjectList::class -> false
+    kClass == PolymorphicDomainObjectContainer::class -> false
+    kClass == Task::class -> false
+    kClass.java.name.startsWith("java.") || kClass.java.name.startsWith("kotlin.") -> false
+    else -> true
+}
 
 internal
 open class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder, EvaluationSchemaBuilderResult {

@@ -21,7 +21,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.gradleConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
+import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndNotHidden
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberFunctions
 
@@ -30,13 +30,13 @@ import kotlin.reflect.full.memberFunctions
  * Provides type discovery via functions that return an object or configure an object accepting a lambda as the last parameter
  * (via [org.gradle.api.Action] or a Kotlin function type, see [gradleConfigureLambdas]).
  *
- * All configured or returned types that appear in [isPublicAndRestricted]-matching will be discovered (for now, regardless of actual function semantics).
+ * All configured or returned types that appear in [isPublicAndNotHidden]-matching will be discovered (for now, regardless of actual function semantics).
  */
 internal
 class TypeDiscoveryFromRestrictedFunctions : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FunctionLambdaTypeDiscovery(isPublicAndRestricted, gradleConfigureLambdas),
-        FunctionReturnTypeDiscovery(isPublicAndRestricted)
+        FunctionLambdaTypeDiscovery(isPublicAndNotHidden, gradleConfigureLambdas),
+        FunctionReturnTypeDiscovery(isPublicAndNotHidden)
     )
 }
 

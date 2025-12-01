@@ -76,12 +76,12 @@ class Outer {
     @get:Restricted
     val inner: Inner = Inner()
 
-    @Configuring(propertyName = "inner")
+    @Configuring
     fun configureInner(fn: Functional) {
         fn.configure(inner)
     }
 
-    @Configuring(propertyName = "inner")
+    @Configuring
     fun configureInnerWithGeneric(fn: GenericFunctional<Inner>) {
         fn.configure(inner)
     }

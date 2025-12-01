@@ -115,7 +115,7 @@ secondaryAccess { three, true, true}"""
         """
 
         when:
-        run(":printConfiguration")
+        run(":printConfiguration", "--stacktrace")
 
         then:
         outputContains("arguments = [one, two, three]")
@@ -259,7 +259,7 @@ secondaryAccess { three, true, true}"""
         import java.util.List;
         import org.gradle.declarative.dsl.model.annotations.Adding;
         import org.gradle.declarative.dsl.model.annotations.Configuring;
-        import org.gradle.declarative.dsl.model.annotations.Restricted;
+        import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;import org.gradle.declarative.dsl.model.annotations.Restricted;
         import org.gradle.api.Action;
         import org.gradle.api.model.ObjectFactory;
         import org.gradle.api.provider.ListProperty;
@@ -309,11 +309,6 @@ secondaryAccess { three, true, true}"""
 
             public void setFlags(List<Integer> flags) {
                 this.flags = flags;
-            }
-
-            @Configuring
-            public void primaryAccess(Action<? super Access> configure) {
-                configure.execute(primaryAccess);
             }
 
             @Adding
@@ -407,11 +402,6 @@ secondaryAccess { three, true, true}"""
 
             @get:Restricted
             var flags: List<Int> = emptyList()
-
-            @Configuring
-            fun primaryAccess(configure: Access.() -> Unit) {
-                configure(primaryAccess)
-            }
 
             @Adding
             fun secondaryAccess(configure: Access.() -> Unit): Access {

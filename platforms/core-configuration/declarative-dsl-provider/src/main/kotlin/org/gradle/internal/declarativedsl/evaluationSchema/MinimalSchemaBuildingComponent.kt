@@ -19,14 +19,19 @@ package org.gradle.internal.declarativedsl.evaluationSchema
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.GetterBasedConfiguringFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
-
+import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndNotHidden
 
 /**
- * Defines a minimal set of features for Declarative DSL evaluation. The only Gradle-related customization in this component is [gradleConfigureLambdas].
+ * Defines a minimal set of features for Declarative DSL evaluation.
+ * The only Gradle-related customization in this component are [gradleConfigureLambdas].
  * Besides, no custom Gradle APIs are considered as schema contributors.
  */
 class MinimalSchemaBuildingComponent : AnalysisSchemaComponent {
     override fun propertyExtractors(): List<PropertyExtractor> = listOf(DefaultPropertyExtractor())
-    override fun functionExtractors(): List<FunctionExtractor> = listOf(DefaultFunctionExtractor(configureLambdas = gradleConfigureLambdas))
+    override fun functionExtractors(): List<FunctionExtractor> = listOf(
+        DefaultFunctionExtractor(configureLambdas = gradleConfigureLambdas),
+        GetterBasedConfiguringFunctionExtractor(isPublicAndNotHidden)
+    )
 }
