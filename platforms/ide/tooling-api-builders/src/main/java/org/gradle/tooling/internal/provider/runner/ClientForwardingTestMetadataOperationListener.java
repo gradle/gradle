@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
-import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.event.types.DefaultTestFileAttachmentMetadataEvent;

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
