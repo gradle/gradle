@@ -40,6 +40,7 @@ class DependencyClassPathProviderTest extends Specification {
             "gradle-dependency-management-runtime",
             "gradle-plugin-use-runtime",
             "gradle-tooling-api-builders-runtime",
+            "gradle-build-tree-control-runtime",
             "gradle-configuration-cache-runtime",
             "gradle-isolated-action-services-runtime",
             "gradle-unit-test-fixtures-runtime",
@@ -54,6 +55,7 @@ class DependencyClassPathProviderTest extends Specification {
         1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")
         1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
         1 * moduleRegistry.getModule("gradle-tooling-api-builders") >> module("gradle-tooling-api-builders")
+        1 * moduleRegistry.getModule("gradle-build-tree-control") >> module("gradle-build-tree-control")
         1 * moduleRegistry.getModule("gradle-configuration-cache") >> module("gradle-configuration-cache")
         1 * moduleRegistry.getModule("gradle-isolated-action-services") >> module("gradle-isolated-action-services")
         1 * moduleRegistry.getModule("gradle-unit-test-fixtures") >> module("gradle-unit-test-fixtures")

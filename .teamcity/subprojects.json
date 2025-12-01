@@ -203,6 +203,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-tree-control",
+    "path": "platforms/core-configuration/build-tree-control",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "classloaders",
     "path": "platforms/core-runtime/classloaders",
     "unitTests": false,

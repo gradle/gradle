@@ -22,7 +22,7 @@ import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.RunTasksRequirements
-import org.gradle.internal.cc.buildtree.DefaultBuildModelParameters
+import org.gradle.internal.buildtree.control.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.HashCode
