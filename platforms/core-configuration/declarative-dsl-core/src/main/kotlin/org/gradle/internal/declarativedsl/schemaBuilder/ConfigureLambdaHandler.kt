@@ -26,6 +26,7 @@ import kotlin.reflect.KVariance
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.typeOf
@@ -126,7 +127,7 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
     }
 
     override fun getTypeConfiguredByLambda(type: KType): KType? =
-        if (type.isSubtypeOf(starProjectedType)) type.arguments.firstOrNull()?.type ?: staticallyKnownConfiguredType else null
+        if ((type.classifier as? KClass<*>)?.isSubclassOf(functionalInterface) == true && type.isSubtypeOf(starProjectedType)) type.arguments.firstOrNull()?.type ?: staticallyKnownConfiguredType else null
 
     override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType) =
         maybeLambdaType.isSubtypeOf(interfaceTypeWithArgument(configuredType))

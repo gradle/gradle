@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Adding
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -116,7 +117,7 @@ class EnumResolutionTest {
         fun <T> myListOf(vararg t: T) = MyList(listOf(*t))
     }
 
-    class Box<T>(val t: T)
+    class Box<T>(@get:HiddenInDeclarativeDsl val t: T)
     class MyList<T>(val items: List<T>)
 
     enum class Enum {

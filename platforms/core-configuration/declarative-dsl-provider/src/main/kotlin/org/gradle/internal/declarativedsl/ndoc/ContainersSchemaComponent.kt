@@ -54,6 +54,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
+import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndNotHidden
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
@@ -224,11 +225,11 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
     }
 
     private fun containerProperties(kClass: KClass<*>): List<ContainerProperty> {
-        val propertiesFromMemberProperties = kClass.memberProperties.filter(::isPublicAndNotInternal).mapNotNull {
+        val propertiesFromMemberProperties = kClass.memberProperties.filter(isPublicAndNotHidden::shouldIncludeMember).mapNotNull {
             val elementType = elementTypeFromNdocContainerType(it.returnType) ?: return@mapNotNull null
             ContainerProperty(kClass, it.propertyName(), it.returnType, elementType, ContainerPropertyDeclaration.KotlinProperty(it))
         }
-        val propertiesFromMemberFunctions = kClass.memberFunctions.filter(::isPublicAndNotInternal).mapNotNull {
+        val propertiesFromMemberFunctions = kClass.memberFunctions.filter(isPublicAndNotHidden::shouldIncludeMember).mapNotNull {
             val elementType = elementTypeFromNdocContainerType(it.returnType) ?: return@mapNotNull null
             ContainerProperty(kClass, it.propertyName(), it.returnType, elementType, ContainerPropertyDeclaration.Getter(it))
         }

@@ -21,6 +21,8 @@ import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.assertFailsWith
+import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeFilteringPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
@@ -79,7 +81,8 @@ class SchemeExtractionErrorTest {
             block = {
                 schemaFromTypes(
                     ReceiverFunctionParam::class,
-                    listOf(ListProperty::class, ReceiverFunctionParam::class)
+                    listOf(ListProperty::class, ReceiverFunctionParam::class),
+                    propertyExtractor = TypeFilteringPropertyExtractor(DefaultPropertyExtractor(), { it != ListProperty::class })
                 )
             }
         )
@@ -104,7 +107,8 @@ class SchemeExtractionErrorTest {
             block = {
                 schemaFromTypes(
                     ReceiverFunctionReturn::class,
-                    listOf(ListProperty::class, ReceiverFunctionReturn::class)
+                    listOf(ListProperty::class, ReceiverFunctionReturn::class),
+                    propertyExtractor = TypeFilteringPropertyExtractor(DefaultPropertyExtractor(), { it != ListProperty::class })
                 )
             }
         )

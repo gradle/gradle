@@ -43,12 +43,6 @@ import org.gradle.plugin.use.PluginDependencySpec
 
 class PluginsTopLevelReceiver {
     val plugins = PluginsCollectingPluginsBlock()
-
-    @Configuring
-    @AccessFromCurrentReceiverOnly
-    fun plugins(configure: PluginsCollectingPluginsBlock.() -> Unit) {
-        configure(plugins)
-    }
 }
 
 

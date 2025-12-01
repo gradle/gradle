@@ -24,7 +24,6 @@ import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTyp
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
-import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
@@ -230,8 +229,6 @@ fun projectFeatureConfiguringFunctions(projectFeatureImplementations: ProjectFea
 
         return featureImplementations.map { it.schemaFunction(host, kClass) }
     }
-
-    override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 
     override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }

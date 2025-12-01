@@ -20,14 +20,18 @@ import groovy.transform.SelfType
 import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+// codenarc-disable-line UnusedImport
+
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @SelfType(AbstractIntegrationSpec)
@@ -596,6 +600,7 @@ trait ProjectTypeFixture {
 
                 import ${Configuring.class.name};
                 import ${Restricted.class.name};
+                import ${HiddenInDeclarativeDsl.class.name};
 
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
@@ -613,9 +618,12 @@ trait ProjectTypeFixture {
                     Property<String> getId();
 
                     @Nested
-                    Foo getFoo();
+                    public Foo getFoo() {
+                        isFooConfigured = true;
+                        return foo;
+                    }
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDeclarativeDsl.class.simpleName}
                     default void foo(Action<? super Foo> action) {
                         action.execute(getFoo());
                     }
@@ -805,6 +813,7 @@ trait ProjectTypeFixture {
                 import ${Adding.class.name};
                 import ${Configuring.class.name};
                 import ${Restricted.class.name};
+                import ${HiddenInDeclarativeDsl.class.name};
 
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
@@ -827,7 +836,7 @@ trait ProjectTypeFixture {
                     @Nested
                     Bar getBar();
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDeclarativeDsl.class.simpleName}
                     default void bar(Action<? super Bar> action) {
                         action.execute(getBar());
                     }
@@ -881,6 +890,7 @@ trait ProjectTypeFixture {
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.artifacts.dsl.DependencyCollector;
                 import ${Configuring.class.name};
+                import ${HiddenInDeclarativeDsl.class.name};
                 import ${Restricted.class.name};
                 import ${Adding.class.name};
                 import org.gradle.api.tasks.Nested;
@@ -898,7 +908,7 @@ trait ProjectTypeFixture {
                     @Nested
                     abstract public LibraryDependencies getDependencies();
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDeclarativeDsl.class.simpleName}
                     public void dependencies(Action<? super LibraryDependencies> action) {
                         action.execute(getDependencies());
                     }
@@ -913,7 +923,7 @@ trait ProjectTypeFixture {
                     @Nested
                     public abstract Bar getBar();
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDeclarativeDsl.class.simpleName}
                     public void bar(Action<? super Bar> action) {
                         isBarConfigured = true;
                         action.execute(getBar());

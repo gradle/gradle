@@ -32,7 +32,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
-import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
+import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndNotHidden
 import org.gradle.internal.declarativedsl.schemaBuilder.returnTypeToRefOrError
 import java.util.Locale
 import kotlin.reflect.KClass
@@ -52,7 +52,7 @@ import kotlin.reflect.full.primaryConstructor
 internal
 class GradlePropertyApiAnalysisSchemaComponent : AnalysisSchemaComponent {
     private
-    val propertyExtractor = GradlePropertyApiPropertyExtractor(isPublicAndRestricted)
+    val propertyExtractor = GradlePropertyApiPropertyExtractor(isPublicAndNotHidden)
 
     override fun propertyExtractors(): List<PropertyExtractor> = listOf(propertyExtractor)
 

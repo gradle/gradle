@@ -4,14 +4,14 @@ import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
 class TopLevelScope {
-    @get:Restricted
     val plugins = PluginsBlock()
 
-    @Configuring
+    @HiddenInDeclarativeDsl
     fun plugins(configure: PluginsBlock.() -> Unit) {
         configure(plugins)
     }

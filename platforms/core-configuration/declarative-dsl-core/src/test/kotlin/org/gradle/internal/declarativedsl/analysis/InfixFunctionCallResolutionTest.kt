@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
@@ -56,4 +57,4 @@ class InfixFunctionCallResolutionTest {
 
 infix fun String.to(b: String) = MyStringPair(this, b)
 
-data class MyStringPair(val a: String, val b: String)
+data class MyStringPair(val a: String, @get:HiddenInDeclarativeDsl val b: String)

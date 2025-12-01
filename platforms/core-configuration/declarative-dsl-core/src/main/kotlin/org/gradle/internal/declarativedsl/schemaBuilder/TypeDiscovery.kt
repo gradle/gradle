@@ -40,6 +40,11 @@ class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscover
         implementations.flatMapTo(mutableSetOf()) { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) }
 }
 
+class FilteringTypeDiscovery(private val delegate: TypeDiscovery, val typeFilter: (KClass<*>) -> Boolean) : TypeDiscovery {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+        if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass).filter(typeFilter) else emptyList()
+}
+
 
 operator fun TypeDiscovery.plus(other: TypeDiscovery): CompositeTypeDiscovery = CompositeTypeDiscovery(buildList {
     fun include(typeDiscovery: TypeDiscovery) = when (typeDiscovery) {

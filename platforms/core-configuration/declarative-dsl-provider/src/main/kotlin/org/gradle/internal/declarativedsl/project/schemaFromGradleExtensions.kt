@@ -19,7 +19,6 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
-import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
@@ -147,8 +146,6 @@ private
 fun extensionConfiguringFunctions(typeToExtend: KClass<*>, extensionInfo: Iterable<ExtensionInfo>): FunctionExtractor = object : FunctionExtractor {
     override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
         if (kClass == typeToExtend) extensionInfo.map { it.schemaFunction(host) } else emptyList()
-
-    override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 
     override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }
