@@ -59,7 +59,7 @@ public interface BuildLifecycleController {
      * Configures the projects of the build, if not already done.
      * Can be called multiple times.
      *
-     * If called after build have already been configured and a later build lifecycle state
+     * If called after the build has already been configured and a later build lifecycle state
      * has failed (e.g., task execution), this method will also fail.
      */
     void configureProjects();
