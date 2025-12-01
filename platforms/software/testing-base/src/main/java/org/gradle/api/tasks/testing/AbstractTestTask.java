@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
@@ -175,6 +176,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final TestTaskReports reports;
     private final BroadcastSubscriptions<TestListener> testListenerSubscriptions;
     private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
+    private final BroadcastSubscriptions<TestMetadataListener> testMetadataListenerSubscriptions;
     private final TestLoggingContainer testLogging;
     private TestReporter testReporter;
     private boolean ignoreFailures;
@@ -183,8 +185,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public AbstractTestTask() {
         ObjectFactory objectFactory = getObjectFactory();
         testLogging = objectFactory.newInstance(DefaultTestLoggingContainer.class);
-        testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
-        testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
+        testListenerSubscriptions = new BroadcastSubscriptions<>(TestListener.class);
+        testOutputListenerSubscriptions = new BroadcastSubscriptions<>(TestOutputListener.class);
+        testMetadataListenerSubscriptions = new BroadcastSubscriptions<>(TestMetadataListener.class);
 
         reports = getObjectFactory().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
@@ -313,6 +316,21 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
+     * Registers a metadata listener with this task. Quicker way of hooking into metadata events is using the {@link #onMetadata(Closure)} method.
+     *
+     * @param listener The listener to add.
+     * @since 9.4.0
+     */
+    @Incubating
+    public void addTestMetadataListener(TestMetadataListener listener) {
+        testMetadataListenerSubscriptions.addListener(listener);
+    }
+
+    private void addDispatchAsTestMetadataListener(String methodName, Closure closure) {
+        testMetadataListenerSubscriptions.addListener(new ClosureBackedMethodInvocationDispatch(methodName, closure));
+    }
+
+    /**
      * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(TestListener)} on this task. If the listener was
      * registered with Gradle using {@link Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
      * Gradle#removeListener(Object)}.
@@ -332,6 +350,19 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     public void removeTestOutputListener(TestOutputListener listener) {
         testOutputListenerSubscriptions.removeListener(listener);
+    }
+
+    /**
+     * Unregisters a test metadata listener with this task.  This method will only remove listeners that were added by calling {@link #addTestMetadataListener(TestMetadataListener)} on this task.  If the
+     * listener was registered with Gradle using {@link Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Gradle#removeListener(Object)}.
+     *
+     * @param listener The listener to remove.
+     * @since 9.4.0
+     */
+    @Incubating
+    public void removeTestMetadataListener(TestMetadataListener listener) {
+        testMetadataListenerSubscriptions.removeListener(listener);
     }
 
     /**
@@ -383,6 +414,32 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     public void onOutput(Closure closure) {
         addDispatchAsTestOutputListener("onOutput", closure);
+    }
+
+    // TODO: Should there be more specific public interface types to instanceof on here to get values
+
+    /**
+     * Adds a closure to be notified when metadata from the test is received. A {@link TestDescriptor} and {@link TestMetadataEvent} instance are
+     * passed to the closure as a parameter.
+     *
+     * <pre class='autoTested'>
+     * apply plugin: 'java'
+     *
+     * test {
+     *    onMetadata { descriptor, event -&gt;
+     *        if (event instance of DefaultTestKeyValueDataEvent) {
+     *            logger.error("Test: " + descriptor + ", metadata: " + event.values)
+     *        }
+     *    }
+     * }
+     * </pre>
+     *
+     * @param closure The closure to call.
+     * @since 9.4.0
+     */
+    @Incubating
+    public void onMetadata(Closure closure) {
+        addDispatchAsTestMetadataListener("onMetadata", closure);
     }
 
     /**
@@ -510,7 +567,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         // Adapt all listeners registered with addTestListener() and addTestOutputListener() to TestListenerInternal
         ListenerBroadcast<@NonNull TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
-        testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerSubscriptions.get().getSource(), testOutputListenerSubscriptions.get().getSource()));
+        testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerSubscriptions.get().getSource(), testOutputListenerSubscriptions.get().getSource(), testMetadataListenerSubscriptions.get().getSource()));
 
         // Log to the console which tests are currently executing, and update live as current tests change
         ProgressLogger parentProgressLogger = getProgressLoggerFactory().newOperation(AbstractTestTask.class);
