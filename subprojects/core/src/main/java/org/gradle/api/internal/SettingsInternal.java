@@ -25,6 +25,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.declarative.dsl.model.annotations.Adding;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.IncludedBuildSpec;
@@ -43,19 +44,26 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     String BUILD_SRC = BuildLogicFiles.BUILD_SOURCE_DIRECTORY;
 
     @Override
+    @HiddenInDeclarativeDsl
     StartParameter getStartParameter();
 
+    @HiddenInDeclarativeDsl
     ScriptSource getSettingsScript();
 
+    @HiddenInDeclarativeDsl
     ProjectDescriptorRegistry getProjectRegistry();
 
+    @HiddenInDeclarativeDsl
     ProjectDescriptorInternal getDefaultProject();
 
+    @HiddenInDeclarativeDsl
     void setDefaultProject(ProjectDescriptorInternal defaultProject);
 
     @Override
+    @HiddenInDeclarativeDsl
     GradleInternal getGradle();
 
+    @HiddenInDeclarativeDsl
     List<IncludedBuildSpec> getIncludedBuilds();
 
     /**
@@ -63,6 +71,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
      *
      * Gradle runtime.
      */
+    @HiddenInDeclarativeDsl
     ClassLoaderScope getBaseClassLoaderScope();
 
     /**
@@ -70,17 +79,22 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
      *
      * Gradle runtime + this object's script's additions.
      */
+    @HiddenInDeclarativeDsl
     ClassLoaderScope getClassLoaderScope();
 
+    @HiddenInDeclarativeDsl
     ServiceRegistry getServices();
 
     @Override
+    @HiddenInDeclarativeDsl
     BuildCacheConfigurationInternal getBuildCache();
 
     @Override
+    @HiddenInDeclarativeDsl
     DependencyResolutionManagementInternal getDependencyResolutionManagement();
 
     @Override
+    @HiddenInDeclarativeDsl
     CacheConfigurationsInternal getCaches();
 
     /**

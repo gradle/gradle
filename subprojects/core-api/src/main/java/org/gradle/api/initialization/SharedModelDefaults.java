@@ -19,6 +19,7 @@ package org.gradle.api.initialization;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -42,6 +43,7 @@ public interface SharedModelDefaults {
      *
      * @since 8.14
      */
+    @HiddenInDeclarativeDsl
     ProjectLayout getLayout();
 
     /**
@@ -53,5 +55,6 @@ public interface SharedModelDefaults {
      *
      * @since 8.10
      */
+    @HiddenInDeclarativeDsl
     <T> void add(String name, Class<T> publicType, Action<? super T> configureAction);
 }

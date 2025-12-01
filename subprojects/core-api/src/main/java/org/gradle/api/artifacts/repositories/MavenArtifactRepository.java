@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -61,6 +62,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @param url The base URL.
      */
     @Override
+    @HiddenInDeclarativeDsl
     void setUrl(Object url);
 
     /**
@@ -69,6 +71,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @return The additional URLs. Returns an empty list if there are no such URLs.
      */
     @ToBeReplacedByLazyProperty
+    @HiddenInDeclarativeDsl
     Set<URI> getArtifactUrls();
 
     /**
@@ -79,6 +82,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @param urls The URLs to add.
      */
+    @HiddenInDeclarativeDsl
     void artifactUrls(Object... urls);
 
     /**
@@ -87,6 +91,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @param urls The URLs.
      * @since 4.0
      */
+    @HiddenInDeclarativeDsl
     void setArtifactUrls(Set<URI> urls);
 
     /**
@@ -97,6 +102,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @param urls The URLs.
      */
+    @HiddenInDeclarativeDsl
     void setArtifactUrls(Iterable<?> urls);
 
     /**
@@ -107,6 +113,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @since 4.5
      */
+    @HiddenInDeclarativeDsl
     void metadataSources(Action<? super MetadataSources> configureAction);
 
     /**
@@ -115,6 +122,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @since 6.4
      */
     @NotToBeReplacedByLazyProperty(because = "Not settable property")
+    @HiddenInDeclarativeDsl
     MetadataSources getMetadataSources();
 
     /**
@@ -186,5 +194,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      *
      * @since 5.1
      */
+    @HiddenInDeclarativeDsl
     void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction);
 }

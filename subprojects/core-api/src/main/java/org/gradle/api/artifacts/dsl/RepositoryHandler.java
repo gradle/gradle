@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.declarative.dsl.model.annotations.Adding;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -73,6 +74,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @throws org.gradle.api.InvalidUserDataException In the case neither rootDir nor rootDirs is specified of if both
      * are specified.
      */
+    @HiddenInDeclarativeDsl
     FlatDirectoryArtifactRepository flatDir(Map<String, ?> args);
 
     /**
@@ -81,6 +83,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param configureClosure The closure to execute to configure the repository.
      * @return The repository.
      */
+    @HiddenInDeclarativeDsl
     FlatDirectoryArtifactRepository flatDir(@DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
 
     /**
@@ -89,6 +92,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param action The action to execute to configure the repository.
      * @return The repository.
      */
+    @HiddenInDeclarativeDsl
     FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action);
 
     /**
@@ -107,6 +111,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @since 5.4
      */
+    @HiddenInDeclarativeDsl
     ArtifactRepository gradlePluginPortal(Action<? super ArtifactRepository> action);
 
     /**
@@ -141,6 +146,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param args A list of urls of repositories to look for artifacts only.
      * @return the added repository
      */
+    @HiddenInDeclarativeDsl
     MavenArtifactRepository mavenCentral(Map<String, ?> args);
 
     /**
@@ -177,6 +183,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @since 5.3
      */
+    @HiddenInDeclarativeDsl
     MavenArtifactRepository mavenCentral(Action<? super MavenArtifactRepository> action);
 
     /**
@@ -201,6 +208,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @return the added resolver
      */
+    @HiddenInDeclarativeDsl
     MavenArtifactRepository mavenLocal();
 
     /**
@@ -227,6 +235,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @since 5.3
      */
+    @HiddenInDeclarativeDsl
     MavenArtifactRepository mavenLocal(Action<? super MavenArtifactRepository> action);
 
     /**
@@ -263,6 +272,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @return the added resolver
      * @since 5.3
      */
+    @HiddenInDeclarativeDsl
     MavenArtifactRepository google(Action<? super MavenArtifactRepository> action);
 
     /**
@@ -271,6 +281,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
+    @HiddenInDeclarativeDsl
     MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class)
                                   @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.repositories.MavenArtifactRepository")
                                   Closure closure);
@@ -290,6 +301,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param closure The closure to use to configure the repository.
      * @return The added repository.
      */
+    @HiddenInDeclarativeDsl
     IvyArtifactRepository ivy(@DelegatesTo(IvyArtifactRepository.class) Closure closure);
 
     /**
@@ -298,6 +310,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param action The action to use to configure the repository.
      * @return The added repository.
      */
+    @HiddenInDeclarativeDsl
     IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action);
 
     /**
@@ -310,5 +323,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      *
      * @since 6.2
      */
+    @HiddenInDeclarativeDsl
     void exclusiveContent(Action<? super ExclusiveContentRepository> action);
 }

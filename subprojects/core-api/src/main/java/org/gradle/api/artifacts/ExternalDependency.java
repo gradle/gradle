@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
 /**
  * <p>An {@code ExternalDependency} is a {@link Dependency} on a source outside the current project hierarchy.</p>
@@ -25,12 +26,14 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
     /**
      * Returns whether or not the version of this dependency should be enforced in the case of version conflicts.
      */
+    @HiddenInDeclarativeDsl
     boolean isForce();
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @HiddenInDeclarativeDsl
     ExternalDependency copy();
 
     /**
@@ -38,6 +41,7 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
      * @param configureAction the configuration action for the module version
      * @since 4.4
      */
+    @HiddenInDeclarativeDsl
     void version(Action<? super MutableVersionConstraint> configureAction);
 
     /**
@@ -46,5 +50,6 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
      *
      * @since 4.4
      */
+    @HiddenInDeclarativeDsl
     VersionConstraint getVersionConstraint();
 }

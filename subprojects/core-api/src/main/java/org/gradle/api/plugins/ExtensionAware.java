@@ -16,6 +16,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
 /**
  * Objects that can be extended at runtime with other objects.
@@ -87,6 +88,7 @@ public interface ExtensionAware {
      * The container of extensions.
      */
     @Internal
+    @HiddenInDeclarativeDsl
     ExtensionContainer getExtensions();
 
 }
