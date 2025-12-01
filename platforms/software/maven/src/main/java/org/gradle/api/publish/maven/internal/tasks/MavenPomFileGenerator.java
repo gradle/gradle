@@ -68,9 +68,11 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public final class MavenPomFileGenerator {
 
-    private static final String POM_FILE_ENCODING = "UTF-8";
+    private static final String POM_FILE_ENCODING = UTF_8.toString();
     private static final String POM_VERSION = "4.0.0";
 
     private MavenPomFileGenerator() {}

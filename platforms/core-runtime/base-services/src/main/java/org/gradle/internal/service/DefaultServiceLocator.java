@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * Uses the Jar service resource specification to locate service implementations.
  */
@@ -156,20 +158,17 @@ public class DefaultServiceLocator implements ServiceLocator {
         if (!useCaches && urlConnection instanceof JarURLConnection) {
             urlConnection.setUseCaches(false);
         }
-        InputStream inputStream = urlConnection.getInputStream();
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+        try (InputStream inputStream = urlConnection.getInputStream()) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8));
             List<String> implementationClassNames = new ArrayList<String>();
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.replaceAll("#.*", "").trim();
-                if (line.length() > 0) {
+                if (!line.isEmpty()) {
                     implementationClassNames.add(line);
                 }
             }
             return implementationClassNames;
-        } finally {
-            inputStream.close();
         }
     }
 

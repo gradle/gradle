@@ -51,7 +51,7 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
                     }
 
                     static String readIS(InputStream in) throws Exception {
-                        return new BufferedReader(new InputStreamReader(in, "UTF-8")).readLine();
+                        return new BufferedReader(new InputStreamReader(in, UTF_8)).readLine();
                     }
                 }
             """

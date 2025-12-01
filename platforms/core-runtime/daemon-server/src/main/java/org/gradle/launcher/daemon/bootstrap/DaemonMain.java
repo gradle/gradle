@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newOutputStream;
 import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_PREFIX;
 import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_SUFFIX;
@@ -245,7 +246,7 @@ public class DaemonMain extends EntryPoint {
         try {
             Files.createParentDirs(daemonLog);
             // Note that DaemonDiagnostics class reads this log.
-            return new PrintStream(newOutputStream(daemonLog.toPath()), true, "UTF-8");
+            return new PrintStream(newOutputStream(daemonLog.toPath()), true, UTF_8.toString());
         } catch (Exception e) {
             throw new RuntimeException("Unable to create daemon log file", e);
         }

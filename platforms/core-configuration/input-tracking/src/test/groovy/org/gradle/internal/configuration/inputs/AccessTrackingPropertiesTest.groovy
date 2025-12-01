@@ -256,7 +256,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         "store(OutputStream, String)"             | call(p -> p.store(ByteStreams.nullOutputStream(), ""))
         "store(Writer, String)"                   | call(p -> p.store(CharStreams.nullWriter(), ""))
         "storeToXML(OutputSteam, String)"         | call(p -> p.storeToXML(ByteStreams.nullOutputStream(), ""))
-        "storeToXML(OutputSteam, String, String)" | call(p -> p.storeToXML(ByteStreams.nullOutputStream(), "", "UTF-8"))
+        "storeToXML(OutputSteam, String, String)" | call(p -> p.storeToXML(ByteStreams.nullOutputStream(), "", UTF_8))
         "list(PrintStream)"                       | call(p -> p.list(new PrintStream(ByteStreams.nullOutputStream())))
         "list(PrintWriter)"                       | call(p -> p.list(new PrintWriter(ByteStreams.nullOutputStream())))
         "equals(Object)"                          | call(p -> Objects.equals(p, new Properties()))  // Ensure that a real equals is invoked and not a Groovy helper

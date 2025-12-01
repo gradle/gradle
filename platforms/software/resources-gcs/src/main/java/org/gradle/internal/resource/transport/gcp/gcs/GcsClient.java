@@ -47,6 +47,7 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 
 public class GcsClient {
@@ -163,7 +164,7 @@ public class GcsClient {
     private static String cleanResourcePath(URI uri) {
         String path;
         try {
-            path = URLDecoder.decode(uri.getPath(), "UTF-8");
+            path = URLDecoder.decode(uri.getPath(), UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
             throw UncheckedException.throwAsUncheckedException(e); // fail fast, this should not happen
         }

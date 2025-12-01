@@ -3,10 +3,12 @@ import gradlebuild.nullaway.NullawayCompatibilityRule
 import gradlebuild.nullaway.NullawayState
 import gradlebuild.nullaway.NullawayStatusTask
 import groovy.lang.GroovySystem
-import net.ltgt.gradle.errorprone.CheckSeverity
+import net.ltgt.gradle.errorprone.CheckSeverity.ERROR
+import net.ltgt.gradle.errorprone.CheckSeverity.OFF
 import net.ltgt.gradle.errorprone.errorprone
 import net.ltgt.gradle.nullaway.nullaway
-import org.gradle.util.internal.VersionNumber
+import org.gradle.util.internal.VersionNumber.parse
+import java.lang.System.getenv
 
 /*
  * Copyright 2022 the original author or authors.
@@ -33,7 +35,6 @@ plugins {
 }
 
 open class ErrorProneProjectExtension(
-    val disabledChecks: ListProperty<String>,
     val nullawayEnabled: Property<Boolean>
 )
 
@@ -43,33 +44,9 @@ open class ErrorProneSourceSetExtension(
 
 val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
     "errorprone",
-    objects.listProperty<String>(),
     objects.property<Boolean>()
 ).apply {
-    disabledChecks.addAll(
-        // DISCUSS
-        "EnumOrdinal", // This violation is ubiquitous, though most are benign.
-        "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
-        "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
-
-        // NEVER
-        "AssignmentExpression", // Not using it is more a matter of taste.
-        "EffectivelyPrivate", // It is still useful to distinguish between public interface and implementation details of inner classes even though it isn't enforced.
-        "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
-        "InlineMeSuggester", // Only suppression seems to actually "fix" this, so make it global
-        "JavaUtilDate", // We are fine with using Date
-        "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
-        "MissingSummary", // We have another mechanism to check Javadocs on public API
-        "StringSplitter", // We are fine with using String.split() as is
-    )
-
     nullawayEnabled.convention(false)
-}
-
-nullaway {
-    // NullAway can use NullMarked instead, but for the adoption process it is more effective to assume that all gradle code is already annotated.
-    // This way we can catch discrepancies in modules easier. We should make all packages NullMarked eventually too, but this is a separate task.
-    annotatedPackages.add("org.gradle")
 }
 
 dependencies {
@@ -83,16 +60,6 @@ dependencies {
 project.plugins.withType<JavaBasePlugin> {
     project.extensions.getByName<SourceSetContainer>("sourceSets").configureEach {
         val isMainSourceSet = (name == "main")
-
-        val extension = this.extensions.create<ErrorProneSourceSetExtension>(
-            "errorprone",
-            project.objects.property<Boolean>()
-        ).apply {
-            // Enable it only for the main source set by default, as incremental Groovy
-            // joint-compilation doesn't work with the Error Prone annotation processor
-            enabled.convention(isMainSourceSet)
-        }
-
         if (isMainSourceSet) {
             val nullawayAttributeValue = errorproneExtension.nullawayEnabled.map { if (it) NullawayState.ENABLED else NullawayState.DISABLED }
 
@@ -113,40 +80,84 @@ project.plugins.withType<JavaBasePlugin> {
                 }
             }
         }
-
-        @Suppress("UnstableApiUsage")
-        fun addErrorProneDependency(dep: String) {
-            project.dependencies.addProvider(
-                annotationProcessorConfigurationName,
-                extension.enabled.filter { it }.map { dep }
-            )
+        val extension = this.extensions.create<ErrorProneSourceSetExtension>(
+            "errorprone",
+            project.objects.property<Boolean>()
+        ).apply {
+            // Enable it only for the main source set by default, as incremental Groovy
+            // joint-compilation doesn't work with the Error Prone annotation processor
+            enabled.convention(isMainSourceSet)
         }
-
-        // don't forget to update the version in distributions-dependencies/build.gradle.kts
-        addErrorProneDependency("com.google.errorprone:error_prone_core:2.42.0")
-        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.10")
-
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
                 isEnabled = extension.enabled
-                checks = errorproneExtension.disabledChecks.map {
-                    it.associateWith { CheckSeverity.OFF }
-                }
-
-                nullaway {
-                    checkContracts = true
-                    isJSpecifyMode = true
-                    severity = errorproneExtension.nullawayEnabled.map { if (it) CheckSeverity.ERROR else CheckSeverity.OFF }
-                }
             }
         }
     }
 }
 
+dependencies {
+    errorprone("com.google.errorprone:error_prone_core:2.42.0")
+    errorprone("com.uber.nullaway:nullaway:0.12.10")
+}
+
 tasks.withType<JavaCompile>().configureEach {
     options.errorprone {
         disableWarningsInGeneratedCode = true
-        allErrorsAsWarnings = true
+        disableAllWarnings = true
+        disable(
+            // DISCUSS
+            "EnumOrdinal", // This violation is ubiquitous, though most are benign.
+            "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
+            "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
+            // NEVER
+            "AssignmentExpression", // Not using it is more a matter of taste.
+            "EffectivelyPrivate", // It is still useful to distinguish between public interface and implementation details of inner classes even though it isn't enforced.
+            "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
+            "InlineMeSuggester", // Only suppression seems to actually "fix" this, so make it global
+            "JavaUtilDate", // We are fine with using Date
+            "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
+            "MissingSummary", // We have another mechanism to check Javadocs on public API
+            "StringSplitter", // We are fine with using String.split() as is
+            // consider fix, or reasoning.
+//            "AnnotateFormatMethod", // We don`t want to use ErrorProne's annotations.
+//            "DoNotCallSuggester", // We don`t want to use ErrorProne's annotations.
+//            "FunctionalInterfaceMethodChanged",
+//            "ImmutableEnumChecker", // We don`t want to use ErrorProne's annotations.
+//            "InlineMeSuggester", // We don`t want to use ErrorProne's annotations.
+//            "JavaxInjectOnAbstractMethod",
+//            "OverridesJavaxInjectableMethod",
+//            "ReturnValueIgnored", // We don`t want to use ErrorProne's annotations.
+        )
+        error(
+            "MissingOverride",
+            "SelfAssignment",
+            "StringCharset",
+            "StringJoin",
+            "UnnecessarilyFullyQualified",
+            "UnnecessaryLambda",
+        )
+        excludedPaths.set(".*/groovy-dsl-plugins/output/adapter-src/.*")
+        if (!getenv().containsKey("CI") && getenv("IN_PLACE").toBoolean()) {
+            errorproneArgs.addAll(
+                "-XepPatchLocation:IN_PLACE",
+                "-XepPatchChecks:" +
+                    "MissingOverride," +
+                    "SelfAssignment," +
+                    "StringCharset," +
+                    "StringJoin," +
+                    "UnnecessarilyFullyQualified," +
+                    "UnnecessaryLambda"
+            )
+        }
+        nullaway {
+            // NullAway can use NullMarked instead, but for the adoption process it is more effective to assume that all gradle code is already annotated.
+            // This way we can catch discrepancies in modules easier. We should make all packages NullMarked eventually too, but this is a separate task.
+            annotatedPackages.add("org.gradle")
+            checkContracts = true
+            isJSpecifyMode = true
+            severity = errorproneExtension.nullawayEnabled.map { if (it) ERROR else OFF }
+        }
     }
 }
 
@@ -165,15 +176,13 @@ tasks.check {
 
 val rules by configurations.creating {
     isCanBeConsumed = false
-
     attributes {
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.RESOURCES))
     }
 }
 
-val groovyVersion = GroovySystem.getVersion()
-val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-val codenarcVersion = if (isAtLeastGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
+val groovyVersion: String? = GroovySystem.getVersion()
+val codenarcVersion = if (parse(groovyVersion).major >= 4) "3.6.0-groovy-4.0" else "3.6.0"
 
 dependencies {
     rules("gradlebuild:code-quality-rules") {
@@ -184,7 +193,6 @@ dependencies {
     }
     codenarc("org.codenarc:CodeNarc:$codenarcVersion")
     codenarc(embeddedKotlin("stdlib"))
-
     components {
         withModule<CodeNarcRule>("org.codenarc:CodeNarc") {
             params(groovyVersion)
@@ -197,9 +205,8 @@ fun configFile(fileName: String) = resources.text.fromFile(rules.asFileTree.filt
 checkstyle {
     toolVersion = "10.25.0"
     config = configFile("checkstyle.xml")
-    val projectDirectory = layout.projectDirectory
     configDirectory = rules.elements.map {
-        projectDirectory.dir(it.single().asFile.absolutePath).dir("checkstyle")
+        layout.projectDirectory.dir(it.single().asFile.absolutePath).dir("checkstyle")
     }
 }
 
@@ -207,7 +214,7 @@ plugins.withType<GroovyBasePlugin> {
     the<SourceSetContainer>().all {
         tasks.register<Checkstyle>(getTaskName("checkstyle", "groovy")) {
             config = configFile("checkstyle-groovy.xml")
-            source(allGroovy)
+            source(the<GroovySourceDirectorySet>())
             classpath = compileClasspath
             reports.xml.outputLocation = checkstyle.reportsDir.resolve("${this@all.name}-groovy.xml")
         }
@@ -225,17 +232,13 @@ tasks.withType<CodeNarc>().configureEach {
     }
 }
 
-val SourceSet.allGroovy: SourceDirectorySet
-    get() = the<GroovySourceDirectorySet>()
-
 abstract class CodeNarcRule @Inject constructor(
     private val groovyVersion: String
 ) : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
             withDependencies {
-                val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-                val groovyGroup = if (isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
+                val groovyGroup = if (parse(groovyVersion).major >= 4) "org.apache.groovy" else "org.codehaus.groovy"
                 removeAll { it.group == groovyGroup }
                 add("$groovyGroup:groovy") {
                     version { prefer(groovyVersion) }

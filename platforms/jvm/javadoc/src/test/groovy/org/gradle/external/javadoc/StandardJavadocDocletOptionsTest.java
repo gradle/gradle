@@ -214,7 +214,7 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentEncoding() {
-        final String encodingValue = "UTF-8";
+        final String encodingValue = UTF_8;
         assertEquals(options, options.encoding(encodingValue));
         assertEquals(encodingValue, options.getEncoding());
     }

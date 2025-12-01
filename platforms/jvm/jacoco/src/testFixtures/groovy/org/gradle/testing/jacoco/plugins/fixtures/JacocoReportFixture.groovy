@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
+import sun.nio.cs.UTF_8
 
 class JacocoReportFixture {
     private static final String NON_BREAKING_WHITESPACE = '\u00A0'
@@ -32,14 +33,14 @@ class JacocoReportFixture {
     }
 
     String jacocoVersion() {
-        def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), "UTF-8")
+        def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), UTF_8.toString())
         def footer = parsedHtmlReport.select("div.footer:has(a[href~=http://www.eclemma.org/jacoco|http://www.jacoco.org/jacoco])")
         String text = footer.text()
         return text.startsWith("Created with JaCoCo ") ? text.substring(20) : text
     }
 
     BigDecimal totalCoverage() {
-        def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), "UTF-8")
+        def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), UTF_8.toString())
         def table = parsedHtmlReport.select("table#coveragetable").first()
         def td = table.select("tfoot td:eq(2)").first()
         String totalCoverage = td.text().replaceAll(NON_BREAKING_WHITESPACE, '') // remove non-breaking whitespace
@@ -47,7 +48,7 @@ class JacocoReportFixture {
     }
 
     int numberOfClasses() {
-        def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), "UTF-8")
+        def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), UTF_8.toString())
         def table = parsedHtmlReport.select("table#coveragetable").first()
         def td = table.select("tfoot td").last()
         String numberOfClasses = td.text()

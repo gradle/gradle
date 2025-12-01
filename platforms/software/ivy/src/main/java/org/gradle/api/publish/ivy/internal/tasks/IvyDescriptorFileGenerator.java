@@ -52,9 +52,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.apache.commons.codec.CharEncoding.UTF_8;
+
 public final class IvyDescriptorFileGenerator {
 
-    private static final String IVY_FILE_ENCODING = "UTF-8";
+    private static final String IVY_FILE_ENCODING = UTF_8;
     private static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
 
     private IvyDescriptorFileGenerator() {}

@@ -45,6 +45,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * Generates Javadocs in a particular way.
  *
@@ -94,9 +96,9 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setTitle("Gradle API " + project.getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            options.setEncoding("utf-8");
-            options.setDocEncoding("utf-8");
-            options.setCharSet("utf-8");
+            options.setEncoding(UTF_8.toString());
+            options.setDocEncoding(UTF_8.toString());
+            options.setCharSet(UTF_8.toString());
 
             options.addBooleanOption("-allow-script-in-comments", true);
             options.setHeader("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/stackoverflow-light.min.css\">" +

@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
+import static org.apache.commons.codec.CharEncoding.UTF_8;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
@@ -59,7 +60,7 @@ public abstract class War extends Jar {
 
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
-        setMetadataCharset("UTF-8");
+        setMetadataCharset(UTF_8);
         // Add these as separate specs, so they are not affected by the changes to the main spec
 
         webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");

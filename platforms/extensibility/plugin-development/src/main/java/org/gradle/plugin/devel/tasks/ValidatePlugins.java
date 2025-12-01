@@ -63,6 +63,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization.parseMessageList;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -159,7 +160,7 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<? extends InternalProblem> problems = ValidationProblemSerialization.parseMessageList(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        List<? extends InternalProblem> problems = parseMessageList(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
 
         Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
         if (problems.isEmpty()) {

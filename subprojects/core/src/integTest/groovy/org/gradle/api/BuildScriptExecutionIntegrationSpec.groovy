@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import sun.nio.cs.UTF_8
 
 @DoesNotSupportNonAsciiPaths(reason = "Using non-Unicode default character set encoding")
 class BuildScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
@@ -38,7 +39,7 @@ task check {
         assert '\u20AC'.charAt(0) == 0x20AC
     }
 }
-""", "UTF-8")
+""", UTF_8.toString())
         assert file('build.gradle').getText("ISO-8859-15") != file('build.gradle').getText("UTF-8")
         expect:
         succeeds 'check'

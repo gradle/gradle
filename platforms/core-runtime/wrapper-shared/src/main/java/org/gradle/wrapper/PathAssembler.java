@@ -20,6 +20,8 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.MessageDigest;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class PathAssembler {
     public static final String GRADLE_USER_HOME_STRING = "GRADLE_USER_HOME";
     public static final String PROJECT_STRING = "PROJECT";
@@ -63,7 +65,7 @@ public class PathAssembler {
     private String getHash(String string) {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-            byte[] bytes = string.getBytes("UTF-8");
+            byte[] bytes = string.getBytes(UTF_8);
             messageDigest.update(bytes);
             return new BigInteger(1, messageDigest.digest()).toString(36);
         } catch (Exception e) {

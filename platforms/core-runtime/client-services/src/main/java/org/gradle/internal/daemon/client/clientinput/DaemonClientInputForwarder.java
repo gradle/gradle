@@ -29,10 +29,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Reads input from this client stdin and forwards it to the daemon. Can either read raw content or read the user's response to some prompt.
@@ -81,7 +82,7 @@ public class DaemonClientInputForwarder implements Stoppable {
 
         public ForwardingUserInput(InputStream inputStream, Dispatch<? super InputMessage> dispatch, Executor executor) {
             this.dispatch = dispatch;
-            this.reader = new BufferedReader(new InputStreamReader(inputStream, Charset.defaultCharset()));
+            this.reader = new BufferedReader(new InputStreamReader(inputStream, UTF_8));
             this.executor = executor;
         }
 
@@ -102,7 +103,7 @@ public class DaemonClientInputForwarder implements Stoppable {
                     maybeClosed();
                 } else {
                     String text = new String(buffer, 0, nread);
-                    byte[] result = text.getBytes(Charset.defaultCharset());
+                    byte[] result = text.getBytes(UTF_8);
                     ForwardInput message = new ForwardInput(result);
                     dispatch.dispatch(message);
                 }
