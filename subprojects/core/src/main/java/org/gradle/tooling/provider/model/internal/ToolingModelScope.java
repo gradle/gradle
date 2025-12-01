@@ -39,6 +39,5 @@ public interface ToolingModelScope {
      *
      * @return the created model (null is a valid model)
      */
-    @Nullable
-    Object getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter);
+    ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter);
 }

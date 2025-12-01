@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -37,8 +38,7 @@ public interface BuildTreeModelController {
      * @return the created model (null is a valid model)
      * @throws UnknownModelException when the model builder cannot be found
      */
-    @Nullable
-    Object getModel(BuildTreeModelTarget target, ToolingModelRequestContext modelRequestContext) throws UnknownModelException;
+    ToolingModelBuilderResultInternal getModel(BuildTreeModelTarget target, ToolingModelRequestContext modelRequestContext) throws UnknownModelException;
 
     boolean queryModelActionsRunInParallel();
 

@@ -20,6 +20,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
 import spock.lang.Specification
@@ -34,7 +35,8 @@ class DefaultBuildTreeModelCreatorTest extends Specification {
 
     def "importable builds can be used as targets for model building"() {
         given:
-        def model = new Object()
+        def model = ToolingModelBuilderResultInternal.of(new Object())
+
 
         def modelScope = Mock(ToolingModelScope) {
             getModel(_, _) >> { ToolingModelRequestContext modelName, @Nullable ToolingModelParameterCarrier parameter ->
