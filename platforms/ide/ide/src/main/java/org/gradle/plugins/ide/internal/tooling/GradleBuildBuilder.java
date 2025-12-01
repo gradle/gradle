@@ -144,7 +144,7 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
                 addFailedBuilds(targetBuild, model);
                 addIncludedBuilds(gradle, model);
             } catch (IllegalStateException e) {
-                //ignore, happens when included builds are not accessible, but we need this for resiliency
+                //Ignore, happens when included builds are not accessible, but we need this for resiliency
             }
             addAllImportableBuilds(targetBuild, gradle, model);
             return model;

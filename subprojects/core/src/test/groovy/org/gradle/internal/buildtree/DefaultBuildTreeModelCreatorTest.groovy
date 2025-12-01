@@ -37,7 +37,7 @@ class DefaultBuildTreeModelCreatorTest extends Specification {
         def model = new Object()
 
         def modelScope = Mock(ToolingModelScope) {
-            getModel(_, _) >> { String modelName, @Nullable ToolingModelParameterCarrier parameter ->
+            getModel(_, _) >> { ToolingModelRequestContext modelName, @Nullable ToolingModelParameterCarrier parameter ->
                 model
             }
         }

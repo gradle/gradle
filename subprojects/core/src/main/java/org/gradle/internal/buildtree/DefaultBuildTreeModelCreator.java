@@ -82,12 +82,15 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 @Nullable
                 public Object call(BuildOperationContext context) {
                     ToolingModelScope scope = locateBuilderForTarget(target, modelRequestContext);
-                    return getModelForScope(scope, modelRequestContext);
+                    return scope.getModel(modelRequestContext,
+                        modelRequestContext.getParameter()
+                            .map(parameterCarrierFactory::createCarrier)
+                            .orElse(null));
                 }
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    String targetDescription = describeTarget(target);
+                    String targetDescription = target.describeTargetScope();
                     String modelName = modelRequestContext.getModelName();
                     return BuildOperationDescriptor.displayName("Fetch model '" + modelName + "' for " + targetDescription)
                         .progressDisplayName("Fetching model '" + modelName + "' for " + targetDescription);
@@ -149,26 +152,6 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
         private ToolingModelScope locateBuilderForProjectTarget(ProjectState target, ToolingModelRequestContext toolingModelContext) {
             return target.getOwner().withToolingModels(toolingModelContext.inResilientContext(), controller -> controller.locateBuilderForTarget(target, toolingModelContext));
-        }
-
-        @Nullable
-        private Object getModelForScope(ToolingModelScope scope, ToolingModelRequestContext modelRequestContext) {
-            return scope.getModel(modelRequestContext.getModelName(),
-                modelRequestContext.getParameter()
-                    .map(parameterCarrierFactory::createCarrier)
-                    .orElse(null));
-        }
-
-        private String describeTarget(BuildTreeModelTarget target) {
-            if (target instanceof BuildTreeModelTarget.Default) {
-                return "default scope";
-            } else if (target instanceof BuildTreeModelTarget.Build) {
-                return "build scope";
-            } else if (target instanceof BuildTreeModelTarget.Project) {
-                return "project scope";
-            } else {
-                throw new IllegalStateException("Unknown target: " + target);
-            }
         }
 
         private BuildState findBuild(File targetBuildRootDir) {

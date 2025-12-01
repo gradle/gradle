@@ -44,9 +44,9 @@ public class ToolingModelBuilderResultInternal {
         this.failures = failures;
     }
 
-    public RuntimeException throwOriginal() {
-        if(failures.isEmpty()) {
-            throw new IllegalStateException("No failures found");
+    public void throwFailureIfPresent() {
+        if (failures.isEmpty()) {
+            return;
         }
         Throwable firstOriginalException = failures.get(0).getOriginal();
         if (firstOriginalException instanceof RuntimeException) {

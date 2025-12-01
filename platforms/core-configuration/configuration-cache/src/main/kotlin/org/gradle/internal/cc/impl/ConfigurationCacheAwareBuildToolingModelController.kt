@@ -50,10 +50,9 @@ class ConfigurationCacheAwareBuildToolingModelController(
         private val cache: BuildTreeConfigurationCache
     ) : ToolingModelScope {
         override fun getTarget() = delegate.target
-
-        override fun getModel(modelName: String, parameter: ToolingModelParameterCarrier?): Any? {
-            return cache.loadOrCreateIntermediateModel(target?.identity, modelName, parameter) {
-                delegate.getModel(modelName, parameter)
+        override fun getModel(modelRequestContext: ToolingModelRequestContext, parameter: ToolingModelParameterCarrier?): Any? {
+            return cache.loadOrCreateIntermediateModel(target?.identity, modelRequestContext.modelName, parameter) {
+                delegate.getModel(modelRequestContext, parameter)
             }
         }
     }
