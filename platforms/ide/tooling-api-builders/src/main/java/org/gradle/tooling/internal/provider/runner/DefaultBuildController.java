@@ -111,12 +111,11 @@ class DefaultBuildController implements
     @Override
     public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
-        Object model = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, false));
-        return new ProviderBuildResult<>(model);
+        ToolingModelBuilderResultInternal model = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, false));
+        return new ProviderBuildResult<>(model.getModel());
     }
 
-    @Nullable
-    private Object doGetModel(@Nullable Object target, ToolingModelRequestContext modelRequestContext)
+    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ToolingModelRequestContext modelRequestContext)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
@@ -173,24 +172,13 @@ class DefaultBuildController implements
     @Override
     public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
-            Object model = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, true));
-            if (model instanceof ToolingModelBuilderResultInternal) {
-                ToolingModelBuilderResultInternal resultInternal = (ToolingModelBuilderResultInternal) model;
-                List<InternalFailure> failures = toInternalFailures(resultInternal.getFailures());
-                return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(resultInternal.getModel()), failures);
-            }
-
-            // This branch should not be reached: doGetModel is expected to return a ToolingModelBuilderResultInternal.
-            // If this occurs, it indicates that somewhere the resilient mode flag was ignored.
-            return createFetchModelResult(new IllegalStateException("Expected a ToolingModelBuilderResultInternal, but got " + model)); //!?
+            ToolingModelBuilderResultInternal resultInternal = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, true));
+            List<InternalFailure> failures = toInternalFailures(resultInternal.getFailures());
+            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(resultInternal.getModel()), failures);
         } catch (Exception e) {
-            return createFetchModelResult(e);
+            List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
+            return new DefaultInternalFetchModelResult<>(null, failures);
         }
-    }
-
-    private static <M> DefaultInternalFetchModelResult<M> createFetchModelResult(Exception e) {
-        List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
-        return new DefaultInternalFetchModelResult<>(null, failures);
     }
 
     private static List<InternalFailure> toInternalFailures(List<Failure> failures) {

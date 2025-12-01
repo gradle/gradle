@@ -97,23 +97,17 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         abstract ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException;
 
         @Override
-        @Nullable
-        public Object getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
+        public ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
             Object model = buildModelWithParameter(parameter);
-            if (modelRequestContext.inResilientContext()) {
-                if (model instanceof ToolingModelBuilderResultInternal) {
-                    return model;
-                }
+            if (!(model instanceof ToolingModelBuilderResultInternal)) {
                 return ToolingModelBuilderResultInternal.of(model);
             }
 
-            if (!(model instanceof ToolingModelBuilderResultInternal)) {
-                return model;
-            }
-
             ToolingModelBuilderResultInternal resultInternal = (ToolingModelBuilderResultInternal) model;
-            resultInternal.throwFailureIfPresent();
-            return resultInternal.getModel();
+            if (!modelRequestContext.inResilientContext()) {
+                resultInternal.throwFailureIfPresent();
+            }
+            return resultInternal;
         }
 
         private Object buildModelWithParameter(@Nullable ToolingModelParameterCarrier parameter) {

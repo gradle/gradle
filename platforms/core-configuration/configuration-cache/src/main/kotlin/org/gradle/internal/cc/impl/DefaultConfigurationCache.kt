@@ -75,6 +75,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
@@ -252,6 +253,7 @@ class DefaultConfigurationCache internal constructor(
                     entryDiscarded = false
                 )
             }
+
             SkipStore -> {
                 // build work graph without contributing to a cache entry
                 val finalizedGraph = runAtConfigurationTime {
@@ -266,6 +268,7 @@ class DefaultConfigurationCache internal constructor(
                     entryDiscarded = true
                 )
             }
+
             Store, is Update -> {
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
@@ -324,7 +327,12 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentity?, modelRequestContext: ToolingModelRequestContext, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
+    override fun loadOrCreateIntermediateModel(
+        project: ProjectIdentity?,
+        modelRequestContext: ToolingModelRequestContext,
+        parameter: ToolingModelParameterCarrier?,
+        creator: () -> ToolingModelBuilderResultInternal
+    ): ToolingModelBuilderResultInternal {
         return intermediateModels.loadOrCreateIntermediateModel(project, modelRequestContext, parameter, creator)
     }
 
@@ -343,10 +351,12 @@ class DefaultConfigurationCache internal constructor(
                 // nothing to do
                 require(!cacheEntryRequiresCommit)
             }
+
             problems.shouldDiscardEntry -> {
                 discardEntry()
                 cacheEntryRequiresCommit = false
             }
+
             cacheEntryRequiresCommit -> {
                 val projectUsage = collectProjectUsage()
                 commitCacheEntry(projectUsage.reused)

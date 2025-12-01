@@ -26,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
@@ -73,14 +74,13 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         @Override
-        @Nullable
-        public Object getModel(BuildTreeModelTarget target, ToolingModelRequestContext modelRequestContext) throws UnknownModelException {
+        public ToolingModelBuilderResultInternal getModel(BuildTreeModelTarget target, ToolingModelRequestContext modelRequestContext) throws UnknownModelException {
             // Include target resolution in the operation to identify all work (including build configuration)
             // that is executed to provide the requested model
-            return buildOperationRunner.call(new CallableBuildOperation<Object>() {
+            return buildOperationRunner.call(new CallableBuildOperation<ToolingModelBuilderResultInternal>() {
                 @Override
                 @Nullable
-                public Object call(BuildOperationContext context) {
+                public ToolingModelBuilderResultInternal call(BuildOperationContext context) {
                     ToolingModelScope scope = locateBuilderForTarget(target, modelRequestContext);
                     return scope.getModel(modelRequestContext,
                         modelRequestContext.getParameter()
