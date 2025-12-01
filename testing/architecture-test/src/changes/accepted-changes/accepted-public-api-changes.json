@@ -3,7 +3,7 @@
         {
             "type": "org.gradle.api.initialization.dsl.ScriptHandler",
             "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking(org.gradle.api.Action)",
-            "acceptation": "Changes in ScriptHandler",
+            "acceptation": "faulty since detection",
             "changes": [
                 "Method added to interface"
             ]
@@ -11,7 +11,7 @@
         {
             "type": "org.gradle.api.initialization.dsl.ScriptHandler",
             "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.repositories(org.gradle.api.Action)",
-            "acceptation": "Changes in ScriptHandler",
+            "acceptation": "de-incubating API",
             "changes": [
                 "Method added to interface"
             ]
@@ -27,7 +27,7 @@
         {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
-            "acceptation": "Changes in ScriptHandlerScope",
+            "acceptation": "faulty since detection",
             "changes": [
                 "Method added to public class"
             ]
@@ -35,46 +35,10 @@
         {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.repositories(org.gradle.api.Action)",
-            "acceptation": "Changes in ScriptHandlerScope",
+            "acceptation": "faulty since detection",
             "changes": [
                 "Method added to public class"
             ]
-        },
-        {
-            "type": "org.gradle.tooling.model.build.GradleEnvironment",
-            "member": "Method org.gradle.tooling.model.build.GradleEnvironment.getVersionOutput()",
-            "acceptation": "Tooling API extension to expose --version banner text",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.model.build.Help",
-            "member": "Class org.gradle.tooling.model.build.Help",
-            "acceptation": "Tooling API: new Help model for --help output (no incubation)",
-            "changes": [
-                "Interface has been added"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.model.build.Help",
-            "member": "Method org.gradle.tooling.model.build.Help.getHelpOutput()",
-            "acceptation": "Tooling API: new Help model for --help output (no incubation)",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.tooling.model.build.VersionInfo",
-            "member": "Class org.gradle.tooling.model.build.VersionInfo",
-            "acceptation": "Tooling API: new VersionInfo model for --version output (no incubation)",
-            "changes": [
-                "Interface has been added"
-            ]
-        },
-        {
-            "type": "org.gradle.tooling.model.build.VersionInfo",
-            "member": "Method org.gradle.tooling.model.build.VersionInfo.getVersionOutput()",
-            "acceptation": "Tooling API: new VersionInfo model for --version output (no incubation)",
-            "changes": []
         }
     ]
 }

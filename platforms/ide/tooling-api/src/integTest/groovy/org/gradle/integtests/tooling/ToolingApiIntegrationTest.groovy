@@ -27,8 +27,6 @@ import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.build.Help
-import org.gradle.tooling.model.build.VersionInfo
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
@@ -363,23 +361,5 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec implements Other
 
         where:
         withColor << [true, false]
-    }
-
-    def "can fetch VersionInfo model"() {
-        when:
-        VersionInfo model = toolingApi.withConnection { connection -> connection.getModel(VersionInfo.class) }
-
-        then:
-        model != null
-        model.versionOutput.contains("Gradle")
-    }
-
-    def "can fetch Help model"() {
-        when:
-        Help model = toolingApi.withConnection { connection -> connection.getModel(Help.class) }
-
-        then:
-        model != null
-        model.helpOutput.contains("USAGE:")
     }
 }

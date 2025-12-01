@@ -610,11 +610,11 @@ public interface ArchUnitFixture {
         if (codeSource == null) {
             return null;
         }
-        // Use URI to correctly handle Windows paths and URL-encoded characters (e.g., spaces as %20)
         try {
+            // Use URI to correctly handle Windows paths and URL-encoded characters (e.g., spaces as %20)
             return Paths.get(codeSource.getLocation().toURI());
         } catch (Exception e) {
-            return null;
+            throw new RuntimeException(e);
         }
     }
 }

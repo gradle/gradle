@@ -28,20 +28,26 @@ import java.util.List;
 
 public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serializable, GradleBuildIdentity {
 
+    private final DefaultBuildIdentifier buildIdentifier;
     private final File gradleUserHome;
     private final String gradleVersion;
     private final File javaHome;
     private final List<String> jvmArguments;
-    private final String versionOutput;
-    private DefaultBuildIdentifier buildIdentifier;
+    private final String versionInfo;
 
-    public DefaultBuildEnvironment(DefaultBuildIdentifier buildIdentifier, File gradleUserHome, String gradleVersion, File javaHome, List<String> jvmArguments, String versionOutput) {
+    public DefaultBuildEnvironment(
+        DefaultBuildIdentifier buildIdentifier,
+        File gradleUserHome, String gradleVersion,
+        File javaHome,
+        List<String> jvmArguments,
+        String versionInfo
+    ) {
         this.buildIdentifier = buildIdentifier;
         this.gradleUserHome = gradleUserHome;
         this.gradleVersion = gradleVersion;
         this.javaHome = javaHome;
         this.jvmArguments = jvmArguments;
-        this.versionOutput = versionOutput;
+        this.versionInfo = versionInfo;
     }
 
     public DefaultBuildIdentifier getBuildIdentifier() {
@@ -64,11 +70,6 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
             public String getGradleVersion() {
                 return gradleVersion;
             }
-
-            @Override
-            public String getVersionOutput() {
-                return versionOutput;
-            }
         };
     }
 
@@ -84,5 +85,9 @@ public class DefaultBuildEnvironment implements InternalBuildEnvironment, Serial
                 return jvmArguments;
             }
         };
+    }
+
+    public String getVersionInfo() {
+        return versionInfo;
     }
 }

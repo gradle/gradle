@@ -15,22 +15,23 @@
  */
 package org.gradle.tooling.model.build;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.Model;
+import org.jspecify.annotations.NullMarked;
 
 /**
- * Plaintext content for Gradle command-line help (equivalent to {@code gradle --help}).
- * The content is produced by the target Gradle distribution without starting the daemon.
+ * Provides user help content similar to what {@code gradle --help} provides on the CLI.
  *
- * <p>
- * Initial version exposes only the raw text. Structure may be added later if needed.
- *
- * @since 9.3.0
+ * @since 9.4.0
  */
+@NullMarked
+@Incubating
 public interface Help extends Model {
+
     /**
-     * Returns the full help text as printed by {@code gradle --help} for the target distribution.
+     * Returns rendered help content similar to what {@code gradle --help} provides on the CLI.
      *
-     * @since 9.3.0
+     * @since 9.4.0
      */
-    String getHelpOutput();
+    String getRenderedText();
 }

@@ -16,25 +16,17 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.apache.tools.ant.Main;
-import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
+import org.gradle.launcher.cli.internal.VersionInfoRenderer;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
-import org.gradle.util.internal.DefaultGradleVersion;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Builds the GradleProject that contains the project hierarchy and task information
@@ -61,54 +53,7 @@ public class BuildEnvironmentBuilder implements ToolingModelBuilder {
         List<String> jvmArgs = currentProcess.getJvmOptions().getAllImmutableJvmArgs();
 
         DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(target.getRootDir());
-
-        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs, generateVersionOutput());
-    }
-
-    private String generateVersionOutput() {
-        DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
-        StringWriter sw = new StringWriter();
-        PrintWriter out = new PrintWriter(sw);
-        out.println();
-        out.println("------------------------------------------------------------");
-        out.println("Gradle " + currentVersion.getVersion());
-        out.println("------------------------------------------------------------");
-        out.println();
-        int maxKey = "JVM".length();
-        printAligned(out, "Build time", currentVersion.getBuildTimestamp(), maxKey);
-        printAligned(out, "Revision", currentVersion.getGitRevision(), maxKey);
-        out.println();
-        printAligned(out, "Kotlin", resolveKotlinVersion(), maxKey);
-        printAligned(out, "Groovy", ReleaseInfo.getVersion(), maxKey);
-        printAligned(out, "Ant", Main.getAntVersion(), maxKey);
-        printAligned(out, "JVM", Jvm.current().toString(), maxKey);
-        printAligned(out, "OS", OperatingSystem.current().toString(), maxKey);
-        out.println();
-        out.flush();
-        return sw.toString();
-    }
-
-    private String resolveKotlinVersion() {
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream("gradle-kotlin-dsl-versions.properties")) {
-            if (in != null) {
-                Properties props = new Properties();
-                props.load(in);
-                String v = props.getProperty("kotlin");
-                if (v != null) {
-                    return v;
-                }
-            }
-        } catch (IOException ex) {
-            // ignore
-        }
-        return "unknown";
-    }
-
-    private void printAligned(PrintWriter out, String key, String value, int maxKey) {
-        out.print(key + ": ");
-        for (int i = key.length(); i < maxKey + 1; i++) {
-            out.print(' ');
-        }
-        out.println(value);
+        String versionInfo = VersionInfoRenderer.render(Jvm.current().toString());
+        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs, versionInfo);
     }
 }

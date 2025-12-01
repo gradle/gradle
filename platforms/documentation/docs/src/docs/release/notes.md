@@ -60,6 +60,12 @@ tasks.validatePlugins {
 }
 ```
 
+## Tooling integration improvements
+
+This release adds a few enhancements to the built-in Tooling API models.
+- Clients now have access to the exact output of `gradle --version` without starting a daemon.  The rendered content is available via the `BuildEnvironment.versionInfo` property.
+- A new `Help` model is introduced to expose the output of the `gradle --help` command-line build invocation.
+
 <!--
 
 ================== TEMPLATE ==============================

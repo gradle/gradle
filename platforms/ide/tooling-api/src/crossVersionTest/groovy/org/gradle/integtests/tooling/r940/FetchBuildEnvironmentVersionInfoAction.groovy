@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-@NullMarked
-package org.gradle.plugins.ide.internal.tooling;
+package org.gradle.integtests.tooling.r940
 
-import org.jspecify.annotations.NullMarked;
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.build.BuildEnvironment
+
+class FetchBuildEnvironmentVersionInfoAction implements BuildAction<String> {
+    @Override
+    String execute(BuildController controller) {
+        controller.getModel(BuildEnvironment).versionInfo
+    }
+}

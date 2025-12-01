@@ -49,7 +49,8 @@ import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.WelcomeMessageBuildOptions;
-import org.gradle.launcher.cli.internal.CliTextPrinter;
+import org.gradle.launcher.cli.internal.HelpRenderer;
+import org.gradle.launcher.cli.internal.VersionInfoRenderer;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
@@ -155,8 +156,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     private static class CommandLineParseFailureAction implements Action<ExecutionListener> {
-        private final Exception exception;
         private final CommandLineParser parser;
+        private final Exception exception;
 
         private final List<String> args;
 
@@ -170,7 +171,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             System.err.println();
             System.err.println(exception.getMessage());
-            String output = CliTextPrinter.renderHelp(clientMetaData(), parser, getSuggestedTaskSelector(), false);
+            String output = HelpRenderer.render(parser, getSuggestedTaskSelector(), false);
             System.err.print(output);
             executionListener.onFailure(exception);
         }
@@ -197,7 +198,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            String output = CliTextPrinter.renderHelp(clientMetaData(), parser, getSuggestedTaskSelector());
+            String output = HelpRenderer.render(parser, getSuggestedTaskSelector(), true);
             System.out.print(output);
         }
 
@@ -220,11 +221,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            String output = CliTextPrinter.renderVersionInfo(
-                clientMetaData(),
-                parameters.getDaemonParameters().getRequestedJvmCriteria().toString()
-            );
-            System.out.print(output);
+            String versionInfo = VersionInfoRenderer.renderWithLauncherJvm(parameters.getDaemonParameters().getRequestedJvmCriteria().toString());
+            System.out.print(versionInfo);
         }
     }
 
