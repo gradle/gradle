@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 
 import java.time.Instant;
