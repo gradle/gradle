@@ -18,6 +18,7 @@ package org.gradle.internal.resources;
 
 import com.google.common.base.Supplier;
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
@@ -35,8 +36,8 @@ import java.util.function.Function;
 public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService, Closeable {
     private final Object lock = new Object();
     private final Set<Action<ResourceLock>> releaseHandlers = new LinkedHashSet<Action<ResourceLock>>();
-    private Thread currentOwner;
-    private DefaultResourceLockState currentState;
+    private @Nullable Thread currentOwner;
+    private @Nullable DefaultResourceLockState currentState;
 
     @Override
     public void close() throws IOException {
@@ -79,13 +80,14 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     @Override
-    public <T> T withStateLock(final Supplier<T> action) {
-        final MutableReference<T> result = MutableReference.empty();
+    public <T extends @Nullable Object> T withStateLock(final Supplier<T> action) {
+        final MutableReference<@Nullable T> result = MutableReference.empty();
         withStateLock(resourceLockState -> {
             result.set(action.get());
             return ResourceLockState.Disposition.FINISHED;
         });
-        return result.get();
+        // result now holds a valid value of T supplied by the action.
+        return Cast.unsafeStripNullable(result.get());
     }
 
     @Override
@@ -132,7 +134,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
-    private DefaultResourceLockState startOperation(DefaultResourceLockState newState) {
+    private @Nullable DefaultResourceLockState startOperation(DefaultResourceLockState newState) {
         if (currentOwner == null) {
             currentOwner = Thread.currentThread();
         } else if (currentOwner != Thread.currentThread()) {
@@ -154,7 +156,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     @Override
-    public ResourceLockState getCurrent() {
+    public @Nullable ResourceLockState getCurrent() {
         synchronized (lock) {
             if (currentOwner != Thread.currentThread()) {
                 return null;
@@ -184,8 +186,8 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     private static class DefaultResourceLockState implements ResourceLockState {
-        private Set<ResourceLock> lockedResources;
-        private Set<ResourceLock> unlockedResources;
+        private @Nullable Set<ResourceLock> lockedResources;
+        private @Nullable Set<ResourceLock> unlockedResources;
         boolean rollback;
 
         @Override
