@@ -33,6 +33,8 @@ import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
+import org.gradle.api.plugins.jvm.JvmLibraryDependencies;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -95,6 +97,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private final Configuration implementation;
     private final Configuration runtimeOnly;
     private final Configuration compileOnly;
+    private final Configuration getAnnotationProcessor;
 
     // Configurable dependency configurations
     private Configuration compileOnlyApi;
@@ -147,6 +150,7 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         this.implementation = dependencyScope("Implementation", JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, extendProductionCode, false);
         this.compileOnly = dependencyScope("Compile-only", JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
         this.runtimeOnly = dependencyScope("Runtime-only", JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME, extendProductionCode, false);
+        this.getAnnotationProcessor = dependencyScope("Annotation-Processor", JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME, extendProductionCode, false);
 
         this.runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
         this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
@@ -278,6 +282,22 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     @Override
+    public void wireDependencies(JvmLibraryDependencies dependencies) {
+        wireDependencies((JvmComponentDependencies) dependencies);
+
+        getApiConfiguration().fromDependencyCollector(dependencies.getApi());
+        getCompileOnlyApiConfiguration().fromDependencyCollector(dependencies.getCompileOnlyApi());
+    }
+
+    @Override
+    public void wireDependencies(JvmComponentDependencies dependencies) {
+        getImplementationConfiguration().fromDependencyCollector(dependencies.getImplementation());
+        getCompileOnlyConfiguration().fromDependencyCollector(dependencies.getCompileOnly());
+        getRuntimeOnlyConfiguration().fromDependencyCollector(dependencies.getRuntimeOnly());
+        getAnnotationProcessorConfiguration().fromDependencyCollector(dependencies.getAnnotationProcessor());
+    }
+
+    @Override
     public void withSourceElements() {
         // TODO: Why are we using this non-standard name? For the `java` component, this
         // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
@@ -355,6 +375,9 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     @Override
     public Configuration getRuntimeOnlyConfiguration() {
         return runtimeOnly;
+    }
+    public Configuration getAnnotationProcessorConfiguration() {
+        return getAnnotationProcessor;
     }
 
     @Override
