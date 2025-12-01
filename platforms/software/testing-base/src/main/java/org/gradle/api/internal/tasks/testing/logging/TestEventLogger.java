@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -28,6 +30,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
+
+import java.util.stream.Collectors;
 
 /**
  * Console logger for test events.
@@ -76,8 +81,21 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     }
 
     @Override
+    @NullMarked
     public void onMetadata(TestDescriptor testDescriptor, TestMetadataEvent metadataEvent) {
-        // No-op for now
+        // TODO: Shouldn't use impl types here - make sub-interfaces instead?
+        if (shouldLogEvent(testDescriptor, TestLogEvent.METADATA)) {
+            if (metadataEvent instanceof DefaultTestKeyValueDataEvent) {
+                DefaultTestKeyValueDataEvent keyValueDataEvent = (DefaultTestKeyValueDataEvent) metadataEvent;
+                String values = keyValueDataEvent.getValues().entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining());
+                logEvent(testDescriptor, TestLogEvent.METADATA, values);
+            } else if (metadataEvent instanceof DefaultTestFileAttachmentDataEvent) {
+                DefaultTestFileAttachmentDataEvent attachmentDataEvent = (DefaultTestFileAttachmentDataEvent) metadataEvent;
+                logEvent(testDescriptor, TestLogEvent.METADATA, attachmentDataEvent.getPath().toString());
+            } else {
+                logEvent(testDescriptor, TestLogEvent.METADATA, "Unknown metadata event type: " + metadataEvent.getClass());
+            }
+        }
     }
 
     private void before(TestDescriptor descriptor) {
