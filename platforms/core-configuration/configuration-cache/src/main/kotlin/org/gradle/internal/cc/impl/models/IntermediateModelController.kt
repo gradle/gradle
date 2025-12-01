@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.models
 
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
 import org.gradle.internal.cc.impl.StateType
@@ -61,8 +62,8 @@ class IntermediateModelController(
         }
     }
 
-    fun <T> loadOrCreateIntermediateModel(project: ProjectIdentity?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T): T? {
-        val key = ModelKey(project?.buildTreePath, modelName, parameter?.hash)
+    fun <T> loadOrCreateIntermediateModel(project: ProjectIdentity?, modelRequestContext: ToolingModelRequestContext, parameter: ToolingModelParameterCarrier?, creator: () -> T): T? {
+        val key = ModelKey(project?.buildTreePath, modelRequestContext.modelName, parameter?.hash,modelRequestContext.inResilientContext())
         return loadOrCreateValue(key) {
             try {
                 val model = if (project != null) {

@@ -37,6 +37,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
@@ -323,8 +324,8 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentity?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
-        return intermediateModels.loadOrCreateIntermediateModel(project, modelName, parameter, creator)
+    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentity?, modelRequestContext: ToolingModelRequestContext, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
+        return intermediateModels.loadOrCreateIntermediateModel(project, modelRequestContext, parameter, creator)
     }
 
     // TODO:configuration - split the component state, such that information for dependency resolution does not have to go through the store
