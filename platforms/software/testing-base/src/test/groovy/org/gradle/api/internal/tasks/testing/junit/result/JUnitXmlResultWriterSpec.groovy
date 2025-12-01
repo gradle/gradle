@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
