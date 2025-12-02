@@ -128,10 +128,10 @@ public class ProjectBuilderImpl {
 
             // We do not use a DeprecationLogger here since the logger is not initialized when using the ProjectBuilder.
             LOGGER.warn("Executing Gradle on JVM versions {} and lower has been deprecated. " +
-                "This will fail with an error in Gradle {}. " +
-                "Use JVM {} or greater to execute Gradle. " +
-                "Projects can continue to use older JVM versions via toolchains. " +
-                "Consult the upgrading guide for further information: {}",
+                    "This will fail with an error in Gradle {}. " +
+                    "Use JVM {} or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: {}",
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1,
                 currentMajorGradleVersion + 1,
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION,
