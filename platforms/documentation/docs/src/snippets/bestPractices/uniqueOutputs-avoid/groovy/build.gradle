@@ -8,8 +8,8 @@ abstract class GreetingTask extends DefaultTask {
     @TaskAction
     void run() {
         def outFileName = type.get() + ".txt"
-        def outFile = outputDirectory.file(outFileName).get().asFile
-        outFile.text = "Hello" // <1>
+        def message = "Hello " + type.get()
+        outputDirectory.file(outFileName).get().asFile.text = message // <1>
     }
 }
 
@@ -21,21 +21,22 @@ abstract class ConsumerTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        def outputText = inputDirectory.get().file("a.txt").asFile.text
-        outputFile.get().asFile.write(outputText) // <2>
+        def message = inputDirectory.get().file("a.txt").asFile.text // <2>
+        outputFile.get().asFile.write(message)
     }
 }
 
-def taskA = tasks.register("taskA", GreetingTask) {
+def greeterA = tasks.register("greeterA", GreetingTask) {
     type = "a"
-    outputDirectory = layout.buildDirectory.dir("shared") // <3>
+    outputDirectory = layout.buildDirectory.dir("greetings") // <3>
 }
-tasks.register("taskB", GreetingTask) {
+tasks.register("greeterB", GreetingTask) {
     type = "b"
-    outputDirectory = layout.buildDirectory.dir("shared") // <4>
+    outputDirectory = layout.buildDirectory.dir("greetings") // <4>
 }
+
 tasks.register("consumer", ConsumerTask) {
-    inputDirectory = taskA.flatMap { it.outputDirectory }  // <5>
+    inputDirectory = greeterA.flatMap { it.outputDirectory } // <5>
     outputFile = layout.buildDirectory.file("consumerOutput.txt")
 }
 // end::avoid-this[]

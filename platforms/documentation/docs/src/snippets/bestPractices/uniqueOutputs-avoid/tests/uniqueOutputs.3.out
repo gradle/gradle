@@ -1,4 +1,4 @@
-> Task :taskA UP-TO-DATE
+> Task :greeterA UP-TO-DATE
 > Task :consumer
 
 BUILD SUCCESSFUL in 0s
