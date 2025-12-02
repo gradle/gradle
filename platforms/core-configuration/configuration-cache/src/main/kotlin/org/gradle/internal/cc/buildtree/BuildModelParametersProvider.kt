@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.buildtree
 
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.logging.Logging
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
@@ -25,7 +26,6 @@ import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.base.logger
 
 
 /**
@@ -35,6 +35,9 @@ import org.gradle.internal.cc.base.logger
  */
 internal
 object BuildModelParametersProvider {
+
+    private
+    val logger = Logging.getLogger(BuildModelParametersProvider::class.java)
 
     private
     val configurationCacheParallelStore = InternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
