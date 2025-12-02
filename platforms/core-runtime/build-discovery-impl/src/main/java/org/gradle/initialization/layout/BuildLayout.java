@@ -29,8 +29,14 @@ import java.io.File;
 public class BuildLayout extends SettingsLocation {
     private final ScriptFileResolver scriptFileResolver;
 
-    // Note: `null` for `settingsFile` means explicitly no settings
-    //       A non null value can be a non existent file, which is semantically equivalent to an empty file
+    /**
+     * Creates a new build layout.
+     *
+     * @param rootDirectory the root directory of the build
+     * @param settingsFileResolution the settings file resolution result. {@code null} means explicitly no settings.
+     *                               A non-null value can be a non-existent file, which is semantically equivalent to an empty file.
+     * @param scriptFileResolver the script file resolver
+     */
     public BuildLayout(File rootDirectory, @Nullable ScriptResolutionResult settingsFileResolution, ScriptFileResolver scriptFileResolver) {
         super(rootDirectory, settingsFileResolution);
         this.scriptFileResolver = scriptFileResolver;
@@ -40,8 +46,12 @@ public class BuildLayout extends SettingsLocation {
      * Was a build definition found?
      */
     public boolean isBuildDefinitionMissing() {
-        return getSettingsFile() != null && !getSettingsFile().exists() &&
-            scriptFileResolver.resolveScriptFile(getRootDirectory(), BuildLogicFiles.BUILD_FILE_BASENAME) == null;
+        ScriptResolutionResult defaultSettingFileResolution = scriptFileResolver.resolveScriptFile(
+            getSettingsDir(),
+            BuildLogicFiles.SETTINGS_FILE_BASENAME
+        );
+
+        return getSettingsFile() != null && !getSettingsFile().exists() && !defaultSettingFileResolution.isScriptFound();
     }
 
     /**
