@@ -7,7 +7,9 @@ abstract class GreetingTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        outputDirectory.get().file("${type.get()}.txt").asFile << "Hello" // <1>
+        def outFileName = type.get() + ".txt"
+        def outFile = outputDirectory.file(outFileName).get().asFile
+        outFile.text = "Hello" // <1>
     }
 }
 
@@ -19,7 +21,8 @@ abstract class ConsumerTask extends DefaultTask {
 
     @TaskAction
     void run() {
-        outputFile.get().asFile.write(inputDirectory.get().file("a.txt").asFile.text) // <2>
+        def outputText = inputDirectory.get().file("a.txt").asFile.text
+        outputFile.get().asFile.write(outputText) // <2>
     }
 }
 

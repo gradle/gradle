@@ -1,11 +1,15 @@
 // tag::do-this[]
 abstract class GreetingTask : DefaultTask() {
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty
+    @get:Input
+    abstract val type: Property<String>
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
 
     @TaskAction
     fun run() {
-        outputFile.get().asFile.writeText("Hello") // <1>
+        val outFileName = type.get() + ".txt"
+        val outFile = outputDirectory.file(outFileName).get().asFile
+        outFile.writeText("Hello") // <1>
     }
 }
 
@@ -17,18 +21,21 @@ abstract class ConsumerTask : DefaultTask() {
 
     @TaskAction
     fun run() {
-        outputFile.get().asFile.writeText(inputFile.get().asFile.readText()) // <2>
+        val outputText = inputFile.get().asFile.readText()
+        outputFile.get().asFile.writeText(outputText) // <2>
     }
 }
 
 val taskA = tasks.register<GreetingTask>("taskA") {
-    outputFile = layout.buildDirectory.file("shared/a.txt") // <3>
+    type = "a"
+    outputDirectory = layout.buildDirectory.dir("shared") // <3>
 }
 tasks.register<GreetingTask>("taskB") {
-    outputFile = layout.buildDirectory.file("shared/b.txt") // <4>
+    type = "b"
+    outputDirectory = layout.buildDirectory.dir("shared") // <4>
 }
 tasks.register<ConsumerTask>("consumer") {
-    inputFile = taskA.flatMap { it.outputFile } // <5>
+    inputFile = taskA.flatMap { it.outputDirectory.file("a.txt") } // <5>
     outputFile = layout.buildDirectory.file("consumerOutput.txt")
 }
 // end::do-this[]
