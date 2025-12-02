@@ -38,7 +38,7 @@ public interface BuildTreeModelController {
      * @throws UnknownModelException when the model builder cannot be found
      */
     @Nullable
-    Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException;
+    Object getModel(BuildTreeModelTarget target, ToolingModelRequestContext modelRequestContext) throws UnknownModelException;
 
     boolean queryModelActionsRunInParallel();
 
@@ -47,5 +47,6 @@ public interface BuildTreeModelController {
      *
      * @see #queryModelActionsRunInParallel()
      */
+    @Nullable
     <T> List<T> runQueryModelActions(List<Supplier<T>> actions);
 }

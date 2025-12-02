@@ -59,7 +59,7 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         def versions = Versions.of(TestedVersions.asciidoctor)
         [
             "org.asciidoctor.editorconfig": versions,
-            // "org.asciidoctor.js.convert" : versions, //  Broken after 9.0. See https://github.com/asciidoctor/asciidoctor-gradle-plugin/pull/749
+            "org.asciidoctor.js.convert": versions,
             "org.asciidoctor.jvm.convert": versions,
             "org.asciidoctor.jvm.epub": versions,
             // Plugin broken after JCenter dependency disappeared

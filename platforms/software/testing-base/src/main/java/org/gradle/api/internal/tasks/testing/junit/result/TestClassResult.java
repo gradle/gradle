@@ -16,27 +16,24 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.time.Clock;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TestClassResult {
-    private final List<TestMethodResult> methodResults = new ArrayList<TestMethodResult>();
+    private final List<TestMethodResult> methodResults;
     private final String className;
     private final String classDisplayName;
+    private final List<TestMetadataEvent> metadatas;
     private long startTime;
     private int failuresCount;
     private int skippedCount;
     private long id;
 
-    public TestClassResult(long id, String className, long startTime) {
-        this(id, className, null, startTime);
-    }
-
-    public TestClassResult(long id, String className, @Nullable String classDisplayName, long startTime) {
+    public TestClassResult(long id, String className, String classDisplayName, long startTime, List<TestMetadataEvent> metadatas) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
@@ -44,6 +41,8 @@ public class TestClassResult {
         this.className = className;
         this.startTime = startTime;
         this.classDisplayName = classDisplayName == null ? className : classDisplayName;
+        this.metadatas = metadatas;
+        this.methodResults = new ArrayList<>();
     }
 
     public long getId() {
@@ -116,5 +115,9 @@ public class TestClassResult {
         // both JUnit Jupiter and Vintage use the simple class name as the default display name
         // so we use this as a heuristic to determine whether the display name was customized
         return className.endsWith("." + classDisplayName) || className.endsWith("$" + classDisplayName);
+    }
+
+    public List<TestMetadataEvent> getMetadatas() {
+        return metadatas;
     }
 }

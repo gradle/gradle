@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Executes the work scheduled for a build. Prior to execution, the work will be prepared by a {@link org.gradle.initialization.TaskExecutionPreparer}.
  */
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface BuildWorkExecutor {
     /**
      * Executes the given work and returns the failures.

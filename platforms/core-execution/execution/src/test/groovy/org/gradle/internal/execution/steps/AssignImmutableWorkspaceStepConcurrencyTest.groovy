@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata
@@ -64,7 +64,7 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
     def originMetadata = Stub(OriginMetadata)
     def delegateResult = Stub(CachingResult) {
         getDuration() >> Duration.ofSeconds(1)
-        getExecution() >> Try.successful(Stub(ExecutionEngine.Execution))
+        getExecution() >> Try.successful(Stub(Execution))
         getAfterExecutionOutputState() >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), originMetadata, false))
     }
 

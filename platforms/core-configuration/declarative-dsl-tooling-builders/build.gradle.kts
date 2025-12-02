@@ -7,7 +7,7 @@ description = "Declarative DSL Tooling Builders for IDEs"
 dependencies {
     api(projects.core)
     api(projects.serviceProvider)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
 
     api(libs.kotlinStdlib)
 

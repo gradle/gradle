@@ -18,16 +18,22 @@ package org.gradle.api.internal.runtimeshaded;
 
 public enum RuntimeShadedJarType {
 
-    API("api"),
-    TEST_KIT("test-kit");
+    API("api", "API"),
+    TEST_KIT("test-kit", "TestKit");
 
     private final String identifier;
+    private final String displayName;
 
-    RuntimeShadedJarType(String identifier) {
+    RuntimeShadedJarType(String identifier, String displayName) {
         this.identifier = identifier;
+        this.displayName = "Gradle " + displayName + " jar";
     }
 
     public String getIdentifier() {
         return identifier;
+    }
+
+    public String getDisplayName() {
+        return displayName;
     }
 }

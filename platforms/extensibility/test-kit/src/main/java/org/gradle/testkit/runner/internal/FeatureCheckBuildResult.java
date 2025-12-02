@@ -16,13 +16,17 @@
 
 package org.gradle.testkit.runner.internal;
 
+import com.google.common.io.ByteSource;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.internal.feature.BuildResultOutputFeatureCheck;
 import org.gradle.testkit.runner.internal.feature.FeatureCheck;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.io.BufferedReader;
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class FeatureCheckBuildResult implements BuildResult {
@@ -30,8 +34,16 @@ public class FeatureCheckBuildResult implements BuildResult {
     private final BuildResult delegateBuildResult;
     private final FeatureCheck outputFeatureCheck;
 
-    public FeatureCheckBuildResult(BuildOperationParameters buildOperationParameters, String output, List<BuildTask> tasks) {
-        delegateBuildResult = new DefaultBuildResult(output, tasks);
+    public FeatureCheckBuildResult(BuildOperationParameters buildOperationParameters, @NonNull String output, List<BuildTask> tasks) {
+        this(buildOperationParameters, ByteSource.wrap(output.getBytes(Charset.defaultCharset())), tasks);
+    }
+
+    public FeatureCheckBuildResult(
+        BuildOperationParameters buildOperationParameters,
+        @NonNull ByteSource outputSource,
+        List<BuildTask> tasks
+    ) {
+        delegateBuildResult = new DefaultBuildResult(outputSource, tasks);
         outputFeatureCheck = new BuildResultOutputFeatureCheck(buildOperationParameters.getTargetGradleVersion(), buildOperationParameters.isEmbedded());
     }
 
@@ -39,6 +51,12 @@ public class FeatureCheckBuildResult implements BuildResult {
     public String getOutput() {
         outputFeatureCheck.verify();
         return delegateBuildResult.getOutput();
+    }
+
+    @Override
+    public BufferedReader getOutputReader() {
+        outputFeatureCheck.verify();
+        return delegateBuildResult.getOutputReader();
     }
 
     @Override

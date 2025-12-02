@@ -562,17 +562,26 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                 $gradleConfiguration project(':b')
             }
         """, plugin
-        createDirs("b")
         settingsFile << '''
             include "b"
         '''
 
         file('b/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
 
             group = 'org.gradle.test'
             version = '1.2'
 
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
         """
 
         when:
@@ -599,7 +608,41 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         'java-library' | 'compileOnlyApi'    | 'compile'
         'java-library' | 'runtimeOnly'       | 'runtime'
         'java-library' | 'implementation'    | 'runtime'
+    }
 
+    void "depending on an unpublished project is deprecated"() {
+        given:
+        settingsFile << """
+            include("b")
+        """
+
+        createBuildScripts """
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            dependencies {
+                implementation(project(':b'))
+            }
+        """
+
+        file('b/build.gradle') << """
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
+            group = 'org.gradle.test'
+            version = '1.2'
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Declaring a dependency on an unpublished project has been deprecated. This will fail with an error in Gradle 10. A dependency was declared on project ':b', but that project does not declare any publications. Ensure project ':b' declares at least one publication. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#publishing_dependency_on_unpublished_project")
+        succeeds "publish"
     }
 
     void assertCompileOnlyApiDependencies(String... expected) {
@@ -838,14 +881,25 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
             ${mavenTestRepository()}
         """)
 
-        createDirs("subproject")
         settingsFile << """
             include "subproject"
         """
         file('subproject/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+                id("maven-publish")
+            }
+
             group = 'org.gradle.test'
             version = '1.2'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
         """
 
         when:
@@ -901,6 +955,9 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         createDirs("utils")
         settingsFile << "include 'utils'\n"
         buildFile("utils/build.gradle", """
+            plugins {
+                id('maven-publish')
+            }
             def attr1 = Attribute.of('custom', String)
             version = '1.0'
             configurations {
@@ -909,6 +966,18 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 }
                 two {
                     attributes.attribute(attr1, 'bazinga')
+                }
+            }
+
+            def component = publishing.softwareComponentFactory.adhoc("foo")
+            component.addVariantsFromConfiguration(configurations.one) {}
+            component.addVariantsFromConfiguration(configurations.two) {}
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from component
+                    }
                 }
             }
         """)
@@ -1132,13 +1201,14 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
-        createBuildScripts("""
-
-            tasks.compileJava {
-                // Avoid resolving the classpath when caching the configuration
-                classpath = files()
+        file("src/main/java/Dummy.java") << """
+            public class Dummy {
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
             }
-
+        """
+        createBuildScripts("""
             dependencies {
                 api "org.test:bar:1.0"
                 api platform("org.test:platform:1.0")
@@ -1190,10 +1260,9 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
-        createDirs("platform")
         settingsFile << """
-include(':platform')
-"""
+            include(':platform')
+        """
         createBuildScripts("""
             dependencies {
                 ${config} "org.test:bar"
@@ -1206,20 +1275,32 @@ include(':platform')
                     }
                 }
             }
-            project(':platform') {
-                apply plugin: 'java-platform'
+            ${mavenTestRepository()}
+        """)
 
-                group = 'org.gradle.test'
-                version = '1.9'
+        file("platform/build.gradle") << """
+            plugins {
+                id("java-platform")
+                id("maven-publish")
+            }
 
-                dependencies {
-                    constraints {
-                        api 'org.test:bar:1.0'
+            group = 'org.gradle.test'
+            version = '1.9'
+
+            dependencies {
+                constraints {
+                    api 'org.test:bar:1.0'
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.javaPlatform
                     }
                 }
             }
-            ${mavenTestRepository()}
-""")
+        """
 
         when:
         run "publish"

@@ -7,7 +7,7 @@ plugins {
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
-    id("com.gradleup.shadow").version("9.0.0-beta11")
+    id("com.gradleup.shadow").version("9.1.0")
 }
 
 description = "Kotlin DSL Provider"
@@ -23,15 +23,16 @@ dependencies {
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
+    api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.groovy)
     api(libs.guava)
+    api(libs.kotlinCompilerEmbeddable)
     api(libs.kotlinStdlib)
     api(libs.inject)
-    api(libs.slf4jApi)
 
     implementation(projects.baseAsm)
     implementation(projects.instrumentationReporting)
@@ -39,7 +40,6 @@ dependencies {
     implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
-    implementation(projects.declarativeDslInternalUtils)
     implementation(projects.declarativeDslProvider)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
@@ -51,22 +51,22 @@ dependencies {
     implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.messaging)
-    implementation(projects.modelCore)
+    implementation(projects.projectFeaturesApi)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
-    implementation(projects.softwareFeatures)
+    implementation(projects.projectFeatures)
 
     implementation(projects.javaApiExtractor)
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.asm)
     implementation(libs.jetbrainsAnnotations)
-    implementation(libs.kotlinCompilerEmbeddable)
     implementation(libs.kotlinReflect)
+    implementation(libs.slf4jApi)
 
     compileOnly(libs.jspecify)
 
@@ -167,7 +167,14 @@ tasks.shadowJar {
     configurations = setOf(project.configurations.shadow.get())
     relocate("kotlin.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata")
     relocate("kotlinx.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlinx.metadata")
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     mergeServiceFiles()
+    filesMatching("META-INF/services/**") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
     exclude("META-INF/kotlin-metadata-jvm.kotlin_module")
     exclude("META-INF/kotlin-metadata.kotlin_module")
     exclude("META-INF/metadata.jvm.kotlin_module")

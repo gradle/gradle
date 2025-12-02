@@ -19,9 +19,8 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.UnitOfWork.InputVisitor;
+import org.gradle.internal.execution.InputVisitor;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.DefaultIncrementalInputProperties;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
@@ -32,54 +31,54 @@ import org.jspecify.annotations.NullMarked;
 
 import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.nonIncremental;
 
-public class ResolveChangesStep<C extends ValidationFinishedContext, R extends Result> implements Step<C, R> {
+public class ResolveChangesStep<C extends MutableValidationFinishedContext, R extends Result> extends MutableStep<C, R> {
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
     private static final ImmutableList<String> UNTRACKED = ImmutableList.of("Change tracking is disabled.");
     private static final ImmutableList<String> VALIDATION_FAILED = ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
 
     private final ExecutionStateChangeDetector changeDetector;
 
-    private final Step<? super IncrementalChangesContext, R> delegate;
+    private final Step<? super MutableChangesContext, R> delegate;
 
     public ResolveChangesStep(
         ExecutionStateChangeDetector changeDetector,
-        Step<? super IncrementalChangesContext, R> delegate
+        Step<? super MutableChangesContext, R> delegate
     ) {
         this.changeDetector = changeDetector;
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
-        IncrementalChangesContext delegateContext = context.getBeforeExecutionState()
+    protected R executeMutable(MutableUnitOfWork work, C context) {
+        MutableChangesContext delegateContext = context.getBeforeExecutionState()
             .map(beforeExecution -> resolveExecutionStateChanges(work, context, beforeExecution))
-            .map(changes -> new IncrementalChangesContext(context, changes.getChangeDescriptions(), changes))
+            .map(changes -> new MutableChangesContext(context, changes.getChangeDescriptions(), changes))
             .orElseGet(() -> {
                 ImmutableList<String> rebuildReason = context.getNonIncrementalReason()
                     .map(ImmutableList::of)
                     .orElse(UNTRACKED);
-                return new IncrementalChangesContext(context, rebuildReason, null);
+                return new MutableChangesContext(context, rebuildReason, null);
             });
 
         return delegate.execute(work, delegateContext);
     }
 
     @NullMarked
-    private ExecutionStateChanges resolveExecutionStateChanges(UnitOfWork work, ValidationFinishedContext context, BeforeExecutionState beforeExecution) {
+    private ExecutionStateChanges resolveExecutionStateChanges(MutableUnitOfWork work, MutableValidationFinishedContext context, BeforeExecutionState beforeExecution) {
         IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
         return context.getNonIncrementalReason()
             .map(ImmutableList::of)
             .map(nonIncrementalReason -> nonIncremental(nonIncrementalReason, beforeExecution, incrementalInputProperties))
             .orElseGet(() -> context.getPreviousExecutionState()
                 .map(previousExecution -> context.getValidationProblems().isEmpty()
-                    ? changeDetector.detectChanges(work, previousExecution, beforeExecution, incrementalInputProperties)
+                    ? changeDetector.detectChanges(work, previousExecution, beforeExecution, incrementalInputProperties, context.getDetectedOverlappingOutputs().isPresent())
                     : nonIncremental(VALIDATION_FAILED, beforeExecution, incrementalInputProperties)
                 )
                 .orElseGet(() -> nonIncremental(NO_HISTORY, beforeExecution, incrementalInputProperties))
             );
     }
 
-    private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
+    private static IncrementalInputProperties createIncrementalInputProperties(MutableUnitOfWork work) {
         switch (work.getExecutionBehavior()) {
             case NON_INCREMENTAL:
                 return IncrementalInputProperties.NONE;
@@ -97,8 +96,8 @@ public class ResolveChangesStep<C extends ValidationFinishedContext, R extends R
                         }
                     }
                 };
-                work.visitIdentityInputs(visitor);
-                work.visitRegularInputs(visitor);
+                work.visitImmutableInputs(visitor);
+                work.visitMutableInputs(visitor);
                 return new DefaultIncrementalInputProperties(builder.build());
             default:
                 throw new AssertionError();

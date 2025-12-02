@@ -4,19 +4,12 @@ plugins {
 
 description = "Public and internal 'core' Gradle APIs that are required by other subprojects"
 
-errorprone {
-    disabledChecks.addAll(
-        "NonApiType", // 1 occurrences
-        "ReferenceEquality", // 2 occurrences
-        "StringCharset", // 1 occurrences
-    )
-}
-
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscovery)
     api(projects.loggingApi)
     api(projects.baseServices)
     api(projects.files)
@@ -33,7 +26,6 @@ dependencies {
     implementation(projects.io)
     implementation(projects.baseServicesGroovy)
     implementation(projects.logging)
-    implementation(projects.buildProcessServices)
 
     implementation(libs.commonsLang)
     implementation(libs.jsr305)

@@ -21,6 +21,8 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.ExecutionProblemHandler;
+import org.gradle.internal.execution.Identity;
+import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -32,21 +34,56 @@ import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.util.internal.TextUtil;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
-public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
-    private final ExecutionProblemHandler problemHandler;
-    private final Step<? super ValidationFinishedContext, ? extends R> delegate;
+public abstract class ValidateStep<
+    C extends BeforeExecutionContext,
+    R extends Result
+    > implements Step<C, R> {
+    public static class Immutable<R extends Result>
+        extends ValidateStep<ImmutableBeforeExecutionContext, R> {
+        private final Step<? super ImmutableValidationFinishedContext, ? extends R> delegate;
 
-    public ValidateStep(
-        ExecutionProblemHandler problemHandler,
-        Step<? super ValidationFinishedContext, ? extends R> delegate
-    ) {
+        public Immutable(
+            ExecutionProblemHandler problemHandler,
+            Step<? super ImmutableValidationFinishedContext, ? extends R> delegate
+        ) {
+            super(problemHandler);
+            this.delegate = delegate;
+        }
+
+        @Override
+        protected R executeDelegate(UnitOfWork work, ImmutableBeforeExecutionContext context, List<InternalProblem> problems) {
+            return delegate.execute(work, new ImmutableValidationFinishedContext(context, problems));
+        }
+    }
+
+    public static class Mutable<R extends Result>
+        extends ValidateStep<MutableBeforeExecutionContext, R> {
+        private final Step<? super MutableValidationFinishedContext, ? extends R> delegate;
+
+        public Mutable(
+            ExecutionProblemHandler problemHandler,
+            Step<? super MutableValidationFinishedContext, ? extends R> delegate
+        ) {
+            super(problemHandler);
+            this.delegate = delegate;
+        }
+
+        @Override
+        protected R executeDelegate(UnitOfWork work, MutableBeforeExecutionContext context, List<InternalProblem> problems) {
+            return delegate.execute(work, new MutableValidationFinishedContext(context, problems));
+        }
+    }
+
+    private final ExecutionProblemHandler problemHandler;
+
+    protected ValidateStep(ExecutionProblemHandler problemHandler) {
         this.problemHandler = problemHandler;
-        this.delegate = delegate;
     }
 
     @Override
@@ -59,12 +96,14 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
         problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
 
-        return delegate.execute(work, new ValidationFinishedContext(context, validationContext.getProblems()));
+        return executeDelegate(work, context, validationContext.getProblems());
     }
+
+    protected abstract R executeDelegate(UnitOfWork work, C context, List<InternalProblem> problems);
 
     private static void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
         MutableReference<Class<?>> workClass = MutableReference.empty();
-        work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
+        work.visitImplementations(new ImplementationVisitor() {
             @Override
             public void visitImplementation(Class<?> implementation) {
                 workClass.set(GeneratedSubclasses.unpack(implementation));
@@ -122,6 +161,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
     @ServiceScope(Scope.Global.class)
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork.Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings);
+        void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings);
     }
 }

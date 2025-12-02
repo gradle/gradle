@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
-
 import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,28 +28,15 @@ public class TestMethodResult {
     private final long id;
     private final String name;
     private final String displayName;
-    private TestResult.ResultType resultType;
-    private long duration;
-    private long endTime;
-    private final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
+    private final TestResult.ResultType resultType;
+    private final long duration;
+    private final long endTime;
+    private final List<TestMetadataEvent> metadatas;
+    private final List<SerializableFailure> failures;
 
     private SerializableFailure assumptionFailure = null;
 
-    public TestMethodResult(long id, String name) {
-        this(id, name, name);
-    }
-
-    public TestMethodResult(long id, String name, String displayName) {
-        this.id = id;
-        this.name = name;
-        this.displayName = displayName;
-    }
-
-    public TestMethodResult(long id, String name, TestResult.ResultType resultType, long duration, long endTime) {
-        this(id, name, name, resultType, duration, endTime);
-    }
-
-    public TestMethodResult(long id, String name, String displayName, TestResult.ResultType resultType, long duration, long endTime) {
+    public TestMethodResult(long id, String name, String displayName, TestResult.ResultType resultType, long duration, long endTime, List<TestMetadataEvent> metadatas) {
         if (id < 1) {
             throw new IllegalArgumentException("id must be > 0");
         }
@@ -58,15 +46,11 @@ public class TestMethodResult {
         this.resultType = resultType;
         this.duration = duration;
         this.endTime = endTime;
+        this.metadatas = metadatas;
+        this.failures = new ArrayList<>();
     }
 
-    public TestMethodResult completed(TestResult result) {
-        resultType = result.getResultType();
-        duration = result.getEndTime() - result.getStartTime();
-        endTime = result.getEndTime();
-        return this;
-    }
-
+    // TODO: These could be folded into the constructor as well
     public TestMethodResult addFailure(String message, String stackTrace, String exceptionType) {
         this.failures.add(new SerializableFailure(message, stackTrace, exceptionType));
         return this;
@@ -108,5 +92,9 @@ public class TestMethodResult {
 
     public long getEndTime() {
         return endTime;
+    }
+
+    public List<TestMetadataEvent> getMetadatas() {
+        return metadatas;
     }
 }

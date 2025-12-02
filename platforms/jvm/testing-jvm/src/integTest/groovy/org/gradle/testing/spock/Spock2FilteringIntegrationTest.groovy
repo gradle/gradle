@@ -16,9 +16,15 @@
 
 package org.gradle.testing.spock
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 
-class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
+class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec implements VerifiesGenericTestReportResults {
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.SPOCK
+    }
 
     def setup() {
         def testBody = """
@@ -65,11 +71,9 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         succeeds("test", "--tests", "SubClass.$testMethod")
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted("SubClass")
-            .testClass("SubClass")
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed(testMethod)
+        def result = resultsFor()
+        result.testPath(':SubClass').onlyRoot().assertChildCount(1, 0)
+        result.testPath(":SubClass:$testMethod").onlyRoot().assertChildCount(0, 0)
 
         where:
         testMethod << ["sub test", "super test", "super super test"]
@@ -80,12 +84,10 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         succeeds("test", "--tests", "SubClass.$testMethod")
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted("SubClass")
-            .testClass("SubClass")
-            .assertTestCount(2, 0, 0)
-            .assertTestPassed("$testMethod [param: value1, #0]")
-            .assertTestPassed("$testMethod [param: value2, #1]")
+        GenericTestExecutionResult result = resultsFor()
+        result.testPath(":SubClass").onlyRoot().assertChildCount(1, 0)
+        result.testPath(":SubClass:$testMethod").onlyRoot().assertChildCount(2, 0)
+        result.testPath(":SubClass:$testMethod").onlyRoot().assertOnlyChildrenExecuted("$testMethod [param: value1, #0]", "$testMethod [param: value2, #1]")
 
         where:
         testMethod << ["sub unrolled test", "super unrolled test", "super super unrolled test"]
@@ -96,12 +98,10 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         succeeds("test", "--tests", "SubClass.$testMethod param=#param")
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted("SubClass")
-            .testClass("SubClass")
-            .assertTestCount(2, 0, 0)
-            .assertTestPassed("$testMethod param=value1")
-            .assertTestPassed("$testMethod param=value2")
+        GenericTestExecutionResult result = resultsFor()
+        result.testPath(":SubClass").onlyRoot().assertChildCount(1, 0)
+        result.testPath(":SubClass:$testMethod param=#param").onlyRoot().assertChildCount(2, 0)
+        result.testPath(":SubClass:$testMethod param=#param").onlyRoot().assertOnlyChildrenExecuted("$testMethod param=value1", "$testMethod param=value2")
 
         where:
         testMethod << ["sub unrolled test", "super unrolled test", "super super unrolled test"]

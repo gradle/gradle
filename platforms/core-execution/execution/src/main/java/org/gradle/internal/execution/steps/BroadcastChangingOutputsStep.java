@@ -18,19 +18,20 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
 
 import java.io.File;
 
-public class BroadcastChangingOutputsStep<C extends InputChangesContext> implements Step<C, Result>  {
+public class BroadcastChangingOutputsStep<C extends WorkspaceContext> implements Step<C, Result>  {
     private final OutputChangeListener outputChangeListener;
 
-    private final Step<? super ChangingOutputsContext, ? extends Result> delegate;
+    private final Step<? super C, ? extends Result> delegate;
 
     public BroadcastChangingOutputsStep(
         OutputChangeListener outputChangeListener,
-        Step<? super ChangingOutputsContext, ? extends Result> delegate
+        Step<? super C, ? extends Result> delegate
     ) {
         this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
@@ -39,9 +40,9 @@ public class BroadcastChangingOutputsStep<C extends InputChangesContext> impleme
     @Override
     public Result execute(UnitOfWork work, C context) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+        work.visitOutputs(context.getWorkspace(), new OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+            public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
                 builder.add(value.getValue().getAbsolutePath());
             }
 
@@ -58,7 +59,7 @@ public class BroadcastChangingOutputsStep<C extends InputChangesContext> impleme
         ImmutableList<String> outputsToBeChanged = builder.build();
         outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         try {
-            return delegate.execute(work, new ChangingOutputsContext(context));
+            return delegate.execute(work, context);
         } finally {
             outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         }

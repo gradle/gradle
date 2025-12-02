@@ -21,13 +21,14 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
-import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ JUNIT_4 })
 class JUnit4JunitTestFailureIntegrationTest extends AbstractJUnit4TestFailureIntegrationTest implements JUnit4MultiVersionTest {
     @Override
-    String getInitializationErrorTestName() {
-        return 'initializationError'
+    String getInitializationErrorTestPath() {
+        return ':org.gradle.ClassWithBrokenRunnerOrExtension:executionError'
     }
 
     @Override
@@ -42,7 +43,7 @@ class JUnit4JunitTestFailureIntegrationTest extends AbstractJUnit4TestFailureInt
 
     @Override
     Matcher<? super String>[] getBrokenBeforeAndAfterMatchers() {
-        return [equalTo(failureAssertionError('before failed')), equalTo(failureAssertionError('after failed'))]
+        return [startsWith(failureAssertionError('before failed')), containsString(failureAssertionError('after failed'))]
     }
 
     @Override

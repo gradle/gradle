@@ -15,20 +15,15 @@
  */
 package org.gradle.scala
 
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ScalaCoverage
-import org.junit.Rule
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ ScalaCoverage.SUPPORTED_BY_JDK })
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
-    @Rule
-    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
-
     def "defaults scalaClasspath to inferred Scala compiler dependency"() {
         def scalaCompilerLib = versionNumber.major >= 3 ? "scala3-compiler_3" : "scala-compiler"
         file("build.gradle") << """

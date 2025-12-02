@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+import org.gradle.util.GradleVersion
 
 // Proper test display names were implemented in Gradle 8.8
 @ToolingApiVersion(">=8.8")
@@ -33,6 +34,21 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
     @Override
     ProgressEvents getEvents() {
         return events
+    }
+
+    /**
+     * Between 8.13 and 8.14, the display name changed for test events emitted by the TestEventReporter.
+     */
+    private String if813OrOlderTestDisplayName() {
+        if813OrOlder("Test MyTestInternal(MyTestInternal)", "My test!")
+    }
+
+    private String if813OrOlder(String value813, String otherwise) {
+        if (targetVersion < GradleVersion.version("8.14")) {
+            value813
+        } else {
+            otherwise
+        }
     }
 
     def "reports custom test events (flat)"() {
@@ -81,10 +97,8 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
-                    }
+                nested("Test suite 'Custom test root'") {
+                    test(if813OrOlderTestDisplayName())
                 }
             }
         }
@@ -140,11 +154,9 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    composite("My Suite") {
-                        test("MyTestInternal") {
-                            displayName "My test!"
-                        }
+                nested("Test suite 'Custom test root'") {
+                    nested(if813OrOlder("Test suite 'My Suite'", "Test class My Suite")) {
+                        test(if813OrOlderTestDisplayName())
                     }
                 }
             }
@@ -211,15 +223,11 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    composite("My Suite") {
-                        composite("myTestMethod") {
-                            test("myTestMethod[0]") {
-                                displayName "My test method! (foo=0)"
-                            }
-                            test("myTestMethod[1]") {
-                                displayName "My test method! (foo=1)"
-                            }
+                nested("Test suite 'Custom test root'") {
+                    nested(if813OrOlder("Test suite 'My Suite'", "Test class My Suite")) {
+                        nested(if813OrOlder("Test suite 'myTestMethod'", "Test class myTestMethod")) {
+                            test(if813OrOlder("Test myTestMethod[0](myTestMethod[0])", "My test method! (foo=0)"))
+                            test(if813OrOlder("Test myTestMethod[1](myTestMethod[1])", "My test method! (foo=1)"))
                         }
                     }
                 }

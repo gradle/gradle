@@ -14,16 +14,16 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
-    api(projects.modelReflect)
-    api(projects.problemsApi)
-    api(projects.softwareFeaturesApi)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
+    api(projects.projectFeaturesApi)
 
     api(libs.guava)
+    api(libs.inject)
     api(libs.jspecify)
 
     implementation(projects.functional)
     implementation(projects.jvmServices)
+    implementation(projects.modelReflect)
 
     implementation(libs.slf4jApi)
 

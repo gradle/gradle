@@ -121,7 +121,7 @@ private fun ParametrizedWithType.profilerParam(defaultProfiler: String) {
         allowEmpty = false,
         description =
             "Command line option for the performance test task to enable profiling. " +
-                "For example `async-profiler`, `async-profiler-heap`, `async-profiler-all` or `jfr`. Use `none` for benchmarking only.",
+                "For example `async-profiler`, `async-profiler-heap`, `async-profiler-wall`, `async-profiler-all` or `jfr`. Use `none` for benchmarking only.",
     )
 }
 

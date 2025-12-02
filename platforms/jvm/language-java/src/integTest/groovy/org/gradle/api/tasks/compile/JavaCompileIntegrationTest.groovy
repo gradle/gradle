@@ -34,7 +34,7 @@ import java.nio.file.Paths
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    Resources resources = new Resources()
+    Resources resources = new Resources(null)
 
     def "emits deprecation warning if executable specified as relative path"() {
         given:

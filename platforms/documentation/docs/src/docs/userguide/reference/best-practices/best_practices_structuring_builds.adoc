@@ -104,6 +104,16 @@ include::sample[dir="snippets/bestPractices/modularizeYourBuild-avoid/groovy/app
 
 ==== Do This Instead
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/modularizeYourBuild-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/modularizeYourBuild-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 [.multi-language-sample]
 =====
 .A better way to structure this build
@@ -279,6 +289,16 @@ include::sample[dir="snippets/bestPractices/noSourceInRoot-avoid/groovy",files="
 
 ==== Do This Instead
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/noSourceInRoot-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/noSourceInRoot-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 [.multi-language-sample]
 =====
 .A better way to structure new builds
@@ -365,7 +385,7 @@ However, due to historical reasons, these subtle differences still exist.
 As this changes, this recommendation may be revised in the future.
 For now, these differences can introduce confusion.
 
-Since setting up a composite build requires only minimal additional configuration, we recommend using it over `buildSrc` in most cases.
+Since setting up a composite build requires only minimal additional configuration, we recommend using it over `buildSrc` in most cases, especially for creating <<#use_convention_plugins,convention plugins>>.
 
 === Example
 
@@ -421,6 +441,16 @@ include::sample[dir="snippets/bestPractices/favorCompositeBuilds-avoid/groovy",f
 *`buildSrc` products are automatically usable*: There is no additional configuration with this method.
 
 ==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/favorCompositeBuilds-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/favorCompositeBuilds-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
 
 [.multi-language-sample]
 =====
@@ -590,6 +620,16 @@ The output of running the `projects` report on the above build shows that Gradle
 
 ==== Do This Instead
 
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidEmptyProjects-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidEmptyProjects-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/bestPractices/avoidEmptyProjects-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/bestPractices/avoidEmptyProjects-do/groovy",files="settings.gradle[tags=do-this]"]
@@ -607,6 +647,93 @@ You can also now invoke tasks on the `my-web-module` project using the shorter n
 
 === References
 - <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>
+
+=== Tags
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+[[use_convention_plugins]]
+== Use Convention Plugins for Common Build Logic
+
+Use <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins,convention plugins>> to encapsulate and reuse shared build logic across multiple projects in your build.
+
+=== Explanation
+
+Instead of duplicating configuration across multiple build scripts, you can easily move common logic into a reusable convention plugins.
+
+This approach offers several benefits:
+
+* **Reduces duplication**: Shared build logic lives in one place, making your build easier to understand.
+* **Unlocks modularization**: Convention plugins can apply other convention plugins, allowing you to orchestrate your build logic from small pieces.
+* **Centralizes configuration**: Updates to build behavior can be made in one file instead of many.
+* **Keeps build files clean**: Project build files stay focused on project-specific configuration.
+* **Improves IDE support**: IDEs can better understand and validate build logic when it is structured in plugins.
+
+Convention plugins are quicker to create than <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins,typed binary plugins>> extending the `Plugin` class.
+They are often a better choice for build logic that does not need to be shared outside a build, and that is simple enough to not require additional type safeness and testability benefits.
+Unlike binary plugins, convention plugins allow accessing plugin extensions, tasks and configurations via static accessors in build scripts written in Kotlin.
+
+While setting up convention plugins takes some initial effort, it pays off by simplifying maintenance, improving comprehensibility, and making it easier to add new projects as your codebase grows.
+
+As mentioned in <<#favor_composite_builds,Favor `build-logic` Composite Builds for Build Logic>>, we recommend placing your convention plugins in an included build (often named `build-logic`) instead of `buildSrc`.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/useConventionPlugins-avoid/kotlin",files="project-a/build.gradle.kts[tags=avoid-this];project-b/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/useConventionPlugins-avoid/groovy",files="project-a/build.gradle[tags=avoid-this];project-b/build.gradle[tags=avoid-this]"]
+====
+
+<1> Common compiler settings repeated across multiple projects.
+<2> Shared test configuration that must be maintained in multiple places.
+<3> Common dependencies that could be managed centrally.
+<4> Unique project dependencies.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useConventionPlugins-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/useConventionPlugins-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+Create included build containing convention plugins for your build in `build-logic` and add it to your settings file:
+
+====
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/kotlin",files="settings.gradle.kts[tags=do-this];build-logic/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",files="settings.gradle[tags=do-this];build-logic/build.gradle[tags=do-this]"]
+====
+
+<1> Include the `build-logic` build, which defines convention plugins.
+<2> Enable the use of Kotlin DSL in `build-logic`.
+
+Create convention plugins for each type of project in `build-logic`:
+
+====
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/kotlin",files="build-logic/src/main/kotlin/my.base-java-library.gradle.kts[tags=do-this];build-logic/src/main/kotlin/my.java-library.gradle.kts[tags=do-this];build-logic/src/main/kotlin/my.java-use-junit5.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",files="build-logic/src/main/groovy/my.base-java-library.gradle[tags=do-this];build-logic/src/main/groovy/my.java-library.gradle[tags=do-this];build-logic/src/main/groovy/my.java-use-junit5.gradle[tags=do-this]"]
+====
+
+<1> Default settings for a Java library plugin.
+<2> A convention plugin can apply other convention plugins.
+<3> JUnit 5 configuration moved to a convention plugin.
+
+And apply these plugin in any build files to use the shared logic:
+
+====
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/kotlin",files="project-a/build.gradle.kts[tags=do-this];project-b/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/useConventionPlugins-do/groovy",files="project-a/build.gradle[tags=do-this];project-b/build.gradle[tags=do-this]"]
+====
+
+=== References
+- <<plugins/custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>>
+- <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins,Implementing Pre-compiled Script Plugins>>
+- <<plugin-development/plugins.adoc#types_of_plugins,Types of Plugins>>
 
 === Tags
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`

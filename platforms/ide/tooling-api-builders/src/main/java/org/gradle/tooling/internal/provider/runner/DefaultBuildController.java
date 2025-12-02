@@ -16,19 +16,26 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
+import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
+import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalFetchAwareBuildController;
+import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
 import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -37,15 +44,25 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 @NullMarked
-@SuppressWarnings("deprecation")
-class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController, InternalStreamedValueRelay {
+class DefaultBuildController implements
+    InternalBuildController,
+    InternalBuildControllerVersion2,
+    InternalActionAwareBuildController,
+    InternalStreamedValueRelay,
+    InternalFetchAwareBuildController {
+
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
@@ -92,17 +109,27 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
      * This is used by consumers 4.4 and later
      */
     @Override
-    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, Object parameter)
+    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
+        throws BuildExceptionVersion1, InternalUnsupportedModelException {
+        ToolingModelBuilderResultInternal model = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, false));
+        return new ProviderBuildResult<>(model.getModel());
+    }
+
+    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ToolingModelRequestContext modelRequestContext)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
+            throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelRequestContext.getModelName()));
         }
 
         BuildTreeModelTarget scopedTarget = resolveTarget(target);
         try {
-            Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter);
-            return new ProviderBuildResult<>(model);
+            Object model = controller.getModel(scopedTarget, modelRequestContext);
+            if (model instanceof ToolingModelBuilderResultInternal) {
+                return (ToolingModelBuilderResultInternal) model;
+            } else {
+                return ToolingModelBuilderResultInternal.of(model);
+            }
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
@@ -147,4 +174,22 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(streamedValue));
     }
 
+    @Override
+    public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
+        try {
+            ToolingModelBuilderResultInternal model = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, true));
+            List<InternalFailure> failures = toInternalFailures(model.getFailures());
+            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(model.getModel()), failures);
+        } catch (Exception e) {
+            List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
+            return new DefaultInternalFetchModelResult<>(null, failures);
+        }
+    }
+
+    private static List<InternalFailure> toInternalFailures(List<Failure> failures) {
+        return failures
+            .stream()
+            .map(failure -> DefaultFailure.fromFailure(failure, dummy -> null))
+            .collect(toImmutableList());
+    }
 }

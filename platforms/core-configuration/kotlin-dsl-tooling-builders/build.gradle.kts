@@ -5,6 +5,7 @@ plugins {
 description = "Kotlin DSL Tooling Builders for IDEs"
 
 dependencies {
+    api(projects.baseServices)
     api(projects.coreApi)
     api(projects.core)
     api(projects.serviceProvider)
@@ -15,7 +16,6 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)
     implementation(projects.kotlinDsl)
-    implementation(projects.baseServices)
     implementation(projects.logging)
     implementation(projects.resources)
     implementation(projects.platformBase)

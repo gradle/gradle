@@ -20,7 +20,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.kotlin.dsl.accessors.tasks.PrintAccessors
-import org.gradle.kotlin.dsl.accessors.warnAboutDiscontinuedJsonProjectSchema
 import org.gradle.kotlin.dsl.provider.KotlinScriptBasePluginsApplicator
 
 
@@ -33,14 +32,6 @@ class DefaultKotlinScriptBasePluginsApplicator : KotlinScriptBasePluginsApplicat
 
 abstract class KotlinScriptBasePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
-        // Currently, there is no public API to do this in a project isolation safe way. Instead, do this in a non-safe way for now
-        (project as ProjectInternal).owner.owner.projects.rootProject.mutableModel.plugins.apply(KotlinScriptRootPlugin::class.java)
         tasks.register("kotlinDslAccessorsReport", PrintAccessors::class.java)
     }
-}
-
-
-abstract class KotlinScriptRootPlugin : Plugin<Project> {
-    override fun apply(project: Project): Unit =
-        project.warnAboutDiscontinuedJsonProjectSchema()
 }

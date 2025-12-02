@@ -51,7 +51,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
                 expectGetArtifact(classifier: 'classy')
             }
         }
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
@@ -100,7 +100,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
                 expectGetArtifact(classifier: 'classy')
             }
         }
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
@@ -154,7 +154,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
                 expectResolve()
             }
         }
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
@@ -203,7 +203,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
                 expectGetArtifact(classifier: 'classy')
             }
         }
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
@@ -253,7 +253,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
                 expectGetArtifact(classifier: 'classy')
             }
         }
-        succeeds "checkDep"
+        succeeds "checkDeps"
 
         then:
         resolve.expectGraph {

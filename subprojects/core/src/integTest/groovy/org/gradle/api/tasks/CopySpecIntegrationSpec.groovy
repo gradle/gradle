@@ -97,7 +97,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
         false // TODO This test can pass on Windows with proper locale, this force the test to fail, remove once fixed
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     @Issue("https://github.com/gradle/gradle/issues/2552")
     def "copying files to a directory with named pipes fails"() {
         def input = file("input.txt").createFile()

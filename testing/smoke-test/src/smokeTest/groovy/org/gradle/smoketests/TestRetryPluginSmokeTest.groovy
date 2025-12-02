@@ -16,7 +16,9 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
@@ -99,14 +101,29 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
     }
 
     private void assertTestResults() {
-        def testResult = new DefaultTestExecutionResult(file(""))
-        // Our test fixture doesn't handle retried tests
-        testResult.testClass("org.acme.AcmeTest")
-            .assertTestFailedIgnoreMessages("failing")
-            .assertTestSkipped("skipped")
-            .assertTestPassed("flaky")
-            .assertTestPassed("successful")
-            .assertTestCount(7, 4, 0) // failing runs 3 times, flaky twice (once with a failure)
+        def results = new GenericHtmlTestExecutionResult(testProjectDir, "build/reports/tests/test", GenericTestExecutionResult.TestFramework.JUNIT_JUPITER)
+        results.assertTestPathsExecuted(
+            ":org.acme.AcmeTest:successful",
+            ":org.acme.AcmeTest:flaky",
+            ":org.acme.AcmeTest:failing",
+            ":org.acme.AcmeTest:skipped"
+        )
+        def failing = results.testPath(":org.acme.AcmeTest:failing")
+        failing.singleRootRunCount == 3
+        failing.singleRootWithRun(1).assertHasResult(TestResult.ResultType.FAILURE)
+        failing.singleRootWithRun(2).assertHasResult(TestResult.ResultType.FAILURE)
+        failing.singleRootWithRun(3).assertHasResult(TestResult.ResultType.FAILURE)
+
+        def flaky = results.testPath(":org.acme.AcmeTest:flaky")
+        flaky.singleRootRunCount == 2
+        flaky.singleRootWithRun(1).assertHasResult(TestResult.ResultType.FAILURE)
+        flaky.singleRootWithRun(2).assertHasResult(TestResult.ResultType.SUCCESS)
+
+        def successful = results.testPath(":org.acme.AcmeTest:successful")
+        successful.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+
+        def skipped = results.testPath(":org.acme.AcmeTest:skipped")
+        skipped.onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
     }
 
     static void assertTaskFailed(BuildResult result, String task) {

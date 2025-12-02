@@ -16,6 +16,11 @@
 
 package org.gradle.kotlin.dsl.dcl
 
+import org.gradle.api.internal.plugins.BindsProjectType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import kotlin.test.Test
@@ -35,7 +40,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
             defaults {
                 @OptIn(SomeExperimentalApi::class)
-                mySoftwareType { }
+                myProjectType { }
             }
         """.trimIndent()
         )
@@ -45,7 +50,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             import com.example.SomeExperimentalApi
 
             @OptIn(SomeExperimentalApi::class)
-            mySoftwareType {
+            myProjectType {
                 myElements {
                     myElement("foo") { }
                 }
@@ -53,7 +58,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         """.trimIndent()
         )
 
-        //TODO: DCL cannot expose the software type accessors to a KTS precompiled script plugin yet, as it needs an ecosystem plugin to
+        //TODO: DCL cannot expose the project type accessors to a KTS precompiled script plugin yet, as it needs an ecosystem plugin to
         // register the models; so far we cannot test that the sources generated for the DCL accessors are valid by actually building against them.
         build("kotlinDslAccessorsReport").apply {
             assertNotOutput("w:")
@@ -67,7 +72,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             assertOutputContains(
                 """
                 |    @com.example.SomeExperimentalApi
-                |    fun org.gradle.api.Project.`mySoftwareType`(configure: Action<in com.example.MyExtension>) {
+                |    fun org.gradle.api.Project.`myProjectType`(configure: Action<in com.example.MyExtension>) {
                 """.trimMargin()
             )
         }
@@ -158,26 +163,37 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 import org.gradle.api.Project
                 import org.gradle.api.Named
                 import org.gradle.api.NamedDomainObjectContainer
-                import org.gradle.api.internal.plugins.software.SoftwareType
                 import javax.inject.Inject
+                import ${BindsProjectType::class.java.name}
+                import ${ProjectTypeBinding::class.java.name}
+                import ${ProjectTypeBindingBuilder::class.java.name}
+                import ${Definition::class.java.name}
+                import ${BuildModel::class.java.name}
+                import org.gradle.api.internal.plugins.features.dsl.bindProjectType
 
                 @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
                 annotation class SomeExperimentalApi
 
                 @OptIn(SomeExperimentalApi::class)
                 @Suppress("deprecation")
+                @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
-                    @get:SoftwareType(name = "mySoftwareType")
-                    abstract val mySoftwareType: MyExtension
+                    class Binding : ${ProjectTypeBinding::class.java.simpleName} {
+                        override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
+                            builder.bindProjectType("myProjectType") { definition: MyExtension, model -> }
+                        }
+                    }
 
                     override fun apply(project: Project) = Unit
                 }
 
                 @SomeExperimentalApi
                 @Suppress("deprecation")
-                abstract class MyExtension {
+                abstract class MyExtension : ${Definition::class.java.simpleName}<Model> {
                     abstract val myElements: NamedDomainObjectContainer<MyElement>
                 }
+
+                interface Model : ${BuildModel::class.java.simpleName} { }
 
                 @SomeExperimentalApi
                 abstract class MyElement(val elementName: String) : Named {

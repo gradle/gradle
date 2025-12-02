@@ -122,7 +122,7 @@ public class HtmlReportRenderer {
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
                 protected void doExecute(@NonNull Writer writer) throws Exception {
-                    SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
+                    SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, outputFile.getParentFile().toPath(), "");
                     htmlWriter.startElement("html");
                     renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), htmlWriter));
                     htmlWriter.endElement();

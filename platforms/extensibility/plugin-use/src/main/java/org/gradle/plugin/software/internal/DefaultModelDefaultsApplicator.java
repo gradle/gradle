@@ -21,7 +21,7 @@ import org.gradle.api.Plugin;
 import java.util.List;
 
 /**
- * Applies the model defaults for a given software type to a target project if the provided plugin class is a software type plugin.
+ * Applies the model defaults for a given project type to a target project if the provided plugin class is a project type plugin.
  */
 public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     private final List<ModelDefaultsHandler> defaultsHandlers;
@@ -31,7 +31,7 @@ public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     }
 
     @Override
-    public <T> void applyDefaultsTo(T target, ClassLoaderContext classLoaderContext, Plugin<?> plugin, SoftwareFeatureImplementation<?, ?> softwareFeatureImplementation) {
-        defaultsHandlers.forEach(handler -> handler.apply(target, classLoaderContext, softwareFeatureImplementation.getFeatureName(), plugin));
+    public void applyDefaultsTo(Object target, Object definition, ClassLoaderContext classLoaderContext, Plugin<?> plugin, ProjectFeatureImplementation<?, ?> projectFeatureImplementation) {
+        defaultsHandlers.forEach(handler -> handler.apply(target, definition, classLoaderContext, projectFeatureImplementation.getFeatureName(), plugin));
     }
 }

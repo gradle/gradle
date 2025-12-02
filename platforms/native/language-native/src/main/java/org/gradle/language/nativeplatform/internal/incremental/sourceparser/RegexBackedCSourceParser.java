@@ -28,7 +28,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -39,6 +38,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newBufferedReader;
+
 /**
  * Parses a subset of the C preprocessor language, to extract details of {@code #include}, {@code #import} and {@code #define} directives. Only handles a subset of the possible expressions that can be
  * used as the body of these directives.
@@ -46,7 +48,7 @@ import java.util.Set;
 public class RegexBackedCSourceParser implements CSourceParser {
     @Override
     public IncludeDirectives parseSource(File sourceFile) {
-        try (Reader fileReader = new FileReader(sourceFile)) {
+        try (Reader fileReader = newBufferedReader(sourceFile.toPath(), UTF_8)) {
             return parseSource(fileReader);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not extract includes from source file %s.", sourceFile), e);

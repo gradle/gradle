@@ -42,14 +42,12 @@ public final class ExceptionMetadataHelper {
     public static Map<String, String> getMetadata(Throwable t) {
         Map<String, String> metadata = new LinkedHashMap<>();
 
-        if (t instanceof TaskExecutionException) {
-            TaskExecutionException taskExecutionException = (TaskExecutionException) t;
+        if (t instanceof TaskExecutionException taskExecutionException) {
             String taskPath = ((TaskInternal) taskExecutionException.getTask()).getIdentityPath().asString();
             metadata.put(METADATA_KEY_TASK_PATH, taskPath);
         }
 
-        if (t instanceof ScriptCompilationException) {
-            ScriptCompilationException sce = (ScriptCompilationException) t;
+        if (t instanceof ScriptCompilationException sce) {
             metadata.put(METADATA_KEY_SCRIPT_FILE, sce.getScriptSource().getFileName());
             Integer sceLineNumber = sce.getLineNumber();
             if (sceLineNumber != null) {
@@ -57,8 +55,7 @@ public final class ExceptionMetadataHelper {
             }
         }
 
-        if (t instanceof LocationAwareException) {
-            LocationAwareException lae = (LocationAwareException) t;
+        if (t instanceof LocationAwareException lae) {
             metadata.put(METADATA_KEY_SOURCE_DISPLAY_NAME, lae.getSourceDisplayName());
             Integer laeLineNumber = lae.getLineNumber();
             if (laeLineNumber != null) {
@@ -79,8 +76,7 @@ public final class ExceptionMetadataHelper {
     }
 
     public static List<? extends Throwable> extractCauses(Throwable t) {
-        if (t instanceof MultiCauseException) {
-            MultiCauseException mce = (MultiCauseException) t;
+        if (t instanceof MultiCauseException mce) {
             List<? extends Throwable> mceCauses = mce.getCauses();
             if (mceCauses != null && !mceCauses.isEmpty()) {
                 return mceCauses;

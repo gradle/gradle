@@ -190,13 +190,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class UnixDerivative implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            TestPrecondition.satisfied(MacOs) || TestPrecondition.satisfied(Linux) || TestPrecondition.satisfied(Unix)
-        }
-    }
-
     static final class HasDocker implements TestPrecondition {
         @Override
         boolean isSatisfied() {

@@ -33,6 +33,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -41,6 +42,7 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
@@ -57,12 +59,14 @@ import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -113,7 +117,7 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir) {
+    public ProjectInternal createProject(String name, @Nullable File inputProjectDir, @Nullable File gradleUserHomeDir) {
         // ProjectBuilder uses daemon classes, so it has the same JVM compatibility.
         UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
 
@@ -138,6 +142,8 @@ public class ProjectBuilderImpl {
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
+        startParameter.setCurrentDir(projectDir);
+        startParameter.doNotSearchUpwards();
 
         // ProjectBuilder tests are more lightweight and native services shouldn't be required, so we disable them by default.
         // Additionally, when they are enabled they are put in the projectDir by default and that can cause issues with test cleanup on Windows.
@@ -151,7 +157,8 @@ public class ProjectBuilderImpl {
         final ServiceRegistry globalServices = getGlobalServices();
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
+        File userActionRootDir = globalServices.get(BuildLayoutFactory.class).getLayoutFor(startParameter.toBuildLayoutConfiguration()).getRootDirectory();
+        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter, userActionRootDir);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(new RunTasksRequirements(startParameter));
@@ -161,6 +168,10 @@ public class ProjectBuilderImpl {
 
         CloseableServiceRegistry buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
+
+        // Project or applied plugins can emit deprecation warnings, so we need to initialize the deprecation logger
+        //noinspection DataFlowIssue
+        DeprecationLogger.init(WarningMode.None, null, null, NoOpProblemDiagnosticsFactory.EMPTY_STREAM);
 
         // Take a root worker lease; this won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);

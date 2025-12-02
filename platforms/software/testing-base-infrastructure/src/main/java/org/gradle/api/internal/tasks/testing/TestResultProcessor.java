@@ -48,4 +48,10 @@ public interface TestResultProcessor {
      */
     @UsedByScanPlugin("test-distribution")
     void failure(Object testId, TestFailure result);
+
+    /**
+     * Notifies this processor that metadata has been published for the given test.
+     */
+    default void published(Object testId, TestMetadataEvent keyValueEvent) {}
+
 }

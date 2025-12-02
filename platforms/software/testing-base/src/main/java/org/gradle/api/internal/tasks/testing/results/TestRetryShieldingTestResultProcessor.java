@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
@@ -43,6 +44,11 @@ public class TestRetryShieldingTestResultProcessor implements TestResultProcesso
     @Override
     public void output(Object testId, TestOutputEvent event) {
         delegate.output(testId, event);
+    }
+
+    @Override
+    public void published(Object testId, TestMetadataEvent keyValueEvent) {
+        delegate.published(testId, keyValueEvent);
     }
 
     @Override

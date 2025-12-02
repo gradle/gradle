@@ -54,7 +54,6 @@ import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
-import gradlebuild.basics.BuildParams.SKIP_BUILD_LOGIC_TESTS
 import gradlebuild.basics.BuildParams.STUDIO_HOME
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_DOGFOODING_TAG
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
@@ -122,7 +121,6 @@ object BuildParams {
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val RERUN_ALL_TESTS = "rerunAllTests"
-    const val SKIP_BUILD_LOGIC_TESTS = "skipBuildLogicTests"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val TEST_DISTRIBUTION_DOGFOODING_TAG = "testDistributionDogfoodingTag"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
@@ -279,9 +277,6 @@ val Project.flakyTestStrategy: FlakyTestStrategy
 val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
     get() = gradleProperty(BUILD_IGNORE_INCOMING_BUILD_RECEIPT).presence()
 
-val Project.skipBuildLogicTests: Boolean
-    get() = gradleProperty(SKIP_BUILD_LOGIC_TESTS).getOrElse("true") == "true"
-
 val Project.performanceDependencyBuildIds: Provider<String>
     get() = gradleProperty(PERFORMANCE_DEPENDENCY_BUILD_IDS).orElse("")
 
@@ -424,7 +419,6 @@ val Project.isPromotionBuild: Boolean
     get() {
         val taskNames = gradle.startParameter.taskNames
         return taskNames.contains("promotionBuild") ||
-            // :updateReleasedVersionsToLatestNightly and :updateReleasedVersions
             taskNames.any { it.contains("updateReleasedVersions") }
     }
 

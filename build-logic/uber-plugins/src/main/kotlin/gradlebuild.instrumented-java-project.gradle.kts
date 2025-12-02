@@ -24,6 +24,8 @@ plugins {
 val libs = project.the<ExternalModulesExtension>()
 
 dependencies {
+    // The generated classes use these dependencies.
+    // TODO: Should they be implementation dependencies?
     compileOnly(project(":base-asm"))
     compileOnly(project(":internal-instrumentation-api"))
     compileOnly(project(":stdlib-java-extensions"))

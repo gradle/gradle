@@ -37,17 +37,19 @@ class DefaultBuildTreeModelCreatorTest extends Specification {
         def model = new Object()
 
         def modelScope = Mock(ToolingModelScope) {
-            getModel(_, _) >> model
+            getModel(_, _) >> { String modelName, @Nullable ToolingModelParameterCarrier parameter ->
+                model
+            }
         }
         def modelController = Mock(BuildToolingModelController) {
-            locateBuilderForTarget(_, _) >> modelScope
+            locateBuilderForTarget(_) >> modelScope
         }
 
         def buildRootDir = new File("dummy")
         def buildState1 = Stub(BuildState) {
             isImportableBuild() >> true
             getBuildRootDir() >> buildRootDir
-            withToolingModels(_) >> { Function action ->
+            withToolingModels(_, _) >> { boolean b, Function action ->
                 action.apply(modelController)
             }
         }
@@ -111,7 +113,7 @@ class DefaultBuildTreeModelCreatorTest extends Specification {
 
             @Override
             Object fromBuildModel(BuildTreeModelController controller) {
-                return controller.getModel(target, modelName, parameter)
+                return controller.getModel(target, new ToolingModelRequestContext(modelName, parameter, false))
             }
         })
     }
