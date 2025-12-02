@@ -17,6 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -124,6 +125,11 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
         modelServices.applyServicesTo(registration);
+    }
+
+    @Provides
+    BuildType createBuildType(BuildActionModelRequirements requirements) {
+        return requirements.isCreatesModel() ? BuildType.MODEL : BuildType.TASKS;
     }
 
     @Provides

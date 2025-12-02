@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.GradleException
 import org.gradle.api.configuration.BuildFeatures
-import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
@@ -110,8 +109,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val buildFeatures = DefaultBuildFeatures(startParameter, modelParameters)
 
         return BuildTreeModelControllerServices.Supplier { registration ->
-            val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
-            registration.add(BuildType::class.java, buildType)
             registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements, loggingParameters)
         }
     }
@@ -119,7 +116,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
         val loggingParameters = ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
         return BuildTreeModelControllerServices.Supplier { registration ->
-            registration.add(BuildType::class.java, BuildType.TASKS)
             val buildModelParameters = BuildModelParametersProvider.parametersForNestedBuildTree(startParameter)
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
