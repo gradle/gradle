@@ -24,6 +24,7 @@ data class DefaultBuildModelParameters(
     private val parallelProjectExecution: Boolean,
     private val configureOnDemand: Boolean,
     private val configurationCache: Boolean,
+    private val configurationCacheDisabledReason: String?,
     private val configurationCacheParallelStore: Boolean,
     private val configurationCacheParallelLoad: Boolean,
     private val isolatedProjects: Boolean,
@@ -35,6 +36,12 @@ data class DefaultBuildModelParameters(
     private val resilientModelBuilding: Boolean
 ) : BuildModelParameters {
 
+    init {
+        require(!configurationCache || configurationCacheDisabledReason == null) {
+            "Configuration cache cannot be enabled and have a disabled reason at the same time."
+        }
+    }
+
     override fun isRequiresToolingModels(): Boolean = requiresToolingModels
 
     override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
@@ -42,6 +49,8 @@ data class DefaultBuildModelParameters(
     override fun isConfigureOnDemand(): Boolean = configureOnDemand
 
     override fun isConfigurationCache(): Boolean = configurationCache
+
+    override fun getConfigurationCacheDisabledReason(): String? = configurationCacheDisabledReason
 
     override fun isConfigurationCacheParallelStore(): Boolean = configurationCacheParallelStore
 
@@ -61,11 +70,12 @@ data class DefaultBuildModelParameters(
 
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
 
-    override fun toDisplayMap(): Map<String, Boolean> = mapOf(
+    override fun toDisplayMap(): Map<String, Any?> = mapOf(
         "requiresToolingModels" to requiresToolingModels,
         "parallelProjectExecution" to parallelProjectExecution,
         "configureOnDemand" to configureOnDemand,
         "configurationCache" to configurationCache,
+        "configurationCacheDisabledReason" to configurationCacheDisabledReason,
         "configurationCacheParallelStore" to configurationCacheParallelStore,
         "configurationCacheParallelLoad" to configurationCacheParallelLoad,
         "isolatedProjects" to isolatedProjects,

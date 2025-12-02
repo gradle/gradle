@@ -28,7 +28,8 @@ import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildToolingModelControllerFactory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.buildtree.BuildTreeModelControllerServices
+import org.gradle.internal.buildtree.BuildModelParametersFactory
+import org.gradle.internal.buildtree.control.DefaultBuildModelParametersFactory
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
@@ -51,9 +52,14 @@ import java.io.File
 
 class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
+    override fun registerGlobalServices(registration: ServiceRegistration) {
+        registration.run {
+            add(BuildModelParametersFactory::class.java, DefaultBuildModelParametersFactory::class.java)
+        }
+    }
+
     override fun registerBuildSessionServices(registration: ServiceRegistration) {
         registration.run {
-            add(BuildTreeModelControllerServices::class.java, DefaultBuildTreeModelControllerServices::class.java)
             add(ConfigurationCacheRepository::class.java)
             add(ConfigurationCacheEntryCollector::class.java)
         }
@@ -61,6 +67,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
+            addProvider(BuildTreeModelControllerServices)
             add(BuildNameProvider::class.java)
             add(ConfigurationCacheKey::class.java)
             add(BuildModelControllerServices::class.java, DefaultBuildModelControllerServices::class.java)

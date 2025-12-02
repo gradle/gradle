@@ -20,7 +20,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildtree.BuildActionModelRequirements;
 import org.gradle.internal.buildtree.BuildActionRunner;
-import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
+import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.BuildModelParametersFactory;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.hash.HashCode;
@@ -44,16 +45,16 @@ import java.util.function.Supplier;
  */
 public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionActionExecutor {
 
-    private final BuildTreeModelControllerServices buildTreeModelControllerServices;
+    private final BuildModelParametersFactory buildModelParametersFactory;
     private final BuildLayoutValidator buildLayoutValidator;
     private final ValueSnapshotter valueSnapshotter;
 
     public BuildTreeLifecycleBuildActionExecutor(
-        BuildTreeModelControllerServices buildTreeModelControllerServices,
+        BuildModelParametersFactory modelParametersFactory,
         BuildLayoutValidator buildLayoutValidator,
         ValueSnapshotter valueSnapshotter
     ) {
-        this.buildTreeModelControllerServices = buildTreeModelControllerServices;
+        this.buildModelParametersFactory = modelParametersFactory;
         this.buildLayoutValidator = buildLayoutValidator;
         this.valueSnapshotter = valueSnapshotter;
     }
@@ -65,8 +66,8 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
             buildLayoutValidator.validate(action.getStartParameter());
 
             BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
-            BuildTreeModelControllerServices.Supplier modelServices = buildTreeModelControllerServices.servicesForBuildTree(actionRequirements);
-            result = runRootBuildAction(action, buildSession.getServices(), modelServices);
+            BuildModelParameters buildModelParameters = buildModelParametersFactory.parametersForRootBuildTree(actionRequirements);
+            result = runRootBuildAction(action, buildSession.getServices(), actionRequirements, buildModelParameters);
         } catch (Throwable t) {
             if (result == null) {
                 // Did not create a result
@@ -91,10 +92,11 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
     private static BuildActionRunner.Result runRootBuildAction(
         BuildAction action,
         ServiceRegistry buildSessionServices,
-        BuildTreeModelControllerServices.Supplier modelServices
+        BuildActionModelRequirements buildActionRequirements,
+        BuildModelParameters buildModelParameters
     ) {
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
-        try (BuildTreeState buildTree = new BuildTreeState(buildInvocationScopeId, buildSessionServices, modelServices)) {
+        try (BuildTreeState buildTree = new BuildTreeState(buildSessionServices, buildActionRequirements, buildModelParameters, buildInvocationScopeId)) {
             return buildTree.getServices().get(RootBuildLifecycleBuildActionExecutor.class).execute(action);
         }
     }
