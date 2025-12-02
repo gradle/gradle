@@ -68,6 +68,8 @@ gradle.afterProject { eachProject ->
 }
 
 gradle.projectsEvaluated { Gradle gradle ->
+    info("Realized ${realizedTasks.size()} tasks")
+
     if (!scheduleTasks) {
         info("Not scheduling tasks")
         return
@@ -84,7 +86,7 @@ gradle.projectsEvaluated { Gradle gradle ->
     List<String> requestedTaskPaths = requestedTasks*.path
 
     // create a root anchor task
-    def rootAnchor = gradle.rootProject.tasks.register("__anchor").get()
+    def rootAnchor = gradle.rootProject.tasks.register(ANCHOR).get()
     rootAnchor.configure { task ->
         if (anyRequests) {
             requestedTasks[0].finalizedBy(task)
@@ -98,7 +100,7 @@ gradle.projectsEvaluated { Gradle gradle ->
             debug("Skipping $project")
             return
         }
-        def projectAnchor= project.tasks.register(ANCHOR, {
+        def projectAnchor = project.tasks.register(ANCHOR, {
             if (anyRequests) {
                 rootAnchor.dependsOn(it)
             }
@@ -106,12 +108,8 @@ gradle.projectsEvaluated { Gradle gradle ->
         debug("Registering ${projectAnchor.path} under ${project.path} on ${System.identityHashCode(anchorsPerProject)}")
         anchorsPerProject[project.path] = projectAnchor
     }
-    anchorsPerProject.values().each {
-        it.onlyIf { false }
-    }
 
     // Ensure tasks not explicitly requested are added to the task graph
-    info("Realized ${realizedTasks.size()} tasks")
     def tasksToAddTaskGraph = realizedTasks.findAll { filtering.isTaskAccepted(it) }
     debug("tasksToAddTaskGraph:") {
         tasksToAddTaskGraph.collect { "${it.name} (${it.class.name})" }
@@ -133,6 +131,7 @@ gradle.projectsEvaluated { Gradle gradle ->
         }
         projectAnchor.dependsOn(filteredTasks)
     }
+    // disable all tasks in the graph in case the user did not request --dry-run
     taskGraph.whenReady { graph ->
         def allTasks = graph.allTasks
         info("Disabling task execution on ${allTasks.size()} tasks")
@@ -183,20 +182,11 @@ private void log(String message, Closure lazyValue, Consumer<String> consumer) {
 
 class Filters {
     def isTaskAccepted(TaskProvider task) {
-        if (shouldExcludeTask(task.name, ((ProviderInternal) task).type)) {
-            return false
-        }
-        return true
+        return !shouldExcludeTask(task.name, ((ProviderInternal) task).type)
     }
 
     def isTaskAccepted(Task task) {
-        if (shouldExcludeTask(task.name, task.class)) {
-            return false
-        }
-        if (!(task as AbstractTask).compatibleWithConfigurationCache) {
-            return false
-        }
-        return true
+        return !shouldExcludeTask(task.name, task.class) && (task as AbstractTask).compatibleWithConfigurationCache
     }
 
     private boolean shouldExcludeTask(String name, Class<Task> taskType) {
