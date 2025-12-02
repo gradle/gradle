@@ -21,7 +21,6 @@ plugins {
 description = "Public types for unit testing plugins"
 
 dependencies {
-    api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)
     api(projects.core)
@@ -34,6 +33,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.baseServices)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
