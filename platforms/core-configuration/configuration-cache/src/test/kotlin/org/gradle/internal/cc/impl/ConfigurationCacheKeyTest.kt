@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
@@ -158,7 +157,6 @@ class ConfigurationCacheKeyTest {
                     modelAsProjectDependency = false,
                     resilientModelBuilding = false,
                 ),
-                ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {

@@ -17,11 +17,8 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.GradleException
-import org.gradle.api.configuration.BuildFeatures
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
-import org.gradle.api.internal.configuration.DefaultBuildFeatures
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.Environment
@@ -86,7 +83,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             }
         }
 
-        val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = BuildModelParametersProvider.parameters(requirements)
         logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
@@ -105,19 +101,16 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             }
         }
 
-        val loggingParameters = ConfigurationCacheLoggingParameters(configurationCacheLogLevel)
-
         return BuildTreeModelControllerServices.Supplier { registration ->
-            registerCommonBuildTreeServices(registration, modelParameters, requirements, loggingParameters)
+            registerCommonBuildTreeServices(registration, modelParameters, requirements)
         }
     }
 
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
-        val loggingParameters = ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildModelParameters = BuildModelParametersProvider.parametersForNestedBuildTree(startParameter)
             val requirements = RunTasksRequirements(startParameter)
-            registerCommonBuildTreeServices(registration, buildModelParameters, requirements, loggingParameters)
+            registerCommonBuildTreeServices(registration, buildModelParameters, requirements)
         }
     }
 
@@ -126,10 +119,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         registration: ServiceRegistration,
         modelParameters: BuildModelParameters,
         requirements: BuildActionModelRequirements,
-        loggingParameters: ConfigurationCacheLoggingParameters
     ) {
         registration.add(BuildModelParameters::class.java, modelParameters)
-        registration.add(ConfigurationCacheLoggingParameters::class.java, loggingParameters)
         registration.add(BuildActionModelRequirements::class.java, requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
         registration.add(JavaSerializationEncodingLookup::class.java)
