@@ -22,7 +22,15 @@ import spock.lang.Specification
 
 class ScriptResolutionResultTest extends Specification {
 
-    def "can create result with selected candidate and no ignored candidates"() {
+    def "list of extensions are what we expect"() {
+        ScriptingLanguages.all().collect {it.extension} == [
+            ".gradle",
+            ".gradle.kts",
+            ".gradle.dcl"
+        ]
+    }
+
+    def "single candidate"() {
         given:
         def directory = new File("/some/dir")
         def selectedFile = new File(directory, "build.gradle")
@@ -36,7 +44,7 @@ class ScriptResolutionResultTest extends Specification {
         result.ignoredCandidates.isEmpty()
     }
 
-    def "can create result with selected candidate and ignored candidates"() {
+    def "multiple candidates"() {
         given:
         def directory = new File("/some/dir")
         def selectedFile = new File(directory, "build.gradle")
@@ -52,7 +60,7 @@ class ScriptResolutionResultTest extends Specification {
         result.ignoredCandidates == [ignoredFile1, ignoredFile2]
     }
 
-    def "can create result with no selected candidate"() {
+    def "no candidates found"() {
         given:
         def directory = new File("/some/dir")
 
@@ -65,7 +73,7 @@ class ScriptResolutionResultTest extends Specification {
         result.ignoredCandidates.isEmpty()
     }
 
-    def "ignored candidates list is immutable"() {
+    def "ignored candidates list is unmodifiable"() {
         given:
         def directory = new File("/some/dir")
         def selectedFile = new File(directory, "build.gradle")
@@ -92,8 +100,22 @@ class ScriptResolutionResultTest extends Specification {
         result.ignoredCandidates.isEmpty()
     }
 
+    def "reportProblem formats single ignored candidate correctly"() {
+        given:
+        def directory = new File("/some/dir")
+        def selectedFile = new File(directory, "settings.gradle")
+        def ignoredFile = new File(directory, "settings.gradle.kts")
+        def result = new ScriptResolutionResult(directory, "settings", selectedFile, [ignoredFile])
+        def reporter = Mock(ProblemReporter)
 
-    def "reportProblem reports when both selected and ignored candidates exist"() {
+        when:
+        result.reportProblem(reporter)
+
+        then:
+        1 * reporter.report(_, _)
+    }
+
+    def "reportProblem creates correct problem for multiple ignored candidates"() {
         given:
         def directory = new File("/some/dir")
         def selectedFile = new File(directory, "build.gradle")
@@ -122,22 +144,7 @@ class ScriptResolutionResultTest extends Specification {
         }
     }
 
-    def "reportProblem formats single ignored candidate correctly"() {
-        given:
-        def directory = new File("/some/dir")
-        def selectedFile = new File(directory, "settings.gradle")
-        def ignoredFile = new File(directory, "settings.gradle.kts")
-        def result = new ScriptResolutionResult(directory, "settings", selectedFile, [ignoredFile])
-        def reporter = Mock(ProblemReporter)
-
-        when:
-        result.reportProblem(reporter)
-
-        then:
-        1 * reporter.report(_, _)
-    }
-
-    def "fromSingleFile with file creates result with selected candidate and no ignored candidates"() {
+    def "fromSingleFile works with non-null arguments"() {
         given:
         def scriptFile = new File("/some/dir/build.gradle")
 
@@ -150,7 +157,7 @@ class ScriptResolutionResultTest extends Specification {
         result.ignoredCandidates.isEmpty()
     }
 
-    def "fromSingleFile will throw you NullPointerException when basename is null"() {
+    def "fromSingleFile will throw NPE when basename is null"() {
         given:
         def scriptFile = Mock(File)
 
@@ -161,7 +168,7 @@ class ScriptResolutionResultTest extends Specification {
         thrown(NullPointerException)
     }
 
-    def "fromSingleFile will throw you NullPointerException when scriptFile is null"() {
+    def "fromSingleFile will throw NPE when scriptFile is null"() {
         when:
         ScriptResolutionResult.fromSingleFile("build", null)
 
