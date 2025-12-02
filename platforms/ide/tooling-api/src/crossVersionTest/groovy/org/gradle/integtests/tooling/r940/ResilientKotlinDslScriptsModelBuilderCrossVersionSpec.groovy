@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
@@ -60,7 +59,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             gradle.lifecycle.beforeProject {
                 it.plugins.apply(CustomPlugin)
             }
-            class CustomModel implements Serializable {
+            class StartParametersModel implements Serializable {
                 static final INSTANCE = new CustomThing()
                 String getValue() { 'greetings' }
                 CustomThing getThing() { return INSTANCE }
@@ -72,14 +71,14 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
             class SetupStartParametersBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
-                    return modelName == '${CustomModel.name}'
+                    return modelName == '${StartParametersModel.name}'
                 }
                 Object buildAll(String modelName, Project project) {
                     def tasks = new HashSet<String>(project.gradle.startParameter.taskNames)
                     tasks.add("prepareKotlinBuildScriptModel")
                     tasks.add("printHelloTask")
                     project.gradle.startParameter.setTaskNames(tasks)
-                    return new CustomModel()
+                    return new StartParametersModel()
                 }
             }
             class CustomPlugin implements Plugin<Project> {
@@ -857,7 +856,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         @Override
         String execute(BuildController controller) {
             def gradleBuild = controller.getModel(GradleBuild)
-            def result = controller.fetch(gradleBuild.rootProject, CustomModel)
+            def result = controller.fetch(gradleBuild.rootProject, StartParametersModel)
             return result.failures.isEmpty() ? "successful" : "unsuccessful"
         }
     }
@@ -942,5 +941,20 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         private static List<String> minusAccessors(List<String> implicitImports) {
             implicitImports.findAll { !it.startsWith("gradle.kotlin.dsl.plugins._") }
         }
+    }
+}
+
+interface StartParametersModel {
+    String getValue();
+
+    Thing getThing();
+
+    Set<Thing> getThings();
+
+    Map<String, Thing> getThingsByName();
+
+    Thing findThing(String name);
+
+    interface Thing {
     }
 }
