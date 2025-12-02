@@ -20,6 +20,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,10 +40,12 @@ public class CompositeStoppable implements Stoppable {
     public CompositeStoppable() {
     }
 
+    @CheckReturnValue
     public static CompositeStoppable stoppable(Object... elements) {
         return new CompositeStoppable().add(elements);
     }
 
+    @CheckReturnValue
     public static CompositeStoppable stoppable(Iterable<?> elements) {
         return new CompositeStoppable().add(elements);
     }

@@ -108,7 +108,7 @@ public interface BuildLifecycleController {
     /**
      * Runs an action against the tooling model creators of this build. May configure the build as required.
      */
-    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
+    <T> T withToolingModels(boolean inResilientContext, Function<? super BuildToolingModelController, T> action);
 
     /**
      * Calls the `buildFinished` hooks and other user code clean up.

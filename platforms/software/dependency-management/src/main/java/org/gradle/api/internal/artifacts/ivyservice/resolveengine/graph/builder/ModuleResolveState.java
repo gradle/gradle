@@ -210,6 +210,7 @@ public class ModuleResolveState implements CandidateModule {
     /**
      * Changes the selected target component for this module due to version conflict resolution.
      */
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
         assert newSelection != null;
@@ -471,6 +472,7 @@ public class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module

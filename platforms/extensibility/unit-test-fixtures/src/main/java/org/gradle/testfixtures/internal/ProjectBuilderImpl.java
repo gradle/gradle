@@ -117,7 +117,7 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir) {
+    public ProjectInternal createProject(String name, @Nullable File inputProjectDir, @Nullable File gradleUserHomeDir) {
         // ProjectBuilder uses daemon classes, so it has the same JVM compatibility.
         UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
 
@@ -142,6 +142,8 @@ public class ProjectBuilderImpl {
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
+        startParameter.setCurrentDir(projectDir);
+        startParameter.doNotSearchUpwards();
 
         // ProjectBuilder tests are more lightweight and native services shouldn't be required, so we disable them by default.
         // Additionally, when they are enabled they are put in the projectDir by default and that can cause issues with test cleanup on Windows.

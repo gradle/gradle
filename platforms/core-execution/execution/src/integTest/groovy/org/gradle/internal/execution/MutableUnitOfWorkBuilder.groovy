@@ -168,9 +168,14 @@ class MutableUnitOfWorkBuilder {
                 new MutableWorkspaceProvider() {
                     @Override
                     <T> T withWorkspace(String path, MutableWorkspaceProvider.WorkspaceAction<T> action) {
-                        return action.executeInWorkspace(null, executionHistoryStore)
+                        return action.executeInWorkspace(null)
                     }
                 }
+            }
+
+            @Override
+            Optional<ExecutionHistoryStore> getHistory() {
+                return Optional.of(executionHistoryStore)
             }
 
             @Override

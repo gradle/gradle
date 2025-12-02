@@ -556,6 +556,83 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         output.contains(jdkMetadata.javaHome.toString())
     }
 
+    @Requires(UnitTestPreconditions.Unix)
+    def "emits toolchain usages for JavaExec task with configured executable that cannot be probed"() {
+        Jvm otherJvm = AvailableJavaHomes.differentVersion
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
+
+        def javaWrapper = JavaExecToolchainFixture.writeJavaWrapperThatCannotBeProbed(testDirectory, otherJvm.javaExecutable)
+
+        buildFile << """
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+                }
+            }
+
+            task run(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = 'Foo'
+                executable = '${TextUtil.normaliseFileSeparators(javaWrapper.absolutePath)}'
+            }
+        """
+        file("src/main/java/Foo.java") << """
+            public class Foo {
+                public static void main(String[] args) {
+                    System.out.println("Bar!");
+                }
+            }
+        """
+
+        def task = ":run"
+
+        when:
+        withInstallations(jdkMetadata).run(task)
+        def events = toolchainEvents(task)
+        then:
+        executedAndNotSkipped(task)
+        assertToolchainUsages(events, UNKNOWN_TOOLCHAIN, "JavaLauncher")
+    }
+
+    def "emits toolchain usages for JavaExec task with configured executable from a valid toolchain"() {
+        Jvm otherJvm = AvailableJavaHomes.differentVersion
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
+
+        buildFile << """
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+                }
+            }
+
+            def javaExecutable = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+            }.get().executablePath
+
+            task run(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = 'Foo'
+                executable = javaExecutable
+            }
+        """
+        file("src/main/java/Foo.java") << """
+            public class Foo {
+                public static void main(String[] args) {
+                    System.out.println("Bar!");
+                }
+            }
+        """
+
+        def task = ":run"
+
+        when:
+        withInstallations(jdkMetadata).run(task)
+        def events = toolchainEvents(task)
+        then:
+        executedAndNotSkipped(task)
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+    }
+
     private TestFile configureToolchainPerTask(JvmInstallationMetadata jdkMetadata) {
         buildFile << """
             compileJava {
@@ -596,4 +673,15 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         println(stable)
         return stable.last()
     }
+
+    private static final UNKNOWN_TOOLCHAIN = [
+        javaVersion: "unknown",
+        javaVendor: "unknown",
+        runtimeName: "unknown",
+        runtimeVersion: "unknown",
+        jvmName: "unknown",
+        jvmVersion: "unknown",
+        jvmVendor: "unknown",
+        architecture: "unknown",
+    ]
 }

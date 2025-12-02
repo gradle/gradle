@@ -37,14 +37,6 @@ shadedJar {
     ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
-errorprone {
-    disabledChecks.addAll(
-        "EqualsUnsafeCast", // 1 occurrences
-        "FutureReturnValueIgnored", // 1 occurrences
-        "ThreadLocalUsage", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -87,6 +79,7 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.enterpriseLogging))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
+    testFixturesImplementation(testFixtures(projects.testingJvm))
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
@@ -99,6 +92,7 @@ dependencies {
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
+    crossVersionTestImplementation(testFixtures(projects.testingJvm))
     crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }

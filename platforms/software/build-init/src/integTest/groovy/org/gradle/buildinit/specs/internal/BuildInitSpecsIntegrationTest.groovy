@@ -30,7 +30,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 @Requires(UnitTestPreconditions.Jdk17OrLater)
 class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin, JavaToolchainFixture {
     private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem-init"
-    private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.33"
+    private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.48"
     private static final String DECLARATIVE_PLUGIN_SPEC = "$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION"
 
     // Just need an arbitrary Plugin<Settings> here, so use the Declarative Prototype.  Note that we can't use JVM, because
@@ -275,7 +275,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
 }
 
 plugins {
-    id("org.gradle.experimental.jvm-ecosystem").version("0.1.30")
+    id("org.gradle.experimental.jvm-ecosystem").version("0.1.47")
 }
 
 rootProject.name = "example-java-app"
@@ -319,6 +319,7 @@ defaults {
 """)
         assertProjectFileGenerated("app/build.gradle.dcl", """javaApplication {
     mainClass = "org.example.app.App"
+    jvmArguments = listOf("-Xmx2G", "-XX:+HeapDumpOnOutOfMemoryError")
 
     dependencies {
         implementation("org.apache.commons:commons-text:1.11.0")

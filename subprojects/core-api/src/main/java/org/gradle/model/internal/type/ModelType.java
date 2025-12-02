@@ -171,6 +171,7 @@ public abstract class ModelType<T> {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public boolean isAssignableFrom(ModelType<?> modelType) {
         return modelType == this || wrapper.isAssignableFrom(modelType.wrapper);
     }

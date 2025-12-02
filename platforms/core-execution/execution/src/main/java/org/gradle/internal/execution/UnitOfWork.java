@@ -93,6 +93,7 @@ public interface UnitOfWork extends Describable {
      * Return a reason to disable caching for this work.
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
+    // TODO Split this between mutable and immutable work, only keep overlapping outputs for mutable
     default Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
         return Optional.empty();
     }

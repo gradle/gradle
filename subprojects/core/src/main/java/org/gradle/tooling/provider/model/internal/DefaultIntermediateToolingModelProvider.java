@@ -23,6 +23,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -73,7 +74,7 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         reportToolingModelDependencies(requester, targets);
         BuildState buildState = extractSingleBuildState(targets);
         ToolingModelParameterCarrier carrier = parameter == null ? null : parameterCarrierFactory.createCarrier(parameter);
-        return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, carrier));
+        return buildState.withToolingModels(false, controller -> getModels(controller, targets, modelName, carrier));
     }
 
     private List<Object> getModels(BuildToolingModelController controller, List<ProjectState> targets, String modelName, @Nullable ToolingModelParameterCarrier parameter) {
@@ -86,7 +87,7 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     @Nullable
     private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectState builderTarget, @Nullable ToolingModelParameterCarrier parameter) {
-        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameter != null);
+        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, new ToolingModelRequestContext(modelName, parameter, false));
         return toolingModelScope.getModel(modelName, parameter);
     }
 

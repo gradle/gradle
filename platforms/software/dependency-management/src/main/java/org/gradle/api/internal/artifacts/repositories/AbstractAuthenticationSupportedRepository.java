@@ -56,7 +56,7 @@ public abstract class AbstractAuthenticationSupportedRepository<T extends Reposi
     }
 
     @Override
-    public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
+    public <C extends Credentials> C getCredentials(Class<C> credentialsType) {
         invalidateDescriptor();
         return delegate.getCredentials(credentialsType);
     }
@@ -79,7 +79,7 @@ public abstract class AbstractAuthenticationSupportedRepository<T extends Reposi
     }
 
     @Override
-    public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) throws IllegalStateException {
+    public <C extends Credentials> void credentials(Class<C> credentialsType, Action<? super C> action) throws IllegalStateException {
         invalidateDescriptor();
         delegate.credentials(credentialsType, action);
     }

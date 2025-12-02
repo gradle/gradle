@@ -22,8 +22,8 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
-import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.util.internal.GFileUtils;
@@ -96,6 +96,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
         return JvmInstallationMetadata.from(javaHome, javaVersion, javaVendor, runtimeName, runtimeVersion, jvmName, jvmVersion, jvmVendor, architecture);
     }
 
+    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {
         File tmpDir = temporaryFileProvider.createTemporaryDirectory("jvm", "probe");
         File probe = writeProbeClass(tmpDir);
@@ -131,7 +132,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private JvmInstallationMetadata parseExecOutput(File jdkPath, String probeResult) {
-        String[] split = Arrays.stream(probeResult.split(System.getProperty("line.separator")))
+        String[] split = Arrays.stream(probeResult.split(System.lineSeparator()))
                 .filter(line -> line.startsWith(MetadataProbe.MARKER_PREFIX))
                 .map(line -> line.substring(MetadataProbe.MARKER_PREFIX.length()))
                 .toArray(String[]::new);

@@ -22,8 +22,11 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.model.internal.type.ModelType;
 
 public class DefaultRuleActionAdapter implements RuleActionAdapter {
+    @SuppressWarnings("InlineFormatString")
     private static final String INVALID_CLOSURE_ERROR = "The closure provided is not valid as a rule for '%s'.";
+    @SuppressWarnings("InlineFormatString")
     private static final String INVALID_ACTION_ERROR = "The action provided is not valid as a rule for '%s'.";
+    @SuppressWarnings("InlineFormatString")
     private static final String INVALID_RULE_SOURCE_ERROR = "The rule source provided does not provide a valid rule for '%s'.";
 
     private final RuleActionValidator ruleActionValidator;

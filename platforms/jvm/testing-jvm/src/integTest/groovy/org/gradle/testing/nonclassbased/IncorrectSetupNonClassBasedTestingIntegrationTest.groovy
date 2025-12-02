@@ -46,10 +46,10 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         """
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        testTaskWasSkippedDueToNoSources()
+        skipped(":test")
     }
 
     def "some test definitions dirs are non-existent warns and testing proceeds with other dirs"() {
@@ -78,7 +78,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         outputContains("Test definitions directory does not exist: " + testDirectory.file(badPath).absolutePath)
@@ -113,10 +113,10 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         }
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        testTaskWasSkippedDueToNoSources()
+        skipped(":test")
     }
 
     def "some test definitions dirs are empty proceeds silently with other dirs"() {
@@ -146,7 +146,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         file(emptyPath).createDir()
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         nonClassBasedTestsExecuted()
@@ -209,11 +209,11 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         writeTestDefinitions()
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         outputContains("Test definitions directory is not a directory: " + testDirectory.file(badPath).absolutePath)
-        nonClassBasedTestsExecuted()
+        nonClassBasedTestsExecuted(false)
     }
 
     def "missing test classes and/or definitions is skipped or fails when appropriate (scan for test classes = #scanForTestClasses, has test classes = #hasTestClasses, add test defs dir = #addTestDefsDir, has test defs = #hasTestDefs)"() {
@@ -250,22 +250,22 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
         when:
         if (shouldFail) {
-            fails("test", "--info")
+            fails("test")
         } else {
-            succeeds("test", "--info")
+            succeeds("test")
         }
 
         then:
         if (shouldBeSkipped) {
-            testTaskWasSkippedDueToNoSources()
+            skipped(":test")
         } else if (shouldFail) {
             sourcesPresentAndNoTestsFound()
         } else {
             if (scanForTestClasses && hasTestClasses) {
-                classBasedTestsExecuted()
+                classBasedTestsExecuted(false)
             }
             if (addTestDefsDir && hasTestDefs) {
-                nonClassBasedTestsExecuted()
+                nonClassBasedTestsExecuted(false)
             }
         }
 
@@ -346,16 +346,9 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         file("$DEFAULT_DEFINITIONS_LOCATION/plain-text-file.txt") << "I'm a distractor!"
 
         when:
-        fails("test", "--info")
+        fails("test")
 
         then:
         sourcesPresentAndNoTestsFound()
-    }
-
-    // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
-    @Override
-    protected void classBasedTestsExecuted() {
-        outputContains("SomeTest > testMethod()")
-        outputContains("Tested!")
     }
 }

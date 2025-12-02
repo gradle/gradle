@@ -30,6 +30,8 @@ import org.junit.platform.launcher.TestIdentifier
 import org.junit.platform.launcher.TestPlan
 import spock.lang.Specification
 
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.Instant
 
 /**
@@ -65,6 +67,7 @@ class JUnitPlatformTestExecutionListenerTest extends Specification {
         def recentTime = Instant.now().minusSeconds(600)
         ReportEntry entry = ReportEntry.from("key", "value")
         FileEntry fileEntry = FileEntry.from(workingDir.toPath(), "application/directory")
+        FileEntry nonExistent = FileEntry.from(Path.of("does-not-exist"), "text/plain")
 
         then:
         testClock.currentTime == startTime
@@ -75,6 +78,7 @@ class JUnitPlatformTestExecutionListenerTest extends Specification {
         listener.executionStarted(testIdentifier)
         listener.reportingEntryPublished(testIdentifier, entry)
         listener.fileEntryPublished(testIdentifier, fileEntry)
+        listener.fileEntryPublished(testIdentifier, nonExistent)
 
         then:
         1 * mockResultProcessor.published(id) { e ->
@@ -83,10 +87,21 @@ class JUnitPlatformTestExecutionListenerTest extends Specification {
             assert e.values["key"] == "value"
             assert recentTime.isBefore(e.logTime)
         }
+        and:
         1 * mockResultProcessor.published(id) { e ->
             assert e instanceof DefaultTestFileAttachmentDataEvent
-            assert e.path == workingDir.toPath()
+            assert e.path.isAbsolute()
+            assert Files.isSameFile(e.path, workingDir.toPath().toAbsolutePath())
             assert e.mediaType == "application/directory"
+            assert recentTime.isBefore(e.logTime)
+        }
+        and:
+        1 * mockResultProcessor.published(id) { e ->
+            assert e instanceof DefaultTestFileAttachmentDataEvent
+            assert e.path.isAbsolute()
+            assert !Files.exists(e.path)
+            assert Files.isSameFile(e.path, nonExistent.path.toAbsolutePath())
+            assert e.mediaType == "text/plain"
             assert recentTime.isBefore(e.logTime)
         }
     }
