@@ -50,7 +50,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         }
     }
 
-    def "can realize all Gradle build tasks with isolated projects enabled"() {
+    def "can schedule all Gradle build tasks with isolated projects enabled"() {
         def realizeAllTasksScript = "realize-all-tasks.gradle"
 
         File realizeAllTasksScriptFile = new File(testProjectDir, realizeAllTasksScript)
@@ -73,7 +73,9 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
             realizeAllTasksScriptFile.absolutePath,
             "-DscheduleTasks=true",
             // see https://github.com/gradle/gradle-org-conventions-plugin/blob/185ed5cd4923c061a1c70d77c27758df4c80c6d9/src/main/java/io/github/gradle/conventions/customvalueprovider/GitInformationCustomValueProvider.java#L24
-            "--no-scan"
+            "--no-scan",
+            // avoid hitting Develocity features that require further configuration
+            "--no-build-cache"
         ] + requiredGradleProperties
 
         when:
