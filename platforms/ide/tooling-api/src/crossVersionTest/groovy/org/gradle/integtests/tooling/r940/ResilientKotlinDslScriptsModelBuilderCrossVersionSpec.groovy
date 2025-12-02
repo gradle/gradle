@@ -60,12 +60,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 it.plugins.apply(CustomPlugin)
             }
             class StartParametersModel implements Serializable {
-                static final INSTANCE = new CustomThing()
                 String getValue() { 'greetings' }
-                CustomThing getThing() { return INSTANCE }
-                Set<CustomThing> getThings() { return [INSTANCE] }
-                Map<String, CustomThing> getThingsByName() { return [child: INSTANCE] }
-                CustomThing findThing(String name) { return INSTANCE }
             }
             class CustomThing implements Serializable {
             }
@@ -287,7 +282,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         """
 
         def included = file("included")
-        def includedSettings = included.file("settings.gradle.kts") << """
+        included.file("settings.gradle.kts") << """
             boom !!!
         """
         included.file("build.gradle.kts") << """
@@ -945,15 +940,4 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
 interface StartParametersModel {
     String getValue();
-
-    Thing getThing();
-
-    Set<Thing> getThings();
-
-    Map<String, Thing> getThingsByName();
-
-    Thing findThing(String name);
-
-    interface Thing {
-    }
 }
