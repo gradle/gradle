@@ -16,11 +16,9 @@
 
 package org.gradle.internal.buildtree
 
-
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.logging.LogLevel
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import spock.lang.Specification
@@ -37,6 +35,7 @@ class BuildModelParametersProviderTest extends Specification {
             configureOnDemand: false,
             parallelProjectExecution: false,
             configurationCache: false,
+            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: false,
             configurationCacheParallelLoad: true,
             isolatedProjects: false,
@@ -57,6 +56,38 @@ class BuildModelParametersProviderTest extends Specification {
         description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
     }
 
+    def "configuration cache is automatically disabled when combined with --#option"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: false) {
+            setConfigurationCache(Option.Value.value(true))
+            configureStartParameter(it)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), [
+            requiresToolingModels: false,
+            configureOnDemand: false,
+            parallelProjectExecution: false,
+            configurationCache: false,
+            configurationCacheDisabledReason: "due to --$option",
+            configurationCacheParallelStore: false,
+            configurationCacheParallelLoad: false,
+            isolatedProjects: false,
+            parallelProjectConfiguration: false,
+            parallelToolingApiActions: false,
+            intermediateModelCache: false,
+            invalidateCoupledProjects: false,
+            modelAsProjectDependency: false,
+            resilientModelBuilding: false
+        ])
+
+        where:
+        option                        | configureStartParameter
+        "export-keys"                 | { it.setExportKeys(true) }
+        "property-upgrade-report"     | { it.setPropertyUpgradeReportEnabled(true) }
+        "write-verification-metadata" | { it.setWriteDependencyVerifications(["checksum"]) }
+    }
+
 
     def "parameters when isolated projects are enabled for #description"() {
         given:
@@ -70,6 +101,7 @@ class BuildModelParametersProviderTest extends Specification {
             configureOnDemand: false,
             parallelProjectExecution: true,
             configurationCache: true,
+            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
@@ -103,6 +135,7 @@ class BuildModelParametersProviderTest extends Specification {
             configureOnDemand: configureOnDemandExpected,
             parallelProjectExecution: true,
             configurationCache: true,
+            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
@@ -145,6 +178,7 @@ class BuildModelParametersProviderTest extends Specification {
             configureOnDemand: false,
             parallelProjectExecution: ipParallelExpected,
             configurationCache: true,
+            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: ipParallelExpected,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
@@ -187,6 +221,7 @@ class BuildModelParametersProviderTest extends Specification {
             configureOnDemand: false,
             parallelProjectExecution: true,
             configurationCache: true,
+            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
@@ -232,10 +267,9 @@ class BuildModelParametersProviderTest extends Specification {
     ) {
         boolean runsTasks = args.runsTasks
         boolean createsModel = args.createsModel
-        LogLevel logLevel = (args.logLevel as LogLevel) ?: LogLevel.QUIET
 
         def requirements = requirements(runsTasks, createsModel, startParameterConfig)
-        return BuildModelParametersProvider.parameters(requirements, requirements.startParameter, logLevel)
+        return BuildModelParametersProvider.parameters(requirements, requirements.startParameter)
     }
 
     private BuildActionModelRequirements requirements(boolean runsTasks, boolean createsModel, Closure startParameterConfig) {
@@ -252,7 +286,7 @@ class BuildModelParametersProviderTest extends Specification {
         return requirements
     }
 
-    private static void checkParameters(Map<String, Boolean> actual, Map<String, Boolean> expected) {
+    private static void checkParameters(Map<String, Object> actual, Map<String, Object> expected) {
         // sorting is not required, but useful for better diff in case of failures
         assert actual.sort() == expected.sort()
     }

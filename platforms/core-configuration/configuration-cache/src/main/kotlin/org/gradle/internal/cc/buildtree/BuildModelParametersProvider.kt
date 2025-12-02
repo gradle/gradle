@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.buildtree
 
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
@@ -76,8 +75,7 @@ object BuildModelParametersProvider {
     @JvmStatic
     fun parameters(
         requirements: BuildActionModelRequirements,
-        startParameter: StartParameterInternal,
-        configurationCacheLogLevel: LogLevel
+        startParameter: StartParameterInternal
     ): BuildModelParameters {
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
@@ -117,6 +115,7 @@ object BuildModelParametersProvider {
                 parallelProjectExecution = parallelProjectExecution,
                 configureOnDemand = configureOnDemand,
                 configurationCache = isolatedProjects,
+                configurationCacheDisabledReason = null,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                 isolatedProjects = isolatedProjects,
@@ -130,13 +129,13 @@ object BuildModelParametersProvider {
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
 
-            fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
-                logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
+            fun disabledConfigurationCacheBuildModelParameters(longBuildOption: String): BuildModelParameters {
                 return DefaultBuildModelParameters(
                     requiresToolingModels = false,
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = false,
+                    configurationCacheDisabledReason = "due to --${longBuildOption}",
                     configurationCacheParallelStore = false,
                     configurationCacheParallelLoad = false,
                     isolatedProjects = false,
@@ -159,6 +158,7 @@ object BuildModelParametersProvider {
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = configurationCache,
+                    configurationCacheDisabledReason = null,
                     configurationCacheParallelStore = parallelConfigurationCacheStore,
                     configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                     isolatedProjects = isolatedProjects,
@@ -210,6 +210,7 @@ object BuildModelParametersProvider {
             parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
             configureOnDemand = startParameter.isConfigureOnDemand,
             configurationCache = false,
+            configurationCacheDisabledReason = null,
             configurationCacheParallelStore = false,
             configurationCacheParallelLoad = false,
             isolatedProjects = false,

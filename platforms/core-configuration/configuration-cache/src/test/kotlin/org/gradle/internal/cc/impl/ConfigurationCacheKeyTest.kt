@@ -147,6 +147,7 @@ class ConfigurationCacheKeyTest {
                     parallelProjectExecution = false,
                     configureOnDemand = false,
                     configurationCache = true,
+                    configurationCacheDisabledReason = null,
                     configurationCacheParallelStore = isolatedProjects,
                     configurationCacheParallelLoad = isolatedProjects,
                     isolatedProjects = isolatedProjects,
