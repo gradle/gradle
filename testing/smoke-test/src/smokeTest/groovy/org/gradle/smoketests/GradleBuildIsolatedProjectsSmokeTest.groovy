@@ -56,7 +56,6 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         File realizeAllTasksScriptFile = new File(testProjectDir, realizeAllTasksScript)
         realizeAllTasksScriptFile << getClass().getResource(realizeAllTasksScript).text
         def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
-        println(testProjectDir.absolutePath)
 
         given:
         // sets properties that are required by tasks being realized
@@ -76,9 +75,6 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
             // see https://github.com/gradle/gradle-org-conventions-plugin/blob/185ed5cd4923c061a1c70d77c27758df4c80c6d9/src/main/java/io/github/gradle/conventions/customvalueprovider/GitInformationCustomValueProvider.java#L24
             "--no-scan"
         ] + requiredGradleProperties
-
-        expect:
-        testProjectDir.directory
 
         when:
         maxIsolatedProjectProblems = 200000
