@@ -17,8 +17,11 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.Describable;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -224,39 +227,72 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
         @Override
         public boolean hasProperty(String name) {
-            return snapshotInheritable().hasProperty(name);
+            boolean doesHaveProperty = snapshotInheritable().hasProperty(name);
+            if (doesHaveProperty) {
+                emitDeprecation();
+            }
+            return doesHaveProperty;
         }
 
         @Override
-        public Object getProperty(String name) {
-            return snapshotInheritable().getProperty(name);
+        public @Nullable Object getProperty(String name) throws MissingPropertyException {
+            Object property = snapshotInheritable().getProperty(name);
+            if (property != null) {
+                emitDeprecation();
+            }
+            return property;
         }
 
         @Override
         public DynamicInvokeResult tryGetProperty(String name) {
-            return snapshotInheritable().tryGetProperty(name);
+            DynamicInvokeResult result = snapshotInheritable().tryGetProperty(name);
+            if (result.isFound()) {
+                emitDeprecation();
+            }
+            return result;
         }
 
         @Override
         public Map<String, ? extends @Nullable Object> getProperties() {
+            emitDeprecation();
             return snapshotInheritable().getProperties();
         }
 
         @Override
         public boolean hasMethod(String name, @Nullable Object... arguments) {
-            return snapshotInheritable().hasMethod(name, arguments);
+            boolean doesHaveMethod = snapshotInheritable().hasMethod(name, arguments);
+            if (doesHaveMethod) {
+                emitDeprecation();
+            }
+            return doesHaveMethod;
         }
 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
-            return snapshotInheritable().tryInvokeMethod(name, arguments);
+            DynamicInvokeResult result = snapshotInheritable().tryInvokeMethod(name, arguments);
+            if (result.isFound()) {
+                DeprecationLogger.deprecateAction("Dynamically invoking parent method from a child project")
+                    .withContext("Cannot dynamically invoke method '" + name + "' on " + dynamicDelegate.getDisplayName() + " from " + referrerDisplayName + ".")
+                    .willBecomeAnErrorInGradle10()
+                    .undocumented()
+                    .nagUser();
+            }
+            return result;
         }
 
         @Override
-        public Object invokeMethod(String name, @Nullable Object... arguments) {
+        public @Nullable Object invokeMethod(String name, @Nullable Object... arguments) throws MissingMethodException {
+            emitDeprecation();
             return snapshotInheritable().invokeMethod(name, arguments);
         }
 
+        // TODO: Make this much better
+        private void emitDeprecation() {
+            DeprecationLogger.deprecateAction("Getting property from parent")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+        }
     }
 }
 
