@@ -51,7 +51,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
         1 * outputChangeListener.invalidateCachesFor(changingOutputs)
 
         then:
-        1 * delegate.execute(work, _ as ChangingOutputsContext) >> delegateResult
+        1 * delegate.execute(work, _ as InputChangesContext) >> delegateResult
         then:
         1 * outputChangeListener.invalidateCachesFor(changingOutputs)
         then:

@@ -227,6 +227,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         graphResolveState = result.getGraphState();
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private boolean tryResolveVirtualPlatform() {
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {

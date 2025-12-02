@@ -34,6 +34,7 @@ import org.gradle.test.precondition.TestPrecondition
 import org.gradle.util.DebugUtil
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.RedirectStdOutAndErr
+import testengines.TestEnginesFixture
 
 class ToolingApiClassLoaderProvider {
     private static final Map<String, ClassLoader> TEST_CLASS_LOADERS = [:]
@@ -104,6 +105,7 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowClass(JavaVersionParser)
         sharedSpec.allowClass(DebugUtil)
         sharedSpec.allowClass(Jvm)
+        sharedSpec.allowClass(TestEnginesFixture.TestEngines)
         def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(Thread.currentThread().getContextClassLoader(), sharedSpec)
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)

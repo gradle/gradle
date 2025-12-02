@@ -98,6 +98,10 @@ abstract class BaseBuildScanPluginCheckInFixture {
         simpleClassName.uncapitalize()
     }
 
+    String configureExtension(PluginBuilder builder) {
+        return ""
+    }
+
     void publishDummyPluginNow() {
         if (added) {
             return
@@ -116,6 +120,8 @@ abstract class BaseBuildScanPluginCheckInFixture {
                         return
                     }
 
+                    ${configureExtension(builder)}
+
                     def pluginMetadata = { -> "$runtimeVersion" } as $GradleEnterprisePluginMetadata.name
                     def serviceFactory = {
                         $GradleEnterprisePluginConfig.name config,
@@ -125,6 +131,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
                         println "${propertyPrefix}.serviceFactoryCreate.config.buildScanRequest = \$config.buildScanRequest"
                         println "${propertyPrefix}.serviceFactoryCreate.config.autoApplied = \$config.autoApplied"
                         println "${propertyPrefix}.serviceFactoryCreate.config.taskExecutingBuild = \$config.taskExecutingBuild"
+                        println "${propertyPrefix}.serviceFactoryCreate.config.develocityUrl = \$config.develocityUrl"
 
                         println "${propertyPrefix}.serviceFactoryCreate.buildState.buildStartedTime = \$buildState.buildStartedTime"
                         println "${propertyPrefix}.serviceFactoryCreate.buildState.currentTime = \$buildState.currentTime"
@@ -204,6 +211,10 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
     void assertAutoApplied(String output, boolean autoApplied) {
         assert output.contains("${propertyPrefix}.serviceFactoryCreate.config.autoApplied = $autoApplied")
+    }
+
+    void assertConfiguredDevelocityUrl(String output, String develocityUrl) {
+        assert output.contains("${propertyPrefix}.serviceFactoryCreate.config.develocityUrl = $develocityUrl")
     }
 
     void assertUnsupportedMessage(String output, String unsupported) {

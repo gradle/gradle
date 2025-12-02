@@ -16,34 +16,40 @@
 
 package org.gradle.testing.nonclassbased
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import testengines.TestEnginesFixture
 
 /**
  * Abstract base class for tests that exercise and demonstrate incorrect Non-Class-Based Testing setups.
  */
-abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec implements TestEnginesFixture {
+abstract class AbstractNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec implements TestEnginesFixture, VerifiesGenericTestReportResults {
     public static final DEFAULT_DEFINITIONS_LOCATION = "src/test/definitions"
+
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.CUSTOM
+    }
 
     protected void sourcesPresentAndNoTestsFound() {
         failureCauseContains("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
     }
 
-    protected void testTaskWasSkippedDueToNoSources() {
-        result.assertTaskSkipped(":test")
-        outputContains("Skipping task ':test' as it has no source files and no previous output files.")
+    protected void nonClassBasedTestsExecuted(boolean exactlyTheseTests = true) {
+        if (exactlyTheseTests) {
+            resultsFor().assertTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
+        } else {
+            resultsFor().assertAtLeastTestPathsExecuted(":SomeTestSpec.rbt - foo", ":SomeTestSpec.rbt - bar", ":SomeOtherTestSpec.rbt - other")
+        }
     }
 
-    // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
-    protected void nonClassBasedTestsExecuted() {
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=foo]")
-        outputContains("INFO: Executing resource-based test: Test[file=SomeTestSpec.rbt, name=bar]")
-        outputContains("INFO: Executing resource-based test: Test[file=SomeOtherTestSpec.rbt, name=other]")
-    }
-
-    // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
-    protected void classBasedTestsExecuted() {
-        outputContains("Executing class-based test: Test [class=SomeTest]")
+    protected void classBasedTestsExecuted(boolean exactlyTheseTests = true) {
+        if (exactlyTheseTests) {
+            resultsFor().assertTestPathsExecuted(":SomeTest:testMethod()")
+        } else {
+            resultsFor().assertAtLeastTestPathsExecuted(":SomeTest:testMethod()")
+        }
     }
 
     protected void writeTestClasses() {

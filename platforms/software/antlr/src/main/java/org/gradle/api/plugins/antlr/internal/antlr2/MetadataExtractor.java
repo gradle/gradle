@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
-import org.gradle.internal.UncheckedException;
+import antlr.preprocessor.Hierarchy;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newBufferedReader;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
  * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
@@ -37,74 +38,59 @@ import static java.nio.file.Files.newBufferedReader;
  */
 public class MetadataExtractor {
 
-    public XRef extractMetadata(Set<File> sources) {
-        antlr.Tool tool = new antlr.Tool();
-        antlr.preprocessor.Hierarchy hierarchy = new antlr.preprocessor.Hierarchy(tool);
-
+    public static XRef extractMetadata(Set<File> sources) {
+        Hierarchy hierarchy = new Hierarchy(new antlr.Tool()); // extracting into methods will break test somehow.
         // first let antlr preprocess the grammars...
-        for (File grammarFileFile : sources) {
-            final String grammarFilePath = grammarFileFile.getPath();
-
+        for (File grammarFile : sources) {
             try {
-                hierarchy.readGrammarFile(grammarFilePath);
+                hierarchy.readGrammarFile(grammarFile.getPath());
             } catch (FileNotFoundException e) {
                 // should never happen here
                 throw new IllegalStateException("Received FileNotFoundException on already read file", e);
             }
         }
-
         // now, do our processing using the antlr preprocessor results whenever possible.
         XRef xref = new XRef(hierarchy);
-        for (File grammarFileFile : sources) {
-
-            // determine the package name :(
-            String grammarPackageName = getPackageName(grammarFileFile);
-
-            final String grammarFilePath = grammarFileFile.getPath();
-            antlr.preprocessor.GrammarFile antlrGrammarFile = hierarchy.getFile(grammarFilePath);
-
-            GrammarFileMetadata grammarFileMetadata = new GrammarFileMetadata(grammarFileFile, antlrGrammarFile,
-                    grammarPackageName);
-
-            xref.addGrammarFile(grammarFileMetadata);
+        for (File grammarFile : sources) {
+            xref.addGrammarFile(
+                new GrammarFileMetadata(
+                    grammarFile,
+                    hierarchy.getFile(grammarFile.getPath()),
+                    getPackageName(grammarFile))
+            );
         }
-
         return xref;
     }
 
     @Nullable
-    private String getPackageName(File grammarFileFile) {
+    private static String getPackageName(File grammarFile) {
         try {
-            return getPackageName(newBufferedReader(grammarFileFile.toPath(), UTF_8));
+            return getPackageName(newBufferedReader(grammarFile.toPath(), UTF_8));
         } catch (IOException e) {
             throw new UncheckedIOException("Cannot read antlr grammar file", e);
         }
     }
 
-    String getPackageName(Reader reader) throws IOException {
+    @Nullable
+    static String getPackageName(Reader reader) throws IOException {
         String grammarPackageName = null;
-        BufferedReader in = new BufferedReader(reader);
-        try {
+        try (BufferedReader in = new BufferedReader(reader)) {
             String line;
             while ((line = in.readLine()) != null) {
                 line = line.trim();
                 if (line.startsWith("package") && line.endsWith(";")) {
-                    grammarPackageName =  line.substring(8, line.length() - 1);
-                }else if(line.startsWith("header")){
-                    Pattern p = Pattern.compile("header \\{\\s*package\\s+(.+);\\s+\\}");
+                    grammarPackageName = line.substring(8, line.length() - 1);
+                } else if (line.startsWith("header")) {
+                    Pattern p = Pattern.compile("header \\{\\s*package\\s+(.+);\\s+}");
                     Matcher m = p.matcher(line);
-                    if(m.matches()){
+                    if (m.matches()) {
                         grammarPackageName = m.group(1);
                     }
                 }
 
             }
-        } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+        } catch (IOException e) {
+            throw throwAsUncheckedException(e);
         }
         return grammarPackageName;
     }

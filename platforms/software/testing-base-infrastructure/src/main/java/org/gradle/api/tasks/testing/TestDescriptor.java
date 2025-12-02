@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.NullMarked;
@@ -68,4 +70,14 @@ public interface TestDescriptor {
      */
     @Nullable
     TestDescriptor getParent();
+
+
+    /**
+     * Returns the source of the test descriptor.
+     *
+     * @return The source of the test descriptor.
+     * @since 9.4.0
+     */
+    @Incubating
+    TestSource getSource();
 }

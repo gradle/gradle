@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Try;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
@@ -63,8 +64,8 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     }
 
     @Override
-    protected Try<ToolingModelScope> doLocate(ProjectState targetProject, String modelName, boolean param, Try<Void> buildConfiguration) {
-        return Try.successful(new ResilientProjectToolingScope(targetProject, failureFactory, modelName, param, buildConfiguration));
+    protected Try<ToolingModelScope> doLocate(ProjectState targetProject, ToolingModelRequestContext toolingModelContext, Try<Void> buildConfiguration) {
+        return Try.successful(new ResilientProjectToolingScope(targetProject, toolingModelContext, buildConfiguration, failureFactory));
     }
 
     private static class ResilientProjectToolingScope extends ProjectToolingScope {
@@ -74,14 +75,13 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
         public ResilientProjectToolingScope(
             ProjectState targetProject,
-            FailureFactory failureFactory,
-            String modelName,
-            boolean parameter,
-            Try<Void> ownerBuildConfiguration
+            ToolingModelRequestContext toolingModelRequestContext,
+            Try<Void> ownerBuildConfiguration,
+            FailureFactory failureFactory
         ) {
-            super(targetProject, modelName, parameter);
-            this.failureFactory = failureFactory;
+            super(targetProject, toolingModelRequestContext);
             this.ownerBuildConfiguration = ownerBuildConfiguration;
+            this.failureFactory = failureFactory;
         }
 
         @Override
