@@ -162,7 +162,9 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
     }
 
     public void propertyMissing(String name, Object value) {
-        checkExtensionIsNotReassigned(name);
+        if (extensionsStorage.hasExtension(name)) {
+            throw extensionReassignedFailure(name);
+        }
         add(name, value);
     }
 
@@ -174,7 +176,7 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
         return instanceGenerator.newInstanceWithDisplayName(instanceType, Describables.withTypeAndName("extension", name), constructionArguments);
     }
 
-    private class ExtensionsDynamicObject extends AbstractDynamicObject {
+    private static class ExtensionsDynamicObject extends AbstractDynamicObject {
 
         private final ExtensionsStorage extensionsStorage;
 
@@ -230,7 +232,9 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
         }
 
         private DynamicInvokeResult trySetProperty(String name) {
-            checkExtensionIsNotReassigned(name);
+            if (extensionsStorage.hasExtension(name)) {
+                throw extensionReassignedFailure(name);
+            }
             return DynamicInvokeResult.notFound();
         }
 
@@ -273,11 +277,9 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
 
     }
 
-    private void checkExtensionIsNotReassigned(String name) {
-        if (extensionsStorage.hasExtension(name)) {
-            throw new IllegalArgumentException(
-                format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
-        }
+    private static IllegalArgumentException extensionReassignedFailure(String name) {
+        return new IllegalArgumentException(
+            format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
     }
 
 }
