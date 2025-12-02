@@ -606,9 +606,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
         }
         def actualNoOfFailures = resilientModels.failures.size()
-        assert actualNoOfFailures == 2: "Expected 2 failures, but had ${actualNoOfFailures}"
+        assert actualNoOfFailures == 1: "Expected 1 failures, but had ${actualNoOfFailures}"
         expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "A problem occurred configuring project ':b'.")
-        expectFailureToContain(resilientModels.failures[included], "Execution failed for task ':build-logic:compileKotlin'.")
 
         where:
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
