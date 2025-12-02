@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization.layout;
 
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
@@ -25,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.nio.file.Path;
 
 @ServiceScope(Scope.Global.class)
 public class BuildLayoutFactory {
@@ -82,11 +84,14 @@ public class BuildLayoutFactory {
     }
 
     private BuildLayout getLayoutWithDefaultSettingsFile(File dir) {
-        File defaultSettingsFile = new File(dir, BuildLogicFiles.SETTINGS_FILE_BASENAME);
-        return layout(dir, ScriptResolutionResult.fromSingleFile(BuildLogicFiles.SETTINGS_FILE_BASENAME, defaultSettingsFile));
+        ScriptResolutionResult resolution = ScriptResolutionResult.fromSingleFile(
+            BuildLogicFiles.SETTINGS_FILE_BASENAME,
+            FileUtils.canonicalize(new File(dir, BuildLogicFiles.DEFAULT_SETTINGS_FILE))
+        );
+        return layout(dir, resolution);
     }
 
-    private BuildLayout layout(File rootDir, ScriptResolutionResult settingsFileResolution) {
+    private BuildLayout layout(File rootDir, @Nullable ScriptResolutionResult settingsFileResolution) {
         return new BuildLayout(rootDir, settingsFileResolution, scriptFileResolver);
     }
 
