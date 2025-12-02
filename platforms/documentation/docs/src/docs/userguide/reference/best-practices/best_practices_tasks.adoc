@@ -478,13 +478,14 @@ include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-do/groovy"
 [[use_unique_output_files_and_directories]]
 == Use unique output files and directories
 
-Using overlapping output files and directories will result in rerun tasks and wasted work.
+Overlapping output files or directories cause tasks to rerun unnecessarily and waste work.
 
 === Explanation
 
-Gradle keeps track of all of output files and directories declared by tasks. It uses that information to determine if a given task needs to be rerun. For example, if the contents of the output directory are modified since the last time a given task with that output directory ran, Gradle will know that this task needs to be rerun.
+Gradle tracks all output files and directories declared by tasks to decide whether a task needs to be rerun.
+For example, if the contents of a task’s output directory change after its last execution, Gradle will rerun that task.
 
-Using unique output files and directories for tasks within a single project and the build as a whole ensures that Gradle does not have to do unnecessary work.
+Ensuring that each task uses its own unique output files and directories, both within a project and across the entire build, prevents unnecessary work.
 
 === Example
 
@@ -495,7 +496,7 @@ include::sample[dir="snippets/bestPractices/uniqueOutputs-avoid/kotlin",files="b
 include::sample[dir="snippets/bestPractices/uniqueOutputs-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
-<1> *Write to a file in the output directory*: This task produces a single file in the `outputDirectory` based on the `flavor` input.
+<1> *Write to a file in the output directory*: This task produces a single file in the `outputDirectory` based on the `type` input.
 <2> *Read a specific file in the input directory*: This task only needs to read a single `a.txt` file in the input directory.
 <3> *Set output directory*: Sets `outputDirectory` to a subdirectory in `buildDirectory`
 <4> *Set output directory*: Same as above, using the same `shared` directory.
