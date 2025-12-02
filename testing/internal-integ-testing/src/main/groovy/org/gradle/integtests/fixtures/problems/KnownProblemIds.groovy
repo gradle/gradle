@@ -70,6 +70,7 @@ class KnownProblemIds {
         // groups from integration tests
         'generic': 'Generic',
         'sample-problems': 'Sample Problems',
+        'scripts': 'Scripts',
     ]
 
     /**
@@ -184,6 +185,7 @@ class KnownProblemIds {
         'generic:type9': ['This is the heading problem text9'],
         'generic:type11': ['inner'],
         'generic:type12': ['outer'],
-        'sample-problems:prototype-project': ['Project is a prototype']
+        'sample-problems:prototype-project': ['Project is a prototype'],
+        'scripts:multiple-scripts': ['Multiple scripts']
     ]
 }

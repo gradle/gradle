@@ -24,12 +24,20 @@ class DefaultScriptFileResolverTest extends Specification {
     @TempDir
     File testDir
 
-    def "script resolution result should not have undeclared extensions"() {
+    def "list of extensions are what we expect"() {
+        ScriptingLanguages.all().collect {it.extension} == [
+            ".gradle",
+            ".gradle.kts",
+            ".gradle.dcl"
+        ]
+    }
+
+    def "all known extensions should be recognized"() {
         given:
         def selected = new File(testDir, "build.gradle")
         selected.createNewFile()
 
-        def knownButIgnored = [
+        def recognizedButIgnored = [
             "build.gradle.kts", "build.gradle.dcl"
         ].collect {
             def f = new File(testDir, it)
@@ -43,11 +51,11 @@ class DefaultScriptFileResolverTest extends Specification {
 
         then:
         result.selectedCandidate == selected
-        result.ignoredCandidates == knownButIgnored
+        result.ignoredCandidates == recognizedButIgnored
 
     }
 
-    def "when no script file is found, resolution result should reflect that"() {
+    def "when no script file is found, resolution result should be empty"() {
         given:
         ["settings.gradle", "settings.gradle.kts"].each {
             new File(testDir, it).createNewFile()
