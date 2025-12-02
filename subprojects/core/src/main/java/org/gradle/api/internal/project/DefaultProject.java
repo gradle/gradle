@@ -22,6 +22,7 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
+import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -86,6 +87,7 @@ import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -430,16 +432,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public DynamicObject getInheritedScope() {
-        return new DeprecatedDynamicObject(extensibleDynamicObject.getInheritable());
+    public DynamicObject getInheritedScope(DisplayName referrerDisplayName) {
+        return new DeprecatedDynamicObject(extensibleDynamicObject.getInheritable(), owner.getDisplayName(), referrerDisplayName);
     }
 
     private static class DeprecatedDynamicObject implements DynamicObject {
 
         private final DynamicObject delegate;
+        private final Describable displayName;
+        private final Describable referrerDisplayName;
 
-        public DeprecatedDynamicObject(DynamicObject delegate) {
+        public DeprecatedDynamicObject(DynamicObject delegate, DisplayName delegateName, DisplayName referrerDisplayName) {
             this.delegate = delegate;
+            this.displayName = delegateName;
+            this.referrerDisplayName = referrerDisplayName;
         }
 
         @Override
@@ -491,7 +497,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
             DynamicInvokeResult result = delegate.tryInvokeMethod(name, arguments);
             if (result.isFound()) {
-                emitDeprecation();
+                DeprecationLogger.deprecateAction("Dynamically invoking parent method from a child project")
+                    .startingWithGradle10("invoking method '" + name + "' on " + this.displayName.getDisplayName() + " from " + referrerDisplayName + " will become an error")
+                    .undocumented()
+                    .nagUser();
             }
             return result;
         }

@@ -69,6 +69,7 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -745,8 +746,8 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public DynamicObject getInheritedScope() {
-        return delegate.getInheritedScope();
+    public DynamicObject getInheritedScope(DisplayName referrerDisplayName) {
+        return delegate.getInheritedScope(referrerDisplayName);
     }
 
     @Override

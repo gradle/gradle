@@ -129,7 +129,7 @@ class ProblemReportingCrossProjectModelAccess(
     override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): DynamicObject? {
         val parent = referrerProject.parent ?: return null
         return CrossProjectModelAccessTrackingParentDynamicObject(
-            parent, parent.inheritedScope, referrerProject, problems, coupledProjectsListener, problemFactory, dynamicCallProblemReporting
+            parent, parent.getInheritedScope(referrerProject.owner.displayName), referrerProject, problems, coupledProjectsListener, problemFactory, dynamicCallProblemReporting
         )
     }
 

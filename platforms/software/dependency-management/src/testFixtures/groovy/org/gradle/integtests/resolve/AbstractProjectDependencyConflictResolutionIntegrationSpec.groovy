@@ -90,17 +90,28 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
             task check {
                 dependsOn ${dependsOnMechanism('ProjectA', 'checkModuleC_conf')}
             }
-            ${checkHelper(buildId, projectPath)}
-"""
+        """
+
         moduleDefinition('ModuleC', """
             group = "myorg"
             version = $projectDep
 
             configurations { conf }
             configurations.create("default").extendsFrom(configurations.conf)
-""")
+        """)
 
         moduleDefinition('ProjectA', """
+            def moduleId(String group, String name, String version) {
+                def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
+                return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)
+            }
+
+            def projectId(String projectName) {
+                def buildId = ${buildId}
+                def projectPath = ${projectPath}
+                return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
+            }
+
             repositories { maven { url = "${mavenRepo.uri}" } }
 
             configurations { conf }
@@ -116,7 +127,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
             }
 
             ${check('ModuleC', declaredDependencyId('ModuleC', projectDep), 'conf', winner)}
-""")
+        """)
 
         then:
         succeeds('check')
@@ -140,7 +151,8 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"
     }
 
-    static String check(String moduleName, String declaredDependencyId, String confName, String winner) { """
+    static String check(String moduleName, String declaredDependencyId, String confName, String winner) {
+        """
         task check${moduleName}_${confName} {
             def result = configurations.${confName}.incoming.resolutionResult.rootComponent
             def declared = $declaredDependencyId
@@ -155,21 +167,8 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
                 assert projectDependency && projectDependency.selected.componentId == expected
             }
         }
-"""
+        """
     }
 
-    static String checkHelper(String buildId, String projectPath) { """
-        def moduleId(String group, String name, String version) {
-            def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
-            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)
-        }
-
-        def projectId(String projectName) {
-            def buildId = $buildId
-            def projectPath = $projectPath
-            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
-        }
-"""
-    }
 
 }

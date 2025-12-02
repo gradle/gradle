@@ -107,7 +107,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Nullable
     public DynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject) {
         ProjectInternal parent = referrerProject.getParent();
-        return parent != null ? parent.getInheritedScope() : null;
+        return parent != null ? parent.getInheritedScope(referrerProject.getOwner().getDisplayName()) : null;
     }
 
 }

@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.RuleBasedPluginListener;
@@ -117,7 +118,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     void allprojects(ProjectInternal referrer, Action<? super Project> configureAction);
 
-    DynamicObject getInheritedScope();
+    DynamicObject getInheritedScope(DisplayName referrerDisplayName);
 
     @Override
     @UsedByScanPlugin("test-retry")

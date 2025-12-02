@@ -764,16 +764,16 @@ def scriptMethod(Closure closure) {
         when:
         project.ext.somename = 'somevalue'
         then:
-        project.inheritedScope.hasProperty('somename')
-        project.inheritedScope.getProperty('somename') == 'somevalue'
+        ProjectInternal.getInheritedScope(Describables.of("")).hasProperty('somename')
+        ProjectInternal.getInheritedScope(Describables.of("")).getProperty('somename') == 'somevalue'
     }
 
     def inheritedPropertiesAreInheritable() {
         when:
         project.ext.somename = 'somevalue'
         then:
-        child1.inheritedScope.hasProperty('somename')
-        child1.inheritedScope.getProperty('somename') == 'somevalue'
+        ProjectInternal.getInheritedScope(Describables.of("")).hasProperty('somename')
+        ProjectInternal.getInheritedScope(Describables.of("")).getProperty('somename') == 'somevalue'
     }
 
     def getProjectProperty() {
