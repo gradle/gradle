@@ -95,6 +95,7 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/base-diagnostics" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/base-services-groovy" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/bean-serialization-services" />
+            <option value="$PROJECT_DIR$/platforms/core-configuration/build-tree-control" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/configuration-cache" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/configuration-cache-base" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/configuration-problems-base" />

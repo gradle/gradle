@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.buildtree
+package org.gradle.internal.buildtree.control
 
 import org.gradle.internal.buildoption.InternalOption
 

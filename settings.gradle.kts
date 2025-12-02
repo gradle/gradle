@@ -118,6 +118,7 @@ val core = platform("core") {
         subproject("base-diagnostics")
         subproject("base-services-groovy")
         subproject("bean-serialization-services")
+        subproject("build-tree-control")
         subproject("configuration-cache")
         subproject("configuration-cache-base")
         subproject("configuration-problems-base")

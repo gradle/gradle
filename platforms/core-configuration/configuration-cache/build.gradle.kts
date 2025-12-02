@@ -19,7 +19,6 @@ tasks.isolatedProjectsIntegTest {
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
-    api(projects.buildOption)
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)
@@ -38,6 +37,9 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.stdlibJavaExtensions)
+
+    implementation(projects.buildOption)
+    implementation(projects.buildTreeControl)
 
     api(libs.groovy)
     api(libs.inject)
