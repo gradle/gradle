@@ -16,7 +16,6 @@
 
 package org.gradle.internal.extensibility
 
-import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.reflect.TypeOf
 import spock.lang.Specification
@@ -61,15 +60,6 @@ class ExtensionsStorageTest extends Specification {
         thrown UnknownDomainObjectException
     }
 
-    def "configure extension"() {
-        when:
-        def shouldNotExist = "shouldNotExist"
-        storage.configureExtension(shouldNotExist, {})
-        then:
-        def t = thrown UnknownDomainObjectException
-        t.message.startsWith("Extension with name '$shouldNotExist' does not exist.")
-    }
-
     def "find extension"() {
         when:
         def list = storage.findByName("list")
@@ -95,14 +85,8 @@ class ExtensionsStorageTest extends Specification {
         storage.add(typeOf(TestExtension), "ext", extension)
 
         and:
-        storage.configureExtension("ext", {
-            it.call(1)
-        })
-        storage.configureExtension(typeOf(TestExtension), new Action<TestExtension>() {
-            void execute(TestExtension t) {
-                t.call(2)
-            }
-        })
+        (storage.findByName("ext") as TestExtension).call(1)
+        storage.getByType(typeOf(TestExtension)).call(2)
 
         then:
         extension.call(1)

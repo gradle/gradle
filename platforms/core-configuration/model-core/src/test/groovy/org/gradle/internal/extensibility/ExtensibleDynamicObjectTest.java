@@ -21,6 +21,7 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.internal.Describables;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
@@ -701,7 +702,7 @@ public class ExtensibleDynamicObjectTest {
         }
 
         public DynamicObject getInheritable() {
-            return extensibleDynamicObject.getInheritable();
+            return extensibleDynamicObject.getInheritable(Describables.of(""));
         }
 
         public void defineProperty(String name, Object value) {

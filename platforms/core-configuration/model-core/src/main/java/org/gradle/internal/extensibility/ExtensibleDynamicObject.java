@@ -149,10 +149,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     /**
      * Returns the inheritable properties and methods of this object.
      *
+     * @param referrerDisplayName The display name of the object inheriting from this object.
+     *
      * @return an object containing the inheritable properties and methods of this object.
      */
-    public DynamicObject getInheritable() {
-        return new InheritedDynamicObject();
+    public DynamicObject getInheritable(DisplayName referrerDisplayName) {
+        return new InheritedDynamicObject(referrerDisplayName);
     }
 
     private DynamicObject snapshotInheritable() {
@@ -178,9 +180,20 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     private class InheritedDynamicObject implements DynamicObject {
+
+        private final Describable referrerDisplayName;
+
+        public InheritedDynamicObject(DisplayName referrerDisplayName) {
+            this.referrerDisplayName = referrerDisplayName;
+        }
+
         @Override
-        public void setProperty(String name, @Nullable Object value) {
-            throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
+        public void setProperty(String name, @Nullable Object value) throws MissingPropertyException {
+            throw setPropertyFailure(name);
+        }
+
+        private MissingPropertyException setPropertyFailure(String name) {
+            return new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
                 dynamicDelegate.getDisplayName()));
         }
 
@@ -201,14 +214,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
         @Override
         public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
-            setProperty(name, value);
-            return DynamicInvokeResult.found();
+            throw setPropertyFailure(name);
         }
 
         @Override
         public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
-            setProperty(name, value);
-            return DynamicInvokeResult.found();
+            throw setPropertyFailure(name);
         }
 
         @Override
