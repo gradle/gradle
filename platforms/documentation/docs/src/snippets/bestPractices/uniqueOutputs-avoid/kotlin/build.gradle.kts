@@ -8,8 +8,8 @@ abstract class GreetingTask : DefaultTask() {
     @TaskAction
     fun run() {
         val outFileName = type.get() + ".txt"
-        val outFile = outputDirectory.file(outFileName).get().asFile
-        outFile.writeText("Hello") // <1>
+        val message = "Hello " + type.get()
+        outputDirectory.file(outFileName).get().asFile.writeText(message) // <1>
     }
 }
 
@@ -21,21 +21,22 @@ abstract class ConsumerTask : DefaultTask() {
 
     @TaskAction
     fun run() {
-        val outputText = inputDirectory.get().file("a.txt").asFile.readText()
-        outputFile.get().asFile.writeText(outputText) // <2>
+        val message = inputDirectory.get().file("a.txt").asFile.readText() // <2>
+        outputFile.get().asFile.writeText(message)
     }
 }
 
-val taskA = tasks.register<GreetingTask>("taskA") {
+val greeterA = tasks.register<GreetingTask>("greeterA") {
     type = "a"
-    outputDirectory = layout.buildDirectory.dir("shared") // <3>
+    outputDirectory = layout.buildDirectory.dir("greetings") // <3>
 }
-tasks.register<GreetingTask>("taskB") {
+tasks.register<GreetingTask>("greeterB") {
     type = "b"
-    outputDirectory = layout.buildDirectory.dir("shared") // <4>
+    outputDirectory = layout.buildDirectory.dir("greetings") // <4>
 }
+
 tasks.register<ConsumerTask>("consumer") {
-    inputDirectory = taskA.flatMap { it.outputDirectory } // <5>
+    inputDirectory = greeterA.flatMap { it.outputDirectory } // <5>
     outputFile = layout.buildDirectory.file("consumerOutput.txt")
 }
 // end::avoid-this[]
