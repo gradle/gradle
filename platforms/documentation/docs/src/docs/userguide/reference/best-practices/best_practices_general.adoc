@@ -162,11 +162,11 @@ plugins {
 }
 ----
 
-However, in <<multi_project_builds.adoc#multi_project_builds,multi-project builds>>, with multiple `build.gradle(.kts)` files or a <<plugins.adoc#sec:convention_plugins,convention plugin>>, plugin application can be non-deterministic.
+However, in <<multi_project_builds.adoc#multi_project_builds,multi-project builds>>, with multiple `build.gradle(.kts)` files or a <<plugins.adoc#sec:convention_plugins,convention plugin>>, plugin application can be hard to determine.
 Gradle may configure projects in parallel, and the effective order can vary between runs:
 
 [source,kotlin]
-.convention-build.gradle.kts
+.project.gradle.kts
 ----
 plugins {
     id("pluginC")
@@ -174,7 +174,7 @@ plugins {
 }
 ----
 
-You cannot assume whether `pluginA`, `pluginB`, `pluginC`, or `pluginD` will be applied first.
+You cannot assume whether `pluginA`, `pluginB`, `pluginC`, or `pluginD` will be applied first because the first thing `pluginC` does could be to apply `pluginD`.
 
 ==== Build Engineers
 
@@ -184,34 +184,64 @@ Writing build logic that assumes plugin ordering can lead to:
 - Brittle behavior that works locally but fails in CI or in <<composite_builds.adoc#composite_builds,composite builds>>.
 - Hard-to-diagnose bugs when plugins interact inconsistently due to race conditions.
 
-Techniques like `allprojects {}`, `subprojects {}`, or `afterEvaluate {}` do not reliably control plugin order across projects or included builds.
+Don't rely on blocks like `allprojects {}`, `subprojects {}`, or `afterEvaluate {}` that are highly dependent on project structure and file layout.
+They can be difficult to decipher and may depend on configuration details that are hard to understand completely without running the build.
 
-Avoid build logic that assumes ordering between different projects, included builds, or applied scripts, the order is not guaranteed.
+Avoid build logic that assumes ordering between different projects, included builds, or applied scripts; the actual order is not guaranteed and is extremely vulnerable to minor structural changes (such as adding a new project or renaming an include).
 
 ==== Plugin Developers
 
 If your plugin requires another plugin, do not assume it has already been applied.
 Either:
 
-- Apply it yourself, or
-- Fail fast with a clear error if it is missing.
+- Apply it yourself as the first action in your `Plugin.apply()` method to ensure it is applied.
+- React to the other plugin's application:
 
-[source,groovy]
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+if (!project.pluginManager.hasPlugin(requiredPlugin)) {
+    // Warn or fail with a clear message
+}
+project.pluginManager.apply("com.example.required-plugin")
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
 ----
 if (!project.pluginManager.hasPlugin(requiredPlugin)) {
     // Warn or fail with a clear message
 }
 project.pluginManager.apply('com.example.required-plugin')
 ----
+=====
+====
 
 If your plugin can work with or without another plugin, and behavior changes when that plugin is present, use link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#withPlugin(java.lang.String,org.gradle.api.Action)[`withPlugin()`]: to defer configuration until it is actually applied:
 
-[source,groovy]
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+pluginManager.withPlugin("ivy-publish") {
+    // Configure 'ivy-publish' after it is applied
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
 ----
 pluginManager.withPlugin('ivy-publish') {
     // Configure 'ivy-publish' after it is applied
 }
 ----
+=====
+====
 
 This is order-independent and safe.
 
