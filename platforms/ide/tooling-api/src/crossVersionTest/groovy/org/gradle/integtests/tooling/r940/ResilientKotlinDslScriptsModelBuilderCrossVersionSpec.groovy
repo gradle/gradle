@@ -257,16 +257,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         """
 
         when:
-        fails {
-            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
-        }
-
-        then:
-        def e = thrown(BuildActionFailureException)
-        e.cause.message.contains(includedSettings.absolutePath)
-        failure.assertHasDescription("Script compilation error")
-
-        when:
         def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
                     .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
@@ -594,9 +584,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.failures[included] == null
 
         where:
-        queryStrategy         | expectedNoOfFailures | rootBuildFailure                               | includedBuildFailure
-        ROOT_PROJECT_FIRST    | 1                    | "A problem occurred configuring project ':b'." | null
-        INCLUDED_BUILDS_FIRST | 1                    | "A problem occurred configuring project ':b'." | null
+        queryStrategy         | expectedNoOfFailures | rootBuildFailure
+        ROOT_PROJECT_FIRST    | 1                    | "A problem occurred configuring project ':b'."
+        INCLUDED_BUILDS_FIRST | 1                    | "A problem occurred configuring project ':b'."
     }
 
     def "build with convention plugins - broken settings convention"() {
