@@ -239,7 +239,7 @@ Relevant problems in the report are now rendered in the console output when you 
 $ ./gradlew :test --warning-mode=all
 
 > Configure project :
-Build file '/Users/lkassovic/Downloads/test-report-aggregation-sample/build.gradle': line 16
+Build file '/Users/user/Downloads/test-report-aggregation-sample/build.gradle': line 16
 The Wrapper.getAvailableDistributionTypes method has been deprecated...
         at build_5teuix0v7qf7ou93kgnmvnicp.run(/Users/user/test-report-aggregation-sample/build.gradle:16)
         (Run with --stacktrace to get the full stack trace of this deprecation warning.)
@@ -256,7 +256,7 @@ Previously, you would see:
 > Process 'Gradle Worker Daemon 87' finished with non-zero exit value 137
 ```
 
-Now, Gradle adds a helpful hint:
+Now, Gradle adds a helpful hint based on the value of the exit code:
 
 ```bash
 > Process 'Gradle Worker Daemon 87' finished with non-zero exit value 137 
@@ -332,7 +332,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ### User Manual
 
-The [Plugin Development](userguide/init_scripts.html) section has been updated with clearer explanations and coded examples of init scripts and init plugins, including when to use each.
+The [Plugin Development](userguide/init_scripts.html) section has been updated with clearer explanations and coded examples of init scripts and [Init Plugins](userguide/init_scripts.html#sec:init_plugins), including when to use each.
 
 ### Best Practices
 
