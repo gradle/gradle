@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
@@ -38,8 +37,6 @@ import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.VintageBuildModelController
 import org.gradle.internal.build.BuildModelController
-import org.gradle.internal.build.BuildModelControllerServices
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -52,33 +49,30 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
+import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.invocation.GradleLifecycleActionExecutor
 
 
-class DefaultBuildModelControllerServices(
-    private val buildModelParameters: BuildModelParameters,
-) : BuildModelControllerServices {
-    override fun servicesForBuild(buildDefinition: BuildDefinition, buildState: BuildState): BuildModelControllerServices.Supplier {
-        return BuildModelControllerServices.Supplier { registration, buildScopeServices ->
-            registration.add(BuildDefinition::class.java, buildDefinition)
-            registration.add(BuildState::class.java, buildState)
-            if (buildModelParameters.isConfigurationCache) {
-                registration.addProvider(ConfigurationCacheBuildControllerProvider())
-                registration.add(ProjectRefResolver::class.java)
-            } else {
-                registration.addProvider(VintageBuildControllerProvider())
-            }
-            if (buildModelParameters.isIsolatedProjects) {
-                registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())
-            } else {
-                registration.addProvider(VintageIsolatedProjectsProvider())
-            }
-            if (buildModelParameters.isIntermediateModelCache) {
-                registration.addProvider(ConfigurationCacheModelProvider())
-            } else {
-                registration.addProvider(VintageModelProvider())
-            }
+internal object BuildModelControllerServices : ServiceRegistrationProvider {
+
+    @Provides
+    fun configure(registration: ServiceRegistration, buildModelParameters: BuildModelParameters) {
+        if (buildModelParameters.isConfigurationCache) {
+            registration.addProvider(ConfigurationCacheBuildControllerProvider())
+            registration.add(ProjectRefResolver::class.java)
+        } else {
+            registration.addProvider(VintageBuildControllerProvider())
+        }
+        if (buildModelParameters.isIsolatedProjects) {
+            registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())
+        } else {
+            registration.addProvider(VintageIsolatedProjectsProvider())
+        }
+        if (buildModelParameters.isIntermediateModelCache) {
+            registration.addProvider(ConfigurationCacheModelProvider())
+        } else {
+            registration.addProvider(VintageModelProvider())
         }
     }
 

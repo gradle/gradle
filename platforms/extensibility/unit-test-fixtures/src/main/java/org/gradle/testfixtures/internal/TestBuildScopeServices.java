@@ -15,15 +15,16 @@
  */
 package org.gradle.testfixtures.internal;
 
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 public class TestBuildScopeServices extends BuildScopeServices {
 
-    public TestBuildScopeServices(BuildModelControllerServices.Supplier supplier) {
-        super(supplier);
+    public TestBuildScopeServices(BuildDefinition buildDefinition, BuildState buildState) {
+        super(buildDefinition, buildState);
     }
 
     @Provides

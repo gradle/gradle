@@ -194,7 +194,6 @@ import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -281,14 +280,19 @@ import java.util.List;
  */
 public class BuildScopeServices implements ServiceRegistrationProvider {
 
-    private final BuildModelControllerServices.Supplier supplier;
+    private final BuildDefinition buildDefinition;
+    private final BuildState buildState;
 
-    public BuildScopeServices(BuildModelControllerServices.Supplier supplier) {
-        this.supplier = supplier;
+    public BuildScopeServices(BuildDefinition buildDefinition, BuildState buildState) {
+        this.buildDefinition = buildDefinition;
+        this.buildState = buildState;
     }
 
     @SuppressWarnings("unused")
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
+        registration.add(BuildDefinition.class, buildDefinition);
+        registration.add(BuildState.class, buildState);
+
         registration.addProvider(new BuildCacheServices());
 
         registration.add(ExecOperations.class, DefaultExecOperations.class);
@@ -308,8 +312,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
-
-        supplier.applyServicesTo(registration, buildScopeServices);
 
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);

@@ -48,7 +48,6 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
@@ -286,8 +285,8 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-            return new TestBuildScopeServices(supplier);
+        protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition) {
+            return new TestBuildScopeServices(buildDefinition, this);
         }
 
         @Override
