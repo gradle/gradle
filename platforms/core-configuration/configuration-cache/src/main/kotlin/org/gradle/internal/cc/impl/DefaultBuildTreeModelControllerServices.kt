@@ -87,7 +87,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
-        val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter)
+        val modelParameters = BuildModelParametersProvider.parameters(requirements)
         logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
         modelParameters.configurationCacheDisabledReason?.let { reason ->

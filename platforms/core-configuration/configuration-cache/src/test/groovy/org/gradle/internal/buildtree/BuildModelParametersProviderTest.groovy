@@ -267,9 +267,7 @@ class BuildModelParametersProviderTest extends Specification {
     ) {
         boolean runsTasks = args.runsTasks
         boolean createsModel = args.createsModel
-
-        def requirements = requirements(runsTasks, createsModel, startParameterConfig)
-        return BuildModelParametersProvider.parameters(requirements, requirements.startParameter)
+        return BuildModelParametersProvider.parameters(requirements(runsTasks, createsModel, startParameterConfig))
     }
 
     private BuildActionModelRequirements requirements(boolean runsTasks, boolean createsModel, Closure startParameterConfig) {

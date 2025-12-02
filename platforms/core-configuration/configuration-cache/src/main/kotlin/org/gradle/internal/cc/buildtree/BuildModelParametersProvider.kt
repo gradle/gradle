@@ -26,7 +26,6 @@ import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.logger
-import kotlin.collections.iterator
 
 
 /**
@@ -73,11 +72,8 @@ object BuildModelParametersProvider {
         InternalFlag("org.gradle.internal.resilient-model-building", false)
 
     @JvmStatic
-    fun parameters(
-        requirements: BuildActionModelRequirements,
-        startParameter: StartParameterInternal
-    ): BuildModelParameters {
-
+    fun parameters(requirements: BuildActionModelRequirements): BuildModelParameters {
+        val startParameter = requirements.startParameter
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         warnOnPreviouslyExistingOptions(options)
         val requiresModels = requirements.isCreatesModel
