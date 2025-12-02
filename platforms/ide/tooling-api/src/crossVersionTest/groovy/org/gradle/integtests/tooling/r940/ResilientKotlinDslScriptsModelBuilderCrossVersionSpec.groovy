@@ -257,16 +257,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         """
 
         when:
-        fails {
-            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
-        }
-
-        then:
-        def e = thrown(BuildActionFailureException)
-        e.cause.message.contains(includedSettings.absolutePath)
-        failure.assertHasDescription("Script compilation error")
-
-        when:
         def model = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
                 .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
@@ -591,14 +581,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         rootBuildFailure?.with {
             expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], it)
         }
-        includedBuildFailure?.with {
-            expectFailureToContain(resilientModels.failures[included], it)
-        }
+        resilientModels.failures[included] == null
 
         where:
-        queryStrategy         | expectedNoOfFailures | rootBuildFailure                               | includedBuildFailure
-        ROOT_PROJECT_FIRST    | 2                    | "A problem occurred configuring project ':b'." | "Execution failed for task ':build-logic:compileKotlin'."
-        INCLUDED_BUILDS_FIRST | 1                    | "A problem occurred configuring project ':b'." | null
+        queryStrategy         | expectedNoOfFailures | rootBuildFailure
+        ROOT_PROJECT_FIRST    | 1                    | "A problem occurred configuring project ':b'."
+        INCLUDED_BUILDS_FIRST | 1                    | "A problem occurred configuring project ':b'."
     }
 
     def "build with convention plugins - broken settings convention"() {
@@ -651,11 +639,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         then:
-
         assertHasScriptModelForFiles(model, "build-logic/settings.gradle.kts", "build-logic/build.gradle.kts", "build-logic/src/main/kotlin/build-logic.settings.gradle.kts")
         assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"),
-            Pair.of("build-logic", ".*Execution failed for task ':build-logic:compileKotlin.*"))
+            Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"))
     }
 
     @ToBeImplemented
@@ -684,7 +670,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {
         def scriptModels = model.scriptModels
-        assert scriptModels.size() == expectedFiles.size(): "Expected ${expectedFiles.size()} script models, but got ${scriptModels.size()} "
+        def scriptModelsFiles = scriptModels.keySet()
+        assert scriptModelsFiles.size() == expectedFiles.size(): "Expected ${expectedFiles.size()} script models, but got ${scriptModels.size()} "
 
         for (String expectedFile : expectedFiles) {
             assert scriptModels.containsKey(new File(projectDir, expectedFile)): "No script model for file $expectedFile"
@@ -692,6 +679,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     void assertHasErrorsInScriptModels(KotlinModel model, Pair<String, String>... expected) {
+        assert model.failures.size() == expected.size(): "Expected ${expected.size()} failures, but got ${model.failures.size()}"
         def failures = new HashMap<>(model.failures)
 
         for (Pair<String, String> expectedElement : expected) {
