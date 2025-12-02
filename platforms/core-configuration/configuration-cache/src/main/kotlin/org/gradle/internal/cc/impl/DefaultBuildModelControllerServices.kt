@@ -37,13 +37,10 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.VintageBuildModelController
-import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.configuration.problems.ProblemFactory
@@ -51,19 +48,12 @@ import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.extensions.core.get
 import org.gradle.internal.model.StateTransitionControllerFactory
-import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.invocation.DefaultGradle
 import org.gradle.invocation.GradleLifecycleActionExecutor
-import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
-import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 
 
 class DefaultBuildModelControllerServices(
@@ -73,7 +63,6 @@ class DefaultBuildModelControllerServices(
         return BuildModelControllerServices.Supplier { registration, buildScopeServices ->
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, buildState)
-            registration.addProvider(ServicesProvider(buildDefinition, buildState, buildScopeServices))
             if (buildModelParameters.isConfigurationCache) {
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
                 registration.add(ProjectRefResolver::class.java)
@@ -90,41 +79,6 @@ class DefaultBuildModelControllerServices(
             } else {
                 registration.addProvider(VintageModelProvider())
             }
-        }
-    }
-
-    private
-    class ServicesProvider(
-        private val buildDefinition: BuildDefinition,
-        private val buildState: BuildState,
-        private val buildScopeServices: ServiceRegistry
-    ) : ServiceRegistrationProvider {
-
-        @Provides
-        fun createGradleModel(instantiator: Instantiator): GradleInternal {
-            return instantiator.newInstance(
-                DefaultGradle::class.java,
-                buildState,
-                buildDefinition.startParameter,
-                buildScopeServices
-            )
-        }
-
-        @Provides
-        fun createBuildLifecycleController(buildLifecycleControllerFactory: BuildLifecycleControllerFactory): BuildLifecycleController {
-            return buildLifecycleControllerFactory.newInstance(buildDefinition, buildScopeServices)
-        }
-
-        @Provides
-        fun createIntermediateToolingModelProvider(
-            buildOperationExecutor: BuildOperationExecutor,
-            buildModelParameters: BuildModelParameters,
-            parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
-            listenerManager: ListenerManager
-        ): IntermediateToolingModelProvider {
-            val projectDependencyListener = listenerManager.getBroadcaster(ToolingModelProjectDependencyListener::class.java)
-            val runner = IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model")
-            return DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener)
         }
     }
 
