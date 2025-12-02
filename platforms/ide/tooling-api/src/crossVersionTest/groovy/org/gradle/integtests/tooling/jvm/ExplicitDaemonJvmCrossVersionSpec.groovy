@@ -49,7 +49,9 @@ abstract class ExplicitDaemonJvmCrossVersionSpec extends ToolingApiSpecification
     /**
      * Configure the tooling API launcher to use the given JVM.
      */
-    void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, File javaHome) { }
+    void configureLauncher(ConfigurableLauncher<? extends ConfigurableLauncher> launcher, File javaHome) {
+        launcher.javaHome = null // AvailableJavaHomes.jdk8.javaHome maybe?
+    }
 
     // region Unsupported JVM
 
