@@ -28,7 +28,6 @@ import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -85,7 +84,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
             modelCreator.beforeTasks(action);
             if (runTasks && isEligibleToRunTasks()) {
                 ExecutionResult<Void> result = runTasks();
-                if (!result.getFailures().isEmpty()) {
+                if (!result.isSuccessful()) {
                     return result.asFailure();
                 }
             }
@@ -96,13 +95,13 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     private ExecutionResult<Void> runTasks() {
         TaskRunResult result = workController.scheduleAndRunRequestedTasks(null);
-        if (!buildModelParameters.isResilientModelBuilding()) {
-            return result.getExecutionResultOrThrow();
+        if (!result.getScheduleResult().isSuccessful() && buildModelParameters.isResilientModelBuilding()) {
+            // In resilient mode if scheduling fails, it means configuration failed. We don't propagate that failure,
+            // but we allow models to build. The configuration failure will be acquired from BuildState during model building.
+            return ExecutionResult.succeeded();
         }
 
-        // Ignore any configuration failures in resilient mode
-        Optional<ExecutionResult<Void>> executionResult = result.getExecutionResult();
-        return executionResult.orElseGet(ExecutionResult::succeeded);
+        return result.getExecutionResultOrThrow();
     }
 
     @Override
