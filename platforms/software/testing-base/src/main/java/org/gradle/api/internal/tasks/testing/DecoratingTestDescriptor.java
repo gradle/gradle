@@ -24,9 +24,10 @@ import org.jspecify.annotations.Nullable;
 @UsedByScanPlugin("instanceof check")
 public class DecoratingTestDescriptor implements TestDescriptorInternal {
     private final TestDescriptorInternal descriptor;
+    @Nullable
     private final TestDescriptorInternal parent;
 
-    public DecoratingTestDescriptor(TestDescriptorInternal descriptor, TestDescriptorInternal parent) {
+    public DecoratingTestDescriptor(TestDescriptorInternal descriptor, @Nullable TestDescriptorInternal parent) {
         this.descriptor = descriptor;
         this.parent = parent;
     }
@@ -41,6 +42,7 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    @Nullable
     public TestDescriptorInternal getParent() {
         return parent;
     }
