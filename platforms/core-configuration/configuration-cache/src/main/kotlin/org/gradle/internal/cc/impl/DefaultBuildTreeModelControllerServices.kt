@@ -106,10 +106,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         val loggingParameters = ConfigurationCacheLoggingParameters(configurationCacheLogLevel)
-        val buildFeatures = DefaultBuildFeatures(startParameter, modelParameters)
 
         return BuildTreeModelControllerServices.Supplier { registration ->
-            registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements, loggingParameters)
+            registerCommonBuildTreeServices(registration, modelParameters, requirements, loggingParameters)
         }
     }
 
@@ -117,9 +116,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val loggingParameters = ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildModelParameters = BuildModelParametersProvider.parametersForNestedBuildTree(startParameter)
-            val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
-            registerCommonBuildTreeServices(registration, buildModelParameters, buildFeatures, requirements, loggingParameters)
+            registerCommonBuildTreeServices(registration, buildModelParameters, requirements, loggingParameters)
         }
     }
 
@@ -127,13 +125,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     fun registerCommonBuildTreeServices(
         registration: ServiceRegistration,
         modelParameters: BuildModelParameters,
-        buildFeatures: DefaultBuildFeatures,
         requirements: BuildActionModelRequirements,
         loggingParameters: ConfigurationCacheLoggingParameters
     ) {
         registration.add(BuildModelParameters::class.java, modelParameters)
         registration.add(ConfigurationCacheLoggingParameters::class.java, loggingParameters)
-        registration.add(BuildFeatures::class.java, buildFeatures)
         registration.add(BuildActionModelRequirements::class.java, requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
         registration.add(JavaSerializationEncodingLookup::class.java)
