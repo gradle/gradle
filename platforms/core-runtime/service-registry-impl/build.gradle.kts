@@ -16,6 +16,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.collections)
     implementation(projects.concurrent)
     implementation(projects.stdlibJavaExtensions)
 
