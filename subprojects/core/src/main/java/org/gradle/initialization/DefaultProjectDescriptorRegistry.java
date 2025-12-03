@@ -16,8 +16,6 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -25,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-@ServiceScope(Scope.Settings.class)
 public class DefaultProjectDescriptorRegistry implements ProjectDescriptorRegistry {
     private final Map<String, ProjectDescriptorInternal> projects = new HashMap<>();
 
