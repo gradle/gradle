@@ -22,21 +22,13 @@ import spock.lang.Specification
 
 class ScriptResolutionResultTest extends Specification {
 
-    def "list of extensions are what we expect"() {
-        ScriptingLanguages.all().collect {it.extension} == [
-            ".gradle",
-            ".gradle.kts",
-            ".gradle.dcl"
-        ]
-    }
-
     def "single candidate"() {
         given:
-        def directory = new File("/some/dir")
-        def selectedFile = new File(directory, "build.gradle")
+        def directory = Mock(File)
+        def selectedFile = Mock(File)
 
         when:
-        def result = new ScriptResolutionResult(directory, "build", selectedFile, [])
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, [])
 
         then:
         result.selectedCandidate == selectedFile
@@ -46,13 +38,13 @@ class ScriptResolutionResultTest extends Specification {
 
     def "multiple candidates"() {
         given:
-        def directory = new File("/some/dir")
-        def selectedFile = new File(directory, "build.gradle")
-        def ignoredFile1 = new File(directory, "build.gradle.kts")
-        def ignoredFile2 = new File(directory, "build.gradle.dcl")
+        def directory = Mock(File)
+        def selectedFile = Mock(File)
+        def ignoredFile1 = Mock(File)
+        def ignoredFile2 = Mock(File)
 
         when:
-        def result = new ScriptResolutionResult(directory, "build", selectedFile, [ignoredFile1, ignoredFile2])
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile1, ignoredFile2])
 
         then:
         result.selectedCandidate == selectedFile
@@ -62,10 +54,10 @@ class ScriptResolutionResultTest extends Specification {
 
     def "no candidates found"() {
         given:
-        def directory = new File("/some/dir")
+        def directory = Mock(File)
 
         when:
-        def result = new ScriptResolutionResult(directory, "build", null, [])
+        def result = new ScriptResolutionResult(directory, "script", null, [])
 
         then:
         result.selectedCandidate == null
@@ -75,13 +67,13 @@ class ScriptResolutionResultTest extends Specification {
 
     def "ignored candidates list is unmodifiable"() {
         given:
-        def directory = new File("/some/dir")
-        def selectedFile = new File(directory, "build.gradle")
-        def ignoredFile = new File(directory, "build.gradle.kts")
+        def directory = Mock(File)
+        def selectedFile = Mock(File)
+        def ignoredFile = Mock(File)
 
         when:
-        def result = new ScriptResolutionResult(directory, "build", selectedFile, [ignoredFile])
-        result.ignoredCandidates.add(new File(directory, "another.gradle"))
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile])
+        result.ignoredCandidates.add(Mock(File))
 
         then:
         thrown(UnsupportedOperationException)
@@ -89,10 +81,10 @@ class ScriptResolutionResultTest extends Specification {
 
     def "fromSingleFile creates result with no ignored candidates"() {
         given:
-        def scriptFile = new File("/some/dir/settings.gradle")
+        def scriptFile = Mock(File)
 
         when:
-        def result = ScriptResolutionResult.fromSingleFile("settings", scriptFile)
+        def result = ScriptResolutionResult.fromSingleFile("script", scriptFile)
 
         then:
         result.selectedCandidate == scriptFile
@@ -102,26 +94,16 @@ class ScriptResolutionResultTest extends Specification {
 
     def "reportProblem formats single ignored candidate correctly"() {
         given:
-        def directory = new File("/some/dir")
-        def selectedFile = new File(directory, "settings.gradle")
-        def ignoredFile = new File(directory, "settings.gradle.kts")
-        def result = new ScriptResolutionResult(directory, "settings", selectedFile, [ignoredFile])
-        def reporter = Mock(ProblemReporter)
-
-        when:
-        result.reportProblem(reporter)
-
-        then:
-        1 * reporter.report(_, _)
-    }
-
-    def "reportProblem creates correct problem for multiple ignored candidates"() {
-        given:
-        def directory = new File("/some/dir")
-        def selectedFile = new File(directory, "build.gradle")
-        def ignoredFile1 = new File(directory, "build.gradle.kts")
-        def ignoredFile2 = new File(directory, "build.gradle.dcl")
-        def result = new ScriptResolutionResult(directory, "build", selectedFile, [ignoredFile1, ignoredFile2])
+        def directory = Mock(File) {
+            toString() >> "/some/dir"
+        }
+        def selectedFile = Mock(File) {
+            getName() >> "alice"
+        }
+        def ignoredFile = Mock(File) {
+            getName() >> "bob"
+        }
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile])
         def reporter = Mock(ProblemReporter)
 
         when:
@@ -134,22 +116,58 @@ class ScriptResolutionResultTest extends Specification {
 
             assert problemId.name == "multiple-scripts"
             assert problemId.displayName == "Multiple scripts"
-            assert spec.contextualLabel == "Multiple build script files were found in directory '/some/dir'"
-            assert spec.details.contains("Multiple build script files were found")
-            assert spec.details.contains("'build.gradle'")
-            assert spec.details.contains("'build.gradle.kts'")
-            assert spec.details.contains("'build.gradle.dcl'")
+            assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
+            assert spec.details.contains("Multiple script script files were found")
+            assert spec.details.contains("'alice'")
+            assert spec.details.contains("'bob'")
+            assert spec.solution.contains("Delete the file")
+            assert spec.solution.contains("'bob'")
+        }
+    }
+
+    def "reportProblem creates correct problem for multiple ignored candidates"() {
+        given:
+        def directory = Mock(File) {
+            toString() >> "/some/dir"
+        }
+        def selectedFile = Mock(File) {
+            getName() >> "alice"
+        }
+        def ignoredFile1 = Mock(File) {
+            getName() >> "bob"
+        }
+        def ignoredFile2 = Mock(File) {
+            getName() >> "charlie"
+        }
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile1, ignoredFile2])
+        def reporter = Mock(ProblemReporter)
+
+        when:
+        result.reportProblem(reporter)
+
+        then:
+        1 * reporter.report(_, _) >> { problemId, configurer ->
+            def spec = new FakeProblemBuilder()
+            configurer.execute(spec)
+
+            assert problemId.name == "multiple-scripts"
+            assert problemId.displayName == "Multiple scripts"
+            assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
+            assert spec.details.contains("Multiple script script files were found")
+            assert spec.details.contains("'alice'")
+            assert spec.details.contains("'bob'")
+            assert spec.details.contains("'charlie'")
             assert spec.solution.contains("Delete the files")
-            assert spec.solution.contains("'build.gradle.kts', 'build.gradle.dcl'")
+            assert spec.solution.contains("'bob', 'charlie'")
         }
     }
 
     def "fromSingleFile works with non-null arguments"() {
         given:
-        def scriptFile = new File("/some/dir/build.gradle")
+        def scriptFile = Mock(File)
 
         when:
-        def result = ScriptResolutionResult.fromSingleFile("build", scriptFile)
+        def result = ScriptResolutionResult.fromSingleFile("script", scriptFile)
 
         then:
         result.selectedCandidate == scriptFile
@@ -157,7 +175,7 @@ class ScriptResolutionResultTest extends Specification {
         result.ignoredCandidates.isEmpty()
     }
 
-    def "fromSingleFile will throw NPE when basename is null"() {
+    def "fromSingleFile throws NPE when basename is null"() {
         given:
         def scriptFile = Mock(File)
 
@@ -168,9 +186,9 @@ class ScriptResolutionResultTest extends Specification {
         thrown(NullPointerException)
     }
 
-    def "fromSingleFile will throw NPE when scriptFile is null"() {
+    def "fromSingleFile throws NPE when scriptFile is null"() {
         when:
-        ScriptResolutionResult.fromSingleFile("build", null)
+        ScriptResolutionResult.fromSingleFile("script", null)
 
         then:
         thrown(NullPointerException)
