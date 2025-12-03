@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -37,6 +38,14 @@ public interface BuildModelParameters {
     boolean isConfigureOnDemand();
 
     boolean isConfigurationCache();
+
+    /**
+     * User-friendly reason explaining why CC is disabled based on requested build options.
+     * <p>
+     * A common reason is the request for Gradle features incompatible with CC, such as {@code --export-keys}.
+     */
+    @Nullable
+    String getConfigurationCacheDisabledReason();
 
     boolean isConfigurationCacheParallelStore();
 
@@ -86,5 +95,5 @@ public interface BuildModelParameters {
     /**
      * Collects all properties and their values in a map for logging and testing purposes.
      */
-    Map<String, Boolean> toDisplayMap();
+    Map<String, ? extends @Nullable Object> toDisplayMap();
 }

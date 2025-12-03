@@ -22,7 +22,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.core.getStringOrNull
@@ -40,7 +39,6 @@ class ConfigurationCacheStartParameter internal constructor(
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
     private val modelParameters: BuildModelParameters,
-    private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
     /**
      * Internal Configuration Cache options.
@@ -98,8 +96,9 @@ class ConfigurationCacheStartParameter internal constructor(
         get() = startParameter.projectPropertiesUntracked
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
-    val configurationCacheLogLevel: LogLevel
-        get() = loggingParameters.logLevel
+    val configurationCacheLogLevel: LogLevel by lazy {
+        if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
+    }
 
     val isIgnoreInputsDuringStore: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsDuringStore

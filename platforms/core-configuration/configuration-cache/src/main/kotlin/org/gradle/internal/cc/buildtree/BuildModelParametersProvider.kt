@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.buildtree
 
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logging
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
@@ -26,8 +26,6 @@ import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.base.logger
-import kotlin.collections.iterator
 
 
 /**
@@ -37,6 +35,9 @@ import kotlin.collections.iterator
  */
 internal
 object BuildModelParametersProvider {
+
+    private
+    val logger = Logging.getLogger(BuildModelParametersProvider::class.java)
 
     private
     val configurationCacheParallelStore = InternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
@@ -74,12 +75,8 @@ object BuildModelParametersProvider {
         InternalFlag("org.gradle.internal.resilient-model-building", false)
 
     @JvmStatic
-    fun parameters(
-        requirements: BuildActionModelRequirements,
-        startParameter: StartParameterInternal,
-        configurationCacheLogLevel: LogLevel
-    ): BuildModelParameters {
-
+    fun parameters(requirements: BuildActionModelRequirements): BuildModelParameters {
+        val startParameter = requirements.startParameter
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         warnOnPreviouslyExistingOptions(options)
         val requiresModels = requirements.isCreatesModel
@@ -117,6 +114,7 @@ object BuildModelParametersProvider {
                 parallelProjectExecution = parallelProjectExecution,
                 configureOnDemand = configureOnDemand,
                 configurationCache = isolatedProjects,
+                configurationCacheDisabledReason = null,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                 isolatedProjects = isolatedProjects,
@@ -130,13 +128,13 @@ object BuildModelParametersProvider {
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
 
-            fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
-                logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
+            fun disabledConfigurationCacheBuildModelParameters(longBuildOption: String): BuildModelParameters {
                 return DefaultBuildModelParameters(
                     requiresToolingModels = false,
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = false,
+                    configurationCacheDisabledReason = "due to --${longBuildOption}",
                     configurationCacheParallelStore = false,
                     configurationCacheParallelLoad = false,
                     isolatedProjects = false,
@@ -159,6 +157,7 @@ object BuildModelParametersProvider {
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = configurationCache,
+                    configurationCacheDisabledReason = null,
                     configurationCacheParallelStore = parallelConfigurationCacheStore,
                     configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                     isolatedProjects = isolatedProjects,
@@ -210,6 +209,7 @@ object BuildModelParametersProvider {
             parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
             configureOnDemand = startParameter.isConfigureOnDemand,
             configurationCache = false,
+            configurationCacheDisabledReason = null,
             configurationCacheParallelStore = false,
             configurationCacheParallelLoad = false,
             isolatedProjects = false,

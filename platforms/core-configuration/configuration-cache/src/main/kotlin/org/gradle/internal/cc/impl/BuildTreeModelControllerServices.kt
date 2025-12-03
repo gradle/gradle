@@ -16,27 +16,17 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.GradleException
-import org.gradle.api.configuration.BuildFeatures
-import org.gradle.api.internal.BuildType
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
-import org.gradle.api.internal.configuration.DefaultBuildFeatures
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.Logging
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.Environment
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
-import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
-import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
 import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
 import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
@@ -70,71 +60,17 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
-import org.gradle.util.internal.IncubationLogger
 
 
-class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices {
+internal
+object BuildTreeModelControllerServices : ServiceRegistrationProvider {
 
-    private val logger = Logging.getLogger(BuildTreeModelControllerServices::class.java)
-
-    override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
-        val startParameter = requirements.startParameter
-
-        // Isolated projects also implies configuration cache
-        if (startParameter.isolatedProjects.get() && !startParameter.configurationCache.get()) {
-            if (startParameter.configurationCache.isExplicit) {
-                throw GradleException("The configuration cache cannot be disabled when isolated projects is enabled.")
-            }
-        }
-
-        val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
-        val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter, configurationCacheLogLevel)
-        logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
-
-        if (modelParameters.isIsolatedProjects) {
-            IncubationLogger.incubatingFeatureUsed("Isolated projects")
-        } else {
-            if (modelParameters.isConfigurationCacheParallelStore) {
-                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
-            }
-            if (modelParameters.isConfigureOnDemand) {
-                IncubationLogger.incubatingFeatureUsed("Configuration on demand")
-            }
-        }
-
-        val loggingParameters = ConfigurationCacheLoggingParameters(configurationCacheLogLevel)
-        val buildFeatures = DefaultBuildFeatures(startParameter, modelParameters)
-
-        return BuildTreeModelControllerServices.Supplier { registration ->
-            val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
-            registration.add(BuildType::class.java, buildType)
-            registerCommonBuildTreeServices(registration, modelParameters, buildFeatures, requirements, loggingParameters)
-        }
-    }
-
-    override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
-        val loggingParameters = ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
-        return BuildTreeModelControllerServices.Supplier { registration ->
-            registration.add(BuildType::class.java, BuildType.TASKS)
-            val buildModelParameters = BuildModelParametersProvider.parametersForNestedBuildTree(startParameter)
-            val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
-            val requirements = RunTasksRequirements(startParameter)
-            registerCommonBuildTreeServices(registration, buildModelParameters, buildFeatures, requirements, loggingParameters)
-        }
-    }
-
-    private
-    fun registerCommonBuildTreeServices(
+    @Provides
+    fun configure(
         registration: ServiceRegistration,
         modelParameters: BuildModelParameters,
-        buildFeatures: DefaultBuildFeatures,
         requirements: BuildActionModelRequirements,
-        loggingParameters: ConfigurationCacheLoggingParameters
     ) {
-        registration.add(BuildModelParameters::class.java, modelParameters)
-        registration.add(ConfigurationCacheLoggingParameters::class.java, loggingParameters)
-        registration.add(BuildFeatures::class.java, buildFeatures)
-        registration.add(BuildActionModelRequirements::class.java, requirements)
         registration.addProvider(SharedBuildTreeScopedServices())
         registration.add(JavaSerializationEncodingLookup::class.java)
 

@@ -71,14 +71,27 @@ class TestSourceCrossVersionTest extends ToolingApiSpecification implements Test
         }
 
         then:
-        JvmTestOperationDescriptor classDescriptor = events.operation('Test class example.MyTest').descriptor
-        JvmTestOperationDescriptor methodDescriptor = events.operation('Test foo()(example.MyTest)').descriptor
-        classDescriptor.source instanceof ClassSource
+        def methodOperation = events.operation('Test foo()(example.MyTest)')
+        def classOperation = events.operation('Test class example.MyTest')
+        def executorOperation = classOperation.parent
+        def testRunOperation = executorOperation.parent
+
+        JvmTestOperationDescriptor methodDescriptor = methodOperation.descriptor
+        JvmTestOperationDescriptor classDescriptor = classOperation.descriptor
+        JvmTestOperationDescriptor executorDescriptor = executorOperation.descriptor
+        JvmTestOperationDescriptor testRunDescriptor = testRunOperation.descriptor
+
         methodDescriptor.source instanceof MethodSource
+        (methodDescriptor.source as MethodSource).className == 'example.MyTest'
+        (methodDescriptor.source as MethodSource).methodName == 'foo'
+        classDescriptor.source instanceof ClassSource
+        (classDescriptor.source as ClassSource).className == 'example.MyTest'
+        executorDescriptor.source instanceof NoSource
+        testRunDescriptor.source instanceof NoSource
     }
 
-    @TargetGradleVersion(">7.7 <9.4.0") // 7.6 and older has slightly different event hierarchy
-    def "class-based tests provide unknown sources for older Gradle versions"() {
+    @TargetGradleVersion(">=9.3 <9.4.0") // different Gradle versions have slightly different test event descriptors; we only want to assert the test source inference
+    def "infers test source for older Gradle versions"() {
         setup:
         buildFile << """
            plugins {
@@ -116,18 +129,6 @@ class TestSourceCrossVersionTest extends ToolingApiSpecification implements Test
         }
 
         then:
-        testEvents {
-            task(':test') {
-                nested('Gradle Test Run :test') {
-                    nested('Gradle Test Executor') {
-                        test('Test class example.MyTest') {
-                            test("Test foo()(example.MyTest)")
-                        }
-                    }
-                }
-            }
-        }
-
         def methodOperation = events.operation('Test foo()(example.MyTest)')
         def classOperation = events.operation('Test class example.MyTest')
         def executorOperation = classOperation.parent
