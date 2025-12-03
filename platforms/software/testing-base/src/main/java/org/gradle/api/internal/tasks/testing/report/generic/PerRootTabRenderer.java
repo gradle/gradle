@@ -90,7 +90,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div");
             renderSummary(info, htmlWriter);
-            if (info.getChildren().isEmpty()) {
+            if (info.isLeaf()) {
                 renderLeafDetails(info, htmlWriter);
             } else {
                 renderContainerDetails(htmlWriter);
@@ -406,7 +406,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private static TestResult.ResultType getResultType(PerRootInfo info) {
-            if (info.getChildren().isEmpty()) {
+            if (info.isLeaf()) {
                 // For leaf nodes, we use the result type of the single result
                 if (info.getResults().size() > 1) {
                     throw new IllegalStateException("Leaf nodes should only have one result");

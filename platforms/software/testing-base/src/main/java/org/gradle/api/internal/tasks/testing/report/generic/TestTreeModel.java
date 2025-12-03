@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
@@ -29,8 +28,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -156,7 +153,8 @@ public class TestTreeModel {
                 failedLeafCount += child.info.getFailedLeafCount();
                 skippedLeafCount += child.info.getSkippedLeafCount();
             }
-            if (children.isEmpty()) {
+            boolean isLeaf = children.isEmpty();
+            if (isLeaf) {
                 // This is a leaf, so compute the counts for itself.
                 totalLeafCount = 1;
                 if (result.getResultType() == TestResult.ResultType.FAILURE) {
@@ -165,17 +163,7 @@ public class TestTreeModel {
                     skippedLeafCount = 1;
                 }
             }
-            List<String> childNames = new ArrayList<>(children.size());
-            BitSet childIsLeaf = new BitSet(children.size());
-            for (int i = 0; i < children.size(); i++) {
-                Child child = children.get(i);
-                String name = child.info.getName();
-                childNames.add(name);
-                if (child.info.isLeaf()) {
-                    childIsLeaf.set(i);
-                }
-            }
-            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(id, result, outputRanges, childNames, childIsLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
+            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(id, result, outputRanges, isLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
             if (parentId == null) {
                 // We have the root, so now we can resolve all paths and attach to the models.
                 finalizePath(SmallPath.ROOT, id, thisInfo);
@@ -366,18 +354,9 @@ public class TestTreeModel {
     }
 
     public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
-        // There should only be one perRootInfo with children.
-        PerRootInfo perRootInfoWithChildren = perRootInfo.get(rootIndex).stream()
-            .filter(info -> !info.getChildren().isEmpty())
-            .findFirst()
-            .orElse(null);
-        if (perRootInfoWithChildren == null) {
-            return Collections.emptyList();
-        }
-        // Take a unique ordered set of the child names, to only return one result per unique child name.
-        // Consumers of this should iterate over the getPerRootInfo() to get all results for a given child name.
-        ImmutableSet<String> childNames = ImmutableSet.copyOf(perRootInfoWithChildren.getChildren());
-        return Iterables.filter(children, c -> childNames.contains(c.path.segment));
+        // Filter children to only those that have results for this root.
+        // A child belongs to a root if it has a non-empty perRootInfo list for that root index.
+        return Iterables.filter(children, c -> !c.perRootInfo.get(rootIndex).isEmpty());
     }
 
     /**
