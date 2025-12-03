@@ -26,6 +26,12 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
+    /**
+     * If this test breaks, it means a new scripting language has been added.
+     * It's important that this test covers all accepted extensions.
+     *
+     * Please update the tests in this file, and add the new extension to the list below.
+     */
     def "list of extensions are what we expect"() {
         ScriptingLanguages.all().collect {it.extension} == [
             ".gradle",
