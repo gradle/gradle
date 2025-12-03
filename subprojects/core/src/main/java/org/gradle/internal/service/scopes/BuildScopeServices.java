@@ -288,7 +288,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         this.buildState = buildState;
     }
 
-    @SuppressWarnings("unused")
+    @Provides
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
         registration.add(BuildDefinition.class, buildDefinition);
         registration.add(BuildState.class, buildState);
