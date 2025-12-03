@@ -18,10 +18,23 @@
 The table below provides a complete list of documented Gradle Best Practices.
 
 ****
-There are currently *33 Best Practices*.
+There are currently *<span id="best-practices-count">X</span> Best Practices*.
 ****
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
+
+++++
+<div style="margin: 10px 0;">
+  <label for="section-filter" style="margin-right: 10px;">Filter by Section:</label>
+  <select id="section-filter" style="margin-right: 20px;">
+    <option value="">All Sections</option>
+  </select>
+  <label for="version-filter" style="margin-right: 10px;">Filter by Version:</label>
+  <select id="version-filter">
+    <option value="">All Versions</option>
+  </select>
+</div>
+++++
 
 [.table]
 |===
@@ -67,3 +80,171 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_security.adoc#best_practices_for_security,Validate the Gradle Distribution SHA-256 Checksum>> | Security | 9.1.0
 | <<best_practices_security.adoc#validate_wrapper_checksum,Validate the Gradle Wrapper on every Upgrade>> | Security | 9.3.0
 |===
+
+++++
+<script>
+(function() {
+  'use strict';
+  
+  // Wait for the DOM to be fully loaded
+  function init() {
+    const table = document.querySelector('.table table');
+    if (!table) {
+      console.error('Best Practices table not found');
+      return;
+    }
+    
+    const tbody = table.querySelector('tbody');
+    const thead = table.querySelector('thead');
+    
+    if (!tbody || !thead) {
+      console.error('Table body or header not found');
+      return;
+    }
+    
+    // Get all data rows (excluding header)
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    
+    // Extract unique sections and versions
+    const sections = new Set();
+    const versions = new Set();
+    
+    allRows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length >= 3) {
+        sections.add(cells[1].textContent.trim());
+        versions.add(cells[2].textContent.trim());
+      }
+    });
+    
+    // Populate filter dropdowns
+    const sectionFilter = document.getElementById('section-filter');
+    const versionFilter = document.getElementById('version-filter');
+    
+    if (sectionFilter && versionFilter) {
+      Array.from(sections).sort().forEach(section => {
+        const option = document.createElement('option');
+        option.value = section;
+        option.textContent = section;
+        sectionFilter.appendChild(option);
+      });
+      
+      Array.from(versions).sort().forEach(version => {
+        const option = document.createElement('option');
+        option.value = version;
+        option.textContent = version;
+        versionFilter.appendChild(option);
+      });
+      
+      // Add filter event listeners
+      sectionFilter.addEventListener('change', applyFilters);
+      versionFilter.addEventListener('change', applyFilters);
+    }
+    
+    // Add sorting functionality to header cells
+    const headerCells = thead.querySelectorAll('th');
+    headerCells.forEach((header, index) => {
+      header.style.cursor = 'pointer';
+      header.style.userSelect = 'none';
+      header.title = 'Click to sort';
+      
+      // Add a visual indicator
+      const indicator = document.createElement('span');
+      indicator.style.marginLeft = '5px';
+      indicator.style.fontSize = '0.8em';
+      indicator.textContent = '⇅';
+      header.appendChild(indicator);
+      
+      let ascending = true;
+      header.addEventListener('click', function() {
+        sortTable(index, ascending);
+        ascending = !ascending;
+        
+        // Update all indicators
+        headerCells.forEach(h => {
+          const ind = h.querySelector('span');
+          if (ind) ind.textContent = '⇅';
+        });
+        
+        // Update current indicator
+        indicator.textContent = ascending ? '▼' : '▲';
+      });
+    });
+    
+    // Initial count update
+    updateCount();
+    
+    function applyFilters() {
+      const selectedSection = sectionFilter.value;
+      const selectedVersion = versionFilter.value;
+      
+      allRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 3) {
+          const section = cells[1].textContent.trim();
+          const version = cells[2].textContent.trim();
+          
+          const sectionMatch = !selectedSection || section === selectedSection;
+          const versionMatch = !selectedVersion || version === selectedVersion;
+          
+          if (sectionMatch && versionMatch) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        }
+      });
+      
+      updateCount();
+    }
+    
+    function sortTable(columnIndex, ascending) {
+      const visibleRows = allRows.filter(row => row.style.display !== 'none');
+      
+      visibleRows.sort((a, b) => {
+        const aCell = a.querySelectorAll('td')[columnIndex];
+        const bCell = b.querySelectorAll('td')[columnIndex];
+        
+        if (!aCell || !bCell) return 0;
+        
+        const aText = aCell.textContent.trim();
+        const bText = bCell.textContent.trim();
+        
+        // Try numeric comparison for version numbers
+        const aNum = parseFloat(aText);
+        const bNum = parseFloat(bText);
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return ascending ? aNum - bNum : bNum - aNum;
+        }
+        
+        // String comparison
+        if (ascending) {
+          return aText.localeCompare(bText);
+        } else {
+          return bText.localeCompare(aText);
+        }
+      });
+      
+      // Reorder rows in the table
+      visibleRows.forEach(row => tbody.appendChild(row));
+    }
+    
+    function updateCount() {
+      const visibleCount = allRows.filter(row => row.style.display !== 'none').length;
+      const countElement = document.getElementById('best-practices-count');
+      if (countElement) {
+        countElement.textContent = visibleCount;
+      }
+    }
+  }
+  
+  // Run initialization when the page loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+++++
