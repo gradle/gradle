@@ -74,11 +74,11 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         }
     }
 
-    TestClassExecutionResult testClass(String testClass) {
+    JUnitTestClassExecutionResult testClass(String testClass) {
         return new JUnitTestClassExecutionResult(findTestClass(testClass), testClass, testClass, outputAssociation)
     }
 
-    TestClassExecutionResult testClassStartsWith(String testClass) {
+    JUnitTestClassExecutionResult testClassStartsWith(String testClass) {
         def matching = findTestClassStartsWith(testClass)
         return new JUnitTestClassExecutionResult(matching[1], matching[0], matching[0], outputAssociation)
     }
