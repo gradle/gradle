@@ -146,7 +146,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 PerRootInfo info = infos.get(perRootInfoIndex);
 
                 final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
-                perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex));
+                perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex, outputReaders));
                 TestOutputReader outputReader = outputReaders.get(rootIndex);
                 boolean hasStdout = false;
                 boolean hasStderr = false;

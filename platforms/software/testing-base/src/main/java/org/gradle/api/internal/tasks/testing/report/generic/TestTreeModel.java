@@ -305,6 +305,66 @@ public class TestTreeModel {
         return children;
     }
 
+    /**
+     * Returns true if this node is a leaf and all its results are skipped.
+     *
+     * @return true if this is a skipped leaf node
+     */
+    public boolean isSkippedLeaf() {
+        if (!children.isEmpty()) {
+            return false;
+        }
+        for (List<PerRootInfo> infos : perRootInfo) {
+            for (PerRootInfo info : infos) {
+                if (info.getSkippedLeafCount() == 0) {
+                    return false;
+                }
+            }
+        }
+        // All results are skipped (and it's a leaf)
+        return !perRootInfo.isEmpty();
+    }
+
+    /**
+     * Returns true if this node is a leaf and all its results are successful
+     * (not failed and not skipped).
+     *
+     * @return true if this is a successful leaf node
+     */
+    public boolean isSuccessfulLeaf() {
+        if (!children.isEmpty()) {
+            return false;
+        }
+        for (List<PerRootInfo> infos : perRootInfo) {
+            for (PerRootInfo info : infos) {
+                // A successful leaf has no failures and no skipped tests
+                if (info.getFailedLeafCount() > 0 || info.getSkippedLeafCount() > 0) {
+                    return false;
+                }
+            }
+        }
+        return !perRootInfo.isEmpty();
+    }
+
+    /**
+     * Returns true if this leaf node has metadata.
+     *
+     * @return true if the leaf has metadata
+     */
+    public boolean hasMetadata() {
+        if (!children.isEmpty()) {
+            return false;
+        }
+        for (List<PerRootInfo> infos : perRootInfo) {
+            for (PerRootInfo info : infos) {
+                if (!Iterables.isEmpty(info.getMetadatas())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
         // There should only be one perRootInfo with children.
         PerRootInfo perRootInfoWithChildren = perRootInfo.get(rootIndex).stream()

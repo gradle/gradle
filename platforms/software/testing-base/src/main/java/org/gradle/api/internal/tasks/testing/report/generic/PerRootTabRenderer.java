@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.stream.Streams;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
@@ -78,8 +79,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     protected abstract void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException;
 
     public static final class ForSummary extends PerRootTabRenderer {
-        public ForSummary(int rootIndex, int perRootInfoIndex) {
+        private final List<TestOutputReader> outputReaders;
+
+        public ForSummary(int rootIndex, int perRootInfoIndex, List<TestOutputReader> outputReaders) {
             super(rootIndex, perRootInfoIndex);
+            this.outputReaders = outputReaders;
         }
 
         @Override
@@ -120,11 +124,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             ImmutableList.Builder<Pair<String, ChildTableRenderer>> childTableRenderers = ImmutableList.builder();
             addResultTabIfNeeded("Failed", TestResult.ResultType.FAILURE, children, childTableRenderers);
             addResultTabIfNeeded("Skipped", TestResult.ResultType.SKIPPED, children, childTableRenderers);
-            childTableRenderers.add(Pair.of("All", new ChildTableRenderer(children)));
+            childTableRenderers.add(Pair.of("All", new ChildTableRenderer(children, outputReaders)));
             return childTableRenderers.build();
         }
 
-        private static void addResultTabIfNeeded(
+        private void addResultTabIfNeeded(
             String name,
             TestResult.ResultType resultType,
             List<ChildEntry> children,
@@ -138,7 +142,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 )
                 .collect(Collectors.toList());
             if (!matchedChildren.isEmpty()) {
-                childListRenderers.add(Pair.of(name, new ChildTableRenderer(matchedChildren)));
+                childListRenderers.add(Pair.of(name, new ChildTableRenderer(matchedChildren, outputReaders)));
             }
         }
 
@@ -275,9 +279,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             private static final Comparator<ChildEntry> CHILD_PATH_COMPARATOR = Comparator.comparing(e -> e.model.getPath());
 
             private final List<ChildEntry> children;
+            private final List<TestOutputReader> outputReaders;
 
-            public ChildTableRenderer(List<ChildEntry> children) {
+            public ChildTableRenderer(List<ChildEntry> children, List<TestOutputReader> outputReaders) {
                 this.children = children;
+                this.outputReaders = outputReaders;
             }
 
             @Override
@@ -320,12 +326,17 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     htmlWriter.startElement("td").attribute("class", statusClass);
 
                     String displayName = SerializableTestResult.getCombinedDisplayName(perRootInfo.getResults());
-                    htmlWriter.startElement("a")
-                        .attribute("href", GenericPageRenderer.getUrlTo(
-                            model.getPath(), false,
-                            pair.model.getPath(), pair.model.getChildren().isEmpty()
-                        ))
-                        .characters(displayName).endElement();
+                    // Don't link to leaf tests that don't have their own HTML file
+                    if (needsHtmlFile(pair.model)) {
+                        htmlWriter.startElement("a")
+                            .attribute("href", GenericPageRenderer.getUrlTo(
+                                model.getPath(), false,
+                                pair.model.getPath(), pair.model.getChildren().isEmpty()
+                            ))
+                            .characters(displayName).endElement();
+                    } else {
+                        htmlWriter.characters(displayName);
+                    }
                     htmlWriter.endElement();
 
                     if (anyNameAndDisplayNameDiffer) {
@@ -341,6 +352,56 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     htmlWriter.endElement();
                 }
                 htmlWriter.endElement();
+            }
+
+            /**
+             * Determines if a leaf test needs its own HTML file.
+             * We skip generating HTML files for:
+             * - Skipped tests (they have no interesting details)
+             * - Successful tests without output or metadata
+             */
+            private boolean needsHtmlFile(TestTreeModel leaf) {
+                // Non-leaves always have HTML files
+                if (!leaf.getChildren().isEmpty()) {
+                    return true;
+                }
+                // Skipped tests don't need their own page
+                if (leaf.isSkippedLeaf()) {
+                    return false;
+                }
+                // Failed tests always need their own page
+                if (!leaf.isSuccessfulLeaf()) {
+                    return true;
+                }
+                // Successful tests only need a page if they have output or metadata
+                return hasOutputOrMetadata(leaf);
+            }
+
+            private boolean hasOutputOrMetadata(TestTreeModel leaf) {
+                // Check for metadata first (doesn't need outputReaders)
+                if (leaf.hasMetadata()) {
+                    return true;
+                }
+                // Check for output
+                List<List<PerRootInfo>> perRootInfos = leaf.getPerRootInfo();
+                for (int rootIndex = 0; rootIndex < perRootInfos.size(); rootIndex++) {
+                    List<PerRootInfo> infos = perRootInfos.get(rootIndex);
+                    if (rootIndex >= outputReaders.size()) {
+                        continue;
+                    }
+                    TestOutputReader outputReader = outputReaders.get(rootIndex);
+                    for (PerRootInfo info : infos) {
+                        for (OutputEntry outputEntry : info.getOutputEntries()) {
+                            if (outputReader.hasOutput(outputEntry, TestOutputEvent.Destination.StdOut)) {
+                                return true;
+                            }
+                            if (outputReader.hasOutput(outputEntry, TestOutputEvent.Destination.StdErr)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
             }
         }
 

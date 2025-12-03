@@ -24,6 +24,7 @@ import com.google.common.collect.Multimaps;
 import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
@@ -189,7 +190,10 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                     for (TestTreeModel childTree : tree.getChildren()) {
                         // A container also emits all of its leaf children
                         if (childTree.getChildren().isEmpty()) {
-                            requestsBuilder.add(childTree);
+                            // Skip generating separate HTML files for leaves that don't need them
+                            if (needsHtmlFile(childTree)) {
+                                requestsBuilder.add(childTree);
+                            }
                         } else {
                             queueTree(queue, childTree, output);
                         }
@@ -201,6 +205,52 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                         rootDisplayNames,
                         metadataRendererRegistry
                     ));
+                }
+
+                /**
+                 * Determines if a leaf test needs its own HTML file.
+                 * We skip generating HTML files for:
+                 * - Skipped tests (they have no interesting details)
+                 * - Successful tests without output or metadata
+                 */
+                private boolean needsHtmlFile(TestTreeModel leaf) {
+                    // Skipped tests don't need their own page
+                    if (leaf.isSkippedLeaf()) {
+                        return false;
+                    }
+                    // Failed tests always need their own page
+                    if (!leaf.isSuccessfulLeaf()) {
+                        return true;
+                    }
+                    // Successful tests only need a page if they have output or metadata
+                    return hasOutputOrMetadata(leaf);
+                }
+
+                private boolean hasOutputOrMetadata(TestTreeModel leaf) {
+                    List<List<PerRootInfo>> perRootInfos = leaf.getPerRootInfo();
+                    for (int rootIndex = 0; rootIndex < perRootInfos.size(); rootIndex++) {
+                        List<PerRootInfo> infos = perRootInfos.get(rootIndex);
+                        if (rootIndex >= outputReaders.size()) {
+                            continue;
+                        }
+                        TestOutputReader outputReader = outputReaders.get(rootIndex);
+                        for (PerRootInfo info : infos) {
+                            // Check for metadata
+                            if (!Iterables.isEmpty(info.getMetadatas())) {
+                                return true;
+                            }
+                            // Check for output
+                            for (OutputEntry outputEntry : info.getOutputEntries()) {
+                                if (outputReader.hasOutput(outputEntry, TestOutputEvent.Destination.StdOut)) {
+                                    return true;
+                                }
+                                if (outputReader.hasOutput(outputEntry, TestOutputEvent.Destination.StdErr)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    return false;
                 }
             }, reportsDirectory.toFile());
         } catch (Exception e) {
