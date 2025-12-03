@@ -33,12 +33,14 @@ import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
 import org.gradle.api.internal.plugins.ProjectTypeBinding;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.Cast;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -101,12 +103,17 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             throw new IllegalArgumentException("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
         }
 
+        if (binding.getDefinitionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE) {
+            validateDefinitionSafety(binding);
+        }
+
         projectFeatureImplementationsBuilder.put(
             projectFeatureName,
             new DefaultProjectFeatureImplementation<>(
                 projectFeatureName,
                 binding.getDefinitionType(),
                 binding.getDefinitionImplementationType().orElse(binding.getDefinitionType()),
+                binding.getDefinitionSafety(),
                 binding.targetDefinitionType(),
                 binding.getBuildModelType(),
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
@@ -149,6 +156,31 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 registerFeature(registeringPluginKey, pluginClass, binding, projectFeatureImplementationsBuilder)
             );
         }
+    }
+
+    private void validateDefinitionSafety(ProjectFeatureBindingDeclaration<?, ?> binding) {
+        if (binding.getDefinitionImplementationType().isPresent() && !binding.getDefinitionImplementationType().get().equals(binding.getDefinitionType())) {
+            throw new IllegalArgumentException("Safe project feature '" + binding.getName() + "' must not specify an implementation type");
+        }
+
+        if (!binding.getDefinitionType().isInterface()) {
+            throw new IllegalArgumentException("Safe project feature '" + binding.getName() + "' must have an interface as definition type");
+        }
+
+        validateDefinition(binding.getName(), binding.getDefinitionType());
+    }
+
+    private void validateDefinition(String featureName, Class<?> definitionType) {
+        TypeMetadata definitionTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(definitionType);
+        definitionTypeMetadata.getTypeAnnotationMetadata().getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
+            if (propertyMetadata.isAnnotationPresent(Inject.class)) {
+                throw new IllegalArgumentException("Safe project feature '" + featureName + "' definition type must not have @Inject annotated properties: " + propertyMetadata.getPropertyName() + " in type " + definitionType.getSimpleName());
+            }
+
+            if (propertyMetadata.isAnnotationPresent(Nested.class)) {
+                validateDefinition(featureName, propertyMetadata.getDeclaredReturnType().getRawType());
+            }
+        });
     }
 
     @Override

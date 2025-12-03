@@ -25,6 +25,7 @@ import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder;
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration.Safety;
 import org.gradle.util.Path;
 
 import java.util.List;
@@ -46,8 +47,36 @@ public class DefaultProjectFeatureBindingBuilder implements ProjectFeatureBindin
         ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
         ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
     ) {
+        return bind(name, bindingTypeInformation, Safety.UNSAFE, transform);
+    }
+
+    @Override
+    public <
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends Definition<?>
+        >
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindSafeProjectFeature(
+        String name,
+        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform) {
+        return bind(name, bindingTypeInformation, Safety.SAFE, transform);
+    }
+
+    private <
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends Definition<?>
+        >
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bind(
+        String name,
+        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        Safety definitionSafety,
+        ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
+    ) {
         DeclaredProjectFeatureBindingBuilderInternal<OwnDefinition, OwnBuildModel> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(
             bindingTypeInformation.getDefinitionType(),
+            definitionSafety,
             getBuildModelClass(bindingTypeInformation.getDefinitionType()),
             bindingTypeInformation.getTargetType(),
             Path.path(name),

@@ -27,7 +27,6 @@ public interface ProjectTypeBindingBuilder {
      *
      * @param name the name of the binding.  This is how it will be referenced in the DSL.
      * @param definitionClass the class of the project type definition object
-     * @param buildModelClass the class of the build model object for this project type
      * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
      * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
      * @param <OwnDefinition> the type of the project type definition object
@@ -36,7 +35,6 @@ public interface ProjectTypeBindingBuilder {
     <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
         String name,
         Class<OwnDefinition> definitionClass,
-        Class<OwnBuildModel> buildModelClass,
         ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
     );
 
@@ -51,7 +49,7 @@ public interface ProjectTypeBindingBuilder {
      * @param <OwnDefinition> the type of the project type definition object
      * @param <OwnBuildModel> the type of the build model object for this project type
      */
-    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
+    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindSafeProjectType(
         String name,
         Class<OwnDefinition> definitionClass,
         ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform

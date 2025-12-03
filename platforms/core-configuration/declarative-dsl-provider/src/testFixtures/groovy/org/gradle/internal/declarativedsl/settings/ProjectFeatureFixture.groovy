@@ -20,6 +20,8 @@ import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
+import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
@@ -45,6 +47,50 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def projectType = new ProjectTypePluginClassBuilder()
         def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
         def projectFeature = new ProjectFeaturePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withSafeProjectFeaturePlugins() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder().safeBindToDefinition()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withUnsafeProjectFeatureDefinitionPlugins() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionAbstractClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder().safeBindToDefinition()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withSafeProjectFeaturePluginsAndInjectableDefinition() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder().withInjectedServices()
+        def projectFeature = new ProjectFeaturePluginClassBuilder().safeBindToDefinition()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withSafeProjectFeaturePluginsAndNestedInjectableDefinition() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder().withNestedInjectedServices()
+        def projectFeature = new ProjectFeaturePluginClassBuilder().safeBindToDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
@@ -207,8 +253,18 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             return this
         }
 
+        ProjectFeaturePluginClassBuilder safeBindToDefinition() {
+            this.bindingMethodName = "bindSafeProjectFeatureToDefinition"
+            return this
+        }
+
         ProjectFeaturePluginClassBuilder bindToBuildModel() {
             this.bindingMethodName = "bindProjectFeatureToBuildModel"
+            return this
+        }
+
+        ProjectFeaturePluginClassBuilder safeBindToBuildModel() {
+            this.bindingMethodName = "bindSafeProjectFeatureToBuildModel"
             return this
         }
 
@@ -376,6 +432,18 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
     static class ProjectFeatureDefinitionClassBuilder {
         String implementationTypeClassName = "FeatureDefinition"
+        boolean hasInjectedServices = false
+        boolean hasNestedInjectedServices = false
+
+        ProjectFeatureDefinitionClassBuilder withInjectedServices() {
+            this.hasInjectedServices = true
+            return this
+        }
+
+        ProjectFeatureDefinitionClassBuilder withNestedInjectedServices() {
+            this.hasNestedInjectedServices = true
+            return this
+        }
 
         ProjectFeatureDefinitionClassBuilder implementationTypeClassName(String className) {
             this.implementationTypeClassName = className
@@ -397,18 +465,52 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import ${Restricted.class.name};
+                import ${Configuring.class.name};
+                import org.gradle.api.Action;
+                import org.gradle.api.tasks.Nested;
+                import javax.inject.Inject;
+                import org.gradle.api.model.ObjectFactory;
 
-                @Restricted
+                @${Restricted.class.simpleName}
                 public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.FeatureModel> {
-                    @Restricted
+                    @${Restricted.class.simpleName}
                     Property<String> getText();
+
+                    ${getMaybeInjectedServiceDeclaration()}
+
+                    @Nested
+                    Fizz getFizz();
+
+                    @${Configuring.class.simpleName}
+                    default void configureFizz(Action<? super Fizz> action) {
+                        action.execute(getFizz());
+                    }
 
                     interface FeatureModel extends BuildModel {
                         Property<String> getText();
                     }
+
+                    interface Fizz {
+                        ${getMaybeNestedInjectedServiceDeclaration()}
+                        Property<String> getBuzz();
+                    }
                 }
             """
+        }
+
+        String getMaybeInjectedServiceDeclaration() {
+            return hasInjectedServices ? """
+                @Inject
+                ObjectFactory getObjects();
+            """ : ""
+        }
+
+        String getMaybeNestedInjectedServiceDeclaration() {
+            return hasNestedInjectedServices ? """
+                @Inject
+                ObjectFactory getObjects();
+            """ : ""
         }
     }
 
@@ -512,6 +614,30 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                     abstract class ${buildModelImplementationTypeClassName} implements ${buildModelPublicTypeClassName} {
 
+                    }
+                }
+            """
+        }
+    }
+
+    static class ProjectFeatureDefinitionAbstractClassBuilder extends ProjectFeatureDefinitionClassBuilder {
+        @Override
+        protected String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import ${Definition.class.name};
+                import ${BuildModel.class.name};
+                import org.gradle.api.provider.Property;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+                @Restricted
+                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.FeatureModel> {
+                    @Restricted
+                    abstract Property<String> getText();
+
+                    interface FeatureModel extends BuildModel {
+                        Property<String> getText();
                     }
                 }
             """
