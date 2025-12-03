@@ -16,7 +16,12 @@
 
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestExecuter
+import org.gradle.api.internal.tasks.testing.TestExecutionSpec
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestFailure
@@ -29,7 +34,7 @@ import static org.hamcrest.Matchers.containsString
 /**
  * Integration tests showing the behavior of custom {@link TestExecuter} implementations configured on Test tasks.
  */
-class TestTaskCustomExecutorIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     @Override
     GenericTestExecutionResult.TestFramework getTestFramework() {
         return GenericTestExecutionResult.TestFramework.CUSTOM
@@ -56,9 +61,9 @@ class TestTaskCustomExecutorIntegrationTest extends AbstractIntegrationSpec impl
     def "no results when executer fails during execution without emitting start or completed events"() {
         given:
         buildFile << """
-            class BadExecuter implements org.gradle.api.internal.tasks.testing.TestExecuter {
+            class BadExecuter implements ${TestExecuter.name}<${TestExecutionSpec.name}> {
                 @Override
-                public void execute(org.gradle.api.internal.tasks.testing.TestExecutionSpec spec, org.gradle.api.internal.tasks.testing.TestResultProcessor resultProcessor) {
+                public void execute(${TestExecutionSpec.name} spec, ${TestResultProcessor.name} resultProcessor) {
                     throw new RuntimeException("Bad executer always fails")
                 }
 
@@ -90,10 +95,10 @@ class TestTaskCustomExecutorIntegrationTest extends AbstractIntegrationSpec impl
     def "empty results exist when executer fails during execution after emitting start event"() {
         given:
         buildFile << """
-            class BadExecuter implements org.gradle.api.internal.tasks.testing.TestExecuter {
+            class BadExecuter implements ${TestExecuter.name}<${TestExecutionSpec.name}> {
                 @Override
-                public void execute(org.gradle.api.internal.tasks.testing.TestExecutionSpec spec, org.gradle.api.internal.tasks.testing.TestResultProcessor resultProcessor) {
-                    resultProcessor.started(new org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor("executor", "executor"), new org.gradle.api.internal.tasks.testing.TestStartEvent(System.currentTimeMillis()))
+                public void execute(${TestExecutionSpec.name} spec, ${TestResultProcessor.name} resultProcessor) {
+                    resultProcessor.started(new ${DefaultTestSuiteDescriptor.name}("executor", "executor"), new ${TestStartEvent.name}(System.currentTimeMillis()))
                     throw new RuntimeException("Bad executer always fails")
 
                 }
@@ -128,17 +133,18 @@ class TestTaskCustomExecutorIntegrationTest extends AbstractIntegrationSpec impl
     def "results exist when executer fails during execution after emitting start event and completes with failure"() {
         given:
         buildFile << """
-            class BadExecutor implements org.gradle.api.internal.tasks.testing.TestExecuter {
+            class BadExecutor implements ${TestExecuter.name}<${TestExecutionSpec.name}> {
                 @Override
-                public void execute(org.gradle.api.internal.tasks.testing.TestExecutionSpec spec, org.gradle.api.internal.tasks.testing.TestResultProcessor resultProcessor) {
+                public void execute(${TestExecutionSpec.name} spec, ${TestResultProcessor.name} resultProcessor) {
+                    resultProcessor.started(new ${DefaultTestSuiteDescriptor.name}("executor", "executor"), new ${TestStartEvent.name}(System.currentTimeMillis()))
                     try {
-                        resultProcessor.started(new org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor("executor", "executor"), new org.gradle.api.internal.tasks.testing.TestStartEvent(System.currentTimeMillis()))
                         throw new RuntimeException("Bad executer always fails")
                     } catch (Exception e) {
-                        resultProcessor.completed("executor", new org.gradle.api.internal.tasks.testing.TestCompleteEvent(System.currentTimeMillis(), org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE))
+                        resultProcessor.completed("executor", new ${TestCompleteEvent.name}(System.currentTimeMillis(), ${TestResult.name}.ResultType.FAILURE))
+                        throw e
                     }
                     // Won't run, but shows proper implementation
-                    resultProcessor.completed("executor", new org.gradle.api.internal.tasks.testing.TestCompleteEvent(System.currentTimeMillis(), org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS))
+                    resultProcessor.completed("executor", new ${TestCompleteEvent.name}(System.currentTimeMillis(), ${TestResult.name}.ResultType.SUCCESS))
                 }
 
                 @Override
@@ -161,7 +167,7 @@ class TestTaskCustomExecutorIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureCauseContains("Received a completed event for test with unknown id 'executor'. Registered test ids: '[]'")
+        failureCauseContains("Bad executer always fails")
 
         resultsFor()
             .assertTestPathsExecuted(":")
@@ -172,18 +178,19 @@ class TestTaskCustomExecutorIntegrationTest extends AbstractIntegrationSpec impl
     def "results exist with the exception when executer fails during execution after emitting start event and completes with failure, reporting the exception properly during execution"() {
         given:
         buildFile << """
-            class ProperlyFailingExecuter implements org.gradle.api.internal.tasks.testing.TestExecuter {
+            class ProperlyFailingExecuter implements ${TestExecuter.name}<${TestExecutionSpec.name}> {
                 @Override
-                public void execute(org.gradle.api.internal.tasks.testing.TestExecutionSpec spec, org.gradle.api.internal.tasks.testing.TestResultProcessor resultProcessor) {
+                public void execute(${TestExecutionSpec.name} spec, ${TestResultProcessor.name} resultProcessor) {
+                    resultProcessor.started(new ${DefaultTestSuiteDescriptor.name}("executor", "executor"), new ${TestStartEvent.name}(System.currentTimeMillis()))
                     try {
-                        resultProcessor.started(new org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor("executor", "executor"), new org.gradle.api.internal.tasks.testing.TestStartEvent(System.currentTimeMillis()))
                         throw new RuntimeException("Properly failing executer always fails")
                     } catch (Exception e) {
                         resultProcessor.failure("executor", ${TestFailure.class.getName()}.fromTestFrameworkFailure(e))
-                        resultProcessor.completed("executor", new org.gradle.api.internal.tasks.testing.TestCompleteEvent(System.currentTimeMillis(), org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE))
+                        resultProcessor.completed("executor", new ${TestCompleteEvent.name}(System.currentTimeMillis(), ${TestResult.name}.ResultType.FAILURE))
+                        throw e
                     }
                     // Won't run, but shows proper implementation
-                    resultProcessor.completed("executor", new org.gradle.api.internal.tasks.testing.TestCompleteEvent(System.currentTimeMillis(), org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS))
+                    resultProcessor.completed("executor", new ${TestCompleteEvent.name}(System.currentTimeMillis(), ${TestResult.name}.ResultType.SUCCESS))
                 }
 
                 @Override
@@ -206,7 +213,7 @@ class TestTaskCustomExecutorIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureCauseContains("Received a completed event for test with unknown id 'executor'. Registered test ids: '[]'")
+        failureCauseContains("Properly failing executer always fails")
 
         resultsFor()
             .assertTestPathsExecuted(":")
@@ -324,7 +331,7 @@ class TestTaskCustomExecutorIntegrationTest extends AbstractIntegrationSpec impl
                     org.junit.jupiter.api.Assertions.fail("aTest is failing !");
                 }
 
-                private void sleep(){
+                private void sleep() {
                     try {
                         Thread.sleep((long)(1+Math.random())*1000);
                     } catch (InterruptedException e) {
