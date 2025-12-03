@@ -1,0 +1,5 @@
+> Task :taskA UP-TO-DATE
+> Task :consumer UP-TO-DATE
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 up-to-date
