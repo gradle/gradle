@@ -26,10 +26,12 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -41,6 +43,7 @@ import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.io.File
@@ -80,8 +83,9 @@ fun simplifiedKotlinDefaultServiceRegistry(
 
     return ServiceRegistryBuilder.builder()
         .displayName("test registry")
-        .provider {
-            it.add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
+        .provider { registration ->
+            registration.add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
+            registration.add(ClasspathWalker::class.java, ClasspathWalker(NativeServicesTestFixture.getInstance().get(FileSystem::class.java)))
         }
         .build()
 }
