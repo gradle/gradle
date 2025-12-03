@@ -21,23 +21,17 @@ import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.internal.DefaultGradleVersion;
+import org.gradle.util.internal.KotlinDslVersion;
 import org.jspecify.annotations.NullMarked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Properties;
 
 /**
  * Renders the output of {@code --version}.
  */
 @NullMarked
 public class VersionInfoRenderer {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VersionInfoRenderer.class);
 
     private VersionInfoRenderer() {
     }
@@ -63,7 +57,7 @@ public class VersionInfoRenderer {
         printAligned(out, "Build time", currentVersion.getBuildTimestamp(), maxKey);
         printAligned(out, "Revision", currentVersion.getGitRevision(), maxKey);
         out.println();
-        printAligned(out, "Kotlin", resolveKotlinVersion(), maxKey);
+        printAligned(out, "Kotlin", KotlinDslVersion.current().getKotlinVersion(), maxKey);
         printAligned(out, "Groovy", ReleaseInfo.getVersion(), maxKey);
         printAligned(out, "Ant", Main.getAntVersion(), maxKey);
         if (launcherJvm != null) {
@@ -75,25 +69,6 @@ public class VersionInfoRenderer {
         out.flush();
         return sw.toString();
     }
-
-    private static String resolveKotlinVersion() {
-        // Read the same resource used by DefaultCommandLineActionFactory.KotlinDslVersion
-        try (InputStream in = HelpRenderer.class.getClassLoader().getResourceAsStream("gradle-kotlin-dsl-versions.properties")) {
-            if (in != null) {
-                Properties props = new Properties();
-                props.load(in);
-                String v = props.getProperty("kotlin");
-                if (v != null) {
-                    return v;
-                }
-            }
-        } catch (IOException ex) {
-            // Best-effort: if we cannot read the kotlin version resource, fall back to "unknown" and log at debug level.
-            LOGGER.debug("Unable to read gradle-kotlin-dsl-versions.properties for Kotlin version", ex);
-        }
-        return "unknown";
-    }
-
 
     private static void printAligned(PrintWriter out, String key, String value, int maxKey) {
         out.print(key + ": ");
