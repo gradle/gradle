@@ -429,9 +429,10 @@ This tells Gradle to also consider only the name of the directory (ignoring its 
 Using `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` is generally incorrect.
 
 `PathSensitivity.NAME_ONLY` tells Gradle to also consider a file's name in addition to its contents, which is rarely useful.
-`@PathSensitivity.ABSOLUTE` tells Gradle to consider a files' complete absolute path.
+`@PathSensitivity.ABSOLUTE` tells Gradle to consider a file's complete absolute path.
 This prevents <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> hits across different machines or directories, making your build non-relocatable.
 The can also cause different task outcomes when the build is run in different directories which can be confusing and hard to debug.
+This is the default sensitivity, if no annotation is provided.
 
 === Example
 

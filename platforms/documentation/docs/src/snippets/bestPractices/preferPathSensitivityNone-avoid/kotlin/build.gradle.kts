@@ -24,7 +24,7 @@ val alternateInputsDir = layout.buildDirectory.dir("alternateInputs")
 
 tasks.register<AnimalSearchTask>("search") {
     find = "cat"
-    if (project.hasProperty("useAlternateInput")) { // <2>
+    if (providers.gradleProperty("useAlternateInput").isPresent()) { // <2>
         candidatesFile = alternateInputsDir.map { it.file("candidates.txt") }
     } else {
         candidatesFile = originalCandidatesFile
