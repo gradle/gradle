@@ -26,7 +26,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.nio.file.Path;
 
 @ServiceScope(Scope.Global.class)
 public class BuildLayoutFactory {
