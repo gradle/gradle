@@ -4,7 +4,7 @@
     <name>Gradle_Check Config DSL Script</name>
     <properties>
         <mockk.version>1.14.6</mockk.version>
-        <bytebuddy.version>1.18.1</bytebuddy.version>
+        <bytebuddy.version>1.18.2</bytebuddy.version>
         <jackson.version>2.20.1</jackson.version>
         <junit.version>6.0.1</junit.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
