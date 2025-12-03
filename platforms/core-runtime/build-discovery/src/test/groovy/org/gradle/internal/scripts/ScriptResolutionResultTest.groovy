@@ -117,11 +117,8 @@ class ScriptResolutionResultTest extends Specification {
             assert problemId.name == "multiple-scripts"
             assert problemId.displayName == "Multiple scripts"
             assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
-            assert spec.details.contains("Multiple script script files were found")
-            assert spec.details.contains("'alice'")
-            assert spec.details.contains("'bob'")
-            assert spec.solution.contains("Delete the file")
-            assert spec.solution.contains("'bob'")
+            assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob'. Deleting the selected script will automatically select another script."
+            assert spec.solution == "Delete the files 'bob' in directory '/some/dir'"
         }
     }
 
@@ -153,12 +150,8 @@ class ScriptResolutionResultTest extends Specification {
             assert problemId.name == "multiple-scripts"
             assert problemId.displayName == "Multiple scripts"
             assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
-            assert spec.details.contains("Multiple script script files were found")
-            assert spec.details.contains("'alice'")
-            assert spec.details.contains("'bob'")
-            assert spec.details.contains("'charlie'")
-            assert spec.solution.contains("Delete the files")
-            assert spec.solution.contains("'bob', 'charlie'")
+            assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob', 'charlie'. Deleting the selected script will automatically select another script."
+            assert spec.solution == "Delete the files 'bob', 'charlie' in directory '/some/dir'"
         }
     }
 
