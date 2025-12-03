@@ -34,6 +34,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
 
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classpath.ClasspathWalker
 
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
@@ -77,6 +78,11 @@ class KotlinScriptHost<out T : Any> internal constructor(
         // In this scope the TemporaryFileProvider would be provided by the ProjectScopeServices.
         // That would generate this temporary directory inside the project build directory.
         serviceRegistry.get<GradleUserHomeTemporaryFileProvider>()
+    }
+
+    internal
+    val classpathWalker: ClasspathWalker by unsafeLazy {
+        serviceRegistry.get<ClasspathWalker>()
     }
 
     internal

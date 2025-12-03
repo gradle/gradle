@@ -28,6 +28,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
@@ -273,7 +274,8 @@ class Interpreter(val host: Host) {
             programTarget,
             host.compilationClassPathOf(targetScope.parent),
             stage1BlocksAccessorsClassPath,
-            scriptHost.temporaryFileProvider
+            scriptHost.temporaryFileProvider,
+            scriptHost.classpathWalker
         )
 
         return loadClassInChildScopeOf(
@@ -297,7 +299,8 @@ class Interpreter(val host: Host) {
         programTarget: ProgramTarget,
         compilationClassPath: ClassPath,
         stage1BlocksAccessorsClassPath: ClassPath,
-        temporaryFileProvider: TemporaryFileProvider
+        temporaryFileProvider: TemporaryFileProvider,
+        classpathWalker: ClasspathWalker
     ): File = host.cachedDirFor(
         scriptHost,
         programId,
@@ -331,6 +334,7 @@ class Interpreter(val host: Host) {
                     implicitImports = host.implicitImports,
                     logger = interpreterLogger,
                     temporaryFileProvider = temporaryFileProvider,
+                    classpathWalker = classpathWalker,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
@@ -489,6 +493,7 @@ class Interpreter(val host: Host) {
                                     host.implicitImports,
                                     interpreterLogger,
                                     scriptHost.temporaryFileProvider,
+                                    scriptHost.classpathWalker,
                                     host::runCompileBuildOperation
                                 ).emitStage2ProgramFor(
                                     scriptFile,
