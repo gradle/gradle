@@ -94,7 +94,7 @@ import java.util.function.Function;
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
-    private static ServiceRegistry globalServices;
+    private static @Nullable ServiceRegistry globalServices;
 
     private static final Logger LOGGER = Logging.getLogger(ProjectBuilderImpl.class);
 
