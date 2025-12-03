@@ -359,7 +359,7 @@ include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/kotlin",fil
 
 === References
 
-- <<plugins.adoc#sec:using_plugins,Using Plugins>>
+- <<plugins_intermediate.adoc#sec:using_plugins,Using Plugins>>
 
 === Tags
 
