@@ -15,8 +15,6 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.service.Provides;
@@ -31,10 +29,5 @@ public class TestBuildScopeServices extends BuildScopeServices {
     @Provides
     protected DefaultProjectDescriptorRegistry createProjectDescriptorRegistry() {
         return new DefaultProjectDescriptorRegistry();
-    }
-
-    @Provides
-    protected BuildCancellationToken createBuildCancellationToken() {
-        return new DefaultBuildCancellationToken();
     }
 }
