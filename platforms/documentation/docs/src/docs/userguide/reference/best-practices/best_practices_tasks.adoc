@@ -429,9 +429,10 @@ This tells Gradle to also consider only the name of the directory (ignoring its 
 Using `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` is generally incorrect.
 
 `PathSensitivity.NAME_ONLY` tells Gradle to also consider a file's name in addition to its contents, which is rarely useful.
+
 `@PathSensitivity.ABSOLUTE` tells Gradle to consider a file's complete absolute path.
 This prevents <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> hits across different machines or directories, making your build non-relocatable.
-The can also cause different task outcomes when the build is run in different directories which can be confusing and hard to debug.
+This can also cause confusion from different task outcomes when the build is run in different directories.
 This is the default sensitivity, if no annotation is provided.
 
 === Example
@@ -443,9 +444,9 @@ include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-avoid/kotl
 include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-avoid/groovy",files="build.gradle[]"]
 ====
 
-<1> This task type uses a file input property, with `@PathSensitivity.ABSOLUTE`, which means that the absolute path of the input file is used to determine if the task is up-to-date or can be loaded from cache.  This isn't necessary for the operation of the task, which only cares about file contents.
-<2> The `search` task will use an input file from a different location if the `useAlternateInput` is set.
-<3> The file in the alternate location is an identical copy of the original input file, but because the absolute path is different, the task will always be considered out-of-date and will never be loaded from cache.
+<1> The `AnimalSearchTask` task type uses a file input property annotated with `@PathSensitivity.ABSOLUTE`.  This means that the absolute path of the input file is used to determine if the task is `UP-TO-Date` or if it can be loaded from cache.  Yet the path is irrelevant for the operation of the task's `@TaskAction`, which only cares about file contents.
+<2> The `copy` task will move the _exact same_ `candidates.txt` to different destination directories, depending on if the `useAlternateInput` project property is set.
+<3> The `search` task is wired to use as input whatever the file the `copy` task moved to its `destinationDir`.  Despite the contents of the file being the same, when enabling the `-PuseAlternateInput` after a successful build, the `search` task will be out-of-date due to its different directory, and the search will be rerun.
 
 ==== Do this Instead
 
@@ -464,7 +465,7 @@ include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-do/kotlin"
 include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-do/groovy",files="build.gradle[tags=do-this]"]
 ====
 
-<1> Everything remains the same, except that the input property is now annotated with `@PathSensitivity.NONE`.  Only the contents of this input file matter to this task.  When the task is rerun using the copied file, it is `UP-TO-DATE`.
+<1> Everything remains the same, except that the input property is now annotated with `@PathSensitivity.NONE`.  Only the contents of this input file matter to this task.  When the `search` task is rerun with `-PuseAlternateInput`, it remains `UP-TO-DATE`.
 
 === References
 

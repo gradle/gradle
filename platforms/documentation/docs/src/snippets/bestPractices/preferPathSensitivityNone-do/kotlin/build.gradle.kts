@@ -12,7 +12,7 @@ abstract class AnimalSearchTask : DefaultTask() {
     abstract val resultsFile: RegularFileProperty
 
     @TaskAction
-    fun check() {
+    fun search() {
         if (candidatesFile.get().getAsFile().readLines().contains(find.get())) {
             val msg = "Found a " + find.get() + "!"
             getLogger().lifecycle(msg)
@@ -21,20 +21,16 @@ abstract class AnimalSearchTask : DefaultTask() {
     }
 }
 
-val originalCandidatesFile = layout.projectDirectory.dir("inputs").file("candidates.txt")
-val alternateInputsDir = layout.buildDirectory.dir("alternateInputs")
+val useAlternateInput = providers.gradleProperty("useAlternateInput").isPresent()
+
+val copyTask = tasks.register<Copy>("copy") {
+    from(layout.projectDirectory.file("candidates.txt"))
+    destinationDir = (if (useAlternateInput) { layout.buildDirectory.dir("alternateSearchInput") } else { layout.buildDirectory.dir("searchInput") }).get().asFile
+}
 
 tasks.register<AnimalSearchTask>("search") {
     find = "cat"
-    if (providers.gradleProperty("useAlternateInput").isPresent()) {
-        candidatesFile = alternateInputsDir.map { it.file("candidates.txt") }
-    } else {
-        candidatesFile = originalCandidatesFile
-    }
-    resultsFile = layout.buildDirectory.file("search/results.txt")
-}
-
-tasks.register<Copy>("copy") {
-    from(originalCandidatesFile)
-    into(alternateInputsDir)
+    candidatesFile.fileProvider(copyTask.map { File(it.destinationDir, "candidates.txt") })
+    resultsFile = layout.buildDirectory.file("searchOutput/results.txt")
+    dependsOn(copyTask)
 }
