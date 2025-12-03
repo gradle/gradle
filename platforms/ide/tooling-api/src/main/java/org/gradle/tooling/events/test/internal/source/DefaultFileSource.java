@@ -18,14 +18,16 @@ package org.gradle.tooling.events.test.internal.source;
 
 import org.gradle.tooling.events.test.source.FilePosition;
 import org.gradle.tooling.events.test.source.FileSource;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 public class DefaultFileSource implements FileSource {
     private final File file;
+    @Nullable
     private final FilePosition position;
 
-    public DefaultFileSource(File file, FilePosition position) {
+    public DefaultFileSource(File file, @Nullable FilePosition position) {
         this.file = file;
         this.position = position;
     }
@@ -36,6 +38,7 @@ public class DefaultFileSource implements FileSource {
     }
 
     @Override
+    @Nullable
     public FilePosition getPosition() {
         return position;
     }

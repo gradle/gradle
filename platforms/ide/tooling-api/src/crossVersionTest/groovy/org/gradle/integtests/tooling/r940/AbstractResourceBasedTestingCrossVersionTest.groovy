@@ -35,25 +35,24 @@ abstract class AbstractResourceBasedTestingCrossVersionTest extends ToolingApiSp
     abstract List<TestEnginesFixture.TestEngines> getEnginesToSetup()
 
     def setup() {
-        if (!engineJarLib) {
-            TestDirectoryProvider testClassDirectoryProvider = new TestNameTestDirectoryProvider.UniquePerTestClassDirectoryProvider(this.getClass())
-            TestResources resources = new TestResources(testClassDirectoryProvider, TestEnginesFixture.TestEngines.class, this.getClass())
+        TestDirectoryProvider testClassDirectoryProvider = new TestNameTestDirectoryProvider.UniquePerTestClassDirectoryProvider(this.getClass())
+        TestResources resources = new TestResources(testClassDirectoryProvider, TestEnginesFixture.TestEngines.class, this.getClass())
 
-            testClassDirectoryProvider.getTestDirectory().getParentFile()
-
-            resources.maybeCopy("shared")
-            enginesToSetup.forEach {
-                resources.maybeCopy(it.name)
-            }
-
-            String engineCopyToDirName = "test-engine-build"
-            File engineBuildDir = testClassDirectoryProvider.testDirectory.file(engineCopyToDirName)
-
-            withConnection(connector().forProjectDirectory(engineBuildDir)) {
-                it.newBuild().forTasks("build").run()
-            }
-            engineJarLib = engineBuildDir.file("build/libs/${engineCopyToDirName}.jar")
+        String engineCopyToDirName = "test-engine-build"
+        if (testClassDirectoryProvider.testDirectory.file(engineCopyToDirName)) {
+            testClassDirectoryProvider.testDirectory.file(engineCopyToDirName).deleteDir()
         }
+
+        resources.maybeCopy("shared")
+        enginesToSetup.forEach {
+            resources.maybeCopy(it.name)
+        }
+
+        File engineBuildDir = testClassDirectoryProvider.testDirectory.file(engineCopyToDirName)
+        withConnection(connector().forProjectDirectory(engineBuildDir)) {
+            it.newBuild().forTasks("build").run()
+        }
+        engineJarLib = engineBuildDir.file("build/libs/${engineCopyToDirName}.jar")
     }
 
     protected String enableEngineForSuite() {

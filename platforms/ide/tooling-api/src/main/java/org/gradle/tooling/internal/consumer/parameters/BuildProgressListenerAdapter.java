@@ -971,6 +971,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
+    @Nullable
     private static FilePosition toFilePosition(@Nullable InternalFilePosition position) {
         if (position == null) {
             return null;
