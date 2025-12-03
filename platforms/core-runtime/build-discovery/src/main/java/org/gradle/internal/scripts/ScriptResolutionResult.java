@@ -96,7 +96,7 @@ public class ScriptResolutionResult {
             ).details(
                 String.format(
                     "Multiple %s script files were found in directory '%s'. Selected '%s', and ignoring %s." +
-                        " This can cause problems as upon deleting the currently selected script, another script will be selected automatically.",
+                        " Deleting the selected script will automatically select another script.",
                     basename,
                     directory,
                     selectedCandidate.getName(),
