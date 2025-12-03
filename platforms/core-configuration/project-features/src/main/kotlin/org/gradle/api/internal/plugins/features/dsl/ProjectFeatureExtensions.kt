@@ -34,13 +34,49 @@ inline fun <
     reified TargetDefinition : org.gradle.api.internal.plugins.Definition<*>,
     reified OwnBuildModel : BuildModel
     >
-        ProjectFeatureBindingBuilder.bindProjectFeature(
-    name: String,
-    noinline block: ProjectFeatureApplicationContext.(Definition, OwnBuildModel, TargetDefinition) -> Unit
-): DeclaredProjectFeatureBindingBuilder<Definition, OwnBuildModel> {
-    val bindingTypeInformation = ProjectFeatureBindingBuilder.bindingToTargetDefinition(Definition::class.java, TargetDefinition::class.java)
-    return bindProjectFeature(name, bindingTypeInformation, block)
-}
+    ProjectFeatureBindingBuilder.bindProjectFeature(
+        name: String,
+        noinline block: ProjectFeatureApplicationContext.(Definition, OwnBuildModel, TargetDefinition) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<Definition, OwnBuildModel> =
+        bindProjectFeature(
+            name,
+            ProjectFeatureBindingBuilder.bindingToTargetDefinition(Definition::class.java, TargetDefinition::class.java),
+            block
+        )
+
+/**
+ * Binds a project feature to a target definition inferring the types from the provided transform function.
+ *
+ * <p>Example:</p>
+ * <pre>
+ * <code>
+ *     bindProjectFeature("myFeature") { definition: MyProjectFeatureDefinition, buildModel: MyBuildModel, target: JavaSources ->
+ *         // Configure the build model based on the definition
+ *     }
+ * </code>
+ * </pre>
+ *
+ * @param name The name of the project feature.
+ * @param block The project feature transform that maps the target definition to the build model and implements the feature logic.
+ * @return A [DeclaredProjectFeatureBindingBuilder] for further configuration if needed.
+ * @param Definition The type of the project feature definition.
+ * @param TargetDefinition The type of the target definition to bind to.
+ * @param OwnBuildModel The type of the build model associated with the project feature definition.
+ */
+inline fun <
+    reified Definition : org.gradle.api.internal.plugins.Definition<OwnBuildModel>,
+    reified TargetDefinition : org.gradle.api.internal.plugins.Definition<*>,
+    reified OwnBuildModel : BuildModel
+    >
+    ProjectFeatureBindingBuilder.bindSafeProjectFeature(
+        name: String,
+        noinline block: ProjectFeatureApplicationContext.(Definition, OwnBuildModel, TargetDefinition) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<Definition, OwnBuildModel> =
+        bindSafeProjectFeature(
+            name,
+            ProjectFeatureBindingBuilder.bindingToTargetDefinition(Definition::class.java, TargetDefinition::class.java),
+            block
+        )
 
 /**
  * Binds a project feature to a target definition.
@@ -67,15 +103,54 @@ fun <
     TargetDefinition : Definition<out TargetBuildModel>,
     TargetBuildModel : BuildModel,
     >
-        ProjectFeatureBindingBuilder.bindProjectFeatureToDefinition(
-    name: String,
-    ownDefinitionType: KClass<OwnDefinition>,
-    targetDefinitionType: KClass<TargetDefinition>,
-    block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, TargetDefinition) -> Unit
-): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> {
-    val bindingTypeInformation = bindingToTargetDefinition(ownDefinitionType.asDefinitionType(), targetDefinitionType.asDefinitionType())
-    return bindProjectFeature(name, bindingTypeInformation, block)
-}
+    ProjectFeatureBindingBuilder.bindProjectFeatureToDefinition(
+        name: String,
+        ownDefinitionType: KClass<OwnDefinition>,
+        targetDefinitionType: KClass<TargetDefinition>,
+        block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, TargetDefinition) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> =
+        bindProjectFeature(
+            name,
+            bindingToTargetDefinition(ownDefinitionType.asDefinitionType(), targetDefinitionType.asDefinitionType()),
+            block
+        )
+
+/**
+ * Binds a project feature to a target definition.
+ *
+ * <p>Example:</p>
+ * <pre>
+ * <code>
+ *     bindProjectFeatureToDefinition("myFeature", MyFeatureDefinition::class, JavaSources::class) { definition, buildModel, target ->
+ *         // Configure the build model based on the definition
+ *     }
+ * </code>
+ * </pre>
+ *
+ * @param name The name of the project feature.
+ * @param block The project feature transform that maps the target definition to the build model and implements the feature logic.
+ * @return A [DeclaredProjectFeatureBindingBuilder] for further configuration if needed.
+ * @param OwnDefinition The type of the project feature definition.
+ * @param TargetDefinition The type of the target definition to bind to.
+ * @param OwnBuildModel The type of the build model associated with the project feature definition.
+ */
+fun <
+    OwnDefinition : Definition<OwnBuildModel>,
+    OwnBuildModel : BuildModel,
+    TargetDefinition : Definition<out TargetBuildModel>,
+    TargetBuildModel : BuildModel,
+    >
+    ProjectFeatureBindingBuilder.binSafeProjectFeatureToDefinition(
+        name: String,
+        ownDefinitionType: KClass<OwnDefinition>,
+        targetDefinitionType: KClass<TargetDefinition>,
+        block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, TargetDefinition) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> =
+        bindSafeProjectFeature(
+            name,
+            bindingToTargetDefinition(ownDefinitionType.asDefinitionType(), targetDefinitionType.asDefinitionType()),
+            block
+        )
 
 /**
  * Binds a project feature to a target build model.  In other words, bind the feature to any definition that implements
@@ -102,15 +177,55 @@ fun <
     OwnBuildModel : BuildModel,
     TargetBuildModel : BuildModel,
     >
-        ProjectFeatureBindingBuilder.bindProjectFeatureToBuildModel(
-    name: String,
-    ownDefinitionType: KClass<OwnDefinition>,
-    targetBuildModelType: KClass<TargetBuildModel>,
-    block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>) -> Unit
-): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> {
-    val bindingTypeInformation = bindingToTargetBuildModel(ownDefinitionType.asDefinitionType(), targetBuildModelType.java)
-    return bindProjectFeature(name, bindingTypeInformation, block)
-}
+    ProjectFeatureBindingBuilder.bindProjectFeatureToBuildModel(
+        name: String,
+        ownDefinitionType: KClass<OwnDefinition>,
+        targetBuildModelType: KClass<TargetBuildModel>,
+        block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> =
+        bindProjectFeature(
+            name,
+            bindingToTargetBuildModel(ownDefinitionType.asDefinitionType(), targetBuildModelType.java),
+            block
+        )
+
+/**
+ * Binds a project feature to a target build model.  In other words, bind the feature to any definition that implements
+ * {@link Definition} for the specified target build model.
+ *
+ * <p>Example:</p>
+ * <pre>
+ * <code>
+ *     bindProjectFeatureToBuildModel("myFeature", MyFeatureDefinition::class, JavaClasses::class) { definition, buildModel, target ->
+ *         // Configure the build model based on the definition
+ *     }
+ * </code>
+ * </pre>
+ *
+ * @param name The name of the project feature.
+ * @param block The project feature transform that maps the target build model to the build model and implements the feature logic.
+ * @return A [DeclaredProjectFeatureBindingBuilder] for further configuration if needed.
+ * @param OwnDefinition The type of the project feature definition.
+ * @param TargetBuildModel The type of the target build model to bind to.
+ * @param OwnBuildModel The type of the build model associated with the project feature definition.
+ */
+fun <
+    OwnDefinition : Definition<OwnBuildModel>,
+    OwnBuildModel : BuildModel,
+    TargetBuildModel : BuildModel,
+    >
+    ProjectFeatureBindingBuilder.bindSafeProjectFeatureToBuildModel(
+        name: String,
+        ownDefinitionType: KClass<OwnDefinition>,
+        targetBuildModelType: KClass<TargetBuildModel>,
+        block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> =
+        bindSafeProjectFeature(
+            name,
+            bindingToTargetBuildModel(ownDefinitionType.asDefinitionType(), targetBuildModelType.java),
+        block
+        )
+
 
 /**
  * Binds a project type for the given name.  The types are inferred from the provided transform function.
@@ -133,7 +248,31 @@ fun <
 inline fun <reified OwnDefinition: Definition<OwnBuildModel>, reified OwnBuildModel: BuildModel> ProjectTypeBindingBuilder.bindProjectType(
     name: String,
     noinline block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel) -> Unit
-): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> = bindProjectType(name, OwnDefinition::class.java, OwnBuildModel::class.java, block)
+): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> = bindProjectType(name, OwnDefinition::class.java, block)
+
+/**
+ * Binds a project type for the given name.  The types are inferred from the provided transform function.
+ *
+ * <p>Example:</p>
+ * <pre>
+ * <code>
+ *     bindProjectType("myProjectType") { definition: MyProjectTypeDefinition, buildModel: MyBuildModel ->
+ *         // Configure the build model based on the definition
+ *     }
+ * </code>
+ * </pre>
+ *
+ * @param name The name of the project type.
+ * @param block The project type transform that maps the project type definition to the build model and implements the type logic.
+ * @return A [DeclaredProjectFeatureBindingBuilder] for further configuration if needed.
+ * @param OwnDefinition The type of the project type definition.
+ * @param OwnBuildModel The type of the build model associated with the project type definition.
+ */
+inline fun <reified OwnDefinition: Definition<OwnBuildModel>, reified OwnBuildModel: BuildModel> ProjectTypeBindingBuilder.bindSafeProjectType(
+    name: String,
+    noinline block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel) -> Unit
+): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> = bindSafeProjectType(name, OwnDefinition::class.java, block)
+
 
 @PublishedApi
 internal fun <T : Definition<out V>, V : BuildModel> KClass<T>.asDefinitionType() = DefinitionType<T, V>(
@@ -158,6 +297,3 @@ internal fun <OwnDefinition : Definition<OwnBuildModel>, TargetBuildModel : Buil
     bindingToTargetBuildModel(definitionType: DefinitionType<OwnDefinition, OwnBuildModel>, targetBuildModel: Class<TargetBuildModel>) =
     ProjectFeatureBindingBuilder.bindingToTargetBuildModel(definitionType.definition, targetBuildModel)
 
-internal inline fun <reified T: Definition<V>, reified V: BuildModel> ProjectTypeBindingBuilder.bindProjectFeature(name: String, noinline block: ProjectFeatureApplicationContext.(T, V) -> Unit): DeclaredProjectFeatureBindingBuilder<T, V> {
-    return this.bindProjectType(name, T::class.java, V::class.java, block)
-}

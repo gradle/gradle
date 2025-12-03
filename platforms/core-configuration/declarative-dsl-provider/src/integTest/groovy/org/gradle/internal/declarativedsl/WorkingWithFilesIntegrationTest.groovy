@@ -219,8 +219,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                     @Restricted
                     public abstract RegularFileProperty getFile();
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
                     }
 
@@ -255,8 +254,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                     @Restricted
                     public abstract ListProperty<RegularFile> getFiles();
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "dirs = " + getDirs().getOrNull() + ", files = " + getFiles().getOrNull();
                     }
 
@@ -291,6 +289,10 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                     @Restricted
                     RegularFileProperty getFile();
 
+                    default public String propertyValues() {
+                        return "dir = " + getDir().getAsFile() + ", file = " + getFile().getOrNull();
+                    }
+
                     public interface ModelType extends BuildModel {
                         Directory getDir();
                         RegularFileProperty getFile();
@@ -321,6 +323,10 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                     @Restricted
                     RegularFile getFile();
+
+                    default public String propertyValues() {
+                        return "dir = " + getDir().getOrNull() + ", file = " + getFile().getAsFile();
+                    }
 
                     public interface ModelType extends BuildModel {
                         DirectoryProperty getDir();
@@ -372,8 +378,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                         return file;
                     }
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
                     }
 
@@ -433,8 +438,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                         this.file = file;
                     }
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "dir = " + dir + ", file = " + file;
                     }
 

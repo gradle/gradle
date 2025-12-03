@@ -37,8 +37,7 @@ import java.util.List;
 public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuilderInternal {
     private final List<DeclaredProjectFeatureBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
 
-    @Override
-    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
+    private <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, ProjectFeatureBindingDeclaration.Safety definitionSafety, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
         // This needs to be an anonymous class for configuration cache compatibility
         ProjectFeatureApplyAction<T, V, ?> featureTransform = new ProjectFeatureApplyAction<T, V, Object>() {
             @Override
@@ -47,7 +46,9 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
             }
         };
 
-        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(definitionClass,
+        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(
+            definitionClass,
+            definitionSafety,
             buildModelClass,
             new TargetTypeInformation.DefinitionTargetTypeInformation<>(Project.class),
             Path.path(name),
@@ -60,7 +61,12 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
 
     @Override
     public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, ProjectTypeApplyAction<T, V> transform) {
-        return bindProjectType(name, definitionClass, ModelTypeUtils.getBuildModelClass(definitionClass), transform);
+        return bindProjectType(name, definitionClass, ProjectFeatureBindingDeclaration.Safety.UNSAFE, ModelTypeUtils.getBuildModelClass(definitionClass), transform);
+    }
+
+    @Override
+    public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindSafeProjectType(String name, Class<OwnDefinition> definitionClass, ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform) {
+        return bindProjectType(name, definitionClass, ProjectFeatureBindingDeclaration.Safety.SAFE, ModelTypeUtils.getBuildModelClass(definitionClass), transform);
     }
 
     public ProjectTypeBindingBuilder apply(Action<ProjectTypeBindingBuilder> configuration) {
