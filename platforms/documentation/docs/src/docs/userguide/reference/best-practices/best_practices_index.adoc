@@ -166,8 +166,8 @@ Use this as a quick reference to track newly added recommendations, check adopti
           if (ind) ind.textContent = '⇅';
         });
         
-        // Update current indicator
-        indicator.textContent = ascending ? '▼' : '▲';
+        // Update current indicator - after toggle, if ascending is false, we just sorted ascending
+        indicator.textContent = ascending ? '▲' : '▼';
       });
     });
     
