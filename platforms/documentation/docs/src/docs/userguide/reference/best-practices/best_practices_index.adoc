@@ -18,7 +18,7 @@
 The table below provides a complete list of documented Gradle Best Practices.
 
 ****
-There are currently *<span id="best-practices-count">X</span> Best Practices*.
+There are currently *<span id="best-practices-total">X</span> Best Practices*<span id="best-practices-filtered-text"></span>.
 ****
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
@@ -37,6 +37,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 ++++
 
 [.table]
+[#best-practices-table]
 |===
 | Title | Section | Added in Gradle Version
 
@@ -88,7 +89,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
   
   // Wait for the DOM to be fully loaded
   function init() {
-    const table = document.querySelector('.table table');
+    const table = document.getElementById('best-practices-table');
     if (!table) {
       console.error('Best Practices table not found');
       return;
@@ -231,10 +232,21 @@ Use this as a quick reference to track newly added recommendations, check adopti
     }
     
     function updateCount() {
+      const totalCount = allRows.length;
       const visibleCount = allRows.filter(row => row.style.display !== 'none').length;
-      const countElement = document.getElementById('best-practices-count');
-      if (countElement) {
-        countElement.textContent = visibleCount;
+      const totalElement = document.getElementById('best-practices-total');
+      const filteredTextElement = document.getElementById('best-practices-filtered-text');
+      
+      if (totalElement) {
+        totalElement.textContent = totalCount;
+      }
+      
+      if (filteredTextElement) {
+        if (visibleCount < totalCount) {
+          filteredTextElement.textContent = ' (' + visibleCount + ' displayed)';
+        } else {
+          filteredTextElement.textContent = '';
+        }
       }
     }
   }
