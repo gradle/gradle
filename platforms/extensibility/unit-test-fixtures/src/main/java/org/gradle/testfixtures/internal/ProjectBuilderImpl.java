@@ -31,6 +31,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -184,6 +185,9 @@ public class ProjectBuilderImpl {
 
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
+
+        GradlePropertiesController gradlePropertiesController = buildServices.get(GradlePropertiesController.class);
+        gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         // Registers project as a side effect

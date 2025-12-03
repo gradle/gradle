@@ -234,4 +234,27 @@ class ProjectBuilderTest extends Specification {
         child.projectDir == new File(rootDir, "child")
         child.rootDir == rootDir
     }
+
+    def "properties from gradle properties files are accessible"() {
+        def rootDir = temporaryFolder.testDirectory.file("root-dir")
+        def userHome = rootDir.file("user-home")
+
+        rootDir.file("gradle.properties") << """
+            foo=one
+        """
+
+        userHome.file("gradle.properties") << """
+            bar=two
+        """
+
+        when:
+        def project = ProjectBuilder.builder()
+            .withProjectDir(rootDir)
+            .withGradleUserHomeDir(userHome)
+            .build()
+
+        then:
+        project.providers.gradleProperty("foo").getOrNull() == "one"
+        project.providers.gradleProperty("bar").getOrNull() == "two"
+    }
 }
