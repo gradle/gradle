@@ -319,6 +319,12 @@ void testProject() {
 }
 ```
 
+### Publishing signatures for distributions
+
+Gradle now publishes ASCII-armored `.asc` signature files for all distributed ZIPs, in addition to the existing `.sha256` checksum files.
+These signatures allow users and build systems to verify the authenticity of Gradle distributions using our PGP signing key, improving supply-chain integrity and enabling stronger verification workflows.
+Read more about verifying Gradle distributions and JARs on the [Signing key for Gradle artifacts page](keys).    
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
