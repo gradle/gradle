@@ -71,8 +71,6 @@ class BuildEnvironmentVersionInfoCrossVersionSpec extends ToolingApiSpecificatio
         def versionInfo = withConnection { connection ->
             connection.action(new FetchBuildEnvironmentVersionInfoAction()).run()
         }
-        System.err.println(versionInfo)
-
         then:
         // line-by-line comparison to avoid very complex multi-line regex and get better reporting on failure
         def content = versionInfo.readLines()
