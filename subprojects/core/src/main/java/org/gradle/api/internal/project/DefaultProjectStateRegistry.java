@@ -33,6 +33,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.gradle.internal.project.DefaultImmutableProjectDescriptor;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
@@ -46,6 +48,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -54,6 +57,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closeable {
     private final WorkerLeaseService workerLeaseService;
@@ -385,7 +389,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
-            controller.createMutableModel(descriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
+            ProjectState parent = getParent();
+            ProjectIdentity parentIdentity = parent == null ? null : parent.getIdentity();
+            List<ProjectIdentity> children = getChildProjects().stream().map(ProjectState::getIdentity).collect(Collectors.toList());
+            ImmutableProjectDescriptor immutableDescriptor = new DefaultImmutableProjectDescriptor(
+                identity, descriptor.getProjectDir(), descriptor.getBuildFile(), parentIdentity, children
+            );
+            controller.createMutableModel(immutableDescriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
         }
 
         @Override
