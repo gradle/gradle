@@ -173,7 +173,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom project type with different public and implementation model types'() {
         given:
-        withProjectTypeThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
+        withProjectTypeThatHasDifferentPublicAndImplementationModelTypesDeclaredUnsafe().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 

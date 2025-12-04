@@ -121,7 +121,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypes() {
+    PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredUnsafe() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def projectFeatureDefinition = new ProjectFeatureDefinitionWithPublicTypeClassBuilder()
@@ -129,6 +129,19 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             .definitionPublicType(projectFeatureDefinition.publicTypeClassName)
             .definitionImplementationType(projectFeatureDefinition.implementationTypeClassName)
             .withUnsafeDefinition()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredSafe() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionWithPublicTypeClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder()
+            .definitionPublicType(projectFeatureDefinition.publicTypeClassName)
+            .definitionImplementationType(projectFeatureDefinition.implementationTypeClassName)
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
