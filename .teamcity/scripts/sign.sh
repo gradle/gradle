@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to sign all zip files in a directory with PGP keys
-# Usage: ./sign-zips.sh [directory]
+# Usage: ./sign.sh [directory]
 # Environment variables required:
 #   PGP_SIGNING_KEY - The PGP private key (armored)
 #   PGP_SIGNING_KEY_PASSPHRASE - The passphrase for the key
@@ -30,7 +30,7 @@ fi
 
 # Create temporary directory for GPG operations
 TEMP_DIR=$(mktemp -d)
-trap "rm -rf $TEMP_DIR" EXIT
+trap "rm -rf '$TEMP_DIR'" EXIT
 
 # Setup GPG
 export GNUPGHOME="$TEMP_DIR/.gnupg"
@@ -38,10 +38,10 @@ mkdir -p "$GNUPGHOME"
 chmod 700 "$GNUPGHOME"
 
 # Import the key
-echo "$PGP_SIGNING_KEY" | gpg --batch --import 2>/dev/null || {
+if ! echo "$PGP_SIGNING_KEY" | gpg --batch --import >/dev/null 2>&1; then
     echo "Error: Failed to import PGP key" >&2
     exit 1
-}
+fi
 
 # Get the key ID
 KEY_ID=$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep -E "^sec" | head -1 | awk '{print $2}' | cut -d'/' -f2)
@@ -69,11 +69,14 @@ while IFS= read -r -d '' zipfile; do
     echo "Signing: $(basename "$zipfile")"
     
     # Sign the file
-    if echo "$PGP_SIGNING_KEY_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --armor --detach-sign --default-key "$KEY_ID" --output "${zipfile}.asc" "$zipfile" 2>/dev/null; then
+    GPG_OUTPUT=$(echo "$PGP_SIGNING_KEY_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --armor --detach-sign --default-key "$KEY_ID" --output "${zipfile}.asc" "$zipfile" 2>&1)
+    GPG_EXIT_CODE=$?
+    if [ $GPG_EXIT_CODE -eq 0 ]; then
         echo "  ✓ Created: $(basename "${zipfile}.asc")"
         ((SIGNED_COUNT++))
     else
         echo "  ✗ Failed to sign: $(basename "$zipfile")" >&2
+        echo "$GPG_OUTPUT" >&2
         ((FAILED_COUNT++))
     fi
 done < <(find "$DIR" -maxdepth 1 -type f -name "*.zip" -print0)
