@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry, HoldsProjectState {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOutputCleanupRegistry.class);
 
@@ -36,7 +38,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     private final FileCollectionFactory fileCollectionFactory;
     private final Set<FileCollection> outputs = new HashSet<>();
-    private Set<String> resolvedPaths;
+    private @Nullable Set<String> resolvedPaths;
 
     public DefaultBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
         this.fileCollectionFactory = fileCollectionFactory;

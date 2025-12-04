@@ -19,6 +19,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonProtocol)
+    api(projects.daemonLogging)
     api(projects.enterpriseLogging)
     api(projects.execution)
     api(projects.fileCollections)
