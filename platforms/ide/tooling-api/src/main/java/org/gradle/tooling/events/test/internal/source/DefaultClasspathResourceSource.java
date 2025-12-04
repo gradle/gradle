@@ -23,9 +23,10 @@ import org.jspecify.annotations.Nullable;
 public class DefaultClasspathResourceSource implements ClasspathResourceSource {
 
     private final String classpathResourceName;
+    @Nullable
     private final FilePosition position;
 
-    public DefaultClasspathResourceSource(String classpathResourceName, FilePosition position) {
+    public DefaultClasspathResourceSource(String classpathResourceName, @Nullable FilePosition position) {
         this.classpathResourceName = classpathResourceName;
         this.position = position;
     }
