@@ -21,8 +21,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import org.apache.commons.io.file.PathUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -56,7 +60,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Generates an HTML report based on test results based on binary results from {@link SerializableTestResultStore}.
@@ -96,6 +99,8 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final MetadataRendererRegistry metadataRendererRegistry;
+    private final FileSystemOperations fileSystemOperations;
+    private final FileCollectionFactory fileCollectionFactory;
     private final Path reportsDirectory;
 
     @Inject
@@ -103,11 +108,15 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         BuildOperationRunner buildOperationRunner,
         BuildOperationExecutor buildOperationExecutor,
         MetadataRendererRegistry metadataRendererRegistry,
+        FileSystemOperations fileSystemOperations,
+        FileCollectionFactory fileCollectionFactory,
         Path reportsDirectory
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
         this.metadataRendererRegistry = metadataRendererRegistry;
+        this.fileSystemOperations = fileSystemOperations;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.reportsDirectory = reportsDirectory;
     }
 
@@ -152,7 +161,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     private void generateFiles(TestTreeModel model, final List<TestOutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-            buildOperationRunner.run(new DeleteOldReportOperation(reportsDirectory));
+            buildOperationRunner.run(new DeleteOldReportOperation(fileCollectionFactory, fileSystemOperations, reportsDirectory));
 
             ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
@@ -262,30 +271,29 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     }
 
     private static final class DeleteOldReportOperation implements RunnableBuildOperation {
+        private final FileCollectionFactory fileCollectionFactory;
+        private final FileSystemOperations fileSystemOperations;
         private final Path reportsDirectory;
 
-        private DeleteOldReportOperation(Path reportsDirectory) {
+        private DeleteOldReportOperation(FileCollectionFactory fileCollectionFactory, FileSystemOperations fileSystemOperations, Path reportsDirectory) {
+            this.fileCollectionFactory = fileCollectionFactory;
+            this.fileSystemOperations = fileSystemOperations;
             this.reportsDirectory = reportsDirectory;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            // Clean-up old HTML report
-            Path indexHtml = reportsDirectory.resolve("index.html");
-            try {
-                PathUtils.deleteFile(indexHtml);
-            } catch (IOException e) {
-                LOG.info("Could not delete HTML test reports index.html '{}'.", indexHtml, e);
-            }
-            // Delete all directories, but not files, in the reports directory
+            // Delete all HTML files in the reports directory
             // This avoids deleting files from other report types that may be in the same directory
-            try (Stream<Path> children = Files.list(reportsDirectory)) {
-                for (Path dir : children.filter(Files::isDirectory).collect(Collectors.toList())) {
-                    PathUtils.deleteDirectory(dir);
+            fileSystemOperations.delete(new Action<DeleteSpec>() {
+                @Override
+                public void execute(DeleteSpec spec) {
+                    ConfigurableFileTree oldHtmlReports = fileCollectionFactory.fileTree();
+                    oldHtmlReports.setDir(reportsDirectory);
+                    oldHtmlReports.include("**/*.html");
+                    spec.delete(oldHtmlReports);
                 }
-            } catch (IOException e) {
-                LOG.info("Could not clean HTML test reports directory '{}'.", reportsDirectory, e);
-            }
+            });
         }
 
         @Override
