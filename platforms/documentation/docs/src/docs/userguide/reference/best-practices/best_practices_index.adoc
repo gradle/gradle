@@ -26,11 +26,11 @@ Use this as a quick reference to track newly added recommendations, check adopti
 ++++
 <div style="margin: 10px 0;">
   <label for="section-filter" style="margin-right: 10px;">Filter by Section:</label>
-  <select id="section-filter" style="margin-right: 20px;">
+  <select id="section-filter" style="margin-right: 20px; width: auto;">
     <option value="">All Sections</option>
   </select>
   <label for="version-filter" style="margin-right: 10px;">Filter by Version:</label>
-  <select id="version-filter">
+  <select id="version-filter" style="width: auto;">
     <option value="">All Versions</option>
   </select>
 </div>
@@ -115,6 +115,8 @@ Use this as a quick reference to track newly added recommendations, check adopti
       if (cells.length >= 3) {
         sections.add(cells[1].textContent.trim());
         versions.add(cells[2].textContent.trim());
+      } else {
+        console.error('Row has insufficient cells (expected >= 3):', row, 'cells found:', cells.length);
       }
     });
     
@@ -175,6 +177,35 @@ Use this as a quick reference to track newly added recommendations, check adopti
     // Initial count update
     updateCount();
     
+    // Version number type for proper sorting
+    class Version {
+      constructor(versionString) {
+        const parts = versionString.split('.').map(part => parseInt(part, 10));
+        this.major = parts[0] || 0;
+        this.minor = parts[1] || 0;
+        this.revision = parts[2] || 0;
+        this.original = versionString;
+      }
+      
+      compareTo(other) {
+        if (this.major !== other.major) {
+          return this.major - other.major;
+        }
+        if (this.minor !== other.minor) {
+          return this.minor - other.minor;
+        }
+        return this.revision - other.revision;
+      }
+      
+      static tryParse(text) {
+        // Check if text matches version pattern (e.g., "8.14", "9.0.0", "9.1.0")
+        if (/^\d+(\.\d+){0,2}$/.test(text)) {
+          return new Version(text);
+        }
+        return null;
+      }
+    }
+    
     function applyFilters() {
       const selectedSection = sectionFilter.value;
       const selectedVersion = versionFilter.value;
@@ -193,6 +224,8 @@ Use this as a quick reference to track newly added recommendations, check adopti
           } else {
             row.style.display = 'none';
           }
+        } else {
+          console.error('Row has insufficient cells (expected >= 3):', row, 'cells found:', cells.length);
         }
       });
       
@@ -211,15 +244,16 @@ Use this as a quick reference to track newly added recommendations, check adopti
         const aText = aCell.textContent.trim();
         const bText = bCell.textContent.trim();
         
-        // Try numeric comparison for version numbers
-        const aNum = parseFloat(aText);
-        const bNum = parseFloat(bText);
+        // Try version comparison first
+        const aVersion = Version.tryParse(aText);
+        const bVersion = Version.tryParse(bText);
         
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-          return ascending ? aNum - bNum : bNum - aNum;
+        if (aVersion && bVersion) {
+          const comparison = aVersion.compareTo(bVersion);
+          return ascending ? comparison : -comparison;
         }
         
-        // String comparison
+        // Fall back to string comparison
         if (ascending) {
           return aText.localeCompare(bText);
         } else {
