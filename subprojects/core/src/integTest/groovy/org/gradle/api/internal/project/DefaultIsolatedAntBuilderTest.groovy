@@ -25,9 +25,10 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.api.logging.LogLevel
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
-import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.util.TestUtil
@@ -44,7 +45,8 @@ import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.fail
 
 class DefaultIsolatedAntBuilderTest {
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
+    def testInstallation = new GradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
+    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(testInstallation)
     private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
     private final DefaultIsolatedAntBuilder builder = TestUtil.newInstance(DefaultIsolatedAntBuilder, registry, new DefaultClassLoaderFactory(), moduleRegistry)
     private final TestOutputEventListener outputEventListener = new TestOutputEventListener()

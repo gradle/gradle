@@ -20,7 +20,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -83,14 +82,12 @@ public class DaemonMain extends EntryPoint {
 
         // Read configuration from stdin
         File gradleHomeDir;
-        List<File> additionalClassPath;
         DaemonServerConfiguration parameters;
 
         try {
             KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
             gradleHomeDir = new File(decoder.readString());
             parameters = readDaemonServerConfiguration(decoder);
-            additionalClassPath = readAdditionalClassPath(decoder);
         } catch (EOFException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -99,7 +96,7 @@ public class DaemonMain extends EntryPoint {
         ServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.get(LoggingManagerFactory.class).createLoggingManager();
 
-        DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager, DefaultClassPath.of(additionalClassPath));
+        DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager);
         ServiceRegistry daemonServices = daemonProcessState.getServices();
         File daemonLog = daemonServices.get(DaemonLogFile.class).getFile();
         File daemonBaseDir = daemonServices.get(DaemonDir.class).getBaseDir();
@@ -130,15 +127,6 @@ public class DaemonMain extends EntryPoint {
             //TODO This should actually be used in `GradleUserHomeCleanupService`, but this is in core and core can't use the classes to get the proper daemon log dir name.
             cleanupOldLogFiles(daemonBaseDir);
         }
-    }
-
-    private static List<File> readAdditionalClassPath(KryoBackedDecoder decoder) throws EOFException {
-        int additionalClassPathLength = decoder.readSmallInt();
-        List<File> additionalClassPath = new ArrayList<>(additionalClassPathLength);
-        for (int i = 0; i < additionalClassPathLength; i++) {
-            additionalClassPath.add(new File(decoder.readString()));
-        }
-        return additionalClassPath;
     }
 
     private static DaemonServerConfiguration readDaemonServerConfiguration(KryoBackedDecoder decoder) throws EOFException {

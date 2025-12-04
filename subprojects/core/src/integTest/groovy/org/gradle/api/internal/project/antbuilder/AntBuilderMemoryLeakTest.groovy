@@ -21,8 +21,9 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
-import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import spock.lang.Ignore
@@ -33,9 +34,11 @@ import java.lang.reflect.Proxy
 import java.util.concurrent.TimeUnit
 
 class AntBuilderMemoryLeakTest extends Specification {
+    @Shared
+    def testInstallation = new GradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
 
     @Shared
-    private ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
+    private ModuleRegistry moduleRegistry = new DefaultModuleRegistry(testInstallation)
 
     @Shared
     private ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))

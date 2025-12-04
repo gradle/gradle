@@ -605,7 +605,7 @@
     "name": "gradle-cli",
     "path": "platforms/core-runtime/gradle-cli",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
