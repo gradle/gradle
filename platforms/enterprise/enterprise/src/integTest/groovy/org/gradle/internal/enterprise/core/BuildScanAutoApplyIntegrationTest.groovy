@@ -382,11 +382,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithoutScanRequest()
     }
 
-    private void runBuildWithoutScanRequest(String... additionalArgs) {
-        if (additionalArgs) {
-            args(additionalArgs)
-        }
-
+    private void runBuildWithoutScanRequest() {
         succeeds("dummy")
     }
 

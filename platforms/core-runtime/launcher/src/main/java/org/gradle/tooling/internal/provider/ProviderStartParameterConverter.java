@@ -33,7 +33,6 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 class ProviderStartParameterConverter {
 
@@ -56,7 +55,7 @@ class ProviderStartParameterConverter {
         return requests;
     }
 
-    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> environmentVariables) {
+    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, BuildLayoutResult buildLayout, AllProperties properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
         StartParameterInternal startParameter = new StartParameterInternal();
 
@@ -86,7 +85,7 @@ class ProviderStartParameterConverter {
                     + "\nExamples of unsupported build options: '--daemon', '-?', '-v'."
                     + "\nPlease find more information in the javadoc for the BuildLauncher class.", e);
         }
-        converter.convert(parsedCommandLine, buildLayout, properties, environmentVariables, startParameter);
+        converter.convert(parsedCommandLine, buildLayout, properties, startParameter);
 
         if (parameters.getBuildLogLevel() != null) {
             startParameter.setLogLevel(parameters.getBuildLogLevel());
