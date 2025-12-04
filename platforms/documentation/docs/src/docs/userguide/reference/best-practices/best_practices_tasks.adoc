@@ -418,22 +418,23 @@ Use link:{javadocPath}/org/gradle/api/tasks/PathSensitivity.html#NONE[`@PathSens
 
 === Explanation
 
-Tasks should generally only care about the **contents** of their input files, not their location on disk.
+Tasks should generally care about the **contents** of their input files, not their location on disk.
 
-When annotating input properties that contain files (such as `@InputFile` and `@InputFiles` collections) use `@PathSensitivity.NONE`.
-This tells Gradle to consider only the files' contents when determining if a task is up-to-date.
+When annotating file-based input properties (for example, `@InputFile` or `@InputFiles` collections), use `@PathSensitivity.NONE`.
+This tells Gradle to ignore the path and only consider the file contents when determining whether a task is up-to-date.
 
-For input properties that contain directories (such as `@InputDirectory` and `@InputFiles` collections) use `@PathSensitivity.RELATIVE`.
+For directory-based inputs (for example, `@InputDirectory` or `@InputFiles` collections), use `@PathSensitivity.RELATIVE`.
 This tells Gradle to also consider only the name of the directory (ignoring its absolute location) and to relativize the paths of all files within that directory to it when doing up-to-date checks.
 
 Using `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` is generally incorrect.
 
-`PathSensitivity.NAME_ONLY` tells Gradle to also consider a file's name in addition to its contents, which is rarely useful.
+`PathSensitivity.NAME_ONLY` tells Gradle to consider a file's name in addition to its contents, which is rarely useful.
+
 
 `@PathSensitivity.ABSOLUTE` tells Gradle to consider a file's complete absolute path.
-This prevents <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> hits across different machines or directories, making your build non-relocatable.
-This can also cause confusion from different task outcomes when the build is run in different directories.
-This is the default sensitivity, if no annotation is provided.
+This prevents <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> hits across different machines or checkout locations, making your build non-relocatable.
+It can also lead to confusing behavior where the same build produces different task outcomes when run from different directories.
+If no `@PathSensitive` annotation is provided, `PathSensitivity.ABSOLUTE` is the default.
 
 === Example
 
@@ -444,9 +445,9 @@ include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-avoid/kotl
 include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-avoid/groovy",files="build.gradle[]"]
 ====
 
-<1> The `AnimalSearchTask` task type uses a file input property annotated with `@PathSensitivity.ABSOLUTE`.  This means that the absolute path of the input file is used to determine if the task is `UP-TO-Date` or if it can be loaded from cache.  Yet the path is irrelevant for the operation of the task's `@TaskAction`, which only cares about file contents.
+<1> The `AnimalSearchTask` task type uses a file input property annotated with `@PathSensitivity.ABSOLUTE`.  This means that the absolute path of the input file is used to determine if the task is `UP-TO-DATE` or if it can be loaded from cache.  Yet the path is irrelevant for the operation of the task's `@TaskAction`, which only cares about file contents.
 <2> The `copy` task will move the _exact same_ `candidates.txt` to different destination directories, depending on if the `useAlternateInput` project property is set.
-<3> The `search` task is wired to use as input whatever the file the `copy` task moved to its `destinationDir`.  Despite the contents of the file being the same, when enabling the `-PuseAlternateInput` after a successful build, the `search` task will be out-of-date due to its different directory, and the search will be rerun.
+<3> The `search` task is wired to use as input whatever the file the `copy` task moved to its `destinationDir`. Despite the contents of the file being the same, when enabling the `-PuseAlternateInput` after a successful build, the `search` task will be out-of-date due to its different directory, and the search will be rerun.
 
 ==== Do this Instead
 
