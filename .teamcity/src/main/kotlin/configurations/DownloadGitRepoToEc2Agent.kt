@@ -18,9 +18,9 @@ object DownloadGitRepoToEc2Agent : BuildType({
 
     steps {
         script {
-            name = "DO_NOTHING"
+            name = "SING_ALL_ZIPS"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = "%teamcity.build.checkoutDir%/.teamcity/scripts/sign.sh /home/tcagent1/distribution-snapshots"
+            scriptContent = "%teamcity.build.checkoutDir%/.teamcity/scripts/sign.sh /home/tcagent1/distributions-snapshots"
         }
     }
 })
