@@ -42,7 +42,7 @@ import java.util.stream.Collectors
 import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.INCLUDED_BUILDS_FIRST
 import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST
 
-@ToolingApiVersion('>=9.4.0')
+@ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.4.0')
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
@@ -93,7 +93,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             """.stripIndent()
     }
 
-    def "basic build - nothing broken"() {
+    def "no failure build: resilient model is equal to non-resilient model"() {
         given:
         settingsKotlinFile << """
             dependencyResolutionManagement {
@@ -134,7 +134,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     @ToBeImplemented
-    def "basic build - broken settings file"() {
+    def "compilation failure in root settings: no model is returned"() {
         given:
         settingsKotlinFile << """
             blow up !!!
@@ -162,7 +162,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
-    def "basic build - broken build file - intact plugins block"() {
+    def "compilation failure in project build script: settings and project scripts model is returned"() {
         given:
         settingsKotlinFile << """
             dependencyResolutionManagement {
@@ -190,7 +190,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
-    def "basic build - broken build file - broken plugins block"() {
+    def "compilation failure in project plugins block: settings and project scripts model is returned"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -211,7 +211,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
     }
 
-    def "basic build with included build - broken build file in included build - intact plugins block"() {
+    def "compilation failure in included build project script body: root build and included build model is returned"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -245,7 +245,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
-    def "basic build with included build - broken build file in included build - broken plugins block"() {
+    def "compilation failure in included build project plugins block: root build and included build model is returned"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -274,7 +274,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     @ToBeImplemented
-    def "basic build with included build - broken settings and build file in included build"() {
+    def "compilation failure in included build settings script: no model is returned"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -302,7 +302,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
-    def "bigger build - nothing broken"() {
+    def "no failure in multi-project build: resilient model is equal to non-resilient model"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -356,7 +356,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.failures.isEmpty()
     }
 
-    def "bigger build - broken build file in included build - #description with #queryStrategy"() {
+    def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors with #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -427,7 +427,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST
     }
 
-    def "build with convention plugins - broken project convention plugin - exception - #queryStrategy"() {
+    def "runtime failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy\""() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -518,7 +518,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
-    def "build with convention plugins - broken project convention - compile error - #queryStrategy"() {
+    def "compilation failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -608,7 +608,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
-    def "build with convention plugins - broken settings convention"() {
+    def "compilation failure in settings convention plugin: model is returned for included build but not for main build"() {
         given:
         settingsKotlinFile << """
             pluginManagement {
