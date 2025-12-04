@@ -18,8 +18,6 @@
  * Adds all tasks available in the build to the task graph.
  */
 
-import org.gradle.api.internal.GradleInternal
-
 if (!gradle.rootBuild) {
     return
 }
@@ -29,64 +27,30 @@ String SCHEDULE_ALL_TASK = "scheduleAll"
 assert gradle.startParameter.dryRun : "--dry-run is required"
 assert gradle.startParameter.taskNames.contains(SCHEDULE_ALL_TASK) : "A task request for `$SCHEDULE_ALL_TASK` is required"
 
-def filtering = new Filters(
-    excludedTaskNames: [
-        // This happens on a simple build, but not on gradle/gradle:
-        // Configuration cache state could not be cached: field `__toolchainDownloadUrls__` of task `:updateDaemonJvm` of type `org.gradle.buildconfiguration.tasks.UpdateDaemonJvm`: error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'
-        //   > Invalid task configuration
-        //     Toolchain download repositories have not been configured.
-        "updateDaemonJvm",
-    ],
-    excludedTaskTypes: [
-        // https://github.com/gradle/gradle/issues/35797
-        PropertyReportTask
-    ],
-    excludedTaskDependencies: [
-        SCHEDULE_ALL_TASK,
-        // avoid cycles as these are added synthetically as dependencies as well
-        JavaBasePlugin.BUILD_NEEDED_TASK_NAME,
-        JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME
-    ]
-)
+def excludedTaskNames = [
+    // This happens on a simple build, but not on gradle/gradle:
+    // Configuration cache state could not be cached: field `__toolchainDownloadUrls__` of task `:updateDaemonJvm` of type `org.gradle.buildconfiguration.tasks.UpdateDaemonJvm`: error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'
+    //   > Invalid task configuration
+    //     Toolchain download repositories have not been configured.
+    "updateDaemonJvm",
 
-Task rootAnchor = null
-gradle.afterProject { Project p ->
-    def created = p.tasks.register(SCHEDULE_ALL_TASK)
-    created.configure { anchor ->
-        if (p.rootProject != p) {
-            assert rootAnchor
-            rootAnchor.dependsOn(anchor)
+    // avoid cycles as these are added synthetically as dependencies/dependents by the Java plugin
+    JavaBasePlugin.BUILD_NEEDED_TASK_NAME,
+    JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME,
+
+    // avoid self-dependencies
+    SCHEDULE_ALL_TASK
+]
+
+def excludedTaskTypes = [
+    // https://github.com/gradle/gradle/issues/35797
+    PropertyReportTask
+]
+
+gradle.lifecycle.afterProject { Project p ->
+    p.tasks.register(SCHEDULE_ALL_TASK).configure { anchor ->
+        anchor.dependsOn tasks.matching { t ->
+            !excludedTaskTypes.any { it.isAssignableFrom(toVeto.class) } && !excludedTaskNames.contains(toVeto.name)
         }
-        def dependencies = project.tasks.matching { t ->
-            filtering.isTaskAccepted(t) && filtering.isTaskDependencyAccepted(t)
-        }
-        anchor.dependsOn(dependencies)
-    }
-    if (p.rootProject == p) {
-        rootAnchor = created.get()
-    }
-}
-
-class Filters {
-    List<String> excludedTaskNames = []
-    List<Class<Task>> excludedTaskTypes = []
-    List<String> excludedTaskDependencies = []
-
-    def isTaskAccepted(Task toVeto) {
-        return !shouldExcludeTask(toVeto.name, toVeto.class)
-    }
-
-    def isTaskDependencyAccepted(Task toVeto) {
-        return !excludedTaskDependencies.contains(toVeto.name)
-    }
-
-    private boolean shouldExcludeTask(String name, Class<Task> taskType) {
-        if (excludedTaskTypes.any { it.isAssignableFrom(taskType) }) {
-            return true
-        }
-        if (excludedTaskNames.contains(name)) {
-            return true
-        }
-        return false
     }
 }
