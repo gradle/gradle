@@ -85,5 +85,5 @@ Use this as a quick reference to track newly added recommendations, check adopti
 |===
 
 ++++
-<script src="../../js/best-practices-filter-sort.js"></script>
+<script src="js/best-practices-filter-sort.js"></script>
 ++++
