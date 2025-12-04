@@ -17,6 +17,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonLogging)
     api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.execution)

@@ -42,6 +42,8 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_DIR;
+
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final String RELEASED_WRAPPERS = "releasedWrappers";
@@ -183,7 +185,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         ));
         strategy.tryMarkCacheDirectory(new File(
             gradle.getGradleUserHomeDir(),
-            "daemon"
+            DAEMON_LOG_DIR
         ));
         strategy.tryMarkCacheDirectory(new File(
             gradle.getGradleUserHomeDir(),

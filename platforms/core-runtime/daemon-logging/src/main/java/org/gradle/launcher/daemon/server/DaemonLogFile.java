@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.launcher.daemon.logging.DaemonLogConstants;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -28,16 +29,14 @@ import java.util.UUID;
  */
 @ServiceScope(Scope.Global.class)
 public class DaemonLogFile {
-    public static final String DAEMON_LOG_SUFFIX = ".out.log";
-    public static final String DAEMON_LOG_PREFIX = "daemon-";
     private final File file;
 
     public DaemonLogFile(File file) {
         this.file = file;
     }
 
-    static String getDaemonLogFileName(@Nullable Long pid) {
-        return DAEMON_LOG_PREFIX + (pid == null ? UUID.randomUUID() : pid) + DAEMON_LOG_SUFFIX;
+    public static String getDaemonLogFileName(@Nullable Long pid) {
+        return DaemonLogConstants.DAEMON_LOG_PREFIX + (pid == null ? UUID.randomUUID() : pid) + DaemonLogConstants.DAEMON_LOG_SUFFIX;
     }
 
     public File getFile() {
