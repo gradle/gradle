@@ -29,6 +29,7 @@ import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.daemon.toolchain.ToolchainDownloadUrlProvider;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
@@ -44,15 +45,15 @@ public class DaemonParameters {
 
     private final ToolchainConfiguration toolchainConfiguration;
     private final File gradleUserHomeDir;
-    private final JvmOptions jvmOptions;
-    private final Map<String, String> envVariables;
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
+    private final JvmOptions jvmOptions;
     private boolean applyInstrumentationAgent = true;
     private NativeServicesMode nativeServicesMode = NativeServicesMode.ENABLED;
+    private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean foreground;
     private boolean stop;
@@ -62,10 +63,14 @@ public class DaemonParameters {
     private ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
 
     public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory) {
-        this(gradleUserHomeDir, fileCollectionFactory, Collections.emptyMap(), new HashMap<>(System.getenv()));
+        this(gradleUserHomeDir, fileCollectionFactory, Collections.emptyMap());
     }
 
-    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties, Map<String, String> environmentVariables) {
+    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
+        this(gradleUserHomeDir, fileCollectionFactory, extraSystemProperties, null);
+    }
+
+    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties, @Nullable Map<String, String> environmentVariables) {
         this.jvmOptions = new JvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
             jvmOptions.systemProperties(extraSystemProperties);
@@ -73,7 +78,7 @@ public class DaemonParameters {
         jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.baseDir = new File(gradleUserHomeDir, "daemon");
-        this.envVariables = environmentVariables;
+        this.envVariables = environmentVariables == null ? new HashMap<>(System.getenv()) : environmentVariables;
         toolchainConfiguration = new DefaultToolchainConfiguration(this.envVariables);
     }
 
@@ -125,7 +130,7 @@ public class DaemonParameters {
         this.requestedJvmCriteria = requestedJvmCriteria;
     }
 
-    public void setRequestedJvmCriteriaFromMap(Map<String, String> daemonJvmProperties) {
+    public void setRequestedJvmCriteriaFromMap(@Nullable Map<String, String> daemonJvmProperties) {
         DaemonJvmPropertiesAccessor daemonJvmAccessor = new DaemonJvmPropertiesAccessor(daemonJvmProperties);
         JavaLanguageVersion requestedVersion = daemonJvmAccessor.getVersion();
         if (requestedVersion != null) {

@@ -394,6 +394,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
+        void configureProjectsIgnoringLaterFailures() {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
         <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
             throw new UnsupportedOperationException()
         }

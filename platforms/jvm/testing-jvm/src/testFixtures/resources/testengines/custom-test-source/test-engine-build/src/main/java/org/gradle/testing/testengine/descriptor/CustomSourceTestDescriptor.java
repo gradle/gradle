@@ -85,7 +85,7 @@ public final class CustomSourceTestDescriptor extends AbstractTestDescriptor {
                 )
             ));
         }
-        throw new RuntimeException("Cannot find soure for " + toString());
+        throw new RuntimeException("Cannot find source for " + toString());
     }
 
     public File getFile() {

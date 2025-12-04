@@ -58,8 +58,21 @@ public interface BuildLifecycleController {
     /**
      * Configures the projects of the build, if not already done.
      * Can be called multiple times.
+     *
+     * If called after the build has already been configured and a later build lifecycle state
+     * has failed (e.g., task execution), this method will also fail.
      */
     void configureProjects();
+
+    /**
+     * Configures the projects of the build, if not already done.
+     * Can be called multiple times.
+     *
+     * Ignores any failures that occurred in build lifecycle states after project configuration.
+     * For example, failures from task execution will be ignored, whereas {@link #configureProjects()}
+     * will propagate such failures as exceptions.
+     */
+    void configureProjectsIgnoringLaterFailures();
 
     /**
      * Runs the given action against the mutable state of this build after configuring the projects of the build.

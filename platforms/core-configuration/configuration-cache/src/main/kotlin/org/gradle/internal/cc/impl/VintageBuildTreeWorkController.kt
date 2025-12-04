@@ -18,8 +18,9 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.EntryTaskSelector
-import org.gradle.internal.build.ExecutionResult
+import org.gradle.internal.Try
 import org.gradle.internal.buildtree.BuildTreeWorkController
+import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
@@ -31,10 +32,15 @@ class VintageBuildTreeWorkController(
     private val taskGraph: BuildTreeWorkGraphController
 ) : BuildTreeWorkController {
 
-    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
+    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): TaskRunResult {
         return taskGraph.withNewWorkGraph { graph: BuildTreeWorkGraph ->
-            val finalizedGraph: BuildTreeWorkGraph.FinalizedGraph = workPreparer.scheduleRequestedTasks(graph, taskSelector)
-            workExecutor.execute(finalizedGraph)
+            val finalizedGraph: Try<BuildTreeWorkGraph.FinalizedGraph> = Try.ofFailable { workPreparer.scheduleRequestedTasks(graph, taskSelector) }
+
+            if (finalizedGraph.isSuccessful) {
+                TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph.get()))
+            } else {
+                TaskRunResult.ofScheduleFailure(finalizedGraph.failure.get())
+            }
         }
     }
 }

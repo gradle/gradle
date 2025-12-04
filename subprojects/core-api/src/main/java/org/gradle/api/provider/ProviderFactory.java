@@ -150,6 +150,8 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
+     * <p>
+     * <a href="https://docs.gradle.org/current/userguide/build_environment.html#build_environment">More information on Gradle properties.</a>
      *
      * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
@@ -159,6 +161,8 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
+     * <p>
+     * <a href="https://docs.gradle.org/current/userguide/build_environment.html#build_environment">More information on Gradle properties.</a>
      *
      * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
@@ -169,6 +173,8 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
+     * <p>
+     * <a href="https://docs.gradle.org/current/userguide/build_environment.html#build_environment">More information on Gradle properties.</a>
      *
      * @param propertyNamePrefix The prefix of the Gradle property names
      * @return The provider. Never returns null.
@@ -179,6 +185,8 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * <p><a href="/platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/build_environment.adoc#build_environment">More information on Gradle properties.</a>
      *
      * @param propertyNamePrefix The prefix of the Gradle property names
      * @return The provider. Never returns null.

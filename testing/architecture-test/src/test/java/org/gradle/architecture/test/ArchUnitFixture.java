@@ -57,6 +57,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
@@ -611,10 +612,9 @@ public interface ArchUnitFixture {
             return null;
         }
         try {
-            // Use URI to correctly handle Windows paths and URL-encoded characters (e.g., spaces as %20)
             return Paths.get(codeSource.getLocation().toURI());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to convert CodeSource location to URI", e);
         }
     }
 }
