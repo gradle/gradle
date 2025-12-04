@@ -249,6 +249,19 @@ trait ProjectTypeFixture {
         )
     }
 
+    PluginBuilder withSafeProjectTypeAndMultipleInjectableDefinition() {
+        def definition = new ProjectTypeDefinitionClassBuilder().withInjectedServices().withNestedInjectedServices()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
     static class ProjectTypePluginClassBuilder {
         String definitionImplementationTypeClassName = "TestProjectTypeDefinition"
         String definitionPublicTypeClassName = null

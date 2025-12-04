@@ -97,6 +97,17 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
+    PluginBuilder withProjectFeatureAndMultipleInjectableDefinition() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder().withInjectedServices().withNestedInjectedServices()
+        def projectFeature = new ProjectFeaturePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
     PluginBuilder withMultipleProjectFeaturePlugins() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()

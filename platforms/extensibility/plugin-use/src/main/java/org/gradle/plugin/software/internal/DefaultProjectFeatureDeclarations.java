@@ -41,9 +41,11 @@ import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -167,18 +169,22 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             throw new IllegalArgumentException("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but is not an interface.  Safe definition types must be an interface.");
         }
 
-        validateDefinition(binding.getName(), binding.getDefinitionType());
+        List<String> errors = new ArrayList<>();
+        validateDefinition(binding.getDefinitionType(), errors);
+        if (!errors.isEmpty()) {
+            throw new IllegalArgumentException("Project feature '" + binding.getName() + "' has a definition type which was declared safe but has the following issues: \n\t- " + String.join("\n\t- ", errors));
+        }
     }
 
-    private void validateDefinition(String featureName, Class<?> definitionType) {
+    private void validateDefinition(Class<?> definitionType, List<String> errors) {
         TypeMetadata definitionTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(definitionType);
         definitionTypeMetadata.getTypeAnnotationMetadata().getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
             if (propertyMetadata.isAnnotationPresent(Inject.class)) {
-                throw new IllegalArgumentException("Project feature '" + featureName + "' has a definition type which was declared safe but has @Inject annotated properties: " + propertyMetadata.getPropertyName() + " in type " + definitionType.getSimpleName() + ".  Safe definition types must not have @Inject annotated properties.");
+                errors.add("The definition type has @Inject annotated property '" + propertyMetadata.getPropertyName() + "' in type '" + definitionType.getSimpleName() + "'.  Safe definition types cannot inject services.");
             }
 
             if (propertyMetadata.isAnnotationPresent(Nested.class)) {
-                validateDefinition(featureName, propertyMetadata.getDeclaredReturnType().getRawType());
+                validateDefinition(propertyMetadata.getDeclaredReturnType().getRawType(), errors);
             }
         });
     }
