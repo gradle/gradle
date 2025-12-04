@@ -19,7 +19,7 @@ The table below provides a complete list of documented Gradle Best Practices.
 
 ++++
 <div style="border: 2px solid #ddd; padding: 1.25em; margin: 10px 0;">
-  <p>There are currently <strong><span id="best-practices-total">X</span> Best Practices</strong><span id="best-practices-filtered-text"></span>.</p>
+  There are currently <strong><span id="best-practices-total">X</span> Best Practices</strong><span id="best-practices-filtered-text"></span>.
 </div>
 ++++
 
