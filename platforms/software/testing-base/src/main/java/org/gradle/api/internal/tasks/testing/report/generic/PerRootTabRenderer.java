@@ -318,7 +318,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     String statusClass = getStatusClass(getResultType(perRootInfo));
                     htmlWriter.startElement("tr");
 
-                    htmlWriter.startElement("td").attribute("class", statusClass);
+                    htmlWriter.startElement("td").attribute("class", statusClass + " path");
 
                     String displayName = SerializableTestResult.getCombinedDisplayName(perRootInfo.getResults());
                     // Don't link to leaf tests that don't have their own HTML file

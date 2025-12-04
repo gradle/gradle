@@ -53,7 +53,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
             return paths.filter {
                 it.getFileName().toString().endsWith(".html")
-            }.map {
+            }.collect {
                 def html = Jsoup.parse(it.toFile(), null)
                 def breadcrumbs = html.selectFirst(".breadcrumbs")
                 if (breadcrumbs == null) {
@@ -67,8 +67,9 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                 for (int i = 1; i < elements.size(); i++) {
                     path = path.child(elements[i])
                 }
-                return path
-            }.collect(Collectors.toSet())
+                def childrenWithoutFiles = html.select("td.path").collect { path.child(it.text()) }
+                return [path] + childrenWithoutFiles
+            }.flatten().toSet()
         }
     })
     private final File htmlReportDirectory
@@ -157,7 +158,141 @@ Unexpected paths: ${unexpectedPaths}""")
     @Override
     TestPathExecutionResult testPath(String rootTestPath) {
         assertAtLeastTestPathsExecuted(rootTestPath)
-        return new HtmlTestPathExecutionResult(testFramework, diskPathForTestPath(frameworkTestPath(rootTestPath)).toFile())
+
+        def reportPath = diskPathForTestPath(frameworkTestPath(rootTestPath))
+        if (Files.exists(reportPath)) {
+            return new HtmlTestPathExecutionResult(testFramework, reportPath.toFile())
+        } else {
+            return new TestPathExecutionResult() {
+                private final TestPathRootExecutionResult DOES_NOT_EXIST = new TestPathRootExecutionResult() {
+                    @Override
+                    TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildCount(int tests, int failures) {
+                        assert tests == 0
+                        return this
+                    }
+
+                    @Override
+                    int getExecutedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    int getSkippedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    int getFailedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher) {
+                        matcher.matches("")
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertStderr(Matcher<? super String> matcher) {
+                        matcher.matches("")
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertHasResult(TestResult.ResultType resultType) {
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    String getFailureMessages() {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertMetadataKeys(List<String> keys) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata) {
+                        assert false
+                        return this
+                    }
+                }
+
+                @Override
+                TestPathRootExecutionResult onlyRoot() {
+                    return DOES_NOT_EXIST
+                }
+
+                @Override
+                TestPathRootExecutionResult singleRootWithRun(int runNumber) {
+                    assert false
+                    return DOES_NOT_EXIST
+                }
+
+                @Override
+                TestPathRootExecutionResult root(String rootName) {
+                    assert false
+                    return DOES_NOT_EXIST
+                }
+
+                @Override
+                TestPathRootExecutionResult rootAndRun(String rootName, int runNumber) {
+                    assert false
+                    return DOES_NOT_EXIST
+                }
+
+                @Override
+                List<String> getRootNames() {
+                    return [rootTestPath]
+                }
+
+                @Override
+                int getRunCount(String rootName) {
+                    assert false
+                    return 0
+                }
+            }
+        }
     }
 
     TestPathExecutionResult testPathPreNormalized(String rootTestPath) {
