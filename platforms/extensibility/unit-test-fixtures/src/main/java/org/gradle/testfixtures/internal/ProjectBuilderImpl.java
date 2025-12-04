@@ -31,6 +31,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -94,7 +95,7 @@ import java.util.function.Function;
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
-    private static ServiceRegistry globalServices;
+    private static @Nullable ServiceRegistry globalServices;
 
     private static final Logger LOGGER = Logging.getLogger(ProjectBuilderImpl.class);
 
@@ -128,10 +129,10 @@ public class ProjectBuilderImpl {
 
             // We do not use a DeprecationLogger here since the logger is not initialized when using the ProjectBuilder.
             LOGGER.warn("Executing Gradle on JVM versions {} and lower has been deprecated. " +
-                "This will fail with an error in Gradle {}. " +
-                "Use JVM {} or greater to execute Gradle. " +
-                "Projects can continue to use older JVM versions via toolchains. " +
-                "Consult the upgrading guide for further information: {}",
+                    "This will fail with an error in Gradle {}. " +
+                    "Use JVM {} or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: {}",
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1,
                 currentMajorGradleVersion + 1,
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION,
@@ -184,6 +185,9 @@ public class ProjectBuilderImpl {
 
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
+
+        GradlePropertiesController gradlePropertiesController = buildServices.get(GradlePropertiesController.class);
+        gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         // Registers project as a side effect
