@@ -557,7 +557,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         val generatedAccessors =
             KotlinParser.run {
-                withProject {
+                withPsiManager {
                     generatedSourceFiles.flatMap { file ->
                         parse(file.name, file.readText()).run {
                             val packageName = packageFqName.asString()
