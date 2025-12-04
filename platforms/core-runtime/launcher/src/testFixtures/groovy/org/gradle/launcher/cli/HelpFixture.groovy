@@ -83,7 +83,7 @@ USAGE: gradle [option...] [task...]
 -V, --show-version                 Print version info and continue.
 -v, --version                      Print version info and exit.
 -w, --warn                         Set log level to warn.
---warning-mode                     Specifies which mode of warnings to generate. Values are 'all', 'fail', 'summary'(default) or 'none\'
+--warning-mode                     Specifies which mode of warnings to generate. Values are 'all', 'fail', 'summary'(default) or 'none'
 --watch-fs                         Enables watching the file system for changes, allowing data about the file system to be re-used for the next build.
 --no-watch-fs                      Disables watching the file system.
 --write-locks                      Persists dependency resolution for locked configurations, ignoring existing locking information if it exists
