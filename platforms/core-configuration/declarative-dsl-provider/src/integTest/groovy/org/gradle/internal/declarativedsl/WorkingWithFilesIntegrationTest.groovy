@@ -36,11 +36,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
     def 'set single value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
+        def projectType = new ProjectTypePluginClassBuilder().withoutConventions().withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        withProjectTypePlugins(
+        withProjectType(
             definition as ProjectTypeDefinitionClassBuilder,
             projectType,
             settingsBuilder
@@ -87,11 +87,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy doesn't have the `listOf(...)` function")
     def 'set multi value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
+        def projectType = new ProjectTypePluginClassBuilder().withoutConventions().withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        withProjectTypePlugins(
+        withProjectType(
             definition as ProjectTypeDefinitionClassBuilder,
             projectType,
             settingsBuilder
@@ -137,7 +137,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        withProjectTypePlugins(
+        withProjectType(
             definition as ProjectTypeDefinitionClassBuilder,
             projectType,
             settingsBuilder
@@ -212,7 +212,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     @Restricted
                     public abstract DirectoryProperty getDir();
 
@@ -247,7 +247,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     @Restricted
                     public abstract ListProperty<Directory> getDirs();
 
@@ -282,7 +282,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public interface ${defaultClassName} extends ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     @Restricted
                     Directory getDir();
 
@@ -317,7 +317,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public interface ${defaultClassName} extends ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     @Restricted
                     DirectoryProperty getDir();
 
@@ -357,13 +357,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
 
                     private final Property<Directory> dir;
                     private final Property<RegularFile> file;
 
                     @Inject
-                    public ${implementationTypeClassName}(ObjectFactory objects) {
+                    public ${defaultClassName}(ObjectFactory objects) {
                         dir = objects.directoryProperty();
                         file = objects.fileProperty();
                     }
@@ -409,13 +409,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
 
                     private Directory dir;
                     private RegularFile file;
 
                     @Inject
-                    public ${implementationTypeClassName}() {
+                    public ${defaultClassName}() {
                     }
 
                     @Restricted

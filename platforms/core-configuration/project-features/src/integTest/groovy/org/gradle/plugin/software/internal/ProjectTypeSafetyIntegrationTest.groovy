@@ -30,9 +30,9 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         propertiesFile << "org.gradle.kotlin.dsl.dcl=true"
     }
 
-    def 'can declare and configure a custom project type with a safe definition'() {
+    def 'can declare and configure a custom project type with an unsafe definition'() {
         given:
-        withSafeProjectTypePlugin().prepareToExecute()
+        withUnsafeProjectTypeDefinitionDeclaredUnsafe().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -47,7 +47,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
 
     def 'sensible error when definition is declared safe but is not an interface'() {
         given:
-        withSafeProjectTypePluginsAndNonInterfaceDefinition().prepareToExecute()
+        withUnsafeProjectTypeDefinitionDeclaredSafe().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -62,7 +62,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
 
     def 'sensible error when definition is declared safe but has an injected service'() {
         given:
-        withSafeProjectTypePluginsAndInjectableDefinition().prepareToExecute()
+        withSafeProjectTypeAndInjectableDefinition().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -77,7 +77,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
 
     def 'sensible error when definition is declared safe but has a nested property with an injected service'() {
         given:
-        withSafeProjectTypePluginsAndNestedInjectableDefinition().prepareToExecute()
+        withSafeProjectTypeAndNestedInjectableDefinition().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 

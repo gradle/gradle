@@ -151,7 +151,8 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
                             // create and wire the custom dependencies extension's dependencies to these global configurations
                             model.getApi().fromDependencyCollector(definition.getSub().getConf());
-                        });
+                        })
+                        .withUnsafeDefinition();
                     }
                 }
 
@@ -226,7 +227,8 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             // create and wire the custom dependencies extension's dependencies to these global configurations
                             model.getApi().fromDependencyCollector(definition.getDependencies().getSomething());
                             model.getImplementation().fromDependencyCollector(definition.getDependencies().getSomethingElse());
-                        });
+                        })
+                        .withUnsafeDefinition();
                     }
                 }
 
@@ -653,7 +655,8 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             context.getProject().getTasks().register("resolveImplementation", ResolveTask.class, task -> {
                                 task.getResolvedFiles().from(resolveImplementation);
                             });
-                        });
+                        })
+                        .withUnsafeDefinition();
                     }
                 }
 
@@ -692,6 +695,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.api!!.fromDependencyCollector(definition.dependencies.api)
                             model.implementation!!.fromDependencyCollector(definition.dependencies.implementation)
                         }
+                        .withUnsafeDefinition()
                     }
                 }
 
