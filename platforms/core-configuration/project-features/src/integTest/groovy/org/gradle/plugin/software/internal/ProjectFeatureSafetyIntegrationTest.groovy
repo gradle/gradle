@@ -30,9 +30,9 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         file("gradle.properties") << "org.gradle.kotlin.dsl.dcl=true"
     }
 
-    def 'can declare and configure a custom project feature with a safe definition'() {
+    def 'can declare and configure a custom project feature with an unsafe definition'() {
         given:
-        def pluginBuilder = withSafeProjectFeaturePlugins()
+        def pluginBuilder = withUnsafeProjectFeatureDefinitionDeclaredUnsafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
         pluginBuilder.prepareToExecute()
 
@@ -49,7 +49,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
 
     def 'sensible error when definition is declared safe but is not an interface'() {
         given:
-        def pluginBuilder = withUnsafeProjectFeatureDefinitionPlugins()
+        def pluginBuilder = withUnsafeProjectFeatureDefinitionDeclaredSafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
         pluginBuilder.prepareToExecute()
 
@@ -66,7 +66,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
 
     def 'sensible error when definition is declared safe but has an injected service'() {
         given:
-        def pluginBuilder = withSafeProjectFeaturePluginsAndInjectableDefinition()
+        def pluginBuilder = withProjectFeatureAndInjectableDefinitionDeclaredSafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
         pluginBuilder.prepareToExecute()
 
@@ -83,7 +83,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
 
     def 'sensible error when definition is declared safe but has a nested property with an injected service'() {
         given:
-        def pluginBuilder = withSafeProjectFeaturePluginsAndNestedInjectableDefinition()
+        def pluginBuilder = withProjectFeatureAndNestedInjectableDefinitionDeclaredSafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
         pluginBuilder.prepareToExecute()
 

@@ -49,7 +49,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     def 'can declare and configure a custom project feature from included build'() {
         given:
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
@@ -72,7 +72,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     def 'can declare and configure a custom project feature from published plugin'() {
         given:
         pluginPortal.start()
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
@@ -98,7 +98,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     def 'can declare and configure a custom project feature from plugin published to a custom repository'() {
         given:
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
 

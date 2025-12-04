@@ -38,14 +38,13 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
     private final Class<V> buildModelType;
     private final Path path;
     private final ProjectFeatureApplyAction<?, ?, ?> transform;
-    private final ProjectFeatureBindingDeclaration.Safety definitionSafety;
 
     @Nullable private Class<?> dslImplementationType;
     @Nullable private Class<?> buildModelImplementationType;
+    private ProjectFeatureBindingDeclaration.Safety definitionSafety = ProjectFeatureBindingDeclaration.Safety.SAFE;
 
     public DefaultDeclaredProjectFeatureBindingBuilder(
         Class<T> definitionType,
-        ProjectFeatureBindingDeclaration.Safety definitionSafety,
         Class<V> buildModelType,
         TargetTypeInformation<?> targetDefinitionType,
         Path path,
@@ -56,7 +55,6 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
         this.buildModelType = buildModelType;
         this.path = path;
         this.transform = transform;
-        this.definitionSafety = definitionSafety;
     }
 
     private static <T extends Definition<V>, V extends BuildModel> ProjectFeatureBindingDeclaration<T, V> bindingOf(
@@ -121,6 +119,12 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
     @Override
     public DeclaredProjectFeatureBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType) {
         this.buildModelImplementationType = implementationType;
+        return this;
+    }
+
+    @Override
+    public DeclaredProjectFeatureBindingBuilder<T, V> withUnsafeDefinition() {
+        this.definitionSafety = ProjectFeatureBindingDeclaration.Safety.UNSAFE;
         return this;
     }
 

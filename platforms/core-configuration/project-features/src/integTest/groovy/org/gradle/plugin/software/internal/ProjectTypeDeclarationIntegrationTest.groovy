@@ -45,7 +45,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     def 'can declare and configure a custom project type from included build'() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withProjectType().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -65,7 +65,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     def 'can declare and configure a custom project type from published plugin'() {
         given:
         pluginPortal.start()
-        def pluginBuilder = withProjectTypePlugins()
+        def pluginBuilder = withProjectType()
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
         settingsFile() << """
@@ -92,7 +92,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
      */
     def 'can declare and configure a custom project type from plugin published to a custom repository'() {
         given:
-        def pluginBuilder = withProjectTypePlugins()
+        def pluginBuilder = withProjectType()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
 
         settingsFile() << """
@@ -173,7 +173,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom project type with different public and implementation model types'() {
         given:
-        withProjectTypePluginThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
+        withProjectTypeThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -273,7 +273,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin can use a property value on the assignment RHS")
     def 'sensible error when declarative script uses a property as value for another property'() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withProjectType().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 

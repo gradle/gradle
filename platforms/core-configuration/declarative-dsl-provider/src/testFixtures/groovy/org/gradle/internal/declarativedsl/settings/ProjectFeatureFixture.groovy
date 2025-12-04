@@ -28,8 +28,8 @@ import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 
 trait ProjectFeatureFixture extends ProjectTypeFixture {
-    PluginBuilder withProjectFeaturePlugins(ProjectTypeDefinitionClassBuilder projectTypeDefinition, ProjectTypePluginClassBuilder projectType, ProjectFeatureDefinitionClassBuilder projectFeatureDefinition, ProjectFeaturePluginClassBuilder projectFeature, SettingsPluginClassBuilder settingsBuilder) {
-        PluginBuilder pluginBuilder = withProjectTypePlugins(
+    PluginBuilder withProjectFeature(ProjectTypeDefinitionClassBuilder projectTypeDefinition, ProjectTypePluginClassBuilder projectType, ProjectFeatureDefinitionClassBuilder projectFeatureDefinition, ProjectFeaturePluginClassBuilder projectFeature, SettingsPluginClassBuilder settingsBuilder) {
+        PluginBuilder pluginBuilder = withProjectType(
             projectTypeDefinition,
             projectType,
             settingsBuilder
@@ -42,7 +42,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withProjectFeaturePlugins() {
+    PluginBuilder withProjectFeature() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
@@ -50,51 +50,51 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
-    PluginBuilder withSafeProjectFeaturePlugins() {
-        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
-        def projectType = new ProjectTypePluginClassBuilder()
-        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
-        def projectFeature = new ProjectFeaturePluginClassBuilder().safeBindToDefinition()
-        def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersProjectType(projectType.projectTypePluginClassName)
-            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
-    }
-
-    PluginBuilder withUnsafeProjectFeatureDefinitionPlugins() {
+    PluginBuilder withUnsafeProjectFeatureDefinitionDeclaredSafe() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def projectFeatureDefinition = new ProjectFeatureDefinitionAbstractClassBuilder()
-        def projectFeature = new ProjectFeaturePluginClassBuilder().safeBindToDefinition()
+        def projectFeature = new ProjectFeaturePluginClassBuilder()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
-    PluginBuilder withSafeProjectFeaturePluginsAndInjectableDefinition() {
+    PluginBuilder withUnsafeProjectFeatureDefinitionDeclaredUnsafe() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionAbstractClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder().withUnsafeDefinition()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withProjectFeatureAndInjectableDefinitionDeclaredSafe() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder().withInjectedServices()
-        def projectFeature = new ProjectFeaturePluginClassBuilder().safeBindToDefinition()
+        def projectFeature = new ProjectFeaturePluginClassBuilder()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
-    PluginBuilder withSafeProjectFeaturePluginsAndNestedInjectableDefinition() {
+    PluginBuilder withProjectFeatureAndNestedInjectableDefinitionDeclaredSafe() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder().withNestedInjectedServices()
-        def projectFeature = new ProjectFeaturePluginClassBuilder().safeBindToDefinition()
+        def projectFeature = new ProjectFeaturePluginClassBuilder()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
     PluginBuilder withMultipleProjectFeaturePlugins() {
@@ -113,7 +113,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
             .registersProjectFeature(anotherProjectFeature.projectFeaturePluginClassName)
 
-        def pluginBuilder = withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        def pluginBuilder = withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
 
         anotherProjectFeature.build(pluginBuilder)
         anotherFeatureDefinition.build(pluginBuilder)
@@ -128,10 +128,11 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def projectFeature = new ProjectFeaturePluginClassBuilder()
             .definitionPublicType(projectFeatureDefinition.publicTypeClassName)
             .definitionImplementationType(projectFeatureDefinition.implementationTypeClassName)
+            .withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
     PluginBuilder withProjectFeaturePluginThatDoesNotExposeProjectFeatures() {
@@ -142,7 +143,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
     PluginBuilder withProjectFeatureThatBindsToBuildModel() {
@@ -155,7 +156,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
     PluginBuilder withProjectFeatureBuildModelThatHasPublicAndImplementationTypes() {
@@ -168,7 +169,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
     PluginBuilder withProjectTypeAndFeatureThatBindsToNestedDefinition() {
@@ -182,7 +183,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
         def projectFeatureDefinition = new ProjectFeatureDefinitionWithPublicBuildModelTypeClassBuilder()
         def projectFeature = new ProjectFeaturePluginClassBuilder()
-            .bindingTypeClassName("org.gradle.test." + projectTypeDefinition.implementationTypeClassName + ".Foo")
+            .bindingTypeClassName("org.gradle.test." + projectTypeDefinition.defaultClassName + ".Foo")
             .buildModelPublicTypeClassName(projectFeatureDefinition.buildModelFullClassName)
             .buildModelImplementationTypeClassName(projectFeatureDefinition.buildModelFullImplementationClassName)
             .applyActionExtraStatements("""
@@ -192,7 +193,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
 
@@ -204,7 +205,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def settingsBuilder = new KotlinSettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeaturePlugins(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
     static class ProjectFeaturePluginClassBuilder {
@@ -216,6 +217,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         String bindingTypeClassName = "TestProjectTypeDefinition"
         String applyActionExtraStatements = ""
         String bindingMethodName = "bindProjectFeatureToDefinition"
+        List<String> bindingModifiers = []
         String name = "feature"
 
         ProjectFeaturePluginClassBuilder definitionImplementationType(String className) {
@@ -253,18 +255,13 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             return this
         }
 
-        ProjectFeaturePluginClassBuilder safeBindToDefinition() {
-            this.bindingMethodName = "bindSafeProjectFeatureToDefinition"
-            return this
-        }
-
         ProjectFeaturePluginClassBuilder bindToBuildModel() {
             this.bindingMethodName = "bindProjectFeatureToBuildModel"
             return this
         }
 
-        ProjectFeaturePluginClassBuilder safeBindToBuildModel() {
-            this.bindingMethodName = "bindSafeProjectFeatureToBuildModel"
+        ProjectFeaturePluginClassBuilder withUnsafeDefinition() {
+            this.bindingModifiers.add("withUnsafeDefinition()")
             return this
         }
 
@@ -316,7 +313,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 }
                             )
                             ${maybeDeclareDefinitionImplementationType()}
-                            ${maybeDeclareBuildModelImplementationType()};
+                            ${maybeDeclareBuildModelImplementationType()}
+                            ${maybeDeclareBindingModifiers()};
                         }
                     }
 
@@ -329,11 +327,15 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         }
 
         String maybeDeclareDefinitionImplementationType() {
-            return (definitionPublicTypeClassName && definitionPublicTypeClassName != definitionImplementationTypeClassName) ? ".withDefinitionImplementationType(${definitionImplementationTypeClassName}.class);" : ""
+            return (definitionPublicTypeClassName && definitionPublicTypeClassName != definitionImplementationTypeClassName) ? ".withDefinitionImplementationType(${definitionImplementationTypeClassName}.class)" : ""
         }
 
         String maybeDeclareBuildModelImplementationType() {
-            return (buildModelPublicTypeClassName && buildModelPublicTypeClassName != buildModelImplementationTypeClassName) ? ".withBuildModelImplementationType(${buildModelImplementationTypeClassName}.class);" : ""
+            return (buildModelPublicTypeClassName && buildModelPublicTypeClassName != buildModelImplementationTypeClassName) ? ".withBuildModelImplementationType(${buildModelImplementationTypeClassName}.class)" : ""
+        }
+
+        String maybeDeclareBindingModifiers() {
+            return bindingModifiers.isEmpty() ? "" : bindingModifiers.collect { ".${it}" }.join("")
         }
     }
 
@@ -634,9 +636,9 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 @Restricted
                 public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.FeatureModel> {
                     @Restricted
-                    abstract Property<String> getText();
+                    public abstract Property<String> getText();
 
-                    interface FeatureModel extends BuildModel {
+                    public interface FeatureModel extends BuildModel {
                         Property<String> getText();
                     }
                 }
