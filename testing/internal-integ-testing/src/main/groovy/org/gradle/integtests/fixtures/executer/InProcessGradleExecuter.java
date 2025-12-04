@@ -112,7 +112,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     protected static final ServiceRegistry GLOBAL_SERVICES = new BuildProcessState(
         true,
         AgentStatus.of(isAgentInstrumentationEnabled()),
-        ClassPath.EMPTY,
         getCurrentInstallation(),
         newCommandLineProcessLogging(),
         NativeServicesTestFixture.getInstance(),

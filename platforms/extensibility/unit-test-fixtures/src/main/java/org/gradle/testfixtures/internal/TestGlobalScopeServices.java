@@ -17,7 +17,6 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
@@ -34,7 +33,7 @@ import org.gradle.internal.time.Clock;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
     public TestGlobalScopeServices() {
-        super(false, AgentStatus.disabled(), ClassPath.EMPTY, CurrentGradleInstallation.locate());
+        super(false, AgentStatus.disabled(), CurrentGradleInstallation.locate());
     }
 
     @Provides

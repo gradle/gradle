@@ -41,7 +41,6 @@ import org.gradle.initialization.DefaultLegacyTypesSupport;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
@@ -84,14 +83,11 @@ import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManag
 
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
-    protected final ClassPath additionalModuleClassPath;
     private final CurrentGradleInstallation currentGradleInstallation;
 
     public WorkerSharedGlobalScopeServices(
-        ClassPath additionalModuleClassPath,
         CurrentGradleInstallation currentGradleInstallation
     ) {
-        this.additionalModuleClassPath = additionalModuleClassPath;
         this.currentGradleInstallation = currentGradleInstallation;
     }
 
@@ -187,7 +183,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     @Provides({ModuleRegistry.class, GlobalCacheRootsProvider.class})
     DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
-        return new DefaultModuleRegistry(additionalModuleClassPath, currentGradleInstallation.getInstallation());
+        return new DefaultModuleRegistry(currentGradleInstallation.getInstallation());
     }
 
     @Provides

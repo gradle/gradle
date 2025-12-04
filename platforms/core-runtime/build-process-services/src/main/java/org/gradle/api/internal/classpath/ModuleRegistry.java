@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.classpath;
 
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -25,6 +24,7 @@ import org.jspecify.annotations.Nullable;
  */
 @ServiceScope(Scope.Global.class)
 public interface ModuleRegistry {
+
     /**
      * Locates an external module by name. An external module is one for which there is no meta-data available. Assumed to be packaged as a single jar file, and to have no runtime dependencies.
      *
@@ -48,8 +48,4 @@ public interface ModuleRegistry {
     @Nullable
     Module findModule(String name) throws UnknownModuleException;
 
-    /**
-     * Returns the classpath used to search for modules, in addition to default locations in the Gradle distribution (if available). May be empty.
-     */
-    ClassPath getAdditionalClassPath();
 }
