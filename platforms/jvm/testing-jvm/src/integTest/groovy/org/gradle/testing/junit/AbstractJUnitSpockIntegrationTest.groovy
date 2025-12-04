@@ -17,7 +17,6 @@
 package org.gradle.testing.junit
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
@@ -111,9 +110,7 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
         then:
         def results = resultsFor(testDirectory)
         results.testPath("UnrollTest").onlyRoot().assertChildCount(1, 0)
-        results.testPathPreNormalized(":UnrollTest:can test #type").onlyRoot().assertChildCount(2, 0)
-        results.testPathPreNormalized(":UnrollTest:can test #type:can test 1").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPathPreNormalized(":UnrollTest:can test #type:can test 2").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(":UnrollTest:can test #type").onlyRoot().assertChildCount(2, 0).assertOnlyChildrenExecuted("can test 1", "can test 2")
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4358')
@@ -131,6 +128,7 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
 
             class Sub extends Base {
                 def ok() {
+                    System.out.println("Hello")
                     expect: "success"
                 }
             }

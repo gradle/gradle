@@ -298,9 +298,12 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 );
 
                 htmlWriter.startElement("th").characters("Child").endElement();
-                if (anyNameAndDisplayNameDiffer) {
-                    htmlWriter.startElement("th").characters("Name").endElement();
+                htmlWriter.startElement("th");
+                if (!anyNameAndDisplayNameDiffer) {
+                    htmlWriter.attribute("hidden", "");
                 }
+                htmlWriter.characters("Name").endElement();
+
                 htmlWriter.startElement("th").characters("Tests").endElement();
                 htmlWriter.startElement("th").characters("Failures").endElement();
                 htmlWriter.startElement("th").characters("Skipped").endElement();
@@ -318,7 +321,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     String statusClass = getStatusClass(getResultType(perRootInfo));
                     htmlWriter.startElement("tr");
 
-                    htmlWriter.startElement("td").attribute("class", statusClass + " path");
+                    htmlWriter.startElement("td").attribute("class", statusClass);
 
                     String displayName = SerializableTestResult.getCombinedDisplayName(perRootInfo.getResults());
                     // Don't link to leaf tests that don't have their own HTML file
@@ -334,9 +337,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     }
                     htmlWriter.endElement();
 
-                    if (anyNameAndDisplayNameDiffer) {
-                        htmlWriter.startElement("td").characters(perRootInfo.getResults().get(0).getName()).endElement();
+                    htmlWriter.startElement("td").attribute("class", "path");
+                    if (!anyNameAndDisplayNameDiffer) {
+                        htmlWriter.attribute("hidden", "");
                     }
+                    htmlWriter.characters(perRootInfo.getResults().get(0).getName()).endElement();
 
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();

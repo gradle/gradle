@@ -164,7 +164,7 @@ Unexpected paths: ${unexpectedPaths}""")
             return new HtmlTestPathExecutionResult(testFramework, reportPath.toFile())
         } else {
             return new TestPathExecutionResult() {
-                private final TestPathRootExecutionResult DOES_NOT_EXIST = new TestPathRootExecutionResult() {
+                private final TestPathRootExecutionResult doesNotExist = new TestPathRootExecutionResult() {
                     @Override
                     TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
                         assert !testNames.empty
@@ -260,25 +260,25 @@ Unexpected paths: ${unexpectedPaths}""")
 
                 @Override
                 TestPathRootExecutionResult onlyRoot() {
-                    return DOES_NOT_EXIST
+                    return doesNotExist
                 }
 
                 @Override
                 TestPathRootExecutionResult singleRootWithRun(int runNumber) {
                     assert false
-                    return DOES_NOT_EXIST
+                    return doesNotExist
                 }
 
                 @Override
                 TestPathRootExecutionResult root(String rootName) {
                     assert false
-                    return DOES_NOT_EXIST
+                    return doesNotExist
                 }
 
                 @Override
                 TestPathRootExecutionResult rootAndRun(String rootName, int runNumber) {
                     assert false
-                    return DOES_NOT_EXIST
+                    return doesNotExist
                 }
 
                 @Override

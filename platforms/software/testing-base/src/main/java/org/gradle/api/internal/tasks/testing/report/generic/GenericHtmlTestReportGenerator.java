@@ -21,11 +21,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
@@ -38,6 +37,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -54,6 +54,7 @@ import org.gradle.reporting.ReportRenderer;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -99,23 +100,23 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final MetadataRendererRegistry metadataRendererRegistry;
-    private final FileSystemOperations fileSystemOperations;
+    private final Deleter deleter;
     private final FileCollectionFactory fileCollectionFactory;
     private final Path reportsDirectory;
 
     @Inject
     public GenericHtmlTestReportGenerator(
+        Path reportsDirectory,
         BuildOperationRunner buildOperationRunner,
         BuildOperationExecutor buildOperationExecutor,
         MetadataRendererRegistry metadataRendererRegistry,
-        FileSystemOperations fileSystemOperations,
-        FileCollectionFactory fileCollectionFactory,
-        Path reportsDirectory
+        Deleter deleter,
+        FileCollectionFactory fileCollectionFactory
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
         this.metadataRendererRegistry = metadataRendererRegistry;
-        this.fileSystemOperations = fileSystemOperations;
+        this.deleter = deleter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.reportsDirectory = reportsDirectory;
     }
@@ -161,7 +162,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     private void generateFiles(TestTreeModel model, final List<TestOutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-            buildOperationRunner.run(new DeleteOldReportOperation(fileCollectionFactory, fileSystemOperations, reportsDirectory));
+            buildOperationRunner.run(new DeleteOldReportOperation(fileCollectionFactory, deleter, reportsDirectory));
 
             ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
@@ -272,12 +273,12 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
     private static final class DeleteOldReportOperation implements RunnableBuildOperation {
         private final FileCollectionFactory fileCollectionFactory;
-        private final FileSystemOperations fileSystemOperations;
+        private final Deleter deleter;
         private final Path reportsDirectory;
 
-        private DeleteOldReportOperation(FileCollectionFactory fileCollectionFactory, FileSystemOperations fileSystemOperations, Path reportsDirectory) {
+        private DeleteOldReportOperation(FileCollectionFactory fileCollectionFactory, Deleter deleter, Path reportsDirectory) {
             this.fileCollectionFactory = fileCollectionFactory;
-            this.fileSystemOperations = fileSystemOperations;
+            this.deleter = deleter;
             this.reportsDirectory = reportsDirectory;
         }
 
@@ -285,13 +286,17 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         public void run(BuildOperationContext context) {
             // Delete all HTML files in the reports directory
             // This avoids deleting files from other report types that may be in the same directory
-            fileSystemOperations.delete(new Action<DeleteSpec>() {
+            ConfigurableFileTree oldHtmlReports = fileCollectionFactory.fileTree();
+            oldHtmlReports.setDir(reportsDirectory);
+            oldHtmlReports.include("**/*.html");
+            oldHtmlReports.visit(new EmptyFileVisitor() {
                 @Override
-                public void execute(DeleteSpec spec) {
-                    ConfigurableFileTree oldHtmlReports = fileCollectionFactory.fileTree();
-                    oldHtmlReports.setDir(reportsDirectory);
-                    oldHtmlReports.include("**/*.html");
-                    spec.delete(oldHtmlReports);
+                public void visitFile(FileVisitDetails fileDetails) {
+                    try {
+                        deleter.delete(fileDetails.getFile());
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
                 }
             });
         }
