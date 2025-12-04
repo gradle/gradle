@@ -47,7 +47,6 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
@@ -72,7 +71,6 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.CloseableServiceRegistry;
-import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -128,10 +126,10 @@ public class ProjectBuilderImpl {
 
             // We do not use a DeprecationLogger here since the logger is not initialized when using the ProjectBuilder.
             LOGGER.warn("Executing Gradle on JVM versions {} and lower has been deprecated. " +
-                "This will fail with an error in Gradle {}. " +
-                "Use JVM {} or greater to execute Gradle. " +
-                "Projects can continue to use older JVM versions via toolchains. " +
-                "Consult the upgrading guide for further information: {}",
+                    "This will fail with an error in Gradle {}. " +
+                    "Use JVM {} or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: {}",
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1,
                 currentMajorGradleVersion + 1,
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION,
@@ -279,11 +277,6 @@ public class ProjectBuilderImpl {
             super(buildTreeState, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
             this.buildServices = getBuildServices();
             this.gradle = buildServices.get(GradleInternal.class);
-        }
-
-        @Override
-        protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-            return new TestBuildScopeServices(supplier);
         }
 
         @Override
