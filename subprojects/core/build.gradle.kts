@@ -61,7 +61,6 @@ dependencies {
     api(projects.cli)
     api(projects.concurrent)
     api(projects.coreApi)
-    api(projects.daemonLogging)
     api(projects.declarativeDslApi)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
@@ -112,6 +111,7 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
+    implementation(projects.daemonLogging)
     implementation(projects.groovyLoader)
     implementation(projects.inputTracking)
     implementation(projects.io)

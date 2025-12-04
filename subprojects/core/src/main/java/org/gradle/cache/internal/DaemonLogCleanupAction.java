@@ -43,7 +43,7 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
 
     private final File daemonBaseDir;
     private final Deleter deleter;
-    private static final long retentionMillis = TimeUnit.DAYS.toMillis(DEFAULT_RETENTION_DAYS);
+    private static final long RETENTION_MILLIS = TimeUnit.DAYS.toMillis(DEFAULT_RETENTION_DAYS);
 
     /**
      * Creates a new daemon log cleanup action with default retention period of 14 days.
@@ -70,7 +70,7 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
     }
 
     private void performCleanup(CleanupProgressMonitor progressMonitor) {
-        long maxAge = System.currentTimeMillis() - retentionMillis;
+        long maxAge = System.currentTimeMillis() - RETENTION_MILLIS;
 
         File[] daemonLogDirectories = daemonBaseDir.listFiles(file ->
             file.isDirectory() && DefaultGradleVersion.VERSION_PATTERN.matcher(file.getName()).matches());

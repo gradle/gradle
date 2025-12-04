@@ -19,7 +19,6 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonProtocol)
-    api(projects.daemonLogging)
     api(projects.enterpriseLogging)
     api(projects.execution)
     api(projects.fileCollections)
@@ -53,6 +52,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.buildProcessServices)
+    implementation(projects.daemonLogging)
     implementation(projects.enterpriseOperations)
     implementation(projects.functional)
     implementation(projects.io)

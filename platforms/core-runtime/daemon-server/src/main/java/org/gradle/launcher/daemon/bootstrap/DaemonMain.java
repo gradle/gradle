@@ -59,8 +59,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.Files.newOutputStream;
-import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_PREFIX;
-import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_SUFFIX;
+import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_PREFIX;
+import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_SUFFIX;
 
 /**
  * The entry point for a daemon process.

@@ -308,6 +308,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-logging",
+    "path": "platforms/core-runtime/daemon-logging",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-main",
     "path": "platforms/core-runtime/daemon-main",
     "unitTests": false,

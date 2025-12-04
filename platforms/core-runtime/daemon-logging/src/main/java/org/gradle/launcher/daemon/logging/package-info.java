@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+@NullMarked
+package org.gradle.launcher.daemon.logging;
 
-description = "Daemon logging cleanup and management utilities"
-
-dependencies {
-    compileOnly(libs.jspecify)
-}
+import org.jspecify.annotations.NullMarked;
