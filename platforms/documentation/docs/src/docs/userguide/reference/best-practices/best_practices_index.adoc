@@ -17,9 +17,11 @@
 
 The table below provides a complete list of documented Gradle Best Practices.
 
-****
-There are currently *<span id="best-practices-total">X</span> Best Practices*<span id="best-practices-filtered-text"></span>.
-****
+++++
+<div style="border: 2px solid #ddd; padding: 1.25em; margin: 10px 0;">
+  <p>There are currently <strong><span id="best-practices-total">X</span> Best Practices</strong><span id="best-practices-filtered-text"></span>.</p>
+</div>
+++++
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
 
@@ -106,6 +108,35 @@ Use this as a quick reference to track newly added recommendations, check adopti
     // Get all data rows (excluding header)
     const allRows = Array.from(tbody.querySelectorAll('tr'));
     
+    // Version number type for proper sorting
+    class Version {
+      constructor(versionString) {
+        const parts = versionString.split('.').map(part => parseInt(part, 10));
+        this.major = parts[0] || 0;
+        this.minor = parts[1] || 0;
+        this.revision = parts[2] || 0;
+        this.original = versionString;
+      }
+      
+      compareTo(other) {
+        if (this.major !== other.major) {
+          return this.major - other.major;
+        }
+        if (this.minor !== other.minor) {
+          return this.minor - other.minor;
+        }
+        return this.revision - other.revision;
+      }
+      
+      static tryParse(text) {
+        // Check if text matches version pattern (e.g., "8.14", "9.0.0", "9.1.0")
+        if (/^\d+(\.\d+){0,2}$/.test(text)) {
+          return new Version(text);
+        }
+        return null;
+      }
+    }
+    
     // Extract unique sections and versions
     const sections = new Set();
     const versions = new Set();
@@ -132,12 +163,16 @@ Use this as a quick reference to track newly added recommendations, check adopti
         sectionFilter.appendChild(option);
       });
       
-      Array.from(versions).sort().forEach(version => {
-        const option = document.createElement('option');
-        option.value = version;
-        option.textContent = version;
-        versionFilter.appendChild(option);
-      });
+      // Sort versions in descending order (most recent on top)
+      Array.from(versions)
+        .map(v => new Version(v))
+        .sort((a, b) => b.compareTo(a))  // Reverse order for descending
+        .forEach(version => {
+          const option = document.createElement('option');
+          option.value = version.original;
+          option.textContent = version.original;
+          versionFilter.appendChild(option);
+        });
       
       // Add filter event listeners
       sectionFilter.addEventListener('change', applyFilters);
@@ -176,35 +211,6 @@ Use this as a quick reference to track newly added recommendations, check adopti
     
     // Initial count update
     updateCount();
-    
-    // Version number type for proper sorting
-    class Version {
-      constructor(versionString) {
-        const parts = versionString.split('.').map(part => parseInt(part, 10));
-        this.major = parts[0] || 0;
-        this.minor = parts[1] || 0;
-        this.revision = parts[2] || 0;
-        this.original = versionString;
-      }
-      
-      compareTo(other) {
-        if (this.major !== other.major) {
-          return this.major - other.major;
-        }
-        if (this.minor !== other.minor) {
-          return this.minor - other.minor;
-        }
-        return this.revision - other.revision;
-      }
-      
-      static tryParse(text) {
-        // Check if text matches version pattern (e.g., "8.14", "9.0.0", "9.1.0")
-        if (/^\d+(\.\d+){0,2}$/.test(text)) {
-          return new Version(text);
-        }
-        return null;
-      }
-    }
     
     function applyFilters() {
       const selectedSection = sectionFilter.value;
