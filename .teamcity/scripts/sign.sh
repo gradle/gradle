@@ -59,7 +59,7 @@ echo ""
 SIGNED_COUNT=0
 FAILED_COUNT=0
 
-while IFS= read -r -d '' zipfile; do
+while IFS= read -r -d '' zipfile || [ -n "$zipfile" ]; do
     # Skip if .asc file already exists
     if [ -f "${zipfile}.asc" ]; then
         echo "Skipping $(basename "$zipfile") - signature already exists"
@@ -73,11 +73,11 @@ while IFS= read -r -d '' zipfile; do
     GPG_EXIT_CODE=$?
     if [ $GPG_EXIT_CODE -eq 0 ]; then
         echo "  ✓ Created: $(basename "${zipfile}.asc")"
-        ((SIGNED_COUNT++))
+        SIGNED_COUNT=$((SIGNED_COUNT + 1))
     else
         echo "  ✗ Failed to sign: $(basename "$zipfile")" >&2
         echo "$GPG_OUTPUT" >&2
-        ((FAILED_COUNT++))
+        FAILED_COUNT=$((FAILED_COUNT + 1))
     fi
 done < <(find "$DIR" -maxdepth 1 -type f -name "*.zip" -print0)
 
