@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r940
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.OperationType
@@ -26,16 +25,10 @@ import org.gradle.tooling.events.test.source.DirectorySource
 import org.gradle.tooling.events.test.source.FileSource
 import org.gradle.tooling.events.test.source.NoSource
 import org.gradle.tooling.events.test.source.OtherSource
-import testengines.TestEnginesFixture
 
 @TargetGradleVersion(">=9.4.0")
 @ToolingApiVersion(">=9.4.0")
 class TestOperationDescriptorTestSourceCrossVersionTest extends AbstractResourceBasedTestingCrossVersionTest {
-
-    @Override
-    List<TestEnginesFixture.TestEngines> getEnginesToSetup() {
-        return [TestEnginesFixture.TestEngines.CUSTOM_SOURCE_ENGINE]
-    }
 
     def "receives custom test sources from custom test engine"() {
         given:
