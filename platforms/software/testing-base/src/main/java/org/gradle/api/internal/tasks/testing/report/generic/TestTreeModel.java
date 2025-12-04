@@ -19,6 +19,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -314,6 +315,28 @@ public class TestTreeModel {
     }
 
     /**
+     * Returns true if this node is a leaf and has an assumption failure.
+     * Assumption failures are recorded when a test is skipped due to an assumption.
+     *
+     * @return true if this is a leaf with an assumption failure
+     */
+    public boolean hasAssumptionFailure() {
+        if (!children.isEmpty()) {
+            return false;
+        }
+        for (List<PerRootInfo> infos : perRootInfo) {
+            for (PerRootInfo info : infos) {
+                for (SerializableTestResult result : info.getResults()) {
+                    if (result.getAssumptionFailure() != null) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns true if this node is a leaf and all its results are successful
      * (not failed and not skipped).
      *
@@ -335,11 +358,64 @@ public class TestTreeModel {
     }
 
     /**
+     * Determines if this leaf test needs has useful details.
+     * <p>
+     * This checks if the test is:
+     * - A failed test (always useful)
+     * - A skipped test with an assumption failure
+     * - A successful test is useful if it has output or metadata
+     *
+     * @return true if this leaf has useful details
+     */
+    public boolean hasUsefulDetails() {
+        if (!children.isEmpty()) {
+            // Non-leaves are always useful
+            return true;
+        }
+        // Failed tests always useful
+        if (!isSuccessfulLeaf()) {
+            return true;
+        }
+
+        // Skipped tests are useful if they have an assumption failure
+        if (isSkippedLeaf()) {
+            return hasAssumptionFailure();
+        }
+
+        // Successful tests are only useful if they have output or metadata
+        // Check for metadata first
+        if (hasMetadata()) {
+            return true;
+        }
+
+        // Check for output
+        return hasOutput();
+    }
+
+    /**
+     * @return true if this test has any output (standard output or standard error)
+     */
+    private boolean hasOutput() {
+        List<List<PerRootInfo>> perRootInfos = getPerRootInfo();
+        for (int rootIndex = 0; rootIndex < perRootInfos.size(); rootIndex++) {
+            List<PerRootInfo> infos = perRootInfos.get(rootIndex);
+            for (PerRootInfo info : infos) {
+                for (OutputEntry outputEntry : info.getOutputEntries()) {
+                    if (outputEntry.getOutputRanges().hasOutput()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns true if this leaf node has metadata.
      *
      * @return true if the leaf has metadata
      */
-    public boolean hasMetadata() {
+    private boolean hasMetadata() {
         if (!children.isEmpty()) {
             return false;
         }
