@@ -59,7 +59,7 @@ USAGE: gradle [option...] [task...]
 -p, --project-dir                  Specifies the start directory for Gradle. Defaults to current directory.
 --parallel                         Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.
 --no-parallel                      Disables parallel execution to build projects.
---priority                         Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are 'normal' (default) or 'low\'
+--priority                         Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are 'normal' (default) or 'low'
 --problems-report                  (Experimental) enables HTML problems report
 --no-problems-report               (Experimental) disables HTML problems report
 --profile                          Profile build execution time and generates a report in the <build_dir>/reports/profile directory.
