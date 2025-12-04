@@ -57,7 +57,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Safe project feature 'testProjectType' must have an interface as definition type")
+        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition with type 'TestProjectTypeDefinition' which was declared safe but is not an interface.  Safe definition types must be an interface.")
     }
 
     def 'sensible error when definition is declared safe but has an injected service'() {
@@ -72,7 +72,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Safe project feature 'testProjectType' definition type must not have @Inject annotated properties: objects in type TestProjectTypeDefinition")
+        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition type which was declared safe but has @Inject annotated properties: objects in type TestProjectTypeDefinition.  Safe definition types must not have @Inject annotated properties.")
     }
 
     def 'sensible error when definition is declared safe but has a nested property with an injected service'() {
@@ -87,7 +87,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Safe project feature 'testProjectType' definition type must not have @Inject annotated properties: objects in type Foo")
+        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition type which was declared safe but has @Inject annotated properties: objects in type Foo.  Safe definition types must not have @Inject annotated properties.")
     }
 
     def 'sensible error when definition is declared safe but has an implementation class'() {
@@ -102,7 +102,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Safe project feature 'testProjectType' must not specify an implementation type")
+        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition with type 'PublicTestProjectTypeDefinition' which was declared safe but has an implementation type 'TestProjectTypeDefinitionImpl'.  Safe definitions must not specify an implementation type.")
     }
 
     void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {

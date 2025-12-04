@@ -61,7 +61,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Safe project feature 'feature' must have an interface as definition type")
+        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition with type 'FeatureDefinition' which was declared safe but is not an interface.  Safe definition types must be an interface.")
     }
 
     def 'sensible error when definition is declared safe but has an injected service'() {
@@ -78,7 +78,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Safe project feature 'feature' definition type must not have @Inject annotated properties: objects in type FeatureDefinition")
+        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition type which was declared safe but has @Inject annotated properties: objects in type FeatureDefinition.  Safe definition types must not have @Inject annotated properties.")
     }
 
     def 'sensible error when definition is declared safe but has a nested property with an injected service'() {
@@ -95,7 +95,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Safe project feature 'feature' definition type must not have @Inject annotated properties: objects in type Fizz")
+        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition type which was declared safe but has @Inject annotated properties: objects in type Fizz.  Safe definition types must not have @Inject annotated properties.")
     }
 
     def 'sensible error when definition is declared safe but has an implementation type'() {
@@ -112,7 +112,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Safe project feature 'feature' must not specify an implementation type")
+        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition with type 'FeatureDefinition' which was declared safe but has an implementation type 'FeatureDefinitionImpl'.  Safe definitions must not specify an implementation type.")
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {
