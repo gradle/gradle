@@ -192,7 +192,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom project feature with a definition that has public and implementation types'() {
         given:
-        PluginBuilder pluginBuilder = withProjectFeatureDefinitionThatHasPublicAndImplementationTypes()
+        PluginBuilder pluginBuilder = withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredUnsafe()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 

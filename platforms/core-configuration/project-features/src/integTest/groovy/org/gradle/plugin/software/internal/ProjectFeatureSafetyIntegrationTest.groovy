@@ -98,6 +98,23 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         assertDescriptionOrCause(failure, "Safe project feature 'feature' definition type must not have @Inject annotated properties: objects in type Fizz")
     }
 
+    def 'sensible error when definition is declared safe but has an implementation type'() {
+        given:
+        def pluginBuilder = withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredSafe()
+        pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        fails(":printFeatureDefinitionConfiguration")
+
+        then:
+        assertDescriptionOrCause(failure, "Safe project feature 'feature' must not specify an implementation type")
+    }
+
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {
         return """
             testProjectType {
