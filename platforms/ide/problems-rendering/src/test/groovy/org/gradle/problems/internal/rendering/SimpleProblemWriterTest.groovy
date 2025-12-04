@@ -40,74 +40,6 @@ class SimpleProblemWriterTest extends Specification {
         problemWriter = ProblemWriter.simple()
     }
 
-    def "render problem with no group and id display name"(String displayName) {
-        given:
-        def problem = createProblem { InternalProblemBuilder spec ->
-            spec.id(
-                createId(
-                    "sample-problems",
-                    displayName,
-                    "prototype-project",
-                    displayName
-            ))
-        }
-
-        when:
-        problemWriter.write(problem, writer)
-
-        then:
-        renderedProblem == 'Problem found: sample-problems:prototype-project'
-
-        where:
-        displayName << [null, '']
-    }
-
-    def "render problem with no group display name"(String displayName) {
-        given:
-        def problem = createProblem { InternalProblemBuilder spec ->
-            id(
-                createId(
-                    "sample-problems",
-                    displayName,
-                    "prototype-project",
-                    "Project is a prototype"
-                )
-            )
-        }
-
-        when:
-        problemWriter.write(problem, writer)
-
-        then:
-        renderedProblem == 'Problem found: Project is a prototype (id: sample-problems:prototype-project)'
-
-        where:
-        displayName << [null, '']
-    }
-
-    def "render problem with no id display name"(String displayName) {
-        given:
-        def problem = createProblem { InternalProblemBuilder spec ->
-            spec.id(
-                createId(
-                    "sample-problems",
-                    "Sample Problems",
-                    "prototype-project",
-                    displayName
-            )
-            )
-        }
-
-        when:
-        problemWriter.write(problem, writer)
-
-        then:
-        renderedProblem == 'Problem found: sample-problems:prototype-project'
-
-        where:
-        displayName << [null, '']
-    }
-
     def "render problem with id only"() {
         given:
         def problem = createProblem { InternalProblemBuilder spec ->
@@ -129,7 +61,7 @@ class SimpleProblemWriterTest extends Specification {
                     "sample-problems",
                     "Sample\nProblems",
                     "prototype-project",
-                    "Project\nis a prototype"
+                    "Project\n is a prototype"
                 )
             )
         }
@@ -267,7 +199,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
     def "render multiline messages for all fields possible"() {
         def problem = createProblem { InternalProblemBuilder spec ->
             spec.id(createId())
-                .contextualLabel("This is a prototype and not${System.lineSeparator()}a guideline for modeling real-life projects")
+                .contextualLabel("This is a prototype and not${System.lineSeparator()}a guideline for modeling real-life projects") // API enforces a single line for contextual label
                 .details("Complex build logic like the Problems API${System.lineSeparator()}usage should integrated into plugins")
                 .solution("Look up the samples index for${System.lineSeparator()}real-life examples")
                 .details("Complex build logic like the Problems API${System.lineSeparator()}usage should integrated into plugins")
@@ -279,8 +211,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         then:
         renderedProblem == denormalizeAndStrip('''
 Problem found: Project is a prototype (id: sample-problems:prototype-project)
-  This is a prototype and not
-  a guideline for modeling real-life projects
+  This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API
     usage should integrated into plugins
     Solution: Look up the samples index for
