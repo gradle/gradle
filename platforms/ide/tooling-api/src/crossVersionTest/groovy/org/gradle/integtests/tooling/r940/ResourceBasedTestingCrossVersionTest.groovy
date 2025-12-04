@@ -25,15 +25,9 @@ import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.source.FileSource
 import org.gradle.tooling.events.test.source.FilesystemSource
 import org.gradle.tooling.model.gradle.GradleBuild
-import testengines.TestEnginesFixture
 
 @TargetGradleVersion(">=9.4.0")
 class  ResourceBasedTestingCrossVersionTest extends AbstractResourceBasedTestingCrossVersionTest {
-
-    @Override
-    List<TestEnginesFixture.TestEngines> getEnginesToSetup() {
-        return [TestEnginesFixture.TestEngines.BASIC_RESOURCE_BASED]
-    }
 
     def "can launch resource-based test with #entryPoint"() {
         given:
