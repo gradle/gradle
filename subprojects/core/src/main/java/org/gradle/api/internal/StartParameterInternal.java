@@ -57,7 +57,6 @@ public class StartParameterInternal extends StartParameter {
     private boolean propertyUpgradeReportEnabled;
     private boolean enableProblemReportGeneration = true;
     private boolean daemonJvmCriteriaConfigured = false;
-    private @Nullable String develocityUrl;
 
     public StartParameterInternal() {
     }
@@ -331,15 +330,6 @@ public class StartParameterInternal extends StartParameter {
 
     public void setDaemonJvmCriteriaConfigured(boolean daemonJvmCriteriaConfigured) {
         this.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
-    }
-
-    @Nullable
-    public String getDevelocityUrl() {
-        return develocityUrl;
-    }
-
-    public void setDevelocityUrl(@Nullable String develocityUrl) {
-        this.develocityUrl = develocityUrl;
     }
 
     public BuildLayoutConfiguration toBuildLayoutConfiguration() {
