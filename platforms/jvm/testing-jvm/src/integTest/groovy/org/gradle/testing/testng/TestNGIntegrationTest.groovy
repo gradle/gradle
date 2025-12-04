@@ -17,7 +17,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -31,11 +30,6 @@ import static org.hamcrest.CoreMatchers.not
 
 @TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
 class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
-    }
-
     private testResults = resultsFor()
 
     def setup() {

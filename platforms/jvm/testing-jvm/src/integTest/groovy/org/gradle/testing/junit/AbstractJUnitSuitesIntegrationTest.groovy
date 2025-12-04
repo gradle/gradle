@@ -17,7 +17,6 @@
 package org.gradle.testing.junit
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
@@ -25,7 +24,6 @@ abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVe
     abstract String getTestFrameworkSuiteDependencies()
     abstract String getTestFrameworkSuiteImports()
     abstract String getTestFrameworkSuiteAnnotations(String classes)
-    abstract GenericTestExecutionResult.TestFramework getTestFramework()
 
     def "test classes can be shared by multiple suites"() {
         given:

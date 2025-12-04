@@ -15,9 +15,7 @@
  */
 package org.gradle.testing.testng
 
-
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
@@ -68,6 +66,6 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
     }
 
     private GenericHtmlTestExecutionResult resultsFor(File rootDir) {
-        return new GenericHtmlTestExecutionResult(rootDir, "build/reports/tests/test", GenericTestExecutionResult.TestFramework.TEST_NG)
+        return new GenericHtmlTestExecutionResult(rootDir, "build/reports/tests/test")
     }
 }

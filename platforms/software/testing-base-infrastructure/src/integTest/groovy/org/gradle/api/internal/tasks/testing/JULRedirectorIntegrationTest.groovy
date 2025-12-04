@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
@@ -32,11 +31,6 @@ final class JULRedirectorIntegrationTest extends AbstractSampleIntegrationTest i
         "He's a lumberjack, and He's okay.",
         "He sleeps all night and he works all day."
     ]
-
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT4
-    }
 
     @Rule
     TestResources testResources = new TestResources(temporaryFolder)

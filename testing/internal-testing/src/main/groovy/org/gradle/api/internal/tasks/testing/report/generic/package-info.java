@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.vintage
+@NullMarked
+package org.gradle.api.internal.tasks.testing.report.generic;
 
-
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
-
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_VINTAGE_VERSION
-
-@TargetCoverage({ [LATEST_VINTAGE_VERSION] })
-class JUnitVintageFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnitVintageMultiVersionTest {
-}
+import org.jspecify.annotations.NullMarked;

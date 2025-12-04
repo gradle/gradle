@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -38,11 +37,6 @@ import static org.gradle.util.Matchers.containsText
 @Requires(UnitTestPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
 class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.XC_TEST
-    }
-
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()
         buildFile << """

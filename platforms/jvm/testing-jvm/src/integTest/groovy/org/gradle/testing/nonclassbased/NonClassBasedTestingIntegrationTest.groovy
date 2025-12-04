@@ -17,7 +17,6 @@
 package org.gradle.testing.nonclassbased
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.tooling.fixture.ProgressEvents
@@ -38,11 +37,6 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
     @Override
     List<TestEngines> getEnginesToSetup() {
         return [TestEngines.BASIC_RESOURCE_BASED]
-    }
-
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT_JUPITER
     }
 
     def "resource-based test engine detects and executes test definitions (excluding jupiter engine = #excludingJupiter)"() {

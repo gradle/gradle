@@ -24,11 +24,6 @@ import org.gradle.testing.fixture.TestNGCoverage
 
 @TargetCoverage({ [TestNGCoverage.NEWEST] })
 class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements TestNGMultiVersionTest {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
-    }
-
     def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers)

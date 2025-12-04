@@ -17,7 +17,6 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
@@ -31,11 +30,6 @@ import static org.hamcrest.CoreMatchers.containsString
  * production code attempts to perform reflection on JDK internals.
  */
 class JdkIllegalReflectionTestWorkerIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
-
     def setup() {
         buildFile << """
             plugins {

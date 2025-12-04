@@ -17,7 +17,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.TestNGCoverage
@@ -27,11 +26,6 @@ import static org.hamcrest.Matchers.allOf
 import static org.hamcrest.Matchers.containsString
 
 class TestNGSuiteInitialisationIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
-    }
-
     @Issue("GRADLE-1710")
     def "reports suite fatal failure"() {
         TestNGCoverage.enableTestNG(buildFile, '6.3.1')

@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -28,8 +27,8 @@ import spock.lang.Issue
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects.Skip.FLAKY
 import static org.hamcrest.CoreMatchers.allOf
-import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 
 @LeaksFileHandles
 class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
@@ -39,11 +38,6 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
 
     @Override
     String subprojectName() { 'app' }
-
-    @Override
-    def setup() {
-        resultsTestFramework(GenericTestExecutionResult.TestFramework.KOTLIN_TEST)
-    }
 
     def "defaults to kotlin build scripts"() {
         when:

@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.platform
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Issue
 
@@ -204,7 +204,7 @@ class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec {
         outputContains("${parentEventPath} > generic PASSED")
         outputContains("${parentEventPath} > classpath PASSED")
 
-        def testResults = resultsFor('tests/test', GenericTestExecutionResult.TestFramework.CUSTOM)
+        def testResults = resultsFor('tests/test')
         testResults.assertTestPathsExecuted(
             ":org.gradle.JUnitJupiterDynamicTest:testsWithCustomSource():testsWithCustomSource()[1]",
             ":org.gradle.JUnitJupiterDynamicTest:testsWithCustomSource():testsWithCustomSource()[2]",

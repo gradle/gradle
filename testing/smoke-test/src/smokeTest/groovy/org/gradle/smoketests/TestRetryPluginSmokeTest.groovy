@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
@@ -101,7 +100,7 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
     }
 
     private void assertTestResults() {
-        def results = new GenericHtmlTestExecutionResult(testProjectDir, "build/reports/tests/test", GenericTestExecutionResult.TestFramework.JUNIT_JUPITER)
+        def results = new GenericHtmlTestExecutionResult(testProjectDir, "build/reports/tests/test")
         results.assertTestPathsExecuted(
             ":org.acme.AcmeTest:successful",
             ":org.acme.AcmeTest:flaky",

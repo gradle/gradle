@@ -17,7 +17,6 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
@@ -29,11 +28,6 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class SuppressedExceptionTestingIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
-    }
-
     def setup() {
         executer.withRepositoryMirrors()
     }

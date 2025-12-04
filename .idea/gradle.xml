@@ -230,6 +230,7 @@
             <option value="$PROJECT_DIR$/platforms/ide/tooling-api" />
             <option value="$PROJECT_DIR$/platforms/ide/tooling-api-builders" />
             <option value="$PROJECT_DIR$/platforms/jvm/ant-worker" />
+            <option value="$PROJECT_DIR$/platforms/jvm/antlr" />
             <option value="$PROJECT_DIR$/platforms/jvm/code-quality" />
             <option value="$PROJECT_DIR$/platforms/jvm/code-quality-workers" />
             <option value="$PROJECT_DIR$/platforms/jvm/distributions-jvm" />
@@ -270,7 +271,6 @@
             <option value="$PROJECT_DIR$/platforms/native/platform-native" />
             <option value="$PROJECT_DIR$/platforms/native/testing-native" />
             <option value="$PROJECT_DIR$/platforms/native/tooling-native" />
-            <option value="$PROJECT_DIR$/platforms/software/antlr" />
             <option value="$PROJECT_DIR$/platforms/software/base-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/software/build-init" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs" />

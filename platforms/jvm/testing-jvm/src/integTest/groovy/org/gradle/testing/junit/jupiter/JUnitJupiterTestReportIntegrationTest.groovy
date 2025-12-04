@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -28,11 +28,6 @@ import static org.hamcrest.CoreMatchers.is
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegrationTest implements JUnitJupiterMultiVersionTest {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
-    }
-
     def "outputs over lifecycle"() {
         when:
         buildFile """

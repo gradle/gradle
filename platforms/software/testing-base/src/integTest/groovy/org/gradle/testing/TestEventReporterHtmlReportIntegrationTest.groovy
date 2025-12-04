@@ -18,7 +18,6 @@ package org.gradle.testing
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
@@ -28,12 +27,6 @@ import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.equalTo
 
 class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.CUSTOM
-    }
-
     def "successful tests do not emit HTML reports to console"() {
         given:
         buildFile << passingTask("passing")
@@ -252,7 +245,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasFailures(2)
 
-        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        def aggregateResults = aggregateResults('')
         assert aggregateResults.testPath(":").rootNames == ["aFirst", "bSecond", "cThird", "dFourth"]
     }
 

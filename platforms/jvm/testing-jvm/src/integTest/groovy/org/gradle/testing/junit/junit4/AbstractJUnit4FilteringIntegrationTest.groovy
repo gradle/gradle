@@ -23,11 +23,6 @@ import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
-
     void theParameterizedFiles() {
         file("src/test/java/ParameterizedFoo.java") << """
             ${testFrameworkImports}

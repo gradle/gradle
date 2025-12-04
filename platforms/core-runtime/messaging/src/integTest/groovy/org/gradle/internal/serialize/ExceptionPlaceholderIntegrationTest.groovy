@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.tooling.GradleConnectionException
@@ -27,12 +26,6 @@ import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.containsString
 
 class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/1618")
     def "internal exception should not be thrown"() {
         given:
@@ -305,7 +298,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
         fails 'test'
 
         then:
-        def testResults = resultsFor(testDirectory, 'tests/test', GenericTestExecutionResult.TestFramework.JUNIT_JUPITER)
+        def testResults = resultsFor(testDirectory, 'tests/test')
         testResults.testPath("example.Issue34738Test", "throwGCE").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
             .assertFailureMessages(containsString("The real cause"))
     }

@@ -17,7 +17,6 @@
 package org.gradle.testfixtures
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.internal.tasks.testing.worker.TestWorker
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -38,12 +37,6 @@ import static org.hamcrest.Matchers.not
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.SPOCK
-    }
-
     def setup() {
         buildFile << """
             plugins {

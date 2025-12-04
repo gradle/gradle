@@ -22,8 +22,6 @@ import org.hamcrest.Matchers
 import spock.lang.Issue
 
 abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
-    abstract GenericTestExecutionResult.TestFramework getTestFramework()
-
     TestResult.ResultType getPassedTestOutcome() {
         return dryRun ? TestResult.ResultType.SKIPPED : TestResult.ResultType.SUCCESS
     }

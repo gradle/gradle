@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
@@ -28,11 +27,6 @@ import org.junit.Rule
 class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider)
-
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT_JUPITER
-    }
 
     @UsesSample('testing/junitplatform-jupiter/groovy')
     def 'jupiter sample test'() {

@@ -38,11 +38,6 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
     @Rule
     Sample sample = new Sample(temporaryFolder)
 
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
-
     @UsesSample("testing/testReport/groovy")
     def "can generate report for subprojects"() {
         given:
@@ -246,7 +241,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements V
         run "test"
 
         then:
-        resultsFor("tests/test", GenericTestExecutionResult.TestFramework.JUNIT4).testPath("LoggingTest", "test").onlyRoot()
+        resultsFor("tests/test").testPath("LoggingTest", "test").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(equalTo("stdout.\n"))
             .assertStderr(equalTo("stderr.\n"))

@@ -17,7 +17,6 @@
 package org.gradle.testing.cucumberjvm
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
@@ -27,13 +26,7 @@ import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Issue
 
-
 class CucumberJVMReportIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.CUCUMBER
-    }
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
 

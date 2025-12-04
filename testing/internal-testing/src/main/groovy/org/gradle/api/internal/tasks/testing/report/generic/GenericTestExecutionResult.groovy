@@ -16,107 +16,74 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic
 
-import java.util.regex.Pattern
-
 interface GenericTestExecutionResult {
     /**
-     * Asserts that the given test paths (and only the given test paths) were executed.
+     * Asserts that only test paths that match any of the given selectors or their ancestors were executed.
+     * Also asserts that all given selectors match at least one executed test path.
      *
      * <p>
      * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * The full syntax is described at {@link TestPathSelector}.
      * </p>
      */
-    GenericTestExecutionResult assertTestPathsExecuted(String... testPaths);
+    GenericTestExecutionResult assertTestPathsExecuted(String... testPathSelectors);
 
     /**
-     * Asserts that the given test paths were executed. Others may also have been executed.
+     * Asserts that all selectors match at least one executed test path.
+     * There may exist executed test paths that do not match any of the given selectors.
      *
      * <p>
      * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * The full syntax is described at {@link TestPathSelector}.
      * </p>
      */
-    GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPaths);
+    GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPathSelectors);
 
     /**
-     * Asserts that the given test paths (and only the given test paths) were <strong>NOT</strong> executed.
+     * Asserts that the selectors do not match any executed test path.
      *
      * <p>
      * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * The full syntax is described at {@link TestPathSelector}.
      * </p>
      */
-    GenericTestExecutionResult assertTestPathsNotExecuted(String... testPaths);
+    GenericTestExecutionResult assertTestPathsNotExecuted(String... testPathSelectors);
 
     /**
-     * Returns the result for the given test path.
+     * Returns the result for the given test path selector, if it is unique.
      *
      * <p>
      * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * The full syntax is described at {@link TestPathSelector}.
      * </p>
      */
-    TestPathExecutionResult testPath(String testPath);
+    TestPathExecutionResult testPath(String testPathSelector);
 
     /**
-     * Returns the result for the given test class and method.
-     * <p>
-     * These are paths in the style of {@link org.gradle.util.Path}, e.g. `e1:e2:e3...`.
+     * Returns the result for the given test path selector, constructed from the given elements,
+     * if it is unique.
      *
-     * @param testPathElements the elements of the path to be concatenated with `:` as separator
-     * @return the complete path for the given test path elements
+     * <p>
+     * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * The full syntax is described at {@link TestPathSelector}.
+     * </p>
+     *
+     * @param testPathSelectors the elements of the path selector
+     * @return the test path execution result
      */
     TestPathExecutionResult testPath(String... testPathElements);
 
-    enum TestFramework {
-        CUCUMBER,
-        TEST_NG,
-        JUNIT_JUPITER,
-        SPOCK,
-        JUNIT4,
-        KOTLIN_TEST,
-        SCALA_TEST,
-        XC_TEST,
-        SPEK,
-        CUSTOM,
-        ;
-
-        private static final Pattern BASIC_PARAMS_PATTERN = Pattern.compile("\\(.*\\)");
-
-        /**
-         * Given the name of a test method, returns the name of the test case that would be reported by this test
-         * framework.
-         *
-         * <p>
-         * For example, JUnit 4 uses the method name as the test case name, whereas JUnit Jupiter appends {@code ()}
-         * to the method name.
-         * </p>
-         *
-         * @param testMethodName the name of the test method
-         * @return the name of the test case as reported by this test framework
-         */
-        String getTestCaseName(String testMethodName) {
-            return switch (this) {
-                case JUNIT_JUPITER, KOTLIN_TEST -> {
-                    // Don't add "()" if the method name already appears to have parameters
-                    if (testMethodName =~ BASIC_PARAMS_PATTERN) {
-                        yield testMethodName
-                    } else {
-                        yield testMethodName + "()"
-                    }
-                }
-                default -> testMethodName;
-            };
-        }
-    }
-
     /**
-     * Checks if the given test path exists.
+     * Checks if the selector matches any executed test path.
      *
      * <p>
      * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * The full syntax is described at {@link TestPathSelector}.
      * </p>
      *
-     * @return {@code true} if the test path exists, {@code false} otherwise.
+     * @return {@code true} if the test path selector matches, {@code false} otherwise.
      */
-    boolean testPathExists(String testPath);
+    boolean testPathExists(String testPathSelector);
 
     /**
      * Asserts that the given metadata keys are present in the suite summary.

@@ -20,12 +20,6 @@ import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportRes
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 
 class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.SPOCK
-    }
-
     def setup() {
         def testBody = """
             {

@@ -17,7 +17,6 @@
 package org.gradle.build.event
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -36,11 +35,6 @@ import spock.lang.Issue
 import static org.hamcrest.Matchers.containsString
 
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT4
-    }
-
     def "listener can subscribe to task completion events"() {
         loggingListener()
         registeringPlugin()

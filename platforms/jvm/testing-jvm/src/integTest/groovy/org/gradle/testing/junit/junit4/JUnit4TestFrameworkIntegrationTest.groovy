@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 
 class JUnit4TestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
@@ -27,11 +27,6 @@ class JUnit4TestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
             ${mavenCentralRepository()}
             dependencies { testImplementation 'junit:junit:4.13' }
         """
-    }
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
     }
 
     @Override

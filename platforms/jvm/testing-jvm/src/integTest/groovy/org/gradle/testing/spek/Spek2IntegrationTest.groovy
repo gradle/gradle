@@ -17,7 +17,6 @@
 package org.gradle.testing.spek
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
@@ -34,11 +33,6 @@ import static org.hamcrest.CoreMatchers.containsString
     reason = "Spek2 requires a JDK that supports Kotlin"
 )
 class Spek2IntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.SPEK
-    }
-
     def setup() {
         buildFile <<"""
             plugins {

@@ -18,7 +18,6 @@ package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.CoreMatchers
@@ -49,14 +48,16 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     abstract String getFailingTestMethodName()
 
     private final String getPassingTestCaseName() {
-        return getTestFramework().getTestCaseName(getPassingTestMethodName())
+        return getPassingTestMethodName() + (testCaseNodeHasParentheses() ? "()" : "")
     }
 
     private final String getFailingTestCaseName() {
-        return getTestFramework().getTestCaseName(getFailingTestMethodName())
+        return getFailingTestMethodName() + (testCaseNodeHasParentheses() ? "()" : "")
     }
 
-    abstract TestFramework getTestFramework()
+    boolean testCaseNodeHasParentheses() {
+        return false
+    }
 
     String testSuite(String testSuite) {
         return testSuite
