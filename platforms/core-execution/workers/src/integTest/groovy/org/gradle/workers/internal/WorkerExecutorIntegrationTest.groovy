@@ -381,7 +381,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         then:
         def operation = buildOperations.only(ExecuteWorkItemBuildOperationType)
         operation.displayName == "org.gradle.test.TestWorkAction"
-        with (operation.details) {
+        with(operation.details) {
             className == "org.gradle.test.TestWorkAction"
             displayName == "org.gradle.test.TestWorkAction"
         }
@@ -914,5 +914,136 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         builder.buildJar(workActionJar)
 
         fixture.addImportToBuildScript("org.gradle.test.TestWorkAction")
+    }
+
+    def "classLoaderIsolation doesn't cause java.lang.OutOfMemoryError: Metaspace"() {
+        fixture.withWorkActionClassInBuildScript()
+
+        // By default, AbstractGradleExecutor sets a hard-limit on metaspace using MaxMetaspaceSize.
+        // Remove it, because since JEP-387 in Java 16+ metaspace is more flexibly reclaimed and doesn't need a strict limit.
+        // The strict limit just causes OOM whenever the limit is reached.
+        // Without the limit, Java will GC when Xmx is reached.
+        executer.useOnlyRequestedJvmOpts()
+            .withBuildJvmOpts(
+                "-ea",
+                "-Xms256m",
+                "-Xmx512m",
+                "-XX:+HeapDumpOnOutOfMemoryError",
+                "-XX:HeapDumpPath=" + buildContext.getGradleUserHomeDir(),
+            )
+
+        file("buildSrc/build.gradle.kts").parentFile.mkdirs()
+        file("buildSrc/build.gradle.kts").createFile()
+        file("buildSrc/build.gradle.kts").write(
+            """
+            plugins {
+              `kotlin-dsl`
+            }
+            repositories {
+              mavenCentral()
+            }
+            """.stripIndent())
+
+        file("buildSrc/src/main/kotlin/demo.kt").parentFile.mkdirs()
+        file("buildSrc/src/main/kotlin/demo.kt").createFile()
+        file("buildSrc/src/main/kotlin/demo.kt").write(
+            """
+            import java.util.jar.JarFile
+            import javax.inject.Inject
+            import org.gradle.api.*
+            import org.gradle.api.file.*
+            import org.gradle.api.tasks.*
+            import org.gradle.workers.*
+
+            abstract class FooTask : DefaultTask() {
+              @Inject
+              abstract fun getWorkerExecutor(): WorkerExecutor
+
+              @get:InputFiles
+              abstract val compilerClasspath: ConfigurableFileCollection
+
+              @TaskAction
+              fun taskAction() {
+                val workQueue = getWorkerExecutor().classLoaderIsolation {
+                  classpath.from(compilerClasspath)
+                }
+
+                workQueue.submit(FooWork::class.java) {
+                  classpath.from(compilerClasspath)
+                }
+              }
+            }
+
+            interface FooWorkParams : WorkParameters {
+              val classpath: ConfigurableFileCollection
+            }
+
+            abstract class FooWork : WorkAction<FooWorkParams> {
+              override fun execute() {
+                val classLoader = javaClass.classLoader
+                var count = 0
+                parameters.classpath.files.forEach { file ->
+                  JarFile(file).use { jar ->
+                    jar.entries().iterator().forEachRemaining { entry ->
+                      val name = entry.name
+                      if (!entry.isDirectory && name.endsWith(".class") && !name.endsWith("module-info.class")) {
+                        val className = name.removeSuffix(".class").replace("/", ".")
+                        try {
+                          classLoader.loadClass(className)
+                        } catch (e: Throwable) {
+                          e.printStackTrace()
+                          throw e
+                        }
+                        count++
+                      }
+                    }
+                  }
+                }
+
+                println("loaded \$count classes")
+              }
+            }
+            """.stripIndent())
+
+
+        buildFile.delete()
+        file("build.gradle.kts").write(
+            """
+            val dependencyScope = configurations.dependencyScope("fooScope").get()
+            dependencyScope.dependencies.add(dependencies.create("com.apollographql.apollo:apollo-compiler:4.1.0"))
+            val resolvable = configurations.resolvable("fooResolvable").get()
+            resolvable.extendsFrom(dependencyScope)
+
+            val allFoo by tasks.registering
+
+            repeat(100) { i ->
+                val foo = tasks.register("foo\$i", FooTask::class) {
+                  compilerClasspath.from(resolvable)
+                }
+                allFoo.configure {
+                  dependsOn(foo)
+                }
+            }
+            """.stripIndent())
+
+        settingsKotlinFile.write(
+            """
+            pluginManagement {
+              repositories {
+                mavenCentral()
+                gradlePluginPortal()
+              }
+            }
+
+            dependencyResolutionManagement {
+              @Suppress("UnstableApiUsage")
+              repositories {
+                mavenCentral()
+              }
+            }
+            """.stripIndent())
+
+        expect:
+        succeeds "allFoo"
     }
 }
