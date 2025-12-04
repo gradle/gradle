@@ -78,7 +78,8 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition type which was declared safe but has @Inject annotated properties: objects in type FeatureDefinition.  Safe definition types must not have @Inject annotated properties.")
+        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition type which was declared safe but has the following issues: \n" +
+            "\t- The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.  Safe definition types cannot inject services.")
     }
 
     def 'sensible error when definition is declared safe but has a nested property with an injected service'() {
@@ -95,7 +96,27 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition type which was declared safe but has @Inject annotated properties: objects in type Fizz.  Safe definition types must not have @Inject annotated properties.")
+        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition type which was declared safe but has the following issues: \n" +
+            "\t- The definition type has @Inject annotated property 'objects' in type 'Fizz'.  Safe definition types cannot inject services.")
+    }
+
+    def 'sensible error when definition is declared safe but has multiple properties with an injected service'() {
+        given:
+        def pluginBuilder = withProjectFeatureAndMultipleInjectableDefinition()
+        pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        fails(":printFeatureDefinitionConfiguration")
+
+        then:
+        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition type which was declared safe but has the following issues: \n" +
+            "\t- The definition type has @Inject annotated property 'objects' in type 'Fizz'.  Safe definition types cannot inject services.\n" +
+            "\t- The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.  Safe definition types cannot inject services.")
     }
 
     def 'sensible error when definition is declared safe but has an implementation type'() {
