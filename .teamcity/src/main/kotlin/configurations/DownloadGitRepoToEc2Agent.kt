@@ -22,7 +22,7 @@ object DownloadGitRepoToEc2Agent : BuildType({
         script {
             name = "SING_ALL_ZIPS"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = "%teamcity.build.checkoutDir%/.teamcity/scripts/sign.sh /home/tcagent1/distributions-snapshots"
+            scriptContent = "%teamcity.build.checkoutDir%/.teamcity/scripts/sign.sh /home/tcagent1/distributions"
         }
     }
 })
