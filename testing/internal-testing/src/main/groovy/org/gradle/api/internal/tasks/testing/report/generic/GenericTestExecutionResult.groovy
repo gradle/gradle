@@ -24,6 +24,7 @@ interface GenericTestExecutionResult {
      *
      * <p>
      * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * The full syntax is described at {@link TestPathSelector}.
      * </p>
      */
     GenericTestExecutionResult assertTestPathsExecuted(String... testPaths);
