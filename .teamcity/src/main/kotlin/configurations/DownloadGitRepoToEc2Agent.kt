@@ -20,7 +20,7 @@ object DownloadGitRepoToEc2Agent : BuildType({
         script {
             name = "DO_NOTHING"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = "echo 'Repo downloaded'"
+            scriptContent = "%teamcity.build.checkoutDir%/.teamcity/scripts/sign.sh /home/tcagent1/distribution-snapshots"
         }
     }
 })
