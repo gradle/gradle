@@ -849,7 +849,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     static class SetStartParameterAction implements BuildAction<String>, Serializable {
         @Override
         String execute(BuildController controller) {
-            def gradleBuild = controller.getModel(GradleBuild)
+            def gradleBuild = controller.fetch(GradleBuild).model
             def result = controller.fetch(gradleBuild.rootProject, StartParametersModel)
             return result.failures.isEmpty() ? "successful" : "unsuccessful"
         }
