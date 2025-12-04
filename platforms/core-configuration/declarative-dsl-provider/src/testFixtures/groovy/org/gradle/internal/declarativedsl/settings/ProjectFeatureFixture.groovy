@@ -532,7 +532,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
     static class ProjectFeatureDefinitionWithPublicTypeClassBuilder extends ProjectFeatureDefinitionClassBuilder {
         String publicTypeClassName = "FeatureDefinition"
 
-        ProjectFeatureDefinitionWithPublicTypeClassBuilder(String publicTypeClassName) {
+        ProjectFeatureDefinitionWithPublicTypeClassBuilder() {
             this.implementationTypeClassName = publicTypeClassName + "Impl"
         }
 

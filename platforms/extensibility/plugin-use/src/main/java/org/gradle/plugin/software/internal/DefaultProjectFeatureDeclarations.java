@@ -160,11 +160,11 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
 
     private void validateDefinitionSafety(ProjectFeatureBindingDeclaration<?, ?> binding) {
         if (binding.getDefinitionImplementationType().isPresent() && !binding.getDefinitionImplementationType().get().equals(binding.getDefinitionType())) {
-            throw new IllegalArgumentException("Safe project feature '" + binding.getName() + "' must not specify an implementation type");
+            throw new IllegalArgumentException("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but has an implementation type '" + binding.getDefinitionImplementationType().get().getSimpleName() + "'.  Safe definitions must not specify an implementation type.");
         }
 
         if (!binding.getDefinitionType().isInterface()) {
-            throw new IllegalArgumentException("Safe project feature '" + binding.getName() + "' must have an interface as definition type");
+            throw new IllegalArgumentException("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but is not an interface.  Safe definition types must be an interface.");
         }
 
         validateDefinition(binding.getName(), binding.getDefinitionType());
@@ -174,7 +174,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         TypeMetadata definitionTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(definitionType);
         definitionTypeMetadata.getTypeAnnotationMetadata().getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
             if (propertyMetadata.isAnnotationPresent(Inject.class)) {
-                throw new IllegalArgumentException("Safe project feature '" + featureName + "' definition type must not have @Inject annotated properties: " + propertyMetadata.getPropertyName() + " in type " + definitionType.getSimpleName());
+                throw new IllegalArgumentException("Project feature '" + featureName + "' has a definition type which was declared safe but has @Inject annotated properties: " + propertyMetadata.getPropertyName() + " in type " + definitionType.getSimpleName() + ".  Safe definition types must not have @Inject annotated properties.");
             }
 
             if (propertyMetadata.isAnnotationPresent(Nested.class)) {
