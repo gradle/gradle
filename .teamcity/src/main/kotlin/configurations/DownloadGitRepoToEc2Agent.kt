@@ -14,6 +14,8 @@ object DownloadGitRepoToEc2Agent : BuildType({
 
     params {
         param("defaultBranchName", "master")
+        param("env.PGP_SIGNING_KEY", "%pgpSigningKey%")
+        param("env.PGP_SIGNING_KEY_PASSPHRASE", "%pgpSigningPassphrase%")
     }
 
     steps {
