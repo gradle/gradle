@@ -295,36 +295,13 @@ public class TestTreeModel {
     }
 
     /**
-     * Returns true if this node is a leaf and all its results are skipped.
-     *
-     * @return true if this is a skipped leaf node
-     */
-    public boolean isSkippedLeaf() {
-        if (!children.isEmpty()) {
-            return false;
-        }
-        for (List<PerRootInfo> infos : perRootInfo) {
-            for (PerRootInfo info : infos) {
-                if (info.getSkippedLeafCount() == 0) {
-                    return false;
-                }
-            }
-        }
-        // All results are skipped (and it's a leaf)
-        return !perRootInfo.isEmpty();
-    }
-
-    /**
      * Returns true if this node is a leaf and has an assumption failure.
      * Assumption failures are recorded when a test is skipped due to an assumption.
      *
      * @return true if this is a leaf with an assumption failure
      */
     public boolean hasAssumptionFailure() {
-        if (!children.isEmpty()) {
-            return false;
-        }
-        for (List<PerRootInfo> infos : perRootInfo) {
+        for (List<PerRootInfo> infos : getPerRootInfo()) {
             for (PerRootInfo info : infos) {
                 for (SerializableTestResult result : info.getResults()) {
                     if (result.getAssumptionFailure() != null) {
@@ -343,10 +320,7 @@ public class TestTreeModel {
      * @return true if this is a successful leaf node
      */
     public boolean isSuccessfulLeaf() {
-        if (!children.isEmpty()) {
-            return false;
-        }
-        for (List<PerRootInfo> infos : perRootInfo) {
+        for (List<PerRootInfo> infos : getPerRootInfo()) {
             for (PerRootInfo info : infos) {
                 // A successful leaf has no failures and no skipped tests
                 if (info.getFailedLeafCount() > 0 || info.getSkippedLeafCount() > 0) {
@@ -372,23 +346,23 @@ public class TestTreeModel {
             // Non-leaves are always useful
             return true;
         }
-        // Failed tests always useful
+
+        // Failed tests are always useful
         if (!isSuccessfulLeaf()) {
             return true;
         }
 
-        // Skipped tests are useful if they have an assumption failure
-        if (isSkippedLeaf()) {
-            return hasAssumptionFailure();
+        // Tests with an assumption failure are useful
+        if (hasAssumptionFailure()) {
+            return true;
         }
 
-        // Successful tests are only useful if they have output or metadata
-        // Check for metadata first
+        // Tests with metadata are useful
         if (hasMetadata()) {
             return true;
         }
 
-        // Check for output
+        // Tests with output are useful
         return hasOutput();
     }
 
@@ -396,9 +370,7 @@ public class TestTreeModel {
      * @return true if this test has any output (standard output or standard error)
      */
     private boolean hasOutput() {
-        List<List<PerRootInfo>> perRootInfos = getPerRootInfo();
-        for (int rootIndex = 0; rootIndex < perRootInfos.size(); rootIndex++) {
-            List<PerRootInfo> infos = perRootInfos.get(rootIndex);
+        for (List<PerRootInfo> infos : getPerRootInfo()) {
             for (PerRootInfo info : infos) {
                 for (OutputEntry outputEntry : info.getOutputEntries()) {
                     if (outputEntry.getOutputRanges().hasOutput()) {
@@ -416,10 +388,7 @@ public class TestTreeModel {
      * @return true if the leaf has metadata
      */
     private boolean hasMetadata() {
-        if (!children.isEmpty()) {
-            return false;
-        }
-        for (List<PerRootInfo> infos : perRootInfo) {
+        for (List<PerRootInfo> infos : getPerRootInfo()) {
             for (PerRootInfo info : infos) {
                 if (!Iterables.isEmpty(info.getMetadatas())) {
                     return true;
