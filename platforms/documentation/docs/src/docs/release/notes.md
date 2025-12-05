@@ -63,10 +63,28 @@ tasks.validatePlugins {
 
 ## Tooling integration improvements
 
-This release adds a few enhancements to the built-in Tooling API models.
-- Clients now have access to the exact output of `gradle --version` without starting a daemon.  The rendered content is available via the `BuildEnvironment.versionInfo` property.
-- A new `Help` model is introduced to expose the output of the `gradle --help` command-line build invocation.
+This release adds a few enhancements to the built-in Tooling API models:
+- Clients can now access the exact output of `gradle --version` without starting a daemon, via the new [`BuildEnvironment.getVersionInfo()`](javadoc/org/gradle/tooling/model/build/BuildEnvironment.html#getVersionInfo()) property.
+- A new [`Help`](javadoc/org/gradle/tooling/model/build/Help.html) model exposes the output of the `gradle --help` command-line build invocation.
 
+For example:
+
+```java
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.Help;
+
+import java.io.File;
+
+void main() {
+    var projectDir = new File("/path/to/project");
+    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) { 
+        System.out.println("--version:\n + " + conn.getModel(BuildEnvironment.class).getVersionInfo());
+        System.out.println("--help:\n" + conn.getModel(Help.class).getRenderedText());
+    }
+}
+```
 <!--
 
 ================== TEMPLATE ==============================
