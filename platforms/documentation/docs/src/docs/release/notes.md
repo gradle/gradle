@@ -69,15 +69,7 @@ test {
 }
 ```
 
-The `Test` task also add an [Test#onMetadata(Closure)](dsl/org.gradle.api.tasks.testing.Test.html#onMetadata(Closure)) method as a convenience to register a callback to be notified using a closure:
-
-```kotlin
-test {
-    onMetadata { descriptor, event ->
-        logger.lifecycle("From closure: " + descriptor.toString() + " received event: " + event.toString())
-    }
-}
-```
+This addition enables support for additional JUnit Platform features, and allows tests to communicate additional information back to the process running the tests in a more structured manner than just logging to the standard output or error streams.
 
 ### Daemon logging improvements
 
@@ -116,7 +108,7 @@ import java.io.File;
 
 void main() {
     var projectDir = new File("/path/to/project");
-    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) { 
+    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) {
         System.out.println("--version:\n + " + conn.getModel(BuildEnvironment.class).getVersionInfo());
         System.out.println("--help:\n" + conn.getModel(Help.class).getRenderedText());
     }

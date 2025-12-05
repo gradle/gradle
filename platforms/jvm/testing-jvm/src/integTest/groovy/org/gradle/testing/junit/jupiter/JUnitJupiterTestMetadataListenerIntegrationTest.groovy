@@ -111,10 +111,6 @@ class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestMetada
             }
         """.stripIndent())
         buildFile << """
-            test.onMetadata { descriptor, event ->
-                logger.lifecycle("From closure: " + descriptor.toString() + " with values: " + event.values);
-            }
-
             gradle.addListener(new LoggingMetadataListener(logger: project.logger))
 
             class LoggingMetadataListener implements TestMetadataListener {
@@ -130,7 +126,6 @@ class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestMetada
         succeeds('test')
 
         then:
-        outputContains("From closure: Test successful(TestReporter)(SomeTest) with values: [myKey:myValue]")
         outputContains("From listener: Test successful(TestReporter)(SomeTest) with values: [myKey:myValue]")
     }
 }
