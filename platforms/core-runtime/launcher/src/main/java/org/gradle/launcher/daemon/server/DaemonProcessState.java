@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.buildprocess.BuildProcessState;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -37,14 +36,13 @@ public class DaemonProcessState implements Closeable {
     private final BuildProcessState buildProcessState;
     private final AtomicReference<DaemonStopState> stopState = new AtomicReference<>();
 
-    public DaemonProcessState(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
+    public DaemonProcessState(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager) {
         // Merge the daemon services into the build process services
         // It would be better to separate these into different scopes, but many things still assume that daemon services are available in the global scope,
         // so keep them merged as a migration step
         buildProcessState = new BuildProcessState(
             !configuration.isSingleUse(),
             AgentStatus.of(configuration.isInstrumentationAgentAllowed()),
-            additionalModuleClassPath,
             CurrentGradleInstallation.locate(),
             loggingServices,
             NativeServices.getInstance()

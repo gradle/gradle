@@ -44,7 +44,6 @@ import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -95,7 +94,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         return ServiceRegistryBuilder.builder()
             .displayName("worker daemon services")
             .parent(parent)
-            .provider(new WorkerSharedGlobalScopeServices(ClassPath.EMPTY, CurrentGradleInstallation.locate()))
+            .provider(new WorkerSharedGlobalScopeServices(CurrentGradleInstallation.locate()))
             .provider(new WorkerDaemonServices())
             .provider(new WorkerSharedBuildSessionScopeServices())
             .build();
