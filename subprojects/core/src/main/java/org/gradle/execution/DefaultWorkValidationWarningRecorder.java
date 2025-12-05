@@ -37,11 +37,11 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningRecorder.class);
 
     // TODO If we can ensure that the recorder is only called once per work execution, then we can demote this to a simple counter
-    private final Set<Identity> workWithWarnings = ConcurrentHashMap.newKeySet();
+    private final Set<String> workIdsWithWarnings = ConcurrentHashMap.newKeySet();
 
     @Override
     public void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings) {
-        workWithWarnings.add(identity);
+        workIdsWithWarnings.add(identity.getUniqueId());
         String uniqueWarnings = warnings.stream()
             .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))
             .map(warning -> "\n  - " + warning)
@@ -60,8 +60,8 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
 
     @Override
     public void reportWorkValidationWarningsAtEndOfBuild() {
-        int numberOfUnitsWithWarnings = workWithWarnings.size();
-        workWithWarnings.clear();
+        int numberOfUnitsWithWarnings = workIdsWithWarnings.size();
+        workIdsWithWarnings.clear();
         if (numberOfUnitsWithWarnings > 0) {
             LOGGER.warn(
                 "\nExecution optimizations have been disabled for {} invalid unit(s) of work during this build to ensure correctness." +
