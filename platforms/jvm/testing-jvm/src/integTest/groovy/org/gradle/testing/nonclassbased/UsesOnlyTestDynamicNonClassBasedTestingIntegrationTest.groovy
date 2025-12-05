@@ -16,18 +16,15 @@
 
 package org.gradle.testing.nonclassbased
 
-import static org.gradle.util.Matchers.matchesRegexp
+import java.util.regex.Pattern
 
-/**
- * Tests that exercise and demonstrate a broken Non-Class-Based Testing Engine that fails during discovery.
- */
-class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
+class UsesOnlyTestDynamicNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {
-        return [TestEngines.FAILS_DISCOVERY_RESOURCE_BASED]
+        return [TestEngines.USES_ONLY_TEST_RESOURCE_BASED_DYNAMIC]
     }
 
-    def "engine failing during discovery is handled gracefully"() {
+    def "test-only dynamic resource-based test engine fails with a reasonable error message"() {
         given:
         buildFile << """
             plugins {
@@ -47,36 +44,19 @@ class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClass
             }
         """
 
-        writeTestDefinitions()
-
-        when:
-        fails("test", "-S")
-
-        then:
-        failure.assertThatCause(matchesRegexp(/Could not complete execution for Gradle Test Executor \d+: TestEngine with ID 'fails-discovery-rbt-engine' failed to discover tests/))
-        failure.assertHasErrorOutput("Caused by: java.lang.RuntimeException: Test discovery failed")
-    }
-
-    def "engine failing during discovery is not started if no test def dirs specified"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing.suites.test {
-                ${enableEngineForSuite()}
-            }
+        file("${DEFAULT_DEFINITIONS_LOCATION}/SomeTestSpec.rbt") << """<?xml version="1.0" encoding="UTF-8" ?>
+            <tests>
+                <test name="foo" />
+            </tests>
         """
 
-        writeTestDefinitions()
-
         when:
-        succeeds("test")
+        fails("test")
 
         then:
-        result.assertTaskSkipped(":test")
+        failureHasCause("Test process encountered an unexpected problem.")
+        String failureMessage = "Closest started ancestor 'Test SomeTestSpec.rbt : foo()' is not a container. " +
+                "This likely means the JUnit Platform TestEngine 'uses-only-test-dynamic-rbt-engine' tried to start a test under a non-container parent."
+        failureHasCause(~"Could not complete execution for Gradle Test Executor \\d+: ${Pattern.quote(failureMessage)}")
     }
 }

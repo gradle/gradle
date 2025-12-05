@@ -56,7 +56,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
 
         then:
         failure.assertHasCause("Test process encountered an unexpected problem.")
-        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+        failure.assertHasCause("Could not execute test class 'com.example.Foo': Incompatible magic value 1768846945 in class file com/example/Foo")
 
         resultsFor(testDirectory).testPath(':').onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
