@@ -12,6 +12,8 @@ dependencies {
 
     implementation(projects.baseServices)
 
+    implementation(libs.guava)
+
     testImplementation(libs.asm)
     testImplementation(libs.asmTree)
 

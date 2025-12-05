@@ -27,9 +27,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.UnscopedCacheBuilderFactory
 import org.gradle.cache.internal.CacheFactory
-import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.initialization.layout.GlobalCacheDir
@@ -58,7 +56,6 @@ import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Shared
@@ -66,11 +63,14 @@ import spock.lang.Specification
 
 abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     @Shared
+    def testInstallation = new CurrentGradleInstallation(new GradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir))
+    @Shared
     DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
         .parent(NativeServicesTestFixture.getInstance())
         .provider(LoggingServiceRegistry.NO_OP)
-        .provider(new GlobalScopeServices(false, AgentStatus.disabled(), new CurrentGradleInstallation(new GradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir))))
+        .provider(new GlobalScopeServices(false, AgentStatus.disabled(), testInstallation))
         .build()
+
     final MessagingServer server = services.get(MessagingServer.class)
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -78,7 +78,6 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final RedirectStdOutAndErr stdout = new RedirectStdOutAndErr()
     final CacheFactory factory = services.get(CacheFactory.class)
     final GlobalCacheDir globalCacheDir = new GlobalCacheDir({ tmpDir.testDirectory })
-    final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(globalCacheDir.dir, GradleVersion.current())
     final UnscopedCacheBuilderFactory cacheRepository = new DefaultUnscopedCacheBuilderFactory(factory)
     final GlobalScopedCacheBuilderFactory globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.dir, cacheRepository)
     final ModuleRegistry moduleRegistry = services.get(ModuleRegistry)

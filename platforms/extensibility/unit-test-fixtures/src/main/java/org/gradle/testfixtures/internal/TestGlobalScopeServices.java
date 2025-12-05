@@ -83,8 +83,8 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
     }
 
     /**
-     * A module registry backed by a classpath, which claims that all requested modules exist,
-     * and their classpath is equal to the backing classpath.
+     * A module registry backed by a classpath. Each module returned by this
+     * registry has the same classpath, equal to the given backing classpath.
      * <p>
      * This is to be used in testing scenarios where it is assumed all classes necessary for Gradle
      * to function are present on the classpath already.

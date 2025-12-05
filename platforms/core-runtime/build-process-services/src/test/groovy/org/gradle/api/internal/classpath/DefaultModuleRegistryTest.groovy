@@ -183,6 +183,7 @@ class DefaultModuleRegistryTest extends Specification {
     private static Properties properties(Map<String, String> kvs = [:]) {
         new Properties().with {
             kvs.each {
+                // To deal with GString
                 put(it.key.toString(), it.value.toString())
             }
             it
