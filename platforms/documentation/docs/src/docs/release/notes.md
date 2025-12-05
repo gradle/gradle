@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -35,11 +35,48 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+
+### Non-Class Based Testing
+
+When testing using JUnit Platform, Gradle can now discover and execute tests that are not defined in classes.
+
+JUnit Platform [TestEngine](https://docs.junit.org/current/user-guide/#test-engines)s are able to discover and execute tests defined in arbitrary formats, and are not limited to JVM classes.
+Previously, however, Gradle's [Test](dsl/org.gradle.api.tasks.testing.Test.html) task required test classes to be present; otherwise execution would fail with a message:
+
+```text
+There are test sources present and no filters are applied, but the test task did not discover any tests to execute.
+```
+
+Now, tests can be defined in whatever format is understood by the `TestEngine`s being used.
+See <<java_testing.adoc#sec:non-class-based-testing,Java Testing User Manual section on Non-Class Based Testing>> for more information.
+
+#### Improved Cucumber support
+
+`TestEngine`s such as [Cucumber](https://cucumber.io/) previously required workarounds when testing with Gradle such as creating an empty `@Suite` class, or using a JUnit extension like `@RunWith(Cucumber.class)` to satisfy Gradle's class-based test discovery requirement.
+
+These non-class-based tests can now be run directly without workarounds:
+
+```kotlin
+    testing.suites.named("test", JvmTestSuite::class) {
+        useJUnitJupiter()
+
+        dependencies {
+            implementation("io.cucumber:cucumber-java:7.15.0")
+            runtimeOnly("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+        }
+
+        targets.all {
+            testTask.configure {
+                testDefinitionDirs.from("src/test/resources")  // Conventional Cucumber *.feature files location
+            }
+        }
+    }
+```
 
 ### Daemon logging improvements
 
@@ -78,8 +115,8 @@ Example:
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
 > LINK to the full documentation for more details
 
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button. 
+To embed videos, use the macros below.
+You can extract the URL from YouTube by clicking the "Share" button.
 For Wistia, contact Gradle's Video Team.
 @youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 @wistia(Summary,a5izazvgit)@
@@ -92,6 +129,86 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
+### Non-Class Based Testing
+
+When testing using JUnit Platform, Gradle can now discover and execute tests that are not defined in classes.
+
+JUnit Platform [TestEngine](https://docs.junit.org/current/user-guide/#test-engines)s are able to discover and execute tests defined in arbitrary formats, and are not limited to JVM classes.
+Previously, however, Gradle's [Test](dsl/org.gradle.api.tasks.testing.Test.html) task required test classes to be present; otherwise execution would fail with a message:
+
+```text
+There are test sources present and no filters are applied, but the test task did not discover any tests to execute.
+```
+
+Now, tests can be defined in whatever format is understood by the `TestEngine`s being used.
+
+```text
+my-lib/
+├── src/
+│   ├── main/
+│   │   └── test/
+│   └── test/
+│       └── definitions/
+│           ├── some-tests.xml
+│           ├── some-other-tests.xml
+│           └── sub/
+│               └── even-more-tests.xml
+└── build.gradle.kts
+```
+
+```kotlin
+testing.suites.named("test", JvmTestSuite::class) {
+    useJUnitJupiter()
+
+	dependencies {
+	    implementation("...") // Library containing custom TestEngine
+	}
+
+    targets.all {
+        testTask.configure {
+            testDefinitionDirs.from("src/test/definitions") // Recommended non-class test definitions location
+        }
+    }
+}
+```
+
+This feature works both with and without using [JvmTestSuites](userguide/jvm_test_suite_plugin.htm).
+
+We recommend storing non-class test definitions in the conventional location `src/<TEST_TASK_NAME>/definitions` to keep builds using this feature structured similarly; however, any location can be used.
+
+For more information, see the section on [Non-Class-Based Testing](userguide/java_testing.html) in the User Manual.
+
+#### Better Cucumber TestEngine support
+
+`TestEngine`s such as [Cucumber](https://cucumber.io/) previously required workarounds when testing with Gradle such as creating an empty `@Suite` class, or using a JUnit extension like `@RunWith(Cucumber.class)` to satisfy Gradle's class-based test discovery requirement.
+
+Cucumber can now be used directly:
+
+```kotlin
+   testing.suites.named("test", JvmTestSuite::class) {
+        useJUnitJupiter()
+
+        dependencies {
+            implementation("io.cucumber:cucumber-java:7.15.0")
+            implementation("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+        }
+
+        targets.all {
+            testTask.configure {
+                testDefinitionDirs.from("src/test/resources") // Conventional Cucumber features location
+            }
+        }
+    }
+```
+
+#### Parallel execution of non-class based tests
+If multiple test definitions exist, and multiple test workers are configured (LINK), then non-class based tests will be executed in parallel.
+
+TODO - UPDATE THIS
+
+#### Filtering non-class based tests
+
+TODO - UPDATE THIS
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
