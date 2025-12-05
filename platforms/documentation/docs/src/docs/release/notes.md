@@ -78,6 +78,32 @@ These non-class-based tests can now be run directly without workarounds:
     }
 ```
 
+### Additional test data capture
+
+During test execution JUnit Platform tests can emit additional data such as file attachments or arbitrary key-value pairs using it's [TestReporter API](https://docs.junit.org/current/user-guide/#writing-tests-dependency-injection).
+
+This typically looks something like:
+
+```java
+    @Test
+    void someTestMethod(TestReporter testReporter) {
+        testReporter.publishEntry("myKey", "myValue");
+        testReporter.publishFile("test1.txt", MediaType.TEXT_PLAIN_UTF_8, file -> Files.write(file, List.of("Test 1")));
+        // Test logic continues...
+    }
+```
+
+Gradle now captures this additional data and makes it available in HTML test reports and XML test results files.
+
+The HTML test report presents the data in 2 new `data` and `attachement` tabs, that will appear similarly to the existing `stdout` and `stderr` tabs, when this data is present.
+
+The JUnit XML report presents the data in the following manner:
+
+- `ReportEntry` are present as `<properties/>`
+- `FileEntry` are present as `[[ATTACHMENT|/path/to/file]]` based on conventions used by Jenkins, Azure pipelines and GitLab.
+
+This information is captured for both class-based and non-class-based tests, and includes data published during test construction and setup/teardown phases.
+
 ### Daemon logging improvements
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
