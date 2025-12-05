@@ -98,9 +98,9 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: true,
+            parallelToolingApiActions: models,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true
+            modelAsProjectDependency: models
         ])
 
         where:
@@ -129,9 +129,9 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: true,
+            parallelToolingApiActions: models,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true
+            modelAsProjectDependency: models
         ])
 
         where:
@@ -168,9 +168,9 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: ipParallelExpected,
-            parallelToolingApiActions: ipParallelExpected,
+            parallelToolingApiActions: ipParallelExpected && models,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true
+            modelAsProjectDependency: models
         ])
 
         where:
@@ -207,10 +207,10 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: true,
+            parallelToolingApiActions: models,
             intermediateModelCache: ipCachingExpected,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true
+            modelAsProjectDependency: models
         ])
 
         where:
@@ -228,6 +228,7 @@ class BuildModelParametersProviderTest extends Specification {
     def "caching-ip parameter is unsupported for #value"() {
         when:
         parameters(runsTasks: true, createsModel: false) {
+            isolatedProjects = Option.Value.value(true)
             systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.propertyName] = value
         }
 
