@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to sign all zip files in a directory with PGP keys
+# Script to sign all zip and jar files in a directory with PGP keys
 # Usage: ./sign.sh [directory]
 # Environment variables required:
 #   PGP_SIGNING_KEY - The PGP private key (armored)
@@ -52,10 +52,10 @@ if [ -z "$KEY_ID" ]; then
 fi
 
 echo "Using PGP key ID: $KEY_ID"
-echo "Signing zip files in: $DIR"
+echo "Signing zip/jar files in: $DIR"
 echo ""
 
-# Find and sign all zip files
+# Find and sign all jar/zip files
 SIGNED_COUNT=0
 FAILED_COUNT=0
 
@@ -65,9 +65,9 @@ while IFS= read -r -d '' zipfile || [ -n "$zipfile" ]; do
         echo "Skipping $(basename "$zipfile") - signature already exists"
         continue
     fi
-    
+
     echo "Signing: $(basename "$zipfile")"
-    
+
     # Sign the file
     GPG_OUTPUT=$(echo "$PGP_SIGNING_KEY_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 --armor --detach-sign --default-key "$KEY_ID" --output "${zipfile}.asc" "$zipfile" 2>&1)
     GPG_EXIT_CODE=$?
@@ -79,7 +79,7 @@ while IFS= read -r -d '' zipfile || [ -n "$zipfile" ]; do
         echo "$GPG_OUTPUT" >&2
         FAILED_COUNT=$((FAILED_COUNT + 1))
     fi
-done < <(find "$DIR" -maxdepth 1 -type f -name "*.zip" -print0)
+done < <(find "$DIR" -maxdepth 1 -type f \( -name "*.zip" -o -name "*.jar" \) -print0)
 
 echo ""
 echo "Summary:"
