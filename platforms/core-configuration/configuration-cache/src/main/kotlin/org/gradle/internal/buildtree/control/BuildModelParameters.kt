@@ -30,6 +30,7 @@ internal sealed class AbstractBuildModelParameters : BuildModelParameters {
         "intermediateModelCache" to isIntermediateModelCache,
         "invalidateCoupledProjects" to isInvalidateCoupledProjects,
         "isolatedProjects" to isIsolatedProjects,
+        "isolatedProjectsDiagnostics" to isIsolatedProjectsDiagnostics,
         "modelAsProjectDependency" to isModelAsProjectDependency,
         "parallelProjectConfiguration" to isParallelProjectExecution,
         "parallelProjectExecution" to isParallelProjectExecution,
@@ -60,6 +61,7 @@ internal class GradleVintageMode(
     override fun isConfigurationCacheParallelLoad(): Boolean = false
 
     override fun isIsolatedProjects(): Boolean = false
+    override fun isIsolatedProjectsDiagnostics(): Boolean = false
     override fun isParallelProjectConfiguration(): Boolean = false
     override fun isIntermediateModelCache(): Boolean = false
     override fun isInvalidateCoupledProjects(): Boolean = false
@@ -91,6 +93,7 @@ internal class GradleConfigurationCacheMode(
     override fun isConfigurationCacheParallelLoad(): Boolean = configurationCacheParallelLoad
 
     override fun isIsolatedProjects(): Boolean = false
+    override fun isIsolatedProjectsDiagnostics(): Boolean = false
     override fun isParallelProjectConfiguration(): Boolean = false
     override fun isIntermediateModelCache(): Boolean = false
     override fun isInvalidateCoupledProjects(): Boolean = false
@@ -104,6 +107,7 @@ internal class GradleConfigurationCacheMode(
 
 internal class GradleIsolatedProjectsMode(
     private val requiresToolingModels: Boolean,
+    private val isolatedProjectsDiagnostics: Boolean,
     private val parallelProjectExecution: Boolean,
     private val configureOnDemand: Boolean,
     private val configurationCacheParallelStore: Boolean,
@@ -127,6 +131,7 @@ internal class GradleIsolatedProjectsMode(
     override fun isConfigurationCacheParallelLoad(): Boolean = true
 
     override fun isIsolatedProjects(): Boolean = true
+    override fun isIsolatedProjectsDiagnostics(): Boolean = isolatedProjectsDiagnostics
     override fun isParallelProjectConfiguration(): Boolean = parallelProjectConfiguration
     override fun isIntermediateModelCache(): Boolean = intermediateModelCache
     override fun isInvalidateCoupledProjects(): Boolean = invalidateCoupledProjects
