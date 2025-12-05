@@ -34,12 +34,12 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.daemonServices)
-    implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.logging)

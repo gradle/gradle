@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.invocation.Gradle
@@ -60,6 +62,8 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.project.DefaultImmutableProjectDescriptor
+import org.gradle.internal.project.ImmutableProjectDescriptor
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
@@ -358,7 +362,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
                     settings.rootProject.name = "gradle-kotlin-dsl-accessors"
-                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as ProjectDescriptorInternal)
+                    val projectDescriptor = descriptorForRoot(settings)
+                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, projectDescriptor)
                     projectState.createMutableModel(rootProjectScope, baseScope)
                     val rootProject = projectState.mutableModel
                     gradle.rootProject = rootProject
@@ -371,6 +376,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 }
             }
         }
+    }
+
+    private fun descriptorForRoot(settings: SettingsInternal): ImmutableProjectDescriptor {
+        val descriptor = settings.rootProject as ProjectDescriptorInternal
+        val identity = ProjectIdentity.forRootProject(settings.gradle.owner.identityPath, descriptor.name)
+        return DefaultImmutableProjectDescriptor(
+            identity, descriptor.projectDir, descriptor.projectDir, null, emptyList()
+        )
     }
 
     private
@@ -442,10 +455,12 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     componentIdentifier,
                     fileCollectionFactory.fixed(it.file)
                 )
+
                 is ProjectComponentIdentifier -> DefaultFileCollectionDependency(
                     OpaqueComponentIdentifier(ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY),
                     fileCollectionFactory.fixed(componentIdentifier.displayName, it.file)
                 )
+
                 else -> {
                     dependencyHandler.create(fileCollectionFactory.fixed(it.file))
                 }
@@ -478,10 +493,12 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String): String =
         buildString {
-            append(plugins.joinToString(
-                prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
-                separator = "\n",
-            ) { " - " + projectRelativePathOf(it) })
+            append(
+                plugins.joinToString(
+                    prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
+                    separator = "\n",
+                ) { " - " + projectRelativePathOf(it) }
+            )
             appendStdoutStderr(stdout, stderr)
         }
 

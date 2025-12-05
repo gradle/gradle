@@ -19,9 +19,20 @@ package org.gradle.internal.scripts;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.scripts.ScriptingLanguage;
 
+import java.io.File;
 import java.util.List;
 
 public class ScriptFileUtil {
+
+    public static File resolveBuildFile(File projectDir, ScriptFileResolver scriptFileResolver) {
+        File buildScriptFile = scriptFileResolver.resolveScriptFile(projectDir, BuildLogicFiles.BUILD_FILE_BASENAME);
+        if (buildScriptFile != null) {
+            return buildScriptFile;
+        }
+
+        // If the build script file is not found, we assume it is the default file with empty content
+        return new File(projectDir, BuildLogicFiles.DEFAULT_BUILD_FILE);
+    }
 
     public static String[] getValidSettingsFileNames() {
         return getFileNames(BuildLogicFiles.SETTINGS_FILE_BASENAME);

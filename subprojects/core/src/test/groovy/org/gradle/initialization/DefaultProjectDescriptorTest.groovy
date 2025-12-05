@@ -47,9 +47,8 @@ class DefaultProjectDescriptorTest extends Specification {
 
     def "can set project name"() {
         given:
-        def descriptor = projectDescriptor()
         def registry = Mock(ProjectDescriptorRegistry)
-        descriptor.setProjectDescriptorRegistry(registry)
+        def descriptor = projectDescriptor(null, registry)
 
         when:
         descriptor.name = "newName"
@@ -126,13 +125,13 @@ class DefaultProjectDescriptorTest extends Specification {
         buildFilename << ['build.gradle', 'build.gradle.kts']
     }
 
-    private ProjectDescriptor projectDescriptor(ScriptFileResolver scriptFileResolver = null) {
+    private ProjectDescriptor projectDescriptor(ScriptFileResolver scriptFileResolver = null, ProjectDescriptorRegistry descriptorRegistry = null) {
+        descriptorRegistry = descriptorRegistry == null ? this.descriptorRegistry : descriptorRegistry
         def parentDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"), descriptorRegistry, fileResolver, scriptFileResolver)
         def descriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, descriptorRegistry, fileResolver, scriptFileResolver)
         assertSame(parentDescriptor, descriptor.parent)
         assertThat(parentDescriptor.children.size(), is(1))
         assertTrue(parentDescriptor.children.contains(descriptor))
-        assertSame(descriptor.projectDescriptorRegistry, descriptorRegistry)
         assertThat(descriptor.name, equalTo(testName.methodName))
         assertThat(descriptor.projectDir, equalTo(testDirectory.canonicalFile))
         assertThat(descriptor.buildFileName, equalTo(Project.DEFAULT_BUILD_FILE))

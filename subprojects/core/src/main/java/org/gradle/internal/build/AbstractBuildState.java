@@ -26,7 +26,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.CloseableServiceRegistry;
-import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.Scope;
@@ -49,28 +48,24 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
         // Create the controllers using the services of the nested tree
         BuildModelControllerServices buildModelControllerServices = buildTree.getServices().get(BuildModelControllerServices.class);
         BuildModelControllerServices.Supplier supplier = buildModelControllerServices.servicesForBuild(buildDefinition, this);
-        buildServices = prepareServices(buildTree, buildDefinition, supplier);
+        buildServices = prepareServices(buildTree, supplier);
         buildLifecycleController = Lazy.locking().of(() -> buildServices.get(BuildLifecycleController.class));
         projectStateRegistry = Lazy.locking().of(() -> buildServices.get(ProjectStateRegistry.class));
         workGraphController = Lazy.locking().of(() -> buildServices.get(BuildWorkGraphController.class));
     }
 
-    private CloseableServiceRegistry prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+    private static CloseableServiceRegistry prepareServices(BuildTreeState buildTree, BuildModelControllerServices.Supplier supplier) {
         return ServiceRegistryBuilder.builder()
             .displayName("Build-scoped services")
             .scopeStrictly(Scope.Build.class)
             .parent(buildTree.getServices())
-            .provider(prepareServicesProvider(buildDefinition, supplier))
+            .provider(new BuildScopeServices(supplier))
             .build();
     }
 
     @Override
     public @Nullable BuildState getParent() {
         return parent;
-    }
-
-    protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-        return new BuildScopeServices(supplier);
     }
 
     protected CloseableServiceRegistry getBuildServices() {
