@@ -94,12 +94,13 @@ object BuildModelParametersProvider {
             if (isolatedProjects) parallelIsolatedProjectsAllowed
             else vintageParallel
 
+        val configurationCache = isolatedProjects || startParameter.configurationCache.get()
         // Isolated projects without parallelism must be safe, so we ignore the Parallel CC flag
         val parallelConfigurationCacheStore =
             if (isolatedProjects) parallelIsolatedProjectsAllowed && options[configurationCacheParallelStore]
-            else startParameter.isConfigurationCacheParallel && options[configurationCacheParallelStore]
+            else configurationCache && startParameter.isConfigurationCacheParallel && options[configurationCacheParallelStore]
         // Parallel load is always safe, as opposed to parallel store
-        val parallelConfigurationCacheLoad = options[configurationCacheParallelLoad]
+        val parallelConfigurationCacheLoad = configurationCache && options[configurationCacheParallelLoad]
 
         validateIsolatedProjectsCachingOption(options)
 
@@ -126,7 +127,6 @@ object BuildModelParametersProvider {
                 resilientModelBuilding = resilientModelBuilding
             )
         } else {
-            val configurationCache = isolatedProjects || startParameter.configurationCache.get()
 
             fun disabledConfigurationCacheBuildModelParameters(longBuildOption: String): BuildModelParameters {
                 return DefaultBuildModelParameters(
