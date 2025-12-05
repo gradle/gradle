@@ -357,7 +357,7 @@ Resolving configurations before the task execution phase can lead to incorrect r
 
 === Explanation
 
-Resolving a configuration - either directly via calling its link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method or indirectly via accessing its set of artifacts - returns a set of files that does not preserve references to the tasks that produced those files.
+Resolving a configuration - either directly via calling its link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method, its link:{javadocPath}/org/gradle/api/file/FileCollection.html#getFiles()[`getFiles()`] method, or indirectly via accessing its set of artifacts - returns a set of files that does not preserve references to the tasks that produced those files.
 
 Configurations _are_ file collections and can be added to `@InputFiles` properties on other tasks.
 It is important to do this correctly to avoid breaking automatic task dependency wiring between a consumer task and any tasks that are implicitly required to produce the artifacts being consumed.
