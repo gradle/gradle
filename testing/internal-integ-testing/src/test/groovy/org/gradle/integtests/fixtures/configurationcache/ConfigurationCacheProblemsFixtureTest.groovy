@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
+import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -36,6 +37,14 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
     private TestFile reportDir = dirProvider.file("build", "reports", "configuration-cache")
     private TestFile reportFile = reportDir.file("configuration-cache-report.html")
     private def fixture = new ConfigurationCacheProblemsFixture(rootDir)
+
+    def report() {
+        fixture.htmlReport()
+    }
+
+    def report(TestFile reportFile) {
+        fixture.htmlReport("See the complete report at " + new ConsoleRenderer().asClickableFileUrl(reportFile))
+    }
 
     def "findReportDir finds a single report dir"() {
         given:
@@ -87,12 +96,12 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(0)
 
         expect:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             totalProblemsCount = 0
         }
 
         when:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             totalProblemsCount = 1
         }
 
@@ -105,7 +114,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(1)
 
         when:
-        fixture.assertHtmlReportHasNoProblems()
+        report().assertHasNoProblems()
 
         then:
         def expectedFailure = thrown(AssertionError)
@@ -117,7 +126,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(1)
 
         when:
-        fixture.assertHtmlReportHasNoProblems()
+        report().assertHasNoProblems()
 
         then:
         def expectedFailure = thrown(AssertionError)
@@ -130,7 +139,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(0)
 
         expect:
-        fixture.assertHtmlReportHasNoProblems()
+        report().assertHasNoProblems()
     }
 
     def "resolveConfigurationCacheReport finds report link in console"() {
@@ -145,13 +154,13 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(2)
 
         expect:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             totalProblemsCount = 2
         }
 
         when:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             totalProblemsCount = 3
         }
@@ -165,13 +174,13 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(10, 2)
 
         expect:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             totalProblemsCount = 10
             problemsWithStackTraceCount = 2
         }
 
         when:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             totalProblemsCount = 10
             problemsWithStackTraceCount = 3
         }
@@ -183,7 +192,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
     def "assertHtmlReportHasNoProblems passes when there is a report with no failures"() {
         when:
-        fixture.assertHtmlReportHasNoProblems()
+        report().assertHasNoProblems()
 
         then:
         def expectedFailure = thrown(AssertionError)
@@ -192,7 +201,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
     def "assertHtmlReportHasProblems with implicit report dir fails when there is no report"() {
         when:
-        fixture.assertHtmlReportHasProblems()
+        report().assertHasProblems()
 
         then:
         def expectedFailure = thrown(AssertionError)
@@ -204,7 +213,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         !reportDir.isDirectory()
 
         when:
-        fixture.assertHtmlReportHasProblems(reportDir) {
+        report(reportFile).assertHasProblems {
             totalProblemsCount = 1
         }
 
@@ -218,7 +227,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         reportDir.createDir()
 
         when:
-        fixture.assertHtmlReportHasProblems(reportDir) {
+        report(reportFile).assertHasProblems {
             totalProblemsCount = 1
         }
 
@@ -231,7 +240,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(2)
 
         expect:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -240,7 +249,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         }
 
         when:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1"
@@ -252,7 +261,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure1.message == "HTML report JS model has wrong number of total problem(s)${NEWLINE}Expected: <1>${NEWLINE}     but: was <2>"
 
         when:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -266,7 +275,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure2.message == "HTML report JS model has wrong number of total problem(s)${NEWLINE}Expected: <3>${NEWLINE}     but: was <2>"
 
         when:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -283,7 +292,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(["Some problem 1", "Some problem 2"])
 
         when:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 2",
@@ -296,7 +305,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure.message.startsWith("Expected problem at #0 to be a string starting with \"Some problem 2\", but was: Some problem 1.")
 
         expect:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -309,7 +318,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(["Some problem 1",  "Some problem 2", "Some problem 1", "Some problem 3"])
 
         expect:
-        fixture.assertHtmlReportHasProblems {
+        report().assertHasProblems {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",

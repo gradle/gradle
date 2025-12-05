@@ -33,20 +33,19 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
         super(rootDir)
     }
 
-    void assertFailureHasError(
-        ExecutionFailure failure,
-        String error,
-        @DelegatesTo(value = HasConfigurationCacheErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertFailureHasError(failure, newErrorSpec(error, ConfigureUtil.configureUsing(specClosure)))
+    ConfigurationCacheReportFixture htmlReport(ExecutionResult result) {
+        return super.htmlReport(result.output)
     }
 
-    void assertFailureHasError(
-        ExecutionFailure failure,
-        HasConfigurationCacheErrorSpec spec
-    ) {
-        assertOutputHasError(failure.output, spec)
-        assertFailureDescription(failure, failureDescriptionMatcherForError(spec))
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated use {@link #htmlReport(ExecutionResult)}
+     */
+    @Override
+    @Deprecated
+    ConfigurationCacheReportFixture htmlReport(String output) {
+        return super.htmlReport(output)
     }
 
     void assertFailureHasProblems(
