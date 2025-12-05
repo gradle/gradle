@@ -103,20 +103,6 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
         assertIncompatibleTasks(result.output, rootDir, spec)
     }
 
-    void assertFailureHtmlReportHasProblems(
-        ExecutionFailure failure,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertHtmlReportHasProblems(failure.error, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
-    }
-
-    void assertResultHtmlReportHasProblems(
-        ExecutionResult result,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertHtmlReportHasProblems(result.output, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
-    }
-
     void assertResultConsoleSummaryHasNoProblems(ExecutionResult result) {
         assertThrows(AssertionFailedError) {
             extractSummary(result.output)
