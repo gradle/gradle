@@ -74,6 +74,10 @@ object BuildModelParametersProvider {
     val resilientModelBuilding =
         InternalFlag("org.gradle.internal.resilient-model-building", false)
 
+    @JvmStatic
+    private
+    val parallelToolingModelBuildingIgnoreLegacyDefault = "org.gradle.tooling.parallel.ignore.legacy-default"
+
     /**
      * Determines Gradle features and behaviors that are required or requested by the build action.
      *
@@ -133,16 +137,27 @@ object BuildModelParametersProvider {
     ): GradleVintageMode {
 
         val requiresModels = requirements.isCreatesModel
-        val parallelProjectExecution = requirements.startParameter.isParallelProjectExecutionEnabled
-
         return GradleVintageMode(
             requiresToolingModels = requiresModels,
-            parallelProjectExecution = parallelProjectExecution,
+            parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
             configureOnDemand = !requiresModels && startParameter.isConfigureOnDemand,
             configurationCacheDisabledReason = ccDisabledReason,
-            parallelToolingActions = requirements.startParameter.isParallelProjectExecutionEnabled,
+            parallelToolingActions = parallelModelBuildingForVintage(startParameter),
             resilientModelBuilding = options[resilientModelBuilding]
         )
+    }
+
+    private
+    fun parallelModelBuildingForVintage(startParameter: StartParameterInternal): Boolean {
+        val parallelModelBuildingOption = startParameter.parallelToolingModelBuilding
+        val parallelModelBuildingIgnoreLegacy =
+            java.lang.Boolean.parseBoolean(startParameter.systemPropertiesArgs[parallelToolingModelBuildingIgnoreLegacyDefault])
+        val parallelModelBuilding = when {
+            parallelModelBuildingOption.isExplicit -> parallelModelBuildingOption.get()
+            parallelModelBuildingIgnoreLegacy -> false
+            else -> startParameter.isParallelProjectExecutionEnabled
+        }
+        return parallelModelBuilding
     }
 
     private
