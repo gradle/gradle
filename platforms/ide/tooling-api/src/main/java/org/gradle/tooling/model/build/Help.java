@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling.model.build;
 
-package org.gradle.initialization
+import org.gradle.api.Incubating;
+import org.gradle.tooling.model.Model;
+import org.jspecify.annotations.NullMarked;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.launcher.cli.HelpFixture
+/**
+ * Provides user help content similar to what {@code gradle --help} provides on the CLI.
+ *
+ * @since 9.4.0
+ */
+@NullMarked
+@Incubating
+public interface Help extends Model {
 
-class GradleHelpIntegrationTest extends AbstractIntegrationSpec {
-    def "gradle -h is useful"() {
-        // This test doesn't actually start a daemon, but we need to require a daemon to avoid the in-process executer
-        executer.requireDaemon().requireIsolatedDaemons()
-
-        when:
-        succeeds("-h")
-        then:
-        output == HelpFixture.DEFAULT_OUTPUT
-    }
+    /**
+     * Returns rendered help content similar to what {@code gradle --help} provides on the CLI.
+     *
+     * @since 9.4.0
+     */
+    String getRenderedText();
 }

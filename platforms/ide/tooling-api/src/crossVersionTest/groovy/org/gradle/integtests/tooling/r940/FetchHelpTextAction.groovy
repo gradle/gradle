@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.integtests.tooling.r940
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.launcher.cli.HelpFixture
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.model.build.Help
 
-class GradleHelpIntegrationTest extends AbstractIntegrationSpec {
-    def "gradle -h is useful"() {
-        // This test doesn't actually start a daemon, but we need to require a daemon to avoid the in-process executer
-        executer.requireDaemon().requireIsolatedDaemons()
-
-        when:
-        succeeds("-h")
-        then:
-        output == HelpFixture.DEFAULT_OUTPUT
+class FetchHelpTextAction implements BuildAction<String> {
+    @Override
+    String execute(BuildController controller) {
+        controller.getModel(Help).renderedText
     }
 }

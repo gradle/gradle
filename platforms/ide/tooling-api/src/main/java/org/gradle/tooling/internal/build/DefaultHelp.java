@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling.internal.build;
 
-package org.gradle.initialization
+import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.jspecify.annotations.NullMarked;
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.launcher.cli.HelpFixture
+import java.io.Serializable;
 
-class GradleHelpIntegrationTest extends AbstractIntegrationSpec {
-    def "gradle -h is useful"() {
-        // This test doesn't actually start a daemon, but we need to require a daemon to avoid the in-process executer
-        executer.requireDaemon().requireIsolatedDaemons()
+@NullMarked
+public class DefaultHelp implements InternalProtocolInterface, Serializable {
+    private final String helpOutput;
 
-        when:
-        succeeds("-h")
-        then:
-        output == HelpFixture.DEFAULT_OUTPUT
+    public DefaultHelp(String helpOutput) {
+        this.helpOutput = helpOutput;
+    }
+
+    public String getRenderedText() {
+        return helpOutput;
     }
 }

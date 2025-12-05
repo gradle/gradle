@@ -88,6 +88,7 @@ dependencies {
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
+    crossVersionTestImplementation(testFixtures(projects.launcher))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)

@@ -16,9 +16,6 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
-import org.apache.tools.ant.Main;
-import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
@@ -33,7 +30,6 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -41,7 +37,6 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -54,13 +49,13 @@ import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.WelcomeMessageBuildOptions;
+import org.gradle.launcher.cli.internal.HelpRenderer;
+import org.gradle.launcher.cli.internal.VersionInfoRenderer;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
-import org.gradle.util.internal.DefaultGradleVersion;
 import org.jspecify.annotations.Nullable;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,31 +94,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
     private static BuildClientMetaData clientMetaData() {
         return new DefaultBuildClientMetaData(new GradleLauncherMetaData());
-    }
-
-    private static void showUsage(PrintStream out, CommandLineParser parser, @Nullable String suggestedTaskSelector) {
-        out.println();
-        out.print("To see more detail about a task, run ");
-        clientMetaData().describeCommand(out, "help --task <task>");
-        out.println();
-        if (suggestedTaskSelector != null) {
-            out.print("For example, ");
-            clientMetaData().describeCommand(out, "help --task " + suggestedTaskSelector);
-            out.println();
-        }
-        out.println();
-        out.print("To see a list of available tasks, run ");
-        clientMetaData().describeCommand(out, "tasks");
-        out.println();
-
-        out.println();
-
-        out.print("USAGE: ");
-        clientMetaData().describeCommand(out, "[option...]", "[task...]");
-        out.println();
-        out.println();
-        parser.printUsage(out);
-        out.println();
     }
 
     /**
@@ -185,8 +155,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     }
 
     private static class CommandLineParseFailureAction implements Action<ExecutionListener> {
-        private final Exception exception;
         private final CommandLineParser parser;
+        private final Exception exception;
 
         private final List<String> args;
 
@@ -200,7 +170,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             System.err.println();
             System.err.println(exception.getMessage());
-            showUsage(System.err, parser, getSuggestedTaskSelector());
+            String output = HelpRenderer.render(parser, getSuggestedTaskSelector(), false);
+            System.err.print(output);
             executionListener.onFailure(exception);
         }
 
@@ -226,11 +197,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            System.out.println();
-            System.out.print("To see help contextual to the project, use ");
-            clientMetaData().describeCommand(System.out, "help");
-            System.out.println();
-            showUsage(System.out, parser, getSuggestedTaskSelector());
+            String output = HelpRenderer.render(parser, getSuggestedTaskSelector(), true);
+            System.out.print(output);
         }
 
         @Nullable
@@ -252,80 +220,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
-
-            System.out.println();
-            System.out.println("------------------------------------------------------------");
-            System.out.println("Gradle " + currentVersion.getVersion());
-            System.out.println("------------------------------------------------------------");
-            System.out.println();
-            printAligned(ImmutableList.of(
-                new Line.KeyValue("Build time", currentVersion.getBuildTimestamp()),
-                new Line.KeyValue("Revision", currentVersion.getGitRevision()),
-                new Line.Blank(),
-                new Line.KeyValue("Kotlin", KotlinDslVersion.current().getKotlinVersion()),
-                new Line.KeyValue("Groovy", ReleaseInfo.getVersion()),
-                new Line.KeyValue("Ant", Main.getAntVersion()),
-                new Line.KeyValue("Launcher JVM", Jvm.current().toString()),
-                new Line.KeyValue("Daemon JVM", parameters.getDaemonParameters().getRequestedJvmCriteria().toString()),
-                new Line.KeyValue("OS", OperatingSystem.current().toString()),
-                new Line.Blank()
-            ));
-        }
-
-        private interface Line {
-            class KeyValue implements Line {
-                private final String key;
-                private final String value;
-
-                public KeyValue(String key, String value) {
-                    this.key = key;
-                    this.value = value;
-                }
-            }
-
-            class Blank implements Line {
-            }
-        }
-
-        /**
-         * Print a list of lines, aligning values to the right of the keys.
-         *
-         * <p>
-         * For example, given the following lines:
-         * <pre>
-         * new Line.KeyValue("Key", "Value"),
-         * new Line.KeyValue("Another key", "Another value"),
-         * new Line.Blank()
-         * </pre>
-         * This method would print:
-         * <pre>
-         * Key:          Value
-         * Another key:  Another value
-         * [blank line]
-         * </pre>
-         *
-         * @param lines the lines to print
-         */
-        private static void printAligned(List<Line> lines) {
-            int maxKeyLength = lines.stream()
-                .filter(line -> line instanceof Line.KeyValue)
-                .map(line -> ((Line.KeyValue) line).key.length())
-                .max(Integer::compare)
-                .orElse(0);
-            for (Line line : lines) {
-                if (line instanceof Line.KeyValue) {
-                    Line.KeyValue keyValue = (Line.KeyValue) line;
-                    System.out.print(keyValue.key + ": ");
-                    // Add one to account for colon
-                    for (int i = keyValue.key.length(); i < maxKeyLength + 1; i++) {
-                        System.out.print(' ');
-                    }
-                    System.out.println(keyValue.value);
-                } else {
-                    System.out.println();
-                }
-            }
+            String versionInfo = VersionInfoRenderer.renderWithLauncherJvm(parameters.getDaemonParameters().getRequestedJvmCriteria().toString());
+            System.out.print(versionInfo);
         }
     }
 
