@@ -38,6 +38,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -75,7 +76,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerSettingsServices(registration);
         }
-        registration.add(DefaultProjectDescriptorRegistry.class);
+        registration.add(ProjectDescriptorRegistry.class, DefaultProjectDescriptorRegistry.class);
     }
 
     @Provides
