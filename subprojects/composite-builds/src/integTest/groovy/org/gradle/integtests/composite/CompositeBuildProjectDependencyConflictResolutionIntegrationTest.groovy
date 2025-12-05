@@ -54,7 +54,6 @@ class CompositeBuildProjectDependencyConflictResolutionIntegrationTest extends A
     void moduleDefinition(String name, String definition) {
         buildTestFixture.populate(name) {
             buildFile << definition
-            buildFile << checkHelper(buildId, projectPath)
         }
     }
 
