@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.DeprecatedInGradleScope;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.jspecify.annotations.NullMarked;
@@ -29,6 +30,7 @@ import org.jspecify.annotations.NullMarked;
 @EventScope(Scope.Build.class)
 @NullMarked
 @Incubating
+@DeprecatedInGradleScope
 public interface TestMetadataListener {
 
     /**
