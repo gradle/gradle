@@ -65,8 +65,8 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
             cnf.setDescription("Artifacts for the version catalog");
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
-                attrs.attribute(Category.CATEGORY_ATTRIBUTE, project.getObjects().named(Category.class, Category.REGULAR_PLATFORM));
-                attrs.attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, Usage.VERSION_CATALOG));
+                attrs.attribute(Category.CATEGORY_ATTRIBUTE, attrs.named(Category.class, Category.REGULAR_PLATFORM));
+                attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.VERSION_CATALOG));
             });
         });
 

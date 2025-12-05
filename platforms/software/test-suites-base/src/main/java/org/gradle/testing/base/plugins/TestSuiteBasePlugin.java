@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.VerificationType;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
 
@@ -67,14 +66,13 @@ public abstract class TestSuiteBasePlugin implements Plugin<Project> {
         return project.getConfigurations().consumable(variantName, conf -> {
             conf.setDescription("Binary results obtained from running all targets in the '" + suite.getName() + "' Test Suite.");
 
-            ObjectFactory objects = project.getObjects();
             conf.attributes(attributes -> {
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, attributes.named(Category.class, Category.VERIFICATION));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, attributes.named(VerificationType.class, VerificationType.TEST_RESULTS));
 
                 // TODO: Allow targets to define attributes uniquely identifying themselves.
                 // Then, create a test results variant for each target instead of each suite.
-                attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
+                attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, attributes.named(TestSuiteName.class, suite.getName()));
             });
         });
     }

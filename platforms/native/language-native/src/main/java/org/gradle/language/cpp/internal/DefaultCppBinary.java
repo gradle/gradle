@@ -19,6 +19,7 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -64,31 +65,34 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
 
         @SuppressWarnings("deprecation")
         Configuration ipc = configurations.resolvableDependencyScopeLocked(names.withPrefix("cppCompile"), conf -> {
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            AttributeContainer attrs = conf.getAttributes();
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.C_PLUS_PLUS_API));
+            attrs.attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            attrs.attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            attrs.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            attrs.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
             conf.extendsFrom(getImplementationDependencies());
         });
         includePathConfiguration = ipc;
 
         @SuppressWarnings("deprecation")
         Configuration nativeLink = configurations.resolvableDependencyScopeLocked(names.withPrefix("nativeLink"), conf -> {
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_LINK));
-            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            AttributeContainer attrs = conf.getAttributes();
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.NATIVE_LINK));
+            attrs.attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            attrs.attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            attrs.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            attrs.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
             conf.extendsFrom(getImplementationDependencies());
         });
 
         Configuration nativeRuntime = configurations.resolvableLocked(names.withPrefix("nativeRuntime"), conf -> {
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.NATIVE_RUNTIME));
-            conf.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-            conf.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-            conf.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-            conf.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+            AttributeContainer attrs = conf.getAttributes();
+            attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.NATIVE_RUNTIME));
+            attrs.attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+            attrs.attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+            attrs.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+            attrs.attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
             conf.extendsFrom(getImplementationDependencies());
         });
 
