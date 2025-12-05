@@ -46,7 +46,7 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
     private static final long RETENTION_MILLIS = TimeUnit.DAYS.toMillis(DEFAULT_RETENTION_DAYS);
 
     /**
-     * Creates a new daemon log cleanup action with default retention period of 14 days.
+     * Creates a new daemon log cleanup action.
      *
      * @param daemonBaseDir the daemon base directory containing versioned daemon log directories
      * @param deleter the deleter to use for removing files
@@ -97,7 +97,8 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
         for (File logFile : logFiles) {
             if (logFile.lastModified() < maxAge) {
                 try {
-                    deleteLogFile(logFile);
+                    LOGGER.debug("Deleting old daemon log file at {}", logFile);
+                    deleter.deleteRecursively(logFile);
                     progressMonitor.incrementDeleted();
                 } catch (IOException e) {
                     LOGGER.warn("Could not delete old log file: {}", logFile.getAbsolutePath(), e);
@@ -107,11 +108,6 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
                 progressMonitor.incrementSkipped();
             }
         }
-    }
-
-    private void deleteLogFile(File logFile) throws IOException {
-        LOGGER.debug("Deleting old daemon log file at {}", logFile);
-        deleter.deleteRecursively(logFile);
     }
 }
 
