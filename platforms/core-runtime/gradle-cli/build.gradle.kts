@@ -38,8 +38,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.commonsIo)
-    implementation(libs.ant)
-    implementation(libs.groovy)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
@@ -57,6 +55,9 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
 
+    runtimeOnly(libs.groovy)
+
+    testImplementation(libs.ant)
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))
     testRuntimeOnly(projects.distributionsCore) {

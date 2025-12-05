@@ -165,6 +165,10 @@ class CustomPlugin implements Plugin<Project> {
             pluginManagement {
                 $repositoriesBlock
             }
+
+            dependencyResolutionManagement {
+                $repositoriesBlock
+            }
         """
         included.file("build.gradle.kts") << """
             plugins {
@@ -218,7 +222,8 @@ class CustomPlugin implements Plugin<Project> {
 
         @Override
         ModelResult execute(BuildController controller) {
-            GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
+            GradleBuild gradleBuild = controller.fetch(GradleBuild.class).model
+            assert gradleBuild != null
             List<String> successfulQueriedProjects = []
             List<String> failedQueriedProjects = []
             if (queryStrategy == ROOT_BUILD_FIRST) {

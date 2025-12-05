@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.cli;
+package org.gradle.util.internal;
 
-import org.gradle.util.internal.GUtil;
+import com.google.common.base.Preconditions;
+import org.jspecify.annotations.NullMarked;
 
 import java.net.URL;
 import java.util.Properties;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+@NullMarked
+public final class KotlinDslVersion {
 
-final class KotlinDslVersion {
-
-    static KotlinDslVersion current() {
+    public static KotlinDslVersion current() {
         ClassLoader loader = KotlinDslVersion.class.getClassLoader();
         URL resource = loader.getResource("gradle-kotlin-dsl-versions.properties");
-        checkNotNull(resource, "Gradle Kotlin DSL versions manifest was not found");
+        Preconditions.checkNotNull(resource, "Gradle Kotlin DSL versions manifest was not found");
         Properties versions = GUtil.loadProperties(resource);
         return new KotlinDslVersion(versions.getProperty("kotlin"));
     }
@@ -35,11 +35,11 @@ final class KotlinDslVersion {
     private final String kotlin;
 
     private KotlinDslVersion(String kotlin) {
-        checkNotNull(kotlin, "Kotlin version was not found");
+        Preconditions.checkNotNull(kotlin, "Kotlin version was not found");
         this.kotlin = kotlin;
     }
 
-    String getKotlinVersion() {
+    public String getKotlinVersion() {
         return kotlin;
     }
 }

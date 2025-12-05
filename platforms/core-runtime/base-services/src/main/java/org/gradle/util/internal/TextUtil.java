@@ -16,8 +16,8 @@
 
 package org.gradle.util.internal;
 
-import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
@@ -41,6 +41,7 @@ import java.util.stream.Stream;
  */
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
+    private static final Pattern LINE_SEPARATORS = Pattern.compile("\r\n|\r|\n");
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
@@ -82,14 +83,24 @@ public class TextUtil {
     }
 
     /**
-     * Converts all line separators in the specified non-null {@link CharSequence} to the specified line separator.
+     * Converts all line separators in the specified non-null string to the specified line separator.
      */
-    public static String replaceLineSeparatorsOf(CharSequence string, String bySeparator) {
-        return replaceAll("\r\n|\r|\n", string, bySeparator);
+    public static String replaceLineSeparatorsOf(String string, String bySeparator) {
+        if (isMultiLeLine(string)) {
+            return replaceAll(LINE_SEPARATORS, string, bySeparator);
+        } else {
+            return string;
+        }
     }
 
-    private static String replaceAll(String regex, CharSequence inString, String byString) {
-        return replaceAll(Pattern.compile(regex), inString, byString);
+    private static boolean isMultiLeLine(String string) {
+        for (int i = 0; i < string.length(); i++) {
+            char c = string.charAt(i);
+            if (c == '\n' || c == '\r') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String replaceAll(Pattern pattern, CharSequence inString, String byString) {
