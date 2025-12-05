@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -36,11 +36,28 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+
+### Test Metadata Logging
+
+Gradle now allows listening for test metadata events during test execution.
+In the exact same manner as [TestOutputListener](api/org/gradle/api/tasks/testing/TestOutputListener.html), a [TestMetadataListener](api/org/gradle/api/tasks/testing/TestMetadataListener.html) can be registered to receive metadata events emitted by the test framework during via the new [Test#addTestMetadataListener(TestMetadataListener)](dsl/org.gradle.api.tasks.testing.Test.html#addTestMetadataListener(TestMetadataListener)) method.
+
+```kotlin
+test {
+    addTestMetadataListener(object : TestMetadataListener {
+        override fun onMetadata(descriptor: TestDescriptor, event: TestMetadataEvent) {
+            logger.lifecycle("From listener: " + descriptor.toString() + " received event: " + event.toString())
+        }
+    })
+}
+```
+
+This addition enables support for additional JUnit Platform features, and allows tests to communicate additional information back to the process running the tests in a more structured manner than just logging to the standard output or error streams.
 
 ### Daemon logging improvements
 
@@ -79,7 +96,7 @@ import java.io.File;
 
 void main() {
     var projectDir = new File("/path/to/project");
-    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) { 
+    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) {
         System.out.println("--version:\n + " + conn.getModel(BuildEnvironment.class).getVersionInfo());
         System.out.println("--help:\n" + conn.getModel(Help.class).getRenderedText());
     }
@@ -103,8 +120,8 @@ Example:
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
 > LINK to the full documentation for more details
 
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button. 
+To embed videos, use the macros below.
+You can extract the URL from YouTube by clicking the "Share" button.
 For Wistia, contact Gradle's Video Team.
 @youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 @wistia(Summary,a5izazvgit)@
