@@ -13,6 +13,10 @@
                 <td/>
             </tr>
             <tr>
+                <td>testDefinitionDirs</td>
+                <td/>
+            </tr>
+            <tr>
                 <td>classpath</td>
                 <td/>
             </tr>
