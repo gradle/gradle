@@ -37,6 +37,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: false,
 
             isolatedProjects: false,
+            isolatedProjectsDiagnostics: false,
             parallelProjectConfiguration: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
@@ -317,6 +318,40 @@ class BuildModelParametersProviderTest extends Specification {
         false | true   | "false"   | false
         true  | true   | "tooling" | true
         true  | true   | "false"   | false
+
+        description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
+    }
+
+    def "parameters when isolated projects diagnostics are enabled for #description"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            isolatedProjects = Option.Value.value(true)
+            setIsolatedProjectsDiagnostics(true)
+
+            // These parameters will be ignored in Diagnostic IP
+            setConfigurationCacheParallel(true)
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsParallel.propertyName] = "true"
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.propertyName] = "tooling"
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            parallelProjectExecution: false,
+            configurationCache: true,
+            configurationCacheParallelLoad: true,
+            isolatedProjects: true,
+            isolatedProjectsDiagnostics: true,
+            invalidateCoupledProjects: true,
+            modelAsProjectDependency: models,
+            modelBuilding: models,
+            cachingModelBuilding: models,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
 
         description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
     }

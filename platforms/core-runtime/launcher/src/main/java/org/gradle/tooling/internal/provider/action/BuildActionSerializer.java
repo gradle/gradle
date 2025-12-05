@@ -152,6 +152,7 @@ public class BuildActionSerializer {
             encoder.writeSmallInt(startParameter.getConfigurationCacheEntriesPerKey());
             encoder.writeNullableString(startParameter.getConfigurationCacheHeapDumpDir());
             encoder.writeBoolean(startParameter.isConfigurationCacheFineGrainedPropertyTracking());
+            encoder.writeBoolean(startParameter.isIsolatedProjectsDiagnostics());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeLong(startParameter.getContinuousBuildQuietPeriod().toMillis());
@@ -247,6 +248,7 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCacheEntriesPerKey(decoder.readSmallInt());
             startParameter.setConfigurationCacheHeapDumpDir(decoder.readNullableString());
             startParameter.setConfigurationCacheFineGrainedPropertyTracking(decoder.readBoolean());
+            startParameter.setIsolatedProjectsDiagnostics(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(decoder.readLong()));
