@@ -16,15 +16,11 @@
 
 package org.gradle.internal.installation;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.classloader.ClasspathUtil;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
-public final class CurrentGradleInstallationLocator {
-
-    public static final String INTEGRATION_TEST_INSTALLATION_DIR_SYSTEM_PROPERTY = "integTest.gradleHomeDir";
+abstract class CurrentGradleInstallationLocator {
 
     private static final String BEACON_CLASS_NAME = "org.gradle.internal.installation.beacon.InstallationBeacon";
 
@@ -32,21 +28,10 @@ public final class CurrentGradleInstallationLocator {
     }
 
     public synchronized static CurrentGradleInstallation locate() {
-        CurrentGradleInstallation installation = locateViaClassLoader(CurrentGradleInstallationLocator.class.getClassLoader());
-        if (installation != null) {
-            return installation;
-        }
-
-//        String testHomeDir = System.getProperty(INTEGRATION_TEST_INSTALLATION_DIR_SYSTEM_PROPERTY);
-//        if (testHomeDir != null) {
-//            // We are not inside a distribution, but we are running in a test and a distribution has been provided.
-//            return new CurrentGradleInstallation(new GradleInstallation(new File(testHomeDir)));
-//        }
-
-        return new CurrentGradleInstallation(null);
+        return locateViaClassLoader(CurrentGradleInstallationLocator.class.getClassLoader());
     }
 
-    private @Nullable static CurrentGradleInstallation locateViaClassLoader(ClassLoader classLoader) {
+    private static CurrentGradleInstallation locateViaClassLoader(ClassLoader classLoader) {
         Class<?> clazz;
         try {
             clazz = classLoader.loadClass(BEACON_CLASS_NAME);
@@ -56,14 +41,13 @@ public final class CurrentGradleInstallationLocator {
         return locateViaClass(clazz);
     }
 
-    @VisibleForTesting
-    static @Nullable CurrentGradleInstallation locateViaClass(Class<?> clazz) {
+    static CurrentGradleInstallation locateViaClass(Class<?> clazz) {
         File dir = findDistDir(clazz);
-        if (dir != null) {
+        if (dir == null) {
+            return new CurrentGradleInstallation(null);
+        } else {
             return new CurrentGradleInstallation(new GradleInstallation(dir));
         }
-
-        return null;
     }
 
     private static File findDistDir(Class<?> clazz) {

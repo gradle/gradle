@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.internal.installation.CurrentGradleInstallationLocator;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GradleVersion;
@@ -38,7 +37,7 @@ public class IntegrationTestBuildContext {
 
     @Nullable
     public TestFile getGradleHomeDir() {
-        return optionalFile(CurrentGradleInstallationLocator.INTEGRATION_TEST_INSTALLATION_DIR_SYSTEM_PROPERTY);
+        return optionalFile("integTest.gradleHomeDir");
     }
 
     public TestFile getSamplesDir() {
