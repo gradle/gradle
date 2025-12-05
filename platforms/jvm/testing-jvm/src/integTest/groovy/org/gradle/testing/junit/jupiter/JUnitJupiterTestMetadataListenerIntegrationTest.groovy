@@ -19,7 +19,7 @@ package org.gradle.testing.junit.jupiter
 import org.gradle.api.tasks.testing.TestMetadataListener
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.testing.AbstractTestMetadataListenerIntegrationTest
+import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
@@ -27,7 +27,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
  * Integration tests for using {@link TestMetadataListener} with JUnit Jupiter tests.
  */
 @TargetCoverage({ JUNIT_JUPITER })
-class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestMetadataListenerIntegrationTest implements JUnitJupiterMultiVersionTest  {
+class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements JUnitJupiterMultiVersionTest  {
     def setup() {
         buildFile << """
             plugins {
