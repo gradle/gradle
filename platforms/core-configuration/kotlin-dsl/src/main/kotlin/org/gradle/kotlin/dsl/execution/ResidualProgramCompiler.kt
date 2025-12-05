@@ -20,7 +20,6 @@ import checkAllMetadataInClasspath
 import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
@@ -94,7 +93,7 @@ class ResidualProgramCompiler(
     private val implicitImports: List<String> = emptyList(),
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
-    private val classpathWalker: ClasspathWalker,
+    private val metadataCompatibilityChecker: MetadataCompatibilityChecker,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
@@ -714,7 +713,7 @@ class ResidualProgramCompiler(
     ): InternalName {
         return InternalName.from(
             compileBuildOperationRunner(originalPath, stage) {
-                checkAllMetadataInClasspath(compilerOptions, compileClassPath, classpathWalker)
+                checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
                 compileKotlinScriptToDirectory(
                     outputDir,
                     compilerOptions,
