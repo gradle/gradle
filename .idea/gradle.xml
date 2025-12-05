@@ -118,6 +118,7 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/guava-serialization-codecs" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/input-tracking" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/isolated-action-services" />
+            <option value="$PROJECT_DIR$/platforms/core-configuration/isolated-projects-impl" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/java-api-extractor" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/kotlin-dsl-integ-tests" />
