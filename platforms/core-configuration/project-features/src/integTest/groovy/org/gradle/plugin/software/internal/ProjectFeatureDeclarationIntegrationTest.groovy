@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.settings
+package org.gradle.plugin.software.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
+import org.gradle.internal.declarativedsl.settings.ProjectFeatureFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -48,7 +49,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     def 'can declare and configure a custom project feature from included build'() {
         given:
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
@@ -71,7 +72,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     def 'can declare and configure a custom project feature from published plugin'() {
         given:
         pluginPortal.start()
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
@@ -97,7 +98,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     def 'can declare and configure a custom project feature from plugin published to a custom repository'() {
         given:
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
 
@@ -191,7 +192,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom project feature with a definition that has public and implementation types'() {
         given:
-        PluginBuilder pluginBuilder = withProjectFeatureDefinitionThatHasPublicAndImplementationTypes()
+        PluginBuilder pluginBuilder = withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredUnsafe()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 

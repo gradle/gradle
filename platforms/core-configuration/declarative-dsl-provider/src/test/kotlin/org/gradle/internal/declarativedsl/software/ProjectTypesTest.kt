@@ -22,6 +22,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration
 import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
@@ -48,6 +49,7 @@ class ProjectTypesTest {
                     override fun getDefinitionPublicType(): Class<Subtype> = Subtype::class.java
                     override fun getDefinitionImplementationType(): Class<out Subtype> = definitionPublicType
                     override fun getTargetDefinitionType(): TargetTypeInformation<*> = TargetTypeInformation.DefinitionTargetTypeInformation(Project::class.java)
+                    override fun getDefinitionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.UNSAFE
                     override fun getBuildModelType(): Class<ModelType> = ModelType::class.java
                     override fun getBuildModelImplementationType(): Class<out ModelType> = buildModelType
                     override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java

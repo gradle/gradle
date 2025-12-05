@@ -38,4 +38,19 @@ public interface DeclaredProjectFeatureBindingBuilder<OwnDefinition extends Defi
      * @return this builder
      */
     DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withBuildModelImplementationType(Class<? extends OwnBuildModel> implementationType);
+
+    /**
+     * Indicates that the definition object is not safe.  A safe definition is one that:
+     * <ul>
+     *     <li>Is implemented as an interface only (i.e. not an abstract class)</li>
+     *     <li>Does not inject any services</li>
+     *     <li>Does not contain a nested object that injects any services</li>
+     *     <li>Does not also have an implementation type</li>
+     * </ul>
+     *
+     * If a definition does not meet these criteria, it must be marked as unsafe using this method.
+     *
+     * @return this builder
+     */
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeDefinition();
 }

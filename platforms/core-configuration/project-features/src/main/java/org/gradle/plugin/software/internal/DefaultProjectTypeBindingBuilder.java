@@ -37,8 +37,7 @@ import java.util.List;
 public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuilderInternal {
     private final List<DeclaredProjectFeatureBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
 
-    @Override
-    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
+    private <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
         // This needs to be an anonymous class for configuration cache compatibility
         ProjectFeatureApplyAction<T, V, ?> featureTransform = new ProjectFeatureApplyAction<T, V, Object>() {
             @Override
@@ -47,7 +46,8 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
             }
         };
 
-        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(definitionClass,
+        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(
+            definitionClass,
             buildModelClass,
             new TargetTypeInformation.DefinitionTargetTypeInformation<>(Project.class),
             Path.path(name),

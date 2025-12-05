@@ -1130,7 +1130,7 @@
     "name": "project-features",
     "path": "platforms/core-configuration/project-features",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

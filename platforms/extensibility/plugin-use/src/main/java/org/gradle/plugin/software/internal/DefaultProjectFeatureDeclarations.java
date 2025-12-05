@@ -33,15 +33,19 @@ import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
 import org.gradle.api.internal.plugins.ProjectTypeBinding;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.Cast;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -101,12 +105,17 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             throw new IllegalArgumentException("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
         }
 
+        if (binding.getDefinitionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE) {
+            validateDefinitionSafety(binding);
+        }
+
         projectFeatureImplementationsBuilder.put(
             projectFeatureName,
             new DefaultProjectFeatureImplementation<>(
                 projectFeatureName,
                 binding.getDefinitionType(),
                 binding.getDefinitionImplementationType().orElse(binding.getDefinitionType()),
+                binding.getDefinitionSafety(),
                 binding.targetDefinitionType(),
                 binding.getBuildModelType(),
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
@@ -149,6 +158,35 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 registerFeature(registeringPluginKey, pluginClass, binding, projectFeatureImplementationsBuilder)
             );
         }
+    }
+
+    private void validateDefinitionSafety(ProjectFeatureBindingDeclaration<?, ?> binding) {
+        if (binding.getDefinitionImplementationType().isPresent() && !binding.getDefinitionImplementationType().get().equals(binding.getDefinitionType())) {
+            throw new IllegalArgumentException("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but has an implementation type '" + binding.getDefinitionImplementationType().get().getSimpleName() + "'.  Safe definitions must not specify an implementation type.");
+        }
+
+        if (!binding.getDefinitionType().isInterface()) {
+            throw new IllegalArgumentException("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but is not an interface.  Safe definition types must be an interface.");
+        }
+
+        List<String> errors = new ArrayList<>();
+        validateDefinition(binding.getDefinitionType(), errors);
+        if (!errors.isEmpty()) {
+            throw new IllegalArgumentException("Project feature '" + binding.getName() + "' has a definition type which was declared safe but has the following issues: \n\t- " + String.join("\n\t- ", errors));
+        }
+    }
+
+    private void validateDefinition(Class<?> definitionType, List<String> errors) {
+        TypeMetadata definitionTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(definitionType);
+        definitionTypeMetadata.getTypeAnnotationMetadata().getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
+            if (propertyMetadata.isAnnotationPresent(Inject.class)) {
+                errors.add("The definition type has @Inject annotated property '" + propertyMetadata.getPropertyName() + "' in type '" + definitionType.getSimpleName() + "'.  Safe definition types cannot inject services.");
+            }
+
+            if (propertyMetadata.isAnnotationPresent(Nested.class)) {
+                validateDefinition(propertyMetadata.getDeclaredReturnType().getRawType(), errors);
+            }
+        });
     }
 
     @Override
