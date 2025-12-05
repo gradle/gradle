@@ -60,45 +60,12 @@ class ConfigurationCacheProblemsFixture {
         this.rootDir = rootDir instanceof TestFile ? rootDir : new TestFile(rootDir)
     }
 
-    static HasConfigurationCacheProblemsSpec newProblemsSpec(
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        return newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
-    }
-
     protected static HasConfigurationCacheProblemsSpec newProblemsSpec(
         Action<HasConfigurationCacheProblemsSpec> specAction
     ) {
         def spec = new HasConfigurationCacheProblemsSpec()
         specAction.execute(spec)
         return spec
-    }
-
-    static HasConfigurationCacheErrorSpec newErrorSpec(
-        String error,
-        @DelegatesTo(value = HasConfigurationCacheErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        return newErrorSpec(error, ConfigureUtil.configureUsing(specClosure))
-    }
-
-    static HasConfigurationCacheErrorSpec newErrorSpec(
-        String error,
-        Action<HasConfigurationCacheErrorSpec> specAction
-    ) {
-        def spec = new HasConfigurationCacheErrorSpec(error)
-        specAction.execute(spec)
-        return spec
-    }
-
-    void assertOutputHasError(String output, HasConfigurationCacheErrorSpec spec) {
-        spec.validateSpec()
-
-        if (spec.hasProblems()) {
-            assertHasConsoleSummary(output, spec)
-            assertProblemsHtmlReport(output, rootDir, spec)
-        } else {
-            assertNoProblemsSummary(output)
-        }
     }
 
     void assertHtmlReportHasProblems(
@@ -156,9 +123,6 @@ class ConfigurationCacheProblemsFixture {
         assertIncompatibleTasks(reportDir, spec)
     }
 
-    protected static Matcher<String> failureDescriptionMatcherForError(HasConfigurationCacheErrorSpec spec) {
-        return equalTo("Configuration cache state could not be cached: ${spec.error}".toString())
-    }
 
     protected static Matcher<String> failureDescriptionMatcherForProblems(HasConfigurationCacheProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
@@ -548,17 +512,6 @@ ${text}
             this.uniqueProblems = uniqueProblems
             this.messages = messages
         }
-    }
-}
-
-final class HasConfigurationCacheErrorSpec extends HasConfigurationCacheProblemsSpec {
-
-    @PackageScope
-    String error
-
-    @PackageScope
-    HasConfigurationCacheErrorSpec(String error) {
-        this.error = error
     }
 }
 
