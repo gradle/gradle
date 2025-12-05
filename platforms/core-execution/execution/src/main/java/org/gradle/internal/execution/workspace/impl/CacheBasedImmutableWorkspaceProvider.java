@@ -21,6 +21,7 @@ import org.gradle.cache.FineGrainedCacheBuilder;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.FineGrainedPersistentCache;
+import org.gradle.cache.FineGrainedPersistentCache.LockType;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -28,6 +29,7 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheMarkAndSweepDeleter;
@@ -105,16 +107,8 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             }
 
             @Override
-            public <T> T withProcessLock(Supplier<T> supplier) {
-                return cache.useCache(path, supplier);
-            }
-
-            @Override
-            public void withDeletionLock(Runnable supplier) {
-                deleter.withDeletionLock(path, () -> {
-                    supplier.run();
-                    return null;
-                });
+            public <T> T withProcessLock(Function<LockType, T> action) {
+                return cache.useCacheWithLockInfo(path, action);
             }
 
             @Override

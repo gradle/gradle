@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.cache.FineGrainedPersistentCache.LockType;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
@@ -111,18 +112,25 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
         // We are reading/invalidating snapshots, only one thread should do that at a time.
         return workspace.withThreadLock(() -> loadImmutableWorkspaceIfExists(work, workspace)
-            .orElseGet(() -> workspace.withProcessLock(() -> loadImmutableWorkspaceIfCompleted(work, workspace)
-                .map(workspaceResult -> {
-                    // If the workspace is loaded, it means one process could already create/fix the workspace,
-                    // and we need to invalidate snapshots, since snapshots were cached when we read it in loadImmutableWorkspaceIfExists step
-                    fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                    return workspaceResult;
-                })
-                .orElseGet(() -> {
-                    workspace.deleteStaleFiles();
-                    fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                    return executeInWorkspace(work, context, workspace);
-                }))));
+            .orElseGet(() -> workspace.withProcessLock(lockType -> {
+                    WorkspaceResult result = loadImmutableWorkspaceIfCompleted(work, workspace)
+                        .map(workspaceResult -> {
+                            // If the workspace is loaded, it means one process could already create/fix the workspace,
+                            // and we need to invalidate snapshots, since snapshots were cached when we read it in loadImmutableWorkspaceIfExists step
+                            fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+                            return workspaceResult;
+                        })
+                        .orElseGet(() -> {
+                            workspace.deleteStaleFiles();
+                            fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+                            return executeInWorkspace(work, context, workspace);
+                        });
+                    if (lockType == LockType.CLEANUP_LOCK) {
+                        workspace.unstale();
+                    }
+                    return result;
+                }
+            )));
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, LockingImmutableWorkspace workspace) {
@@ -131,10 +139,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         switch (snapshot.getType()) {
             case Directory:
                 if (workspace.isStale()) {
-                    // If the workspace is stale, we cannot load workspace.
-                    // Deletion could run right now, so let's first wait for deletion to finish if it's running
-                    // or prevent it from deleting the workspace by unstaling it.
-                    workspace.withDeletionLock(workspace::unstale);
+                    // If the workspace is stale, we cannot load workspace and we need to load it under the process lock.
                     return Optional.empty();
                 }
                 return loadImmutableWorkspaceIfCompleted(work, workspace);

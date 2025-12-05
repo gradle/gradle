@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.cache.FineGrainedPersistentCache
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.Execution
@@ -34,6 +35,7 @@ import spock.lang.Ignore
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.function.BiFunction
+import java.util.function.Function
 import java.util.function.Supplier
 
 class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityContext> {
@@ -165,10 +167,10 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 }
 
                 @Override
-                <T> T withProcessLock(Supplier<T> supplier) {
+                def <T> T withProcessLock(Function<FineGrainedPersistentCache.LockType, T> action) {
                     immutableWorkspace.mkdirs()
                     immutableWorkspace.file(immutableWorkspace.name + ".lock").createFile()
-                    return supplier.get()
+                    return action.apply(FineGrainedPersistentCache.LockType.PRIMARY_LOCK)
                 }
 
                 @Override
@@ -186,10 +188,6 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                     return false
                 }
 
-                @Override
-                void withDeletionLock(Runnable supplier) {
-
-                }
             }
         }
     }

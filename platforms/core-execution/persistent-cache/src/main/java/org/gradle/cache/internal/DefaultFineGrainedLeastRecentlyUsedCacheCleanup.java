@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -58,7 +59,8 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
             deleter.addStaleMarker(file);
             return false;
         } else if (deleter.shouldBeDeleted(file)) {
-            return deleter.withDeletionLock(asKey(file), () -> {
+            // TODO: Handle correctly
+            return deleter.withDeletionLock(asKey(file), lockType -> {
                 // We need to recheck if the entry is still stale
                 // or some other process deleted it/recreated it before we acquired the lock.
                 if (deleter.isStale(file)) {
@@ -122,8 +124,8 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
         }
 
         @Override
-        public <T> T withDeletionLock(String path, Supplier<T> supplier) {
-            return cache.useCache(path, "-deletion", supplier);
+        public <T> T withDeletionLock(String path, Function<FineGrainedPersistentCache.LockType, T> supplier) {
+            return cache.useCacheWithLockInfo(path, supplier);
         }
 
         private void addStaleMarker(File entry) {

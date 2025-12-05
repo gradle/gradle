@@ -16,8 +16,10 @@
 
 package org.gradle.cache;
 
+import org.gradle.cache.FineGrainedPersistentCache.LockType;
+
 import java.io.File;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * A strategy for cleaning up fine-grained persistent caches.
@@ -56,6 +58,6 @@ public interface FineGrainedCacheCleanupStrategy {
          */
         boolean delete(File entry);
 
-        <T> T withDeletionLock(String key, Supplier<T> supplier);
+        <T> T withDeletionLock(String key, Function<LockType, T> supplier);
     }
 }

@@ -29,6 +29,7 @@ import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -104,37 +105,47 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
     }
 
     @Override
-    public <T> T useCache(String key, Supplier<? extends T> action) {
-        return useCache(key, "", action);
+    public <T> T useCacheWithLockInfo(String key, Function<LockType, ? extends T> action) {
+        String normalizedKey = DefaultFineGrainedPersistentCache.normalizeCacheKey(key);
+        return guard.guardByKey(normalizedKey, () -> {
+            try (@SuppressWarnings("unused") CacheFileLock lock = acquireLock(normalizedKey)) {
+                return action.apply(lock.lockType);
+            }
+        });
+    }
+
+    private CacheFileLock acquireLock(String key) {
+        FileLock lock = null;
+        LockType lockType = null;
+        while (lock == null) {
+            File staleMarker = new File(baseDir, key + "/.stale");
+            File lockFile = staleMarker.exists()
+                ? getLockFile(key, "cleanup")
+                : getLockFile(key, "");
+            lock = fileLockManager.lock(lockFile, DefaultLockOptions.mode(Exclusive), displayName, "");
+            boolean isStale = staleMarker.exists();
+            lockType = lockFile.getName().endsWith("cleanup.lock") ? LockType.CLEANUP_LOCK : LockType.PRIMARY_LOCK;
+            LockType expectedLock = isStale ? LockType.CLEANUP_LOCK : LockType.PRIMARY_LOCK;
+            boolean hasCorrectLock = lockType == expectedLock;
+            if (!hasCorrectLock) {
+                lock.close();
+                lock = null;
+            }
+        }
+        return new CacheFileLock(lock, lockType);
     }
 
     @Override
-    public <T> T useCache(String key, String lockSuffix, Supplier<? extends T> action) {
-        String cacheKey = normalizeCacheKey(key);
-        return guard.guardByKey(cacheKey, () -> withFileLock(cacheKey, lockSuffix, action));
+    public <T> T useCache(String key, Supplier<? extends T> action) {
+        return useCacheWithLockInfo(key, lockType -> action.get());
     }
 
     @Override
     public void useCache(String key, Runnable action) {
-        useCache(key, () -> {
+        useCacheWithLockInfo(key, lockType -> {
             action.run();
             return null;
         });
-    }
-
-    @Override
-    public void useCache(String key, String lockSuffix, Runnable action) {
-        useCache(key, lockSuffix, () -> {
-            action.run();
-            return null;
-        });
-    }
-
-    private <T> T withFileLock(String cacheKey, String lockSuffix, Supplier<? extends T> action) {
-        File lockFile = getLockFile(cacheKey, lockSuffix);
-        try (@SuppressWarnings("unused") FileLock lock = fileLockManager.lock(lockFile, DefaultLockOptions.mode(Exclusive), displayName, "")) {
-            return action.get();
-        }
     }
 
     private File getLockFile(String path, String lockSuffix) {
@@ -162,5 +173,20 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         String normalizedKey = FilenameUtils.separatorsToUnix(key);
         Preconditions.checkArgument(!normalizedKey.startsWith("/") && !normalizedKey.endsWith("/"), "Cache key path must be relative and not end with a slash: '%s'", key);
         return normalizedKey;
+    }
+
+    private static class CacheFileLock implements Closeable {
+        private final FileLock delegate;
+        private final LockType lockType;
+
+        public CacheFileLock(FileLock delegate, LockType lockType) {
+            this.delegate = delegate;
+            this.lockType = lockType;
+        }
+
+        @Override
+        public void close() {
+            delegate.close();
+        }
     }
 }
