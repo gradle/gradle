@@ -24,6 +24,7 @@ import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
@@ -45,7 +46,6 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
-import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -124,12 +124,7 @@ class DefaultBuildController implements
 
         BuildTreeModelTarget scopedTarget = resolveTarget(target);
         try {
-            Object model = controller.getModel(scopedTarget, modelRequestContext);
-            if (model instanceof ToolingModelBuilderResultInternal) {
-                return (ToolingModelBuilderResultInternal) model;
-            } else {
-                return ToolingModelBuilderResultInternal.of(model);
-            }
+            return controller.getModel(scopedTarget, modelRequestContext);
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
@@ -177,9 +172,9 @@ class DefaultBuildController implements
     @Override
     public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
-            ToolingModelBuilderResultInternal model = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, true));
-            List<InternalFailure> failures = toInternalFailures(model.getFailures());
-            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(model.getModel()), failures);
+            ToolingModelBuilderResultInternal resultInternal = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, true));
+            List<InternalFailure> failures = toInternalFailures(resultInternal.getFailures());
+            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(resultInternal.getModel()), failures);
         } catch (Exception e) {
             List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
             return new DefaultInternalFetchModelResult<>(null, failures);

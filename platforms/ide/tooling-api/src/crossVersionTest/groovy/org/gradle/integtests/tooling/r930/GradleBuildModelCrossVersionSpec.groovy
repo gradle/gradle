@@ -76,9 +76,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     def loadGradleBuildModel(boolean resilient) {
         if (resilient) {
             return succeeds {
-                it.action(new FetchModelAction())
-                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                    .run()
+                it.action(new FetchModelAction()).run()
             }
         } else {
             return loadToolingModel(GradleBuild)
