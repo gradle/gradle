@@ -835,6 +835,11 @@ To use a non-class based testing framework, you need to:
  * Configure the `Test` task to use JUnit Platform
  * Tell the `TestEngine` where to find the tests using the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testDefinitionDirs[testDefinitionDirs] property of the Test task.
 
+This is all that is necessary to run non-class-based tests.
+The exact details of how to define these tests will depend on the specific `TestEngine` being used.
+
+NOTE: Though possible, it is not recommended to mix class-based and non-class-based tests in the same `Test` task.  Create a separate `Test` task for each type of test instead.  Using <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin, Java Test Suites>> makes this easy to do.
+
 === Basic Example
 
 Here is an example project structure for a non-class based testing setup.
