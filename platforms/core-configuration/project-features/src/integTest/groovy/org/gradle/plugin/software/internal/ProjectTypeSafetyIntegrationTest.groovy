@@ -109,6 +109,22 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
             "\t- The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.")
     }
 
+    def 'sensible error when definition is declared safe but inherits an injected service'() {
+        given:
+        withSafeProjectTypeAndInheritedInjectableDefinition().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+
+        when:
+        fails(":printTestProjectTypeDefinitionConfiguration")
+
+        then:
+        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues: \n" +
+            "\t- The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.")
+    }
+
     def 'sensible error when definition is declared safe but has an implementation class'() {
         given:
         withProjectTypeThatHasDifferentPublicAndImplementationModelTypesDeclaredSafe().prepareToExecute()

@@ -108,15 +108,26 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
+    PluginBuilder withProjectFeatureAndInjectableParentDefinitionDeclaredSafe() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionWithInjectableParentClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
     PluginBuilder withMultipleProjectFeaturePlugins() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
         def projectFeature = new ProjectFeaturePluginClassBuilder()
         def anotherFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
-            .implementationTypeClassName("AnotherFeatureDefinition")
+            .withClassName("AnotherFeatureDefinition")
         def anotherProjectFeature = new ProjectFeaturePluginClassBuilder()
-            .definitionImplementationType(anotherFeatureDefinition.implementationTypeClassName)
+            .definitionImplementationType(anotherFeatureDefinition.defaultClassName)
             .projectFeaturePluginClassName("AnotherProjectFeatureImplPlugin")
             .name("anotherFeature")
         def settingsBuilder = new SettingsPluginClassBuilder()
@@ -135,10 +146,10 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
     PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredUnsafe() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
-        def projectFeatureDefinition = new ProjectFeatureDefinitionWithPublicTypeClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionWithImplementationTypeClassBuilder()
         def projectFeature = new ProjectFeaturePluginClassBuilder()
             .definitionPublicType(projectFeatureDefinition.publicTypeClassName)
-            .definitionImplementationType(projectFeatureDefinition.implementationTypeClassName)
+            .definitionImplementationType(projectFeatureDefinition.defaultClassName)
             .withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
@@ -149,10 +160,10 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
     PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredSafe() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
-        def projectFeatureDefinition = new ProjectFeatureDefinitionWithPublicTypeClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionWithImplementationTypeClassBuilder()
         def projectFeature = new ProjectFeaturePluginClassBuilder()
             .definitionPublicType(projectFeatureDefinition.publicTypeClassName)
-            .definitionImplementationType(projectFeatureDefinition.implementationTypeClassName)
+            .definitionImplementationType(projectFeatureDefinition.defaultClassName)
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
@@ -457,7 +468,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
     }
 
     static class ProjectFeatureDefinitionClassBuilder {
-        String implementationTypeClassName = "FeatureDefinition"
+        String defaultClassName = "FeatureDefinition"
         boolean hasInjectedServices = false
         boolean hasNestedInjectedServices = false
 
@@ -471,20 +482,24 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             return this
         }
 
-        ProjectFeatureDefinitionClassBuilder implementationTypeClassName(String className) {
-            this.implementationTypeClassName = className
+        ProjectFeatureDefinitionClassBuilder withClassName(String className) {
+            this.defaultClassName = className
             return this
         }
 
         String getBuildModelFullClassName() {
-            return "${implementationTypeClassName}.FeatureModel"
+            return "${defaultClassName}.FeatureModel"
         }
 
         void build(PluginBuilder pluginBuilder) {
-            pluginBuilder.file("src/main/java/org/gradle/test/${implementationTypeClassName}.java") << getClassContent()
+            pluginBuilder.file("src/main/java/org/gradle/test/${defaultClassName}.java") << getClassContent()
         }
 
         protected String getClassContent() {
+            getDefaultClassContent(defaultClassName)
+        }
+
+        protected String getDefaultClassContent(String className) {
             return """
                 package org.gradle.test;
 
@@ -499,7 +514,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import org.gradle.api.model.ObjectFactory;
 
                 @${Restricted.class.simpleName}
-                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.FeatureModel> {
+                public interface ${className} extends ${Definition.class.simpleName}<${className}.FeatureModel> {
                     @${Restricted.class.simpleName}
                     Property<String> getText();
 
@@ -540,16 +555,11 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         }
     }
 
-    static class ProjectFeatureDefinitionWithPublicTypeClassBuilder extends ProjectFeatureDefinitionClassBuilder {
+    static class ProjectFeatureDefinitionWithImplementationTypeClassBuilder extends ProjectFeatureDefinitionClassBuilder {
         String publicTypeClassName = "FeatureDefinition"
 
-        ProjectFeatureDefinitionWithPublicTypeClassBuilder() {
-            this.implementationTypeClassName = publicTypeClassName + "Impl"
-        }
-
-        ProjectFeatureDefinitionWithPublicTypeClassBuilder withPublicType(String className) {
-            this.publicTypeClassName = className
-            return this
+        ProjectFeatureDefinitionWithImplementationTypeClassBuilder() {
+            this.defaultClassName = publicTypeClassName + "Impl"
         }
 
         @Override
@@ -561,7 +571,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends ${publicTypeClassName} {
+                public interface ${defaultClassName} extends ${publicTypeClassName} {
                     @Restricted
                     Property<String> getNonPublicProperty();
                 }
@@ -569,24 +579,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         }
 
         private String getPublicTypeContent() {
-            return """
-                package org.gradle.test;
-
-                import org.gradle.api.provider.Property;
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-                import ${Definition.class.name};
-                import ${BuildModel.class.name};
-
-                @Restricted
-                public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.FeatureModel> {
-                    @Restricted
-                    Property<String> getText();
-
-                    interface FeatureModel extends BuildModel {
-                        Property<String> getText();
-                    }
-                }
-            """
+            return getDefaultClassContent(publicTypeClassName)
         }
 
         @Override
@@ -612,11 +605,11 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
         @Override
         String getBuildModelFullClassName() {
-            return "${implementationTypeClassName}.${buildModelPublicTypeClassName}"
+            return "${defaultClassName}.${buildModelPublicTypeClassName}"
         }
 
         String getBuildModelFullImplementationClassName() {
-            return "${implementationTypeClassName}.${buildModelImplementationTypeClassName}"
+            return "${defaultClassName}.${buildModelImplementationTypeClassName}"
         }
 
         @Override
@@ -630,7 +623,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends Definition<${implementationTypeClassName}.${buildModelPublicTypeClassName}> {
+                public interface ${defaultClassName} extends Definition<${defaultClassName}.${buildModelPublicTypeClassName}> {
                     @Restricted
                     Property<String> getText();
 
@@ -658,7 +651,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.FeatureModel> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.FeatureModel> {
                     @Restricted
                     public abstract Property<String> getText();
 
@@ -667,6 +660,41 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     }
                 }
             """
+        }
+    }
+
+    static class ProjectFeatureDefinitionWithInjectableParentClassBuilder extends ProjectFeatureDefinitionClassBuilder {
+        String parentTypeClassName = "ParentFeatureDefinition"
+
+        ProjectFeatureDefinitionWithInjectableParentClassBuilder() {
+            // Add injected service to the parent
+            withInjectedServices()
+        }
+
+        @Override
+        protected String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.provider.Property;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+                @Restricted
+                public interface ${defaultClassName} extends ${parentTypeClassName} {
+                    @Restricted
+                    Property<String> getNonPublicProperty();
+                }
+            """
+        }
+
+        private String getPublicTypeContent() {
+            return getDefaultClassContent(parentTypeClassName)
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            super.build(pluginBuilder)
+            pluginBuilder.file("src/main/java/org/gradle/test/${parentTypeClassName}.java") << getPublicTypeContent()
         }
     }
 }

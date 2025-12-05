@@ -112,7 +112,7 @@ trait ProjectTypeFixture {
     }
 
     PluginBuilder withProjectTypeThatHasDifferentPublicAndImplementationModelTypesDeclaredUnsafe() {
-        def definition = new ProjectTypeDefinitionWithPublicTypeClassBuilder()
+        def definition = new ProjectTypeDefinitionWithImplementationTypeClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
             .definitionPublicTypeClassName(definition.publicTypeClassName)
             .definitionImplementationTypeClassName(definition.defaultClassName)
@@ -130,7 +130,7 @@ trait ProjectTypeFixture {
     }
 
     PluginBuilder withProjectTypeThatHasDifferentPublicAndImplementationModelTypesDeclaredSafe() {
-        def definition = new ProjectTypeDefinitionWithPublicTypeClassBuilder()
+        def definition = new ProjectTypeDefinitionWithImplementationTypeClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
             .definitionPublicTypeClassName(definition.publicTypeClassName)
             .definitionImplementationTypeClassName(definition.defaultClassName)
@@ -251,6 +251,19 @@ trait ProjectTypeFixture {
 
     PluginBuilder withSafeProjectTypeAndMultipleInjectableDefinition() {
         def definition = new ProjectTypeDefinitionClassBuilder().withInjectedServices().withNestedInjectedServices()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withSafeProjectTypeAndInheritedInjectableDefinition() {
+        def definition = new ProjectTypeDefinitionWithInjectableParentClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
@@ -677,10 +690,10 @@ trait ProjectTypeFixture {
         }
     }
 
-    static class ProjectTypeDefinitionWithPublicTypeClassBuilder extends ProjectTypeDefinitionClassBuilder {
+    static class ProjectTypeDefinitionWithImplementationTypeClassBuilder extends ProjectTypeDefinitionClassBuilder {
         String publicTypeClassName = "PublicTestProjectTypeDefinition"
 
-        ProjectTypeDefinitionWithPublicTypeClassBuilder() {
+        ProjectTypeDefinitionWithImplementationTypeClassBuilder() {
             this.defaultClassName = "TestProjectTypeDefinitionImpl"
         }
 
@@ -976,6 +989,43 @@ trait ProjectTypeFixture {
                     }
                 }
             """
+        }
+    }
+
+    static class ProjectTypeDefinitionWithInjectableParentClassBuilder extends ProjectTypeDefinitionClassBuilder {
+        String parentTypeClassName = "ParentTestProjectTypeDefinition"
+
+        ProjectTypeDefinitionWithInjectableParentClassBuilder() {
+            // Adds injected services to the parent
+            withInjectedServices()
+        }
+
+        @Override
+        String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import org.gradle.api.Action;
+                import org.gradle.api.model.ObjectFactory;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.provider.Property;
+
+                import javax.inject.Inject;
+
+                @Restricted
+                public interface ${defaultClassName} extends ${parentTypeClassName} { }
+            """
+        }
+
+        String getPublicClassContent() {
+            super.defaultClassContent(parentTypeClassName)
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            super.build(pluginBuilder)
+            pluginBuilder.file("src/main/java/org/gradle/test/${parentTypeClassName}.java") << getPublicClassContent()
         }
     }
 
