@@ -34,7 +34,6 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Ignore
 
 import java.util.function.Function
 import java.util.regex.Pattern
@@ -45,7 +44,6 @@ import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelB
 
 @ToolingApiVersion('>=9.4.0')
 @TargetGradleVersion('>=9.4.0')
-@Ignore("https://github.com/gradle/gradle-private/issues/4963")
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
     TestFile initScriptFile
@@ -831,16 +829,16 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         private static KotlinModel model(ProjectConnection conn, boolean resilient, QueryStrategy queryStrategy, File initScript) {
             def model = null
 
-            Iterable<String> arguments = [ "--init-script=${initScript.absolutePath}"]
+            Iterable<String> arguments = ["--init-script=${initScript.absolutePath}"]
             if (resilient) {
                 arguments += "-Dorg.gradle.internal.resilient-model-building=true"
             }
 
             conn.action()
-                    .projectsLoaded(new SetStartParameterAction()) {
+                    .projectsLoaded(new SetStartParameterAction(resilient)) {
                         it.contains("successful") || it.contains("unsuccessful")
                     }
-                    .buildFinished(new KotlinModelAction(queryStrategy, resilient)) {model = it }.build()
+                    .buildFinished(new KotlinModelAction(queryStrategy, resilient)) { model = it }.build()
                     .forTasks([])
                     .withArguments(*arguments)
                     .run()
@@ -849,18 +847,35 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     static class SetStartParameterAction implements BuildAction<String>, Serializable {
+
+        private final boolean resilient;
+
+        SetStartParameterAction(boolean resilient) {
+            this.resilient = resilient
+        }
+
         @Override
         String execute(BuildController controller) {
-            def gradleBuild = controller.getModel(GradleBuild)
-            def result = controller.fetch(gradleBuild.rootProject, StartParametersModel)
-            return result.failures.isEmpty() ? "successful" : "unsuccessful"
+            if (resilient) {
+                def gradleBuild = controller.fetch(GradleBuild).model
+                if (gradleBuild) {
+                    def result = controller.fetch(gradleBuild.rootProject, StartParametersModel)
+                    return result.failures.isEmpty() ? "successful" : "unsuccessful"
+                }
+                return "unsuccessful"
+            } else {
+                def gradleBuild = controller.getModel(GradleBuild)
+                def result = controller.getModel(gradleBuild.rootProject, StartParametersModel)
+                return result
+            }
         }
     }
 
     static class KotlinModelOnNullTargetAction implements BuildAction<KotlinModel>, Serializable {
         @Override
         KotlinModel execute(BuildController controller) {
-            GradleBuild build = controller.getModel(GradleBuild.class)
+            GradleBuild build = controller.fetch(GradleBuild.class).model
+            assert build != null
 
             Map<File, KotlinDslScriptModel> scriptModels = [:]
             Map<File, Failure> failures = [:]
