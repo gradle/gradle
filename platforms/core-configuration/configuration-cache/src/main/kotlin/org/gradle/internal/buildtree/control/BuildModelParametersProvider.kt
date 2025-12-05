@@ -135,12 +135,19 @@ object BuildModelParametersProvider {
         val requiresModels = requirements.isCreatesModel
         val parallelProjectExecution = requirements.startParameter.isParallelProjectExecutionEnabled
 
+        val parallelModelBuildingOption = startParameter.parallelToolingModelBuilding
+        val parallelModelBuilding = if (parallelModelBuildingOption.isExplicit) {
+            parallelModelBuildingOption.get()
+        } else {
+            parallelProjectExecution
+        }
+
         return GradleVintageMode(
             requiresToolingModels = requiresModels,
             parallelProjectExecution = parallelProjectExecution,
             configureOnDemand = !requiresModels && startParameter.isConfigureOnDemand,
             configurationCacheDisabledReason = ccDisabledReason,
-            parallelToolingActions = requirements.startParameter.isParallelProjectExecutionEnabled,
+            parallelToolingActions = parallelModelBuilding,
             resilientModelBuilding = options[resilientModelBuilding]
         )
     }
