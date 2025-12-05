@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildtree.control
 
-import org.gradle.api.GradleException
 import org.gradle.api.logging.Logging
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -29,15 +28,6 @@ internal class DefaultBuildModelParametersFactory : BuildModelParametersFactory 
     private val logger = Logging.getLogger(DefaultBuildModelParametersFactory::class.java)
 
     override fun parametersForRootBuildTree(requirements: BuildActionModelRequirements): BuildModelParameters {
-        val startParameter = requirements.startParameter
-
-        // Isolated projects also implies configuration cache
-        if (startParameter.isolatedProjects.get() && !startParameter.configurationCache.get()) {
-            if (startParameter.configurationCache.isExplicit) {
-                throw GradleException("The configuration cache cannot be disabled when isolated projects is enabled.")
-            }
-        }
-
         val modelParameters = BuildModelParametersProvider.parameters(requirements)
         logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
 

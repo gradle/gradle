@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.buildtree
 
+import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.StartParameterBuildOptions
@@ -74,9 +75,19 @@ object BuildModelParametersProvider {
     val resilientModelBuilding =
         InternalFlag("org.gradle.internal.resilient-model-building", false)
 
+    /**
+     * Determines Gradle features and behaviors that are required or requested by the build action.
+     *
+     * This includes features like Configuration Cache, Isolated Projects
+     * and their sub-behaviors (e.g., caching and parallelism controls).
+     *
+     * @throws org.gradle.api.GradleException if the requirements are contradictory
+     */
     @JvmStatic
     fun parameters(requirements: BuildActionModelRequirements): BuildModelParameters {
         val startParameter = requirements.startParameter
+        validateStartParameter(startParameter)
+
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         warnOnPreviouslyExistingOptions(options)
         val requiresModels = requirements.isCreatesModel
@@ -168,6 +179,16 @@ object BuildModelParametersProvider {
                     modelAsProjectDependency = modelAsProjectDependency,
                     resilientModelBuilding = resilientModelBuilding
                 )
+            }
+        }
+    }
+
+    private
+    fun validateStartParameter(startParameter: StartParameterInternal) {
+        // Isolated projects also implies configuration cache
+        if (startParameter.isolatedProjects.get() && !startParameter.configurationCache.get()) {
+            if (startParameter.configurationCache.isExplicit) {
+                throw GradleException("Configuration Cache cannot be disabled when Isolated Projects is enabled.")
             }
         }
     }

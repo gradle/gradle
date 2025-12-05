@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
@@ -81,7 +82,6 @@ class BuildModelParametersProviderTest extends Specification {
         "property-upgrade-report"     | { it.setPropertyUpgradeReportEnabled(true) }
         "write-verification-metadata" | { it.setWriteDependencyVerifications(["checksum"]) }
     }
-
 
     def "parameters when isolated projects are enabled for #description"() {
         given:
@@ -237,6 +237,18 @@ class BuildModelParametersProviderTest extends Specification {
 
         where:
         value << ['true', 'tasks']
+    }
+
+    def "configuration cache cannot be disabled when isolated projects enabled"() {
+        when:
+        parameters(runsTasks: true, createsModel: false) {
+            isolatedProjects = Option.Value.value(true)
+            configurationCache = Option.Value.value(false)
+        }
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Configuration Cache cannot be disabled when Isolated Projects is enabled."
     }
 
     private BuildModelParameters parameters(

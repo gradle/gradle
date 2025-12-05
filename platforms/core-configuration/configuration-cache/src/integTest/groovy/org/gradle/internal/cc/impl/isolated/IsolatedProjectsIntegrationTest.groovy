@@ -55,7 +55,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         isolatedProjectsFails("thing", "--no-configuration-cache")
 
         then:
-        failure.assertHasDescription("The configuration cache cannot be disabled when isolated projects is enabled.")
+        failure.assertHasDescription("Configuration Cache cannot be disabled when Isolated Projects is enabled.")
     }
 
     @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
