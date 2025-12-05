@@ -20,6 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.control.BuildModelParametersProvider
 import spock.lang.Specification
@@ -269,13 +270,10 @@ class BuildModelParametersProviderTest extends Specification {
     ) {
         boolean runsTasks = args.runsTasks
         boolean createsModel = args.createsModel
-        return BuildModelParametersProvider.parameters(requirements(runsTasks, createsModel, startParameterConfig))
-    }
-
-    private BuildActionModelRequirements requirements(boolean runsTasks, boolean createsModel, Closure startParameterConfig) {
         def startParameter = new StartParameterInternal()
         startParameter.with(startParameterConfig)
-        return requirements(runsTasks, createsModel, startParameter)
+        def options = new DefaultInternalOptions(startParameter.systemPropertiesArgs)
+        return BuildModelParametersProvider.parameters(requirements(runsTasks, createsModel, startParameter), options)
     }
 
     private BuildActionModelRequirements requirements(boolean runsTasks, boolean createsModel, StartParameterInternal startParameter) {

@@ -20,7 +20,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
@@ -83,9 +82,8 @@ object BuildModelParametersProvider {
      * @throws org.gradle.api.GradleException if the requirements are contradictory
      */
     @JvmStatic
-    fun parameters(requirements: BuildActionModelRequirements): BuildModelParameters {
+    fun parameters(requirements: BuildActionModelRequirements, options: InternalOptions): BuildModelParameters {
         val startParameter = requirements.startParameter
-        val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         warnOnPreviouslyExistingOptions(options)
 
         val ccDisabledReason = getConfigurationCacheDisabledReason(startParameter)
