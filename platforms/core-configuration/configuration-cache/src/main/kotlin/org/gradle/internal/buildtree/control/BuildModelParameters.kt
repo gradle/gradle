@@ -22,19 +22,19 @@ import org.gradle.internal.buildtree.BuildModelParameters
 internal sealed class AbstractBuildModelParameters : BuildModelParameters {
 
     override fun toDisplayMap(): Map<String, Any?> = mapOf(
-        "requiresToolingModels" to isRequiresToolingModels,
-        "parallelProjectExecution" to isParallelProjectExecution,
-        "configureOnDemand" to isConfigureOnDemand,
         "configurationCache" to isConfigurationCache,
         "configurationCacheDisabledReason" to configurationCacheDisabledReason,
-        "configurationCacheParallelStore" to isConfigurationCacheParallelStore,
         "configurationCacheParallelLoad" to isConfigurationCacheParallelLoad,
-        "isolatedProjects" to isIsolatedProjects,
-        "parallelProjectConfiguration" to isParallelProjectExecution,
+        "configurationCacheParallelStore" to isConfigurationCacheParallelStore,
+        "configureOnDemand" to isConfigureOnDemand,
         "intermediateModelCache" to isIntermediateModelCache,
-        "parallelToolingApiActions" to isParallelToolingApiActions,
         "invalidateCoupledProjects" to isInvalidateCoupledProjects,
+        "isolatedProjects" to isIsolatedProjects,
         "modelAsProjectDependency" to isModelAsProjectDependency,
+        "parallelProjectConfiguration" to isParallelProjectExecution,
+        "parallelProjectExecution" to isParallelProjectExecution,
+        "parallelToolingApiActions" to isParallelToolingApiActions,
+        "requiresToolingModels" to isRequiresToolingModels,
         "resilientModelBuilding" to isResilientModelBuilding,
     )
 }
