@@ -321,7 +321,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         def testDir = temporaryFolder.createDir("testClasses")
         testDir.mkdir()
-        new File(testDir, "Foo.java").createNewFile()
+        new File(testDir, "Foo.class").createNewFile()
         task.setTestClassesDirs(TestFiles.fixed(testDir))
 
         when:
