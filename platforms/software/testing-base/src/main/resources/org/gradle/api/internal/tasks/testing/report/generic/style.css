@@ -99,12 +99,14 @@ div.metadata td {
     padding-left: 5px;
 }
 
-.metadata tr.odd {
+.metadata tbody > tr:nth-child(odd),
+.attachments tbody > tr:nth-child(odd) {
     background-color: #f7f7f7;
     border: solid 1px #d0d0d0;
 }
 
-.metadata tr.even {
+.metadata tbody > tr:nth-child(even),
+.attachments tbody > tr:nth-child(even) {
     border: solid 1px #d0d0d0;
 }
 

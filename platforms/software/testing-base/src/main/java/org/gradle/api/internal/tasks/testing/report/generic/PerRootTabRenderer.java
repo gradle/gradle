@@ -44,7 +44,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -463,12 +462,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         private static void renderKeyValueValues(Iterable<DefaultTestKeyValueDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
-            Iterator<DefaultTestKeyValueDataEvent> metadataIterator = metadatas.iterator();
-            for (int metadataIdx = 0; metadataIterator.hasNext(); metadataIdx++) {
-                DefaultTestKeyValueDataEvent metadata = metadataIterator.next();
+            for (DefaultTestKeyValueDataEvent metadata : metadatas) {
                 Map<String, String> elements = metadata.getValues();
 
-                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                htmlWriter.startElement("tr");
                 htmlWriter.startElement("td").attribute("rowspan", Integer.toString(metadata.getValues().size() + 1))
                     .startElement("span").attribute("class", "time")
                         .characters(formatLogTime(metadata.getLogTime()))
@@ -477,7 +474,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 htmlWriter.endElement();
 
                 for (Map.Entry<String, String> element : elements.entrySet()) {
-                    htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+                    htmlWriter.startElement("tr");
                     htmlWriter
                         .startElement("td").attribute("class", "key")
                         .characters(element.getKey())
@@ -528,9 +525,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         private static void renderFileAttachmentValues(List<DefaultTestFileAttachmentDataEvent> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
-            for (int metadataIdx = 0; metadataIdx < metadatas.size(); metadataIdx++) {
-                DefaultTestFileAttachmentDataEvent metadata = metadatas.get(metadataIdx);
-                htmlWriter.startElement("tr").attribute("class", metadataIdx % 2 == 0 ? "even" : "odd");
+            for (DefaultTestFileAttachmentDataEvent metadata : metadatas) {
+                htmlWriter.startElement("tr");
                 htmlWriter.startElement("td").attribute("class", "key").characters(metadata.getPath().getFileName().toString()).endElement();
 
                 htmlWriter.startElement("td").attribute("class", "value");
