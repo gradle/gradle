@@ -34,6 +34,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Ignore
 
 import java.util.function.Function
 import java.util.regex.Pattern
@@ -44,6 +45,7 @@ import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelB
 
 @ToolingApiVersion('>=9.4.0')
 @TargetGradleVersion('>=9.4.0')
+@Ignore("https://github.com/gradle/gradle-private/issues/4963")
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
     TestFile initScriptFile
