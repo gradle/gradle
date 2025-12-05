@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
-import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
-import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
+import org.gradle.api.tasks.testing.TestFileAttachmentDataEvent;
+import org.gradle.api.tasks.testing.TestKeyValueDataEvent;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -83,14 +83,13 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     @Override
     @NullMarked
     public void onMetadata(TestDescriptor testDescriptor, TestMetadataEvent metadataEvent) {
-        // TODO: Shouldn't use impl types here - make sub-interfaces instead?
         if (shouldLogEvent(testDescriptor, TestLogEvent.METADATA)) {
-            if (metadataEvent instanceof DefaultTestKeyValueDataEvent) {
-                DefaultTestKeyValueDataEvent keyValueDataEvent = (DefaultTestKeyValueDataEvent) metadataEvent;
+            if (metadataEvent instanceof TestKeyValueDataEvent) {
+                TestKeyValueDataEvent keyValueDataEvent = (TestKeyValueDataEvent) metadataEvent;
                 String values = keyValueDataEvent.getValues().entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining());
                 logEvent(testDescriptor, TestLogEvent.METADATA, values);
-            } else if (metadataEvent instanceof DefaultTestFileAttachmentDataEvent) {
-                DefaultTestFileAttachmentDataEvent attachmentDataEvent = (DefaultTestFileAttachmentDataEvent) metadataEvent;
+            } else if (metadataEvent instanceof TestFileAttachmentDataEvent) {
+                TestFileAttachmentDataEvent attachmentDataEvent = (TestFileAttachmentDataEvent) metadataEvent;
                 logEvent(testDescriptor, TestLogEvent.METADATA, attachmentDataEvent.getPath().toString());
             } else {
                 logEvent(testDescriptor, TestLogEvent.METADATA, "Unknown metadata event type: " + metadataEvent.getClass());
