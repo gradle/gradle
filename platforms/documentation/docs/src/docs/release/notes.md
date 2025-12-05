@@ -52,7 +52,8 @@ Previously, however, Gradle’s [`Test`](dsl/org.gradle.api.tasks.testing.Test.h
 There are test sources present and no filters are applied, but the test task did not discover any tests to execute.
 ```
 
-    Now, tests can be defined in whatever format is understood by the `TestEngine`s being used.
+Now, tests can be defined in whatever format is understood by the configured `TestEngine`s.
+Gradle no longer requires a test class be present to “unlock” test execution.
 See <<java_testing.adoc#sec:non-class-based-testing,Java Testing User Manual section on Non-Class Based Testing>> for more information.
 
 #### Improved Cucumber support
@@ -95,7 +96,10 @@ For example:
 
 Gradle now captures this additional data and includes it in both the HTML test report and the XML test results.
 
-The HTML test report presents the data in 2 new `data` and `attachement` tabs, that will appear similarly to the existing `stdout` and `stderr` tabs, when this data is present.
+In the HTML test report, when such data is published during a test, two new tabs are shown alongside `stdout` and `stderr`:
+
+- Data – for key–value entries
+- Attachments – for file attachments
 
 In the JUnit XML report, the data is represented as:
 
