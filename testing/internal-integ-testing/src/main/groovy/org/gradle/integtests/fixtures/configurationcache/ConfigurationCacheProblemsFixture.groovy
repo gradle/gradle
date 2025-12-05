@@ -65,6 +65,7 @@ class ConfigurationCacheProblemsFixture {
     ) {
         def spec = new HasConfigurationCacheProblemsSpec()
         specAction.execute(spec)
+        spec.validateSpec()
         return spec
     }
 
