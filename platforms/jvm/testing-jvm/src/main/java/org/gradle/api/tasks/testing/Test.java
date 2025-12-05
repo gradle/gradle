@@ -762,7 +762,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private void verifyAppropriateFilterConfiguration() {
-        boolean hasClassBasedTests = !getCandidateClassFiles().isEmpty();
+        boolean hasClassBasedTests = !getTestClassesDirs().getAsFileTree().isEmpty();
         boolean hasDefinitionBasedTests = !getTestDefinitionDirs().isEmpty();
 
         if (!hasClassBasedTests) {
