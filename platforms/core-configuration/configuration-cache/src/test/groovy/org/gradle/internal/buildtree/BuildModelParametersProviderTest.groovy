@@ -18,26 +18,23 @@ package org.gradle.internal.buildtree
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.buildoption.Option
-import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
+import org.gradle.internal.buildtree.control.BuildModelParametersProvider
 import spock.lang.Specification
 
 class BuildModelParametersProviderTest extends Specification {
 
-    def "default parameters for #description"() {
-        given:
-        def params = parameters(runsTasks: tasks, createsModel: models)
-
-        expect:
-        checkParameters(params.toDisplayMap(), [
-            requiresToolingModels: models,
+    def defaults() {
+        [
+            requiresToolingModels: false,
             configureOnDemand: false,
             parallelProjectExecution: false,
             configurationCache: false,
             configurationCacheDisabledReason: null,
             configurationCacheParallelStore: false,
-            configurationCacheParallelLoad: true,
+            configurationCacheParallelLoad: false,
             isolatedProjects: false,
             parallelProjectConfiguration: false,
             parallelToolingApiActions: false,
@@ -45,6 +42,16 @@ class BuildModelParametersProviderTest extends Specification {
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
             resilientModelBuilding: false
+        ]
+    }
+
+    def "default parameters for #description"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models)
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            requiresToolingModels: models
         ])
 
         where:
@@ -64,21 +71,9 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
-            requiresToolingModels: false,
-            configureOnDemand: false,
-            parallelProjectExecution: false,
+        checkParameters(params.toDisplayMap(), defaults() + [
             configurationCache: false,
-            configurationCacheDisabledReason: "due to --$option",
-            configurationCacheParallelStore: false,
-            configurationCacheParallelLoad: false,
-            isolatedProjects: false,
-            parallelProjectConfiguration: false,
-            parallelToolingApiActions: false,
-            intermediateModelCache: false,
-            invalidateCoupledProjects: false,
-            modelAsProjectDependency: false,
-            resilientModelBuilding: false
+            configurationCacheDisabledReason: "due to --$option"
         ])
 
         where:
@@ -88,7 +83,6 @@ class BuildModelParametersProviderTest extends Specification {
         "write-verification-metadata" | { it.setWriteDependencyVerifications(["checksum"]) }
     }
 
-
     def "parameters when isolated projects are enabled for #description"() {
         given:
         def params = parameters(runsTasks: tasks, createsModel: models) {
@@ -96,21 +90,17 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
+        checkParameters(params.toDisplayMap(), defaults() + [
             requiresToolingModels: models,
-            configureOnDemand: false,
             parallelProjectExecution: true,
             configurationCache: true,
-            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: true,
-            intermediateModelCache: false,
+            parallelToolingApiActions: models,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true,
-            resilientModelBuilding: false
+            modelAsProjectDependency: models
         ])
 
         where:
@@ -130,21 +120,18 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
+        checkParameters(params.toDisplayMap(), defaults() + [
             requiresToolingModels: models,
             configureOnDemand: configureOnDemandExpected,
             parallelProjectExecution: true,
             configurationCache: true,
-            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: true,
-            intermediateModelCache: false,
+            parallelToolingApiActions: models,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true,
-            resilientModelBuilding: false
+            modelAsProjectDependency: models
         ])
 
         where:
@@ -173,21 +160,17 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
+        checkParameters(params.toDisplayMap(), defaults() + [
             requiresToolingModels: models,
-            configureOnDemand: false,
             parallelProjectExecution: ipParallelExpected,
             configurationCache: true,
-            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: ipParallelExpected,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: ipParallelExpected,
-            parallelToolingApiActions: ipParallelExpected,
-            intermediateModelCache: false,
+            parallelToolingApiActions: ipParallelExpected && models,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true,
-            resilientModelBuilding: false
+            modelAsProjectDependency: models
         ])
 
         where:
@@ -216,21 +199,18 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
+        checkParameters(params.toDisplayMap(), defaults() + [
             requiresToolingModels: models,
-            configureOnDemand: false,
             parallelProjectExecution: true,
             configurationCache: true,
-            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: true,
+            parallelToolingApiActions: models,
             intermediateModelCache: ipCachingExpected,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true,
-            resilientModelBuilding: false
+            modelAsProjectDependency: models
         ])
 
         where:
@@ -248,6 +228,7 @@ class BuildModelParametersProviderTest extends Specification {
     def "caching-ip parameter is unsupported for #value"() {
         when:
         parameters(runsTasks: true, createsModel: false) {
+            isolatedProjects = Option.Value.value(true)
             systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.propertyName] = value
         }
 
@@ -257,6 +238,27 @@ class BuildModelParametersProviderTest extends Specification {
 
         where:
         value << ['true', 'tasks']
+    }
+
+    def "configuration cache cannot be disabled when isolated projects enabled"() {
+        when:
+        parameters(runsTasks: true, createsModel: false) {
+            isolatedProjects = Option.Value.value(true)
+            configurationCache = Option.Value.value(false)
+        }
+
+        then:
+        def e = thrown(GradleException)
+        e.message == "Configuration Cache cannot be disabled when Isolated Projects is enabled."
+    }
+
+    def "display map contains all parameter getters"() {
+        def expectedGetterCount =
+            BuildModelParameters.methods.count { it.name.matches(/^(is|get)[A-Z].*/) && it.name != 'getClass' }
+
+        expect:
+        def params = parameters(runsTasks: true, createsModel: false)
+        expectedGetterCount == params.toDisplayMap().size()
     }
 
     private BuildModelParameters parameters(
