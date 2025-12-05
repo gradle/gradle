@@ -35,7 +35,7 @@ internal class DefaultBuildModelParametersFactory : BuildModelParametersFactory 
         }
 
         if (modelParameters.isIsolatedProjects) {
-            IncubationLogger.incubatingFeatureUsed("Isolated projects")
+            IncubationLogger.incubatingFeatureUsed("Isolated Projects")
         } else {
             if (modelParameters.isConfigurationCacheParallelStore) {
                 IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
