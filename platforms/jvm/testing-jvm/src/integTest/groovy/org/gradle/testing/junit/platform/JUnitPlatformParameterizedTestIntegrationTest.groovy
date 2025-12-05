@@ -55,13 +55,13 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
 
         then:
         def result = resultsFor(testDirectory)
-        result.assertAtLeastTestPathsExecuted("PassingWithDisabledParameterizedTest", "OnlyDisabledParameterizedTest")
         result.testPath("PassingWithDisabledParameterizedTest").onlyRoot()
             .assertChildCount(4, 0)
             .assertChildrenSkipped("disabledTest()", "disabledParameterizedTest(String)")
             .assertChildrenExecuted("passingTest()", "enabledParameterizedTest(String)")
-        result.testPathPreNormalized(":PassingWithDisabledParameterizedTest:enabledParameterizedTest(String):enabledParameterizedTest(String)[1]").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
-        result.testPathPreNormalized(":PassingWithDisabledParameterizedTest:enabledParameterizedTest(String):enabledParameterizedTest(String)[2]").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":PassingWithDisabledParameterizedTest:enabledParameterizedTest(String)").onlyRoot()
+            .assertChildCount(2, 0)
+            .assertChildrenExecuted("enabledParameterizedTest(String)[1]", "enabledParameterizedTest(String)[2]")
         result.testPath("OnlyDisabledParameterizedTest").onlyRoot()
             .assertChildCount(2, 0)
             .assertChildrenSkipped("disabledParameterizedTest1(String)", "disabledParameterizedTest2(String)")
