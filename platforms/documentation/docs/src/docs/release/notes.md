@@ -54,6 +54,31 @@ Problem details are displayed with a monospaced font to preserve the alignment o
 Duplicate information is reduced across the board for a better readability.
 The size of the report file is reduced.
 
+### Test Metadata Logging
+
+Gradle now allows listening for test metadata events during test execution.
+In the exact same manner as [TestOutputListener](api/org/gradle/api/tasks/testing/TestOutputListener.html), a [TestMetadataListener](api/org/gradle/api/tasks/testing/TestMetadataListener.html) can be registered to receive metadata events emitted by the test framework during via the new [Test#addTestMetadataListener(TestMetadataListener)](dsl/org.gradle.api.tasks.testing.Test.html#addTestMetadataListener(TestMetadataListener)) method.
+
+```kotlin
+test {
+    addTestMetadataListener(object : TestMetadataListener {
+        override fun onMetadata(descriptor: TestDescriptor, event: TestMetadataEvent) {
+            logger.lifecycle("From listener: " + descriptor.toString() + " received event: " + event.toString())
+        }
+    })
+}
+```
+
+The `Test` task also add an [Test#onMetadata(Closure)](dsl/org.gradle.api.tasks.testing.Test.html#onMetadata(Closure)) method as a convenience to register a callback to be notified using a closure:
+
+```kotlin
+test {
+    onMetadata { descriptor, event ->
+        logger.lifecycle("From closure: " + descriptor.toString() + " received event: " + event.toString())
+    }
+}
+```
+
 ### Daemon logging improvements
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
