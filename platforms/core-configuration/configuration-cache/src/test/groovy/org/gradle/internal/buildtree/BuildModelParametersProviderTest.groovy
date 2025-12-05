@@ -105,7 +105,7 @@ class BuildModelParametersProviderTest extends Specification {
         true  | true
     }
 
-    def "can disable parallel model building with internal property"() {
+    def "with parallel execution flag, can disable parallel model building with internal property"() {
         given:
         def params = parameters(runsTasks: tasks, createsModel: models) {
             parallelProjectExecutionEnabled = true
@@ -117,6 +117,69 @@ class BuildModelParametersProviderTest extends Specification {
             parallelProjectExecution: true,
             modelBuilding: models,
             parallelModelBuilding: false,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "with parallel execution flag, can disable parallel model building with ignore-legacy-default flag"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            parallelProjectExecutionEnabled = true
+            systemPropertiesArgs[BuildModelParametersProvider.parallelModelBuildingIgnoreLegacyDefault] = "true"
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            parallelProjectExecution: true,
+            modelBuilding: models,
+            parallelModelBuilding: false,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "with parallel execution flag, can disable parallel model building with a dedicated property"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            parallelProjectExecutionEnabled = true
+            parallelToolingModelBuilding = Option.Value.value(false)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            parallelProjectExecution: true,
+            modelBuilding: models,
+            parallelModelBuilding: false,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "can enable parallel model building with a dedicated property"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            parallelToolingModelBuilding = Option.Value.value(true)
+            parallelProjectExecutionEnabled = false // since there is no explicit value tracking for this, the value is ignored even if explicit
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            modelBuilding: models,
+            parallelModelBuilding: models,
+            parallelProjectExecution: models, // enabled automatically, because it's required for nested tooling actions parallelism
         ])
 
         where:
@@ -206,6 +269,62 @@ class BuildModelParametersProviderTest extends Specification {
         true  | true
 
         description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
+    }
+
+    def "with isolated projects, disabling parallel execution is ignored"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            isolatedProjects = Option.Value.value(true)
+            parallelProjectExecutionEnabled = false // since there is no explicit value tracking for this, the value is ignored even if explicitly set
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            modelBuilding: models,
+            parallelProjectExecution: true,
+            configurationCache: true,
+            configurationCacheParallelStore: true,
+            configurationCacheParallelLoad: true,
+            isolatedProjects: true,
+            parallelProjectConfiguration: true,
+            parallelModelBuilding: models,
+            invalidateCoupledProjects: true,
+            modelAsProjectDependency: models
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "with isolated projects, disabling parallel model building is ignored"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            isolatedProjects = Option.Value.value(true)
+            parallelToolingModelBuilding = Option.Value.value(false)
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            modelBuilding: models,
+            parallelProjectExecution: true,
+            configurationCache: true,
+            configurationCacheParallelStore: true,
+            configurationCacheParallelLoad: true,
+            isolatedProjects: true,
+            parallelProjectConfiguration: true,
+            parallelModelBuilding: models,
+            invalidateCoupledProjects: true,
+            modelAsProjectDependency: models
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
     }
 
     def "parameters when isolated projects are enabled for #description with configure-on-demand-ip=#ipConfigureOnDemand"() {
