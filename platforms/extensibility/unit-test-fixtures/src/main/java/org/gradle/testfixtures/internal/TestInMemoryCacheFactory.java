@@ -17,12 +17,14 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CacheVisitor;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
@@ -36,6 +38,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class TestInMemoryCacheFactory implements CacheFactory {
@@ -53,6 +56,12 @@ public class TestInMemoryCacheFactory implements CacheFactory {
             initializer.accept(cache);
         }
         return cache;
+    }
+
+    @Override
+    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cacheCleanupStrategy) throws CacheOpenException {
+        GFileUtils.mkdirs(cacheDir);
+        return new InMemoryFineGrainedCache(cacheDir, displayName, cacheCleanupStrategy);
     }
 
     public PersistentCache open(File cacheDir, String displayName) {
@@ -170,6 +179,74 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         @Override
         public String toString() {
             return getDisplayName();
+        }
+    }
+
+    private static class InMemoryFineGrainedCache implements FineGrainedPersistentCache {
+
+        private final File cacheDir;
+        private final String displayName;
+        @SuppressWarnings({"FieldCanBeLocal", "unused"})
+        private final CacheCleanupStrategy cleanup;
+        private final ProducerGuard<String> guard = ProducerGuard.adaptive();
+
+        public InMemoryFineGrainedCache(File cacheDir, String displayName, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cleanup) {
+            this.cacheDir = cacheDir;
+            this.displayName = displayName;
+            this.cleanup = cleanup.apply(this);
+        }
+
+        @Override
+        public File getBaseDir() {
+            return cacheDir;
+        }
+
+        @Override
+        public Collection<File> getReservedCacheFiles() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "InMemoryFineGrainedCache '" + displayName + "' " + cacheDir;
+        }
+
+        @Override
+        public File getCacheDir(String key) {
+            return new File(cacheDir, key);
+        }
+
+        @Override
+        public FineGrainedPersistentCache open() {
+            return this;
+        }
+
+        @Override
+        public <T> T useCacheWithLockInfo(String key, Function<LockType, ? extends T> action) {
+            return guard.guardByKey(key, () -> action.apply(LockType.PRIMARY_LOCK));
+        }
+
+        @Override
+        public <T> T useCache(String key, Supplier<? extends T> action) {
+            return useCacheWithLockInfo(key, lockType -> action.get());
+        }
+
+        @Override
+        public void useCache(String key, Runnable action) {
+            useCacheWithLockInfo(key, lockType -> {
+                action.run();
+                return null;
+            });
+        }
+
+        @Override
+        public void close() {
+
+        }
+
+        @Override
+        public void cleanup() {
+            cleanup.clean(this, Instant.now());
         }
     }
 }
