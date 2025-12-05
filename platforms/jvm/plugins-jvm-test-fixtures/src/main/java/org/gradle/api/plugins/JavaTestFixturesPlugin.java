@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -23,13 +24,13 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
+import org.gradle.api.plugins.jvm.JvmLibraryDependencies;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 
-import javax.inject.Inject;
 import java.util.Collections;
 
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
@@ -51,13 +52,19 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
  */
 public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
-    @Inject
-    public JavaTestFixturesPlugin() { }
+    /**
+     * The name of the JavaTestFixturesExtension.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    public static final String EXTENSION_NAME = "javaTestFixtures";
 
     @Override
     public void apply(Project project) {
 
         project.getPlugins().apply(JavaBasePlugin.class);
+        JavaTestFixturesExtension testFixturesExtension = project.getExtensions().create(EXTENSION_NAME, JavaTestFixturesExtension.class);
         JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
 
         SourceSet testFixturesSourceSet = extension.getSourceSets().maybeCreate(TEST_FIXTURES_FEATURE_NAME);
@@ -72,6 +79,8 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
 
         feature.withApi();
 
+        feature.wireDependencies(testFixturesExtension.getDependencies());
+
         project.getPluginManager().withPlugin("java", plugin -> {
             DefaultJvmSoftwareComponent component = (DefaultJvmSoftwareComponent) JavaPluginHelper.getJavaComponent(project);
             component.getFeatures().add(feature);
@@ -79,15 +88,16 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
             component.addVariantsFromConfiguration(feature.getApiElementsConfiguration(), new JavaConfigurationVariantMapping("compile", true, feature.getCompileClasspathConfiguration()));
             component.addVariantsFromConfiguration(feature.getRuntimeElementsConfiguration(), new JavaConfigurationVariantMapping("runtime", true, feature.getRuntimeClasspathConfiguration()));
 
-            createImplicitTestFixturesDependencies(feature, project);
+            createImplicitTestFixturesDependencies(project, testFixturesExtension);
         });
     }
 
-    private void createImplicitTestFixturesDependencies(JvmFeatureInternal feature, Project project) {
+    private void createImplicitTestFixturesDependencies(Project project, JavaTestFixturesExtension testFixturesExtension) {
         DependencyHandler dependencies = project.getDependencies();
+        JvmLibraryDependencies jvmLibraryDependencies = testFixturesExtension.getDependencies();
 
         // Test fixtures depend on the project.
-        feature.getApiConfiguration().getDependencies().add(dependencies.create(project));
+        jvmLibraryDependencies.getApi().add(jvmLibraryDependencies.project());
 
         // The tests depend on the test fixtures.
         SourceSet testSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();

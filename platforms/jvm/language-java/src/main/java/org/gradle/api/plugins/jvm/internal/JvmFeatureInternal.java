@@ -19,6 +19,8 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConsumableConfiguration;
+import org.gradle.api.plugins.jvm.JvmComponentDependencies;
+import org.gradle.api.plugins.jvm.JvmLibraryDependencies;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -65,6 +67,16 @@ public interface JvmFeatureInternal extends Named {
      * application features and test suites, which do not have APIs?
      */
     void withApi();
+
+    /**
+     * Wires the DependencyCollectors with the corresponding dependencyScope Configurations.
+     */
+    void wireDependencies(JvmLibraryDependencies dependencies);
+
+    /**
+     * Wires the DependencyCollectors with the corresponding dependencyScope Configurations.
+     */
+    void wireDependencies(JvmComponentDependencies dependencies);
 
     /**
      * Creates the javadoc elements configuration, which exposes the javadoc jar of this feature, if
