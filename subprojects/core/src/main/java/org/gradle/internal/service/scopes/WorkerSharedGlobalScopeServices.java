@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.api.internal.classpath.GlobalCacheRootsProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -48,6 +47,7 @@ import org.gradle.internal.file.impl.DefaultDeleter;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
@@ -69,6 +69,8 @@ import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
+
+import java.util.Collections;
 
 import static org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory;
 import static org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory;
@@ -181,14 +183,19 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         );
     }
 
-    @Provides({ModuleRegistry.class, GlobalCacheRootsProvider.class})
-    DefaultModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
+    @Provides
+    protected ModuleRegistry createModuleRegistry(CurrentGradleInstallation currentGradleInstallation) {
         return new DefaultModuleRegistry(currentGradleInstallation.getInstallation());
     }
 
     @Provides
-    GlobalCache createGlobalCache(GlobalCacheRootsProvider globalCacheRootsProvider) {
-        return globalCacheRootsProvider::getGlobalCacheRoots;
+    GlobalCache createGlobalCache(CurrentGradleInstallation currentGradleInstallation) {
+        GradleInstallation installation = currentGradleInstallation.getInstallation();
+        if (installation == null) {
+            return Collections::emptyList;
+        } else {
+            return installation::getLibDirs;
+        }
     }
 
     @Provides

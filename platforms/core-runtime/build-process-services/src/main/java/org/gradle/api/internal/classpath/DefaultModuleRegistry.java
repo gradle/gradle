@@ -29,7 +29,6 @@ import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -41,7 +40,7 @@ import java.util.zip.ZipFile;
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
 @NullMarked
-public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsProvider {
+public class DefaultModuleRegistry implements ModuleRegistry {
 
     private final GradleInstallation gradleInstallation;
     private final Map<String, Module> modules = new HashMap<>();
@@ -53,11 +52,6 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
         }
 
         this.gradleInstallation = gradleInstallation;
-    }
-
-    @Override
-    public List<File> getGlobalCacheRoots() {
-        return gradleInstallation.getLibDirs();
     }
 
     @Override
