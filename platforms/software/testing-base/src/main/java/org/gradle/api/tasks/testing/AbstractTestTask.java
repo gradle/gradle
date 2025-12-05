@@ -316,7 +316,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Registers a metadata listener with this task. Quicker way of hooking into metadata events is using the {@link #onMetadata(Closure)} method.
+     * Registers a metadata listener with this task.
      *
      * @param listener The listener to add.
      * @since 9.4.0
@@ -324,10 +324,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Incubating
     public void addTestMetadataListener(TestMetadataListener listener) {
         testMetadataListenerSubscriptions.addListener(listener);
-    }
-
-    private void addDispatchAsTestMetadataListener(String methodName, Closure closure) {
-        testMetadataListenerSubscriptions.addListener(new ClosureBackedMethodInvocationDispatch(methodName, closure));
     }
 
     /**
@@ -414,32 +410,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     public void onOutput(Closure closure) {
         addDispatchAsTestOutputListener("onOutput", closure);
-    }
-
-    // TODO: Should there be more specific public interface types to instanceof on here to get values
-
-    /**
-     * Adds a closure to be notified when metadata from the test is received. A {@link TestDescriptor} and {@link TestMetadataEvent} instance are
-     * passed to the closure as a parameter.
-     *
-     * <pre class='autoTested'>
-     * apply plugin: 'java'
-     *
-     * test {
-     *    onMetadata { descriptor, event -&gt;
-     *        if (event instance of DefaultTestKeyValueDataEvent) {
-     *            logger.error("Test: " + descriptor + ", metadata: " + event.values)
-     *        }
-     *    }
-     * }
-     * </pre>
-     *
-     * @param closure The closure to call.
-     * @since 9.4.0
-     */
-    @Incubating
-    public void onMetadata(Closure closure) {
-        addDispatchAsTestMetadataListener("onMetadata", closure);
     }
 
     /**
