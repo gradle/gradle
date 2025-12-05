@@ -25,13 +25,9 @@ import spock.lang.Specification
 
 class BuildModelParametersProviderTest extends Specification {
 
-    def "default parameters for #description"() {
-        given:
-        def params = parameters(runsTasks: tasks, createsModel: models)
-
-        expect:
-        checkParameters(params.toDisplayMap(), [
-            requiresToolingModels: models,
+    def defaults() {
+        [
+            requiresToolingModels: false,
             configureOnDemand: false,
             parallelProjectExecution: false,
             configurationCache: false,
@@ -45,6 +41,16 @@ class BuildModelParametersProviderTest extends Specification {
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
             resilientModelBuilding: false
+        ]
+    }
+
+    def "default parameters for #description"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models)
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            requiresToolingModels: models
         ])
 
         where:
@@ -64,21 +70,9 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
-            requiresToolingModels: false,
-            configureOnDemand: false,
-            parallelProjectExecution: false,
+        checkParameters(params.toDisplayMap(), defaults() + [
             configurationCache: false,
-            configurationCacheDisabledReason: "due to --$option",
-            configurationCacheParallelStore: false,
-            configurationCacheParallelLoad: false,
-            isolatedProjects: false,
-            parallelProjectConfiguration: false,
-            parallelToolingApiActions: false,
-            intermediateModelCache: false,
-            invalidateCoupledProjects: false,
-            modelAsProjectDependency: false,
-            resilientModelBuilding: false
+            configurationCacheDisabledReason: "due to --$option"
         ])
 
         where:
@@ -96,21 +90,17 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
+        checkParameters(params.toDisplayMap(), defaults() + [
             requiresToolingModels: models,
-            configureOnDemand: false,
             parallelProjectExecution: true,
             configurationCache: true,
-            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
             parallelToolingApiActions: true,
-            intermediateModelCache: false,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true,
-            resilientModelBuilding: false
+            modelAsProjectDependency: true
         ])
 
         where:
@@ -130,21 +120,18 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
+        checkParameters(params.toDisplayMap(), defaults() + [
             requiresToolingModels: models,
             configureOnDemand: configureOnDemandExpected,
             parallelProjectExecution: true,
             configurationCache: true,
-            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
             parallelToolingApiActions: true,
-            intermediateModelCache: false,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true,
-            resilientModelBuilding: false
+            modelAsProjectDependency: true
         ])
 
         where:
@@ -173,21 +160,17 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
+        checkParameters(params.toDisplayMap(), defaults() + [
             requiresToolingModels: models,
-            configureOnDemand: false,
             parallelProjectExecution: ipParallelExpected,
             configurationCache: true,
-            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: ipParallelExpected,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: ipParallelExpected,
             parallelToolingApiActions: ipParallelExpected,
-            intermediateModelCache: false,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true,
-            resilientModelBuilding: false
+            modelAsProjectDependency: true
         ])
 
         where:
@@ -216,12 +199,10 @@ class BuildModelParametersProviderTest extends Specification {
         }
 
         expect:
-        checkParameters(params.toDisplayMap(), [
+        checkParameters(params.toDisplayMap(), defaults() + [
             requiresToolingModels: models,
-            configureOnDemand: false,
             parallelProjectExecution: true,
             configurationCache: true,
-            configurationCacheDisabledReason: null,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
@@ -229,8 +210,7 @@ class BuildModelParametersProviderTest extends Specification {
             parallelToolingApiActions: true,
             intermediateModelCache: ipCachingExpected,
             invalidateCoupledProjects: true,
-            modelAsProjectDependency: true,
-            resilientModelBuilding: false
+            modelAsProjectDependency: true
         ])
 
         where:
