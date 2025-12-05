@@ -37,11 +37,11 @@ public final class CurrentGradleInstallationLocator {
             return installation;
         }
 
-        String testHomeDir = System.getProperty(INTEGRATION_TEST_INSTALLATION_DIR_SYSTEM_PROPERTY);
-        if (testHomeDir != null) {
-            // We are not inside a distribution, but we are running in a test and a distribution has been provided.
-            return new CurrentGradleInstallation(new GradleInstallation(new File(testHomeDir)));
-        }
+//        String testHomeDir = System.getProperty(INTEGRATION_TEST_INSTALLATION_DIR_SYSTEM_PROPERTY);
+//        if (testHomeDir != null) {
+//            // We are not inside a distribution, but we are running in a test and a distribution has been provided.
+//            return new CurrentGradleInstallation(new GradleInstallation(new File(testHomeDir)));
+//        }
 
         return new CurrentGradleInstallation(null);
     }
