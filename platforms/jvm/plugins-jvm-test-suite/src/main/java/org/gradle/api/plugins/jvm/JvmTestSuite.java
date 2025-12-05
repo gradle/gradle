@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
@@ -45,7 +44,7 @@ import org.gradle.testing.base.TestSuite;
  * @since 7.3
  */
 @Incubating
-public interface JvmTestSuite extends TestSuite, Buildable {
+public interface JvmTestSuite extends TestSuite {
 
     // TODO: Rename to getSourceSet next time changes are made in this area.
     /**

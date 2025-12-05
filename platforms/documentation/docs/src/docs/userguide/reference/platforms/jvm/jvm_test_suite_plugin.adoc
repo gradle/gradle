@@ -101,7 +101,7 @@ include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gra
 <4> Define a new suite called `integrationTest`.  Note that all suites other than the built-in `test` suite will by convention work as if `useJUnitJupiter()` was called.  You do *not* have to explicitly configure the testing framework on these additional suites, unless you wish to change to another framework.
 <5> Add a dependency on the production code of the project to the `integrationTest` suite targets.  By convention, only the built-in `test` suite will automatically have a dependency on the production code of the project.
 <6> Configure all targets of this suite.  By convention, test suite targets have no relationship to other `Test` tasks.  This example shows that the slower integration test suite targets should run after all targets of the `test` suite are complete.
-<7> Configure the `check` task to depend on all `integrationTest` targets.  By convention, test suite targets are not associated with the `check` task.
+<7> Configure the `check` task to depend on all `integrationTest` tasks.  By convention, test suite targets are not associated with the `check` task.
 
 Invoking the `check` task on the above configured build should show output similar to:
 
