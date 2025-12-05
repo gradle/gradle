@@ -49,8 +49,8 @@ def excludedTaskTypes = [
 
 gradle.lifecycle.afterProject { Project p ->
     p.tasks.register(SCHEDULE_ALL_TASK).configure { anchor ->
-        anchor.dependsOn tasks.matching { t ->
-            !excludedTaskTypes.any { it.isAssignableFrom(toVeto.class) } && !excludedTaskNames.contains(toVeto.name)
+        anchor.dependsOn p.tasks.matching { t ->
+            !excludedTaskTypes.any { it.isAssignableFrom(t.class) } && !excludedTaskNames.contains(t.name)
         }
     }
 }
