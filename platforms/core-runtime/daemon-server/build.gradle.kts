@@ -37,4 +37,5 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.core)
     implementation(projects.daemonProtocol)
+    implementation(projects.daemonLogging)
 }
