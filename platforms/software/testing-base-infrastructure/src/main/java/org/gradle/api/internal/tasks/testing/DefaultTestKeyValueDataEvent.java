@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.TestKeyValueDataEvent;
 import org.jspecify.annotations.NullMarked;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Key-value data published by a test
@@ -27,7 +29,8 @@ import java.util.Map;
  * This implementation is intended to be kept within the build process and workers.
  */
 @NullMarked
-public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent {
+public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent implements TestKeyValueDataEvent {
+    private static final int TO_STRING_VALUE_LIMIT = 10;
     private final Map<String, String> values;
 
     public DefaultTestKeyValueDataEvent(Instant logTime, Map<String, String> values) {
@@ -35,7 +38,17 @@ public class DefaultTestKeyValueDataEvent extends AbstractTestDataEvent {
         this.values = values;
     }
 
+    @Override
     public Map<String, String> getValues() {
         return values;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultTestKeyValueDataEvent{" +
+            "logTime=" + getLogTime() +
+            ", values=" + values.entrySet().stream().limit(TO_STRING_VALUE_LIMIT).map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(", ")) +
+            (values.size() > TO_STRING_VALUE_LIMIT ? ", ..." : "") +
+            '}';
     }
 }
