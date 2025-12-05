@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logging
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildModelParametersFactory
-import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import org.gradle.util.internal.IncubationLogger
 
 internal class DefaultBuildModelParametersFactory : BuildModelParametersFactory {

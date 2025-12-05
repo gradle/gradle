@@ -21,7 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.buildoption.Option
-import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
+import org.gradle.internal.buildtree.control.BuildModelParametersProvider
 import spock.lang.Specification
 
 class BuildModelParametersProviderTest extends Specification {
