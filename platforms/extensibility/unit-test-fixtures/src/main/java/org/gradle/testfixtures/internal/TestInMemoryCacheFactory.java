@@ -24,7 +24,6 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CacheVisitor;
-import org.gradle.cache.internal.DefaultFineGrainedPersistentCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
@@ -223,28 +222,21 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <T> T useCache(String key, Supplier<? extends T> action) {
-            return useCache(key, "", action);
+        public <T> T useCacheWithLockInfo(String key, Function<LockType, ? extends T> action) {
+            return guard.guardByKey(key, () -> action.apply(LockType.PRIMARY_LOCK));
         }
 
         @Override
-        public <T> T useCache(String key, String lockSuffix, Supplier<? extends T> action) {
-            // TODO
-            String normalizedKey = DefaultFineGrainedPersistentCache.normalizeCacheKey(key);
-            return guard.guardByKey(normalizedKey, action);
+        public <T> T useCache(String key, Supplier<? extends T> action) {
+            return useCacheWithLockInfo(key, lockType -> action.get());
         }
 
         @Override
         public void useCache(String key, Runnable action) {
-            useCache(key, () -> {
+            useCacheWithLockInfo(key, lockType -> {
                 action.run();
                 return null;
             });
-        }
-
-        @Override
-        public void useCache(String key, String lockSuffix, Runnable action) {
-            // TODO
         }
 
         @Override

@@ -16,7 +16,10 @@
 
 package org.gradle.internal.execution.workspace;
 
+import org.gradle.cache.FineGrainedPersistentCache.LockType;
+
 import java.io.File;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface ImmutableWorkspaceProvider {
@@ -34,20 +37,17 @@ public interface ImmutableWorkspaceProvider {
      */
     interface LockingImmutableWorkspace extends ImmutableWorkspace {
 
-
         boolean isStale();
 
         /**
          * Executes the given action under the global scoped lock.
          */
-        <T> T withProcessLock(Supplier<T> supplier);
+        <T> T withProcessLock(Function<LockType, T> action);
 
         <T> T withThreadLock(Supplier<T> supplier);
 
         void unstale();
 
         boolean deleteStaleFiles();
-
-        void withDeletionLock(Runnable supplier);
     }
 }
