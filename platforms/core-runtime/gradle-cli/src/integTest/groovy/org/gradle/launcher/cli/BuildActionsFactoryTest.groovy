@@ -43,6 +43,8 @@ import org.gradle.launcher.exec.BuildActionExecutor
 import org.gradle.process.internal.CurrentProcess
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.internal.provider.RunInProcess
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
@@ -104,6 +106,7 @@ class BuildActionsFactoryTest extends Specification {
         isDaemon action
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Tries to install agent twice")
     def "does not use daemon when no-daemon command line option issued"() {
         given:
         useCurrentProcess = true
@@ -150,6 +153,7 @@ class BuildActionsFactoryTest extends Specification {
         isSingleUseDaemon action
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Tries to install agent twice")
     def "daemon context can be built from current process"() {
         def request = createDaemonRequest()
         def currentJvmOptions = new JvmOptions(Mock(FileCollectionFactory))

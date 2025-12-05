@@ -140,10 +140,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private static CurrentGradleInstallation getCurrentInstallation() {
         TestFile gradleHomeDir = IntegrationTestBuildContext.INSTANCE.getGradleHomeDir();
-        if (gradleHomeDir != null) {
-            return new CurrentGradleInstallation(new GradleInstallation(gradleHomeDir));
+        if (gradleHomeDir == null) {
+            throw new IllegalStateException("Cannot run integration tests without a distribution.");
         }
-        return new CurrentGradleInstallation(null);
+        return new CurrentGradleInstallation(new GradleInstallation(gradleHomeDir));
     }
 
     private static ServiceRegistry newCommandLineProcessLogging() {

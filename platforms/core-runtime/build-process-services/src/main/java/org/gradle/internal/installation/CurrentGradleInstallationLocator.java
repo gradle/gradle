@@ -20,7 +20,9 @@ import org.gradle.internal.classloader.ClasspathUtil;
 
 import java.io.File;
 
-abstract class CurrentGradleInstallationLocator {
+public final class CurrentGradleInstallationLocator {
+
+    public static final String INTEGRATION_TEST_INSTALLATION_DIR_SYSTEM_PROPERTY = "integTest.gradleHomeDir";
 
     private static final String BEACON_CLASS_NAME = "org.gradle.internal.installation.beacon.InstallationBeacon";
 
@@ -43,11 +45,16 @@ abstract class CurrentGradleInstallationLocator {
 
     static CurrentGradleInstallation locateViaClass(Class<?> clazz) {
         File dir = findDistDir(clazz);
-        if (dir == null) {
-            return new CurrentGradleInstallation(null);
-        } else {
+        if (dir != null) {
             return new CurrentGradleInstallation(new GradleInstallation(dir));
         }
+
+        String testHomeDir = System.getProperty(INTEGRATION_TEST_INSTALLATION_DIR_SYSTEM_PROPERTY);
+        if (testHomeDir != null) {
+            return new CurrentGradleInstallation(new GradleInstallation(new File(testHomeDir)));
+        }
+
+        return new CurrentGradleInstallation(null);
     }
 
     private static File findDistDir(Class<?> clazz) {
