@@ -172,14 +172,16 @@ object BuildModelParametersProvider {
         }
         validateIsolatedProjectsCachingOption(options)
 
+        val diagnostics = startParameter.isIsolatedProjectsDiagnostics
         val configureOnDemand = isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
-        val parallelIsolatedProjects = isolatedProjectsParallel.forInvocation(requirements, options)
-        val parallelConfigurationCacheStore = parallelIsolatedProjects && options[configurationCacheParallelStore]
+        val parallelIsolatedProjects = !diagnostics && isolatedProjectsParallel.forInvocation(requirements, options)
+        val parallelConfigurationCacheStore = !diagnostics && parallelIsolatedProjects && options[configurationCacheParallelStore]
         val invalidateCoupledProjects = options[invalidateCoupledProjects]
 
         return if (requirements.isCreatesModel) {
             GradleIsolatedProjectsMode(
                 requiresToolingModels = true,
+                isolatedProjectsDiagnostics = diagnostics,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
@@ -193,6 +195,7 @@ object BuildModelParametersProvider {
         } else {
             GradleIsolatedProjectsMode(
                 requiresToolingModels = false,
+                isolatedProjectsDiagnostics = diagnostics,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
