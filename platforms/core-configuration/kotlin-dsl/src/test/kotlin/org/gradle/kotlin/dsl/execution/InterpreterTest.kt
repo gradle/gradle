@@ -17,14 +17,12 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
@@ -116,7 +114,9 @@ class InterpreterTest : TestWithTempFiles() {
             on { get(GradleUserHomeTemporaryFileProvider::class.java) } doReturn GradleUserHomeTemporaryFileProvider {
                 tempFolder.createDir("gradle-user-home")
             }
-            on { get(ClasspathWalker::class.java) } doReturn ClasspathWalker(TestFiles.fileSystem())
+            on { get(MetadataCompatibilityChecker::class.java) } doReturn object : MetadataCompatibilityChecker {
+                override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
+            }
         }
 
         val host = mock<Interpreter.Host> {

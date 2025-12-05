@@ -28,7 +28,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
-    api(libs.asm)
     api(libs.groovy)
     api(libs.guava)
     api(libs.kotlinCompilerEmbeddable)
@@ -65,6 +64,7 @@ dependencies {
     implementation(projects.javaApiExtractor)
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
+    implementation(libs.asm)
     implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinReflect)
 

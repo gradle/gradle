@@ -34,10 +34,10 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
 
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.classpath.ClasspathWalker
 
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
+import org.gradle.kotlin.dsl.execution.MetadataCompatibilityChecker
 
 import org.gradle.kotlin.dsl.invoke
 
@@ -81,8 +81,8 @@ class KotlinScriptHost<out T : Any> internal constructor(
     }
 
     internal
-    val classpathWalker: ClasspathWalker by unsafeLazy {
-        serviceRegistry.get<ClasspathWalker>()
+    val metadataCompatibilityChecker: MetadataCompatibilityChecker by unsafeLazy {
+        serviceRegistry.get<MetadataCompatibilityChecker>()
     }
 
     internal
