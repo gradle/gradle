@@ -39,7 +39,7 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
         androidStudioSync(ANDROID_STUDIO_VERSION)
 
         then:
-        report.assertHtmlReportHasNoProblems()
+        report.htmlReport().assertHasNoProblems()
     }
 
     def "can incrementally sync simple Android build without error"() {

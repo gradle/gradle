@@ -68,59 +68,57 @@ class ConfigurationCacheProblemsFixture {
         return spec
     }
 
-    void assertHtmlReportHasProblems(
-        String output,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
-        assertHtmlReportHasProblems(reportDir, spec)
-    }
+    /**
+     * A fixture to perform assertions on the contents of the Configuration Cache Report.
+     */
+    class ConfigurationCacheReportFixture {
+        @Nullable
+        private final File reportDir
 
-    void assertHtmlReportHasProblems(
-        String output,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        assertHtmlReportHasProblems(output, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
-    }
+        private ConfigurationCacheReportFixture(@Nullable File reportDir) {
+            this.reportDir = reportDir
+        }
 
-    void assertHtmlReportHasProblems(
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        def reportDir = findReportDir()
-        assertHtmlReportHasProblems(reportDir, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
-    }
+        /**
+         * Asserts that the report has specified problems, inputs, and incompatible tasks.
+         *
+         * @param specClosure the content assertions
+         */
+        void assertHasProblems(@DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}) {
+            HasConfigurationCacheProblemsSpec spec = newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
+            spec.checkReportProblems = true
 
-    void assertHtmlReportHasProblems(
-        File reportDir,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        assertHtmlReportHasProblems(reportDir, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
+            assertProblemsHtmlReport(reportDir, spec)
+            assertInputs(reportDir, spec)
+            assertIncompatibleTasks(reportDir, spec)
+        }
+
+        /**
+         * Asserts that the report contains no problems. This passes if the report is not present.
+         */
+        void assertHasNoProblems() {
+            assertHasProblems {
+                totalProblemsCount = 0
+            }
+        }
     }
 
     /**
-     * Asserts that a report exists in the current project but has no problems.
+     * Checks if a single configuration cache report is available at the standard location and returns a fixture to assert on it.
+     * Fails if there is no report or there are multiple reports.
      */
-    void assertHtmlReportHasNoProblems() {
-        def reportDir = findReportDir()
-        assertHtmlReportHasNoProblems(reportDir)
+    ConfigurationCacheReportFixture htmlReport() {
+        // TODO(mlopatkin) what if the report is not present? htmlReport(String) allows it.
+        return new ConfigurationCacheReportFixture(findReportDir())
     }
 
     /**
-     * Asserts that a report exists in the given dir but has no problems.
+     * Creates a fixture to assert on the report based on the file URL written in the build output. The report may not be present.
+     *
+     * @param output the output of the build
      */
-    void assertHtmlReportHasNoProblems(
-        File reportDir
-    ) {
-        assertHtmlReportHasProblems(reportDir, {
-            totalProblemsCount = 0
-        })
-    }
-
-    void assertHtmlReportHasProblems(File reportDir, HasConfigurationCacheProblemsSpec spec) {
-        spec.checkReportProblems = true
-        assertProblemsHtmlReport(reportDir, spec)
-        assertInputs(reportDir, spec)
-        assertIncompatibleTasks(reportDir, spec)
+    ConfigurationCacheReportFixture htmlReport(String output) {
+        return new ConfigurationCacheReportFixture(resolveConfigurationCacheReportDirectory(rootDir, output))
     }
 
 
