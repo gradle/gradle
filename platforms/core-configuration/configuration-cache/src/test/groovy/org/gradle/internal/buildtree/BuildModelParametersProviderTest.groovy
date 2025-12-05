@@ -252,6 +252,15 @@ class BuildModelParametersProviderTest extends Specification {
         e.message == "Configuration Cache cannot be disabled when Isolated Projects is enabled."
     }
 
+    def "display map contains all parameter getters"() {
+        def expectedGetterCount =
+            BuildModelParameters.methods.count { it.name.matches(/^(is|get)[A-Z].*/) && it.name != 'getClass' }
+
+        expect:
+        def params = parameters(runsTasks: true, createsModel: false)
+        expectedGetterCount == params.toDisplayMap().size()
+    }
+
     private BuildModelParameters parameters(
         Map args,
         @DelegatesTo(StartParameterInternal)
