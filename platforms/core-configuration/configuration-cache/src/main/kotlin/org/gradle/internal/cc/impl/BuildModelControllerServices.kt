@@ -69,7 +69,7 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
         } else {
             registration.addProvider(VintageIsolatedProjectsProvider())
         }
-        if (buildModelParameters.isIntermediateModelCache) {
+        if (buildModelParameters.isCachingModelBuilding) {
             registration.addProvider(ConfigurationCacheModelProvider())
         } else {
             registration.addProvider(VintageModelProvider())

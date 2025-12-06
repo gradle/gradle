@@ -400,7 +400,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = buildCommencedTimeProvider.currentTime
 
         override val cacheIntermediateModels: Boolean
-            get() = modelParameters.isIntermediateModelCache
+            get() = modelParameters.isCachingModelBuilding
 
         override val modelAsProjectDependency: Boolean
             get() = modelParameters.isModelAsProjectDependency

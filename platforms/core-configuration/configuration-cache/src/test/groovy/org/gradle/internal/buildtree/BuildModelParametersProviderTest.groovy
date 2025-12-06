@@ -38,7 +38,7 @@ class BuildModelParametersProviderTest extends Specification {
             isolatedProjects: false,
             parallelProjectConfiguration: false,
             parallelModelBuilding: false,
-            intermediateModelCache: false,
+            cachingModelBuilding: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
             resilientModelBuilding: false
@@ -208,7 +208,7 @@ class BuildModelParametersProviderTest extends Specification {
             isolatedProjects: true,
             parallelProjectConfiguration: true,
             parallelModelBuilding: models,
-            intermediateModelCache: ipCachingExpected,
+            cachingModelBuilding: ipCachingExpected,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])

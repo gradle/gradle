@@ -22,12 +22,12 @@ import org.gradle.internal.buildtree.BuildModelParameters
 internal sealed class AbstractBuildModelParameters : BuildModelParameters {
 
     override fun toDisplayMap(): Map<String, Any?> = mapOf(
+        "cachingModelBuilding" to isCachingModelBuilding,
         "configurationCache" to isConfigurationCache,
         "configurationCacheDisabledReason" to configurationCacheDisabledReason,
         "configurationCacheParallelLoad" to isConfigurationCacheParallelLoad,
         "configurationCacheParallelStore" to isConfigurationCacheParallelStore,
         "configureOnDemand" to isConfigureOnDemand,
-        "intermediateModelCache" to isIntermediateModelCache,
         "invalidateCoupledProjects" to isInvalidateCoupledProjects,
         "isolatedProjects" to isIsolatedProjects,
         "modelAsProjectDependency" to isModelAsProjectDependency,
@@ -48,7 +48,6 @@ internal class GradleVintageMode(
     private val resilientModelBuilding: Boolean,
 ) : AbstractBuildModelParameters() {
 
-
     override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
 
     override fun isConfigureOnDemand(): Boolean = configureOnDemand
@@ -60,12 +59,12 @@ internal class GradleVintageMode(
 
     override fun isIsolatedProjects(): Boolean = false
     override fun isParallelProjectConfiguration(): Boolean = false
-    override fun isIntermediateModelCache(): Boolean = false
     override fun isInvalidateCoupledProjects(): Boolean = false
     override fun isModelAsProjectDependency(): Boolean = false
 
     override fun isModelBuilding(): Boolean = modelBuilding
     override fun isParallelModelBuilding(): Boolean = parallelModelBuilding
+    override fun isCachingModelBuilding(): Boolean = false
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
 
     override fun toString(): String = "GradleVintageMode"
@@ -78,7 +77,6 @@ internal class GradleConfigurationCacheMode(
     private val configurationCacheParallelLoad: Boolean,
 ) : AbstractBuildModelParameters() {
 
-
     override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
 
     override fun isConfigureOnDemand(): Boolean = configureOnDemand
@@ -90,12 +88,12 @@ internal class GradleConfigurationCacheMode(
 
     override fun isIsolatedProjects(): Boolean = false
     override fun isParallelProjectConfiguration(): Boolean = false
-    override fun isIntermediateModelCache(): Boolean = false
     override fun isInvalidateCoupledProjects(): Boolean = false
     override fun isModelAsProjectDependency(): Boolean = false
 
     override fun isModelBuilding(): Boolean = false
     override fun isParallelModelBuilding(): Boolean = false
+    override fun isCachingModelBuilding(): Boolean = false
     override fun isResilientModelBuilding(): Boolean = false
 
     override fun toString(): String = "GradleConfigurationCacheMode"
@@ -107,13 +105,12 @@ internal class GradleIsolatedProjectsMode(
     private val configureOnDemand: Boolean,
     private val configurationCacheParallelStore: Boolean,
     private val parallelProjectConfiguration: Boolean,
-    private val intermediateModelCache: Boolean,
+    private val cachingModelBuilding: Boolean,
     private val parallelModelBuilding: Boolean,
     private val invalidateCoupledProjects: Boolean,
     private val modelAsProjectDependency: Boolean,
     private val resilientModelBuilding: Boolean
 ) : AbstractBuildModelParameters() {
-
 
     override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
 
@@ -126,12 +123,12 @@ internal class GradleIsolatedProjectsMode(
 
     override fun isIsolatedProjects(): Boolean = true
     override fun isParallelProjectConfiguration(): Boolean = parallelProjectConfiguration
-    override fun isIntermediateModelCache(): Boolean = intermediateModelCache
     override fun isInvalidateCoupledProjects(): Boolean = invalidateCoupledProjects
     override fun isModelAsProjectDependency(): Boolean = modelAsProjectDependency
 
     override fun isModelBuilding(): Boolean = modelBuilding
     override fun isParallelModelBuilding(): Boolean = parallelModelBuilding
+    override fun isCachingModelBuilding(): Boolean = cachingModelBuilding
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
 
     override fun toString(): String = "GradleIsolatedProjectsMode"

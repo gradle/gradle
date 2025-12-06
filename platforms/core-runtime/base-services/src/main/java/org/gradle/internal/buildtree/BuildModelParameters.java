@@ -54,12 +54,6 @@ public interface BuildModelParameters {
     boolean isParallelProjectConfiguration();
 
     /**
-     * When {@link  #isIsolatedProjects()} is true, should intermediate tooling models be cached?
-     * This is currently true when fetching a tooling model, otherwise false.
-     */
-    boolean isIntermediateModelCache();
-
-    /**
      * When {@link  #isIsolatedProjects()} is true, should project state be invalidated when a project it is coupled with changes?
      * This parameter is only used for benchmarking purposes.
      */
@@ -82,7 +76,6 @@ public interface BuildModelParameters {
 
     /**
      * Determines whether nested build actions provided in {@code BuildController.run(actions)} can run in parallel.
-     *
      * <ul>
      * <li>Vintage: controlled by {@code --parallel}
      * <li>CC: not applicable, since CC is always disabled for model building invocations
@@ -90,6 +83,16 @@ public interface BuildModelParameters {
      * </ul>
      */
     boolean isParallelModelBuilding();
+
+    /**
+     * Determines whether models produced by tooling model builders are individually cached.
+     * <p>
+     * With IP, we can assume that for project-scoped models, their effective inputs are a subset of the Project state.
+     * If the Project is up to date, we can serve its models from a cache instead of recomputing them on subsequent runs.
+     * <p>
+     * Always false for Vintage and CC.
+     */
+    boolean isCachingModelBuilding();
 
     /**
      * Returns true if the model building is resilient so some failures in model building.
