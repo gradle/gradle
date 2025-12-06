@@ -199,15 +199,6 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure.message.startsWith("Configuration cache report directory not found at ${reportDir}.")
     }
 
-    def "assertHtmlReportHasProblems with implicit report dir fails when there is no report"() {
-        when:
-        report().assertHasProblems()
-
-        then:
-        def expectedFailure = thrown(AssertionError)
-        expectedFailure.message.startsWith("Configuration cache report directory not found at ${reportDir}.")
-    }
-
     def "assertHtmlReportHasProblems fails when there is no report dir"() {
         expect:
         !reportDir.isDirectory()
