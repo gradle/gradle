@@ -253,7 +253,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure)
+        problems.assertResultHasProblems(failure) {
+            withProblem("Task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
+            totalProblemsCount = 1
+        }
 
         when:
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
@@ -269,7 +272,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure)
+        problems.assertResultHasProblems(failure) {
+            withProblem("Task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
+            totalProblemsCount = 1
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13862")
@@ -305,7 +311,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Could not load the value of field `prop` of task `:broken` of type `BrokenTaskType`.")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure)
+        problems.assertResultHasProblems(failure) {
+            totalProblemsCount = 0
+        }
 
         when:
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
@@ -320,7 +328,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasLineNumber(4)
         failure.assertHasDescription("Could not load the value of field `prop` of task `:broken` of type `BrokenTaskType`.")
         failure.assertHasCause("BOOM")
-        problems.assertResultHasProblems(failure)
+        problems.assertResultHasProblems(failure) {
+            totalProblemsCount = 0
+        }
     }
 
     def "state serialization errors always halts the build and earlier problems are reported in separate build failure"() {
@@ -935,7 +945,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         postBuildOutputContains("Configuration cache entry stored with 12 problems.")
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(12)
+            totalProblemsCount = 12
             withUniqueProblems(
                 "Task `:a` of type `SomeTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.",
                 "Task `:a` of type `SomeTask`: cannot deserialize object of type 'org.gradle.api.invocation.Gradle' as these are not supported with the configuration cache.",

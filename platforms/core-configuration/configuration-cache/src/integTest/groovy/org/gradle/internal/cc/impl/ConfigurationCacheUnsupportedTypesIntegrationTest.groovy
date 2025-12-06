@@ -137,7 +137,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(1)
+            totalProblemsCount = 1
             withUniqueProblems(
                 "Build file 'build.gradle': line 9: accessing non-serializable type '${serviceType.name}'"
             )
@@ -176,7 +176,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(1)
+            totalProblemsCount = 1
             withUniqueProblems(
                 "Build file 'build.gradle': line 14: accessing non-serializable type '${serviceType.name}'"
             )
@@ -227,12 +227,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(6)
+            totalProblemsCount = 6
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -245,11 +245,11 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(3)
+            totalProblemsCount = 3
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -360,13 +360,13 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(9)
+            totalProblemsCount = 9
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         when:
@@ -379,12 +379,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(6)
+            totalProblemsCount = 6
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -438,12 +438,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(4)
+            totalProblemsCount = 4
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '$concreteTypeName', a subtype of '${baseType.name}', as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -455,11 +455,11 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(2)
+            totalProblemsCount = 2
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
@@ -520,13 +520,13 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(6)
+            totalProblemsCount = 6
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         when:
@@ -538,12 +538,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(4)
+            totalProblemsCount = 4
             withUniqueProblems(
                 "Task `:broken` of type `SomeTask`: cannot deserialize object of type '${baseType.name}' as these are not supported with the configuration cache.",
                 "Task `:broken` of type `SomeTask`: value '$deserializedValue' is not assignable to '${baseType.name}'"
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
 
         and:
