@@ -25,7 +25,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.Matcher
@@ -69,38 +68,21 @@ class ConfigurationCacheProblemsFixture {
         return spec
     }
 
-    /**
-     * A fixture to perform assertions on the contents of the Configuration Cache Report.
-     */
-    class ConfigurationCacheReportFixture {
+    private class ConfigurationCacheReportFixtureImpl extends ConfigurationCacheReportFixture {
         @Nullable
         private final File reportDir
 
-        private ConfigurationCacheReportFixture(@Nullable File reportDir) {
+        private ConfigurationCacheReportFixtureImpl(@Nullable File reportDir) {
             this.reportDir = reportDir
         }
 
-        /**
-         * Asserts that the report has specified problems, inputs, and incompatible tasks.
-         *
-         * @param specClosure the content assertions
-         */
-        void assertHasProblems(@DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}) {
-            HasConfigurationCacheProblemsSpec spec = newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
+        @Override
+        protected void assertHasProblems(HasConfigurationCacheProblemsSpec spec) {
             spec.checkReportProblems = true
 
             assertProblemsHtmlReport(reportDir, spec)
             assertInputs(reportDir, spec)
             assertIncompatibleTasks(reportDir, spec)
-        }
-
-        /**
-         * Asserts that the report contains no problems. This passes if the report is not present.
-         */
-        void assertHasNoProblems() {
-            assertHasProblems {
-                totalProblemsCount = 0
-            }
         }
     }
 
@@ -110,7 +92,7 @@ class ConfigurationCacheProblemsFixture {
      */
     ConfigurationCacheReportFixture htmlReport() {
         // TODO(mlopatkin) what if the report is not present? htmlReport(String) allows it.
-        return new ConfigurationCacheReportFixture(findReportDir())
+        return new ConfigurationCacheReportFixtureImpl(findReportDir())
     }
 
     /**
@@ -119,7 +101,7 @@ class ConfigurationCacheProblemsFixture {
      * @param output the output of the build
      */
     ConfigurationCacheReportFixture htmlReport(String output) {
-        return new ConfigurationCacheReportFixture(resolveConfigurationCacheReportDirectory(rootDir, output))
+        return new ConfigurationCacheReportFixtureImpl(resolveConfigurationCacheReportDirectory(rootDir, output))
     }
 
 
