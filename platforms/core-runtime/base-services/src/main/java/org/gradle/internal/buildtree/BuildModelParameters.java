@@ -25,6 +25,19 @@ import java.util.Map;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelParameters {
 
+    /**
+     * Whether project-scoped work should use project-lock or build-lock to synchronize,
+     * allowing work from different projects to run in parallel when set to true.
+     * <p>
+     * Most notably, this allows parallel execution of tasks from different projects.
+     * <p>
+     * Note that this does not synchronize work from different builds.
+     * <ul>
+     * <li>Vintage: controlled by {@code --parallel} (or its property)
+     * <li>CC: controlled by {@code --parallel} (or its property)
+     * <li>IP: always enabled
+     * </ul>
+     */
     boolean isParallelProjectExecution();
 
     boolean isConfigureOnDemand();
