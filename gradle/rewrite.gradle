@@ -18,6 +18,7 @@ repositories {
 
 rewrite {
     activeRecipe('org.gradle.openrewrite.SanityCheck')
+    configFile = project.getRootProject().file('gradle/rewrite.yml')
     exclusion(
         '**.groovy',
         '**.kt',
