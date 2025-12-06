@@ -17,7 +17,6 @@
 package gradlebuild.cleanup.services;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.regex.Pattern.quote;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -87,8 +86,8 @@ public class KillLeakingJavaProcesses {
     }
 
     static String generateLeakingProcessKillPattern(String rootProjectDir) {
-        String kotlinCompilerDaemonPattern = "(?:" + quote("-Dkotlin.environment.keepalive") + ".+org\\.jetbrains\\.kotlin\\.daemon\\.KotlinCompileDaemon)";
-        String quotedRootProjectDir = quote(rootProjectDir);
+        String kotlinCompilerDaemonPattern = "(?:" + Pattern.quote("-Dkotlin.environment.keepalive") + ".+org\\.jetbrains\\.kotlin\\.daemon\\.KotlinCompileDaemon)";
+        String quotedRootProjectDir = Pattern.quote(rootProjectDir);
         String perfTestClasspathPattern = "(?:-cp.+\\\\build\\\\tmp\\\\performance-test-files.+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String buildDirClasspathPattern = "(?:-(classpath|cp) \"?" + quotedRootProjectDir + ".+?" + GRADLE_MAIN_CLASS_PATTERN_STR + ")";
         String playServerPattern = "(?:-classpath.+" + quotedRootProjectDir + ".+?" + PLAY_SERVER_PATTERN_STR + ")";

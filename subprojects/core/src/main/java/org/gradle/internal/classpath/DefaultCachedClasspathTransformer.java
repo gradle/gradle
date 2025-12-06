@@ -16,7 +16,22 @@
 
 package org.gradle.internal.classpath;
 
+import static org.gradle.internal.Either.left;
+import static org.gradle.internal.Either.right;
+import static org.gradle.internal.UncheckedException.unchecked;
+
 import com.google.common.collect.ImmutableList;
+import java.io.Closeable;
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
@@ -36,23 +51,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.jspecify.annotations.NullMarked;
-
-import java.io.Closeable;
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-
-import static java.util.Optional.empty;
-import static org.gradle.internal.Either.left;
-import static org.gradle.internal.Either.right;
-import static org.gradle.internal.UncheckedException.unchecked;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
 
@@ -166,13 +164,13 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     ) {
         FileSystemLocationSnapshot snapshot = snapshotOf(original);
         if (snapshot.getType() == FileType.Missing) {
-            return empty();
+            return Optional.empty();
         }
         if (shouldUseFromCache(original)) {
             final HashCode contentHash = snapshot.getHash();
             if (!seen.add(contentHash)) {
                 // Already seen an entry with the same content hash, ignore it
-                return empty();
+                return Optional.empty();
             }
             // It's a new content hash, transform it
             return Optional.of(

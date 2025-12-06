@@ -17,6 +17,8 @@ package org.gradle.plugin.use.resolve.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import java.util.Iterator;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -36,10 +38,6 @@ import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
-import java.util.Iterator;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
@@ -57,7 +55,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     public PluginResolutionResult resolve(PluginRequestInternal pluginRequest) {
         ModuleDependency markerDependency = getMarkerDependency(pluginRequest);
         String markerVersion = markerDependency.getVersion();
-        if (isNullOrEmpty(markerVersion)) {
+        if (Strings.isNullOrEmpty(markerVersion)) {
             return PluginResolutionResult.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source");
         }
 

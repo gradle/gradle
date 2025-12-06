@@ -16,6 +16,11 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.common.base.Strings;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.AbstractRenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
@@ -25,12 +30,6 @@ import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.emptyToNull;
 
 public class DependentComponentsRenderableDependency extends AbstractRenderableDependency {
 
@@ -75,10 +74,10 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite, LinkedHashSet<? extends RenderableDependency> children) {
         checkNotNull(id, "id must not be null");
-        checkNotNull(emptyToNull(name), "name must not be null nor empty");
+        checkNotNull(Strings.emptyToNull(name), "name must not be null nor empty");
         this.id = id;
         this.name = name;
-        this.description = emptyToNull(description);
+        this.description = Strings.emptyToNull(description);
         this.buildable = buildable;
         this.testSuite = testSuite;
         this.children = children;

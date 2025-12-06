@@ -15,24 +15,23 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import static com.google.common.base.Predicates.instanceOf;
+import static com.google.common.base.Predicates.not;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
-import org.gradle.internal.Cast;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.base.Predicates.instanceOf;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import org.gradle.internal.Cast;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 /**
  * Creates the .settings/org.eclipse.wst.common.component file for WTP projects.
@@ -81,10 +80,10 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
     public void configure(String deployName, String contextPath, List<WbModuleEntry> newEntries) {
         Iterable<WbModuleEntry> toKeep = Iterables.filter(wbModuleEntries, not(instanceOf(WbDependentModule.class)));
         this.wbModuleEntries = Lists.newArrayList(Sets.newLinkedHashSet(Iterables.concat(toKeep, newEntries)));
-        if (!isNullOrEmpty(deployName)) {
+        if (!Strings.isNullOrEmpty(deployName)) {
             this.deployName = deployName;
         }
-        if (!isNullOrEmpty(contextPath)) {
+        if (!Strings.isNullOrEmpty(contextPath)) {
             this.contextPath = contextPath;
         }
     }
@@ -114,7 +113,7 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
         removeConfigurableDataFromXml();
         Node wbModuleNode = getWbModuleNode(xml);
         setNodeAttribute(wbModuleNode, "deploy-name", deployName);
-        if (!isNullOrEmpty(contextPath)) {
+        if (!Strings.isNullOrEmpty(contextPath)) {
             new WbProperty("context-root", contextPath).appendNode(wbModuleNode);
         }
         for (WbModuleEntry wbModuleEntry : wbModuleEntries) {

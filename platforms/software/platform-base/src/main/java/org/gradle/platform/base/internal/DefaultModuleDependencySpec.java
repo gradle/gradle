@@ -16,15 +16,13 @@
 
 package org.gradle.platform.base.internal;
 
+import com.google.common.base.Strings;
+import java.util.Objects;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpecBuilder;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Objects;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
 
@@ -32,7 +30,7 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
      * Maps an omitted version number to "+", "the latest available version".
      */
     public static String effectiveVersionFor(String version) {
-        return isNullOrEmpty(version) ? "+" : version;
+        return Strings.isNullOrEmpty(version) ? "+" : version;
     }
 
     private final String group;
@@ -93,7 +91,7 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
 
        private void setValuesFromModuleId(String moduleId) {
            String[] components = moduleId.split(":");
-           if (components.length < 2 || components.length > 3 || isNullOrEmpty(components[0]) || isNullOrEmpty(components[1])) {
+           if (components.length < 2 || components.length > 3 || Strings.isNullOrEmpty(components[0]) || Strings.isNullOrEmpty(components[1])) {
                throw illegalNotation(moduleId);
            }
            group(components[0]).module(components[1]);

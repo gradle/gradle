@@ -17,6 +17,16 @@
 package org.gradle.buildinit.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.inject.Inject;
+import javax.lang.model.SourceVersion;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -63,18 +73,6 @@ import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import javax.lang.model.SourceVersion;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Generates a Gradle project structure.
@@ -142,7 +140,7 @@ public abstract class InitBuild extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getType() {
-        return isNullOrEmpty(type) ? detectType() : type;
+        return Strings.isNullOrEmpty(type) ? detectType() : type;
     }
 
     /**
@@ -171,7 +169,7 @@ public abstract class InitBuild extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getDsl() {
-        return isNullOrEmpty(dsl) ? BuildInitDsl.KOTLIN.getId() : dsl;
+        return Strings.isNullOrEmpty(dsl) ? BuildInitDsl.KOTLIN.getId() : dsl;
     }
 
     /**
@@ -469,7 +467,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private static void validatePackageName(String packageName) {
-        if (!isNullOrEmpty(packageName) && !SourceVersion.isName(packageName)) {
+        if (!Strings.isNullOrEmpty(packageName) && !SourceVersion.isName(packageName)) {
             throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
         }
     }
@@ -482,7 +480,7 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         String version = javaVersion.getOrNull();
-        if (isNullOrEmpty(version)) {
+        if (Strings.isNullOrEmpty(version)) {
             return JavaLanguageVersion.of(userQuestions.askIntQuestion("Enter target Java version", MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API, DEFAULT_JAVA_VERSION));
         }
 
@@ -499,7 +497,7 @@ public abstract class InitBuild extends DefaultTask {
 
     private BuildInitDsl getBuildInitDsl(UserQuestions userQuestions, BuildInitializer initializer) {
         BuildInitDsl dsl;
-        if (isNullOrEmpty(this.dsl)) {
+        if (Strings.isNullOrEmpty(this.dsl)) {
             dsl = userQuestions.selectOption("Select build script DSL", initializer.getDsls(), initializer.getDefaultDsl());
         } else {
             dsl = BuildInitDsl.fromName(getDsl());
@@ -527,7 +525,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private BuildInitTestFramework getBuildInitTestFramework(UserQuestions userQuestions, BuildInitializer initializer, ModularizationOption modularizationOption) {
-        if (!isNullOrEmpty(this.testFramework)) {
+        if (!Strings.isNullOrEmpty(this.testFramework)) {
             return initializer.getTestFrameworks(modularizationOption).stream()
                 .filter(candidate -> this.testFramework.equals(candidate.getId()))
                 .findFirst()
@@ -553,10 +551,10 @@ public abstract class InitBuild extends DefaultTask {
     String getEffectiveProjectName(UserQuestions userQuestions, BuildInitializer initializer) {
         String projectName = this.projectName;
         if (initializer.supportsProjectName()) {
-            if (isNullOrEmpty(projectName)) {
+            if (Strings.isNullOrEmpty(projectName)) {
                 return userQuestions.askQuestion("Project name", getProjectName());
             }
-        } else if (!isNullOrEmpty(projectName)) {
+        } else if (!Strings.isNullOrEmpty(projectName)) {
             throw new GradleException("Project name is not supported for '" + initializer.getId() + "' build type.");
         }
         return projectName;
@@ -569,14 +567,14 @@ public abstract class InitBuild extends DefaultTask {
             if (packageName == null) {
                 return getProviderFactory().gradleProperty(SOURCE_PACKAGE_PROPERTY).getOrElse(SOURCE_PACKAGE_DEFAULT);
             }
-        } else if (!isNullOrEmpty(packageName)) {
+        } else if (!Strings.isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + initializer.getId() + "' build type.");
         }
         return packageName;
     }
 
     private BuildInitializer getBuildInitializer(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
-        if (!isNullOrEmpty(type)) {
+        if (!Strings.isNullOrEmpty(type)) {
             return projectLayoutRegistry.get(type);
         }
 

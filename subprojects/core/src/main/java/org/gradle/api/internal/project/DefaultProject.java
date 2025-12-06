@@ -16,8 +16,26 @@
 
 package org.gradle.api.internal.project;
 
+import static java.util.Collections.singletonMap;
+import static org.gradle.util.internal.ConfigureUtil.configureUsing;
+import static org.gradle.util.internal.GUtil.addMaps;
+
+import com.google.common.base.Strings;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import java.io.File;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.inject.Inject;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
@@ -131,25 +149,6 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.Collections.singletonMap;
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
-import static org.gradle.util.internal.GUtil.addMaps;
 
 @NoConventionMapping
 public abstract class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
@@ -859,7 +858,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Project evaluationDependsOn(String path) {
-        if (isNullOrEmpty(path)) {
+        if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
         ProjectInternal projectToEvaluate = project(path);
@@ -916,7 +915,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Set<Task> getTasksByName(final String name, boolean recursive) {
-        if (isNullOrEmpty(name)) {
+        if (Strings.isNullOrEmpty(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
         final Set<Task> foundTasks = new HashSet<Task>();

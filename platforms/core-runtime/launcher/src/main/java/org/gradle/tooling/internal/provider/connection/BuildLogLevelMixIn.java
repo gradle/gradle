@@ -16,6 +16,11 @@
 
 package org.gradle.tooling.internal.provider.connection;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineConverter;
@@ -25,14 +30,6 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions.LogLevelOption;
 import org.jspecify.annotations.NonNull;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static java.util.Optional.empty;
 
 public class BuildLogLevelMixIn {
     private final LogLevel logLevel;
@@ -88,7 +85,7 @@ public class BuildLogLevelMixIn {
                 // fall through
             }
         }
-        return empty();
+        return Optional.empty();
 
     }
 }

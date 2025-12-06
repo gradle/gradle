@@ -15,16 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Strings;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static com.google.common.base.Strings.nullToEmpty;
 
 public class DefaultMutableVersionConstraint extends AbstractVersionConstraint implements VersionConstraintInternal {
     private String requiredVersion;
@@ -48,15 +46,15 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     private DefaultMutableVersionConstraint(@Nullable String preferredVersion, String requiredVersion, @Nullable String strictVersion, List<String> rejects, @Nullable String branch) {
         updateVersions(preferredVersion, requiredVersion, strictVersion);
         for (String reject : rejects) {
-            this.rejectedVersions.add(nullToEmpty(reject));
+            this.rejectedVersions.add(Strings.nullToEmpty(reject));
         }
         this.branch = branch;
     }
 
     private void updateVersions(@Nullable String preferredVersion, @Nullable String requiredVersion, @Nullable String strictVersion) {
-        this.preferredVersion = nullToEmpty(preferredVersion);
-        this.requiredVersion = nullToEmpty(requiredVersion);
-        this.strictVersion = nullToEmpty(strictVersion);
+        this.preferredVersion = Strings.nullToEmpty(preferredVersion);
+        this.requiredVersion = Strings.nullToEmpty(requiredVersion);
+        this.strictVersion = Strings.nullToEmpty(strictVersion);
         this.rejectedVersions.clear();
     }
 

@@ -15,16 +15,18 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FILES;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FILES_AND_FOLDERS;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FOLDERS;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.EXCLUDE_ALL;
+import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.INCLUDE_ONLY;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
-import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -32,14 +34,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.base.Strings.nullToEmpty;
-import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FILES;
-import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FILES_AND_FOLDERS;
-import static org.gradle.plugins.ide.eclipse.model.ResourceFilterAppliesTo.FOLDERS;
-import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.EXCLUDE_ALL;
-import static org.gradle.plugins.ide.eclipse.model.ResourceFilterType.INCLUDE_ONLY;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
@@ -150,8 +148,8 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     public Object configure(EclipseProject eclipseProject) {
-        name = nullToEmpty(eclipseProject.getName());
-        comment = nullToEmpty(eclipseProject.getComment());
+        name = Strings.nullToEmpty(eclipseProject.getName());
+        comment = Strings.nullToEmpty(eclipseProject.getComment());
         referencedProjects.addAll(eclipseProject.getReferencedProjects());
         natures.addAll(eclipseProject.getNatures());
         natures = Lists.newArrayList(Sets.newLinkedHashSet(natures));
@@ -241,8 +239,8 @@ public class Project extends XmlPersistableConfigurationObject {
                 xml.remove(childNode);
             }
         }
-        xml.appendNode("name", nullToEmpty(name));
-        xml.appendNode("comment", nullToEmpty(comment));
+        xml.appendNode("name", Strings.nullToEmpty(name));
+        xml.appendNode("comment", Strings.nullToEmpty(comment));
         addReferencedProjectsToXml();
         addNaturesToXml();
         addBuildSpecToXml();
@@ -284,10 +282,10 @@ public class Project extends XmlPersistableConfigurationObject {
             Node linkNode = parent.appendNode("link");
             linkNode.appendNode("name", link.getName());
             linkNode.appendNode("type", link.getType());
-            if (!isNullOrEmpty(link.getLocation())) {
+            if (!Strings.isNullOrEmpty(link.getLocation())) {
                 linkNode.appendNode("location", link.getLocation());
             }
-            if (!isNullOrEmpty(link.getLocationUri())) {
+            if (!Strings.isNullOrEmpty(link.getLocationUri())) {
                 linkNode.appendNode("locationURI", link.getLocationUri());
             }
         }
@@ -310,7 +308,7 @@ public class Project extends XmlPersistableConfigurationObject {
             Node matcherNode = parent.appendNode("matcher");
              matcherNode.appendNode("id", matcher.getId());
             // A matcher may have either arguments or children, but not both
-            if (!isNullOrEmpty(matcher.getArguments())) {
+            if (!Strings.isNullOrEmpty(matcher.getArguments())) {
                 matcherNode.appendNode("arguments", matcher.getArguments());
             } else if (!matcher.getChildren().isEmpty()) {
                 Node argumentsNode = matcherNode.appendNode("arguments");

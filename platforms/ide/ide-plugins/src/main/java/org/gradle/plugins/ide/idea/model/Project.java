@@ -17,14 +17,10 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import groovy.util.NodeList;
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.Cast;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -32,8 +28,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
+import org.gradle.api.JavaVersion;
+import org.gradle.internal.Cast;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
@@ -129,7 +127,7 @@ public class Project extends XmlPersistableConfigurationObject {
     public void configure(List<IdeaModule> modules,
                           String jdkName, IdeaLanguageLevel languageLevel, JavaVersion bytecodeVersion,
                           Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs) {
-        if (!isNullOrEmpty(jdkName)) {
+        if (!Strings.isNullOrEmpty(jdkName)) {
             jdk = new Jdk(jdkName, languageLevel);
         }
         this.bytecodeVersion = bytecodeVersion;
@@ -263,7 +261,7 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     private void storeVcs() {
-        if (!isNullOrEmpty(vcs)) {
+        if (!Strings.isNullOrEmpty(vcs)) {
             setNodeAttribute(findVcsDirectoryMappings(), "vcs", vcs);
         }
     }

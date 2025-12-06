@@ -16,16 +16,14 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents an orderEntry of type module-library in the iml XML.
@@ -177,9 +175,9 @@ public class ModuleLibrary implements Dependency {
 
     private static boolean scopeEquals(String lhs, String rhs) {
         if ("COMPILE".equals(lhs)) {
-            return isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
+            return Strings.isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
         } else if ("COMPILE".equals(rhs)) {
-            return isNullOrEmpty(lhs);
+            return Strings.isNullOrEmpty(lhs);
         } else {
             return Objects.equal(lhs, rhs);
         }
@@ -197,7 +195,7 @@ public class ModuleLibrary implements Dependency {
     }
 
     private int getScopeHash() {
-        return !isNullOrEmpty(scope) && !scope.equals("COMPILE") ? scope.hashCode() : 0;
+        return !Strings.isNullOrEmpty(scope) && !scope.equals("COMPILE") ? scope.hashCode() : 0;
     }
 
     @Override
