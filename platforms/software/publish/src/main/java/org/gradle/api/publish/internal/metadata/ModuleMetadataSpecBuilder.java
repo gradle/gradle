@@ -16,7 +16,20 @@
 
 package org.gradle.api.publish.internal.metadata;
 
+import static java.lang.String.format;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -53,20 +66,6 @@ import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFacto
 import org.gradle.api.publish.internal.mapping.ResolvedCoordinates;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.jspecify.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * Builds a {@link ModuleMetadataSpec} from a {@link PublicationInternal} and its {@link SoftwareComponent}.
@@ -293,7 +292,7 @@ public class ModuleMetadataSpecBuilder {
             dependencyArtifact.getName(),
             dependencyArtifact.getType(),
             dependencyArtifact.getExtension() == null ? dependencyArtifact.getType() : dependencyArtifact.getExtension(),
-            isNullOrEmpty(dependencyArtifact.getClassifier()) ? null : dependencyArtifact.getClassifier()
+            Strings.isNullOrEmpty(dependencyArtifact.getClassifier()) ? null : dependencyArtifact.getClassifier()
         );
     }
 

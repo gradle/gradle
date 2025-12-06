@@ -16,6 +16,11 @@
 package org.gradle.language.base.plugins;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
@@ -76,13 +81,6 @@ import org.gradle.platform.base.internal.dependents.BaseDependentBinariesResolut
 import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesResolver;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.base.Strings.emptyToNull;
 
 /**
  * Base plugin for component support.
@@ -231,7 +229,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
             // Only apply default locations when none explicitly configured
             if (languageSourceSet.getSource().getSourceDirectories().isEmpty()) {
                 File baseDir = projectIdentifier.getProjectDir();
-                String defaultSourceDir = Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
+                String defaultSourceDir = Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), "src", Strings.emptyToNull(languageSourceSet.getParentName()), Strings.emptyToNull(languageSourceSet.getName()));
                 languageSourceSet.getSource().srcDir(defaultSourceDir);
             }
         }

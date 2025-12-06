@@ -17,7 +17,15 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -56,16 +64,6 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.jspecify.annotations.Nullable;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Encapsulates all logic required to extract data from a {@link SoftwareComponentInternal} in order to
@@ -316,7 +314,7 @@ public class IvyComponentParser {
             return new DefaultIvyDependency(
                 coordinates.getGroup(),
                 coordinates.getName(),
-                nullToEmpty(coordinates.getVersion()),
+                Strings.nullToEmpty(coordinates.getVersion()),
                 confMapping,
                 dependency.isTransitive(),
                 revConstraint,

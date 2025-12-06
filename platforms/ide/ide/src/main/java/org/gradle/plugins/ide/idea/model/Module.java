@@ -17,20 +17,18 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import groovy.util.Node;
-import org.gradle.internal.Cast;
-import org.gradle.internal.xml.XmlTransformer;
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
+import org.gradle.internal.Cast;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).
@@ -241,7 +239,7 @@ public class Module extends XmlPersistableConfigurationObject {
             this.testOutputDir = testOutputDir;
         }
         this.dependencies = dependencies; // overwrite rather than append dependencies
-        if (!isNullOrEmpty(jdkName)) {
+        if (!Strings.isNullOrEmpty(jdkName)) {
             this.jdkName = jdkName;
         } else {
             this.jdkName = Module.INHERITED;
