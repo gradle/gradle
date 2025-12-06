@@ -286,7 +286,7 @@ class ConfigurationCacheFixture {
     }
 
     private void applyProblemsTo(HasProblems details, HasConfigurationCacheProblemsSpec spec) {
-        spec.withTotalProblemsCount(details.totalProblems)
+        spec.totalProblemsCount = details.totalProblems
         spec.problemsWithStackTraceCount = details.problemsWithStackTrace
         spec.withUniqueProblems(details.problems.collect {
             it.message.replace('/', File.separator)
