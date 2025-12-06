@@ -28,18 +28,18 @@ abstract class ConfigurationCacheReportFixture {
      *
      * @param specClosure the content assertions
      */
-    void assertHasProblems(@DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure) {
+    void assertContents(@DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure) {
         HasConfigurationCacheProblemsSpec spec = ConfigurationCacheProblemsFixture.newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
-        assertHasProblems(spec)
+        assertContents(spec)
     }
 
-    protected abstract void assertHasProblems(HasConfigurationCacheProblemsSpec spec)
+    protected abstract void assertContents(HasConfigurationCacheProblemsSpec spec)
 
     /**
      * Asserts that the report contains no problems. This passes if the report is not present.
      */
     void assertHasNoProblems() {
-        assertHasProblems {
+        assertContents {
             totalProblemsCount = 0
         }
     }
@@ -53,7 +53,7 @@ abstract class ConfigurationCacheReportFixture {
         }
 
         @Override
-        protected void assertHasProblems(HasConfigurationCacheProblemsSpec spec) {
+        protected void assertContents(HasConfigurationCacheProblemsSpec spec) {
             assert !spec.hasProblems():
                 "Expected report to have problems but no report is available in '$projectRoot'"
             assert !needsReport(spec.inputs):

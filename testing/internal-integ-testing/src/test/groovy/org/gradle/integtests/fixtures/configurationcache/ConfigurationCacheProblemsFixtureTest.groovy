@@ -96,12 +96,12 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(0)
 
         expect:
-        report().assertHasProblems {
+        report().assertContents {
             totalProblemsCount = 0
         }
 
         when:
-        report().assertHasProblems {
+        report().assertContents {
             totalProblemsCount = 1
         }
 
@@ -154,13 +154,13 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(2)
 
         expect:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             totalProblemsCount = 2
         }
 
         when:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             totalProblemsCount = 3
         }
@@ -174,13 +174,13 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(10, 2)
 
         expect:
-        report().assertHasProblems {
+        report().assertContents {
             totalProblemsCount = 10
             problemsWithStackTraceCount = 2
         }
 
         when:
-        report().assertHasProblems {
+        report().assertContents {
             totalProblemsCount = 10
             problemsWithStackTraceCount = 3
         }
@@ -204,7 +204,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         !reportDir.isDirectory()
 
         when:
-        report(reportFile).assertHasProblems {
+        report(reportFile).assertContents {
             totalProblemsCount = 1
         }
 
@@ -218,7 +218,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         reportDir.createDir()
 
         when:
-        report(reportFile).assertHasProblems {
+        report(reportFile).assertContents {
             totalProblemsCount = 1
         }
 
@@ -231,7 +231,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(2)
 
         expect:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -240,7 +240,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         }
 
         when:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1"
@@ -252,7 +252,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure1.message == "HTML report JS model has wrong number of total problem(s)${NEWLINE}Expected: <1>${NEWLINE}     but: was <2>"
 
         when:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -266,7 +266,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure2.message == "HTML report JS model has wrong number of total problem(s)${NEWLINE}Expected: <3>${NEWLINE}     but: was <2>"
 
         when:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -283,7 +283,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(["Some problem 1", "Some problem 2"])
 
         when:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 2",
@@ -296,7 +296,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure.message.startsWith("Expected problem at #0 to be a string starting with \"Some problem 2\", but was: Some problem 1.")
 
         expect:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -309,7 +309,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         generateReportFile(["Some problem 1",  "Some problem 2", "Some problem 1", "Some problem 3"])
 
         expect:
-        report().assertHasProblems {
+        report().assertContents {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",

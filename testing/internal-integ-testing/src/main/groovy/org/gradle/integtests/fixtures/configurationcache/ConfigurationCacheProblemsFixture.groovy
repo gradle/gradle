@@ -77,7 +77,7 @@ class ConfigurationCacheProblemsFixture {
         }
 
         @Override
-        protected void assertHasProblems(HasConfigurationCacheProblemsSpec spec) {
+        protected void assertContents(HasConfigurationCacheProblemsSpec spec) {
             spec.checkReportProblems = true
 
             assertProblemsHtmlReport(reportDir, spec)
