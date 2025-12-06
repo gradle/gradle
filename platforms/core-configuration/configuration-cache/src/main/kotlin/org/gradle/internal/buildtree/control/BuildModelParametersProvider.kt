@@ -140,7 +140,7 @@ object BuildModelParametersProvider {
             parallelProjectExecution = parallelProjectExecution,
             configureOnDemand = !requiresModels && startParameter.isConfigureOnDemand,
             configurationCacheDisabledReason = ccDisabledReason,
-            parallelToolingActions = requirements.startParameter.isParallelProjectExecutionEnabled,
+            parallelToolingActions = requirements.startParameter.isParallelProjectExecutionEnabled && options[parallelBuilding],
             resilientModelBuilding = options[resilientModelBuilding]
         )
     }
