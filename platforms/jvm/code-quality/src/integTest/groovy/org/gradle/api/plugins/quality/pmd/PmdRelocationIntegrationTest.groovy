@@ -16,8 +16,14 @@
 
 package org.gradle.api.plugins.quality.pmd
 
+import org.gradle.api.plugins.quality.PmdPlugin
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
+import org.gradle.internal.jvm.Jvm
+import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.VersionNumber
+
+import static org.junit.Assume.assumeTrue
 
 class PmdRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
@@ -28,6 +34,7 @@ class PmdRelocationIntegrationTest extends AbstractProjectRelocationIntegrationT
 
     @Override
     protected void setupProjectIn(TestFile projectDir) {
+        assumeTrue(PmdCoverage.supportsJdkVersion(VersionNumber.parse(PmdPlugin.DEFAULT_PMD_VERSION), Jvm.current().javaVersionMajor))
         projectDir.file("src/main/java/org/gradle/Class1.java") <<
             "package org.gradle; class Class1 { public boolean is() { return true; } }"
         projectDir.file("src/main/java/org/gradle/Class1Test.java") <<
