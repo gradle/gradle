@@ -1,0 +1,10 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: org.gradle.openrewrite.SanityCheck
+displayName: Apply all common best practices
+description: Comprehensive code quality recipe combining modernization, security, and best practices.
+recipeList:
+  - org.openrewrite.gradle.EnableGradleParallelExecution
+# - org.openrewrite.staticanalysis.EqualsAvoidsNull
+# - tech.picnic.errorprone.refasterrules.TimeRulesRecipes
+---
