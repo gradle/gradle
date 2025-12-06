@@ -28,20 +28,23 @@ class BuildModelParametersProviderTest extends Specification {
 
     def defaults() {
         [
-            modelBuilding: false,
-            configureOnDemand: false,
             parallelProjectExecution: false,
+            configureOnDemand: false,
+
             configurationCache: false,
             configurationCacheDisabledReason: null,
             configurationCacheParallelStore: false,
             configurationCacheParallelLoad: false,
+
             isolatedProjects: false,
             parallelProjectConfiguration: false,
-            parallelModelBuilding: false,
-            cachingModelBuilding: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
-            resilientModelBuilding: false
+
+            modelBuilding: false,
+            parallelModelBuilding: false,
+            cachingModelBuilding: false,
+            resilientModelBuilding: false,
         ]
     }
 
