@@ -25,14 +25,6 @@ import java.util.Map;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelParameters {
 
-    /**
-     * True when the build action requires to build Tooling Models.
-     * <p>
-     * When true, Gradle's "build model" such Gradle and Project state cannot be discarded
-     * even after the tasks have been executed, because the Tooling Model Builders can run after tasks.
-     */
-    boolean isRequiresToolingModels();
-
     boolean isParallelProjectExecution();
 
     boolean isConfigureOnDemand();
@@ -84,6 +76,14 @@ public interface BuildModelParameters {
      * This parameter is only used for benchmarking purposes.
      */
     boolean isModelAsProjectDependency();
+
+    /**
+     * True when the build action requires to build Tooling Models.
+     * <p>
+     * When true, Gradle's "build model" such Gradle and Project state cannot be discarded
+     * even after the tasks have been executed, because the Tooling Model Builders can run after tasks.
+     */
+    boolean isModelBuilding();
 
     /**
      * Returns true if the model building is resilient so some failures in model building.

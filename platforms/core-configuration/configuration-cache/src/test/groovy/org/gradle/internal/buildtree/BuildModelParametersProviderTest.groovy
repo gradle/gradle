@@ -28,7 +28,7 @@ class BuildModelParametersProviderTest extends Specification {
 
     def defaults() {
         [
-            requiresToolingModels: false,
+            modelBuilding: false,
             configureOnDemand: false,
             parallelProjectExecution: false,
             configurationCache: false,
@@ -51,7 +51,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models
+            modelBuilding: models
         ])
 
         where:
@@ -91,7 +91,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: true,
             configurationCache: true,
             configurationCacheParallelStore: true,
@@ -121,7 +121,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             configureOnDemand: configureOnDemandExpected,
             parallelProjectExecution: true,
             configurationCache: true,
@@ -161,7 +161,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: ipParallelExpected,
             configurationCache: true,
             configurationCacheParallelStore: ipParallelExpected,
@@ -200,7 +200,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: true,
             configurationCache: true,
             configurationCacheParallelStore: true,

@@ -31,16 +31,16 @@ internal sealed class AbstractBuildModelParameters : BuildModelParameters {
         "invalidateCoupledProjects" to isInvalidateCoupledProjects,
         "isolatedProjects" to isIsolatedProjects,
         "modelAsProjectDependency" to isModelAsProjectDependency,
+        "modelBuilding" to isModelBuilding,
         "parallelProjectConfiguration" to isParallelProjectExecution,
         "parallelProjectExecution" to isParallelProjectExecution,
         "parallelToolingApiActions" to isParallelToolingApiActions,
-        "requiresToolingModels" to isRequiresToolingModels,
         "resilientModelBuilding" to isResilientModelBuilding,
     )
 }
 
 internal class GradleVintageMode(
-    private val requiresToolingModels: Boolean,
+    private val modelBuilding: Boolean,
     private val parallelProjectExecution: Boolean,
     private val configureOnDemand: Boolean,
     private val configurationCacheDisabledReason: String?,
@@ -48,7 +48,6 @@ internal class GradleVintageMode(
     private val resilientModelBuilding: Boolean,
 ) : AbstractBuildModelParameters() {
 
-    override fun isRequiresToolingModels(): Boolean = requiresToolingModels
 
     override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
 
@@ -65,8 +64,8 @@ internal class GradleVintageMode(
     override fun isInvalidateCoupledProjects(): Boolean = false
     override fun isModelAsProjectDependency(): Boolean = false
 
+    override fun isModelBuilding(): Boolean = modelBuilding
     override fun isParallelToolingApiActions(): Boolean = parallelToolingActions
-
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
 
     override fun toString(): String = "GradleVintageMode"
@@ -79,7 +78,6 @@ internal class GradleConfigurationCacheMode(
     private val configurationCacheParallelLoad: Boolean,
 ) : AbstractBuildModelParameters() {
 
-    override fun isRequiresToolingModels(): Boolean = false
 
     override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
 
@@ -96,6 +94,7 @@ internal class GradleConfigurationCacheMode(
     override fun isInvalidateCoupledProjects(): Boolean = false
     override fun isModelAsProjectDependency(): Boolean = false
 
+    override fun isModelBuilding(): Boolean = false
     override fun isParallelToolingApiActions(): Boolean = false
     override fun isResilientModelBuilding(): Boolean = false
 
@@ -103,7 +102,7 @@ internal class GradleConfigurationCacheMode(
 }
 
 internal class GradleIsolatedProjectsMode(
-    private val requiresToolingModels: Boolean,
+    private val modelBuilding: Boolean,
     private val parallelProjectExecution: Boolean,
     private val configureOnDemand: Boolean,
     private val configurationCacheParallelStore: Boolean,
@@ -115,7 +114,6 @@ internal class GradleIsolatedProjectsMode(
     private val resilientModelBuilding: Boolean
 ) : AbstractBuildModelParameters() {
 
-    override fun isRequiresToolingModels(): Boolean = requiresToolingModels
 
     override fun isParallelProjectExecution(): Boolean = parallelProjectExecution
 
@@ -132,6 +130,7 @@ internal class GradleIsolatedProjectsMode(
     override fun isInvalidateCoupledProjects(): Boolean = invalidateCoupledProjects
     override fun isModelAsProjectDependency(): Boolean = modelAsProjectDependency
 
+    override fun isModelBuilding(): Boolean = modelBuilding
     override fun isParallelToolingApiActions(): Boolean = parallelToolingActions
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
 

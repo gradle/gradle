@@ -115,7 +115,7 @@ object BuildModelParametersProvider {
     @JvmStatic
     fun parametersForNestedBuildTree(startParameter: StartParameterInternal): BuildModelParameters {
         return GradleVintageMode(
-            requiresToolingModels = true,
+            modelBuilding = true,
             parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
             configureOnDemand = startParameter.isConfigureOnDemand,
             configurationCacheDisabledReason = null,
@@ -136,7 +136,7 @@ object BuildModelParametersProvider {
         val parallelProjectExecution = requirements.startParameter.isParallelProjectExecutionEnabled
 
         return GradleVintageMode(
-            requiresToolingModels = requiresModels,
+            modelBuilding = requiresModels,
             parallelProjectExecution = parallelProjectExecution,
             configureOnDemand = !requiresModels && startParameter.isConfigureOnDemand,
             configurationCacheDisabledReason = ccDisabledReason,
@@ -179,7 +179,7 @@ object BuildModelParametersProvider {
 
         return if (requirements.isCreatesModel) {
             GradleIsolatedProjectsMode(
-                requiresToolingModels = true,
+                modelBuilding = true,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
@@ -192,7 +192,7 @@ object BuildModelParametersProvider {
             )
         } else {
             GradleIsolatedProjectsMode(
-                requiresToolingModels = false,
+                modelBuilding = false,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,

@@ -327,7 +327,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         return writingState.runCollectingFingerprintForProject(
             project,
             // always keep project context alive when building models since model requests can come at any point
-            keepAlive || modelParameters.isRequiresToolingModels,
+            keepAlive || modelParameters.isModelBuilding,
             action
         )
     }
