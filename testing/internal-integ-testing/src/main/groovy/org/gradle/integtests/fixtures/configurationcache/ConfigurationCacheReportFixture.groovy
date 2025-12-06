@@ -30,6 +30,7 @@ abstract class ConfigurationCacheReportFixture {
      */
     void assertContents(@DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure) {
         HasConfigurationCacheProblemsSpec spec = ConfigurationCacheProblemsFixture.newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
+        spec.checkReportProblems = true
         assertContents(spec)
     }
 

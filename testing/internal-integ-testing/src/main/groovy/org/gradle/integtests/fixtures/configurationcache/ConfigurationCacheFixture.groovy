@@ -62,6 +62,7 @@ class ConfigurationCacheFixture {
         closure()
 
         assertStateStored(details)
+        assertHasNoProblems()
         assertHasWarningThatIncubatingFeatureUsed()
     }
 
@@ -71,8 +72,6 @@ class ConfigurationCacheFixture {
         assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsAfterStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
-
-        assertHasNoProblems()
     }
 
     /**
@@ -296,8 +295,9 @@ class ConfigurationCacheFixture {
         }
     }
 
-    private assertHasNoProblems() {
+    void assertHasNoProblems() {
         problems.assertResultHasProblems(spec.result) {
+            totalProblemsCount = 0
         }
     }
 
