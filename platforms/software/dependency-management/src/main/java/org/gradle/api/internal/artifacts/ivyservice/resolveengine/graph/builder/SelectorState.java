@@ -184,8 +184,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             }
 
             BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-            if (dependencyState.failure != null) {
-                idResolveResult.failed(dependencyState.failure);
+            if (dependencyState.getSubstitutionFailure() != null) {
+                idResolveResult.failed(dependencyState.getSubstitutionFailure());
             } else {
                 IvyArtifactName firstArtifact = getFirstDependencyArtifact();
                 ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact, clientModule);

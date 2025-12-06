@@ -19,5 +19,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 
 public interface ModuleConflictHandler extends ConflictHandler<CandidateModule, ConflictResolutionResult> {
+
+    /**
+     * Return true iff the given module is involved in a module conflict.
+     */
+    boolean hasConflictFor(CandidateModule module);
+
     ModuleConflictResolver<ComponentState> getResolver();
 }

@@ -119,6 +119,18 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     }
 
     @Override
+    public boolean hasConflictFor(NodeState node) {
+        for (ConflictedNodesTracker tracker : capabilityWithoutVersionToTracker.values()) {
+            for (NodeState conflictedNode : tracker) {
+                if (conflictedNode == node) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         String capabilityInConflict = conflicts.remove();
 

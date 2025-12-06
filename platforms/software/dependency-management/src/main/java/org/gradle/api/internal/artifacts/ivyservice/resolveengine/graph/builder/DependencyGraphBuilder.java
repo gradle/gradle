@@ -82,9 +82,6 @@ import java.util.stream.Collectors;
 @ServiceScope(Scope.Project.class)
 public class DependencyGraphBuilder {
 
-    static final Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
-    static final Spec<EdgeState> NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
 
     private final ModuleExclusions moduleExclusions;
@@ -179,7 +176,7 @@ public class DependencyGraphBuilder {
      */
     private void traverseGraph(final ResolveState resolveState) {
         resolveState.onMoreSelected(resolveState.getRoot());
-        final List<EdgeState> dependencies = new ArrayList<>();
+        final List<EdgeState> edges = new ArrayList<>();
 
         ModuleConflictHandler moduleConflictHandler = resolveState.getModuleConflictHandler();
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
@@ -187,28 +184,38 @@ public class DependencyGraphBuilder {
         while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
             if (resolveState.peek() != null) {
                 final NodeState node = resolveState.pop();
-                LOGGER.debug("Visiting configuration {}.", node);
 
-                // TODO: Why is this not node.isSelected()?
-                // It seems that node.isSelected can return true while component.isSelected() returns false
-                if (!node.getComponent().isSelected()) {
-                    node.cleanupConstraints();
+                if (!node.isSelected()) {
+                    // This node has no incoming edges.
+                    // Remove any outgoing edges from this node, if any, so it no longer contributes to the graph.
+                    node.removeOutgoingEdges();
                     continue;
                 }
 
-                // Register capabilities for this node
+                if (!node.getComponent().isSelected()) {
+                    if (moduleConflictHandler.hasConflictFor(node.getComponent().getModule()) || capabilitiesConflictHandler.hasConflictFor(node)) {
+                        // The node is in conflict. Delay processing its outgoing edges for now.
+                        // If this node wins the conflict, it will be added to the queue again later.
+                        assert node.isDisconnected();
+                        continue;
+                    } else {
+                        assert node.getComponent().getNodes().stream().anyMatch(capabilitiesConflictHandler::hasConflictFor);
+                        // TODO: Some other node in this node's component is in conflict, but this node is not in conflict.
+                        // It is strange that we de-select the entire component in this case. We should probably not do this.
+                    }
+                }
+
+                // This node is part of the graph. Check if it conflicts with any other node in the graph.
                 if (registerCapabilities(resolveState, node)) {
                     // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
                     // There is no reason to continue processing this node otherwise.
                     continue;
                 }
 
-                // Initialize and collect any new outgoing edges of this node
-                dependencies.clear();
-                node.visitOutgoingDependencies(dependencies);
-                boolean edgeWasProcessed = resolveEdges(node, dependencies, ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, false, resolveState);
-                node.collectEndorsedStrictVersions(dependencies);
-                resolveEdges(node, dependencies, NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, edgeWasProcessed, resolveState);
+                // This node is part of the graph and is not in conflict. Process its outgoing dependencies.
+                edges.clear();
+                node.visitOutgoingDependenciesAndCollectEdges(edges);
+                resolveEdges(node, edges, resolveState);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
@@ -271,51 +278,41 @@ public class DependencyGraphBuilder {
         return foundConflict.get();
     }
 
-    private boolean resolveEdges(
+    private void resolveEdges(
         final NodeState node,
         final List<EdgeState> dependencies,
-        final Spec<EdgeState> edgeFilter,
-        final boolean recomputeSelectors,
         final ResolveState resolveState
     ) {
         if (dependencies.isEmpty()) {
-            return false;
-        }
-        if (performSelectionSerially(dependencies, edgeFilter, resolveState, recomputeSelectors)) {
-            maybeDownloadMetadataInParallel(node, dependencies, edgeFilter, buildOperationExecutor, resolveState.getComponentMetadataResolver());
-            attachToTargetRevisionsSerially(dependencies, edgeFilter);
-            return true;
-        } else {
-            return false;
+            return;
         }
 
+        performSelectionSerially(dependencies, resolveState);
+        maybeDownloadMetadataInParallel(node, dependencies, buildOperationExecutor, resolveState.getComponentMetadataResolver());
+        attachToTargetRevisionsSerially(dependencies);
     }
 
-    private static boolean performSelectionSerially(List<EdgeState> edges, Spec<EdgeState> edgeFilter, ResolveState resolveState, boolean recomputeSelectors) {
-        boolean processed = false;
+    private static void performSelectionSerially(List<EdgeState> edges, ResolveState resolveState) {
         for (EdgeState edge : edges) {
-            if (!edgeFilter.isSatisfiedBy(edge)) {
-                continue;
-            }
-            if (recomputeSelectors) {
-                edge.computeSelector();
-            }
-            SelectorState selector = edge.getSelector();
-            ModuleResolveState module = selector.getTargetModule();
-
-            // TODO: It is odd that we have to check module.getSelectors().size() here.
-            //       We already have a selector, its module should know about it.
-            if (selector.canAffectSelection() && module.getSelectors().size() > 0) {
-                // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
-                performSelection(resolveState, module);
-            }
+            // Selection of prior edges can cause the source node to enter a module conflict, thus
+            // causing further edges to be released.
             if (edge.isUsed()) {
-                // Some corner case result in the edge being removed, in that case it needs to be "removed"
-                module.addUnattachedEdge(edge);
+                SelectorState selector = edge.getSelector();
+                ModuleResolveState module = selector.getTargetModule();
+
+                // TODO: It is odd that we have to check module.getSelectors().size() here.
+                //       We already have a selector, its module should know about it.
+                if (selector.canAffectSelection() && module.getSelectors().size() > 0) {
+                    // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
+                    performSelection(resolveState, module);
+                }
+
+                // Some corner case results in the edge being marked unused, in that case we should not mark it as unattached.
+                if (edge.isUsed()) {
+                    module.addUnattachedEdge(edge);
+                }
             }
-            processed = true;
         }
-        return processed;
     }
 
     /**
@@ -358,12 +355,9 @@ public class DependencyGraphBuilder {
      * Prepares the resolution of edges, either serially or concurrently.
      * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the number of edges, and whether they have unresolved metadata.
      */
-    private static void maybeDownloadMetadataInParallel(NodeState node, List<EdgeState> edges, Spec<EdgeState> edgeFilter, BuildOperationExecutor buildOperationExecutor, ComponentMetaDataResolver componentMetaDataResolver) {
+    private static void maybeDownloadMetadataInParallel(NodeState node, List<EdgeState> edges, BuildOperationExecutor buildOperationExecutor, ComponentMetaDataResolver componentMetaDataResolver) {
         List<ComponentState> requiringDownload = null;
         for (EdgeState edge : edges) {
-            if (!edgeFilter.isSatisfiedBy(edge)) {
-                continue;
-            }
             ComponentState targetComponent = edge.getTargetComponent();
             if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
                 if (!componentMetaDataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
@@ -387,14 +381,12 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void attachToTargetRevisionsSerially(List<EdgeState> edges, Spec<EdgeState> edgeFilter) {
+    private static void attachToTargetRevisionsSerially(List<EdgeState> edges) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
         for (EdgeState edge : edges) {
-            if (edgeFilter.isSatisfiedBy(edge)) {
-                edge.attachToTargetNodes();
-            }
+            edge.attachToTargetNodes();
         }
     }
 

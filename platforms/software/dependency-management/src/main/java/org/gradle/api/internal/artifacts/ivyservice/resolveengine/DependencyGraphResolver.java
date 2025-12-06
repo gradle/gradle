@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.CachingDependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
@@ -45,6 +44,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.service.scopes.Scope;
@@ -67,6 +67,7 @@ public class DependencyGraphResolver {
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final DependencyGraphBuilder dependencyGraphBuilder;
+    private final InMemoryCacheFactory cacheFactory;
 
     @Inject
     public DependencyGraphResolver(
@@ -76,7 +77,8 @@ public class DependencyGraphResolver {
         InstantiatorFactory instantiatorFactory,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        DependencyGraphBuilder dependencyGraphBuilder
+        DependencyGraphBuilder dependencyGraphBuilder,
+        InMemoryCacheFactory cacheFactory
     ) {
         this.dependencyMetadataFactory = dependencyMetadataFactory;
         this.versionComparator = versionComparator;
@@ -85,6 +87,7 @@ public class DependencyGraphResolver {
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
         this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.dependencyGraphBuilder = dependencyGraphBuilder;
+        this.cacheFactory = cacheFactory;
     }
 
     /**
@@ -147,7 +150,12 @@ public class DependencyGraphResolver {
             return NO_OP;
         }
 
-        return new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(componentSelectionDescriptorFactory, dependencySubstitutionRule, instantiatorFactory));
+        return new DefaultDependencySubstitutionApplicator(
+            componentSelectionDescriptorFactory,
+            dependencySubstitutionRule,
+            instantiatorFactory,
+            cacheFactory
+        );
     }
 
     private ModuleConflictResolver<ComponentState> createModuleConflictResolver(ConflictResolution conflictResolution) {
