@@ -587,6 +587,9 @@ abstract class ItemSpec {
     }
 }
 
+/**
+ * Defines an expectation for the Configuration Cache outputs: what is printed on the console, what is in the report.
+ */
 class HasConfigurationCacheProblemsSpec {
 
     @PackageScope
@@ -598,12 +601,18 @@ class HasConfigurationCacheProblemsSpec {
     @PackageScope
     ItemSpec incompatibleTasks = ItemSpec.IGNORING
 
+    /**
+     * An expectation for the total number of reported problems (including non-unique instances).
+     * {@code null} means that no expectation is defined.
+     */
     @Nullable
-    @PackageScope
     Integer totalProblemsCount
 
+    /**
+     * An expectation for the total number of reported problems with stack traces.
+     * {@code null} means that no expectation is defined.
+     */
     @Nullable
-    @PackageScope
     Integer problemsWithStackTraceCount
 
     /**
@@ -613,7 +622,7 @@ class HasConfigurationCacheProblemsSpec {
      * so it is incorrect to enable report problems and attempt to check console messages.
      */
     @PackageScope
-    Boolean checkReportProblems = false
+    boolean checkReportProblems = false
 
     @PackageScope
     void validateSpec() {
@@ -636,10 +645,30 @@ class HasConfigurationCacheProblemsSpec {
         return !uniqueProblems.isEmpty() || totalProblemsCount > 0
     }
 
+    /**
+     * Sets the expectation for displayed problems.
+     * The number and order of actual problems must match the expected.
+     * The expected problem message is actually a prefix, so the actual message can be longer.
+     * <p>
+     * Note that the message format differs between console and report, the former includes a location prefix.
+     *
+     * @param uniqueProblems the prefixes of the expected problem messages
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withUniqueProblems(String... uniqueProblems) {
         return withUniqueProblems(uniqueProblems as List)
     }
 
+    /**
+     * Sets the expectation for displayed problems.
+     * The number and order of actual problems must match the expected.
+     * The expected problem message is actually a prefix, so the actual message can be longer.
+     * <p>
+     * Note that the message format differs between console and report, the former includes a location prefix.
+     *
+     * @param uniqueProblems the prefixes of the expected problem messages
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
         this.uniqueProblems.clear()
         uniqueProblems.each {
@@ -648,48 +677,84 @@ class HasConfigurationCacheProblemsSpec {
         return this
     }
 
+    /**
+     * Adds an expectation for a displayed problem.
+     * The number and order of actual problems must match the expected.
+     * The expected problem message is actually a prefix, so the actual message can be longer.
+     * <p>
+     * Note that the message format differs between console and report, the former includes a location prefix.
+     *
+     * @param problem the prefixes of the expected problem message
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withProblem(String problem) {
-        uniqueProblems.add(startsWith(problem))
-        return this
+        return withProblem(startsWith(problem))
     }
 
+    /**
+     * Adds an expectation for a displayed problem.
+     * The number and order of actual problems must match the expected.
+     * This method allows an arbitrary predicate.
+     * <p>
+     * Note that the message format differs between console and report, the former includes a location prefix.
+     *
+     * @param problem the matcher for the problem message
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withProblem(Matcher<String> problem) {
         uniqueProblems.add(problem)
         return this
     }
 
-    HasConfigurationCacheProblemsSpec withTotalProblemsCount(int totalProblemsCount) {
-        this.totalProblemsCount = totalProblemsCount
-        return this
-    }
-
-    HasConfigurationCacheProblemsSpec withProblemsWithStackTraceCount(int problemsWithStackTraceCount) {
-        this.problemsWithStackTraceCount = problemsWithStackTraceCount
-        return this
-    }
-
+    /**
+     * Adds an expectation for a build configuration input to be present.
+     * The order of inputs in the predicate doesn't matter.
+     * This is not compatible with {@link #withNoInputs()}.
+     * <p>
+     * All inputs must be verified unless {@link #ignoringUnexpectedInputs()} is used.
+     *
+     * @param prefix the prefix of the input including the location
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withInput(String prefix) {
         inputs = inputs.expectPrefix(prefix)
         return this
     }
 
+    /**
+     * Adds an expectation that no build configuration are to be present.
+     * This is not compatible with {@link #withInput(String)} or {@link #ignoringUnexpectedInputs()}.
+     *
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withNoInputs() {
         inputs = inputs.expectNone()
         return this
     }
 
+    /**
+     * Allows inputs not verified with {@link #withInput(String)} to be present in the result.
+     * This is not compatible with {@link #withNoInputs()}.
+     *
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec ignoringUnexpectedInputs() {
         inputs = inputs.ignoreUnexpected()
         return this
     }
 
+    /**
+     * Adds an expectation for an incompatible task to be reported.
+     * The order of tasks doesn't matter.
+     * <p>
+     * All incompatible tasks must be verified.
+     *
+     * @param task the task path
+     * @param reason the expected compatibility reason
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withIncompatibleTask(String task, String reason) {
         incompatibleTasks = incompatibleTasks.expect(allOf(startsWith("${task}: task '${task}' of type "), endsWith(reason)))
-        return this
-    }
-
-    HasConfigurationCacheProblemsSpec ignoringUnexpectedIncompatibleTasks() {
-        incompatibleTasks = incompatibleTasks.ignoreUnexpected()
         return this
     }
 }

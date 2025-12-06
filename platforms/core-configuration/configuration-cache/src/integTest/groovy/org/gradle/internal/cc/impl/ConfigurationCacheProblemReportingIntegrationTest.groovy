@@ -935,7 +935,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         postBuildOutputContains("Configuration cache entry stored with 12 problems.")
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(12)
+            totalProblemsCount = 12
             withUniqueProblems(
                 "Task `:a` of type `SomeTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.",
                 "Task `:a` of type `SomeTask`: cannot deserialize object of type 'org.gradle.api.invocation.Gradle' as these are not supported with the configuration cache.",
