@@ -111,6 +111,9 @@ class InterpreterTest : TestWithTempFiles() {
             on { get(GradleUserHomeTemporaryFileProvider::class.java) } doReturn GradleUserHomeTemporaryFileProvider {
                 tempFolder.createDir("gradle-user-home")
             }
+            on { get(MetadataCompatibilityChecker::class.java) } doReturn object : MetadataCompatibilityChecker {
+                override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
+            }
         }
 
         val host = mock<Interpreter.Host> {
