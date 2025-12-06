@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
+import groovy.transform.PackageScope
 import org.gradle.util.internal.ConfigureUtil
 
 /**
@@ -41,5 +42,31 @@ abstract class ConfigurationCacheReportFixture {
         assertHasProblems {
             totalProblemsCount = 0
         }
+    }
+
+    @PackageScope
+    static class NoReportFixtureImpl extends ConfigurationCacheReportFixture {
+        private final File projectRoot
+
+        NoReportFixtureImpl(File projectRoot) {
+            this.projectRoot = projectRoot
+        }
+
+        @Override
+        protected void assertHasProblems(HasConfigurationCacheProblemsSpec spec) {
+            assert !spec.hasProblems():
+                "Expected report to have problems but no report is available in '$projectRoot'"
+            assert !needsReport(spec.inputs):
+                "Expected report to have inputs but no report is available in '$projectRoot'"
+            assert !needsReport(spec.incompatibleTasks):
+                "Expected report to have incompatible task but no report is available in '$projectRoot'"
+        }
+
+        private boolean needsReport(ItemSpec itemSpec) {
+            return itemSpec != ItemSpec.IGNORING && itemSpec != ItemSpec.EXPECTING_NONE
+        }
+
+        @Override
+        void assertHasNoProblems() {}
     }
 }
