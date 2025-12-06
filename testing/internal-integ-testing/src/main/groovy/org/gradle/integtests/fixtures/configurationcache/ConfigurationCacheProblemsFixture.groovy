@@ -101,7 +101,12 @@ class ConfigurationCacheProblemsFixture {
      * @param output the output of the build
      */
     ConfigurationCacheReportFixture htmlReport(String output) {
-        return new ConfigurationCacheReportFixtureImpl(resolveConfigurationCacheReportDirectory(rootDir, output))
+        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
+        if (reportDir == null) {
+            return new ConfigurationCacheReportFixture.NoReportFixtureImpl(rootDir)
+        }
+
+        return new ConfigurationCacheReportFixtureImpl(reportDir)
     }
 
 
