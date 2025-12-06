@@ -78,8 +78,6 @@ class ConfigurationCacheProblemsFixture {
 
         @Override
         protected void assertContents(HasConfigurationCacheProblemsSpec spec) {
-            spec.checkReportProblems = true
-
             assertProblemsHtmlReport(reportDir, spec)
             assertInputs(reportDir, spec)
             assertIncompatibleTasks(reportDir, spec)
@@ -171,25 +169,6 @@ class ConfigurationCacheProblemsFixture {
         }
     }
 
-    protected static void assertProblemsHtmlReport(
-        String output,
-        File rootDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertProblemsHtmlReport(
-            resolveConfigurationCacheReportDirectory(rootDir, output),
-            spec
-        )
-    }
-
-    protected static void assertInputs(
-        String output,
-        File rootDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertItems('input', output, rootDir, spec.inputs)
-    }
-
     protected static void assertInputs(
         File reportDir,
         HasConfigurationCacheProblemsSpec spec
@@ -198,28 +177,10 @@ class ConfigurationCacheProblemsFixture {
     }
 
     protected static void assertIncompatibleTasks(
-        String output,
-        File rootDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertItems('incompatibleTask', output, rootDir, spec.incompatibleTasks)
-    }
-
-    protected static void assertIncompatibleTasks(
         File reportDir,
         HasConfigurationCacheProblemsSpec spec
     ) {
         assertItems('incompatibleTask', reportDir, spec.incompatibleTasks)
-    }
-
-    private static void assertItems(
-        String kind,
-        String output,
-        File rootDir,
-        ItemSpec spec
-    ) {
-        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
-        assertItems(kind, reportDir, spec)
     }
 
     private static void assertItems(
@@ -300,7 +261,7 @@ class ConfigurationCacheProblemsFixture {
         def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
         def problemsWithStackTraceCount = spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
         boolean shouldHaveReport = spec.totalProblemsCount != null ||
-            problemsWithStackTraceCount != null ||
+            spec.problemsWithStackTraceCount != null ||
             !spec.uniqueProblems.empty ||
             spec.incompatibleTasks instanceof ItemSpec.ExpectingSome ||
             spec.inputs instanceof ItemSpec.ExpectingSome
