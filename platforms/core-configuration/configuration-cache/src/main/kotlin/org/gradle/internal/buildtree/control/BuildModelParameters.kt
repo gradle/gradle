@@ -32,9 +32,9 @@ internal sealed class AbstractBuildModelParameters : BuildModelParameters {
         "isolatedProjects" to isIsolatedProjects,
         "modelAsProjectDependency" to isModelAsProjectDependency,
         "modelBuilding" to isModelBuilding,
+        "parallelModelBuilding" to isParallelModelBuilding,
         "parallelProjectConfiguration" to isParallelProjectExecution,
         "parallelProjectExecution" to isParallelProjectExecution,
-        "parallelToolingApiActions" to isParallelToolingApiActions,
         "resilientModelBuilding" to isResilientModelBuilding,
     )
 }
@@ -44,7 +44,7 @@ internal class GradleVintageMode(
     private val parallelProjectExecution: Boolean,
     private val configureOnDemand: Boolean,
     private val configurationCacheDisabledReason: String?,
-    private val parallelToolingActions: Boolean,
+    private val parallelModelBuilding: Boolean,
     private val resilientModelBuilding: Boolean,
 ) : AbstractBuildModelParameters() {
 
@@ -65,7 +65,7 @@ internal class GradleVintageMode(
     override fun isModelAsProjectDependency(): Boolean = false
 
     override fun isModelBuilding(): Boolean = modelBuilding
-    override fun isParallelToolingApiActions(): Boolean = parallelToolingActions
+    override fun isParallelModelBuilding(): Boolean = parallelModelBuilding
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
 
     override fun toString(): String = "GradleVintageMode"
@@ -95,7 +95,7 @@ internal class GradleConfigurationCacheMode(
     override fun isModelAsProjectDependency(): Boolean = false
 
     override fun isModelBuilding(): Boolean = false
-    override fun isParallelToolingApiActions(): Boolean = false
+    override fun isParallelModelBuilding(): Boolean = false
     override fun isResilientModelBuilding(): Boolean = false
 
     override fun toString(): String = "GradleConfigurationCacheMode"
@@ -108,7 +108,7 @@ internal class GradleIsolatedProjectsMode(
     private val configurationCacheParallelStore: Boolean,
     private val parallelProjectConfiguration: Boolean,
     private val intermediateModelCache: Boolean,
-    private val parallelToolingActions: Boolean,
+    private val parallelModelBuilding: Boolean,
     private val invalidateCoupledProjects: Boolean,
     private val modelAsProjectDependency: Boolean,
     private val resilientModelBuilding: Boolean
@@ -131,7 +131,7 @@ internal class GradleIsolatedProjectsMode(
     override fun isModelAsProjectDependency(): Boolean = modelAsProjectDependency
 
     override fun isModelBuilding(): Boolean = modelBuilding
-    override fun isParallelToolingApiActions(): Boolean = parallelToolingActions
+    override fun isParallelModelBuilding(): Boolean = parallelModelBuilding
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
 
     override fun toString(): String = "GradleIsolatedProjectsMode"

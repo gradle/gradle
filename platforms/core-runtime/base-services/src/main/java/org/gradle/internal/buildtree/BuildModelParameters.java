@@ -60,11 +60,6 @@ public interface BuildModelParameters {
     boolean isIntermediateModelCache();
 
     /**
-     * When {@link #isParallelProjectExecution()} is true, should Tooling API actions run in parallel?
-     */
-    boolean isParallelToolingApiActions();
-
-    /**
      * When {@link  #isIsolatedProjects()} is true, should project state be invalidated when a project it is coupled with changes?
      * This parameter is only used for benchmarking purposes.
      */
@@ -84,6 +79,17 @@ public interface BuildModelParameters {
      * even after the tasks have been executed, because the Tooling Model Builders can run after tasks.
      */
     boolean isModelBuilding();
+
+    /**
+     * Determines whether nested build actions provided in {@code BuildController.run(actions)} can run in parallel.
+     *
+     * <ul>
+     * <li>Vintage: controlled by {@code --parallel}
+     * <li>CC: not applicable, since CC is always disabled for model building invocations
+     * <li>IP: always enabled
+     * </ul>
+     */
+    boolean isParallelModelBuilding();
 
     /**
      * Returns true if the model building is resilient so some failures in model building.

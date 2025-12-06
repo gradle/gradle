@@ -37,7 +37,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: false,
             isolatedProjects: false,
             parallelProjectConfiguration: false,
-            parallelToolingApiActions: false,
+            parallelModelBuilding: false,
             intermediateModelCache: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
@@ -98,7 +98,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
+            parallelModelBuilding: models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -129,7 +129,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
+            parallelModelBuilding: models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -168,7 +168,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: ipParallelExpected,
-            parallelToolingApiActions: ipParallelExpected && models,
+            parallelModelBuilding: ipParallelExpected && models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -207,7 +207,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
+            parallelModelBuilding: models,
             intermediateModelCache: ipCachingExpected,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
