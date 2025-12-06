@@ -28,20 +28,23 @@ class BuildModelParametersProviderTest extends Specification {
 
     def defaults() {
         [
-            requiresToolingModels: false,
-            configureOnDemand: false,
             parallelProjectExecution: false,
+            configureOnDemand: false,
+
             configurationCache: false,
             configurationCacheDisabledReason: null,
             configurationCacheParallelStore: false,
             configurationCacheParallelLoad: false,
+
             isolatedProjects: false,
             parallelProjectConfiguration: false,
-            parallelToolingApiActions: false,
-            intermediateModelCache: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
-            resilientModelBuilding: false
+
+            modelBuilding: false,
+            parallelModelBuilding: false,
+            cachingModelBuilding: false,
+            resilientModelBuilding: false,
         ]
     }
 
@@ -51,7 +54,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models
+            modelBuilding: models
         ])
 
         where:
@@ -91,14 +94,14 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: true,
             configurationCache: true,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
+            parallelModelBuilding: models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -121,7 +124,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             configureOnDemand: configureOnDemandExpected,
             parallelProjectExecution: true,
             configurationCache: true,
@@ -129,7 +132,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
+            parallelModelBuilding: models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -161,14 +164,14 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: ipParallelExpected,
             configurationCache: true,
             configurationCacheParallelStore: ipParallelExpected,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: ipParallelExpected,
-            parallelToolingApiActions: ipParallelExpected && models,
+            parallelModelBuilding: ipParallelExpected && models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -200,15 +203,15 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: true,
             configurationCache: true,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
-            intermediateModelCache: ipCachingExpected,
+            parallelModelBuilding: models,
+            cachingModelBuilding: ipCachingExpected,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])

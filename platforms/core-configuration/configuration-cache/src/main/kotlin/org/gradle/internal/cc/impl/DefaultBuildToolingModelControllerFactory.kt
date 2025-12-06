@@ -39,7 +39,7 @@ class DefaultBuildToolingModelControllerFactory(
         } else {
             DefaultBuildToolingModelController(owner, lifecycleController, modelBuilderLookup)
         }
-        return if (modelParameters.isIntermediateModelCache) {
+        return if (modelParameters.isCachingModelBuilding) {
             ConfigurationCacheAwareBuildToolingModelController(toolingModelController, lifecycleController.gradle.services.get(BuildTreeConfigurationCache::class.java))
         } else {
             toolingModelController
