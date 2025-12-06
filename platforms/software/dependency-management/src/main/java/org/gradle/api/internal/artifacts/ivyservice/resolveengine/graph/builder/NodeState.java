@@ -534,7 +534,6 @@ public class NodeState implements DependencyGraphNode {
         dependencyEdge.computeSelector(ancestorsStrictVersions, deferSelection);
         discoveredEdges.add(dependencyEdge);
         outgoingEdges.add(dependencyEdge);
-        dependencyEdge.markUsed();
     }
 
     /**
@@ -610,7 +609,6 @@ public class NodeState implements DependencyGraphNode {
             virtualEdges = new ArrayList<>();
         }
         virtualEdges.add(edge);
-        edge.markUsed();
     }
 
     private boolean hasStrongOpinion() {
@@ -1080,24 +1078,12 @@ public class NodeState implements DependencyGraphNode {
         removingOutgoingEdges = true;
         if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
             for (EdgeState outgoingEdge : outgoingEdges) {
-                outgoingEdge.markUnused(); // Track that these edges have been removed from outgoing but maybe not from incoming, in case we hit one of these continues and do not call disconnectOutgoingEdge
-                ComponentState targetComponent = outgoingEdge.getTargetComponent();
-                if (targetComponent == component) {
-                    // if the same component depends on itself: do not attempt to cleanup the same thing several times
-                    continue;
-                }
-                if (targetComponent != null && targetComponent.getModule().isChangingSelection()) {
-                    // don't requeue something which is already changing selection
-                    continue;
-                }
-
                 disconnectOutgoingEdge(outgoingEdge);
             }
             outgoingEdges.clear();
         }
         if (virtualEdges != null /*&& !removingOutgoing*/) {
             for (EdgeState virtualEdge : virtualEdges) {
-                virtualEdge.markUnused();
                 disconnectOutgoingEdge(virtualEdge);
             }
             virtualEdges = null;
@@ -1203,7 +1189,6 @@ public class NodeState implements DependencyGraphNode {
             // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
             // and it can cause a concurrent modification exception
             outgoingEdges.remove(edge);
-            edge.markUnused();
             edge.clearSelector();
         }
     }
@@ -1250,15 +1235,6 @@ public class NodeState implements DependencyGraphNode {
     boolean isSelectedByVariantAwareResolution() {
         // the order is strange logically but here for performance optimization
         return selectedByVariantAwareResolution && isSelected();
-    }
-
-    void makePending(EdgeState edgeState) {
-        if (!removingOutgoingEdges) {
-            // We can ignore if we are already removing edges anyway
-            outgoingEdges.remove(edgeState);
-            edgeState.markUnused();
-            edgeState.clearSelector();
-        }
     }
 
     @Nullable

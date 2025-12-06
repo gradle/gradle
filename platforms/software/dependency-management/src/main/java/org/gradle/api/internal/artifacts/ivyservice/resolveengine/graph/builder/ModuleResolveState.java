@@ -87,7 +87,6 @@ public class ModuleResolveState implements CandidateModule {
     private boolean overriddenSelection;
     private Set<VirtualPlatformState> platformOwners;
     private boolean replaced = false;
-    private boolean changingSelection;
     private int selectionChangedCounter;
 
     ModuleResolveState(
@@ -203,10 +202,6 @@ public class ModuleResolveState implements CandidateModule {
         selected.select();
     }
 
-    public boolean isChangingSelection() {
-        return changingSelection;
-    }
-
     /**
      * Changes the selected target component for this module due to version conflict resolution.
      */
@@ -216,8 +211,6 @@ public class ModuleResolveState implements CandidateModule {
         assert this.selected != newSelection;
         assert newSelection.getModule() == this;
 
-        changingSelection = true;
-
         // Remove any outgoing edges for the current selection
         selected.removeOutgoingEdges();
 
@@ -225,7 +218,6 @@ public class ModuleResolveState implements CandidateModule {
         this.replaced = false;
 
         doRestart(newSelection);
-        changingSelection = false;
     }
 
     /**
