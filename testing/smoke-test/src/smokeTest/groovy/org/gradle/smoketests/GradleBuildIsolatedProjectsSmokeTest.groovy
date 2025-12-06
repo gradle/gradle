@@ -42,7 +42,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         then:
         result.assertConfigurationCacheStateStoreDiscarded()
 
-        fixture.htmlReport(result.output).assertHasProblems {
+        fixture.htmlReport(result.output).assertContents {
             totalProblemsCount = 1
             withUniqueProblems(
                 "Project :docs cannot dynamically look up a property in the parent project :",
