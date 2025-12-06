@@ -111,6 +111,7 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
+    implementation(projects.daemonLogging)
     implementation(projects.groovyLoader)
     implementation(projects.inputTracking)
     implementation(projects.io)

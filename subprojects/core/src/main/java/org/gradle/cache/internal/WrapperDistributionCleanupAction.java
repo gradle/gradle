@@ -31,7 +31,6 @@ import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DefaultGradleVersion;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -93,7 +92,7 @@ public class WrapperDistributionCleanupAction implements MonitoredCleanupAction 
     }
 
     @Override
-    public boolean execute(@NonNull CleanupProgressMonitor progressMonitor) {
+    public boolean execute(CleanupProgressMonitor progressMonitor) {
         long maximumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
         Set<GradleVersion> usedVersions = this.usedGradleVersions.getUsedGradleVersions();
         Multimap<GradleVersion, File> checksumDirsByVersion = determineChecksumDirsByVersion();

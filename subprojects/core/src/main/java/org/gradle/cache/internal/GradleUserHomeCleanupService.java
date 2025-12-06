@@ -32,6 +32,8 @@ import org.gradle.internal.versionedcache.UsedGradleVersions;
 
 import java.io.File;
 
+import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_DIR;
+
 @ServiceScope(Scope.UserHome.class)
 public class GradleUserHomeCleanupService implements Stoppable {
     private final Deleter deleter;
@@ -70,7 +72,10 @@ public class GradleUserHomeCleanupService implements Stoppable {
             )
         );
         if (wasCleanedUp) {
-            execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
+            wasCleanedUp = execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
+        }
+        if(wasCleanedUp){
+            execute(new DaemonLogCleanupAction(new File(userHomeDirProvider.getGradleUserHomeDirectory(), DAEMON_LOG_DIR), deleter));
         }
         alreadyCleaned = true;
     }

@@ -27,7 +27,6 @@ dependencies {
 
     implementation(libs.guava)
 
-    implementation(projects.baseServices)
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
@@ -38,4 +37,5 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.core)
     implementation(projects.daemonProtocol)
+    implementation(projects.daemonLogging)
 }
