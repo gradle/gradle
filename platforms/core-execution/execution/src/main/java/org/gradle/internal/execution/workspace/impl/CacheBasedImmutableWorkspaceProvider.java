@@ -87,7 +87,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             cacheConfigurations.getCleanupFrequency()::get
         );
         this.cache = cacheBuilder
-            .withLeastRecentCleanup(cacheCleanupStrategy)
+            // .withLeastRecentCleanup(cacheCleanupStrategy)
             .open();
         this.deleter = cacheCleanupStrategy.getCacheDeleter(cache);
         this.baseDirectory = cache.getBaseDir();
