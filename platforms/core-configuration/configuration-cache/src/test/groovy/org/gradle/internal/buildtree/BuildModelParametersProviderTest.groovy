@@ -95,7 +95,7 @@ class BuildModelParametersProviderTest extends Specification {
         checkParameters(params.toDisplayMap(), defaults() + [
             parallelProjectExecution: true,
             modelBuilding: models,
-            parallelModelBuilding: true,
+            parallelModelBuilding: models,
         ])
 
         where:
