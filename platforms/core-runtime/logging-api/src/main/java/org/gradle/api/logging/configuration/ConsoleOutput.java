@@ -28,6 +28,11 @@ public enum ConsoleOutput {
     Plain,
 
     /**
+     * Disable all color and rich output. Generate plain text only. Omit headers for tasks without output.
+     */
+    Ci,
+
+    /**
      * Enable color output while omitting rich features such as progress bars.
      *
      * @since 9.1.0

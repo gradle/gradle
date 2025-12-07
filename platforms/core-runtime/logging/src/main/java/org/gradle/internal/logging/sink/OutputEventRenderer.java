@@ -276,25 +276,25 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         addConsoleChain(consoleChain);
     }
 
-    public void addPlainConsoleWithErrorOutputOnStdout(OutputStream stdout) {
+    public void addPlainConsoleWithErrorOutputOnStdout(OutputStream stdout, boolean verbose) {
         OutputEventListener stdoutListener = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
         addConsoleChain(throttled(
-            getInputStandardOutputRenderer(stdoutListener, true)));
+            getInputStandardOutputRenderer(stdoutListener, verbose)));
     }
 
-    public void addPlainConsole(OutputStream stdout, OutputStream stderr) {
+    public void addPlainConsole(OutputStream stdout, OutputStream stderr, boolean verbose) {
         OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
         OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stderr)));
         OutputEventListener outputListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
         addConsoleChain(throttled(
-            getInputStandardOutputRenderer(outputListener, true)));
+            getInputStandardOutputRenderer(outputListener, verbose)));
     }
 
-    public void addColoredConsoleWithErrorOutputOnStdout(Console stdout) {
+    public void addColoredConsoleWithErrorOutputOnStdout(Console stdout, boolean verbose) {
         OutputEventListener consoleListener = new FlushConsoleListener(stdout, new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea()));
         OutputEventListener consoleChain = throttled(
             flushing(
-                getInputStandardOutputRenderer(consoleListener, true),
+                getInputStandardOutputRenderer(consoleListener, verbose),
                 stdout
             )
 
@@ -302,13 +302,13 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         addConsoleChain(consoleChain);
     }
 
-    public void addColoredConsole(Console stdout, Console stderr) {
+    public void addColoredConsole(Console stdout, Console stderr, boolean verbose) {
         OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
         OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
         OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
         OutputEventListener consoleChain = throttled(
             flushing(
-                getInputStandardOutputRenderer(consoleListener, true),
+                getInputStandardOutputRenderer(consoleListener, verbose),
                 stdout
             )
         );

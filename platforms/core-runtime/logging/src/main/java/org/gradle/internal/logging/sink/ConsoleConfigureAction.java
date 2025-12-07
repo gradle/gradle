@@ -50,6 +50,8 @@ public class ConsoleConfigureAction {
             configurePlainConsole(renderer, consoleMetadata, stdout, stderr);
         } else if (consoleOutput == ConsoleOutput.Colored) {
             configureColoredConsole(renderer, consoleMetadata, stdout, stderr);
+        }else if (consoleOutput == ConsoleOutput.Ci) {
+            configureCiConsole(renderer, consoleMetadata, stdout, stderr);
         }
     }
 
@@ -77,7 +79,7 @@ public class ConsoleConfigureAction {
             Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdout, stderrConsole, true);
         } else {
-            renderer.addPlainConsole(stdout, stderr);
+            renderer.addPlainConsole(stdout, stderr, true);
         }
     }
 
@@ -85,9 +87,19 @@ public class ConsoleConfigureAction {
         if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
-            renderer.addPlainConsoleWithErrorOutputOnStdout(stdout);
+            renderer.addPlainConsoleWithErrorOutputOnStdout(stdout, true);
         } else {
-            renderer.addPlainConsole(stdout, stderr);
+            renderer.addPlainConsole(stdout, stderr, true);
+        }
+    }
+
+    private static void configureCiConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // This avoids interleaving problems when stdout and stderr end up at the same location
+            renderer.addPlainConsoleWithErrorOutputOnStdout(stdout, false);
+        } else {
+            renderer.addPlainConsole(stdout, stderr, false);
         }
     }
 
@@ -97,12 +109,12 @@ public class ConsoleConfigureAction {
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
             Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
-            renderer.addColoredConsoleWithErrorOutputOnStdout(console);
+            renderer.addColoredConsoleWithErrorOutputOnStdout(console, true);
         } else {
             // Write colored content to both stdout and stderr
             Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
-            renderer.addColoredConsole(stdoutConsole, stderrConsole);
+            renderer.addColoredConsole(stdoutConsole, stderrConsole, true);
         }
     }
 
