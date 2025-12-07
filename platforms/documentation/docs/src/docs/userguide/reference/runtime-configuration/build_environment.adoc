@@ -369,6 +369,34 @@ Note that this is equivalent to adding `-agentlib:jdwp=transport=dt_socket,serve
 +
 _Default is `false`._
 
+`org.gradle.distributions.source.repository.credential.password=(password for the repository)`::
+The password to use when sending requests to the repository specified in `org.gradle.distributions.source.repository.url`.
++
+The default value is the value of the `gradle.wrapperPassword` system property, otherwise if not set,
+then unauthenticated requests will be sent to the repository.
+
+`org.gradle.distributions.source.repository.credential.username=(username for the repository)`::
+The username to use when sending requests to the repository specified in `org.gradle.distributions.source.repository.url`.
++
+The default value is the value of the `gradle.wrapperUser` system property, otherwise if not set,
+then unauthenticated requests will be sent to the repository.
+
+`org.gradle.distributions.source.repository.ivyArtifactPattern=(Ivy artifact pattern)`::
+This can be configured alongside the `org.gradle.distributions.source.repository.url` property to specify the pattern
+to find Gradle distributions.
++
+The default value is `"[module]-[revision](-[classifier])(.[ext])"`.
+
+`org.gradle.distributions.source.repository.url=(URL)`::
+Specifies the URL from which the sources of Gradle can be downloaded from. This is used by IDEs to download the sources of
+Gradle. Note that this is only the base URL, by default the Gradle distribution filenames must match the pattern
+for particular Gradle versions. See the `org.gradle.distributions.source.repository.ivyArtifactPattern` property for
+custom patterns.
++
+The default behavior is using the same URL as the wrapper was configured to, if the URL seems to match the filename pattern
+used in the official Gradle distributions repository. As a final fallback, these official repositories are used:
+<https://services.gradle.org/distributions> or <https://services.gradle.org/distributions-snapshots>.
+
 `org.gradle.java.home=(path to JDK home)`::
 Specifies the Java home for the Gradle build process.
 The value can be set to either a `jdk` or `jre` location; however, using a JDK is safer depending on what your build does.

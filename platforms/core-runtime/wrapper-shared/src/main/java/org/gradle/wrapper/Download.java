@@ -16,6 +16,8 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.util.internal.WrapperDistributionUrlConverter;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -127,7 +129,7 @@ public class Download implements IDownload {
             conn.setRequestProperty("User-Agent", userAgentValue);
             conn.setConnectTimeout(networkTimeout);
             conn.setReadTimeout(networkTimeout);
-            
+
             // Check HTTP response code before downloading
             if (conn instanceof HttpURLConnection) {
                 HttpURLConnection httpConn = (HttpURLConnection) conn;
@@ -136,7 +138,7 @@ public class Download implements IDownload {
                     throw new IOException("Server returned HTTP response code: " + responseCode + " for URL: " + safeUrl);
                 }
             }
-            
+
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -226,8 +228,8 @@ public class Download implements IDownload {
     }
 
     private String calculateUserInfo(URI uri) {
-        String username = systemProperties.get("gradle.wrapperUser");
-        String password = systemProperties.get("gradle.wrapperPassword");
+        String username = systemProperties.get(WrapperDistributionUrlConverter.WRAPPER_USER_SYSTEM_PROPERTY_NAME);
+        String password = systemProperties.get(WrapperDistributionUrlConverter.WRAPPER_PASSWORD_SYSTEM_PROPERTY_NAME);
         if (username != null && password != null) {
             return username + ':' + password;
         }
