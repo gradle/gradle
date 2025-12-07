@@ -66,6 +66,99 @@ class BuildModelParametersProviderTest extends Specification {
         description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
     }
 
+    def "configure on demand is disabled when building models"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            configureOnDemand = true
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            configureOnDemand: !models,
+            modelBuilding: models,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "parallel execution flag enables parallel model building when building models"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            parallelProjectExecutionEnabled = true
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            parallelProjectExecution: true,
+            modelBuilding: models,
+            parallelModelBuilding: models,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "can disable parallel model building with internal property"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            parallelProjectExecutionEnabled = true
+            systemPropertiesArgs[BuildModelParametersProvider.parallelBuilding.propertyName] = "false"
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            parallelProjectExecution: true,
+            modelBuilding: models,
+            parallelModelBuilding: false,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "parameters when configuration cache is enabled for running tasks"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: false) {
+            setConfigurationCache(Option.Value.value(true))
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            configurationCache: true,
+            configurationCacheParallelLoad: true,
+            configurationCacheParallelStore: false,
+            parallelProjectExecution: false, // With CC, tasks are known to be isolated, so they run in parallel even without "parallel execution"
+        ])
+    }
+
+    def "configuration cache is automatically disabled when building models"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: true) {
+            setConfigurationCache(Option.Value.value(true))
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            modelBuilding: true,
+            configurationCache: false,
+        ])
+
+        where:
+        tasks << [true, false]
+
+        description = tasks ? "running tasks and building models" : 'building models'
+    }
+
     def "configuration cache is automatically disabled when combined with --#option"() {
         given:
         def params = parameters(runsTasks: true, createsModel: false) {

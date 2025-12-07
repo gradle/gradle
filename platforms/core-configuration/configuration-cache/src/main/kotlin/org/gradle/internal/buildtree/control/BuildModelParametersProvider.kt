@@ -45,7 +45,7 @@ object BuildModelParametersProvider {
     private
     val configurationCacheParallelLoad = InternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
 
-    private
+    @JvmStatic
     val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
 
     private
@@ -132,17 +132,26 @@ object BuildModelParametersProvider {
         ccDisabledReason: String? = null
     ): GradleVintageMode {
 
-        val requiresModels = requirements.isCreatesModel
         val parallelProjectExecution = requirements.startParameter.isParallelProjectExecutionEnabled
-
-        return GradleVintageMode(
-            modelBuilding = requiresModels,
-            parallelProjectExecution = parallelProjectExecution,
-            configureOnDemand = !requiresModels && startParameter.isConfigureOnDemand,
-            configurationCacheDisabledReason = ccDisabledReason,
-            parallelModelBuilding = requirements.startParameter.isParallelProjectExecutionEnabled && options[parallelBuilding],
-            resilientModelBuilding = options[resilientModelBuilding]
-        )
+        return if (requirements.isCreatesModel) {
+            GradleVintageMode(
+                modelBuilding = true,
+                parallelProjectExecution = parallelProjectExecution,
+                configureOnDemand = false,
+                configurationCacheDisabledReason = ccDisabledReason,
+                parallelModelBuilding = parallelProjectExecution && options[parallelBuilding],
+                resilientModelBuilding = options[resilientModelBuilding],
+            )
+        } else {
+            GradleVintageMode(
+                modelBuilding = false,
+                parallelProjectExecution = parallelProjectExecution,
+                configureOnDemand = startParameter.isConfigureOnDemand,
+                configurationCacheDisabledReason = ccDisabledReason,
+                parallelModelBuilding = false,
+                resilientModelBuilding = false,
+            )
+        }
     }
 
     private
