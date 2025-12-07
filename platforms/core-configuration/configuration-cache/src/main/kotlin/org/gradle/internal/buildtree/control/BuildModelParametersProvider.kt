@@ -45,9 +45,6 @@ object BuildModelParametersProvider {
     private
     val configurationCacheParallelLoad = InternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
 
-    @JvmStatic
-    val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
-
     private
     val invalidateCoupledProjects = InternalFlag("org.gradle.internal.invalidate-coupled-projects", true)
 
@@ -143,7 +140,7 @@ object BuildModelParametersProvider {
     ): GradleVintageMode {
 
         val parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled
-        val parallelModelBuilding = parallelModelBuildingForVintage(startParameter) && options[parallelBuilding]
+        val parallelModelBuilding = parallelModelBuildingForVintage(startParameter)
         return if (requirements.isCreatesModel) {
             GradleVintageMode(
                 modelBuilding = true,
@@ -218,7 +215,7 @@ object BuildModelParametersProvider {
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 parallelProjectConfiguration = parallelIsolatedProjects,
                 cachingModelBuilding = options[isolatedProjectsCaching].buildingModels,
-                parallelModelBuilding = parallelIsolatedProjects && options[parallelBuilding],
+                parallelModelBuilding = parallelIsolatedProjects,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = options[modelProjectDependencies],
                 resilientModelBuilding = options[resilientModelBuilding]

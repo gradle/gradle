@@ -105,27 +105,6 @@ class BuildModelParametersProviderTest extends Specification {
         true  | true
     }
 
-    def "with parallel execution flag, can disable parallel model building with internal property"() {
-        given:
-        def params = parameters(runsTasks: tasks, createsModel: models) {
-            parallelProjectExecutionEnabled = true
-            systemPropertiesArgs[BuildModelParametersProvider.parallelBuilding.propertyName] = "false"
-        }
-
-        expect:
-        checkParameters(params.toDisplayMap(), defaults() + [
-            parallelProjectExecution: true,
-            modelBuilding: models,
-            parallelModelBuilding: false,
-        ])
-
-        where:
-        tasks | models
-        true  | false
-        false | true
-        true  | true
-    }
-
     def "with parallel execution flag, can disable parallel model building with ignore-legacy-default flag"() {
         given:
         def params = parameters(runsTasks: tasks, createsModel: models) {
