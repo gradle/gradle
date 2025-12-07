@@ -33,7 +33,7 @@ internal sealed class AbstractBuildModelParameters : BuildModelParameters {
         "modelAsProjectDependency" to isModelAsProjectDependency,
         "modelBuilding" to isModelBuilding,
         "parallelModelBuilding" to isParallelModelBuilding,
-        "parallelProjectConfiguration" to isParallelProjectExecution,
+        "parallelProjectConfiguration" to isParallelProjectConfiguration,
         "parallelProjectExecution" to isParallelProjectExecution,
         "resilientModelBuilding" to isResilientModelBuilding,
     )
