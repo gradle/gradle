@@ -45,7 +45,7 @@ object BuildModelParametersProvider {
     private
     val configurationCacheParallelLoad = InternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
 
-    private
+    @JvmStatic
     val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
 
     private
