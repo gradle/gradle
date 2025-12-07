@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
-import groovy.json.JsonSlurper
+
 import groovy.transform.PackageScope
 import groovy.transform.ToString
 import junit.framework.AssertionFailedError
@@ -39,11 +39,9 @@ import java.util.stream.Collectors
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.endsWith
-import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
-import static org.junit.Assert.assertTrue
 
 class ConfigurationCacheProblemsFixture {
     protected static final String CC_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
@@ -63,42 +61,27 @@ class ConfigurationCacheProblemsFixture {
         return spec
     }
 
-    private static class ConfigurationCacheReportFixtureImpl extends ConfigurationCacheReportFixture {
-        private final Map<String, Object> jsModel
-
-        private ConfigurationCacheReportFixtureImpl(File reportFile) {
-            jsModel = readJsModelFrom(reportFile)
-        }
-
-        @Override
-        protected void assertContents(HasConfigurationCacheProblemsSpec spec) {
-            assertProblemsHtmlReport(jsModel, spec)
-            assertInputs(jsModel, spec)
-            assertIncompatibleTasks(jsModel, spec)
-        }
-    }
-
     /**
      * Checks if a single configuration cache report is available at the standard location and returns a fixture to assert on it.
      * Fails if there is no report or there are multiple reports.
      */
     ConfigurationCacheReportFixture htmlReport() {
         // TODO(mlopatkin) what if the report is not present? htmlReport(String) allows it.
-        return new ConfigurationCacheReportFixtureImpl(findReportFile())
+        return ConfigurationCacheReportFixture.forReportFile(findReportFile())
     }
 
     /**
-     * Creates a fixture to assert on the report based on the file URL written in the build output. The report may be absent.
+     * Creates a fixture to assert on the report based on the file URL written in the build output. The report URL may be absent in the output.
      *
      * @param output the output of the build
      */
     ConfigurationCacheReportFixture htmlReport(String output) {
         def reportFile = resolveConfigurationCacheReport(rootDir, output)
         if (reportFile == null) {
-            return new ConfigurationCacheReportFixture.NoReportFixtureImpl(rootDir)
+            return ConfigurationCacheReportFixture.forAbsentReport(rootDir)
         }
 
-        return new ConfigurationCacheReportFixtureImpl(reportFile)
+        return ConfigurationCacheReportFixture.forReportFile(reportFile)
     }
 
 
@@ -163,150 +146,6 @@ class ConfigurationCacheProblemsFixture {
         }
     }
 
-    protected static void assertInputs(
-        Map<String, Object> jsModel,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertItems('input', jsModel, spec.inputs)
-    }
-
-    protected static void assertIncompatibleTasks(
-        Map<String, Object> jsModel,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertItems('incompatibleTask', jsModel, spec.incompatibleTasks)
-    }
-
-    private static void assertItems(
-            String kind,
-            Map<String, Object> jsModel,
-            ItemSpec spec
-        ) {
-        if (spec == ItemSpec.IGNORING) {
-            return
-        }
-
-        List<Matcher<String>> expectedItems = spec instanceof ItemSpec.ExpectingSome
-            ? spec.itemMatchers.collect()
-            : []
-
-
-        List<Map<String, Object>> items = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it[kind] != null }
-        List<String> unexpectedItems = items.collect { formatItemForAssert(it, kind) }.reverse()
-        for (int i in expectedItems.indices.reverse()) {
-            def expectedItem = expectedItems[i]
-            for (int j in unexpectedItems.indices) {
-                if (expectedItem.matches(unexpectedItems[j])) {
-                    expectedItems.removeAt(i)
-                    unexpectedItems.removeAt(j)
-                    break
-                }
-            }
-        }
-        if (!(spec instanceof ItemSpec.IgnoreUnexpected)) {
-            assert unexpectedItems.isEmpty(): "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
-        }
-        assert expectedItems.isEmpty(): "Expecting $expectedItems in the report, found $unexpectedItems"
-    }
-
-    private static String formatItemForAssert(Map<String, Object> item, String kind) {
-        def trace = formatTrace(item['trace'][0])
-        List<Map<String, Object>> itemFragments = item[kind]
-        def message = formatStructuredMessage(itemFragments)
-        "${trace}: ${message}"
-    }
-
-    private static String formatStructuredMessage(List<Map<String, Object>> fragments) {
-        fragments.collect {
-            // See StructuredMessage.Fragment
-            it['text'] ?: "'${it['name']}'"
-        }.join('')
-    }
-
-    private static String formatTrace(Map<String, Object> trace) {
-        def kind = trace['kind']
-        switch (kind) {
-            case "Task": return trace['path']
-            case "Bean": return trace['type']
-            case "Field": return trace['name']
-            case "InputProperty": return trace['name']
-            case "OutputProperty": return trace['name']
-                // Build file 'build.gradle'
-            case "BuildLogic": return trace['location'].toString().capitalize()
-            case "BuildLogicClass": return trace['type']
-            default: return "Gradle runtime"
-        }
-    }
-
-    protected static void assertProblemsHtmlReport(
-        Map<String, Object> jsModel,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
-        def problemsWithStackTraceCount = spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
-        assert (spec.totalProblemsCount != null ||
-            spec.problemsWithStackTraceCount != null ||
-            !spec.uniqueProblems.empty ||
-            spec.incompatibleTasks instanceof ItemSpec.ExpectingSome ||
-            spec.inputs instanceof ItemSpec.ExpectingSome):
-                "The spec suggests the report shouldn't be generated but it was"
-
-        doAssertProblemsHtmlReport(
-            jsModel,
-            totalProblemCount,
-            spec.uniqueProblems,
-            problemsWithStackTraceCount,
-            spec.checkReportProblems
-        )
-    }
-
-    private static void doAssertProblemsHtmlReport(
-        def jsModel,
-        int totalProblemCount,
-        List<Matcher> uniqueProblems,
-        int problemsWithStackTraceCount,
-        boolean checkReportProblems
-    ) {
-        assertThat(
-            "HTML report JS model has wrong number of total problem(s)",
-            numberOfProblemsIn(jsModel),
-            equalTo(totalProblemCount)
-        )
-        assertThat(
-            "HTML report JS model has wrong number of problem(s) with stacktrace",
-            numberOfProblemsWithStacktraceIn(jsModel),
-            equalTo(problemsWithStackTraceCount)
-        )
-        if (checkReportProblems) {
-            def problemMessages = problemMessagesIn(jsModel).unique()
-            for (int i in uniqueProblems.indices) {
-                // note that matchers for problem messages in report don't contain location prefixes
-                assert uniqueProblems[i].matches(problemMessages[i]) : "Expected problem at #$i to be ${uniqueProblems[i]}, but was: ${problemMessages[i]}"
-            }
-        }
-    }
-
-    private static Map<String, Object> readJsModelFrom(File reportFile) {
-        assertTrue("HTML report HTML file '$reportFile' not found", reportFile.isFile())
-
-        // ConfigurationCacheReport ensures the pure json model can be read
-        // by looking for `// begin-report-data` and `// end-report-data`
-        def jsonText = linesBetween(reportFile, '// begin-report-data', '// end-report-data')
-        assert jsonText: "malformed report file"
-        new JsonSlurper().parseText(jsonText) as Map<String, Object>
-    }
-
-    private static String linesBetween(File file, String beginLine, String endLine) {
-        return file.withReader('utf-8') { reader ->
-            reader.lines().iterator()
-                .dropWhile { it != beginLine }
-                .drop(1)
-                .takeWhile { it != endLine }
-                .collect()
-                .join('\n')
-        }
-    }
-
     File findReportFile() {
         return resolveSingleConfigurationCacheReport(rootDir)
     }
@@ -341,6 +180,7 @@ class ConfigurationCacheProblemsFixture {
         return reportFileUri ? new TestFile(Paths.get(URI.create(reportFileUri)).toFile().absoluteFile) : null
     }
 
+    // TODO(mlopatkin) We have tests that use this function to assert on things. It would be great to rewrite those assertions to use ConfigurationCacheReportFixture.
     @Nullable
     static TestFile resolveConfigurationCacheReportDirectory(File rootDir, String output) {
         resolveConfigurationCacheReport(rootDir, output)?.parentFile
@@ -349,29 +189,6 @@ class ConfigurationCacheProblemsFixture {
     @VisibleForTesting
     static String clickableUrlFor(File file) {
         new ConsoleRenderer().asClickableFileUrl(file)
-    }
-
-    private static int numberOfProblemsIn(jsModel) {
-        return (jsModel.diagnostics as List<Object>).count { it['problem'] != null }
-    }
-
-    /**
-     * Makes a best effort to collect problem messages from the JS model.
-     *
-     * Does not include source locations, text is collected raw.
-     */
-    private static List<String> problemMessagesIn(jsModel) {
-        return (jsModel.diagnostics as List<Object>)
-            .findAll{ it['problem'] != null }
-            .collect {
-                it['problem']
-                    .collect { (it as Map).values() }
-                    .flatten().join()
-            }
-    }
-
-    protected static int numberOfProblemsWithStacktraceIn(jsModel) {
-        return (jsModel.diagnostics as List<Object>).count { it['problem'] != null && it['error']?.getAt('parts') != null }
     }
 
     protected static ProblemsSummary extractSummary(String text) {
