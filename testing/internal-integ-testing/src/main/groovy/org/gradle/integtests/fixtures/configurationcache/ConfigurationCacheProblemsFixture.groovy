@@ -31,27 +31,22 @@ import org.hamcrest.Matcher
 import org.jetbrains.annotations.VisibleForTesting
 
 import javax.annotation.Nullable
-import java.nio.file.FileVisitResult
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.attribute.BasicFileAttributes
 import java.util.regex.Pattern
+import java.util.stream.Collectors
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.endsWith
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
-import static org.hamcrest.CoreMatchers.notNullValue
-import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
 class ConfigurationCacheProblemsFixture {
-    protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
+    protected static final String CC_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 
     protected final TestFile rootDir
 
@@ -68,19 +63,18 @@ class ConfigurationCacheProblemsFixture {
         return spec
     }
 
-    private class ConfigurationCacheReportFixtureImpl extends ConfigurationCacheReportFixture {
-        @Nullable
-        private final File reportDir
+    private static class ConfigurationCacheReportFixtureImpl extends ConfigurationCacheReportFixture {
+        private final Map<String, Object> jsModel
 
-        private ConfigurationCacheReportFixtureImpl(@Nullable File reportDir) {
-            this.reportDir = reportDir
+        private ConfigurationCacheReportFixtureImpl(File reportFile) {
+            jsModel = readJsModelFrom(reportFile)
         }
 
         @Override
         protected void assertContents(HasConfigurationCacheProblemsSpec spec) {
-            assertProblemsHtmlReport(reportDir, spec)
-            assertInputs(reportDir, spec)
-            assertIncompatibleTasks(reportDir, spec)
+            assertProblemsHtmlReport(jsModel, spec)
+            assertInputs(jsModel, spec)
+            assertIncompatibleTasks(jsModel, spec)
         }
     }
 
@@ -90,21 +84,21 @@ class ConfigurationCacheProblemsFixture {
      */
     ConfigurationCacheReportFixture htmlReport() {
         // TODO(mlopatkin) what if the report is not present? htmlReport(String) allows it.
-        return new ConfigurationCacheReportFixtureImpl(findReportDir())
+        return new ConfigurationCacheReportFixtureImpl(findReportFile())
     }
 
     /**
-     * Creates a fixture to assert on the report based on the file URL written in the build output. The report may not be present.
+     * Creates a fixture to assert on the report based on the file URL written in the build output. The report may be absent.
      *
      * @param output the output of the build
      */
     ConfigurationCacheReportFixture htmlReport(String output) {
-        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
-        if (reportDir == null) {
+        def reportFile = resolveConfigurationCacheReport(rootDir, output)
+        if (reportFile == null) {
             return new ConfigurationCacheReportFixture.NoReportFixtureImpl(rootDir)
         }
 
-        return new ConfigurationCacheReportFixtureImpl(reportDir)
+        return new ConfigurationCacheReportFixtureImpl(reportFile)
     }
 
 
@@ -170,25 +164,24 @@ class ConfigurationCacheProblemsFixture {
     }
 
     protected static void assertInputs(
-        File reportDir,
+        Map<String, Object> jsModel,
         HasConfigurationCacheProblemsSpec spec
     ) {
-        assertItems('input', reportDir, spec.inputs)
+        assertItems('input', jsModel, spec.inputs)
     }
 
     protected static void assertIncompatibleTasks(
-        File reportDir,
+        Map<String, Object> jsModel,
         HasConfigurationCacheProblemsSpec spec
     ) {
-        assertItems('incompatibleTask', reportDir, spec.incompatibleTasks)
+        assertItems('incompatibleTask', jsModel, spec.incompatibleTasks)
     }
 
     private static void assertItems(
             String kind,
-            File reportDir,
+            Map<String, Object> jsModel,
             ItemSpec spec
         ) {
-
         if (spec == ItemSpec.IGNORING) {
             return
         }
@@ -197,16 +190,7 @@ class ConfigurationCacheProblemsFixture {
             ? spec.itemMatchers.collect()
             : []
 
-        if (reportDir == null) {
-            assertThat(
-                "Expecting '$kind' items but no report was found",
-                expectedItems,
-                equalTo([])
-            )
-            return
-        }
 
-        Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
         List<Map<String, Object>> items = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it[kind] != null }
         List<String> unexpectedItems = items.collect { formatItemForAssert(it, kind) }.reverse()
         for (int i in expectedItems.indices.reverse()) {
@@ -255,68 +239,56 @@ class ConfigurationCacheProblemsFixture {
     }
 
     protected static void assertProblemsHtmlReport(
-        File reportDir,
+        Map<String, Object> jsModel,
         HasConfigurationCacheProblemsSpec spec
     ) {
         def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
         def problemsWithStackTraceCount = spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
-        boolean shouldHaveReport = spec.totalProblemsCount != null ||
+        assert (spec.totalProblemsCount != null ||
             spec.problemsWithStackTraceCount != null ||
             !spec.uniqueProblems.empty ||
             spec.incompatibleTasks instanceof ItemSpec.ExpectingSome ||
-            spec.inputs instanceof ItemSpec.ExpectingSome
+            spec.inputs instanceof ItemSpec.ExpectingSome):
+                "The spec suggests the report shouldn't be generated but it was"
+
         doAssertProblemsHtmlReport(
-            reportDir,
+            jsModel,
             totalProblemCount,
             spec.uniqueProblems,
             problemsWithStackTraceCount,
-            shouldHaveReport,
             spec.checkReportProblems
         )
     }
 
     private static void doAssertProblemsHtmlReport(
-        File reportDir,
+        def jsModel,
         int totalProblemCount,
         List<Matcher> uniqueProblems,
         int problemsWithStackTraceCount,
-        boolean expectReport,
         boolean checkReportProblems
     ) {
-        if (expectReport) {
-            Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
-            assertThat(
-                "HTML report JS model has wrong number of total problem(s)",
-                numberOfProblemsIn(jsModel),
-                equalTo(totalProblemCount)
-            )
-            assertThat(
-                "HTML report JS model has wrong number of problem(s) with stacktrace",
-                numberOfProblemsWithStacktraceIn(jsModel),
-                equalTo(problemsWithStackTraceCount)
-            )
-            if (checkReportProblems) {
-                def problemMessages = problemMessagesIn(jsModel).unique()
-                for (int i in uniqueProblems.indices) {
-                    // note that matchers for problem messages in report don't contain location prefixes
-                    assert uniqueProblems[i].matches(problemMessages[i]) : "Expected problem at #$i to be ${uniqueProblems[i]}, but was: ${problemMessages[i]}"
-                }
+        assertThat(
+            "HTML report JS model has wrong number of total problem(s)",
+            numberOfProblemsIn(jsModel),
+            equalTo(totalProblemCount)
+        )
+        assertThat(
+            "HTML report JS model has wrong number of problem(s) with stacktrace",
+            numberOfProblemsWithStacktraceIn(jsModel),
+            equalTo(problemsWithStackTraceCount)
+        )
+        if (checkReportProblems) {
+            def problemMessages = problemMessagesIn(jsModel).unique()
+            for (int i in uniqueProblems.indices) {
+                // note that matchers for problem messages in report don't contain location prefixes
+                assert uniqueProblems[i].matches(problemMessages[i]) : "Expected problem at #$i to be ${uniqueProblems[i]}, but was: ${problemMessages[i]}"
             }
-        } else {
-            assertThat("Unexpected HTML report URI found", reportDir?.with { it.directory ? it : null }, nullValue())
         }
     }
 
-    private static Map<String, Object> readJsModelFromReportDir(File reportDir) {
-        assertThat("HTML report URI not found", reportDir, notNullValue())
-        assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
-        def htmlFile = new File(reportDir, PROBLEMS_REPORT_HTML_FILE_NAME)
-        assertTrue("HTML report HTML file not found in '$reportDir'", htmlFile.isFile())
-        Map<String, Object> jsModel = readJsModelFrom(htmlFile)
-        jsModel
-    }
-
     private static Map<String, Object> readJsModelFrom(File reportFile) {
+        assertTrue("HTML report HTML file '$reportFile' not found", reportFile.isFile())
+
         // ConfigurationCacheReport ensures the pure json model can be read
         // by looking for `// begin-report-data` and `// end-report-data`
         def jsonText = linesBetween(reportFile, '// begin-report-data', '// end-report-data')
@@ -335,41 +307,43 @@ class ConfigurationCacheProblemsFixture {
         }
     }
 
-    File findReportDir() {
-        return resolveSingleConfigurationCacheReportDir(rootDir)
+    File findReportFile() {
+        return resolveSingleConfigurationCacheReport(rootDir)
     }
 
-    private static TestFile resolveSingleConfigurationCacheReportDir(TestFile rootDir) {
+    private static TestFile resolveSingleConfigurationCacheReport(TestFile rootDir) {
         TestFile reportsDir = rootDir.file("build/reports/configuration-cache")
-        assert reportsDir.exists() : "Configuration cache report directory not found at $reportsDir"
-        List<TestFile> reportDirs = []
-        Files.walkFileTree(reportsDir.toPath(), new SimpleFileVisitor<Path>() {
-            @Override
-            FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if (file.getFileName().toString() == "configuration-cache-report.html") {
-                    reportDirs += new TestFile(file.parent.toString())
-                }
-                return FileVisitResult.CONTINUE
-            }
-        })
 
-        assert reportDirs.size() > 0 : "No report file found under $reportsDir"
-        assert reportDirs.size() == 1 : "Multiple report files (${reportDirs.size()}) found under $reportsDir - ${reportDirs.sort().collect { it.relativizeFrom(reportsDir) }.join(", ") }"
-        return reportDirs[0]
+        assert reportsDir.exists():
+            "Configuration cache report directory '$reportsDir' not found"
+
+        List<TestFile> reportFiles = Files.walk(reportsDir.toPath()).withCloseable { stream ->
+            stream
+                .filter { it.fileName.toString() == CC_REPORT_HTML_FILE_NAME }
+                .map { new TestFile(it.toString()) }
+                .sorted()
+                .collect(Collectors.toList())
+        }
+
+        assert reportFiles.size() > 0:
+            "No report file found under $reportsDir"
+        assert reportFiles.size() == 1:
+            "Multiple report files (${reportFiles.size()}) found under $reportsDir in ${reportFiles.collect { it.parentFile.relativizeFrom(reportsDir) }.join(", ") }"
+        return reportFiles.first()
     }
 
     @Nullable
     static TestFile resolveConfigurationCacheReport(File rootDir, String output) {
-        resolveConfigurationCacheReportDirectory(rootDir, output)?.file(PROBLEMS_REPORT_HTML_FILE_NAME)
+        def baseDirUri = clickableUrlFor(rootDir)
+        def pattern = Pattern.compile("^See the complete report at (${Pattern.quote(baseDirUri)}.*/${Pattern.quote(CC_REPORT_HTML_FILE_NAME)})\$", Pattern.MULTILINE)
+        def matcher = pattern.matcher(output)
+        def reportFileUri = matcher.find() ? matcher.group(1) : null
+        return reportFileUri ? new TestFile(Paths.get(URI.create(reportFileUri)).toFile().absoluteFile) : null
     }
 
     @Nullable
     static TestFile resolveConfigurationCacheReportDirectory(File rootDir, String output) {
-        def baseDirUri = clickableUrlFor(rootDir)
-        def pattern = Pattern.compile("^See the complete report at (${Pattern.quote(baseDirUri)}.*/)${Pattern.quote(PROBLEMS_REPORT_HTML_FILE_NAME)}\$", Pattern.MULTILINE)
-        def matcher = pattern.matcher(output)
-        def reportDirUri = matcher.find() ? matcher.group(1) : null
-        return reportDirUri ? new TestFile(Paths.get(URI.create(reportDirUri)).toFile().absoluteFile) : null
+        resolveConfigurationCacheReport(rootDir, output)?.parentFile
     }
 
     @VisibleForTesting

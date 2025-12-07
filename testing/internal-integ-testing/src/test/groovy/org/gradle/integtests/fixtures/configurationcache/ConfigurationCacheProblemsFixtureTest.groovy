@@ -46,45 +46,45 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         fixture.htmlReport("See the complete report at " + new ConsoleRenderer().asClickableFileUrl(reportFile))
     }
 
-    def "findReportDir finds a single report dir"() {
+    def "findReportFile finds a single report dir"() {
         given:
         reportFile.setText ""
 
         expect:
-        fixture.findReportDir() == reportDir
+        fixture.findReportFile() == reportFile
     }
 
-    def "findReportDir fails if no base report dir exists"() {
+    def "findReportFile fails if no base report dir exists"() {
         when:
-        fixture.findReportDir()
+        fixture.findReportFile()
 
         then:
         def expectedFailure = thrown(AssertionError)
 
-        expectedFailure.message.startsWith "Configuration cache report directory not found at $reportDir"
+        expectedFailure.message.startsWith "Configuration cache report directory '$reportDir' not found"
     }
 
-    def "findReportDir fails if multiple report file exists"() {
+    def "findReportFile fails if multiple report file exist"() {
         given:
         reportDir.createDir()
         reportDir.createDir("dir1").file("configuration-cache-report.html").text = ""
         reportDir.createDir("dir2").file("configuration-cache-report.html").text = ""
 
         when:
-        fixture.findReportDir()
+        fixture.findReportFile()
 
         then:
         def expectedFailure = thrown(AssertionError)
 
-        expectedFailure.message.startsWith "Multiple report files (2) found under $reportDir - dir1/, dir2/"
+        expectedFailure.message.startsWith "Multiple report files (2) found under $reportDir in dir1/, dir2/"
     }
 
-    def "findReportDir fails if no report file exists"() {
+    def "findReportFile fails if no report file exists"() {
         given:
         reportDir.createDir()
 
         when:
-        fixture.findReportDir()
+        fixture.findReportFile()
 
         then:
         def expectedFailure = thrown(AssertionError)
@@ -196,7 +196,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
         then:
         def expectedFailure = thrown(AssertionError)
-        expectedFailure.message.startsWith("Configuration cache report directory not found at ${reportDir}.")
+        expectedFailure.message.startsWith("Configuration cache report directory '$reportDir' not found.")
     }
 
     def "assertHtmlReportHasProblems fails when there is no report dir"() {
@@ -210,7 +210,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
         then:
         def expectedFailure = thrown(AssertionError)
-        expectedFailure.message.startsWith("HTML report directory not found '${reportDir}'")
+        expectedFailure.message.startsWith("HTML report HTML file '$reportFile' not found")
     }
 
     def "assertHtmlReportHasProblems fails when there is no report file"() {
@@ -224,7 +224,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
         then:
         def expectedFailure = thrown(AssertionError)
-        expectedFailure.message.startsWith("HTML report HTML file not found in '${reportDir}'")
+        expectedFailure.message.startsWith("HTML report HTML file '$reportFile' not found")
     }
 
     def "assertHtmlReportHasProblems validates unique problems"() {
