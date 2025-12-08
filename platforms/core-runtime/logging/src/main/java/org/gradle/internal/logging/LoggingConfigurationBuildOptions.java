@@ -17,7 +17,9 @@
 package org.gradle.internal.logging;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.configuration.ConsoleColor;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleVerbose;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -44,6 +46,8 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         new LogLevelOption(),
         new StacktraceOption(),
         new ConsoleOption(),
+        new ConsoleColorOption(),
+        new ConsoleVerboseOption(),
         new WarningsOption()
     );
 
@@ -181,7 +185,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         public static final String GRADLE_PROPERTY = "org.gradle.console";
 
         public ConsoleOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of console output to generate. Values are 'plain', 'colored', 'auto' (default), 'rich' or 'verbose'."));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of console output to generate. Values are 'plain', 'auto' (default), or 'rich'."));
         }
 
         @Override
@@ -191,6 +195,46 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);
+            } catch (IllegalArgumentException e) {
+                origin.handleInvalidValue(value);
+            }
+        }
+    }
+
+    public static class ConsoleColorOption extends StringBuildOption<LoggingConfiguration> {
+        public static final String LONG_OPTION = "color";
+        public static final String GRADLE_PROPERTY = "org.gradle.color";
+
+        public ConsoleColorOption() {
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies whether to use color output. Values are 'on', 'off' or 'auto' (default)"));
+        }
+
+        @Override
+        public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
+            String normalized = value.toUpperCase(Locale.ROOT);
+            try {
+                ConsoleColor consoleColor = ConsoleColor.valueOf(normalized);
+                settings.setConsoleColor(consoleColor);
+            } catch (IllegalArgumentException e) {
+                origin.handleInvalidValue(value);
+            }
+        }
+    }
+
+    public static class ConsoleVerboseOption extends StringBuildOption<LoggingConfiguration> {
+        public static final String LONG_OPTION = "verbose";
+        public static final String GRADLE_PROPERTY = "org.gradle.verbose";
+
+        public ConsoleVerboseOption() {
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies whether to use verbose output. Values are 'on', 'off' or 'auto' (default)"));
+        }
+
+        @Override
+        public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
+            String normalized = value.toUpperCase(Locale.ROOT);
+            try {
+                ConsoleVerbose verbose = ConsoleVerbose.valueOf(normalized);
+                settings.setConsoleVerbose(verbose);
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }

@@ -16,12 +16,17 @@
 
 package org.gradle.internal.logging.sink;
 
+import org.fusesource.jansi.Ansi;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleColor;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleVerbose;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
+import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.BuildLogLevelFilterRenderer;
 import org.gradle.internal.logging.console.BuildStatusRenderer;
 import org.gradle.internal.logging.console.ColorMap;
@@ -49,14 +54,21 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
+import org.gradle.internal.logging.text.Style;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 /**
  * A {@link OutputEventListener} implementation which renders output events to various
@@ -149,7 +161,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     @Override
     public void attachProcessConsole(LoggingConfiguration loggingConfiguration) {
         synchronized (lock) {
-            ConsoleConfigureAction.execute(this, loggingConfiguration);
+            attachConsole(loggingConfiguration);
         }
     }
 
@@ -164,7 +176,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             if (consoleMetadata == null) {
                 consoleMetadata = FallbackConsoleMetaData.NOT_ATTACHED;
             }
-            ConsoleConfigureAction.execute(this, loggingConfiguration, consoleMetadata, outputStream, errorStream);
+            attachConsole(loggingConfiguration, consoleMetadata, outputStream, errorStream);
         }
     }
 
@@ -238,84 +250,73 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    public void addRichConsoleWithErrorOutputOnStdout(Console stdout, ConsoleMetaData consoleMetaData, boolean verbose) {
-        OutputEventListener consoleListener = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
+    public void attachConsole(LoggingConfiguration loggingConfiguration) {
+        attachConsole(loggingConfiguration, getConsoleMetaData(), getOriginalStdOut(), getOriginalStdErr());
+    }
+
+    private static ConsoleMetaData getConsoleMetaData() {
+        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+        ConsoleMetaData metaData = consoleDetector.getConsole();
+        if (metaData != null) {
+            return metaData;
+        }
+        return FallbackConsoleMetaData.NOT_ATTACHED;
+    }
+
+    @SuppressWarnings("deprecation")
+    public void attachConsole(LoggingConfiguration loggingConfiguration, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
+        ConsoleOutput consoleOutput = loggingConfiguration.getConsoleOutput();
+        ConsoleColor consoleColor = loggingConfiguration.getConsoleColor();
+        ConsoleVerbose consoleVerbose = loggingConfiguration.getConsoleVerbose();
+
+        boolean plain = consoleOutput == ConsoleOutput.Plain || (consoleOutput == ConsoleOutput.Auto && !consoleMetadata.isStdOut() && !consoleMetadata.isStdErr());
+        boolean redirectErr = consoleMetadata.isStdOut() && consoleMetadata.isStdErr();
+        boolean verbose = consoleVerbose == ConsoleVerbose.ON || (plain && consoleVerbose == ConsoleVerbose.AUTO) || consoleOutput == ConsoleOutput.Verbose;
+
+        ColorMap colorMap = getColorMap(consoleColor, plain);
+        Console stdOutConsole = consoleForStdOut(stdout, consoleMetadata, colorMap);
+        Console stdErrConsole = consoleForStdErr(stderr, consoleMetadata, colorMap);
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdOutConsole.getBuildOutputArea());
+        OutputEventListener stderrChain = new FlushConsoleListener(stdErrConsole, new StyledTextOutputBackedRenderer(stdErrConsole.getBuildOutputArea()));
+
+        OutputEventListener consoleListener;
+        if (redirectErr) {
+            consoleListener = stdoutChain;
+        } else {
+            consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
+        }
+
         OutputEventListener consoleChain = throttled(
-            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener)
+            plain
+                ? flushing(getPlainRenderer(consoleListener, verbose), stdOutConsole)
+                : getRichRenderer(stdOutConsole, consoleMetadata, verbose, consoleListener)
         );
         addConsoleChain(consoleChain);
     }
 
-    public void addRichConsole(Console stdout, Console stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
-        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
-        OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
-        OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
-        OutputEventListener consoleChain = throttled(
-            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener)
-        );
-        addConsoleChain(consoleChain);
+    private ColorMap getColorMap(ConsoleColor consoleColor, boolean plain) {
+        if (consoleColor == ConsoleColor.ON || (!plain && consoleColor == ConsoleColor.AUTO)) {
+            return getColourMap();
+        } else {
+            return new NoColorMap();
+        }
     }
 
-    public void addRichConsole(Console stdout, OutputStream stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
-        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
-        OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stderr)));
-        OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
-        OutputEventListener consoleChain = throttled(
-            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener)
-        );
-        addConsoleChain(consoleChain);
+    private static Console consoleFor(OutputStream stream, Supplier<OutputStream> jansiFallback, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        boolean force = !consoleMetaData.isWrapStreams();
+        OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), Charset.defaultCharset());
+        return new AnsiConsole(writer, writer, colourMap, consoleMetaData, force);
     }
 
-    public void addRichConsole(OutputStream stdout, Console stderr, boolean verbose) {
-        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
-        OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
-        OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
-        OutputEventListener consoleChain = throttled(
-            getInputStandardOutputRenderer(consoleListener, verbose)
-        );
-        addConsoleChain(consoleChain);
+    private static Console consoleForStdOut(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        return consoleFor(stdout, org.fusesource.jansi.AnsiConsole::out, consoleMetaData, colourMap);
     }
 
-    public void addPlainConsoleWithErrorOutputOnStdout(OutputStream stdout, boolean verbose) {
-        OutputEventListener stdoutListener = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
-        addConsoleChain(throttled(
-            getInputStandardOutputRenderer(stdoutListener, verbose)));
+    private static Console consoleForStdErr(OutputStream stderr, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        return consoleFor(stderr, org.fusesource.jansi.AnsiConsole::err, consoleMetaData, colourMap);
     }
 
-    public void addPlainConsole(OutputStream stdout, OutputStream stderr, boolean verbose) {
-        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
-        OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stderr)));
-        OutputEventListener outputListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
-        addConsoleChain(throttled(
-            getInputStandardOutputRenderer(outputListener, verbose)));
-    }
-
-    public void addColoredConsoleWithErrorOutputOnStdout(Console stdout, boolean verbose) {
-        OutputEventListener consoleListener = new FlushConsoleListener(stdout, new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea()));
-        OutputEventListener consoleChain = throttled(
-            flushing(
-                getInputStandardOutputRenderer(consoleListener, verbose),
-                stdout
-            )
-
-        );
-        addConsoleChain(consoleChain);
-    }
-
-    public void addColoredConsole(Console stdout, Console stderr, boolean verbose) {
-        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
-        OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
-        OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
-        OutputEventListener consoleChain = throttled(
-            flushing(
-                getInputStandardOutputRenderer(consoleListener, verbose),
-                stdout
-            )
-        );
-        addConsoleChain(consoleChain);
-    }
-
-    private UserInputConsoleRenderer getUserInputConsoleRenderer(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
+    private UserInputConsoleRenderer getRichRenderer(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
         return new UserInputConsoleRenderer(
             new BuildStatusRenderer(
                 new WorkInProgressRenderer(
@@ -331,7 +332,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
             userInput);
     }
 
-    private UserInputStandardOutputRenderer getInputStandardOutputRenderer(OutputEventListener outputListener, boolean verbose) {
+    private UserInputStandardOutputRenderer getPlainRenderer(OutputEventListener outputListener, boolean verbose) {
         return new UserInputStandardOutputRenderer(
             new BuildLogLevelFilterRenderer(
                 new GroupingProgressLogEventGenerator(
@@ -518,4 +519,34 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
+    private static class NoColorMap implements ColorMap {
+        @Override
+        public Color getColourFor(StyledTextOutput.Style style) {
+            return NoColor.INSTANCE;
+        }
+
+        @Override
+        public Color getColourFor(Style style) {
+            return NoColor.INSTANCE;
+        }
+
+        @Override
+        public Color getStatusBarColor() {
+            return NoColor.INSTANCE;
+        }
+
+        private static class NoColor implements  Color {
+            private static final Color INSTANCE= new NoColor();
+
+            @Override
+            public void on(Ansi ansi) {
+
+            }
+
+            @Override
+            public void off(Ansi ansi) {
+
+            }
+        }
+    }
 }

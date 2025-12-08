@@ -18,7 +18,9 @@ package org.gradle.internal.logging;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.configuration.ConsoleColor;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleVerbose;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -30,6 +32,8 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
     private WarningMode warningMode =  WarningMode.Summary;
+    private ConsoleColor consoleColor = ConsoleColor.AUTO;
+    private ConsoleVerbose consoleVerbose = ConsoleVerbose.AUTO;
 
     @Override
     public boolean equals(Object obj) {
@@ -79,5 +83,25 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     @Override
     public void setShowStacktrace(ShowStacktrace showStacktrace) {
         this.showStacktrace = showStacktrace;
+    }
+
+    @Override
+    public ConsoleColor getConsoleColor() {
+        return consoleColor;
+    }
+
+    @Override
+    public void setConsoleColor(ConsoleColor consoleColor) {
+        this.consoleColor = consoleColor;
+    }
+
+    @Override
+    public ConsoleVerbose getConsoleVerbose() {
+        return consoleVerbose;
+    }
+
+    @Override
+    public void setConsoleVerbose(ConsoleVerbose consoleVerbose) {
+        this.consoleVerbose = consoleVerbose;
     }
 }

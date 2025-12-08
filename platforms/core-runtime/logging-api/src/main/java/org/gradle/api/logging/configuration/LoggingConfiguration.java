@@ -46,6 +46,14 @@ public interface LoggingConfiguration {
      */
     void setConsoleOutput(ConsoleOutput consoleOutput);
 
+    ConsoleColor getConsoleColor();
+
+    void setConsoleColor(ConsoleColor consoleColor);
+
+    ConsoleVerbose getConsoleVerbose();
+
+    void setConsoleVerbose(ConsoleVerbose consoleVerbose);
+
     /**
      * Specifies which type of warnings should be written to the console.
      * @since 4.5
