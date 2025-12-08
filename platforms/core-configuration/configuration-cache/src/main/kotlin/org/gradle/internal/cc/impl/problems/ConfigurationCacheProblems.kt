@@ -29,6 +29,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -95,7 +96,10 @@ class ConfigurationCacheProblems(
     val buildNameProvider: BuildNameProvider,
 
     private
-    val degradationController: DefaultConfigurationCacheDegradationController
+    val degradationController: DefaultConfigurationCacheDegradationController,
+
+    private
+    val buildModelParameters: BuildModelParameters,
 ) : AbstractProblemsListener(), IsolatedProjectsViolationsListener, ProblemReporter, AutoCloseable {
 
     private
@@ -252,7 +256,8 @@ class ConfigurationCacheProblems(
     }
 
     override fun onViolation(problem: PropertyProblem) {
-        onProblem(problem, ProblemSeverity.Deferred)
+        val severity = if (buildModelParameters.isIsolatedProjectsDiagnostics) ProblemSeverity.Deferred else ProblemSeverity.Interrupting
+        onProblem(problem, severity)
     }
 
     override fun onProblem(problem: PropertyProblem) {
