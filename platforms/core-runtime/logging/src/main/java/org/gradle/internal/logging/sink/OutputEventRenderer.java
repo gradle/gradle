@@ -18,7 +18,7 @@ package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
@@ -147,24 +147,24 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     @Override
-    public void attachProcessConsole(ConsoleOutput consoleOutput) {
+    public void attachProcessConsole(LoggingConfiguration loggingConfiguration) {
         synchronized (lock) {
-            ConsoleConfigureAction.execute(this, consoleOutput);
+            ConsoleConfigureAction.execute(this, loggingConfiguration);
         }
     }
 
     @Override
-    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-        attachConsole(outputStream, errorStream, consoleOutput, null);
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, LoggingConfiguration loggingConfiguration) {
+        attachConsole(outputStream, errorStream, loggingConfiguration, null);
     }
 
     @Override
-    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, @Nullable ConsoleMetaData consoleMetadata) {
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, LoggingConfiguration loggingConfiguration, @Nullable ConsoleMetaData consoleMetadata) {
         synchronized (lock) {
             if (consoleMetadata == null) {
                 consoleMetadata = FallbackConsoleMetaData.NOT_ATTACHED;
             }
-            ConsoleConfigureAction.execute(this, consoleOutput, consoleMetadata, outputStream, errorStream);
+            ConsoleConfigureAction.execute(this, loggingConfiguration, consoleMetadata, outputStream, errorStream);
         }
     }
 

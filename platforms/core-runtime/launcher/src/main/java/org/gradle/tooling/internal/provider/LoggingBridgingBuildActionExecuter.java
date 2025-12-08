@@ -20,6 +20,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.io.NullOutputStream;
+import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -66,10 +67,13 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<C
     private void attachConsole(ProviderOperationParameters actionParameters) {
         OutputStream stdOut = actionParameters.getStandardOutput();
         OutputStream stdErr = actionParameters.getStandardError();
+        DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
         if (Boolean.TRUE.equals(actionParameters.isColorOutput()) && stdOut != null) {
-            loggingManager.attachConsole(stdOut, notNull(stdErr), ConsoleOutput.Rich);
+            loggingConfiguration.setConsoleOutput(ConsoleOutput.Rich);
+            loggingManager.attachConsole(stdOut, notNull(stdErr), loggingConfiguration);
         } else if (stdOut != null || stdErr != null) {
-            loggingManager.attachConsole(notNull(stdOut), notNull(stdErr), ConsoleOutput.Plain);
+            loggingConfiguration.setConsoleOutput(ConsoleOutput.Plain);
+            loggingManager.attachConsole(notNull(stdOut), notNull(stdErr), loggingConfiguration);
         }
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
@@ -35,11 +36,12 @@ public class ConsoleConfigureAction {
     private ConsoleConfigureAction() {
     }
 
-    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
-        execute(renderer, consoleOutput, getConsoleMetaData(), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
+    public static void execute(OutputEventRenderer renderer, LoggingConfiguration loggingConfiguration) {
+        execute(renderer, loggingConfiguration, getConsoleMetaData(), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
     }
 
-    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
+    public static void execute(OutputEventRenderer renderer, LoggingConfiguration loggingConfiguration, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
+        ConsoleOutput consoleOutput = loggingConfiguration.getConsoleOutput();
         if (consoleOutput == ConsoleOutput.Auto) {
             configureAutoConsole(renderer, consoleMetadata, stdout, stderr);
         } else if (consoleOutput == ConsoleOutput.Rich) {

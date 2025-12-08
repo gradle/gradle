@@ -18,6 +18,7 @@ package org.gradle.internal.logging.services
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.config.LoggingRouter
 import org.gradle.internal.logging.config.LoggingSourceSystem
 import org.gradle.internal.logging.config.LoggingSystem
@@ -433,15 +434,16 @@ class DefaultLoggingManagerTest extends Specification {
 
     def "attaches process console on start and restores on stop"() {
         def snapshot = Stub(LoggingSystem.Snapshot)
+        def config = new DefaultLoggingConfiguration()
 
-        loggingManager.attachProcessConsole(ConsoleOutput.Auto)
+        loggingManager.attachProcessConsole(config)
 
         when:
         loggingManager.start()
 
         then:
         1 * loggingRouter.snapshot() >> snapshot
-        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto)
+        1 * loggingRouter.attachProcessConsole(config)
         0 * loggingRouter._
 
         when:
@@ -454,6 +456,7 @@ class DefaultLoggingManagerTest extends Specification {
 
     def "can attach process console while started"() {
         def snapshot = Stub(LoggingSystem.Snapshot)
+        def config = new DefaultLoggingConfiguration()
 
         when:
         loggingManager.start()
@@ -463,10 +466,10 @@ class DefaultLoggingManagerTest extends Specification {
         0 * loggingRouter._
 
         when:
-        loggingManager.attachProcessConsole(ConsoleOutput.Auto)
+        loggingManager.attachProcessConsole(config)
 
         then:
-        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto)
+        1 * loggingRouter.attachProcessConsole(config)
         0 * loggingRouter._
 
         when:
@@ -481,15 +484,17 @@ class DefaultLoggingManagerTest extends Specification {
         def snapshot = Stub(LoggingSystem.Snapshot)
         def output = Stub(OutputStream)
         def error = Stub(OutputStream)
+        def config = new DefaultLoggingConfiguration()
+        config.setConsoleOutput(ConsoleOutput.Verbose)
 
-        loggingManager.attachConsole(output, error, ConsoleOutput.Verbose)
+        loggingManager.attachConsole(output, error, config)
 
         when:
         loggingManager.start()
 
         then:
         1 * loggingRouter.snapshot() >> snapshot
-        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, null)
+        1 * loggingRouter.attachConsole(output, error, config, null)
         0 * loggingRouter._
 
         when:
@@ -504,6 +509,8 @@ class DefaultLoggingManagerTest extends Specification {
         def snapshot = Stub(LoggingSystem.Snapshot)
         def output = Stub(OutputStream)
         def error = Stub(OutputStream)
+        def config = new DefaultLoggingConfiguration()
+        config.setConsoleOutput(ConsoleOutput.Verbose)
 
         when:
         loggingManager.start()
@@ -513,10 +520,10 @@ class DefaultLoggingManagerTest extends Specification {
         0 * loggingRouter._
 
         when:
-        loggingManager.attachConsole(output, error, ConsoleOutput.Verbose)
+        loggingManager.attachConsole(output, error, config)
 
         then:
-        1 * loggingRouter.attachConsole(output, error, ConsoleOutput.Verbose, null)
+        1 * loggingRouter.attachConsole(output, error, config, null)
         0 * loggingRouter._
 
         when:

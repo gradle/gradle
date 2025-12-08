@@ -27,7 +27,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
@@ -371,12 +371,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, OutputStream outputStream, OutputStream errorStream) {
+    private LoggingManagerInternal createLoggingManager(LoggingConfiguration loggingConfiguration, OutputStream outputStream, OutputStream errorStream) {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.captureSystemSources();
-
-        ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
-        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment.getConsoleMetaData());
+        loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), loggingConfiguration, consoleAttachment.getConsoleMetaData());
 
         return loggingManager;
     }
