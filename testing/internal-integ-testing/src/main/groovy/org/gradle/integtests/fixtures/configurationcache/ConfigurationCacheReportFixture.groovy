@@ -98,10 +98,17 @@ abstract class ConfigurationCacheReportFixture {
     }
 
     private static class ExistingReportFixture extends ConfigurationCacheReportFixture {
+        private final File reportFile
         private final Map<String, Object> jsModel
 
         ExistingReportFixture(File reportFile) {
-            jsModel = readJsModelFrom(reportFile)
+            this.reportFile = reportFile
+            this.jsModel = readJsModelFrom(reportFile)
+        }
+
+        @Override
+        String toString() {
+            return "CC Report with ${(jsModel.diagnostics as List).size()} entries at $reportFile"
         }
 
         protected static Map<String, Object> readJsModelFrom(File reportFile) {
