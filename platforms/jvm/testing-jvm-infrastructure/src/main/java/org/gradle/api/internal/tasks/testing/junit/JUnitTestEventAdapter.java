@@ -210,27 +210,27 @@ public class JUnitTestEventAdapter extends RunListener {
      * @param now the current time
      */
     private void startParentByNodeIfNeeded(TestNode parent, long now) {
-        Object grandparentId = startParentIfNeeded(parent.description);
         synchronized (lock) {
+            Object grandparentId = startParentIfNeeded(parent.description);
             if (activeParents.contains(parent.description)) {
                 return;
             }
             activeParents.addLast(parent.description);
+            String rootName = grandparentId == null ? this.rootName : className(parent.description);
+            if (rootName == null) {
+                throw new AssertionError("No class name found for " + parent.description);
+            }
+            TestDescriptorInternal parentDescriptor;
+            if (grandparentId != null && supportsTestClassMethod() && getTestClassIfPossible(parent.description) == null) {
+                // When Description.getTestClass() returns null and we have a grandparent,
+                // it indicates "suites" of parameterized tests, or some other kind of synthetic grouping.
+                // Avoid treating these as classes.
+                parentDescriptor = new DefaultTestSuiteDescriptor(parent.resolveId(), rootName);
+            } else {
+                parentDescriptor = new DefaultTestClassDescriptor(parent.resolveId(), rootName, classDisplayName(rootName));
+            }
+            resultProcessor.started(parentDescriptor, new TestStartEvent(now, grandparentId));
         }
-        String rootName = grandparentId == null ? this.rootName : className(parent.description);
-        if (rootName == null) {
-            throw new AssertionError("No class name found for " + parent.description);
-        }
-        TestDescriptorInternal parentDescriptor;
-        if (grandparentId != null && supportsTestClassMethod() && getTestClassIfPossible(parent.description) == null) {
-            // When Description.getTestClass() returns null and we have a grandparent,
-            // it indicates "suites" of parameterized tests, or some other kind of synthetic grouping.
-            // Avoid treating these as classes.
-            parentDescriptor = new DefaultTestSuiteDescriptor(parent.resolveId(), rootName);
-        } else {
-            parentDescriptor = new DefaultTestClassDescriptor(parent.resolveId(), rootName, classDisplayName(rootName));
-        }
-        resultProcessor.started(parentDescriptor, new TestStartEvent(now, grandparentId));
     }
 
     // Note: This is JUnit 4.13+ only, so it may not be called
@@ -238,10 +238,12 @@ public class JUnitTestEventAdapter extends RunListener {
     // If not called, the suite start time is when the first test starts
     @Override
     public void testSuiteStarted(Description description) {
-        testsStarted = true;
-        TestNode testNode = requirePostRunStartData().descToNode.get(description);
-        if (testNode != null) {
-            startParentByNodeIfNeeded(testNode, clock.getCurrentTime());
+        synchronized (lock) {
+            testsStarted = true;
+            TestNode testNode = requirePostRunStartData().descToNode.get(description);
+            if (testNode != null) {
+                startParentByNodeIfNeeded(testNode, clock.getCurrentTime());
+            }
         }
     }
 
@@ -264,14 +266,14 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testStarted(Description description) {
-        testsStarted = true;
-        Object parentId = startRequiredParentIfNeeded(description);
-        TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
         synchronized (lock) {
+            testsStarted = true;
+            Object parentId = startRequiredParentIfNeeded(description);
+            TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
             TestDescriptorInternal oldTest = executing.put(description, descriptor);
             assert oldTest == null : String.format("Unexpected start event for %s", description);
+            resultProcessor.started(descriptor, startEvent(parentId));
         }
-        resultProcessor.started(descriptor, startEvent(parentId));
     }
 
     @Override
@@ -279,23 +281,23 @@ public class JUnitTestEventAdapter extends RunListener {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.get(failure.getDescription());
-        }
 
-        if (testInternal != null) {
-            // This is the normal path, we've just seen a test failure
-            // for a test that we saw start
-            Throwable exception = failure.getException();
-            reportFailure(testInternal.getId(), exception);
-        } else {
-            // This can happen when, for example, a @BeforeClass or @AfterClass method fails
-            // We generate an artificial start/failure/completed sequence of events
-            withPotentiallyMissingParent(className(failure.getDescription()), clock.getCurrentTime(), parentId -> {
-                TestDescriptorInternal child = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
-                resultProcessor.started(child, startEvent(parentId));
+            if (testInternal != null) {
+                // This is the normal path, we've just seen a test failure
+                // for a test that we saw start
                 Throwable exception = failure.getException();
-                reportFailure(child.getId(), exception);
-                resultProcessor.completed(child.getId(), new TestCompleteEvent(clock.getCurrentTime()));
-            });
+                reportFailure(testInternal.getId(), exception);
+            } else {
+                // This can happen when, for example, a @BeforeClass or @AfterClass method fails
+                // We generate an artificial start/failure/completed sequence of events
+                withPotentiallyMissingParent(className(failure.getDescription()), clock.getCurrentTime(), parentId -> {
+                    TestDescriptorInternal child = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
+                    resultProcessor.started(child, startEvent(parentId));
+                    Throwable exception = failure.getException();
+                    reportFailure(child.getId(), exception);
+                    resultProcessor.completed(child.getId(), new TestCompleteEvent(clock.getCurrentTime()));
+                });
+            }
         }
     }
 
@@ -341,23 +343,23 @@ public class JUnitTestEventAdapter extends RunListener {
         synchronized (lock) {
             testInternal = executing.get(failure.getDescription());
             assumptionFailed.add(failure.getDescription());
-        }
 
-        if (testInternal != null) {
-            // This is the normal path, we've just seen a test failure
-            // for a test that we saw start
-            Throwable exception = failure.getException();
-            reportAssumptionFailure(testInternal.getId(), exception);
-        } else {
-            // This can happen when, for example, a @BeforeClass or @AfterClass method fails
-            // We generate an artificial start/failure/completed sequence of events
-            withPotentiallyMissingParent(className(failure.getDescription()), clock.getCurrentTime(), parentId -> {
-                TestDescriptorInternal child = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
-                resultProcessor.started(child, startEvent(parentId));
+            if (testInternal != null) {
+                // This is the normal path, we've just seen a test failure
+                // for a test that we saw start
                 Throwable exception = failure.getException();
-                reportAssumptionFailure(child.getId(), exception);
-                resultProcessor.completed(child.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
-            });
+                reportAssumptionFailure(testInternal.getId(), exception);
+            } else {
+                // This can happen when, for example, a @BeforeClass or @AfterClass method fails
+                // We generate an artificial start/failure/completed sequence of events
+                withPotentiallyMissingParent(className(failure.getDescription()), clock.getCurrentTime(), parentId -> {
+                    TestDescriptorInternal child = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
+                    resultProcessor.started(child, startEvent(parentId));
+                    Throwable exception = failure.getException();
+                    reportAssumptionFailure(child.getId(), exception);
+                    resultProcessor.completed(child.getId(), new TestCompleteEvent(clock.getCurrentTime(), TestResult.ResultType.SKIPPED));
+                });
+            }
         }
     }
 
@@ -375,20 +377,22 @@ public class JUnitTestEventAdapter extends RunListener {
      */
     public void testExecutionFailure(ClassTestDefinition testClassDefinition, TestFailure failure) {
         try {
-            long now = clock.getCurrentTime();
-            if (executing.isEmpty()) {
-                String testName = testsStarted ? "executionError" : "initializationError";
+            synchronized (lock) {
+                long now = clock.getCurrentTime();
+                if (executing.isEmpty()) {
+                    String testName = testsStarted ? "executionError" : "initializationError";
 
-                withPotentiallyMissingParent(testClassDefinition.getTestClassName(), now, parentId -> {
-                    DefaultTestDescriptor initializationError = new DefaultTestDescriptor(idGenerator.generateId(), testClassDefinition.getTestClassName(), testName);
-                    resultProcessor.started(initializationError, new TestStartEvent(now, parentId));
-                    resultProcessor.failure(initializationError.getId(), failure);
-                    resultProcessor.completed(initializationError.getId(), new TestCompleteEvent(now));
-                });
-            } else {
-                for (Map.Entry<Description, TestDescriptorInternal> test : executing.entrySet()) {
-                    resultProcessor.failure(test.getValue().getId(), failure);
-                    resultProcessor.completed(test.getValue().getId(), new TestCompleteEvent(now));
+                    withPotentiallyMissingParent(testClassDefinition.getTestClassName(), now, parentId -> {
+                        DefaultTestDescriptor initializationError = new DefaultTestDescriptor(idGenerator.generateId(), testClassDefinition.getTestClassName(), testName);
+                        resultProcessor.started(initializationError, new TestStartEvent(now, parentId));
+                        resultProcessor.failure(initializationError.getId(), failure);
+                        resultProcessor.completed(initializationError.getId(), new TestCompleteEvent(now));
+                    });
+                } else {
+                    for (Map.Entry<Description, TestDescriptorInternal> test : executing.entrySet()) {
+                        resultProcessor.failure(test.getValue().getId(), failure);
+                        resultProcessor.completed(test.getValue().getId(), new TestCompleteEvent(now));
+                    }
                 }
             }
         } finally {
@@ -398,16 +402,18 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testIgnored(Description description) throws Exception {
-        if (methodName(description) == null) {
-            // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
-            // generate them on our own
-            processIgnoredClass(description);
-        } else {
-            Object parentId = startRequiredParentIfNeeded(description);
-            TestDescriptorInternal descriptor = descriptor(idGenerator.generateId(), description);
-            resultProcessor.started(descriptor, startEvent(parentId));
-            long endTime = clock.getCurrentTime();
-            resultProcessor.completed(descriptor.getId(), new TestCompleteEvent(endTime, TestResult.ResultType.SKIPPED));
+        synchronized (lock) {
+            if (methodName(description) == null) {
+                // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
+                // generate them on our own
+                processIgnoredClass(description);
+            } else {
+                Object parentId = startRequiredParentIfNeeded(description);
+                TestDescriptorInternal descriptor = descriptor(idGenerator.generateId(), description);
+                resultProcessor.started(descriptor, startEvent(parentId));
+                long endTime = clock.getCurrentTime();
+                resultProcessor.completed(descriptor.getId(), new TestCompleteEvent(endTime, TestResult.ResultType.SKIPPED));
+            }
         }
     }
 
@@ -441,8 +447,8 @@ public class JUnitTestEventAdapter extends RunListener {
             }
             assert testInternal != null : String.format("Unexpected end event for %s", description);
             resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
+            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
         }
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
     }
 
     private static TestDescriptorInternal descriptor(Object id, Description description) {
