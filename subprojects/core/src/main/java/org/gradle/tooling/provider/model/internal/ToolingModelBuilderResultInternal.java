@@ -22,7 +22,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,6 +29,8 @@ import java.util.List;
  * <p>
  * {@link ToolingModelBuilder} can optionally return a {@link ToolingModelBuilderResultInternal} instead of a raw model.
  * {@link ToolingModelBuilderResultInternal} is then unpacked before the model is returned to the client.
+ * <p>
+ * <strong>This class is intentionally not {@code Serializable}</strong>. It must not travel over the Tooling API serialization boundary.
  */
 @NullMarked
 public class ToolingModelBuilderResultInternal {
@@ -41,6 +42,17 @@ public class ToolingModelBuilderResultInternal {
     private ToolingModelBuilderResultInternal(@Nullable Object model, List<Failure> failures) {
         this.model = model;
         this.failures = failures;
+    }
+
+    public void throwFailureIfPresent() {
+        if (failures.isEmpty()) {
+            return;
+        }
+        Throwable firstOriginalException = failures.get(0).getOriginal();
+        if (firstOriginalException instanceof RuntimeException) {
+            throw (RuntimeException) firstOriginalException;
+        }
+        throw new RuntimeException(firstOriginalException);
     }
 
     @Nullable
@@ -64,8 +76,8 @@ public class ToolingModelBuilderResultInternal {
         return of(model, ImmutableList.copyOf(additionalFailures));
     }
 
-    public static ToolingModelBuilderResultInternal of(Object model) {
-        return new ToolingModelBuilderResultInternal(model, Collections.emptyList());
+    public static ToolingModelBuilderResultInternal of(@Nullable Object model) {
+        return new ToolingModelBuilderResultInternal(model, ImmutableList.of());
     }
 
     public static ToolingModelBuilderResultInternal of(@Nullable Object model, List<Failure> failures) {

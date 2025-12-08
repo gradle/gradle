@@ -111,7 +111,7 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         def expectedUsagesMsg
         if (role == 'canBeResolved = false') {
             expectedUsagesMsg = """\tConsumable - this configuration can be selected by another project as a dependency
-  \tDeclarable - this configuration can have dependencies added to it"""
+    \tDeclarable - this configuration can have dependencies added to it"""
         } else {
             expectedUsagesMsg = "\tDeclarable - this configuration can have dependencies added to it"
         }
@@ -121,9 +121,10 @@ class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':checkState'.")
         if ((method as String) in ['getResolvedConfiguration()']) {
             failure.assertHasCause("""Method call not allowed
-  Calling configuration method '$method' is not allowed for configuration 'internal', which has permitted usage(s):
-  $expectedUsagesMsg
-  This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
+  Calling configuration method '$method' is not allowed for configuration 'internal'
+    'internal' has the following permitted usage(s):
+    $expectedUsagesMsg
+    This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
         } else {
             failure.assertHasCause("""Resolving dependency configuration 'internal' is not allowed as it is defined as 'canBeResolved=false'.
 Instead, a resolvable ('canBeResolved=true') dependency configuration that extends 'internal' should be resolved.""")

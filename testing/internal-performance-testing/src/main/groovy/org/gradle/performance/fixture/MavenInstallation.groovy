@@ -19,9 +19,12 @@ package org.gradle.performance.fixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.BadExitCodeException
 
+import java.util.concurrent.TimeUnit
+
 class MavenInstallation {
 
     private static final boolean IS_WINDOWS = OperatingSystem.current().isWindows()
+    private static final int PROBE_VERSION_TIMEOUT_SECONDS = 30
 
     final String version
     final File home
@@ -53,7 +56,13 @@ class MavenInstallation {
         def env = System.getenv().findAll { it.key != "M2" && it.key != "M2_HOME" }.collect { "${it.key}=${it.value}" }
         env += "JAVA_HOME=${System.getProperty("java.home")}"
         def process = [mvn.absolutePath, "--version"].execute(env, home)
-        def exitValue = process.waitFor()
+        boolean finished = process.waitFor(PROBE_VERSION_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        if (!finished) {
+            process.destroyForcibly()
+            process.waitFor()
+            throw new BadExitCodeException("Unable to probe Maven version from ${mvn.absolutePath}, process timed out after ${PROBE_VERSION_TIMEOUT_SECONDS} seconds")
+        }
+        def exitValue = process.exitValue()
         if (exitValue != 0) {
             throw new BadExitCodeException("Unable to probe Maven version from ${mvn.absolutePath}, returned ${exitValue}.\n${process.err.text}")
         }
