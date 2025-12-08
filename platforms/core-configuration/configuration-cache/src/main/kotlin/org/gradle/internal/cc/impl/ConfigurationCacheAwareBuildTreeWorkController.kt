@@ -37,7 +37,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val workGraph: BuildTreeWorkGraphController,
     private val cache: BuildTreeConfigurationCache,
     private val buildRegistry: BuildStateRegistry,
-    private val startParameter: BuildModelParameters,
+    private val buildModelParameters: BuildModelParameters,
     heapDumpDir: String?,
 ) : BuildTreeWorkController {
 
@@ -72,7 +72,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             //    We execute the build immediately using the prepared graph.
             // 4. CC hit: we've loaded the cached graph. We execute the build immediately using the loaded graph.
             val workGraph = result.get()
-            if (!workGraph.wasLoadedFromCache && !workGraph.entryDiscarded && !startParameter.isRequiresToolingModels) {
+            if (!workGraph.wasLoadedFromCache && !workGraph.entryDiscarded && !buildModelParameters.isModelBuilding) {
                 // This is the first outcome of the list above.
                 // We don't want to fold the code below here so the "live" graph can be garbage collected before execution.
                 null

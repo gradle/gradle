@@ -44,7 +44,7 @@ object BuildModelParametersProvider {
     private
     val configurationCacheParallelLoad = InternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
 
-    private
+    @JvmStatic
     val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
 
     private
@@ -113,11 +113,11 @@ object BuildModelParametersProvider {
     @JvmStatic
     fun parametersForNestedBuildTree(startParameter: StartParameterInternal): BuildModelParameters {
         return GradleVintageMode(
-            requiresToolingModels = true,
+            modelBuilding = true,
             parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
             configureOnDemand = startParameter.isConfigureOnDemand,
             configurationCacheDisabledReason = null,
-            parallelToolingActions = false,
+            parallelModelBuilding = false,
             resilientModelBuilding = false
         )
     }
@@ -130,17 +130,26 @@ object BuildModelParametersProvider {
         ccDisabledReason: String? = null
     ): GradleVintageMode {
 
-        val requiresModels = requirements.isCreatesModel
         val parallelProjectExecution = requirements.startParameter.isParallelProjectExecutionEnabled
-
-        return GradleVintageMode(
-            requiresToolingModels = requiresModels,
-            parallelProjectExecution = parallelProjectExecution,
-            configureOnDemand = !requiresModels && startParameter.isConfigureOnDemand,
-            configurationCacheDisabledReason = ccDisabledReason,
-            parallelToolingActions = requirements.startParameter.isParallelProjectExecutionEnabled,
-            resilientModelBuilding = options[resilientModelBuilding]
-        )
+        return if (requirements.isCreatesModel) {
+            GradleVintageMode(
+                modelBuilding = true,
+                parallelProjectExecution = parallelProjectExecution,
+                configureOnDemand = false,
+                configurationCacheDisabledReason = ccDisabledReason,
+                parallelModelBuilding = parallelProjectExecution && options[parallelBuilding],
+                resilientModelBuilding = options[resilientModelBuilding],
+            )
+        } else {
+            GradleVintageMode(
+                modelBuilding = false,
+                parallelProjectExecution = parallelProjectExecution,
+                configureOnDemand = startParameter.isConfigureOnDemand,
+                configurationCacheDisabledReason = ccDisabledReason,
+                parallelModelBuilding = false,
+                resilientModelBuilding = false,
+            )
+        }
     }
 
     private
@@ -177,26 +186,26 @@ object BuildModelParametersProvider {
 
         return if (requirements.isCreatesModel) {
             GradleIsolatedProjectsMode(
-                requiresToolingModels = true,
+                modelBuilding = true,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 parallelProjectConfiguration = parallelIsolatedProjects,
-                intermediateModelCache = options[isolatedProjectsCaching].buildingModels,
-                parallelToolingActions = parallelIsolatedProjects && options[parallelBuilding],
+                cachingModelBuilding = options[isolatedProjectsCaching].buildingModels,
+                parallelModelBuilding = parallelIsolatedProjects && options[parallelBuilding],
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = options[modelProjectDependencies],
                 resilientModelBuilding = options[resilientModelBuilding]
             )
         } else {
             GradleIsolatedProjectsMode(
-                requiresToolingModels = false,
+                modelBuilding = false,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 parallelProjectConfiguration = parallelIsolatedProjects,
-                intermediateModelCache = false,
-                parallelToolingActions = false,
+                cachingModelBuilding = false,
+                parallelModelBuilding = false,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = false,
                 resilientModelBuilding = false

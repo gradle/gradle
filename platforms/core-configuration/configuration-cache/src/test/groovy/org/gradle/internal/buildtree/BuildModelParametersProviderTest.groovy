@@ -29,20 +29,23 @@ class BuildModelParametersProviderTest extends Specification {
 
     def defaults() {
         [
-            requiresToolingModels: false,
-            configureOnDemand: false,
             parallelProjectExecution: false,
+            configureOnDemand: false,
+
             configurationCache: false,
             configurationCacheDisabledReason: null,
             configurationCacheParallelStore: false,
             configurationCacheParallelLoad: false,
+
             isolatedProjects: false,
             parallelProjectConfiguration: false,
-            parallelToolingApiActions: false,
-            intermediateModelCache: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
-            resilientModelBuilding: false
+
+            modelBuilding: false,
+            parallelModelBuilding: false,
+            cachingModelBuilding: false,
+            resilientModelBuilding: false,
         ]
     }
 
@@ -52,7 +55,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models
+            modelBuilding: models
         ])
 
         where:
@@ -62,6 +65,99 @@ class BuildModelParametersProviderTest extends Specification {
         true  | true
 
         description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
+    }
+
+    def "configure on demand is disabled when building models"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            configureOnDemand = true
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            configureOnDemand: !models,
+            modelBuilding: models,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "parallel execution flag enables parallel model building when building models"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            parallelProjectExecutionEnabled = true
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            parallelProjectExecution: true,
+            modelBuilding: models,
+            parallelModelBuilding: models,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "can disable parallel model building with internal property"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            parallelProjectExecutionEnabled = true
+            systemPropertiesArgs[BuildModelParametersProvider.parallelBuilding.propertyName] = "false"
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            parallelProjectExecution: true,
+            modelBuilding: models,
+            parallelModelBuilding: false,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+    }
+
+    def "parameters when configuration cache is enabled for running tasks"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: false) {
+            setConfigurationCache(Option.Value.value(true))
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            configurationCache: true,
+            configurationCacheParallelLoad: true,
+            configurationCacheParallelStore: false,
+            parallelProjectExecution: false, // With CC, tasks are known to be isolated, so they run in parallel even without "parallel execution"
+        ])
+    }
+
+    def "configuration cache is automatically disabled when building models"() {
+        given:
+        def params = parameters(runsTasks: true, createsModel: true) {
+            setConfigurationCache(Option.Value.value(true))
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), defaults() + [
+            modelBuilding: true,
+            configurationCache: false,
+        ])
+
+        where:
+        tasks << [true, false]
+
+        description = tasks ? "running tasks and building models" : 'building models'
     }
 
     def "configuration cache is automatically disabled when combined with --#option"() {
@@ -92,14 +188,14 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: true,
             configurationCache: true,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
+            parallelModelBuilding: models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -122,7 +218,7 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             configureOnDemand: configureOnDemandExpected,
             parallelProjectExecution: true,
             configurationCache: true,
@@ -130,7 +226,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
+            parallelModelBuilding: models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -162,14 +258,14 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: ipParallelExpected,
             configurationCache: true,
             configurationCacheParallelStore: ipParallelExpected,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: ipParallelExpected,
-            parallelToolingApiActions: ipParallelExpected && models,
+            parallelModelBuilding: ipParallelExpected && models,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])
@@ -201,15 +297,15 @@ class BuildModelParametersProviderTest extends Specification {
 
         expect:
         checkParameters(params.toDisplayMap(), defaults() + [
-            requiresToolingModels: models,
+            modelBuilding: models,
             parallelProjectExecution: true,
             configurationCache: true,
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
             parallelProjectConfiguration: true,
-            parallelToolingApiActions: models,
-            intermediateModelCache: ipCachingExpected,
+            parallelModelBuilding: models,
+            cachingModelBuilding: ipCachingExpected,
             invalidateCoupledProjects: true,
             modelAsProjectDependency: models
         ])

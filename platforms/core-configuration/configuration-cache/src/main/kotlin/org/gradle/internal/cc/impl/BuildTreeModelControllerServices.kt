@@ -127,7 +127,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             registration.add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
             registration.add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
         }
-        if (modelParameters.isIntermediateModelCache) {
+        if (modelParameters.isCachingModelBuilding) {
             registration.addProvider(ConfigurationCacheModelProvider())
         } else {
             registration.addProvider(VintageModelProvider())
