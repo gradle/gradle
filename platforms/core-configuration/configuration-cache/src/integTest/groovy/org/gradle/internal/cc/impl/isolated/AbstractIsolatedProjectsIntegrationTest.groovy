@@ -16,16 +16,20 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 
-import static org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME
-
 abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
-    public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=true"
+    public static final String ENABLE_CLI = "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true"
+    public static final String ENABLE_DIAGNOSTICS = "-D${StartParameterBuildOptions.IsolatedProjectsDiagnosticsOption.PROPERTY_NAME}=true"
     final def fixture = new IsolatedProjectsFixture(this)
 
     void withIsolatedProjects(String... moreExecuterArgs) {
         executer.withArgument(ENABLE_CLI, *moreExecuterArgs)
+    }
+
+    void withIsolatedProjectsDiagnostics(String... moreExecuterArgs) {
+        executer.withArgument(ENABLE_CLI, ENABLE_DIAGNOSTICS, *moreExecuterArgs)
     }
 
     void isolatedProjectsRun(String... tasks) {
@@ -34,5 +38,9 @@ abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigura
 
     void isolatedProjectsFails(String... tasks) {
         fails(ENABLE_CLI, *tasks)
+    }
+
+    void isolatedProjectsDiagnosticsFails(String... tasks) {
+        fails(ENABLE_CLI, ENABLE_DIAGNOSTICS, *tasks)
     }
 }

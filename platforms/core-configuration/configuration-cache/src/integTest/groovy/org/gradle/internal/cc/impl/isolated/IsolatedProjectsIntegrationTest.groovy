@@ -52,7 +52,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         """
 
         when:
-        isolatedProjectsFails("thing", "--no-configuration-cache")
+        isolatedProjectsDiagnosticsFails("thing", "--no-configuration-cache")
 
         then:
         failure.assertHasDescription("Configuration Cache cannot be disabled when Isolated Projects is enabled.")

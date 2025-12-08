@@ -84,7 +84,7 @@ class IsolatedProjectsTaskPathDependencyIntegrationTest extends AbstractIsolated
         """
 
         when:
-        isolatedProjectsFails(":a:foo")
+        isolatedProjectsDiagnosticsFails(":a:foo")
 
         then:
         fixture.assertStateStoredAndDiscarded {
