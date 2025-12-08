@@ -39,8 +39,8 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.BuildModelParametersFactory;
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
-import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
 import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -142,7 +142,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             Clock clock,
             LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
             BuildOperationNotificationValve buildOperationNotificationValve,
-            BuildTreeModelControllerServices buildModelServices,
+            BuildModelParametersFactory buildModelParametersFactory,
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
@@ -171,7 +171,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
+                            new BuildTreeLifecycleBuildActionExecutor(buildModelParametersFactory, buildLayoutValidator, valueSnapshotter),
                             buildOperationRunner,
                             loggingBuildOperationProgressBroadcaster,
                             buildOperationNotificationValve

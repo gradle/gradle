@@ -23,6 +23,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.Nullable;
@@ -74,7 +75,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks(@Nullable EntryTaskSelector selector) {
-        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector));
+        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector).getExecutionResultOrThrow());
     }
 
     @Override
@@ -82,14 +83,25 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
             if (runTasks && isEligibleToRunTasks()) {
-                ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null);
-                if (!result.getFailures().isEmpty()) {
+                ExecutionResult<Void> result = runTasks();
+                if (!result.isSuccessful()) {
                     return result.asFailure();
                 }
             }
             T model = modelCreator.fromBuildModel(action);
             return ExecutionResult.succeeded(model);
         });
+    }
+
+    private ExecutionResult<Void> runTasks() {
+        TaskRunResult result = workController.scheduleAndRunRequestedTasks(null);
+        if (!result.getScheduleResult().isSuccessful() && buildModelParameters.isResilientModelBuilding()) {
+            // In resilient mode if scheduling fails, it means configuration failed. We don't propagate that failure,
+            // but we allow models to build. The configuration failure will be acquired from BuildState during model building.
+            return ExecutionResult.succeeded();
+        }
+
+        return result.getExecutionResultOrThrow();
     }
 
     @Override

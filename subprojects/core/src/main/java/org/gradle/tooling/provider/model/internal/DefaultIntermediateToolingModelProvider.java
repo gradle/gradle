@@ -87,8 +87,9 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     @Nullable
     private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectState builderTarget, @Nullable ToolingModelParameterCarrier parameter) {
-        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, new ToolingModelRequestContext(modelName, parameter, false));
-        return toolingModelScope.getModel(modelName, parameter);
+        ToolingModelRequestContext toolingModelContext = new ToolingModelRequestContext(modelName, parameter, false);
+        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, toolingModelContext);
+        return toolingModelScope.getModel(toolingModelContext, parameter).getModel();
     }
 
     private static BuildState extractSingleBuildState(List<ProjectState> targets) {

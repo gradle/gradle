@@ -137,6 +137,16 @@ import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescrip
 import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
 import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
+import org.gradle.tooling.events.test.internal.source.DefaultClassSource;
+import org.gradle.tooling.events.test.internal.source.DefaultClasspathResourceSource;
+import org.gradle.tooling.events.test.internal.source.DefaultDirectorySource;
+import org.gradle.tooling.events.test.internal.source.DefaultFilePosition;
+import org.gradle.tooling.events.test.internal.source.DefaultFileSource;
+import org.gradle.tooling.events.test.internal.source.DefaultMethodSource;
+import org.gradle.tooling.events.test.internal.source.DefaultNoSource;
+import org.gradle.tooling.events.test.internal.source.DefaultOtherSource;
+import org.gradle.tooling.events.test.source.FilePosition;
+import org.gradle.tooling.events.test.source.TestSource;
 import org.gradle.tooling.events.transform.TransformFinishEvent;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
 import org.gradle.tooling.events.transform.TransformOperationResult;
@@ -185,6 +195,7 @@ import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
+import org.gradle.tooling.internal.protocol.events.InternalFilePosition;
 import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
@@ -202,6 +213,7 @@ import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationR
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 import org.gradle.tooling.internal.protocol.events.InternalRootOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalSourceAwareTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalStatusEvent;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
@@ -244,6 +256,13 @@ import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalDat
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
+import org.gradle.tooling.internal.protocol.test.source.InternalClassSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalClasspathResourceSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalDirectorySource;
+import org.gradle.tooling.internal.protocol.test.source.InternalFileSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalMethodSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalMissingSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -886,13 +905,78 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        if (descriptor instanceof InternalJvmTestDescriptor) {
+        if (descriptor instanceof InternalSourceAwareTestDescriptor) {
+            TestSource testSource = toTestSource((InternalSourceAwareTestDescriptor) descriptor);
+            InternalSourceAwareTestDescriptor jvmTestDescriptor = (InternalSourceAwareTestDescriptor) descriptor;
+            return new DefaultJvmTestOperationDescriptor(
+                jvmTestDescriptor,
+                parent,
+                toJvmTestKind(jvmTestDescriptor.getTestKind()),
+                jvmTestDescriptor.getSuiteName(),
+                jvmTestDescriptor.getClassName(),
+                jvmTestDescriptor.getMethodName(),
+                testSource
+            );
+        } else if (descriptor instanceof InternalJvmTestDescriptor) {
             InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
-            return new DefaultJvmTestOperationDescriptor(jvmTestDescriptor, parent,
-                toJvmTestKind(jvmTestDescriptor.getTestKind()), jvmTestDescriptor.getSuiteName(), jvmTestDescriptor.getClassName(), jvmTestDescriptor.getMethodName());
+            TestSource testSource = inferLegacyTestSource(jvmTestDescriptor);
+            return new DefaultJvmTestOperationDescriptor(
+                jvmTestDescriptor,
+                parent,
+                toJvmTestKind(jvmTestDescriptor.getTestKind()),
+                jvmTestDescriptor.getSuiteName(),
+                jvmTestDescriptor.getClassName(),
+                jvmTestDescriptor.getMethodName(),
+                testSource);
         } else {
             return new DefaultTestOperationDescriptor(descriptor, parent);
         }
+    }
+
+    private static TestSource inferLegacyTestSource(InternalJvmTestDescriptor descriptor) {
+
+        if (descriptor.getClassName() != null && descriptor.getMethodName() != null) {
+            return new DefaultMethodSource(descriptor.getClassName(), descriptor.getMethodName());
+        } else if (descriptor.getClassName() != null && descriptor.getMethodName() == null) {
+            return new DefaultClassSource(descriptor.getClassName());
+        } else {
+            return DefaultNoSource.getInstance();
+        }
+    }
+
+    private static TestSource toTestSource(InternalSourceAwareTestDescriptor descriptor) {
+        InternalTestSource testSource = descriptor.getSource();
+        return toTestSource(testSource);
+    }
+
+    private static TestSource toTestSource(InternalTestSource testSource) {
+        if (testSource instanceof InternalFileSource) {
+            InternalFileSource fileSource = (InternalFileSource) testSource;
+            return new DefaultFileSource(fileSource.getFile(), toFilePosition(((InternalFileSource) testSource).getPosition()));
+        } else if (testSource instanceof InternalDirectorySource) {
+            return new DefaultDirectorySource(((InternalDirectorySource) testSource).getFile());
+        } else if (testSource instanceof InternalClassSource) {
+            InternalClassSource classSource = (InternalClassSource) testSource;
+            return new DefaultClassSource(classSource.getClassName());
+        } else if (testSource instanceof InternalMethodSource) {
+            InternalMethodSource methodSource = (InternalMethodSource) testSource;
+            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName());
+        } else if (testSource instanceof InternalClasspathResourceSource) {
+            InternalClasspathResourceSource classpathResourceSource = (InternalClasspathResourceSource) testSource;
+            return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), toFilePosition(classpathResourceSource.getPosition()));
+        } else if (testSource instanceof InternalMissingSource) {
+            return DefaultNoSource.getInstance();
+        } else {
+            return DefaultOtherSource.getInstance();
+        }
+    }
+
+    @Nullable
+    private static FilePosition toFilePosition(@Nullable InternalFilePosition position) {
+        if (position == null) {
+            return null;
+        }
+        return new DefaultFilePosition(position.getLine(), position.getColumn());
     }
 
     private static JvmTestKind toJvmTestKind(String testKind) {

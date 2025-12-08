@@ -102,8 +102,12 @@ public abstract class PersistentList<T> implements Iterable<T> {
 
         @Override
         public void forEach(Consumer<? super T> consumer) {
-            consumer.accept(head);
-            tail.forEach(consumer);
+            PersistentList<T> cur = this;
+            while (!cur.isEmpty()) {
+                Cons<T> cons = (Cons<T>) cur;
+                consumer.accept(cons.head);
+                cur = cons.tail;
+            }
         }
 
         @Override

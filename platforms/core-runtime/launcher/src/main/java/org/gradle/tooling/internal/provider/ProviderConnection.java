@@ -47,6 +47,8 @@ import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.internal.HelpRenderer;
+import org.gradle.launcher.cli.internal.VersionInfoRenderer;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
@@ -64,6 +66,7 @@ import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
+import org.gradle.tooling.internal.build.DefaultHelp;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
@@ -88,6 +91,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.Help;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -168,12 +172,23 @@ public class ProviderConnection {
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
+            File javaHome = reportableJavaHomeForBuild(params);
             return new DefaultBuildEnvironment(
                 new DefaultBuildIdentifier(providerParameters.getProjectDir()),
                 params.buildLayout.getGradleUserHomeDir(),
                 GradleVersion.current().getVersion(),
-                reportableJavaHomeForBuild(params),
-                params.daemonParams.getEffectiveJvmArgs());
+                javaHome,
+                params.daemonParams.getEffectiveJvmArgs(),
+                VersionInfoRenderer.renderWithLauncherJvm(Jvm.forHome(javaHome).toString())
+            );
+        }
+
+        if (Help.class.getName().equals(modelName)) {
+            if (tasks != null) {
+                throw new IllegalArgumentException("Cannot run tasks and fetch the Help model.");
+            }
+            String help = HelpRenderer.render(null, true);
+            return new DefaultHelp(help);
         }
 
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
@@ -212,7 +227,7 @@ public class ProviderConnection {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties, params.tapiEnvironmentVariables);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
@@ -227,7 +242,7 @@ public class ProviderConnection {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientPhasedAction);
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties, params.tapiEnvironmentVariables);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
@@ -241,7 +256,7 @@ public class ProviderConnection {
 
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties, params.tapiEnvironmentVariables);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
@@ -347,13 +362,7 @@ public class ProviderConnection {
 
         AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
-        // Either use the environment variables from the operation parameters, or inherit the current process environment
-        Map<String, String> environmentVariables = operationParameters.getEnvironmentVariables(null);
-        if (environmentVariables == null) {
-            environmentVariables = new HashMap<>(System.getenv());
-        }
-
-        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), environmentVariables);
+        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), operationParameters.getEnvironmentVariables(null));
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
@@ -406,7 +415,7 @@ public class ProviderConnection {
             GUtil.addToMap(effectiveSystemProperties, System.getProperties());
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties, environmentVariables);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
         if (requestContext.getJvmCriteria() instanceof DaemonJvmCriteria.Spec) {
             startParameter.setDaemonJvmCriteriaConfigured(true);
         }
@@ -414,9 +423,9 @@ public class ProviderConnection {
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
-        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, environmentVariables, daemonParams.getToolchainConfiguration());
+        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
 
-        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, environmentVariables, startParameter, requestContext);
+        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
 
     private static class Parameters {
@@ -424,16 +433,14 @@ public class ProviderConnection {
         final BuildLayoutResult buildLayout;
         final AllProperties properties;
         final Map<String, String> tapiSystemProperties;
-        final Map<String, String> tapiEnvironmentVariables;
         final StartParameterInternal startParameter;
         final DaemonRequestContext requestContext;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, Map<String, String> tapiEnvironmentVariables, StartParameterInternal startParameter, DaemonRequestContext requestContext) {
+        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, StartParameterInternal startParameter, DaemonRequestContext requestContext) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;
             this.tapiSystemProperties = tapiSystemProperties;
-            this.tapiEnvironmentVariables = tapiEnvironmentVariables;
             this.startParameter = startParameter;
             this.requestContext = requestContext;
         }

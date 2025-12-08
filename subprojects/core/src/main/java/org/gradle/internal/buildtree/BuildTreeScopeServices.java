@@ -17,8 +17,11 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
+import org.gradle.api.configuration.BuildFeatures;
+import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.configuration.DefaultBuildFeatures;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -94,17 +97,30 @@ import java.util.List;
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
 public class BuildTreeScopeServices implements ServiceRegistrationProvider {
+
+    private final BuildActionModelRequirements buildActionRequirements;
+    private final BuildModelParameters buildModelParameters;
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final BuildTreeState buildTree;
-    private final BuildTreeModelControllerServices.Supplier modelServices;
 
-    public BuildTreeScopeServices(BuildInvocationScopeId buildInvocationScopeId, BuildTreeState buildTree, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeScopeServices(
+        BuildActionModelRequirements buildActionRequirements,
+        BuildModelParameters buildModelParameters,
+        BuildInvocationScopeId buildInvocationScopeId,
+        BuildTreeState buildTree
+    ) {
+        this.buildActionRequirements = buildActionRequirements;
+        this.buildModelParameters = buildModelParameters;
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.buildTree = buildTree;
-        this.modelServices = modelServices;
     }
 
     protected void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
+        // It's important that these services are registered first, before build-tree GradleModuleServices providers are invoked,
+        // because some of them require these services for eager `configure` calls
+        registration.add(BuildActionModelRequirements.class, buildActionRequirements);
+        registration.add(BuildModelParameters.class, buildModelParameters);
+
         for (GradleModuleServices services : servicesProviders) {
             services.registerBuildTreeServices(registration);
         }
@@ -123,7 +139,16 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
-        modelServices.applyServicesTo(registration);
+    }
+
+    @Provides
+    BuildType createBuildType(BuildActionModelRequirements requirements) {
+        return requirements.isCreatesModel() ? BuildType.MODEL : BuildType.TASKS;
+    }
+
+    @Provides
+    BuildFeatures createBuildFeatures(BuildActionModelRequirements requirements, BuildModelParameters parameters) {
+        return new DefaultBuildFeatures(requirements.getStartParameter(), parameters);
     }
 
     @Provides
