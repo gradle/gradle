@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.software.internal
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -136,7 +137,9 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
 
     def "registering the same plugin twice does not add two implementations"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
-        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+        def pluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+        def definitionTypeMetadata = Mock(TypeMetadata)
+        def definitionTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
         declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
@@ -144,17 +147,20 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         def implementations = declarations.projectFeatureImplementations
 
         then:
-        1 * inspectionScheme.getMetadataStore() >> metadataStore
+        _ * inspectionScheme.getMetadataStore() >> metadataStore
         1 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
-        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
-        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
-        1 * typeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> pluginTypeAnnotationMetadata
+        1 * pluginTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
+        1 * pluginTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
         1 * bindsProjectFeatureAnnotation.value() >> Binding
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, Mock(ProjectFeatureApplyAction))
         }
+        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
+        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
+        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
 
         and:
         implementations.size() == 1
@@ -162,9 +168,11 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
 
     def "cannot declare two plugins with the same project type"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
-        def duplicateTypeMetadata = Mock(TypeMetadata)
-        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
-        def duplicateTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+        def duplicatePluginTypeMetadata = Mock(TypeMetadata)
+        def pluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+        def duplicatePluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+        def definitionTypeMetadata = Mock(TypeMetadata)
+        def definitionTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
         declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
@@ -172,23 +180,26 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         declarations.getProjectFeatureImplementations()
 
         then:
-        2 * inspectionScheme.getMetadataStore() >> metadataStore
+        _ * inspectionScheme.getMetadataStore() >> metadataStore
         1 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
-        1 * metadataStore.getTypeMetadata(DuplicateProjectTypeImpl) >> duplicateTypeMetadata
-        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
-        1 * duplicateTypeMetadata.getTypeAnnotationMetadata() >> duplicateTypeAnnotationMetadata
+        1 * metadataStore.getTypeMetadata(DuplicateProjectTypeImpl) >> duplicatePluginTypeMetadata
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> pluginTypeAnnotationMetadata
+        1 * duplicatePluginTypeMetadata.getTypeAnnotationMetadata() >> duplicatePluginTypeAnnotationMetadata
 
-        1 * typeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
-        1 * typeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
+        1 * pluginTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
+        1 * pluginTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
         1 * bindsProjectFeatureAnnotation.value() >> Binding
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentBuildModel, Mock(ProjectFeatureApplyAction))
         }
+        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
+        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
+        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
 
-        1 * duplicateTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
-        1 * duplicateTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
+        1 * duplicatePluginTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
+        1 * duplicatePluginTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
         1 * bindsProjectFeatureAnnotation.value() >> Binding
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
