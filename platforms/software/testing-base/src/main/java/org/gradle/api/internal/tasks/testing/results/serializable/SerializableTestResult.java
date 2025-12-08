@@ -55,8 +55,6 @@ public final class SerializableTestResult {
         private String displayName;
         @Nullable
         private String className;
-        @Nullable
-        private String classDisplayName;
         private TestResult.@Nullable ResultType resultType;
         @Nullable
         private Long startTime;
@@ -79,11 +77,6 @@ public final class SerializableTestResult {
 
         public Builder className(@Nullable String className) {
             this.className = className;
-            return this;
-        }
-
-        public Builder classDisplayName(@Nullable String classDisplayName) {
-            this.classDisplayName = classDisplayName;
             return this;
         }
 
@@ -135,7 +128,7 @@ public final class SerializableTestResult {
             if (endTime == null) {
                 throw new IllegalStateException("endTime is required");
             }
-            return new SerializableTestResult(name, displayName, className, classDisplayName, resultType, startTime, endTime, assumptionFailure, failures.build(), metadatas.build());
+            return new SerializableTestResult(name, displayName, className, resultType, startTime, endTime, assumptionFailure, failures.build(), metadatas.build());
         }
     }
 
@@ -144,9 +137,12 @@ public final class SerializableTestResult {
 
         public static void serialize(SerializableTestResult result, Encoder encoder) throws IOException {
             encoder.writeString(result.name);
-            encoder.writeString(result.displayName);
+            if (result.displayName.equals(result.name)) {
+                encoder.writeNullableString(null);
+            } else {
+                encoder.writeNullableString(result.displayName);
+            }
             encoder.writeNullableString(result.className);
-            encoder.writeNullableString(result.classDisplayName);
             encoder.writeSmallInt(result.resultType.ordinal());
             encoder.writeLong(result.startTime);
             encoder.writeLong(result.endTime);
@@ -163,9 +159,11 @@ public final class SerializableTestResult {
 
         public static SerializableTestResult deserialize(Decoder decoder) throws IOException {
             String name = decoder.readString();
-            String displayName = decoder.readString();
+            String displayName = decoder.readNullableString();
+            if (displayName == null) {
+                displayName = name;
+            }
             String className = decoder.readNullableString();
-            String classDisplayName = decoder.readNullableString();
             TestResult.ResultType resultType = TestResult.ResultType.values()[decoder.readSmallInt()];
             long startTime = decoder.readLong();
             long endTime = decoder.readLong();
@@ -179,7 +177,7 @@ public final class SerializableTestResult {
             ImmutableList<SerializableFailure> failures = deserializeFailures(decoder);
             ImmutableList<SerializedMetadata> metadatas = deserializeMetadatas(decoder);
 
-            return new SerializableTestResult(name, displayName, className, classDisplayName, resultType, startTime, endTime, assumptionFailure, failures, metadatas);
+            return new SerializableTestResult(name, displayName, className, resultType, startTime, endTime, assumptionFailure, failures, metadatas);
         }
 
         private static void serializeFailures(SerializableTestResult result, Encoder encoder) throws IOException {
@@ -257,8 +255,6 @@ public final class SerializableTestResult {
     private final String displayName;
     @Nullable
     private final String className;
-    @Nullable
-    private final String classDisplayName;
     private final TestResult.ResultType resultType;
     private final long startTime;
     private final long endTime;
@@ -271,7 +267,6 @@ public final class SerializableTestResult {
         String name,
         String displayName,
         @Nullable String className,
-        @Nullable String classDisplayName,
         TestResult.ResultType resultType,
         long startTime,
         long endTime,
@@ -282,7 +277,6 @@ public final class SerializableTestResult {
         this.name = name;
         this.displayName = displayName;
         this.className = className;
-        this.classDisplayName = classDisplayName;
         this.resultType = resultType;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -302,11 +296,6 @@ public final class SerializableTestResult {
     @Nullable
     public String getClassName() {
         return className;
-    }
-
-    @Nullable
-    public String getClassDisplayName() {
-        return classDisplayName;
     }
 
     public TestResult.ResultType getResultType() {
