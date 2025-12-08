@@ -100,7 +100,7 @@ class DefaultProblemsReportCreator(
 @Suppress("USELESS_ELVIS")
 fun JsonWriter.problemId(id: ProblemId) {
     property("problemId") {
-        val list = generateSequence(id.group) { it.parent }.toList() + listOf(ProblemGroup.create(id.name, id.displayName))
+        val list = generateSequence(id.group) { it.parent }.toList().reversed() + listOf(ProblemGroup.create(id.name, id.displayName))
         jsonObjectList(list) { group ->
             property("name", group.name ?: "<no name provided>")
             property("displayName", group.displayName ?: "<no display name provided>")
