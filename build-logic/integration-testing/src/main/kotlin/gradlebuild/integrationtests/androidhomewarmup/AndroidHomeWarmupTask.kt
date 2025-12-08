@@ -21,6 +21,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.provider.Provider
@@ -46,9 +47,11 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
     @get:Inject
     abstract val execOperations: ExecOperations
 
+    @get:Optional
     @get:Input
     val androidHome: Provider<String> = project.providers.environmentVariable("ANDROID_HOME")
 
+    @get:Optional
     @get:Input
     val androidSdkRoot: Provider<String> = project.providers.environmentVariable("ANDROID_SDK_ROOT")
 
