@@ -239,7 +239,7 @@ Relevant problems in the report are now rendered in the console output when you 
 $ ./gradlew :test --warning-mode=all
 
 > Configure project :
-Build file '/Users/lkassovic/Downloads/test-report-aggregation-sample/build.gradle': line 16
+Build file '/Users/user/Downloads/test-report-aggregation-sample/build.gradle': line 16
 The Wrapper.getAvailableDistributionTypes method has been deprecated...
         at build_5teuix0v7qf7ou93kgnmvnicp.run(/Users/user/test-report-aggregation-sample/build.gradle:16)
         (Run with --stacktrace to get the full stack trace of this deprecation warning.)
@@ -256,7 +256,7 @@ Previously, you would see:
 > Process 'Gradle Worker Daemon 87' finished with non-zero exit value 137
 ```
 
-Now, Gradle adds a helpful hint:
+Now, Gradle adds a helpful hint based on the value of the exit code:
 
 ```bash
 > Process 'Gradle Worker Daemon 87' finished with non-zero exit value 137 
@@ -321,9 +321,11 @@ void testProject() {
 
 ### Publishing signatures for distributions
 
-Gradle now publishes ASCII-armored `.asc` signature files for all distributed ZIPs, in addition to the existing `.sha256` checksum files.
-These signatures allow users and build systems to verify the authenticity of Gradle distributions using our PGP signing key, improving supply-chain integrity and enabling stronger verification workflows.
-Read more about verifying Gradle distributions and JARs on the [Signing key for Gradle artifacts page](keys).    
+Gradle now publishes ASCII-armored `.asc` signature files for all distribution ZIPs, alongside the existing `.sha256` [checksum](https://gradle.org/release-checksums/) files.
+
+These PGP signatures allow users and build systems to verify that a downloaded Gradle distribution was produced by the Gradle team and has not been tampered with, improving supply-chain integrity and enabling stronger verification workflows.
+
+For details on verifying Gradle distributions and JARs, see the [Signing key for Gradle artifacts](https://gradle.org/keys/) page.
 
 ## Promoted features
 
@@ -338,7 +340,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ### User Manual
 
-The [Plugin Development](userguide/init_scripts.html) section has been updated with clearer explanations and coded examples of init scripts and init plugins, including when to use each.
+The [Plugin Development](userguide/init_scripts.html) section has been updated with clearer explanations and coded examples of init scripts and [Init Plugins](userguide/init_scripts.html#sec:init_plugins), including when to use each.
 
 ### Best Practices
 
