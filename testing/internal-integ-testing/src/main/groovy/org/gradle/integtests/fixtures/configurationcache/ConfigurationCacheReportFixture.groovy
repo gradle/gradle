@@ -28,6 +28,8 @@ import static org.junit.Assert.assertTrue
  * A fixture to perform assertions on the contents of the Configuration Cache Report.
  */
 abstract class ConfigurationCacheReportFixture {
+    protected ConfigurationCacheReportFixture() {}
+
     /**
      * Creates a fixture for the absent report. The provided project root is used for error messages only
      *
@@ -35,7 +37,7 @@ abstract class ConfigurationCacheReportFixture {
      * @return the fixture
      */
     static ConfigurationCacheReportFixture forAbsentReport(File projectRoot) {
-        return new NoReportFixtureImpl(projectRoot)
+        return new NoReportFixture(projectRoot)
     }
 
     /**
@@ -45,7 +47,7 @@ abstract class ConfigurationCacheReportFixture {
      * @return the fixture
      */
     static ConfigurationCacheReportFixture forReportFile(File reportFile) {
-        return new ConfigurationCacheReportFixtureImpl(reportFile)
+        return new ExistingReportFixture(reportFile)
     }
 
     /**
@@ -70,10 +72,10 @@ abstract class ConfigurationCacheReportFixture {
         }
     }
 
-    private static class NoReportFixtureImpl extends ConfigurationCacheReportFixture {
+    private static class NoReportFixture extends ConfigurationCacheReportFixture {
         private final File projectRoot
 
-        NoReportFixtureImpl(File projectRoot) {
+        NoReportFixture(File projectRoot) {
             this.projectRoot = projectRoot
         }
 
@@ -95,10 +97,10 @@ abstract class ConfigurationCacheReportFixture {
         void assertHasNoProblems() {}
     }
 
-    private static class ConfigurationCacheReportFixtureImpl extends ConfigurationCacheReportFixture {
+    private static class ExistingReportFixture extends ConfigurationCacheReportFixture {
         private final Map<String, Object> jsModel
 
-        ConfigurationCacheReportFixtureImpl(File reportFile) {
+        ExistingReportFixture(File reportFile) {
             jsModel = readJsModelFrom(reportFile)
         }
 
