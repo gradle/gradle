@@ -40,7 +40,9 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.configuration.problems.IsolatedProjectsViolationsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.extensions.core.get
 import org.gradle.internal.model.StateTransitionControllerFactory
@@ -107,7 +109,7 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
         @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry,
-            problemsListener: ProblemsListener,
+            violationsListener: IsolatedProjectsViolationsListener,
             problemFactory: ProblemFactory,
             coupledProjectsListener: CoupledProjectsListener,
             dynamicCallProblemReporting: DynamicCallProblemReporting,
@@ -118,7 +120,7 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
             return ProblemReportingCrossProjectModelAccess(
                 delegate,
-                problemsListener,
+                violationsListener,
                 coupledProjectsListener,
                 problemFactory,
                 dynamicCallProblemReporting,
