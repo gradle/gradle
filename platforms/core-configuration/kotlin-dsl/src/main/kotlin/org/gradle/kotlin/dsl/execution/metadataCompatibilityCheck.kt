@@ -1,14 +1,14 @@
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.execution.MetadataCompatibilityChecker
+import org.gradle.kotlin.dsl.execution.KotlinMetadataCompatibilityChecker
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME
 import java.io.File
 
 
 internal
-fun checkAllMetadataInClasspath(compileOptions: KotlinCompilerOptions, classPath: ClassPath, compatibilityChecker: MetadataCompatibilityChecker) {
+fun checkAllMetadataInClasspath(compileOptions: KotlinCompilerOptions, classPath: ClassPath, compatibilityChecker: KotlinMetadataCompatibilityChecker) {
     if (compileOptions.explicitSkipMetadataVersionCheck != null) {
         // If the flag is set explicitly, then we don't do any checking.
         // Either check results are intentionally suppressed (if the flag is set to 'true'),

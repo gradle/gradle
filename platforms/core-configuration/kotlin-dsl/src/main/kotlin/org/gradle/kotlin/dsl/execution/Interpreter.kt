@@ -302,7 +302,7 @@ class Interpreter(val host: Host) {
         compilationClassPath: ClassPath,
         stage1BlocksAccessorsClassPath: ClassPath,
         temporaryFileProvider: TemporaryFileProvider,
-        metadataCompatibilityChecker: MetadataCompatibilityChecker
+        metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker
     ): File = host.cachedDirFor(
         scriptHost,
         programId,

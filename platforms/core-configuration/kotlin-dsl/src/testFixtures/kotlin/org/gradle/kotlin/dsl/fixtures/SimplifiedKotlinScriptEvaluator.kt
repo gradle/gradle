@@ -35,7 +35,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.Interpreter
-import org.gradle.kotlin.dsl.execution.MetadataCompatibilityChecker
+import org.gradle.kotlin.dsl.execution.KotlinMetadataCompatibilityChecker
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -83,7 +83,7 @@ fun simplifiedKotlinDefaultServiceRegistry(
         .displayName("test registry")
         .provider { registration ->
             registration.add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
-            registration.add(MetadataCompatibilityChecker::class.java, object : MetadataCompatibilityChecker {
+            registration.add(KotlinMetadataCompatibilityChecker::class.java, object : KotlinMetadataCompatibilityChecker {
                 override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
             })
         }

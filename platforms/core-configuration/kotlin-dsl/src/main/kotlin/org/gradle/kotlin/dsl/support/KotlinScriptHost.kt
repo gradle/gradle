@@ -37,7 +37,7 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
-import org.gradle.kotlin.dsl.execution.MetadataCompatibilityChecker
+import org.gradle.kotlin.dsl.execution.KotlinMetadataCompatibilityChecker
 
 import org.gradle.kotlin.dsl.invoke
 
@@ -81,8 +81,8 @@ class KotlinScriptHost<out T : Any> internal constructor(
     }
 
     internal
-    val metadataCompatibilityChecker: MetadataCompatibilityChecker by unsafeLazy {
-        serviceRegistry.get<MetadataCompatibilityChecker>()
+    val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker by unsafeLazy {
+        serviceRegistry.get<KotlinMetadataCompatibilityChecker>()
     }
 
     internal

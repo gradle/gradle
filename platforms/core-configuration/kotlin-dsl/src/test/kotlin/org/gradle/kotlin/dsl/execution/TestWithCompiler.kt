@@ -81,7 +81,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             programKind,
             programTarget,
             temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
-            metadataCompatibilityChecker = object : MetadataCompatibilityChecker {
+            metadataCompatibilityChecker = object : KotlinMetadataCompatibilityChecker {
                 override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
             }
         ).compile(program)

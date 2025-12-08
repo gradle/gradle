@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
 @ServiceScope(Scope.UserHome::class)
-interface MetadataCompatibilityChecker {
+interface KotlinMetadataCompatibilityChecker {
 
     fun incompatibleClasspathElements(classPath: ClassPath): List<File>
 

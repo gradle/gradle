@@ -16,8 +16,14 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.ClasspathWalker
+import org.gradle.internal.execution.FileCollectionSnapshotter
+import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.model.internal.asm.AsmConstants
 import org.objectweb.asm.AnnotationVisitor
 import org.objectweb.asm.ClassReader
@@ -26,20 +32,51 @@ import java.io.File
 import kotlin.metadata.internal.metadata.deserialization.MetadataVersion
 
 internal
-class DefaultMetadataCompatibilityChecker(val classpathWalker: ClasspathWalker): MetadataCompatibilityChecker {
-
-    // TODO performance
-    //  cache per classpath entry
-    //      key: classpath entry hash
-    //      value: boolean
+class DefaultKotlinMetadataCompatibilityChecker(
+    val fileCollectionSnapshotter: FileCollectionSnapshotter,
+    val fileCollectionFactory: FileCollectionFactory,
+    val compatibilityCache: KotlinMetadataCompatibilityCache,
+    val classpathWalker: ClasspathWalker,
+): KotlinMetadataCompatibilityChecker {
 
     override fun incompatibleClasspathElements(classPath: ClassPath): List<File> {
         val extractor = KotlinMetadataVersionExtractor()
-        return classPath.asFiles.filter { file -> isIncompatible(file, extractor) }
+
+        val fileSystemSnapshot: FileSystemSnapshot = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classPath.getAsFiles()))
+
+        val incompatibleFiles = mutableListOf<File>()
+
+        // TODO: we are walking a snapshot, which is not normalized based on the knowledge that this is a classpath...
+        //  should we instead fingerprint it via KotlinCompileClasspathFingerprinter and use the resulting fingerprints to decide if there is a change?
+        //  might not be worth it cost wise...
+        fileSystemSnapshot.accept { snapshot ->
+            // if it doesn't exist, we ignore it
+            if (snapshot is MissingFileSnapshot) {
+                return@accept SnapshotVisitResult.CONTINUE
+            }
+
+            // if not jar file or class directory, we ignore it
+            if (snapshot is RegularFileSnapshot && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
+                return@accept SnapshotVisitResult.CONTINUE
+            }
+
+            val file = File(snapshot.absolutePath)
+            val compatible = compatibilityCache.isCompatible(snapshot.hash) {
+                isCompatible(file, extractor)
+            }
+            if (!compatible) {
+                incompatibleFiles.add(file)
+            }
+
+            // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
+            SnapshotVisitResult.SKIP_SUBTREE
+        }
+
+        return incompatibleFiles
     }
 
     private
-    fun isIncompatible(file: File, metadataVersionExtractor: KotlinMetadataVersionExtractor): Boolean {
+    fun isCompatible(file: File, metadataVersionExtractor: KotlinMetadataVersionExtractor): Boolean {
         var incompatibilityFound = false
         classpathWalker.visit(file) { entry ->
             if (!incompatibilityFound && entry.name.endsWith(".class")) {
@@ -54,7 +91,7 @@ class DefaultMetadataCompatibilityChecker(val classpathWalker: ClasspathWalker):
                 }
             }
         }
-        return incompatibilityFound
+        return !incompatibilityFound
     }
 }
 
