@@ -21,19 +21,11 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
-
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
 /**
  * A declared dependency, potentially transformed based on a substitution.
@@ -61,7 +53,6 @@ public class DependencyState {
     private final @Nullable ModuleVersionResolveException substitutionFailure;
 
     private @Nullable ModuleIdentifier moduleIdentifier;
-    private boolean reasonsAlreadyAdded;
 
     public DependencyState(
         DependencyMetadata dependency,
@@ -81,6 +72,10 @@ public class DependencyState {
 
     public DependencyMetadata getDependency() {
         return dependency;
+    }
+
+    public ImmutableList<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+        return ruleDescriptors;
     }
 
     public @Nullable ModuleVersionResolveException getSubstitutionFailure() {
@@ -114,63 +109,12 @@ public class DependencyState {
                 }
             }
         }
-        return isDependencyForced();
-    }
 
-    private boolean isDependencyForced() {
         return dependency instanceof ForcingDependencyMetadata && ((ForcingDependencyMetadata) dependency).isForce();
     }
 
     public boolean isFromLock() {
         return dependency instanceof LocalOriginDependencyMetadata && ((LocalOriginDependencyMetadata) dependency).isFromLock();
-    }
-
-    void addSelectionReasons(List<ComponentSelectionDescriptorInternal> reasons) {
-        if (reasonsAlreadyAdded) {
-            return;
-        }
-        reasonsAlreadyAdded = true;
-        addMainReason(reasons);
-
-        if (!ruleDescriptors.isEmpty()) {
-            addRuleDescriptors(reasons);
-        }
-        if (isDependencyForced()) {
-            maybeAddReason(reasons, FORCED);
-        }
-    }
-
-    private void addRuleDescriptors(List<ComponentSelectionDescriptorInternal> reasons) {
-        for (ComponentSelectionDescriptorInternal descriptor : ruleDescriptors) {
-            maybeAddReason(reasons, descriptor);
-        }
-    }
-
-    private void addMainReason(List<ComponentSelectionDescriptorInternal> reasons) {
-        ComponentSelectionDescriptorInternal dependencyDescriptor;
-        if (reasons.contains(BY_ANCESTOR)) {
-            dependencyDescriptor = BY_ANCESTOR;
-        } else {
-            dependencyDescriptor = dependency.isConstraint() ? CONSTRAINT : REQUESTED;
-        }
-        String reason = dependency.getReason();
-        if (reason != null) {
-            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
-        }
-        maybeAddReason(reasons, dependencyDescriptor);
-    }
-
-    private static void maybeAddReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
-        if (reasons.isEmpty()) {
-            reasons.add(reason);
-        } else if (isNewReason(reasons, reason)) {
-            reasons.add(reason);
-        }
-    }
-
-    private static boolean isNewReason(List<ComponentSelectionDescriptorInternal> reasons, ComponentSelectionDescriptorInternal reason) {
-        return (reasons.size() == 1 && !reason.equals(reasons.get(0)))
-            || !reasons.contains(reason);
     }
 
     @Override
@@ -181,4 +125,5 @@ public class DependencyState {
             return dependency + " (requested " + requested + ")";
         }
     }
+
 }

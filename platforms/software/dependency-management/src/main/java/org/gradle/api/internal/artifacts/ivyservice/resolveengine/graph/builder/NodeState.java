@@ -241,6 +241,7 @@ public class NodeState implements DependencyGraphNode {
         return getDisplayName();
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("'%s' (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
     }
