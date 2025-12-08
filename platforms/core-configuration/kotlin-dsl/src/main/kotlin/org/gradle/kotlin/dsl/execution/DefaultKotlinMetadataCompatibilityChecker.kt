@@ -41,6 +41,7 @@ class DefaultKotlinMetadataCompatibilityChecker(
 
     override fun incompatibleClasspathElements(classPath: ClassPath): List<File> {
         val extractor = KotlinMetadataVersionExtractor()
+        val elementChecker = ClasspathElementChecker(classpathWalker, extractor)
 
         val fileSystemSnapshot: FileSystemSnapshot = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classPath.getAsFiles()))
 
@@ -62,28 +63,44 @@ class DefaultKotlinMetadataCompatibilityChecker(
 
             val file = File(snapshot.absolutePath)
             val compatible = compatibilityCache.isCompatible(snapshot.hash) {
-                isCompatible(file, extractor)
+                elementChecker.isCompatible(file)
             }
             if (!compatible) {
                 incompatibleFiles.add(file)
             }
 
-            // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
-            SnapshotVisitResult.SKIP_SUBTREE
+            if (incompatibleFiles.isNotEmpty() && elementChecker.hasDoneCalculation) {
+                // if there are incompatibilities we abort checking the classpath further, to save on performance
+                //
+                // the part which also considers if everything is coming from cache, or if there was "calculation needed" is there
+                // to provide increasingly more accurate results (since the cache is user home level, accuracy increases for different builds over time)
+                SnapshotVisitResult.TERMINATE
+            } else {
+                // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
+                SnapshotVisitResult.SKIP_SUBTREE
+            }
         }
 
         return incompatibleFiles
     }
 
-    private
-    fun isCompatible(file: File, metadataVersionExtractor: KotlinMetadataVersionExtractor): Boolean {
+}
+
+private
+class ClasspathElementChecker(val classpathWalker: ClasspathWalker, val extractor: KotlinMetadataVersionExtractor) {
+
+    var hasDoneCalculation = false
+
+    fun isCompatible(file: File): Boolean {
+        hasDoneCalculation = true
+
         var incompatibilityFound = false
         classpathWalker.visit(file) { entry ->
             if (!incompatibilityFound && entry.name.endsWith(".class")) {
                 val classReader = ClassReader(entry.content)
-                classReader.accept(metadataVersionExtractor.reset(), ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
-                if (metadataVersionExtractor.version != null) {
-                    val metadataVersion = MetadataVersion(metadataVersionExtractor.version!!, false)
+                classReader.accept(extractor.reset(), ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
+                if (extractor.version != null) {
+                    val metadataVersion = MetadataVersion(extractor.version!!, false)
                     val compatible = metadataVersion.isCompatibleWithCurrentCompilerVersion()
                     if (!compatible) {
                         incompatibilityFound = true
@@ -93,6 +110,7 @@ class DefaultKotlinMetadataCompatibilityChecker(
         }
         return !incompatibilityFound
     }
+
 }
 
 private
