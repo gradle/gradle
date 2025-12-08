@@ -125,21 +125,6 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
             "\t- The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.")
     }
 
-    def 'sensible error when definition is declared safe but has an implementation class'() {
-        given:
-        withProjectTypeThatHasDifferentPublicAndImplementationModelTypesDeclaredSafe().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
-
-        when:
-        fails(":printTestProjectTypeDefinitionConfiguration")
-
-        then:
-        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition with type 'PublicTestProjectTypeDefinition' which was declared safe but has an implementation type 'TestProjectTypeDefinitionImpl'.  Safe definitions must not specify an implementation type.")
-    }
-
     void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
         if (currentDsl() == GradleDsl.DECLARATIVE) {
             failure.assertHasDescription(expectedMessage)

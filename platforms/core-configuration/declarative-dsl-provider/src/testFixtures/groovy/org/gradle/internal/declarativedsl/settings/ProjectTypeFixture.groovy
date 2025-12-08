@@ -111,25 +111,7 @@ trait ProjectTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withProjectTypeThatHasDifferentPublicAndImplementationModelTypesDeclaredUnsafe() {
-        def definition = new ProjectTypeDefinitionWithImplementationTypeClassBuilder()
-        def projectType = new ProjectTypePluginClassBuilder()
-            .definitionPublicTypeClassName(definition.publicTypeClassName)
-            .definitionImplementationTypeClassName(definition.defaultClassName)
-            .withUnsafeDefinition()
-        def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersProjectType(projectType.projectTypePluginClassName)
-
-        PluginBuilder pluginBuilder = withProjectType(
-            definition,
-            projectType,
-            settingsBuilder
-        )
-
-        return pluginBuilder
-    }
-
-    PluginBuilder withProjectTypeThatHasDifferentPublicAndImplementationModelTypesDeclaredSafe() {
+    PluginBuilder withProjectTypeThatHasDifferentPublicAndImplementationModelTypes() {
         def definition = new ProjectTypeDefinitionWithImplementationTypeClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
             .definitionPublicTypeClassName(definition.publicTypeClassName)

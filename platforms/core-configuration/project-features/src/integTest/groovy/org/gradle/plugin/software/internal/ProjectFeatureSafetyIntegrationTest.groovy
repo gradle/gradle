@@ -137,23 +137,6 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
             "\t- The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.  Safe definition types cannot inject services.")
     }
 
-    def 'sensible error when definition is declared safe but has an implementation type'() {
-        given:
-        def pluginBuilder = withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredSafe()
-        pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
-        pluginBuilder.prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
-
-        when:
-        fails(":printFeatureDefinitionConfiguration")
-
-        then:
-        assertDescriptionOrCause(failure, "Project feature 'feature' has a definition with type 'FeatureDefinition' which was declared safe but has an implementation type 'FeatureDefinitionImpl'.  Safe definitions must not specify an implementation type.")
-    }
-
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {
         return """
             testProjectType {

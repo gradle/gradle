@@ -143,21 +143,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredUnsafe() {
-        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
-        def projectType = new ProjectTypePluginClassBuilder()
-        def projectFeatureDefinition = new ProjectFeatureDefinitionWithImplementationTypeClassBuilder()
-        def projectFeature = new ProjectFeaturePluginClassBuilder()
-            .definitionPublicType(projectFeatureDefinition.publicTypeClassName)
-            .definitionImplementationType(projectFeatureDefinition.defaultClassName)
-            .withUnsafeDefinition()
-        def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersProjectType(projectType.projectTypePluginClassName)
-            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
-        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
-    }
-
-    PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypesDeclaredSafe() {
+    PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypes() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def projectFeatureDefinition = new ProjectFeatureDefinitionWithImplementationTypeClassBuilder()
