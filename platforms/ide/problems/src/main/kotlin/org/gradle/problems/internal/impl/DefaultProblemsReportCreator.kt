@@ -45,7 +45,7 @@ import org.gradle.internal.problems.failure.FailureFactory
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
-val logger: Logger = Logging.getLogger(DefaultProblemsReportCreator::class.java)
+private val logger: Logger = Logging.getLogger(DefaultProblemsReportCreator::class.java)
 
 class DefaultProblemsReportCreator(
     executorFactory: ExecutorFactory,
@@ -98,7 +98,7 @@ class DefaultProblemsReportCreator(
 }
 
 @Suppress("USELESS_ELVIS")
-fun JsonWriter.problemId(id: ProblemId) {
+private fun JsonWriter.problemId(id: ProblemId) {
     property("problemId") {
         val list = generateSequence(id.group) { it.parent }.toList().reversed() + listOf(ProblemGroup.create(id.name, id.displayName))
         jsonObjectList(list) { group ->
@@ -108,7 +108,7 @@ fun JsonWriter.problemId(id: ProblemId) {
     }
 }
 
-class JsonProblemWriter(private val problem: InternalProblem, private val failureDecorator: FailureDecorator, private val failureFactory: FailureFactory) : JsonSource {
+internal class JsonProblemWriter(private val problem: InternalProblem, private val failureDecorator: FailureDecorator, private val failureFactory: FailureFactory) : JsonSource {
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
