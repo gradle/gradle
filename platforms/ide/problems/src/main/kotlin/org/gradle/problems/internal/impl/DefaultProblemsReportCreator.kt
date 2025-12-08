@@ -37,9 +37,7 @@ import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.FailureDecorator
-import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.writeError
-import org.gradle.internal.configuration.problems.writeStructuredMessage
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.problems.failure.FailureFactory
 import java.io.File
@@ -72,7 +70,6 @@ class DefaultProblemsReportCreator(
                             buildNameProvider.buildName()?.let { property("buildName", it) }
                             property("requestedTasks", taskNames.joinToString(" "))
                             property("documentationLink", DocumentationRegistry().getDocumentationFor("reporting_problems"))
-                            property("documentationLinkCaption", "Problem report")
                             property("summaries") {
                                 jsonList(problemSummaries) {
                                     jsonObject {
@@ -112,9 +109,27 @@ internal class JsonProblemWriter(private val problem: InternalProblem, private v
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
+                val id = problem.definition.id
+                problemId(id)
+
+                property("severity", problem.definition.severity.toString().uppercase())
+
+                problem.contextualLabel?.let {
+                    property("contextualLabel", it)
+                }
+                problem.details?.let {
+                    property("problemDetails", it)
+                }
+                problem.definition.documentationLink?.let {
+                    property("documentationLink", it.url)
+                }
+                problem.exception?.let {
+                    writeError(failureDecorator.decorate(failureFactory.create(it)))
+                }
+
                 val fileLocations = (problem.originLocations + problem.contextualLocations)
-                    .map { location -> if(location is StackTraceLocation) location.fileLocation else location }
-                    .filter { it is FileLocation || it is PluginIdLocation || it is TaskLocation}
+                    .map { location -> if (location is StackTraceLocation) location.fileLocation else location }
+                    .filter { it is FileLocation || it is PluginIdLocation || it is TaskLocation }
                 if (fileLocations.isNotEmpty()) {
                     property("locations") {
                         jsonObjectList(fileLocations) { location ->
@@ -127,34 +142,9 @@ internal class JsonProblemWriter(private val problem: InternalProblem, private v
                     }
                 }
 
-                val id = problem.definition.id
-                property("problem") {
-                    writeStructuredMessage(StructuredMessage.forText(id.displayName))
-                }
-                property("severity", problem.definition.severity.toString().uppercase())
-
-                problem.details?.let {
-                    property("problemDetails") {
-                        writeStructuredMessage(
-                            StructuredMessage.forText(it)
-                        )
-                    }
-                }
-                problem.contextualLabel?.let {
-                    property("contextualLabel", it)
-                }
-                problem.definition.documentationLink?.let { property("documentationLink", it.url) }
-                problem.exception?.let { writeError(failureDecorator.decorate(failureFactory.create(it))) }
-                problemId(id)
-
-                val solutions = problem.solutions
-                if (solutions.isNotEmpty()) {
+                problem.solutions.takeIf { it.isNotEmpty() }?.let { solutions ->
                     property("solutions") {
-                        jsonList(solutions) { solution ->
-                            writeStructuredMessage(
-                                StructuredMessage.forText(solution)
-                            )
-                        }
+                        jsonList(solutions)
                     }
                 }
             }
