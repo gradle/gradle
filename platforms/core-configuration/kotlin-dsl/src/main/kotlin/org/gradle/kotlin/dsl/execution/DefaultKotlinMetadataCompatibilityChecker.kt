@@ -43,6 +43,11 @@ class DefaultKotlinMetadataCompatibilityChecker(
         val extractor = KotlinMetadataVersionExtractor()
         val elementChecker = ClasspathElementChecker(classpathWalker, extractor)
 
+        // TODO: We are re-generating the same snapshots as the ones KotlinCompileClasspathFingerprinter uses (IF compile avoidance is turned on)
+        //  we could MAYBE merge this checking with the fingerprinting, to improve performance, if the ugliness is worth it
+        //  AND
+        //  we can solve the "IF compile avoidance is turned on" part too, by doing it in a fingerprinter wrapper and using that wrapper around
+        //  whichever fingerprinter ends up being used in BuildServices.createCompileClasspathHasher
         val fileSystemSnapshot: FileSystemSnapshot = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classPath.getAsFiles()))
 
         val incompatibleFiles = mutableListOf<File>()
