@@ -240,16 +240,12 @@ abstract class ConfigurationCacheReportFixture {
 
         /**
          * Makes a best effort to collect problem messages from the JS model.
-         *
-         * Does not include source locations, text is collected raw.
          */
         private List<String> problemMessages() {
             return (jsModel.diagnostics as List<Object>)
                 .findAll { it['problem'] != null }
                 .collect {
-                    it['problem']
-                        .collect { (it as Map).values() }
-                        .flatten().join()
+                    formatStructuredMessage(it['problem'])
                 }
         }
 

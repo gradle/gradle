@@ -138,7 +138,7 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.htmlReport(result).assertContents {
             totalProblemsCount = 1
-            withProblem("invocation of Task.project at execution time is unsupported")
+            withProblem("invocation of 'Task.project' at execution time is unsupported")
         }
     }
 

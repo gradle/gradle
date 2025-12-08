@@ -24,8 +24,8 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache."
     public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible"
     public static final String CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON = "Configuration cache disabled as cache is in read-only mode."
-    public static final String INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME = "invocation of Task.project at execution time is unsupported with the configuration cache."
-    public static final String INVOCATION_OF_TASK_DEPENDENCIES_AT_EXECUTION_TIME = "invocation of Task.taskDependencies at execution time is unsupported with the configuration cache."
+    public static final String INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME = "invocation of 'Task.project' at execution time is unsupported with the configuration cache."
+    public static final String INVOCATION_OF_TASK_DEPENDENCIES_AT_EXECUTION_TIME = "invocation of 'Task.taskDependencies' at execution time is unsupported with the configuration cache."
 
     def "a compatible build does not print degradation reasons"() {
         buildFile """
