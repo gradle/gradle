@@ -17,7 +17,6 @@
 package org.gradle.unexported.buildinit.plugins.internal.maven;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Repository;
