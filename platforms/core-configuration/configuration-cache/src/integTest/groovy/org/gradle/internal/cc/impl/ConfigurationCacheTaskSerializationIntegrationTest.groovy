@@ -16,6 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
+
 import javax.inject.Inject
 import java.util.logging.Level
 
@@ -428,5 +431,52 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         then:
         outputContains("this.value = [file1.txt, file2.txt]")
         outputContains("ok.value = [file1.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35721")
+    @ToBeImplemented
+    def "gives proper attribution to serialization failures in task closures"() {
+        buildKotlinFile """
+            // Just a top-level function to have lambdas capture the script
+            fun myFalse() = false
+
+            tasks.register("myTask") {
+                outputs.cacheIf {
+                    myFalse()
+                }
+                outputs.doNotCacheIf("reason") {
+                    myFalse()
+                }
+                outputs.upToDateWhen {
+                    myFalse()
+                }
+
+                onlyIf {
+                    myFalse()
+                }
+
+                doLast {
+                    myFalse()
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails "myTask"
+
+        then:
+        problems.htmlReport(failure).assertContents {
+            totalProblemsCount = 5
+            problemsWithStackTraceCount = 0
+
+            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
+                // This reporting is not great, as the user has no insights into what specs are about
+                at(":myTask").at("org.gradle.api.specs.AndSpec").at("specs")
+                at(":myTask").at("org.gradle.api.internal.tasks.execution.SelfDescribingSpec").at("spec")
+                at(":myTask").at("org.gradle.api.internal.tasks.execution.SelfDescribingSpec").at("spec")
+                at(":myTask").at("actions")
+                at(":myTask").at("onlyIfSpec")
+            }
+        }
     }
 }
