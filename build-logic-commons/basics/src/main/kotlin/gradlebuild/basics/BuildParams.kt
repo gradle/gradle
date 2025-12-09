@@ -33,7 +33,8 @@ import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_MAJOR
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import gradlebuild.basics.BuildParams.DEBUG_DAEMON
 import gradlebuild.basics.BuildParams.DEBUG_LAUNCHER
-import gradlebuild.basics.BuildParams.DEFAULT_PERFORMANCE_BASELINES
+import gradlebuild.basics.BuildParams.DEFAULT_RFN_PERFORMANCE_BASELINES
+import gradlebuild.basics.BuildParams.DEFAULT_RFR_PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
 import gradlebuild.basics.BuildParams.FLAKY_TEST
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
@@ -49,6 +50,7 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_DB_URL
 import gradlebuild.basics.BuildParams.PERFORMANCE_DB_USERNAME
 import gradlebuild.basics.BuildParams.PERFORMANCE_DEPENDENCY_BUILD_IDS
 import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
+import gradlebuild.basics.BuildParams.PERFORMANCE_STAGE_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
@@ -94,7 +96,8 @@ object BuildParams {
     const val BUILD_VCS_NUMBER = "BUILD_VCS_NUMBER"
     const val BUILD_VERSION_QUALIFIER = "versionQualifier"
     const val CI_ENVIRONMENT_VARIABLE = "CI"
-    const val DEFAULT_PERFORMANCE_BASELINES = "defaultPerformanceBaselines"
+    const val DEFAULT_RFN_PERFORMANCE_BASELINES = "defaultRfnPerformanceBaselines"
+    const val DEFAULT_RFR_PERFORMANCE_BASELINES = "defaultRfrPerformanceBaselines"
     const val GRADLE_INSTALL_PATH = "gradle_installPath"
 
 
@@ -121,6 +124,7 @@ object BuildParams {
     const val PERFORMANCE_DB_USERNAME = "org.gradle.performance.db.username"
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
+    const val PERFORMANCE_STAGE_ENV = "PERFORMANCE_STAGE"
     const val RERUN_ALL_TESTS = "rerunAllTests"
     const val SKIP_BUILD_LOGIC_TESTS = "skipBuildLogicTests"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
@@ -252,8 +256,11 @@ val Project.buildVersionQualifier: Provider<String>
     get() = gradleProperty(BUILD_VERSION_QUALIFIER)
 
 
-val Project.defaultPerformanceBaselines: Provider<String>
-    get() = gradleProperty(DEFAULT_PERFORMANCE_BASELINES)
+val Project.defaultRfnPerformanceBaselines: Provider<String>
+    get() = gradleProperty(DEFAULT_RFN_PERFORMANCE_BASELINES)
+
+val Project.defaultRfrPerformanceBaselines: Provider<String>
+    get() = gradleProperty(DEFAULT_RFR_PERFORMANCE_BASELINES)
 
 
 // null means no limit: use all available executors
@@ -288,6 +295,9 @@ val Project.performanceDependencyBuildIds: Provider<String>
 
 val Project.performanceBaselines: String?
     get() = stringPropertyOrNull(PERFORMANCE_BASELINES)
+
+val Project.performanceStage: Provider<String>
+    get() = environmentVariable(PERFORMANCE_STAGE_ENV)
 
 val Project.performanceChannel: Provider<String>
     get() = environmentVariable(PERFORMANCE_CHANNEL_ENV).orElse(provider {
