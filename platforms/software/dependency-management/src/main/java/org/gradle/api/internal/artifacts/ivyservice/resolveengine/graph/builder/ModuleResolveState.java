@@ -410,6 +410,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     void disconnectIncomingEdge(NodeState removalSource, EdgeState incomingEdge) {
+        incomingEdge.clearSelector();
         removeUnattachedEdge(incomingEdge);
         if (!incomingEdge.isConstraint()) {
             pendingDependencies.decreaseHardEdgeCount();
