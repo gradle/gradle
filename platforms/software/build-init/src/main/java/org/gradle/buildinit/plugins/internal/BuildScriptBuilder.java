@@ -33,6 +33,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
@@ -769,9 +770,11 @@ public class BuildScriptBuilder {
                 ScriptBlockImpl dependencyBlock = new ScriptBlockImpl();
                 for (DependencyExclusion exclusion : exclusions) {
                     Map<String, String> exclusionConfig = new LinkedHashMap<>();
-                    exclusionConfig.put("module", exclusion.getModule());
                     exclusionConfig.put("group", exclusion.getGroup());
-                    dependencyBlock.add(new MethodInvocation(null, new MethodInvocationExpression(null, "exclude", expressionValues(exclusionConfig))));
+                    exclusionConfig.put("module", exclusion.getModule());
+
+                    String comment = "TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: " + Documentation.userManual("build_init_plugin", "sec:pom_maven_conversion").getUrl();
+                    dependencyBlock.add(new MethodInvocation(comment, new MethodInvocationExpression(null, "exclude", expressionValues(exclusionConfig))));
                 }
                 printer.printBlock(printer.syntax.complexDependencySpec(configuration, notation), dependencyBlock);
                 printer.needSeparatorLine = false;
