@@ -196,6 +196,7 @@ abstract class ConfigurationCacheReportFixture {
             return switch (kind) {
                 case "Field", "PropertyUsage", "InputProperty", "OutputProperty" -> trace['name']
 
+                case "VirtualProperty" -> trace['name']
                 case "SystemProperty" -> trace['name']
                 case "Task" -> trace['path']
                 case "Bean" -> trace['type']
@@ -239,7 +240,7 @@ abstract class ConfigurationCacheReportFixture {
                     def problemMessage = problemMessages[i]
                     def expectedProblem = spec.uniqueProblems[i]
 
-                    assert expectedProblem.problemText.matches(problemMessage): "Expected problem at #$i to be ${expectedProblem}, but was: ${problemMessage}"
+                    assert expectedProblem.problemText.matches(problemMessage): "Expected problem at #$i to be ${expectedProblem.problemText}, but was: ${problemMessage}"
 
                     for (int j in expectedProblem.traceSpecs.indices) {
                         def locationSpec = expectedProblem.traceSpecs[j]
