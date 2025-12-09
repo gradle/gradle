@@ -325,8 +325,9 @@ Credentials in system properties take precedence over the ones embedded in `dist
 
 [TIP]
 ====
-HTTP Basic Authentication should only be used with `HTTPS` URLs and not plain `HTTP` ones.
+Any Authentication (HTTP Basic / Bearer Token) should only be used with `HTTPS` URLs and not plain `HTTP` ones.
 With Basic Authentication, the user credentials are sent in clear text.
+With Bearer Token, the Token itself is send in clear text.
 ====
 
 System properties can be specified in the `.gradle/gradle.properties` file in the user's home directory or by other <<build_environment.adoc#sec:gradle_configuration_properties,means>>.
