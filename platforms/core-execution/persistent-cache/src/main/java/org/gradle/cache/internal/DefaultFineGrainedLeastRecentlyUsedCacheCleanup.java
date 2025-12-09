@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.base.Preconditions;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheMarkAndSweepDeleter;
@@ -35,46 +36,48 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecentlyUsedCacheCleanup implements FineGrainedLeastRecentlyUsedCacheCleanup {
 
-    private final FineGrainedPersistentCache cache;
-    private final FineGrainedCacheLeastRecentlyUsedMarkAndSweepDeleter deleter;
+    private final Deleter deleter;
 
-    public DefaultFineGrainedLeastRecentlyUsedCacheCleanup(FineGrainedPersistentCache cache, FineGrainedCacheLeastRecentlyUsedMarkAndSweepDeleter deleter, int cacheDepth, FileAccessTimeJournal journal, Supplier<Long> removeUnusedEntriesOlderThan) {
+    public DefaultFineGrainedLeastRecentlyUsedCacheCleanup(Deleter deleter, int cacheDepth, FileAccessTimeJournal journal, Supplier<Long> removeUnusedEntriesOlderThan) {
         super(new SingleDepthFilesFinder(cacheDepth), journal, removeUnusedEntriesOlderThan);
-        this.cache = cache;
         this.deleter = deleter;
     }
 
     @Override
     public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
-        super.clean(cache, progressMonitor);
+        super.clean(cleanableStore, progressMonitor);
     }
 
     @Override
-    protected boolean doDelete(File file) {
-        if (!deleter.isStale(file)) {
-            // If the entry is not stale, we add a stale marker to it
-            // to indicate that it should be cleaned next time if still stale.
-            deleter.addStaleMarker(file);
-            return false;
-        } else if (deleter.shouldBeDeleted(file)) {
-            // TODO: Handle correctly
-            return deleter.withDeletionLock(asKey(file), lockType -> {
-                // We need to recheck if the entry is still stale
-                // or some other process deleted it/recreated it before we acquired the lock.
-                if (deleter.isStale(file)) {
-                    deleter.delete(file);
-                    return true;
-                }
-                return false;
-            });
-        } else {
-            return false;
-        }
+    protected boolean doDelete(CleanableStore cleanableStore, File file) {
+        Preconditions.checkArgument(cleanableStore instanceof FineGrainedPersistentCache, "Expected a FineGrainedPersistentCache but got: %s", cleanableStore);
+        FineGrainedPersistentCache cache = (FineGrainedPersistentCache) cleanableStore;
+//        if (!deleter.isStale(file)) {
+//            // If the entry is not stale, we add a stale marker to it
+//            // to indicate that it should be cleaned next time if still stale.
+//            deleter.addStaleMarker(file);
+//            return false;
+//        } else if (deleter.shouldBeDeleted(file)) {
+//            // TODO: Handle correctly
+//            return cache.useCacheWithLockInfo(asKey(cache, file), lockType -> {
+//                // We need to recheck if the entry is still stale
+//                // or some other process deleted it/recreated it before we acquired the lock.
+//                if (deleter.isStale(file)) {
+//                    deleter.delete(file);
+//                    return true;
+//                }
+//                return false;
+//            });
+//        } else {
+//            return false;
+//        }
+        return false;
     }
 
-    private String asKey(File file) {
+    private static String asKey(FineGrainedPersistentCache cache, File file) {
         Path relativized = cache.getBaseDir().toPath().relativize(file.toPath());
         return relativized.toString();
     }

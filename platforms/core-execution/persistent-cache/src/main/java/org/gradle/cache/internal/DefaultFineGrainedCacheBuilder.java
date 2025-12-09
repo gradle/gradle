@@ -24,7 +24,6 @@ import org.gradle.cache.FineGrainedPersistentCache;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.cache.internal.DefaultFineGrainedPersistentCache.MAX_NUMBER_OF_LOCKS;
@@ -64,9 +63,19 @@ public class DefaultFineGrainedCacheBuilder implements FineGrainedCacheBuilder {
 
     @Override
     public FineGrainedPersistentCache open() throws CacheOpenException {
-        Function<FineGrainedPersistentCache, CacheCleanupStrategy> cleanupStrategy = this.cleanupStrategy == null
-            ? cache -> CacheCleanupStrategy.NO_CLEANUP
-            : cache -> this.cleanupStrategy.getCleanupStrategy(cache);
+        FineGrainedCacheCleanupStrategy cleanupStrategy = this.cleanupStrategy == null
+            ? new FineGrainedCacheCleanupStrategy() {
+            @Override
+            public CacheCleanupStrategy getCleanupStrategy(FineGrainedPersistentCache cache) {
+                return CacheCleanupStrategy.NO_CLEANUP;
+            }
+
+            @Override
+            public FineGrainedCacheMarkAndSweepDeleter getCacheDeleter(FineGrainedPersistentCache cache) {
+                return null;
+            }
+        }
+            : this.cleanupStrategy;
         return factory.openFineGrained(baseDir, displayName, numberOfLocks, cleanupStrategy);
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -59,7 +60,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     }
 
     @Override
-    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cacheCleanupStrategy) throws CacheOpenException {
+    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, FineGrainedCacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
         return new InMemoryFineGrainedCache(cacheDir, displayName, cacheCleanupStrategy);
     }
@@ -190,10 +191,10 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         private final CacheCleanupStrategy cleanup;
         private final ProducerGuard<String> guard = ProducerGuard.adaptive();
 
-        public InMemoryFineGrainedCache(File cacheDir, String displayName, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cleanup) {
+        public InMemoryFineGrainedCache(File cacheDir, String displayName, FineGrainedCacheCleanupStrategy cleanup) {
             this.cacheDir = cacheDir;
             this.displayName = displayName;
-            this.cleanup = cleanup.apply(this);
+            this.cleanup = cleanup.getCleanupStrategy(this);
         }
 
         @Override

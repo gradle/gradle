@@ -41,7 +41,7 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
         for (File file : findEligibleFiles(cleanableStore)) {
             if (shouldDelete(file)) {
                 progressMonitor.incrementDeleted();
-                if (doDelete(file)) {
+                if (doDelete(cleanableStore, file)) {
                     handleDeletion(file);
                     filesDeleted += 1 + deleteEmptyParentDirectories(cleanableStore.getBaseDir(), file.getParentFile());
                 }
@@ -68,7 +68,7 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
 
     protected abstract void handleDeletion(File file);
 
-    protected boolean doDelete(File file) {
+    protected boolean doDelete(CleanableStore cleanableStore, File file) {
         return FileUtils.deleteQuietly(file);
     }
 

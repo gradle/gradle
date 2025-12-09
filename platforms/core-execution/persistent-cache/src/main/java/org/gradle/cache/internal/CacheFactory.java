@@ -17,6 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
@@ -27,7 +28,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 @ServiceScope(Scope.Global.class)
 public interface CacheFactory {
@@ -39,7 +39,7 @@ public interface CacheFactory {
     /**
      * Opens a fine-grained persistent cache with the given options. The caller must close the cache when finished with it.
      */
-    FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cacheCleanupStrategy) throws CacheOpenException;
+    FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, FineGrainedCacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException;
 
     /**
      * Visit the caches created by this factory.

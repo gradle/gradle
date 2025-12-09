@@ -20,10 +20,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
@@ -63,13 +63,13 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         String displayName,
         FileLockManager fileLockManager,
         @SuppressWarnings("unused") int numberOfLocks,
-        Function<FineGrainedPersistentCache, CacheCleanupStrategy> cleanupStrategy
+        FineGrainedCacheCleanupStrategy cleanupStrategy
     ) {
         this.baseDir = baseDir;
         this.displayName = displayName;
         this.fileLockManager = fileLockManager;
         this.gcFile = new File(baseDir, "gc.properties");
-        this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.apply(this));
+        this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.getCleanupStrategy(this));
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -38,7 +39,6 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
@@ -70,7 +70,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cacheCleanupStrategy) throws CacheOpenException {
+    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, FineGrainedCacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
             FineGrainedPersistentCache cache = multiLockCaches.computeIfAbsent(cacheDir, __ -> new DefaultFineGrainedPersistentCache(cacheDir, displayName, lockManager, numberOfLocks, cacheCleanupStrategy));

@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.workspace.impl;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.cache.CleanupFrequency;
 import org.gradle.cache.FineGrainedCacheBuilder;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
@@ -81,13 +82,15 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         CacheConfigurationsInternal cacheConfigurations,
         FineGrainedCacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
+        Supplier<Long> entryRetentionTimestampSupplier = cacheConfigurations.getCreatedResources().getEntryRetentionTimestampSupplier();
+        CleanupFrequency cleanupFrequency = cacheConfigurations.getCleanupFrequency().get();
         FineGrainedCacheCleanupStrategy cacheCleanupStrategy = cacheCleanupStrategyFactory.leastRecentlyUsedStrategy(
             treeDepthToTrackAndCleanup,
-            cacheConfigurations.getCreatedResources().getEntryRetentionTimestampSupplier(),
-            cacheConfigurations.getCleanupFrequency()::get
+            entryRetentionTimestampSupplier,
+            () -> cleanupFrequency
         );
         this.cache = cacheBuilder
-            // .withLeastRecentCleanup(cacheCleanupStrategy)
+            .withLeastRecentCleanup(cacheCleanupStrategy)
             .open();
         this.deleter = cacheCleanupStrategy.getCacheDeleter(cache);
         this.baseDirectory = cache.getBaseDir();

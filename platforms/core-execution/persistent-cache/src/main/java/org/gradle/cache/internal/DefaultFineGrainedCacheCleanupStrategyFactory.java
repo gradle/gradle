@@ -18,10 +18,10 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
-import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupFrequency;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
+import org.gradle.cache.FineGrainedLeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.internal.DefaultFineGrainedLeastRecentlyUsedCacheCleanup.FineGrainedCacheLeastRecentlyUsedMarkAndSweepDeleter;
 import org.gradle.internal.file.Deleter;
@@ -43,17 +43,17 @@ public class DefaultFineGrainedCacheCleanupStrategyFactory implements FineGraine
 
     @Override
     public FineGrainedCacheCleanupStrategy leastRecentlyUsedStrategy(int cacheDepth, Supplier<Long> cacheEntryRetentionTimestamp, Supplier<CleanupFrequency> frequency) {
+        FineGrainedLeastRecentlyUsedCacheCleanup cleanup = new DefaultFineGrainedLeastRecentlyUsedCacheCleanup(
+            deleter,
+            cacheDepth,
+            fileAccessTimeJournal,
+            cacheEntryRetentionTimestamp
+        );
+        CacheCleanupStrategy cacheCleanupStrategy = cacheCleanupStrategyFactory.create(cleanup, frequency);
         return new FineGrainedCacheCleanupStrategy() {
             @Override
             public CacheCleanupStrategy getCleanupStrategy(FineGrainedPersistentCache cache) {
-                CleanupAction action = new DefaultFineGrainedLeastRecentlyUsedCacheCleanup(
-                    cache,
-                    (FineGrainedCacheLeastRecentlyUsedMarkAndSweepDeleter) getCacheDeleter(cache),
-                    cacheDepth,
-                    fileAccessTimeJournal,
-                    cacheEntryRetentionTimestamp
-                );
-                return cacheCleanupStrategyFactory.create(action, frequency);
+                return cacheCleanupStrategy;
             }
 
             @Override
