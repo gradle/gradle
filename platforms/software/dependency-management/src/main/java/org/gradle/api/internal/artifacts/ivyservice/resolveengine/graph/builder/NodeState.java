@@ -1101,7 +1101,6 @@ public class NodeState implements DependencyGraphNode {
     private void disconnectOutgoingEdge(EdgeState outgoingEdge) {
         outgoingEdge.detachFromTargetNodes();
         outgoingEdge.getSelector().getTargetModule().disconnectIncomingEdge(this, outgoingEdge);
-        outgoingEdge.clearSelector();
     }
 
     public void restart(ComponentState selected) {
