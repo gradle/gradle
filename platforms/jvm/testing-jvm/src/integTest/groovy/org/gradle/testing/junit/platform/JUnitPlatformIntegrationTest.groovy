@@ -519,4 +519,36 @@ public class StaticInnerTest {
         failureCauseContains('There were failing tests.')
         outputContains("afterSuite: Test class engine_EngineFailingExecution -> FAILURE")
     }
+
+    def "works with JUnit 6"() {
+        given:
+        buildScriptWithJupiterDependencies("""
+            test {
+                useJUnitPlatform()
+            }
+        """, LATEST_JUNIT6_VERSION)
+
+        file('src/test/java/org/gradle/JUnit6Test.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.DisplayName;
+
+            @DisplayName("JUnit 6 Test Suite")
+            public class JUnit6Test {
+                @Test
+                @DisplayName("Simple JUnit 6 test")
+                public void testWithJUnit6() {
+                    // This test verifies JUnit 6 works
+                }
+            }
+        '''
+
+        when:
+        succeeds('test')
+
+        then:
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.JUnit6Test').onlyRoot().assertTestCount(1, 0)
+    }
 }
