@@ -217,7 +217,6 @@ public class DependencyGraphBuilder {
                     capabilitiesConflictHandler.resolveNextConflict();
                 }
             }
-
         }
     }
 
