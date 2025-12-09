@@ -162,7 +162,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
         private void processAllTestDefinitions() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
-            TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
+            JUnitPlatformTestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
             Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
             if (spec.isDryRun()) {
                 TestPlan testPlan = launcher.discover(discoveryRequest);
@@ -170,6 +170,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             } else {
                 launcher.execute(discoveryRequest, executionListener);
             }
+            executionListener.throwAnyFatalExceptions();
         }
 
         private Class<?> loadClass(String className) {
