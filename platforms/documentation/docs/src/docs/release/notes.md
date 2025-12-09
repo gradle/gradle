@@ -85,6 +85,20 @@ void main() {
     }
 }
 ```
+
+### New property for Tooling API parallelism control
+
+A new Gradle property `org.gradle.tooling.parallel` allows explicitly controlling whether Tooling API clients can run actions against the build in parallel.
+This is particularly relevant for the IDE Sync scenarios, where IDEs can take advantage of the parallelism to improve performance.
+
+```properties
+# gradle.properties
+org.gradle.tooling.parallel=true
+```
+
+Historically, this was only controlled by the `org.gradle.parallel` property, which is often used to get parallel task execution.
+However, previously it was not possible to enable or disable one without affecting the other.
+
 <!--
 
 ================== TEMPLATE ==============================
