@@ -189,22 +189,6 @@ public class TestFile extends File {
         }
     }
 
-    /**
-     * Appends the given content to this file, creating parent directories if necessary.
-     */
-    public TestFile append(Object content) {
-        getParentFile().mkdirs();
-        try {
-            ResourceGroovyMethods.append(this, content);
-            return this;
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Could not append to test file '%s'", this), e);
-        }
-    }
-
-    /**
-     * Replaces the text of this file, creating parent directories if necessary.
-     */
     public TestFile setText(String content) {
         getParentFile().mkdirs();
         try {
@@ -995,25 +979,6 @@ public class TestFile extends File {
             uri += "/";
         }
         return uri;
-    }
-
-    /**
-     * Appends content to the {@code gradle.properties} file in this directory.
-     * <p>
-     * Creates parent directories, if necessary.
-     * <p>
-     * Example usage:
-     * <pre>
-     * file("sub").propertiesFile """
-     *     org.gradle.internal.foo=bar
-     * """
-     * </pre>
-     * Appends the text to {@code sub/gradle.properties} file.
-     *
-     * @return gradle.properties file
-     */
-    public TestFile propertiesFile(@Language("properties") String append) {
-        return file("gradle.properties").append(append);
     }
 
     public static class Snapshot {

@@ -49,7 +49,7 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile << printInternalOption()
 
-        executer.gradleUserHomeDir.propertiesFile """
+        executer.gradleUserHomeDir.file("gradle.properties") << """
             org.gradle.internal.foo=bar
         """
 
@@ -65,7 +65,7 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile << printInternalOption()
 
-        distribution.gradleHomeDir.propertiesFile """
+        distribution.gradleHomeDir.file("gradle.properties") << """
             org.gradle.internal.foo=bar
         """
 
@@ -80,7 +80,7 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile << printInternalOption()
 
-        executer.gradleUserHomeDir.propertiesFile """
+        executer.gradleUserHomeDir.file("gradle.properties") << """
             org.gradle.internal.foo=sport
         """
 
@@ -99,7 +99,7 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
             org.gradle.internal.foo=sport
         """
 
-        executer.gradleUserHomeDir.propertiesFile """
+        executer.gradleUserHomeDir.file("gradle.properties") << """
             org.gradle.internal.foo=bar
         """
 
@@ -115,7 +115,7 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile << printInternalOption()
 
-        distribution.gradleHomeDir.propertiesFile """
+        distribution.gradleHomeDir.file("gradle.properties") << """
             org.gradle.internal.foo=sport
         """
 
@@ -138,7 +138,7 @@ class InternalOptionsResolutionIntegrationTest extends AbstractIntegrationSpec {
             org.gradle.internal.foo=bar
         """
 
-        file("included").propertiesFile """
+        file("included/gradle.properties") << """
             org.gradle.internal.foo=sport
         """
 
