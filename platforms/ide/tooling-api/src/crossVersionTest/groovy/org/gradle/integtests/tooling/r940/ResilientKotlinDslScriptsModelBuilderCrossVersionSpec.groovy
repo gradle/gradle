@@ -43,7 +43,7 @@ import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelB
 import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST
 
 @ToolingApiVersion('>=9.3.0')
-@TargetGradleVersion('>=9.4.0 !current') // TODO: to make it work with current we need to be able to use the current version of the kotlin-dsl plugin...
+@TargetGradleVersion('>=9.4.0')
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
     TestFile initScriptFile
