@@ -25,11 +25,11 @@ import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.FineGrainedPersistentCache;
+import org.gradle.cache.LockOptions;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -108,31 +108,27 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
     public <T> T useCacheWithLockInfo(String key, Function<LockType, ? extends T> action) {
         String normalizedKey = DefaultFineGrainedPersistentCache.normalizeCacheKey(key);
         return guard.guardByKey(normalizedKey, () -> {
-            try (@SuppressWarnings("unused") CacheFileLock lock = acquireLock(normalizedKey)) {
-                return action.apply(lock.lockType);
+            try (@SuppressWarnings("unused") FileLock lock = acquireLock(normalizedKey)) {
+                return action.apply(LockType.PRIMARY_LOCK);
             }
         });
     }
 
-    private CacheFileLock acquireLock(String key) {
+    private FileLock acquireLock(String key) {
         FileLock lock = null;
-        LockType lockType = null;
+        LockOptions lockOptions = DefaultLockOptions.mode(Exclusive);
         while (lock == null) {
-            File staleMarker = new File(baseDir, key + "/.stale");
-            File lockFile = staleMarker.exists()
-                ? getLockFile(key, "cleanup")
-                : getLockFile(key, "");
-            lock = fileLockManager.lock(lockFile, DefaultLockOptions.mode(Exclusive), displayName, "");
-            boolean isStale = staleMarker.exists();
-            lockType = lockFile.getName().endsWith("cleanup.lock") ? LockType.CLEANUP_LOCK : LockType.PRIMARY_LOCK;
-            LockType expectedLock = isStale ? LockType.CLEANUP_LOCK : LockType.PRIMARY_LOCK;
-            boolean hasCorrectLock = lockType == expectedLock;
-            if (!hasCorrectLock) {
+            File lockFile = getLockFile(key, "");
+            // Gradle will never create and delete file.lock immediately, so
+            // save few cycles on a first use case, by not checking validity of locks if it doesn't exist yet
+            boolean shouldCheckLockValidity = lockFile.exists();
+            lock = fileLockManager.lock(lockFile, lockOptions, displayName, "");
+            if (shouldCheckLockValidity && !lock.isValid()) {
                 lock.close();
                 lock = null;
             }
         }
-        return new CacheFileLock(lock, lockType);
+        return lock;
     }
 
     @Override
@@ -173,20 +169,5 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         String normalizedKey = FilenameUtils.separatorsToUnix(key);
         Preconditions.checkArgument(!normalizedKey.startsWith("/") && !normalizedKey.endsWith("/"), "Cache key path must be relative and not end with a slash: '%s'", key);
         return normalizedKey;
-    }
-
-    private static class CacheFileLock implements Closeable {
-        private final FileLock delegate;
-        private final LockType lockType;
-
-        public CacheFileLock(FileLock delegate, LockType lockType) {
-            this.delegate = delegate;
-            this.lockType = lockType;
-        }
-
-        @Override
-        public void close() {
-            delegate.close();
-        }
     }
 }

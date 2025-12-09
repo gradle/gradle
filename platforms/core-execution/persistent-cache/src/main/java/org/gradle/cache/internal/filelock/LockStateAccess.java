@@ -59,6 +59,7 @@ public class LockStateAccess {
         assert lockFileAccess.getFilePointer() == stateRegionSize;
     }
 
+
     public LockState readState(RandomAccessFile lockFileAccess) throws IOException {
         try {
             byte[] buffer = new byte[stateRegionSize];
@@ -84,6 +85,11 @@ public class LockStateAccess {
         } catch (EOFException e) {
             return protocol.createInitialState();
         }
+    }
+
+    public long readCreationNumber(RandomAccessFile lockFileAccess) throws IOException {
+        lockFileAccess.seek(STATE_CONTENT_START);
+        return protocol.readCreationNumber(lockFileAccess);
     }
 
     public FileLockOutcome tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {

@@ -36,12 +36,15 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.time.ExponentialBackoff;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.io.UncheckedIOException;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -69,6 +72,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private final LongSupplier generator;
     private final FileLockContentionHandler fileLockContentionHandler;
     private final int shortTimeoutMs = 10000;
+    private final LockStateAccess creationNumberReader = new LockStateAccess(new DefaultLockStateSerializer());
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
         this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
@@ -150,6 +154,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private LockState lockState;
         private final int port;
         private final long lockId;
+        private final boolean isUseCrossVersionImplementation;
 
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, @Nullable Consumer<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
@@ -164,6 +169,7 @@ public class DefaultFileLockManager implements FileLockManager {
             this.displayName = displayName;
             this.operationDisplayName = operationDisplayName;
             this.lockFile = determineLockTargetFile(target);
+            this.isUseCrossVersionImplementation = options.isUseCrossVersionImplementation();
 
             try {
                 org.apache.commons.io.FileUtils.forceMkdirParent(lockFile);
@@ -192,6 +198,41 @@ public class DefaultFileLockManager implements FileLockManager {
         @Override
         public boolean isLockFile(File file) {
             return file.equals(lockFile);
+        }
+
+        @Override
+        public boolean isValid() {
+            if (isUseCrossVersionImplementation) {
+                throw new UnsupportedOperationException("FileLock.isValid() is not supported for cross-version FileLocks.");
+            }
+
+            if (lock == null || !lockFile.exists()) {
+                return false;
+            }
+            Long lockCreationNumber = readCreationNumberFromLock();
+            Long fileCreationNumber = readCreationNumberFromFile();
+            return lockCreationNumber.equals(fileCreationNumber);
+        }
+
+        @NonNull
+        private Long readCreationNumberFromLock() {
+            try {
+                return lockFileAccess.readCreationNumber();
+            } catch (IOException e) {
+                // We expect that already opened file descriptor should not be in a bad state,
+                // so when exception is thrown we should rethrow it
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        @Nullable
+        private Long readCreationNumberFromFile() {
+            try(RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "r")) {
+                return creationNumberReader.readCreationNumber(randomAccessFile);
+            } catch (IOException e) {
+                // File may not exist or may be corrupted.
+                return null;
+            }
         }
 
         @Override

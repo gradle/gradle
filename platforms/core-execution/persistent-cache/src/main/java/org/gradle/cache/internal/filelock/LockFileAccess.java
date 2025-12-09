@@ -87,4 +87,8 @@ public class LockFileAccess {
     public LockState readLockState() throws IOException {
         return lockStateAccess.readState(lockFileAccess);
     }
+
+    public long readCreationNumber() throws IOException {
+        return lockStateAccess.readCreationNumber(lockFileAccess);
+    }
 }

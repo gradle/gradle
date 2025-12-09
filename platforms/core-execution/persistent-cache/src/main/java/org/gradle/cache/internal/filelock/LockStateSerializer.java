@@ -21,6 +21,8 @@ import java.io.IOException;
 
 public interface LockStateSerializer {
 
+    long readCreationNumber(DataInput dataInput) throws IOException;
+
     /**
      * size (bytes) of the data of this protocol.
      */

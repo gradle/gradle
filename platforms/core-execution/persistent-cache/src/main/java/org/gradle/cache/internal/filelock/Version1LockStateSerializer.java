@@ -26,6 +26,11 @@ import java.io.IOException;
  */
 public class Version1LockStateSerializer implements LockStateSerializer {
     @Override
+    public long readCreationNumber(DataInput dataInput) {
+        throw new UnsupportedOperationException("Creation number is not supported for Version1 lock state format.");
+    }
+
+    @Override
     public int getSize() {
         return 1;
     }

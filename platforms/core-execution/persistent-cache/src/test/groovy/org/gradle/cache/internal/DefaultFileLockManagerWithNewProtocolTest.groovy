@@ -24,9 +24,36 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 
 class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerTest {
+
+    FileLockManager manager2 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler)
+
     @Override
     protected DefaultLockOptions options() {
         return DefaultLockOptions.mode(FileLockManager.LockMode.OnDemand)
+    }
+
+    def "detects if file lock was deleted"() {
+        given:
+        def lock = createLock(Exclusive)
+
+        when:
+        testFileLock.delete()
+
+        then:
+        !lock.isValid()
+    }
+
+    def "detects if file lock was recreated"() {
+        given:
+        def lock = createLock(Exclusive)
+
+        when:
+        testFileLock.delete()
+        def reopenedLock = createLock(Exclusive, testFile, manager2)
+
+        then:
+        !lock.isValid()
+        reopenedLock.isValid()
     }
 
     def "a lock has been updated when never written to"() {
