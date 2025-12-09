@@ -34,9 +34,9 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
 
     // For benchmarking against capsule, clojure and scala collections
-    jmhImplementation("io.usethesource:capsule:0.7.1")
-    jmhImplementation("com.github.krukow:clj-ds:0.0.4")
-    jmhImplementation("org.scala-lang:scala3-library_3:3.7.4")
+//    jmhImplementation("io.usethesource:capsule:0.7.1")
+//    jmhImplementation("com.github.krukow:clj-ds:0.0.4")
+//    jmhImplementation("org.scala-lang:scala3-library_3:3.7.4")
 
     jmhImplementation(libs.guava)
     jmhImplementation(libs.fastutil)
