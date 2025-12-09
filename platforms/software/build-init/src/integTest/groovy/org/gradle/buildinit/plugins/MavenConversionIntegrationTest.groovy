@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
+import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -435,18 +436,19 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
                     dependencyStr = "$configuration $moduleStr"
                 }
             } else {
+                def exclusionWarning = "// TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion\n"
                 if (dsl == BuildInitDsl.GROOVY) {
                     dependencyStr += TextUtil.toPlatformLineSeparators(""" {
 ${TextUtil.indent(exclusions.collect {
                         def (group, module) = it.split(":")
-                        "exclude(module: '$module', group: '$group')"
+                        exclusionWarning + "exclude(group: '$group', module: '$module')\n"
                     }.join("\n"), "    ")}
 }""")
                 } else {
                     dependencyStr += TextUtil.toPlatformLineSeparators(""" {
 ${TextUtil.indent(exclusions.collect {
                         def (group, module) = it.split(":")
-                        "exclude(mapOf(\"module\" to \"$module\", \"group\" to \"$group\"))"
+                        exclusionWarning + "exclude(mapOf( \"group\" to \"$group\", \"module\" to \"$module\"))"
                     }.join("\n"), "    ")}
 }""")
                 }
