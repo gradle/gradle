@@ -16,10 +16,7 @@
 
 package org.gradle.internal.collect.bench;
 
-import com.github.krukow.clj_ds.Persistents;
-import com.github.krukow.clj_ds.TransientCollection;
 import com.google.common.collect.ImmutableSet;
-import io.usethesource.capsule.Set;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.internal.collect.PersistentSet;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -40,7 +37,7 @@ import java.util.TreeSet;
 
 @Fork(1)
 @Warmup(iterations = 3)
-@Measurement(iterations = 2)
+@Measurement(iterations = 3)
 @State(Scope.Benchmark)
 public class PersistentSetBenchmark {
 
@@ -49,10 +46,10 @@ public class PersistentSetBenchmark {
         TreeSet(true, new TreeSetSetProtocol()),
         fastutil(true, new FastutilSetProtocol()),
         guava(false, new GuavaSetProtocol()),
-        gradle(false, new GradleSetProtocol()),
-        capsule(false, new CapsuleSetProtocol()),
-        clojure(false, new ClojureSetProtocol()),
-        scala(false, new ScalaSetProtocol());
+        //        capsule(false, new CapsuleSetProtocol()),
+//        clojure(false, new ClojureSetProtocol()),
+//        scala(false, new ScalaSetProtocol()),
+        gradle(false, new GradleSetProtocol());
 
         final boolean mutable;
         final SetProtocol protocol;
@@ -71,12 +68,11 @@ public class PersistentSetBenchmark {
 
     //    @Param({"gradle", "fastutil", "HashSet", "TreeSet", "guava", "capsule", "clojure", "scala"})
 //    @Param({"HashSet", "gradle"})
-//    @Param({"gradle", "guava"})
 //    @Param({"gradle", "capsule"})
 //    @Param({"gradle"})
 //    @Param({"gradle", "scala", "clojure", "capsule", "guava"})
 //    @Param({"gradle", "clojure", "scala", "capsule"})
-    @Param({"gradle"})
+    @Param({"gradle", "guava"})
     SetType type;
     SetProtocol protocol;
     SetFixture fixture;
@@ -225,125 +221,125 @@ public class PersistentSetBenchmark {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    static class CapsuleSetProtocol implements SetProtocol {
+//    @SuppressWarnings("unchecked")
+//    static class CapsuleSetProtocol implements SetProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return io.usethesource.capsule.Set.Immutable.of();
+//        }
+//
+//        @Override
+//        public Object copyOf(Collection<Object> keys) {
+//            io.usethesource.capsule.Set.Transient<Object> builder = io.usethesource.capsule.Set.Immutable.of().asTransient();
+//            for (Object key : keys) {
+//                builder.__insert(key);
+//            }
+//            return builder.freeze();
+//        }
+//
+//        @Override
+//        public Object insert(Object set, Object key) {
+//            return ((io.usethesource.capsule.Set.Immutable<Object>) set).__insert(key);
+//        }
+//
+//        @Override
+//        public Object remove(Object set, Object key) {
+//            return ((io.usethesource.capsule.Set.Immutable<Object>) set).__remove(key);
+//        }
+//
+//        @Override
+//        public Object removeAll(Object set, Iterable<Object> keys) {
+//            Set.Transient<Object> builder = ((io.usethesource.capsule.Set.Immutable<Object>) set).asTransient();
+//            for (Object key : keys) {
+//                builder.__remove(key);
+//            }
+//            return builder.freeze();
+//        }
+//
+//        @Override
+//        public boolean contains(Object set, Object key) {
+//            return ((io.usethesource.capsule.Set.Immutable<Object>) set).contains(key);
+//        }
+//    }
 
-        @Override
-        public Object newInstance() {
-            return Set.Immutable.of();
-        }
+//    @SuppressWarnings("unchecked")
+//    static class ClojureSetProtocol implements SetProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return com.github.krukow.clj_ds.Persistents.hashSet();
+//        }
+//
+//        @Override
+//        public Object copyOf(Collection<Object> keys) {
+//            com.github.krukow.clj_ds.TransientCollection<Object> builder = com.github.krukow.clj_ds.Persistents.hashSet().asTransient();
+//            for (Object key : keys) {
+//                builder = builder.plus(key);
+//            }
+//            return builder.persist();
+//        }
+//
+//        @Override
+//        public Object insert(Object set, Object key) {
+//            return ((com.github.krukow.clj_ds.PersistentSet<Object>) set).plus(key);
+//        }
+//
+//        @Override
+//        public Object remove(Object set, Object key) {
+//            return ((com.github.krukow.clj_ds.PersistentSet<Object>) set).minus(key);
+//        }
+//
+//        @Override
+//        public Object removeAll(Object set, Iterable<Object> keys) {
+//            com.github.krukow.clj_ds.PersistentSet<Object> result = (com.github.krukow.clj_ds.PersistentSet<Object>) set;
+//            for (Object key : keys) {
+//                result = result.minus(key);
+//            }
+//            return result;
+//        }
+//
+//        @Override
+//        public boolean contains(Object set, Object key) {
+//            return ((com.github.krukow.clj_ds.PersistentSet<Object>) set).contains(key);
+//        }
+//    }
 
-        @Override
-        public Object copyOf(Collection<Object> keys) {
-            Set.Transient<Object> builder = Set.Immutable.of().asTransient();
-            for (Object key : keys) {
-                builder.__insert(key);
-            }
-            return builder.freeze();
-        }
-
-        @Override
-        public Object insert(Object set, Object key) {
-            return ((Set.Immutable<Object>) set).__insert(key);
-        }
-
-        @Override
-        public Object remove(Object set, Object key) {
-            return ((Set.Immutable<Object>) set).__remove(key);
-        }
-
-        @Override
-        public Object removeAll(Object set, Iterable<Object> keys) {
-            Set.Transient<Object> builder = ((Set.Immutable<Object>) set).asTransient();
-            for (Object key : keys) {
-                builder.__remove(key);
-            }
-            return builder.freeze();
-        }
-
-        @Override
-        public boolean contains(Object set, Object key) {
-            return ((Set.Immutable<Object>) set).contains(key);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static class ClojureSetProtocol implements SetProtocol {
-
-        @Override
-        public Object newInstance() {
-            return com.github.krukow.clj_ds.Persistents.hashSet();
-        }
-
-        @Override
-        public Object copyOf(Collection<Object> keys) {
-            TransientCollection<Object> builder = Persistents.hashSet().asTransient();
-            for (Object key : keys) {
-                builder = builder.plus(key);
-            }
-            return builder.persist();
-        }
-
-        @Override
-        public Object insert(Object set, Object key) {
-            return ((com.github.krukow.clj_ds.PersistentSet<Object>) set).plus(key);
-        }
-
-        @Override
-        public Object remove(Object set, Object key) {
-            return ((com.github.krukow.clj_ds.PersistentSet<Object>) set).minus(key);
-        }
-
-        @Override
-        public Object removeAll(Object set, Iterable<Object> keys) {
-            com.github.krukow.clj_ds.PersistentSet<Object> result = (com.github.krukow.clj_ds.PersistentSet<Object>) set;
-            for (Object key : keys) {
-                result = result.minus(key);
-            }
-            return result;
-        }
-
-        @Override
-        public boolean contains(Object set, Object key) {
-            return ((com.github.krukow.clj_ds.PersistentSet<Object>) set).contains(key);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static class ScalaSetProtocol implements SetProtocol {
-
-        @Override
-        public Object newInstance() {
-            return scala.collection.immutable.HashSet$.MODULE$.empty();
-        }
-
-        @Override
-        public Object copyOf(Collection<Object> keys) {
-            return scala.collection.immutable.HashSet$.MODULE$.from(
-                scala.jdk.CollectionConverters$.MODULE$.IterableHasAsScala(keys).asScala()
-            );
-        }
-
-        @Override
-        public Iterable<Object> iterable(Object set) {
-            return scala.jdk.CollectionConverters$.MODULE$.IterableHasAsJava((scala.collection.Iterable<Object>) set).asJava();
-        }
-
-        @Override
-        public Object insert(Object set, Object key) {
-            return ((scala.collection.immutable.HashSet<Object>) set).incl(key);
-        }
-
-        @Override
-        public Object remove(Object set, Object key) {
-            return ((scala.collection.immutable.HashSet<Object>) set).excl(key);
-        }
-
-        @Override
-        public boolean contains(Object set, Object key) {
-            return ((scala.collection.immutable.HashSet<Object>) set).contains(key);
-        }
-    }
+//    @SuppressWarnings("unchecked")
+//    static class ScalaSetProtocol implements SetProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return scala.collection.immutable.HashSet$.MODULE$.empty();
+//        }
+//
+//        @Override
+//        public Object copyOf(Collection<Object> keys) {
+//            return scala.collection.immutable.HashSet$.MODULE$.from(
+//                scala.jdk.CollectionConverters$.MODULE$.IterableHasAsScala(keys).asScala()
+//            );
+//        }
+//
+//        @Override
+//        public Iterable<Object> iterable(Object set) {
+//            return scala.jdk.CollectionConverters$.MODULE$.IterableHasAsJava((scala.collection.Iterable<Object>) set).asJava();
+//        }
+//
+//        @Override
+//        public Object insert(Object set, Object key) {
+//            return ((scala.collection.immutable.HashSet<Object>) set).incl(key);
+//        }
+//
+//        @Override
+//        public Object remove(Object set, Object key) {
+//            return ((scala.collection.immutable.HashSet<Object>) set).excl(key);
+//        }
+//
+//        @Override
+//        public boolean contains(Object set, Object key) {
+//            return ((scala.collection.immutable.HashSet<Object>) set).contains(key);
+//        }
+//    }
 
     @SuppressWarnings("unchecked")
     static class GuavaSetProtocol implements SetProtocol {

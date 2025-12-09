@@ -17,7 +17,6 @@
 package org.gradle.internal.collect.bench;
 
 import com.google.common.collect.ImmutableList;
-import io.usethesource.capsule.Map;
 import org.gradle.internal.collect.PersistentArray;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
@@ -46,10 +45,10 @@ public class PersistentArrayBenchmark {
         ArrayList(true, new ArrayListArrayProtocol()),
         CopyOnWriteArrayList(true, new CopyOnWriteArrayListArrayProtocol()),
         guava(false, new GuavaArrayProtocol()),
-        gradle(false, new GradleArrayProtocol()),
-        capsule(false, new CapsuleArrayProtocol()),
-        clojure(false, new ClojureArrayProtocol()),
-        scala(false, new ScalaArrayProtocol());
+        //        capsule(false, new CapsuleArrayProtocol()),
+//        clojure(false, new ClojureArrayProtocol()),
+//        scala(false, new ScalaArrayProtocol()),
+        gradle(false, new GradleArrayProtocol());
 
         final boolean mutable;
         final ArrayProtocol protocol;
@@ -67,11 +66,11 @@ public class PersistentArrayBenchmark {
     @Param({"64", "1024"})
     int size;
 
-    //    @Param({"ArrayList", "CopyOnWriteArrayList", "guava", "gradle", "capsule", "clojure", "scala"})
-//    @Param({"clojure", "gradle", "guava", "ArrayList"})
-//    @Param({"clojure", "gradle"})
+//    @Param({"gradle", "clojure"})
+//    @Param({"gradle", "scala", "clojure"})
+//    @Param({"gradle", "guava", "ArrayList", "CopyOnWriteArrayList"})
 //    @Param({"gradle"})
-    @Param({"gradle", "scala"})
+    @Param({"gradle", "guava"})
     ArrayType type;
     ArrayProtocol protocol;
     Object array;
@@ -162,68 +161,68 @@ public class PersistentArrayBenchmark {
     }
 
     // simulate an array using Map.Immutable<Integer, Object>
-    @SuppressWarnings("unchecked")
-    static class CapsuleArrayProtocol implements ArrayProtocol {
+//    @SuppressWarnings("unchecked")
+//    static class CapsuleArrayProtocol implements ArrayProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return io.usethesource.capsule.Map.Immutable.of();
+//        }
+//
+//        @Override
+//        public Object append(Object array, Object key) {
+//            io.usethesource.capsule.Map.Immutable<Integer, Object> map = (io.usethesource.capsule.Map.Immutable<Integer, Object>) array;
+//            return map.__put(map.size(), key);
+//        }
+//
+//        @Override
+//        public Object get(Object array, int index) {
+//            return ((io.usethesource.capsule.Map.Immutable<Integer, Object>) array).get(index);
+//        }
+//    }
 
-        @Override
-        public Object newInstance() {
-            return Map.Immutable.of();
-        }
+//    @SuppressWarnings("unchecked")
+//    static class ClojureArrayProtocol implements ArrayProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return com.github.krukow.clj_ds.Persistents.vector();
+//        }
+//
+//        @Override
+//        public Object append(Object array, Object key) {
+//            return ((com.github.krukow.clj_ds.PersistentVector<Object>) array).plus(key);
+//        }
+//
+//        @Override
+//        public Object get(Object array, int index) {
+//            return ((com.github.krukow.clj_ds.PersistentVector<Object>) array).get(index);
+//        }
+//    }
 
-        @Override
-        public Object append(Object array, Object key) {
-            Map.Immutable<Integer, Object> map = (Map.Immutable<Integer, Object>) array;
-            return map.__put(map.size(), key);
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((Map.Immutable<Integer, Object>) array).get(index);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static class ClojureArrayProtocol implements ArrayProtocol {
-
-        @Override
-        public Object newInstance() {
-            return com.github.krukow.clj_ds.Persistents.vector();
-        }
-
-        @Override
-        public Object append(Object array, Object key) {
-            return ((com.github.krukow.clj_ds.PersistentVector<Object>) array).plus(key);
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((com.github.krukow.clj_ds.PersistentVector<Object>) array).get(index);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static class ScalaArrayProtocol implements ArrayProtocol {
-
-        @Override
-        public Object newInstance() {
-            return scala.collection.immutable.Vector$.MODULE$.empty();
-        }
-
-        @Override
-        public Iterable<Object> iterable(Object array) {
-            return scala.jdk.CollectionConverters$.MODULE$.IterableHasAsJava((scala.collection.Iterable<Object>) array).asJava();
-        }
-
-        @Override
-        public Object append(Object array, Object key) {
-            return ((scala.collection.immutable.Vector<Object>) array).$colon$plus(key);
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((scala.collection.immutable.Vector<Object>) array).apply(index);
-        }
-    }
+//    @SuppressWarnings("unchecked")
+//    static class ScalaArrayProtocol implements ArrayProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return scala.collection.immutable.Vector$.MODULE$.empty();
+//        }
+//
+//        @Override
+//        public Iterable<Object> iterable(Object array) {
+//            return scala.jdk.CollectionConverters$.MODULE$.IterableHasAsJava((scala.collection.Iterable<Object>) array).asJava();
+//        }
+//
+//        @Override
+//        public Object append(Object array, Object key) {
+//            return ((scala.collection.immutable.Vector<Object>) array).$colon$plus(key);
+//        }
+//
+//        @Override
+//        public Object get(Object array, int index) {
+//            return ((scala.collection.immutable.Vector<Object>) array).apply(index);
+//        }
+//    }
 
     @SuppressWarnings("unchecked")
     static class GuavaArrayProtocol implements ArrayProtocol {
