@@ -24,6 +24,8 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 import spock.lang.Timeout
 
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT6_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -468,7 +470,7 @@ public class StaticInnerTest {
         succeeds "test"
 
         where:
-        version << ["5.9.2", "5.6.3"]
+        version << ["5.9.2", "5.6.3", LATEST_JUPITER_VERSION, LATEST_JUNIT6_VERSION]
     }
 
     def 'properly fails when engine fails during execution'() {

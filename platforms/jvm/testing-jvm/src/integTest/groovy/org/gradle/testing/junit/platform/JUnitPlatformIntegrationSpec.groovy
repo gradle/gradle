@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT6_VERSION
 
 class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def setup() {
