@@ -398,12 +398,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return module.getPlatformState();
     }
 
-    public void removeOutgoingEdges() {
-        for (NodeState node : getNodes()) {
-            node.deselect();
-        }
-    }
-
     /**
      * Describes the possible states of a component in the graph.
      */
