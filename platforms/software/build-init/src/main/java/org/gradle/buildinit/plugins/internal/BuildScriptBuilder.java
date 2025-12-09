@@ -746,7 +746,7 @@ public class BuildScriptBuilder {
         final String dependencyOrCatalogReference;
         final boolean catalogReference;
 
-        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference) {
+        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, List<String> exclusionReferences, boolean catalogReference) {
             super(comment);
             this.configuration = configuration;
             this.dependencyOrCatalogReference = dependencyOrCatalogReference;
@@ -768,7 +768,7 @@ public class BuildScriptBuilder {
         private final String dependencyOrCatalogReference;
         final boolean catalogReference;
 
-        PlatformDepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference) {
+        PlatformDepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, List<String> exclusionReferences, boolean catalogReference) {
             super(comment);
             this.configuration = configuration;
             this.dependencyOrCatalogReference = dependencyOrCatalogReference;
@@ -1142,9 +1142,9 @@ public class BuildScriptBuilder {
             for (BuildInitDependency d : dependencies) {
                 if (d.version != null && buildScriptBuilder.useVersionCatalog) {
                     String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
-                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true));
+                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, d.exclusionsToNotation(), true));
                 } else {
-                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false));
+                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(),d.exclusionsToNotation(), false));
                 }
             }
             return statementGroup;
@@ -1156,9 +1156,9 @@ public class BuildScriptBuilder {
             for (BuildInitDependency d : dependencies) {
                 if (d.version != null && buildScriptBuilder.useVersionCatalog) {
                     String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
-                    statementGroup.add(new PlatformDepSpec(configuration, comment, versionCatalogRef, true));
+                    statementGroup.add(new PlatformDepSpec(configuration, comment, versionCatalogRef, d.exclusionsToNotation(), true));
                 } else {
-                    statementGroup.add(new PlatformDepSpec(configuration, comment, d.toNotation(), false));
+                    statementGroup.add(new PlatformDepSpec(configuration, comment, d.toNotation(), d.exclusionsToNotation(), false));
                 }
             }
             this.dependencies.put(configuration, statementGroup);
