@@ -746,9 +746,9 @@ public class BuildScriptBuilder {
         final String configuration;
         final String dependencyOrCatalogReference;
         final boolean catalogReference;
-        final Collection<DependencyExclusion> exclusions;
+        final Collection<BuildInitDependency.DependencyExclusion> exclusions;
 
-        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference, Collection<DependencyExclusion> exclusions) {
+        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference, Collection<BuildInitDependency.DependencyExclusion> exclusions) {
             super(comment);
             this.configuration = configuration;
             this.dependencyOrCatalogReference = dependencyOrCatalogReference;
@@ -768,7 +768,7 @@ public class BuildScriptBuilder {
                 printer.println(printer.syntax.dependencySpec(configuration, notation));
             } else {
                 ScriptBlockImpl dependencyBlock = new ScriptBlockImpl();
-                for (DependencyExclusion exclusion : exclusions) {
+                for (BuildInitDependency.DependencyExclusion exclusion : exclusions) {
                     Map<String, String> exclusionConfig = new LinkedHashMap<>();
                     exclusionConfig.put("group", exclusion.getGroup());
                     exclusionConfig.put("module", exclusion.getModule());
@@ -1159,11 +1159,11 @@ public class BuildScriptBuilder {
         private Statement makeDepSpec(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
             StatementGroup statementGroup = new StatementGroup(comment);
             for (BuildInitDependency d : dependencies) {
-                if (d.version != null && buildScriptBuilder.useVersionCatalog) {
-                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
-                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true, d.exclusions));
+                if (d.getVersion() != null && buildScriptBuilder.useVersionCatalog) {
+                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.getModule(), d.getVersion());
+                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true, d.getExclusions()));
                 } else {
-                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false, d.exclusions));
+                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false, d.getExclusions()));
                 }
             }
             return statementGroup;
@@ -1173,8 +1173,8 @@ public class BuildScriptBuilder {
         public void platformDependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
             StatementGroup statementGroup = new StatementGroup(comment);
             for (BuildInitDependency d : dependencies) {
-                if (d.version != null && buildScriptBuilder.useVersionCatalog) {
-                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
+                if (d.getVersion() != null && buildScriptBuilder.useVersionCatalog) {
+                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.getModule(), d.getVersion());
                     statementGroup.add(new PlatformDepSpec(configuration, comment, versionCatalogRef, true));
                 } else {
                     statementGroup.add(new PlatformDepSpec(configuration, comment, d.toNotation(), false));

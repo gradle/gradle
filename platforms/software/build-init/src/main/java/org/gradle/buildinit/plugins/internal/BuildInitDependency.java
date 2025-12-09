@@ -16,24 +16,27 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Collections;
 
 /**
  * Data object for use with version catalog generation to encode module, version and if generated aliases should be shortened or qualified.
  */
 @NullMarked
-public class BuildInitDependency {
-    final String module;
-    final String version;
-    final Collection<DependencyExclusion> exclusions;
-    private BuildInitDependency(String module, @Nullable String version, Collection<DependencyExclusion> exclusions) {
+public final class BuildInitDependency {
+    private final String module;
+    @Nullable
+    private final String version;
+    private final ImmutableList<DependencyExclusion> exclusions;
+
+    private BuildInitDependency(String module, @Nullable String version, List<DependencyExclusion> exclusions) {
         this.module = module;
         this.version = version;
-        this.exclusions = exclusions;
+        this.exclusions = ImmutableList.copyOf(exclusions);
     }
 
     public static BuildInitDependency of(String module, String version) {
@@ -44,7 +47,7 @@ public class BuildInitDependency {
         return new BuildInitDependency(group + ":" + name, version, Collections.emptyList());
     }
 
-    public static BuildInitDependency of(String group, String name, String version, Collection<DependencyExclusion> excludes) {
+    public static BuildInitDependency of(String group, String name, String version, List<DependencyExclusion> excludes) {
         return new BuildInitDependency(group + ":" + name, version, excludes);
     }
 
@@ -52,7 +55,40 @@ public class BuildInitDependency {
         return new BuildInitDependency(module, null, Collections.emptyList());
     }
 
+    public String getModule() {
+        return module;
+    }
+
+    public @Nullable String getVersion() {
+        return version;
+    }
+
+    public ImmutableList<DependencyExclusion> getExclusions() {
+        return exclusions;
+    }
     public String toNotation() {
         return module + (version != null ? ":" + version : "");
+    }
+
+    /**
+     * Value type representing the coordinates of a dependency exclusion.
+     */
+    @NullMarked
+    public static final class DependencyExclusion {
+        private final String group;
+        private final String module;
+
+        public DependencyExclusion(String group, String module) {
+            this.group = group;
+            this.module = module;
+        }
+
+        public String getGroup() {
+            return group;
+        }
+
+        public String getModule() {
+            return module;
+        }
     }
 }

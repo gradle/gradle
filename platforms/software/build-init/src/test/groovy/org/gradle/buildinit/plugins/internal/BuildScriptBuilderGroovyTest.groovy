@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins.internal
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
@@ -174,7 +175,7 @@ repositories {
     def "can add compile dependencies"() {
         when:
         builder.implementationDependency("Use slf4j", BuildInitDependency.of("org.slf4j:slf4j-api", "2.7"), BuildInitDependency.of("org.slf4j:slf4j-simple", "2.7"))
-        builder.implementationDependency(null, BuildInitDependency.of("a:b", "1.2"), BuildInitDependency.of("a", "c", "4.5", [new DependencyExclusion("a", "e")]))
+        builder.implementationDependency(null, BuildInitDependency.of("a:b", "1.2"), BuildInitDependency.of("a", "c", "4.5", [new BuildInitDependency.DependencyExclusion("a", "e")]))
         builder.implementationDependency(null, BuildInitDependency.of("a:d", "4.5"))
         builder.implementationDependency("Use Scala to compile", BuildInitDependency.of("org.scala-lang:scala-library", "2.10"))
         builder.create(target).generate()
@@ -190,7 +191,8 @@ dependencies {
 
     implementation 'a:b:1.2'
     implementation('a:c:4.5') {
-        exclude(module: 'e', group: 'a')
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion
+        exclude(group: 'a', module: 'e')
     }
     implementation 'a:d:4.5'
 

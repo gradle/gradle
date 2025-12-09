@@ -16,24 +16,25 @@
 
 package org.gradle.unexported.buildinit.plugins.internal.maven;
 
-import org.gradle.buildinit.plugins.internal.DependencyExclusion;
+import com.google.common.collect.ImmutableList;
+import org.gradle.buildinit.plugins.internal.BuildInitDependency;
 
-import java.util.Collection;
+import java.util.List;
 
 public class ExternalDependency extends Dependency {
     private final String group;
     private final String module;
     private final String version;
     private final String classifier;
-    private final Collection<DependencyExclusion> exclusions;
+    private final ImmutableList<BuildInitDependency.DependencyExclusion> exclusions;
 
-    public ExternalDependency(String configuration, String group, String module, String version, String classifier, Collection<DependencyExclusion> exclusions) {
+    public ExternalDependency(String configuration, String group, String module, String version, String classifier, List<BuildInitDependency.DependencyExclusion> exclusions) {
         super(configuration);
         this.group = group;
         this.module = module;
         this.version = version;
         this.classifier = classifier;
-        this.exclusions = exclusions;
+        this.exclusions = ImmutableList.copyOf(exclusions);
     }
 
     public String getGroupId() {
@@ -52,7 +53,7 @@ public class ExternalDependency extends Dependency {
         return classifier;
     }
 
-    public Collection<DependencyExclusion> getExclusions() {
+    public ImmutableList<BuildInitDependency.DependencyExclusion> getExclusions() {
         return exclusions;
     }
 }
