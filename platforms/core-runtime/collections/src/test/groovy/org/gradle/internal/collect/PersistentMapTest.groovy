@@ -147,6 +147,11 @@ class PersistentMapTest extends Specification {
         map1.size() == present.size()
     }
 
+    def 'map equals with different type returns false'() {
+        expect:
+        PersistentMap.of(1, "a") != [1: "a"]
+    }
+
     def 'maps with same elements are equal'() {
         given:
         def random = new Random(42)
@@ -316,6 +321,22 @@ class PersistentMapTest extends Specification {
         PersistentMap.of(37, "37") == PersistentMap.of(42, "42").assoc(37, "37").modify(42, { k, v -> null })
     }
 
+    def 'map modify with no change returns same map'() {
+        expect:
+        map.modify("key", { k, v -> v }) === map
+
+        where:
+        map << [PersistentMap.of("key", "value"), PersistentMap.of("key", "value").assoc("a", "1")]
+    }
+
+    def 'map modify non-existing key with null returns same map'() {
+        expect:
+        map.modify("b", { k, v -> null }) === map
+
+        where:
+        map << [PersistentMap.of(), PersistentMap.of("key", "value"), PersistentMap.of("key", "value").assoc("a", "1")]
+    }
+
     def 'dissoc is inverse to assoc'() {
         given:
         def random = new Random(42)
@@ -354,10 +375,75 @@ class PersistentMapTest extends Specification {
         withCollision << [false, true]
     }
 
+    def 'map dissoc non-existing key returns same map'() {
+        given:
+        def map = PersistentMap.of("a", 1).assoc("b", 2)
+
+        expect:
+        map.dissoc("c") === map
+    }
+
+    def 'map get returns null for missing key'() {
+        expect:
+        map.get("missing") == null
+
+        where:
+        map << [
+            PersistentMap.of(),
+            PersistentMap.of("a", 1),
+            PersistentMap.of("a", 1).assoc("b", 2)
+        ]
+    }
+
+    def 'map getOrDefault returns default for missing key'() {
+        expect:
+        map.getOrDefault("missing", 42) == 42
+
+        where:
+        map << [
+            PersistentMap.of(),
+            PersistentMap.of("a", 1),
+            PersistentMap.of("a", 1).assoc("b", 2)
+        ]
+    }
+
+    def 'map getOrDefault returns null when mapping is null'() {
+        expect:
+        map.getOrDefault("key", "42") === null
+
+        where:
+        map << [
+            PersistentMap.of("key", null),
+            PersistentMap.of("key", null).assoc("b", "value")
+        ]
+    }
+
     def 'toString == {k1:v1,k2:v2,...}'() {
         expect:
         "{}" == PersistentMap.of().toString()
         "{1:2}" == PersistentMap.of(1, 2).toString()
         "{3:4,1:2}" == PersistentMap.of(1, 2).assoc(3, 4).toString()
+    }
+
+    def 'maps with same keys but different values in collision bucket are not equal'() {
+        given: 'Two keys that have the same hash code (collision)'
+        def key1 = 42
+        def key2 = new HashCollision(42)  // Same hash as 42
+
+        and: 'Two maps with the same keys but DIFFERENT values'
+        def map1 = PersistentMap.of()
+            .assoc(key1, "value1")
+            .assoc(key2, "value2")
+
+        def map2 = PersistentMap.of()
+            .assoc(key1, "value1")
+            .assoc(key2, "DIFFERENT_VALUE")  // Different value for key2
+
+        expect: 'The maps should NOT be equal because values differ'
+        map1 != map2
+
+        and: 'Verify the maps actually have different values'
+        map1.get(key2) == "value2"
+        map2.get(key2) == "DIFFERENT_VALUE"
     }
 }

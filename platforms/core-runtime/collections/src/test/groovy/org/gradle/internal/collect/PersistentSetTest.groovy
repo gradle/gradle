@@ -43,14 +43,13 @@ class PersistentSetTest extends Specification {
         other << [PersistentSet.of(), PersistentSet.of(1), PersistentSet.of(1, 2, 3)]
     }
 
-    def 'empty intersect other === empty'() {
-        expect:
-        empty.intersect(other) === empty
-        other.intersect(empty) === empty
+    def 'set union is commutative'() {
+        given:
+        def set1 = PersistentSet.of(1, 2, 3)
+        def set2 = PersistentSet.of(3, 4, 5)
 
-        where:
-        empty = PersistentSet.of()
-        other << [PersistentSet.of(), PersistentSet.of(1), PersistentSet.of(1, 2, 3)]
+        expect:
+        set1.union(set2) == set2.union(set1)
     }
 
     def 'superset union subset === superset'() {
@@ -68,6 +67,25 @@ class PersistentSetTest extends Specification {
         ]
     }
 
+    def 'empty intersect other === empty'() {
+        expect:
+        empty.intersect(other) === empty
+        other.intersect(empty) === empty
+
+        where:
+        empty = PersistentSet.of()
+        other << [PersistentSet.of(), PersistentSet.of(1), PersistentSet.of(1, 2, 3)]
+    }
+
+    def 'set intersect with disjoint sets returns empty'() {
+        given:
+        def set1 = PersistentSet.of(1, 2, 3)
+        def set2 = PersistentSet.of(4, 5, 6)
+
+        expect:
+        set1.intersect(set2) === PersistentSet.of()
+    }
+
     def 'superset intersect subset === subset'() {
         expect:
         superset.intersect(subset) === subset
@@ -80,6 +98,32 @@ class PersistentSetTest extends Specification {
             PersistentSet.of(1, 2),
             PersistentSet.of(1, 2, 3),
         ]
+    }
+
+    def 'set intersect is commutative'() {
+        given:
+        def set1 = PersistentSet.of(1, 2, 3, 4)
+        def set2 = PersistentSet.of(3, 4, 5, 6)
+
+        expect:
+        set1.intersect(set2) == set2.intersect(set1)
+    }
+
+    def 'set except with disjoint set returns same set'() {
+        given:
+        def set1 = PersistentSet.of(1, 2, 3)
+        def set2 = PersistentSet.of(4, 5, 6)
+
+        expect:
+        set1.except(set2) === set1
+    }
+
+    def 'set except with same set returns empty'() {
+        given:
+        def set = PersistentSet.of(1, 2, 3)
+
+        expect:
+        set.except(set) === PersistentSet.of()
     }
 
     def 'singleton(key) == singleton(key)'() {
@@ -336,6 +380,19 @@ class PersistentSetTest extends Specification {
         collectionSize = 1024
     }
 
+    def 'singleton set and set after minus left with same single element should be equal'() {
+        given: 'A singleton set created directly'
+        def set1 = PersistentSet.of(42)
+
+        and: 'A set that becomes singleton after operations'
+        def setViaOps = PersistentSet.of(1, 2, 42) - 1 - 2
+
+        expect: 'should be equal regardless of internal representation'
+        set1 == setViaOps
+        setViaOps == set1
+        set1.hashCode() == setViaOps.hashCode()
+    }
+
     def 'minusAll but one'() {
         given:
         def random = new Random(42)
@@ -360,6 +417,22 @@ class PersistentSetTest extends Specification {
 
         where:
         collectionSize << [2, 32]
+    }
+
+    def 'set minusAll with empty iterable returns same set'() {
+        given:
+        def set = PersistentSet.of(1, 2, 3)
+
+        expect:
+        set.minusAll([]) === set
+    }
+
+    def 'set minusAll absent returns same set'() {
+        given:
+        def set = PersistentSet.of(1, 2, 3)
+
+        expect:
+        set.minusAll([4, 5, 6]) === set
     }
 
     def 'minusAll stops iterating when set becomes empty'() {

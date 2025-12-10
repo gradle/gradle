@@ -137,4 +137,49 @@ class PersistentArrayTest extends Specification {
         where:
         arraySize << [0, 1, 2, 33]
     }
+
+    def 'array get throws IndexOutOfBoundsException for negative index'() {
+        when:
+        array.get(-1)
+
+        then:
+        thrown(IndexOutOfBoundsException)
+
+        where:
+        array << [
+            PersistentArray.of(),
+            PersistentArray.of(1),
+            PersistentArray.of(1, 2, 3),
+            PersistentArray.copyOf((1..33))
+        ]
+    }
+
+    def 'array get throws IndexOutOfBoundsException for index >= size'() {
+        when:
+        array.get(array.size())
+
+        then:
+        thrown(IndexOutOfBoundsException)
+
+        where:
+        array << [
+            PersistentArray.of(),
+            PersistentArray.of(1),
+            PersistentArray.of(1, 2, 3),
+            PersistentArray.copyOf((1..33))
+        ]
+    }
+
+    def 'array hashCode is consistent with equals'() {
+        given:
+        def array1 = PersistentArray.copyOf(1..size)
+        def array2 = PersistentArray.copyOf(1..size)
+
+        expect:
+        array1 == array2
+        array1.hashCode() == array2.hashCode()
+
+        where:
+        size << [1, 2, 32, 33, 100, 1025]
+    }
 }
