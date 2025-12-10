@@ -105,7 +105,7 @@ There are test sources present and no filters are applied, but the test task did
 
 In this release, tests can be defined in whatever format is understood by the configured `TestEngine`.
 Gradle no longer requires a test class be present to “unlock” test execution.
-See <<java_testing.adoc#sec:non-class-based-testing,Java Testing User Manual section on Non-Class Based Testing>> for more information.
+For example:
 
 ```text
 my-lib/
