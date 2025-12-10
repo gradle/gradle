@@ -1,6 +1,5 @@
 // tag::buildscript_block[]
 import org.yaml.snakeyaml.Yaml
-import java.io.File
 
 buildscript {
     repositories {
@@ -33,5 +32,5 @@ class MyPlugin : Plugin<Project> {
     }
 }
 
-apply<MyPlugin>()
+apply<`MyPlugin.groovy`>()
 // end::plugin[]

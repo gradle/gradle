@@ -145,7 +145,8 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 [[dont_assume_plugin_order]]
 == Don’t Assume your Plugin is Applied after Another
 
-Gradle's plugin application is deterministic, but the effective execution order is complex and not guaranteed to follow a visible sequence, especially across multiple build scripts, projects, convention plugins, or included builds.
+Gradle's plugin application is deterministic but opaque.
+It is difficult to reason about, especially across multiple build scripts, projects, convention plugins, or included builds.
 
 As a result, you should not write build logic or plugins that depend on a specific plugin application order.
 
@@ -153,7 +154,10 @@ As a result, you should not write build logic or plugins that depend on a specif
 
 In a single `build.gradle(.kts)` file, plugins appear to be applied sequentially:
 
-[source,kotlin]
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
 .build.gradle.kts
 ----
 plugins {
@@ -161,31 +165,74 @@ plugins {
     id("pluginB")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.build.gradle
+----
+plugins {
+    id("pluginA")
+    id("pluginB")
+}
+----
+=====
+====
 
 However, in <<multi_project_builds.adoc#multi_project_builds,multi-project builds>>, with multiple `build.gradle(.kts)` files or a <<plugins.adoc#sec:convention_plugins,convention plugin>>, plugin application can be hard to determine:
 
-[source,kotlin]
-.project.gradle.kts
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.app/build.gradle.kts
+----
+plugins {
+    id("pluginA")
+    id("pluginB")
+}
+----
+[source, kotlin]
+.lib/build.gradle.kts
 ----
 plugins {
     id("pluginC")
     id("pluginD")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.app/build.gradle
+----
+plugins {
+    id("pluginA")
+    id("pluginB")
+}
+----
+[source, groovy]
+.lib/build.gradle
+----
+plugins {
+    id("pluginC")
+    id("pluginD")
+}
+----
+=====
+====
 
-You cannot assume whether `pluginA`, `pluginB`, `pluginC`, or `pluginD` will be applied first because the first thing `pluginA` does could be to apply `pluginD`.
+You cannot assume whether `pluginA`, `pluginB`, `pluginC`, or `pluginD` will be applied first because `pluginA` could apply `pluginD`.
 
 ==== Build Engineers
 
-Writing build logic that assumes plugin ordering can lead to:
-
-- Fragile builds that break when project structure changes.
-- Brittle behavior that works locally but fails in CI or in <<composite_builds.adoc#composite_builds,composite builds>>.
+Writing build logic that assumes plugin ordering can lead to brittle behavior and fragile builds that break when project structure changes.
 
 Don't rely on blocks like `allprojects {}`, `subprojects {}`, or `afterEvaluate {}` that are highly dependent on project structure and file layout.
 They can be difficult to decipher and may depend on configuration details that are hard to understand completely without running the build.
 
-Avoid build logic that assumes ordering between different projects, included builds, or applied scripts; the actual order is not guaranteed and is extremely vulnerable to minor structural changes (such as adding a new project or renaming an include).
+Avoid build logic that assumes ordering between different projects, included builds, or applied scripts.
+While the application order is deterministic, minor structural changes (such as adding a new project or renaming an include) can easily result in an unexpected change to that plugin application order.
 
 ==== Plugin Developers
 
@@ -195,6 +242,7 @@ Users should be able to apply your plugin in either order and have it behave cor
 [.multi-language-sample]
 =====
 [source, kotlin]
+.build.gradle.kts
 ----
 plugins {
   id("my-plugin")
@@ -205,6 +253,7 @@ plugins {
 [.multi-language-sample]
 =====
 [source, groovy]
+.build.gradle
 ----
 plugins {
   id("my-plugin")
@@ -220,6 +269,7 @@ or
 [.multi-language-sample]
 =====
 [source, kotlin]
+.build.gradle.kts
 ----
 plugins {
   id("plugin-i-depend-on")
@@ -230,6 +280,7 @@ plugins {
 [.multi-language-sample]
 =====
 [source, groovy]
+.build.gradle
 ----
 plugins {
   id("plugin-i-depend-on")
@@ -247,6 +298,7 @@ If your plugin cannot function without another plugin, apply it explicitly at th
 [.multi-language-sample]
 =====
 [source, kotlin]
+.MyPlugin.kt
 ----
 // Ensure required plugin is applied
 project.pluginManager.apply("com.example.required-plugin")
@@ -255,6 +307,7 @@ project.pluginManager.apply("com.example.required-plugin")
 [.multi-language-sample]
 =====
 [source, groovy]
+.MyPlugin.groovy
 ----
 // Ensure required plugin is applied
 project.pluginManager.apply('com.example.required-plugin')
@@ -268,16 +321,15 @@ If your plugin only needs to integrate with another plugin when it’s present, 
 [.multi-language-sample]
 =====
 [source, kotlin]
+.MyPlugin.kt
 ----
-// Configure behavior that depends on required-plugin
+// Configure behavior that depends on required-plugin using the plugin id (preferred)
 project.pluginManager.withPlugin("com.example.required-plugin") {  }
 
+// Configure behavior that depends on RequiredPlugin using the plugin class (if no id is available)
 project.plugins.configureEach { plugin ->
     when (plugin) {
-        // Configure behavior specific to RequiredPlugin
         is com.example.RequiredPlugin -> {  }
-        // Configure behavior specific to OtherPlugin
-        is com.example.OtherPlugin -> {  }
     }
 }
 ----
@@ -285,15 +337,14 @@ project.plugins.configureEach { plugin ->
 [.multi-language-sample]
 =====
 [source, groovy]
+.MyPlugin.groovy
 ----
-// Configure behavior that depends on required-plugin
+// Configure behavior that depends on required-plugin using the plugin id (preferred)
 project.pluginManager.withPlugin('com.example.required-plugin') {  }
 
+// Configure behavior that depends on RequiredPlugin using the plugin class (if no id is available)
 project.plugins.configureEach { plugin ->
-    // Configure behavior specific to RequiredPlugin
     if (plugin instanceof com.example.RequiredPlugin) {  }
-    // Configure behavior specific to OtherPlugin
-    else if (plugin instanceof com.example.OtherPlugin) {  }
 }
 ----
 =====
@@ -305,17 +356,36 @@ This is order-independent and safe.
 
 Given the following project layout:
 
-[source,text]
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 .
-├── settings.gradle.kts
-├── build.gradle.kts
+├── app/
+│   └── build.gradle.kts
 ├── buildSrc/
 │   ├── build.gradle.kts
 │   └── src/main/kotlin/MyPlugin.kt
-└── app/
-    └── build.gradle.kts
+├── settings.gradle.kts
+└── build.gradle.kts
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app/
+│   └── build.gradle
+├── buildSrc/
+│   ├── build.gradle
+│   └── src/main/groovy/MyPlugin.groovy
+├── settings.gradle
+└── build.gradle
+----
+=====
+====
 
 ==== Don't Do This
 
@@ -325,18 +395,21 @@ In the root build, `subprojects {}` and `afterEvaluate {}` obscure when a plugin
 
 ====
 include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 In the `app` subproject, the build file uses `extensions.getByType(...)` which assumes `java` has already been applied:
 
 ====
 include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/kotlin",files="app/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/groovy",files="app/build.gradle[tags=avoid-this]"]
 ====
 
-In the plugin implementation, `MyPlugin.kt` also assumes `java` is already applied:
+In the plugin implementation, `MyPlugin.kt` or `MyPlugin.groovy` also assumes `java` is already applied:
 
 ====
 include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/kotlin",files="buildSrc/src/main/kotlin/MyPlugin.kt[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/groovy",files="buildSrc/src/main/groovy/MyPlugin.groovy[tags=avoid-this]"]
 ====
 
 ==== Do This Instead
@@ -349,12 +422,14 @@ In the `app` subproject, the build file uses `plugins.withId("java") {}` to safe
 
 ====
 include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/groovy",files="app/build.gradle[tags=do-this]"]
 ====
 
-In the plugin implementation, `MyPlugin.kt` explicitly applies the `java` plugin:
+In the plugin implementation, `MyPlugin.kt` or `MyPlugin.groovy` explicitly applies the `java` plugin:
 
 ====
 include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/kotlin",files="buildSrc/src/main/kotlin/MyPlugin.kt[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/groovy",files="buildSrc/src/main/groovy/MyPlugin.groovy[tags=do-this]"]
 ====
 
 === References
@@ -363,7 +438,7 @@ include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/kotlin",fil
 
 === Tags
 
-`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+<<tags_reference.adoc#tag:structuring-builds,`#structuring-builds`>>, <<tags_reference.adoc#tag:plugins,`#plugins`>>
 
 [[do_not_use_internal_apis]]
 == Do Not Use Internal APIs

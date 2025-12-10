@@ -14,7 +14,7 @@ dependencies {
 }
 
 // tag::do-this[]
-plugins.withId("java") {
+pluginManager.withPlugin("java") {
     extensions.configure<org.gradle.api.plugins.JavaPluginExtension> {
         toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     }

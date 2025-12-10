@@ -1,16 +1,17 @@
-// tag::avoid-this[]
-// This file is located in /buildSrc
-
 plugins {
-    id "java-gradle-plugin"
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
+
+repositories {
+    mavenCentral()
 }
 
 gradlePlugin {
     plugins {
-        create("myPlugin") {
-            id = "org.example.myplugin"
-            implementationClass = "org.example.MyPlugin"
+        register('myPlugin') {
+            id = 'myplugin'
+            implementationClass = 'MyPlugin'
         }
     }
 }
-// end::avoid-this[]

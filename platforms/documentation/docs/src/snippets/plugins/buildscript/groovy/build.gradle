@@ -33,5 +33,5 @@ class MyPlugin implements Plugin<Project> {
     }
 }
 
-apply plugin: MyPlugin
+apply plugin: '`MyPlugin.groovy`'
 // end::plugin[]
