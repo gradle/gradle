@@ -27,7 +27,7 @@ import spock.lang.Specification
 class ForkedTestClasspathFactoryTest extends Specification {
 
     // The number of internal and external implementation jars loaded from the distribution regardless of framework.
-    private static final int NUM_INTERNAL_JARS = 29
+    private static final int NUM_INTERNAL_JARS = 30
     private static final int NUM_EXTERNAL_JARS = 6
 
     ModuleRegistry moduleRegistry = Mock(ModuleRegistry) {
