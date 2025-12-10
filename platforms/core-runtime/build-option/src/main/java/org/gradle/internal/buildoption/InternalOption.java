@@ -50,7 +50,7 @@ public abstract class InternalOption<T extends @Nullable Object> implements Opti
         return "InternalOption('" + getPropertyName() + "', default=" + getDefaultValue() + ")";
     }
 
-    private static boolean isInternalOption(String name) {
+    public static boolean isInternalOption(String name) {
         return name.startsWith(INTERNAL_PROPERTY_PREFIX) ||
             name.startsWith("org.gradle.unsafe.") || // TODO: avoid reading public 'unsafe' properties via internal options
             name.startsWith("org.gradle.configuration-cache.internal."); // TODO:configuration-cache - https://github.com/gradle/gradle/issues/35489

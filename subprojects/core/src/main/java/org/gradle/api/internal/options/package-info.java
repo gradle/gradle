@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildoption;
-
-public class IntegerInternalOption extends InternalOption<Integer> {
-    private final int defaultValue;
-
-    public IntegerInternalOption(String propertyName, int defaultValue) {
-        super(propertyName);
-        this.defaultValue = defaultValue;
-    }
-
-    @Override
-    public Integer getDefaultValue() {
-        return defaultValue;
-    }
-
-    @Override
-    public Integer convert(String value) {
-        return Integer.parseInt(value, 10);
-    }
-}
+@org.jspecify.annotations.NullMarked
+package org.gradle.api.internal.options;
