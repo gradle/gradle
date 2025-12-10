@@ -42,3 +42,7 @@ testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+errorprone {
+    nullawayEnabled = true
+}
