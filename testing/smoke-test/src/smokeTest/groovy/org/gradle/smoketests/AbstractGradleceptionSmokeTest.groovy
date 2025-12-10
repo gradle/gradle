@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -32,7 +33,7 @@ import java.text.SimpleDateFormat
 @Requires([
     UnitTestPreconditions.Jdk9OrLater,
     IntegTestPreconditions.NotConfigCached,
-    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
+    SmokeTestPreconditions.Jdk17Available
 ])
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
@@ -46,7 +47,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
         and:
         def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
-        file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
+        file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome.absolutePath.replace('\\', '/')}\n"
     }
 
     SmokeTestGradleRunner.SmokeTestBuildResult getResult() {

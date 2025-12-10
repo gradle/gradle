@@ -16,10 +16,21 @@
 
 package org.gradle.test.preconditions
 
+import org.gradle.api.JavaVersion
+import org.gradle.api.specs.Spec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.GradleBuildJvmSpec
 import org.gradle.test.precondition.TestPrecondition
 
 class SmokeTestPreconditions {
+
+    static class Jdk17Available implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getAvailableJdk({ JvmInstallationMetadata jvm -> jvm.languageVersion == JavaVersion.VERSION_17 } as Spec) != null
+        }
+    }
 
     static class GradleBuildJvmSpecAvailable implements TestPrecondition {
         @Override

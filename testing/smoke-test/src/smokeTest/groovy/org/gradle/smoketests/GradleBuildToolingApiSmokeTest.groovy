@@ -68,4 +68,62 @@ class GradleBuildToolingApiSmokeTest extends AbstractGradleceptionSmokeTest {
             ]
         ].combinations()
     }
+
+    def "can run with --version"() {
+        when:
+        def output = new ByteArrayOutputStream()
+        try (ProjectConnection connector = GradleConnector.newConnector()
+            .useGradleUserHomeDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
+            .useInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
+            .forProjectDirectory(testProjectDir)
+            .connect()) {
+            connector.newBuild()
+                .addArguments("--version")
+                .setStandardOutput(output)
+                .run()
+        }
+
+        then:
+        output.toString().contains("Gradle")
+        output.toString().contains("Build time:")
+    }
+
+    def "can run with --help"() {
+        when:
+        def output = new ByteArrayOutputStream()
+        try (ProjectConnection connector = GradleConnector.newConnector()
+            .useGradleUserHomeDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
+            .useInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
+            .forProjectDirectory(testProjectDir)
+            .connect()) {
+            connector.newBuild()
+                .addArguments("--help")
+                .setStandardOutput(output)
+                .run()
+        }
+
+        then:
+        output.toString().contains("USAGE: gradle [option...] [task...]")
+    }
+
+    def "can run with --show-version"() {
+        when:
+        def output = new ByteArrayOutputStream()
+        try (ProjectConnection connector = GradleConnector.newConnector()
+            .useGradleUserHomeDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
+            .useInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
+            .forProjectDirectory(testProjectDir)
+            .connect()) {
+            connector.newBuild()
+                .forTasks("help")
+                .addArguments("--show-version")
+                .setStandardOutput(output)
+                .run()
+        }
+
+        then:
+        def out = output.toString()
+        out.contains("Gradle") // Version banner
+        out.contains("Welcome to Gradle") // Help task output
+    }
 }
