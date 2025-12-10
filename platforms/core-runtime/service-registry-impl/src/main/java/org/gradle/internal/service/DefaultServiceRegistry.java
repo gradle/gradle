@@ -395,10 +395,13 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         private final AtomicReference<ServicesSnapshot> services;
 
         public OwnServices() {
+            final ThisAsService thisServiceRegistry = new ThisAsService(ServiceAccess.getPublicScope());
             services = new AtomicReference<>(
                 ServicesSnapshot.of(
-                    ServiceRegistry.class,
-                    new ThisAsService(ServiceAccess.getPublicScope())
+                    PersistentMap.of(
+                        ServiceRegistry.class,
+                        PersistentArray.of(thisServiceRegistry)
+                    )
                 )
             );
         }
@@ -1402,11 +1405,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      */
     private static class ServicesSnapshot {
 
-        public static ServicesSnapshot of(Class<?> serviceType, ServiceProvider serviceProvider) {
+        public static ServicesSnapshot of(PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType) {
             return new ServicesSnapshot(
                 null,
                 PersistentArray.of(),
-                PersistentMap.of(serviceType, PersistentArray.of(serviceProvider))
+                providersByType
             );
         }
 
