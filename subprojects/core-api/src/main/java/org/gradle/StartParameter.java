@@ -619,7 +619,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 9.1.0
      */
-    @Incubating
     public boolean isTaskGraph() {
         return taskGraph;
     }
@@ -629,7 +628,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 9.1.0
      */
-    @Incubating
     public void setTaskGraph(boolean taskGraph) {
         this.taskGraph = taskGraph;
     }
