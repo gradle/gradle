@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperatio
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
-import org.gradle.internal.operations.trace.BuildOperationRecord
 
 /**
  * Integration test for Spek2 testing framework.
@@ -90,8 +89,8 @@ class Spek2IntegrationTest extends AbstractIntegrationSpec {
 
         // Verify we have test operations for the Spek test
         def spekTestOps = testOps.findAll { 
-            it.details.testDescriptor.name?.contains("SimpleSpekTest") || 
-            it.details.testDescriptor.className?.contains("SimpleSpekTest")
+            it.details.testDescriptor.className == "org.example.SimpleSpekTest" ||
+            it.details.testDescriptor.name == "org.example.SimpleSpekTest"
         }
         assert spekTestOps.size() > 0 : "Should have test operations for SimpleSpekTest"
 
