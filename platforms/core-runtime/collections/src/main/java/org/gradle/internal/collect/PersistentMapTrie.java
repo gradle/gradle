@@ -43,6 +43,7 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
 
     @SuppressWarnings("UnusedMethod")
     private PersistentMapTrie(ChampNode<K> root, int size, int hashCode) {
+        assert size >= 2;
         this.root = root;
         this.size = size;
         this.hashCode = hashCode;
@@ -77,7 +78,7 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
             // PersistentMapTrie always has size >= 2, which allows equals() to only
             // compare with other PersistentMapTrie instances.
             Object[] content = newRoot.content;
-            return PersistentMap.of((K) content[0], (V) content[1]);
+            return new PersistentMap1<>((K) content[0], (V) content[1]);
         }
         return new PersistentMapTrie<>(newRoot, newSize, hashCode - hash);
     }

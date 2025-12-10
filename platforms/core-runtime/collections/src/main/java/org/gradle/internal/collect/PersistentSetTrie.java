@@ -34,6 +34,7 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
     private final int hashCode;
 
     private PersistentSetTrie(ChampNode<K> root, int size, int hashCode) {
+        assert size >= 2;
         this.root = root;
         this.size = size;
         this.hashCode = hashCode;

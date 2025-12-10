@@ -61,7 +61,7 @@ final class ChampNode<K> {
 
     @Override
     public int hashCode() {
-        throw new IllegalStateException();
+        throw new IllegalStateException("ChampNode should not be used as hash key.");
     }
 
     @Override

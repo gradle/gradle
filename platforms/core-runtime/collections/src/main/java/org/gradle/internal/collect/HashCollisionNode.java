@@ -54,6 +54,7 @@ final class HashCollisionNode {
             return false;
         }
         for (int i = length - 1; i >= 0; i--) {
+            // We pass payload == 0 so all content is compared against the given value.
             if (!that.contains(content[i], 0)) {
                 return false;
             }
