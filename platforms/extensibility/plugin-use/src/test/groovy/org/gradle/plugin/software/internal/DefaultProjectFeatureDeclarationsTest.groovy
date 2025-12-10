@@ -71,7 +71,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, Mock(ProjectFeatureApplyAction))
-                .withDefinitionImplementationType(definitionImplementationType)
+                .withUnsafeDefinitionImplementationType(definitionImplementationType)
         }
 
         and:
@@ -106,7 +106,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * typeBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectTypeBindingBuilder
             builder.bindProjectType("test", TestDefinition, Mock(ProjectTypeApplyAction))
-                .withDefinitionImplementationType(definitionImplementationType)
+                .withUnsafeDefinitionImplementationType(definitionImplementationType)
         }
 
         and:

@@ -111,7 +111,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
     }
 
     @Override
-    public DeclaredProjectFeatureBindingBuilder<T, V> withDefinitionImplementationType(Class<? extends T> implementationType) {
+    public DeclaredProjectFeatureBindingBuilder<T, V> withUnsafeDefinitionImplementationType(Class<? extends T> implementationType) {
         this.dslImplementationType = implementationType;
         return withUnsafeDefinition();
     }

@@ -24,12 +24,13 @@ package org.gradle.api.internal.plugins;
  */
 public interface DeclaredProjectFeatureBindingBuilder<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
     /**
-     * Specify the implementation type to use when creating instances of the definition object in the DSL.
+     * Specify the implementation type to use when creating instances of the definition object in the DSL.  Feature bindings that declare
+     * a definition implementation type are inherently declaring that the definition is unsafe.
      *
      * @param implementationType the implementation type to use
      * @return this builder
      */
-    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withDefinitionImplementationType(Class<? extends OwnDefinition> implementationType);
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeDefinitionImplementationType(Class<? extends OwnDefinition> implementationType);
 
     /**
      * Specify the implementation type to use when creating instances of the build model object.

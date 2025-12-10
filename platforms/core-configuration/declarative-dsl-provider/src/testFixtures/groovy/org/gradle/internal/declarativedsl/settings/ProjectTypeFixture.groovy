@@ -374,7 +374,7 @@ trait ProjectTypeFixture {
         }
 
         String maybeDeclareDefinitionImplementationType() {
-            return (definitionPublicTypeClassName && definitionPublicTypeClassName != definitionImplementationTypeClassName) ? ".withDefinitionImplementationType(${definitionImplementationTypeClassName}.class)" : ""
+            return (definitionPublicTypeClassName && definitionPublicTypeClassName != definitionImplementationTypeClassName) ? ".withUnsafeDefinitionImplementationType(${definitionImplementationTypeClassName}.class)" : ""
         }
 
         String maybeDeclareBindingModifiers() {
