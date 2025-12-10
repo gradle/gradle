@@ -526,11 +526,15 @@ public class StaticInnerTest {
         platformVersion << JUNIT_PLATFORM_VERSIONS
     }
 
-    def "works with JUnit 6 MethodOrderer.Default and ClassOrderer.Default"() {
+    def "works with JUnit 6 features (MethodOrderer.Default and ClassOrderer.Default)"() {
         given:
         buildScriptWithJupiterDependencies("""
             test {
                 useJUnitPlatform()
+
+                testLogging {
+                    showStandardStreams = true
+                }
             }
         """, LATEST_JUNIT6_VERSION)
 
@@ -549,12 +553,14 @@ public class StaticInnerTest {
                 @Order(2)
                 public void testB() {
                     // Runs second in outer class
+                    System.out.println("testB");
                 }
 
                 @Test
                 @Order(1)
                 public void testA() {
                     // Runs first in outer class
+                    System.out.println("testA");
                 }
 
                 @Nested
@@ -563,11 +569,13 @@ public class StaticInnerTest {
                     @Test
                     public void testZ() {
                         // Uses default ordering (not parent's OrderAnnotation)
+                        System.out.println("testZ");
                     }
 
                     @Test
                     public void testY() {
                         // Uses default ordering (not parent's OrderAnnotation)
+                        System.out.println("testY");
                     }
                 }
             }
@@ -578,6 +586,20 @@ public class StaticInnerTest {
 
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('org.gradle.JUnit6OrderingTest').onlyRoot().assertTestCount(4, 0)
+        results.testPathPreNormalized(':org.gradle.JUnit6OrderingTest').onlyRoot().assertChildCount(3, 0)
+        results.testPathPreNormalized(':org.gradle.JUnit6OrderingTest:org.gradle.JUnit6OrderingTest$NestedTestWithDefaultOrdering').onlyRoot().assertChildCount(2, 0)
+
+        and: "tests are run in the proper order"
+        outputContains("""JUnit6OrderingTest > testA() STANDARD_OUT
+    testA
+
+JUnit6OrderingTest > testB() STANDARD_OUT
+    testB
+
+JUnit6OrderingTest > NestedTestWithDefaultOrdering > testY() STANDARD_OUT
+    testY
+
+JUnit6OrderingTest > NestedTestWithDefaultOrdering > testZ() STANDARD_OUT
+    testZ""")
     }
 }
