@@ -366,7 +366,7 @@ systemProp.gradle.your_private-server_com.wrapperUser=username
 systemProp.gradle.your_private-server_com.wrapperPassword=password
 ----
 
-To authenticate with a static HTTP Bearer Token, add the following line to your system properties file:
+To authenticate with a static HTTP Bearer Token, add the following line to your Gradle properties file:
 
 [source,properties]
 ----
