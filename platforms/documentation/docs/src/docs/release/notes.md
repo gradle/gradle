@@ -94,16 +94,16 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Non-Class Based Testing
 
-When testing using JUnit Platform, Gradle can now discover and execute tests that are not defined in classes.
+When testing using [JUnit Platform](https://junit.org/), Gradle can now discover and execute tests that are not defined in classes.
 
-JUnit Platform [TestEngine](https://docs.junit.org/current/user-guide/#test-engines)s are able to discover and execute tests defined in arbitrary formats, and are not limited to JVM classes.
-Previously, however, Gradle's [Test](dsl/org.gradle.api.tasks.testing.Test.html) task required test classes to be present; otherwise execution would fail with a message:
+JUnit Platform [`TestEngine`](https://docs.junit.org/current/user-guide/#test-engines)s are capable of discovering and executing tests defined in arbitrary formats, extending testing beyond the confines of JVM classes.
+However, Gradle's [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) task requires test classes to be present; otherwise execution fails with a message:
 
 ```text
 There are test sources present and no filters are applied, but the test task did not discover any tests to execute.
 ```
 
-Now, tests can be defined in whatever format is understood by the configured `TestEngine`s.
+In this release, tests can be defined in whatever format is understood by the configured `TestEngine`.
 Gradle no longer requires a test class be present to “unlock” test execution.
 See <<java_testing.adoc#sec:non-class-based-testing,Java Testing User Manual section on Non-Class Based Testing>> for more information.
 
@@ -168,7 +168,7 @@ These non-class-based tests can now be run directly without workarounds:
 
 ### Additional test data capture
 
-During test execution, JUnit Platform tests can emit additional data such as file attachments or arbitrary key–value pairs using its [TestReporter API](https://docs.junit.org/current/user-guide/#writing-tests-dependency-injection).
+During test execution, JUnit Platform tests can emit additional data such as file attachments or arbitrary key–value pairs using the [TestReporter API](https://docs.junit.org/current/user-guide/#writing-tests-dependency-injection).
 
 For example:
 
