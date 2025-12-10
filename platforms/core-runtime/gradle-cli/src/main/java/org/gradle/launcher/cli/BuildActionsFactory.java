@@ -175,7 +175,6 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         BuildProcessState buildProcessState = new BuildProcessState(startParameter.isContinuous(),
             AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent()),
-            ClassPath.EMPTY,
             CurrentGradleInstallation.locate(),
             loggingServices,
             NativeServices.getInstance());
