@@ -22,6 +22,11 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
+/**
+ * Integration test for Spek2 testing framework.
+ * This test verifies that TestStarted events include proper class names and names,
+ * ensuring they are not reported as empty strings.
+ */
 class Spek2IntegrationTest extends AbstractIntegrationSpec {
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
