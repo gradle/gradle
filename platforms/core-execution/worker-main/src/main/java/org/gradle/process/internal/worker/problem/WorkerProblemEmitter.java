@@ -39,8 +39,9 @@ public class WorkerProblemEmitter implements ProblemSummarizer {
     }
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public boolean emit(InternalProblem problem, @Nullable OperationIdentifier id) {
         protocol.reportProblem(problem, id);
+        return true;
     }
 
     @Override

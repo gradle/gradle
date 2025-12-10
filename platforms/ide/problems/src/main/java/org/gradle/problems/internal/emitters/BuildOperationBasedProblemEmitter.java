@@ -39,7 +39,8 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public boolean emit(InternalProblem problem, @Nullable OperationIdentifier id) {
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
+        return true;
     }
 }

@@ -31,7 +31,7 @@ public interface InternalProblemReporter extends ProblemReporter {
      * @param problem The problem to report.
      * @param id The operation identifier.
      */
-    void report(Problem problem, OperationIdentifier id);
+    boolean report(Problem problem, OperationIdentifier id);
 
     InternalProblem internalCreate(Action<? super InternalProblemSpec> action);
 }

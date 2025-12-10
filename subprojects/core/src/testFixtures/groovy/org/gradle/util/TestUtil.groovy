@@ -418,7 +418,8 @@ class TestProblems implements InternalProblems {
             new MockInstantiator(),
             null,
             null,
-            null
+            null,
+            []
         )
     }
 

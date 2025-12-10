@@ -104,6 +104,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean refreshKeys;
     private boolean exportKeys;
     private WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
+    private List<String> suppressedProblemPatterns = emptyList();
 
     /**
      * {@inheritDoc}
@@ -981,6 +982,23 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public void setWelcomeMessageConfiguration(WelcomeMessageConfiguration welcomeMessageConfiguration) {
         this.welcomeMessageConfiguration = welcomeMessageConfiguration;
     }
+
+    /**
+     * @since 9.4.0
+     */
+    @Incubating
+    public List<String> getSuppressedProblemPatterns() {
+        return suppressedProblemPatterns;
+    }
+
+    /**
+     * @since 9.4.0
+     */
+    @Incubating
+    public void setSuppressedProblemPatterns(List<String> suppressedProblemPatterns) {
+        this.suppressedProblemPatterns = suppressedProblemPatterns;
+    }
+
 
     /**
      * Returns true if configuration caching has been requested. Note that the configuration cache may not necessarily be used even when requested, for example

@@ -47,7 +47,7 @@ public interface ProblemReporter {
      * @param spec the problem configuration
      * @since 8.13
      */
-    void report(ProblemId problemId, Action<? super ProblemSpec> spec);
+    boolean report(ProblemId problemId, Action<? super ProblemSpec> spec);
 
     /**
      * Reports the target problem.
@@ -55,7 +55,7 @@ public interface ProblemReporter {
      * @param problem The problem to report.
      * @since 8.13
      */
-    void report(Problem problem);
+    boolean report(Problem problem);
 
     /**
      * Reports the target problems.
@@ -63,7 +63,7 @@ public interface ProblemReporter {
      * @param problems The problems to report.
      * @since 8.13
      */
-    void report(Collection<? extends Problem> problems);
+    boolean report(Collection<? extends Problem> problems);
 
     /**
      * Configures a new problem, reports it, and uses it to throw a new exception.

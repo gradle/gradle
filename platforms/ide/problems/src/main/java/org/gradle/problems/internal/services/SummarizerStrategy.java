@@ -23,15 +23,20 @@ import org.gradle.api.problems.internal.ProblemSummaryData;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class SummarizerStrategy {
-    private final Map<ProblemId, ProblemSummaryInfo> seenProblemsWithCounts = new HashMap<ProblemId, ProblemSummaryInfo>();
+    private final Map<ProblemId, ProblemSummaryInfo> seenProblemsWithCounts = new HashMap<>();
     private final int threshold;
+    private final List<Pattern> suppressedProblemPatterns;
 
-    public SummarizerStrategy(int threshold) {
+
+    public SummarizerStrategy(int threshold, List<String> suppressedProblemPatterns) {
         this.threshold = threshold;
+        this.suppressedProblemPatterns = suppressedProblemPatterns.stream().map(pattern -> Pattern.compile(pattern)).collect(Collectors.toList());
     }
 
     synchronized List<ProblemSummaryData> getCutOffProblems() {
@@ -42,6 +47,11 @@ public class SummarizerStrategy {
     }
 
     synchronized boolean shouldEmit(InternalProblem problem) {
+        for (Pattern pattern : suppressedProblemPatterns) {
+            if (pattern.matcher(problem.getDefinition().getId().toString()).matches()) {
+                return false;
+            }
+        }
         ProblemSummaryInfo summaryInfo = seenProblemsWithCounts.computeIfAbsent(
             problem.getDefinition().getId(),
             key -> new ProblemSummaryInfo()

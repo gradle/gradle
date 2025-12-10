@@ -50,7 +50,7 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
 
         def repeatitions = 100
         def parallelExecutions = 5
-        def strategy = new SummarizerStrategy(4)
+        def strategy = new SummarizerStrategy(4, [])
 
         repeatitions.times {
             def problem = createTestProblem("$it")

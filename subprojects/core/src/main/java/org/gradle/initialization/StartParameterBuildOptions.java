@@ -87,7 +87,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
-        new TaskGraphOption()
+        new TaskGraphOption(),
+        new SuppressProblemsOption()
     );
 
     @Override
@@ -248,6 +249,19 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(List<String> values, StartParameterInternal settings, Origin origin) {
             settings.setExcludedTaskNames(values);
+        }
+    }
+
+    public static class SuppressProblemsOption extends ListBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.problems.suppress";
+
+        public SuppressProblemsOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(List<String> values, StartParameterInternal settings, Origin origin) {
+            settings.setSuppressedProblemPatterns(values);
         }
     }
 

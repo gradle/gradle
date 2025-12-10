@@ -50,11 +50,11 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public void report(ProblemId problemId, Action<? super ProblemSpec> spec) {
+    public boolean report(ProblemId problemId, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         problemBuilder.id(problemId);
         spec.execute(problemBuilder);
-        report(problemBuilder.build());
+        return report(problemBuilder.build());
     }
 
     @NonNull
@@ -68,23 +68,34 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         problemBuilder.id(problemId);
         spec.execute(problemBuilder);
         problemBuilder.withException(exception);
-        report(problemBuilder.build());
-        throw runtimeException(exception);
+        RuntimeException e = runtimeException(exception);
+        if (report(problemBuilder.build())) {
+            throw e;
+        }
+        return e;
     }
 
     @Override
     public RuntimeException throwing(Throwable exception, Problem problem) {
         problem = addExceptionToProblem(exception, problem);
-        report(problem);
-        throw runtimeException(exception);
+        RuntimeException e = runtimeException(exception);
+        if (report(problem)) {
+            throw e;
+        }
+        return e;
     }
 
     @Override
     public RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems) {
+        boolean reported = false;
         for (Problem problem : problems) {
-            report(addExceptionToProblem(exception, problem));
+            reported |= report(addExceptionToProblem(exception, problem));
         }
-        throw runtimeException(exception);
+        RuntimeException e = runtimeException(exception);
+        if (reported) {
+            throw e;
+        }
+        return e;
     }
 
     @NonNull
@@ -124,18 +135,21 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      * @param problem The problem to report.
      */
     @Override
-    public void report(Problem problem) {
+    public boolean report(Problem problem) {
         OperationIdentifier id = currentBuildOperationRef.getId();
         if (id != null) {
-            report(problem, id);
+            return report(problem, id);
         }
+        return false;
     }
 
     @Override
-    public void report(Collection<? extends Problem> problems) {
+    public boolean report(Collection<? extends Problem> problems) {
+        boolean result = false;
         for (Problem problem : problems) {
-            report(problem);
+            result |= report(problem);
         }
+        return result;
     }
 
     /**
@@ -148,13 +162,13 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      * @param id The operation identifier to associate with the problem.
      */
     @Override
-    public void report(Problem problem, OperationIdentifier id) {
+    public boolean report(Problem problem, OperationIdentifier id) {
         InternalProblem internalProblem = (InternalProblem) problem;
         Throwable exception = internalProblem.getException();
         if (exception != null) {
             exceptionProblemRegistry.onProblem(transform(exception), internalProblem);
         }
-        problemSummarizer.emit(internalProblem, id);
+        return problemSummarizer.emit(internalProblem, id);
     }
 
     @NonNull

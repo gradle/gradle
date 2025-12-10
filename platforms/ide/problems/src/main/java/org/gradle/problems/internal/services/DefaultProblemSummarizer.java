@@ -56,12 +56,13 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
-        TaskIdentityProvider taskProvider
+        TaskIdentityProvider taskProvider,
+        List<String> suppressedProblemPatterns
     ) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
-        this.summarizerStrategy = new SummarizerStrategy(internalOptions.getOption(THRESHOLD_OPTION).get());
+        this.summarizerStrategy = new SummarizerStrategy(internalOptions.getOption(THRESHOLD_OPTION).get(), suppressedProblemPatterns);
         this.problemReportCreator = problemReportCreator;
         this.taskProvider = taskProvider;
     }
@@ -79,14 +80,17 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     }
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public boolean emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+        // drop filtered problems
         if (summarizerStrategy.shouldEmit(problem)) {
             problem = maybeAddTaskLocation(problem, id);
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
             }
+            return true;
         }
+        return false;
     }
 
     @NonNull

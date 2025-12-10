@@ -89,7 +89,8 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         WorkExecutionTracker workExecutionTracker,
         StartParameterInternal startParameter
     ) {
-        return new DefaultProblemSummarizer(eventEmitter,
+        return new DefaultProblemSummarizer(
+            eventEmitter,
             currentBuildOperationRef,
             ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter), new ConsoleProblemEmitter(startParameter.getWarningMode())),
             internalOptions,
@@ -104,7 +105,8 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
                         .map(task -> new TaskIdentity(task.getTaskIdentity().getPath().asString()))
                         .orElse(null);
                 }
-            }
+            },
+            startParameter.getSuppressedProblemPatterns()
         );
     }
 

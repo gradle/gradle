@@ -40,10 +40,11 @@ public class ConsoleProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public boolean emit(InternalProblem problem, @Nullable OperationIdentifier id) {
         if (shouldRender(problem)) {
             render(problem);
         }
+        return true;
     }
 
     private boolean shouldRender(InternalProblem problem) {
