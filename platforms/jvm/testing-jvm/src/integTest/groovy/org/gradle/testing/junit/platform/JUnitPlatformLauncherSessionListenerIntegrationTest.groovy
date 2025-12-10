@@ -19,7 +19,6 @@ package org.gradle.testing.junit.platform
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM_VERSIONS
 
 /**

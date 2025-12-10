@@ -26,7 +26,6 @@ import spock.lang.Timeout
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT6_VERSION
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM_VERSIONS
 import static org.hamcrest.CoreMatchers.containsString
 
