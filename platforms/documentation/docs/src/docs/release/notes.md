@@ -162,6 +162,11 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Task graph is now stable
+
+The [task graph](userguide/command_line_interface.html#sec:command_line_execution_options), introduced as an incubating feature in Gradle 9.1.0, is now stable.
+It's no longer marked as experimental.
+
 ## Fixed issues
 
 <!--
