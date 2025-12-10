@@ -25,8 +25,6 @@ fun checkAllMetadataInClasspath(compileOptions: KotlinCompilerOptions, classPath
 
 private
 fun issueDeprecationWarning(files: Iterable<File>) {
-    // TODO: use problems api instead of the deprecation logger?
-
     DeprecationLogger.deprecateBehaviour("Using incompatible Kotlin dependencies in scripts without setting the '$SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME' property.")
         .withAdvice(
 """Using dependencies compiled with an incompatible Kotlin version has undefined behaviour and could lead to strange errors.
@@ -49,6 +47,6 @@ You have the following options:
 In Gradle 10, the property will default to 'false'."""
         )
         .willBecomeAnErrorInGradle10()
-        .undocumented() // TODO: do more?
+        .undocumented()
         .nagUser()
 }

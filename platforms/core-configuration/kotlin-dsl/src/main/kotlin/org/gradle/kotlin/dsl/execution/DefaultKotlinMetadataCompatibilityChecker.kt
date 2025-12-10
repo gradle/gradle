@@ -43,18 +43,10 @@ class DefaultKotlinMetadataCompatibilityChecker(
         val extractor = KotlinMetadataVersionExtractor()
         val elementChecker = ClasspathElementChecker(classpathWalker, extractor)
 
-        // TODO: We are re-generating the same snapshots as the ones KotlinCompileClasspathFingerprinter uses (IF compile avoidance is turned on)
-        //  we could MAYBE merge this checking with the fingerprinting, to improve performance, if the ugliness is worth it
-        //  AND
-        //  we can solve the "IF compile avoidance is turned on" part too, by doing it in a fingerprinter wrapper and using that wrapper around
-        //  whichever fingerprinter ends up being used in BuildServices.createCompileClasspathHasher
         val fileSystemSnapshot: FileSystemSnapshot = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classPath.getAsFiles()))
 
         val incompatibleFiles = mutableListOf<File>()
 
-        // TODO: we are walking a snapshot, which is not normalized based on the knowledge that this is a classpath...
-        //  should we instead fingerprint it via KotlinCompileClasspathFingerprinter and use the resulting fingerprints to decide if there is a change?
-        //  might not be worth it cost wise...
         fileSystemSnapshot.accept { snapshot ->
             // if it doesn't exist, we ignore it
             if (snapshot is MissingFileSnapshot) {
@@ -79,7 +71,7 @@ class DefaultKotlinMetadataCompatibilityChecker(
                 //
                 // the part which also considers if everything is coming from cache, or if there was "calculation needed" is there
                 // to provide increasingly more accurate results (since the cache is user home level, accuracy increases for different builds over time)
-                SnapshotVisitResult.TERMINATE
+                SnapshotVisitResult.TERMINATE // TODO: remove magic
             } else {
                 // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
                 SnapshotVisitResult.SKIP_SUBTREE
@@ -101,6 +93,10 @@ class ClasspathElementChecker(val classpathWalker: ClasspathWalker, val extracto
 
         var incompatibilityFound = false
         classpathWalker.visit(file) { entry ->
+            // "org/gradle/internal/Blah.class" Kotlin 1
+            // "org/gradle/internal/impldep/guava/Blah.class" Kotlin 2
+            // TODO: one class only from one package
+            entry.name.substringBeforeLast("/")
             if (!incompatibilityFound && entry.name.endsWith(".class")) {
                 val classReader = ClassReader(entry.content)
                 classReader.accept(extractor.reset(), ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
