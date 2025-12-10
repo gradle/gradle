@@ -80,6 +80,11 @@ final class PersistentMap1<K, V> implements PersistentMap<K, V> {
     }
 
     @Override
+    public V getOrDefault(K key, V defaultValue) {
+        return containsKey(key) ? value : defaultValue;
+    }
+
+    @Override
     public boolean containsKey(K key) {
         return this.key.equals(key);
     }

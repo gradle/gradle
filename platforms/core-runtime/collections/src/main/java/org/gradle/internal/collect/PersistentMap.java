@@ -79,12 +79,7 @@ public interface PersistentMap<K, V> extends Iterable<Map.Entry<K, V>> {
     @Nullable V get(K key);
 
     ///  Returns the current mapping for the given key or the given default value when there's none.
-    default V getOrDefault(K key, V defaultValue) {
-        V val = get(key);
-        return val == null
-            ? defaultValue
-            : val;
-    }
+    V getOrDefault(K key, V defaultValue);
 
     /// Returns `true` when this map contains a mapping for the given key.
     boolean containsKey(K key);

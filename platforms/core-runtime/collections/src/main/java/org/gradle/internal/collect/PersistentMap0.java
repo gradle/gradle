@@ -56,6 +56,11 @@ final class PersistentMap0 implements PersistentMap<Object, Object> {
     }
 
     @Override
+    public Object getOrDefault(Object key, Object defaultValue) {
+        return defaultValue;
+    }
+
+    @Override
     public boolean containsKey(Object key) {
         return false;
     }
