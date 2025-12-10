@@ -204,7 +204,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
     }
 
-    def listenersReceiveMessagesInSameOrderRegardlessOfGeneratingThread() {
+    def listenersReceiveMessagesInSameOrderRegardlessOfGeneratingThread() { //
         given:
         def events1 = events("a", 20)
         def events2 = events("b", 20)
@@ -244,9 +244,12 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         then:
         received1.size() == 60
         received2.size() == 60
-        received1 == received2
+        received1.findAll { it.startsWith("a")} == received2.findAll { it.startsWith("a")}
+        received1.findAll { it.startsWith("b")} == received2.findAll { it.startsWith("b")}
+        received1.findAll { it.startsWith("c")} == received2.findAll { it.startsWith("c")}
         received1.findAll { it.startsWith("a") } == events1
         received1.findAll { it.startsWith("b") } == events2
+        received1.findAll { it.startsWith("c") } == events3
     }
 
     List<String> events(String prefix, int count) {
@@ -678,39 +681,45 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         0 * _
     }
 
-    def listenerCannotGenerateEventsOfSameType() {
+    def listenerCanGenerateEventsOfSameType() {
         given:
-        manager.addListener(fooListener1)
-        manager.addListener(barListener1)
+        List<String> params = []
+        TestFooListener fooListener = s -> {
+            params.add(s)
+            if (params.size() == 1) {
+                manager.getBroadcaster(TestFooListener.class).foo("param2")
+            }
+        }
+        manager.addListener(fooListener)
 
         when:
         manager.getBroadcaster(TestFooListener.class).foo("param")
 
         then:
-        IllegalStateException e = thrown()
-        e.message == "Cannot notify listeners of type TestFooListener as these listeners are already being notified."
+        params == ["param", "param2"]
+    }
 
-        and:
-        1 * fooListener1.foo("param") >> {
+    def listenerCanGenerateEventsOfSameTypeViaAnotherListener() {
+        given:
+        List<String> params = []
+        TestFooListener fooListener = s -> {
+            params.add(s)
+            if (params.size() == 1) {
+                manager.getBroadcaster(TestBarListener.class).bar(12)
+            }
+        }
+        manager.addListener(fooListener)
+
+        TestBarListener barListener = s -> {
             manager.getBroadcaster(TestFooListener.class).foo("param2")
         }
-        0 * _
+        manager.addListener(barListener)
 
         when:
         manager.getBroadcaster(TestFooListener.class).foo("param")
 
         then:
-        IllegalStateException e2 = thrown()
-        e2.message == "Cannot notify listeners of type TestFooListener as these listeners are already being notified."
-
-        and:
-        1 * fooListener1.foo("param") >> {
-            manager.getBroadcaster(TestBarListener.class).bar(12)
-        }
-        1 * barListener1.bar(12) >> {
-            manager.getBroadcaster(TestFooListener.class).foo("param 2")
-        }
-        0 * _
+        params == ["param", "param2"]
     }
 
     def listenerCanGenerateEventsOfDifferentType() {
