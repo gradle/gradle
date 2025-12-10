@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class PersistentMapTest extends Specification {
 
-    def 'empty maps are the same'() {
+    def 'empty === empty'() {
         expect:
         PersistentMap.of() === PersistentMap.of()
     }

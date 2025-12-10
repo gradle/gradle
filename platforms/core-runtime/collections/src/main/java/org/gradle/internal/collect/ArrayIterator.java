@@ -23,7 +23,7 @@ import java.util.NoSuchElementException;
 final class ArrayIterator<T> implements Iterator<T> {
 
     private final Object[] array;
-    private int cursor = 0;
+    private int index = 0;
 
     ArrayIterator(Object[] array) {
         this.array = array;
@@ -31,15 +31,15 @@ final class ArrayIterator<T> implements Iterator<T> {
 
     @Override
     public boolean hasNext() {
-        return cursor < array.length;
+        return index < array.length;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public T next() {
-        if (cursor == array.length) {
+        if (index == array.length) {
             throw new NoSuchElementException();
         }
-        return (T) array[cursor++];
+        return (T) array[index++];
     }
 }
