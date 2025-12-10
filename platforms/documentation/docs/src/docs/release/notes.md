@@ -105,7 +105,8 @@ There are test sources present and no filters are applied, but the test task did
 
 In this release, tests can be defined in whatever format is understood by the configured `TestEngine`.
 Gradle no longer requires a test class be present to “unlock” test execution.
-For example:
+
+For example, this library project structure doesn't use typical class-based testing, but instead uses XML test definitions understood by a custom `TestEngine`:
 
 ```text
 my-lib/
@@ -131,7 +132,7 @@ testing.suites.named("test", JvmTestSuite::class) {
 
     targets.all {
         testTask.configure {
-            testDefinitionDirs.from("src/test/definitions") // Recommended non-class test definitions location
+            testDefinitionDirs.from("src/test/definitions") // Conventional non-class-based test definitions location
         }
     }
 }
