@@ -23,7 +23,7 @@ import java.util.NoSuchElementException;
 final class SingletonIterator<T> implements Iterator<T> {
 
     private final T value;
-    private int cursor = 0;
+    private int index = 0;
 
     public SingletonIterator(T value) {
         this.value = value;
@@ -31,15 +31,15 @@ final class SingletonIterator<T> implements Iterator<T> {
 
     @Override
     public boolean hasNext() {
-        return cursor == 0;
+        return index == 0;
     }
 
     @Override
     public T next() {
-        if (cursor != 0) {
+        if (index != 0) {
             throw new NoSuchElementException();
         }
-        ++cursor;
+        ++index;
         return value;
     }
 }
