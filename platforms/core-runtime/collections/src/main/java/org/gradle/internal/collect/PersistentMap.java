@@ -79,6 +79,16 @@ public interface PersistentMap<K, V> extends Iterable<Map.Entry<K, V>> {
     @Nullable V get(K key);
 
     ///  Returns the current mapping for the given key or the given default value when there's none.
+    //
+    // 🤔 Issue: This default implementation cannot distinguish between "key not present"
+    // and "key present with null value". If assoc(key, null) is valid, this returns
+    // defaultValue instead of the stored null.
+    //
+    // PersistentMapTrie overrides this correctly using ChampLookup, but PersistentMap1
+    // inherits this buggy default. Consider either:
+    //   1. Making this method abstract (forcing all impls to override)
+    //   2. Documenting that null values are not supported
+    //   3. Override in PersistentMap1 with correct logic
     default V getOrDefault(K key, V defaultValue) {
         V val = get(key);
         return val == null

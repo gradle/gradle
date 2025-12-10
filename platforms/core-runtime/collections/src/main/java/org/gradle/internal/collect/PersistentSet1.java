@@ -117,6 +117,8 @@ final class PersistentSet1<K> implements PersistentSet<K> {
         return key.hashCode();
     }
 
+    // ✅ Note: Unlike PersistentMap1, this correctly checks for PersistentSet<?> (the interface)
+    // rather than just PersistentSet1, so it maintains equals() symmetry with PersistentSetTrie.
     @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object other) {

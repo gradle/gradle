@@ -60,6 +60,9 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
         }
         int newSize = size - 1;
         if (newSize == 1) {
+            // ✅ Collapse to PersistentSet1. This maintains the invariant that
+            // PersistentSetTrie always has size >= 2, which allows PersistentSetTrie.equals()
+            // to only compare with other PersistentSetTrie instances safely.
             return PersistentSet.of(singleKeyOf(newRoot));
         }
         return new PersistentSetTrie<>(newRoot, newSize, hashCode - hash);
@@ -164,6 +167,11 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
         return hashCode;
     }
 
+    // ✅ This only compares with PersistentSetTrie, but PersistentSet1.equals() correctly
+    // checks for PersistentSet<?> interface, so symmetry is maintained (PersistentSet1 will
+    // defer to this.contains() rather than expecting exact type match).
+    //
+    // Note: relies on HashCollisionNode.equals() which works correctly for sets (payload=0).
     @Override
     public boolean equals(Object o) {
         if (this == o) {

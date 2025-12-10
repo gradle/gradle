@@ -80,6 +80,8 @@ final class PersistentArraySmall<T> implements PersistentArray<T> {
         }
     }
 
+    // ✅ Only compares with PersistentArraySmall. Safe because PersistentArray implementations
+    // have non-overlapping size ranges (1, 2-32, 33+), so same-content arrays always have same type.
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {

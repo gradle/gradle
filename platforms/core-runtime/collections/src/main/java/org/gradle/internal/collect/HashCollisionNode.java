@@ -36,6 +36,19 @@ final class HashCollisionNode {
         throw new IllegalStateException();
     }
 
+    // ❌ BUG: This equals() implementation is broken for PersistentMap (payload=1).
+    //
+    // For maps, the content array stores [key1, val1, key2, val2, ...].
+    // This loop iterates over ALL elements (including values!) and checks if each
+    // is a KEY in the other node using hardcoded payload=0.
+    //
+    // Example: For collision node with content [keyA, valA, keyB, valB]:
+    //   - Iteration checks: that.contains(valB, 0), that.contains(keyB, 0),
+    //     that.contains(valA, 0), that.contains(keyA, 0)
+    //   - This asks "is valA a KEY in that?" which is nonsensical
+    //
+    // Fix: This method needs a payload parameter, and should iterate by step=(1+payload),
+    // checking only keys. For full equality, values should also be compared.
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -54,7 +67,7 @@ final class HashCollisionNode {
             return false;
         }
         for (int i = length - 1; i >= 0; i--) {
-            if (!that.contains(content[i], 0)) {
+            if (!that.contains(content[i], 0)) {  // BUG: hardcoded payload=0, iterates over values too
                 return false;
             }
         }

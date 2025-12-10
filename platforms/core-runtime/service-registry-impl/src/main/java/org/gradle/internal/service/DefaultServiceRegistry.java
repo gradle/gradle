@@ -390,6 +390,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
     }
 
+    // ✅ Thread-safety: Uses copy-on-write via AtomicReference<ServicesSnapshot>.
+    // All mutations go through updateAndGet() which atomically swaps the entire snapshot.
+    // Readers get a consistent view of services at a point in time.
     private class OwnServices implements ServiceProvider {
         private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
         private final AtomicReference<ServicesSnapshot> services;
@@ -462,6 +465,15 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             stoppable.stop();
         }
 
+        // ✅ Thread-safety analysis:
+        // 1. assertMutable() ensures we're in INIT state (single-threaded setup phase)
+        // 2. stoppable.add() is thread-safe (CompositeStoppable uses synchronization)
+        // 3. updateAndGet atomically creates new snapshot with the service
+        // 4. Notification loop uses the captured snapshot, so no race with concurrent adds
+        //
+        // Note: If assertMutable() were removed, there could be a race between stoppable.add()
+        // and services.updateAndGet() where stop() could miss a service. But assertMutable()
+        // prevents concurrent access during registration.
         public void add(SingletonService serviceProvider) {
             assertMutable();
             stoppable.add(serviceProvider);
@@ -491,6 +503,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             }
         }
 
+        // ✅ Thread-safety: After atomically adding the handler, we notify it about all
+        // services that existed AT THAT MOMENT (captured in snapshot.services).
+        // Any service added concurrently will see the new handler in their snapshot
+        // and notify it themselves, so no notifications are missed.
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
             ServicesSnapshot snapshot = services.updateAndGet(it -> it.addLifecycleHandler(annotationHandler));
             ServiceList list = snapshot.services;
@@ -583,13 +599,16 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             this.instance = instance;
         }
 
+        // ✅ Double-checked locking pattern. This is safe because `instance` is volatile.
+        // The volatile read at line 1 establishes happens-before with the volatile write
+        // in setInstance(), ensuring the instance is fully constructed before being visible.
         public final Object getInstance() {
-            Object result = instance;
+            Object result = instance;  // volatile read
             if (result == null) {
                 synchronized (this) {
-                    result = instance;
+                    result = instance;  // volatile read under lock
                     if (result == null) {
-                        setInstance(createServiceInstance());
+                        setInstance(createServiceInstance());  // volatile write in setInstance
                         result = instance;
                     }
                 }
@@ -1397,11 +1416,14 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     /**
      * Carries a snapshot of the current set of services and lifecycle handlers so they can change together.
      *
-     * Lifecycle handlers are maintained in a persistent array since there are at most 3 lifecycle handler instances
-     * per registry, and they are iterated frequently (for every service registration).
+     * <p>Lifecycle handlers are maintained in a persistent array since there are at most 3 lifecycle handler instances
+     * per registry, and they are iterated frequently (for every service registration).</p>
      *
-     * Services are maintained in a linked list since there are many, they are frequently written and iterated very
-     * rarely (once per lifecycle handler).
+     * <p>Services are maintained in a linked list since there are many, they are frequently written and iterated very
+     * rarely (once per lifecycle handler).</p>
+     *
+     * <p>✅ This class is immutable - all "mutation" methods return new instances.
+     * Combined with AtomicReference.updateAndGet(), this provides thread-safe copy-on-write semantics.</p>
      */
     private static class ServicesSnapshot {
 

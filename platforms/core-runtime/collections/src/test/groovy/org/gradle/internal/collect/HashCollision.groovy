@@ -16,11 +16,19 @@
 
 package org.gradle.internal.collect
 
+/**
+ * Helper class for testing hash collision scenarios.
+ * Each instance has a controllable hash code but unique identity.
+ */
 class HashCollision {
-    int hash
+    private static int nextId = 0
+
+    final int hash
+    final int id  // Unique identifier to distinguish instances with same hash
 
     HashCollision(int hash) {
         this.hash = hash
+        this.id = nextId++
     }
 
     @Override
@@ -29,7 +37,16 @@ class HashCollision {
     }
 
     @Override
+    boolean equals(Object other) {
+        if (other === this) return true
+        if (!(other instanceof HashCollision)) return false
+        // Two HashCollision instances are equal only if they have the same id
+        // This ensures we can have multiple distinct objects with the same hash
+        return this.id == ((HashCollision) other).id
+    }
+
+    @Override
     String toString() {
-        "Collision($hash)"
+        "Collision($hash#$id)"
     }
 }

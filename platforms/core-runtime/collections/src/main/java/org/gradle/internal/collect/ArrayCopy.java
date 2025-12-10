@@ -24,6 +24,9 @@ import java.util.Arrays;
 /// In general, these should be as efficient as possible, contain
 /// no branching code, and minimize [System] calls.
 /// In practice, it gets [complicated][#insertAtPushingRight(int, Object\[\], Object\[\], int, int, int)].
+///
+/// ✅ All methods create new arrays (never modify in-place), which is essential for
+/// the persistent/immutable collection semantics.
 final class ArrayCopy {
 
     static final Object[] EMPTY_ARRAY = new Object[0];
@@ -63,6 +66,11 @@ final class ArrayCopy {
         return newArray;
     }
 
+    // 🤔 Note: This has different behavior based on payload (0 vs 1).
+    // For payload=0: array length stays the same (insert + remove 1 element)
+    // For payload=1: array length decreases by 1 (insert 1 + remove 2 elements = net -1)
+    // This asymmetry is because for maps we're removing a key-value pair (2 elements)
+    // but only inserting the sub-node (1 element).
     static Object[] insertAtPushingLeft(int index, Object[] array, Object newElement, int leftIndexToOverwrite, int payload) {
         assert index >= leftIndexToOverwrite;
         assert payload == 0 || payload == 1;

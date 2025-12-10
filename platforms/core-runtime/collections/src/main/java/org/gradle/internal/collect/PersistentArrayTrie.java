@@ -61,6 +61,9 @@ final class PersistentArrayTrie<T> implements PersistentArray<T> {
         return false;
     }
 
+    // 💭 Minor: Using addition instead of the standard hash formula (31 * hashCode + element)
+    // produces more hash collisions. Two arrays with the same SUM of chunk hashes will collide.
+    // Consider: hashCode = 31 * hashCode + Arrays.hashCode(arrayStartingAt(i));
     @Override
     public int hashCode() {
         int hashCode = 1;
@@ -70,6 +73,8 @@ final class PersistentArrayTrie<T> implements PersistentArray<T> {
         return hashCode;
     }
 
+    // ✅ Only compares with PersistentArrayTrie. Safe because PersistentArray implementations
+    // have non-overlapping size ranges (1, 2-32, 33+), so same-content arrays always have same type.
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
