@@ -65,7 +65,7 @@ final class PersistentArrayTrie<T> implements PersistentArray<T> {
     public int hashCode() {
         int hashCode = 1;
         for (int i = 0; i < size; i += WIDTH) {
-            hashCode += Arrays.hashCode(arrayStartingAt(i));
+            hashCode += 31 * hashCode + Arrays.hashCode(arrayStartingAt(i));
         }
         return hashCode;
     }
