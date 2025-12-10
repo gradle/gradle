@@ -23,6 +23,10 @@ import static org.gradle.internal.collect.ChampNode.nodeIndex;
 
 /// Implementation of the CHAMP deletion algorithm shared by [PersistentSetTrie], when `payload == 0`,
 /// and [PersistentMapTrie], when `payload == 1`.
+///
+/// ✅ Key insight: After deletion, the algorithm "inlines" single-element sub-nodes back into
+/// their parent to maintain the CHAMP invariant that nodes only exist when they have 2+ data
+/// elements or contain sub-nodes. This keeps the trie compact.
 final class ChampDeletion {
 
     @SuppressWarnings({"unchecked", "ReferenceEquality"})
@@ -81,6 +85,9 @@ final class ChampDeletion {
                     return trie.replaceContentAt(index, collisionNode.removeAt(keyIndex, payload));
                 }
                 assert collisionContent.length == inlineThreshold;
+                // ✅ When the collision node has exactly 2 entries, and we remove one, inline the remaining entry.
+                // For payload=0 (set): [key0, key1] → if removing key0, inline key1 (index 1)
+                // For payload=1 (map): [k0, v0, k1, v1] → if removing k0, inline k1 at index 2 (1<<1)
                 return inlineDataForNodeWithoutSubNode(
                     collisionContent,
                     // if we are removing the key at index 0, then we are inlining the key/data at the other index

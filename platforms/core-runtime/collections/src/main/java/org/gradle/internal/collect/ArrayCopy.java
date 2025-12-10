@@ -63,6 +63,11 @@ final class ArrayCopy {
         return newArray;
     }
 
+    // 🤔 Note: This has different behavior based on payload (0 vs 1).
+    // For payload=0: array length stays the same (insert + remove 1 element)
+    // For payload=1: array length decreases by 1 (insert 1 + remove 2 elements = net -1)
+    // This asymmetry is because for maps we're removing a key-value pair (2 elements)
+    // but only inserting the sub-node (1 element).
     static Object[] insertAtPushingLeft(int index, Object[] array, Object newElement, int leftIndexToOverwrite, int payload) {
         assert index >= leftIndexToOverwrite;
         assert payload == 0 || payload == 1;

@@ -73,6 +73,9 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
         }
         int newSize = size - 1;
         if (newSize == 1) {
+            // ✅ Collapse to PersistentMap1. This maintains the invariant that
+            // PersistentMapTrie always has size >= 2, which allows equals() to only
+            // compare with other PersistentMapTrie instances.
             Object[] content = newRoot.content;
             return PersistentMap.of((K) content[0], (V) content[1]);
         }

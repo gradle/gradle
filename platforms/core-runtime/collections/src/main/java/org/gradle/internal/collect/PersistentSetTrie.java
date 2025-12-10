@@ -60,7 +60,10 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
         }
         int newSize = size - 1;
         if (newSize == 1) {
-            return PersistentSet.of(singleKeyOf(newRoot));
+            // ✅ Collapse to PersistentSet1. This maintains the invariant that
+            // PersistentSetTrie always has size >= 2, which allows equals() to only
+            // compare with other PersistentSetTrie instances.
+            return new PersistentSet1<>(singleKeyOf(newRoot));
         }
         return new PersistentSetTrie<>(newRoot, newSize, hashCode - hash);
     }

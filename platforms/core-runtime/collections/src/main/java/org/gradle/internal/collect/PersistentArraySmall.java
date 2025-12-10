@@ -85,11 +85,13 @@ final class PersistentArraySmall<T> implements PersistentArray<T> {
         if (obj == this) {
             return true;
         }
-        if (!(obj instanceof PersistentArraySmall)) {
-            return false;
+        // ✅ Only compares with PersistentArraySmall. Safe because PersistentArray implementations
+        // have non-overlapping size ranges (1, 2-32, 33+), so same-content arrays always have the same type.
+        if (obj instanceof PersistentArraySmall) {
+            PersistentArraySmall<?> other = (PersistentArraySmall<?>) obj;
+            return Arrays.equals(array, other.array);
         }
-        PersistentArraySmall<?> other = (PersistentArraySmall<?>) obj;
-        return Arrays.equals(array, other.array);
+        return false;
     }
 
     @Override

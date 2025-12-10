@@ -16,6 +16,10 @@
 
 package org.gradle.internal.collect
 
+/**
+ * Helper class for testing hash collision scenarios.
+ * Each instance has a controllable hash code but unique identity.
+ */
 class HashCollision {
     int hash
 
