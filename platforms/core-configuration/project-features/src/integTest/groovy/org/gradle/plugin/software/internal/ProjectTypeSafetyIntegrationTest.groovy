@@ -57,7 +57,16 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition with type 'TestProjectTypeDefinition' which was declared safe but is not an interface.  Safe definition types must be an interface.")
+        assertDescriptionOrCause(failure,
+            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
+            "  - Definition type not an interface for safe definition.\n" +
+            "    \n" +
+            "    Reason: Project feature 'testProjectType' has a definition with type 'TestProjectTypeDefinition' which was declared safe but is not an interface.  Safe definition types must be an interface.\n" +
+            "    \n" +
+            "    Possible solutions:\n" +
+            "      1. Mark the definition as unsafe.\n" +
+            "      2. Refactor the type as an interface."
+        )
     }
 
     def 'sensible error when definition is declared safe but has an injected service'() {
@@ -72,8 +81,16 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues: \n" +
-            "\t- The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.")
+        assertDescriptionOrCause(failure,
+            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
+            "  - Property annotated with @Inject in safe definition.\n" +
+            "    \n" +
+            "    Reason: The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.\n" +
+            "    \n" +
+            "    Possible solutions:\n" +
+            "      1. Mark the definition as unsafe.\n" +
+            "      2. Remove the @Inject annotation from the 'objects' property."
+        )
     }
 
     def 'sensible error when definition is declared safe but has a nested property with an injected service'() {
@@ -88,8 +105,16 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues: \n" +
-            "\t- The definition type has @Inject annotated property 'objects' in type 'Foo'.  Safe definition types cannot inject services.")
+        assertDescriptionOrCause(failure,
+            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
+            "  - Property annotated with @Inject in safe definition.\n" +
+            "    \n" +
+            "    Reason: The definition type has @Inject annotated property 'objects' in type 'Foo'.  Safe definition types cannot inject services.\n" +
+            "    \n" +
+            "    Possible solutions:\n" +
+            "      1. Mark the definition as unsafe.\n" +
+            "      2. Remove the @Inject annotation from the 'objects' property."
+        )
     }
 
     def 'sensible error when definition is declared safe but has multiple properties with an injected service'() {
@@ -104,9 +129,23 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues: \n" +
-            "\t- The definition type has @Inject annotated property 'objects' in type 'Foo'.  Safe definition types cannot inject services.\n" +
-            "\t- The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.")
+        assertDescriptionOrCause(failure,
+            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
+            "  - Property annotated with @Inject in safe definition.\n" +
+            "    \n" +
+            "    Reason: The definition type has @Inject annotated property 'objects' in type 'Foo'.  Safe definition types cannot inject services.\n" +
+            "    \n" +
+            "    Possible solutions:\n" +
+            "      1. Mark the definition as unsafe.\n" +
+            "      2. Remove the @Inject annotation from the 'objects' property.\n" +
+            "  - Property annotated with @Inject in safe definition.\n" +
+            "    \n" +
+            "    Reason: The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.\n" +
+            "    \n" +
+            "    Possible solutions:\n" +
+            "      1. Mark the definition as unsafe.\n" +
+            "      2. Remove the @Inject annotation from the 'objects' property."
+        )
     }
 
     def 'sensible error when definition is declared safe but inherits an injected service'() {
@@ -121,8 +160,47 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues: \n" +
-            "\t- The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.")
+        assertDescriptionOrCause(failure,
+            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
+            "  - Property annotated with @Inject in safe definition.\n" +
+            "    \n" +
+            "    Reason: The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.\n" +
+            "    \n" +
+            "    Possible solutions:\n" +
+            "      1. Mark the definition as unsafe.\n" +
+            "      2. Remove the @Inject annotation from the 'objects' property."
+        )
+    }
+
+    def 'sensible error when definition is declared safe but has several different errors'() {
+        given:
+        withPolyUnsafeProjectTypeDefinitionDeclaredSafe().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+
+        when:
+        fails(":printTestProjectTypeDefinitionConfiguration")
+
+        then:
+        assertDescriptionOrCause(failure,
+            "Project feature 'testProjectType' has a definition type which was declared safe but has the following issues:\n" +
+                "  - Definition type not an interface for safe definition.\n" +
+                "    \n" +
+                "    Reason: Project feature 'testProjectType' has a definition with type 'TestProjectTypeDefinition' which was declared safe but is not an interface.  Safe definition types must be an interface.\n" +
+                "    \n" +
+                "    Possible solutions:\n" +
+                "      1. Mark the definition as unsafe.\n" +
+                "      2. Refactor the type as an interface.\n" +
+                "  - Property annotated with @Inject in safe definition.\n" +
+                "    \n" +
+                "    Reason: The definition type has @Inject annotated property 'objects' in type 'TestProjectTypeDefinition'.  Safe definition types cannot inject services.\n" +
+                "    \n" +
+                "    Possible solutions:\n" +
+                "      1. Mark the definition as unsafe.\n" +
+                "      2. Remove the @Inject annotation from the 'objects' property."
+        )
     }
 
     void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {

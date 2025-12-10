@@ -257,6 +257,19 @@ trait ProjectTypeFixture {
         )
     }
 
+    PluginBuilder withPolyUnsafeProjectTypeDefinitionDeclaredSafe() {
+        def definition = new ProjectTypeDefinitionAbstractClassBuilder().withInjectedServices()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
     static class ProjectTypePluginClassBuilder {
         String definitionImplementationTypeClassName = "TestProjectTypeDefinition"
         String definitionPublicTypeClassName = null
@@ -951,8 +964,12 @@ trait ProjectTypeFixture {
                         action.execute(foo);
                     }
 
+                    ${maybeInjectedServiceDeclaration}
+
                     public abstract static class Foo implements ${Definition.class.simpleName}<FooBuildModel> {
                         public Foo() { }
+
+                        ${maybeNestedInjectedServiceDeclaration}
 
                         @Restricted
                         public abstract Property<String> getBar();
@@ -971,6 +988,22 @@ trait ProjectTypeFixture {
                     }
                 }
             """
+        }
+
+        @Override
+        String getMaybeInjectedServiceDeclaration() {
+            return hasInjectedServices ? """
+                @Inject
+                abstract ObjectFactory getObjects();
+            """ : ""
+        }
+
+        @Override
+        String getMaybeNestedInjectedServiceDeclaration() {
+            return hasNestedInjectedServices ? """
+                @Inject
+                abstract ObjectFactory getObjects();
+            """ : ""
         }
     }
 

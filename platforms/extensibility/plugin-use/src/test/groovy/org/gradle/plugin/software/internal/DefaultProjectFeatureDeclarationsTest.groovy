@@ -31,6 +31,7 @@ import org.gradle.api.internal.plugins.ProjectTypeApplyAction
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.tasks.properties.InspectionScheme
+import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.Instantiator
@@ -40,15 +41,16 @@ import spock.lang.Specification
 class DefaultProjectFeatureDeclarationsTest extends Specification {
     def metadataStore = Mock(TypeMetadataStore)
     def inspectionScheme = Mock(InspectionScheme)
+    def problemReporter = Mock(InternalProblemReporter)
     def instantiator = Mock(Instantiator)
-    def declarations = new DefaultProjectFeatureDeclarations(inspectionScheme, instantiator)
+    def declarations = new DefaultProjectFeatureDeclarations(inspectionScheme, instantiator, problemReporter)
     def pluginId = "com.example.test"
     def bindsProjectTypeAnnotation = Mock(BindsProjectType)
     def bindsProjectFeatureAnnotation = Mock(BindsProjectFeature)
     def featureBinding = Mock(ProjectFeatureBinding)
     def typeBinding = Mock(ProjectTypeBinding)
 
-    def "can declare and retrieve a project feature (implementation type = #definitionImplementationType?.simpleName)"() {
+    def "can declare and retrieve a project feature (implementation type = #className)"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
@@ -80,9 +82,10 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
 
         where:
         definitionImplementationType << [TestDefinitionImpl, null]
+        className = definitionImplementationType?.simpleName
     }
 
-    def "can declare and retrieve a project type (implementation type = #definitionImplementationType?.simpleName)"() {
+    def "can declare and retrieve a project type (implementation type = #className)"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
@@ -114,6 +117,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
 
         where:
         definitionImplementationType << [TestDefinitionImpl, null]
+        className = definitionImplementationType?.simpleName
     }
 
     def "cannot declare a plugin that does not bind a project feature"() {
