@@ -20,6 +20,7 @@ import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM_VERSIONS
 
 /**
  * Tests JUnitPlatform integrations with {@code LauncherSessionListener}.
@@ -96,12 +97,12 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
         outputContains("Session closed")
     }
 
-    def "creates LauncherSession before loading test classes"() {
+    def "creates LauncherSession before loading test classes with platform version #platformVersion"() {
         given:
         createSimpleJupiterTest()
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-launcher:${LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.platform:junit-platform-launcher:${platformVersion}'
             }
             test {
                 testLogging {
@@ -138,5 +139,8 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
         outputContains('launcherSessionOpened')
         outputContains('Loading class org.gradle.JUnitJupiterTest')
         outputContains('launcherSessionClosed')
+
+        where:
+        platformVersion << JUNIT_PLATFORM_VERSIONS
     }
 }
