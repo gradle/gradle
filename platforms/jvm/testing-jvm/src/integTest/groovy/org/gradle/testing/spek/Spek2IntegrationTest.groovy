@@ -75,8 +75,9 @@ class Spek2IntegrationTest extends AbstractIntegrationSpec {
         def testOps = operations.all(ExecuteTestBuildOperationType) { true }
         def testDescriptors = testOps.collect { it.details.testDescriptor }
 
-        // Verify that no test descriptor has an empty string as className
+        // Verify that no test descriptor has an empty string as name or className
         testDescriptors.each { descriptor ->
+            assert descriptor.name != null && descriptor.name != "" : "Test descriptor should not have empty string as name"
             if (descriptor.className != null) {
                 assert descriptor.className != "" : "Test descriptor should not have empty string as className: ${descriptor.name}"
             }
@@ -93,6 +94,7 @@ class Spek2IntegrationTest extends AbstractIntegrationSpec {
         def individualTests = testOps.findAll { !it.details.testDescriptor.composite }
         individualTests.each { testOp ->
             def descriptor = testOp.details.testDescriptor
+            assert descriptor.name != null && descriptor.name != "" : "Individual test should have non-empty name"
             if (descriptor.className != null) {
                 assert descriptor.className != "" : "Individual test '${descriptor.name}' should not have empty className"
             }
