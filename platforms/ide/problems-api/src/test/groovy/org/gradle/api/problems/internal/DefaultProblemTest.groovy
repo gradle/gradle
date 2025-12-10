@@ -80,18 +80,18 @@ class DefaultProblemTest extends Specification {
         given:
         def emitter = Mock(ProblemSummarizer)
         def problemReporter = new DefaultProblemReporter(
-            emitter,
-            CurrentBuildOperationRef.instance(),
-            new ExceptionProblemRegistry(),
-            null,
-            new ProblemsInfrastructure(
-                new AdditionalDataBuilderFactory(),
-                Mock(Instantiator),
-                Mock(PayloadSerializer),
-                Mock(IsolatableFactory),
-                Mock(IsolatableToBytesSerializer),
-                Mock(ProblemStream)
-            )
+                emitter,
+                CurrentBuildOperationRef.instance(),
+                new ExceptionProblemRegistry(),
+                null,
+                new ProblemsInfrastructure(
+                        new AdditionalDataBuilderFactory(),
+                        Mock(Instantiator),
+                        Mock(PayloadSerializer),
+                        Mock(IsolatableFactory),
+                        Mock(IsolatableToBytesSerializer),
+                        Mock(ProblemStream)
+                ), warningMode
         )
         def problem = createTestProblem(Severity.WARNING)
         def builder = toBuilder(problem)

@@ -33,6 +33,7 @@ public class DefaultProblems implements InternalProblems {
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
     private final ProblemsInfrastructure infrastructure;
+    private final String warningMode;
 
     public DefaultProblems(
         ProblemSummarizer problemSummarizer,
@@ -43,7 +44,8 @@ public class DefaultProblems implements InternalProblems {
         Instantiator instantiator,
         PayloadSerializer payloadSerializer,
         IsolatableFactory isolatableFactory,
-        IsolatableToBytesSerializer isolatableSerializer
+        IsolatableToBytesSerializer isolatableSerializer,
+        String warningMode
     ) {
         this.problemSummarizer = problemSummarizer;
         this.currentBuildOperationRef = currentBuildOperationRef;
@@ -51,6 +53,7 @@ public class DefaultProblems implements InternalProblems {
         this.exceptionAnalyser = exceptionAnalyser;
         this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
         this.internalReporter = createReporter();
+        this.warningMode = warningMode;
     }
 
     @Override
@@ -64,7 +67,8 @@ public class DefaultProblems implements InternalProblems {
             currentBuildOperationRef,
             exceptionProblemRegistry,
             exceptionAnalyser,
-            infrastructure);
+            infrastructure,
+            warningMode);
     }
 
     @Override

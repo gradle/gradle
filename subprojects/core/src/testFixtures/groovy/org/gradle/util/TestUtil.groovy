@@ -419,7 +419,8 @@ class TestProblems implements InternalProblems {
             null,
             null,
             null,
-            []
+            [],
+            null
         )
     }
 

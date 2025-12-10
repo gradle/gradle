@@ -121,7 +121,8 @@ public class WorkerProcessIsolationProblemsServiceProvider implements ServiceReg
             instantiatorFactory.decorate(serviceRegistry),
             payloadSerializer,
             isolatableFactory,
-            isolatableSerializerRegistry
+            isolatableSerializerRegistry,
+            null
         );
     }
 }

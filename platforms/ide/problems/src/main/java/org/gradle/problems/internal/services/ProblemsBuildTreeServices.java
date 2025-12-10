@@ -17,6 +17,7 @@
 package org.gradle.problems.internal.services;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
@@ -65,7 +66,8 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         PayloadSerializer payloadSerializer,
         IsolatableFactory isolatableFactory,
         IsolatableToBytesSerializer isolatableToBytesSerializer,
-        ServiceRegistry serviceRegistry
+        ServiceRegistry serviceRegistry,
+        StartParameter startParameter
     ) {
         return new DefaultProblems(
             problemSummarizer,
@@ -76,7 +78,9 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             instantiatorFactory.decorateLenient(serviceRegistry),
             payloadSerializer,
             isolatableFactory,
-            isolatableToBytesSerializer);
+            isolatableToBytesSerializer,
+            startParameter.getWarningMode().toString()
+        );
     }
 
     @Provides

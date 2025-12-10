@@ -34,19 +34,22 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
+    private final String warningMode;
 
     public DefaultProblemReporter(
         ProblemSummarizer problemSummarizer,
         CurrentBuildOperationRef currentBuildOperationRef,
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
-        ProblemsInfrastructure infrastructure
+        ProblemsInfrastructure infrastructure,
+        String warningMode
     ) {
         this.problemSummarizer = problemSummarizer;
         this.infrastructure = infrastructure;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
+        this.warningMode = warningMode;
     }
 
     @Override
@@ -168,7 +171,16 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         if (exception != null) {
             exceptionProblemRegistry.onProblem(transform(exception), internalProblem);
         }
-        return problemSummarizer.emit(internalProblem, id);
+
+
+        boolean wasEmitted = problemSummarizer.emit(internalProblem, id);
+        //if it was emitted and warning-mode is set to 'fail' then also throw an exception
+        if (wasEmitted && "Fail".equals(warningMode)) {
+            RuntimeException ex = runtimeException(internalProblem.getException());
+            exceptionProblemRegistry.onProblem(transform(ex), internalProblem);
+            throw ex;
+        }
+        return wasEmitted;
     }
 
     @NonNull
