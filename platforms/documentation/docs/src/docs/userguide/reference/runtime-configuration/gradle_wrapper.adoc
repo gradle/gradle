@@ -355,7 +355,7 @@ distributionUrl=https://username:password@somehost/path/to/gradle-distribution.z
 This can be used in conjunction with a proxy, authenticated or not.
 See <<networking.adoc#sec:accessing_the_web_via_a_proxy,Accessing the web via a proxy>> for more information on how to configure the `Wrapper` to use a proxy.
 
-WARNING: If you use `systemProp.gradle.wrapperUser` and `systemProp.gradle.wrapperPassword` to download the Gradle Wrapper from a private server, your credentials may be leaked if a build attempts to download the wrapper from a different server..
+WARNING: Using `systemProp.gradle.wrapperUser` and `systemProp.gradle.wrapperPassword` may leak your credentials if the build attempts to download the Gradle Wrapper from a server other than your private one.
 
 To safeguard your credentials, prefix these system properties with your private server's hostname, replacing all dots (`.`) with underscores (`_`).
 
