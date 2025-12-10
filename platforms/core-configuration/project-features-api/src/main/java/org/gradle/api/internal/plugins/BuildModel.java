@@ -20,5 +20,5 @@ package org.gradle.api.internal.plugins;
  * A marker interface for build model objects.
  */
 public interface BuildModel {
-    class NONE implements BuildModel { }
+    final class None implements BuildModel { }
 }

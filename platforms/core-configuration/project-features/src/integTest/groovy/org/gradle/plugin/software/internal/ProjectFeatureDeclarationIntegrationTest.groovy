@@ -28,7 +28,6 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.Matchers
 import org.junit.Rule
 
@@ -350,7 +349,6 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("model text = foo BAR")
     }
 
-    @ToBeImplemented
     def 'can declare a custom project feature with no build model'() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureThatHasNoBuildModel()
@@ -362,10 +360,17 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeatureTextProperty << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        fails(":printProjectTypeDefinitionConfiguration")
+        run(":printProjectTypeDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure, "Cannot determine build model type for interface org.gradle.test.FeatureDefinition")
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = foo")
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
     }
 
     private String getPluginBuildScriptForJava() {

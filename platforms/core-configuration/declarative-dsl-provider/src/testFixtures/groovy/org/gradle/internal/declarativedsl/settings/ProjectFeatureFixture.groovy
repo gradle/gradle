@@ -871,7 +871,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import org.gradle.api.model.ObjectFactory;
 
                 @${Restricted.class.simpleName}
-                public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${BuildModel.class.simpleName}.NONE> {
+                public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${BuildModel.class.simpleName}.None> {
                     @${Restricted.class.simpleName}
                     Property<String> getText();
                 }
