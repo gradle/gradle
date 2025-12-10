@@ -24,6 +24,9 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.FailureHeader;
@@ -58,10 +61,28 @@ public class BuildResultLogger {
         // Summary of deprecations is considered a part of the build summary
         DeprecationLogger.reportSuppressedDeprecations();
 
-        // Summary of validation warnings during the build
-        workValidationWarningReporter.reportWorkValidationWarningsAtEndOfBuild();
 
         boolean buildSucceeded = result.getFailure() == null;
+        if (buildSucceeded) {
+            // print the problem report URL if WarningMode > None.
+            try {
+                // TODO (donat) get the project root from more reputable source
+                File problemReportFile = new File("reports/problems/problems-report.html");
+                // ConsoleRenderer().asClickableFileUrl(it)
+                Object url = new URI("file", "", problemReportFile.toURI().getPath(), null, null).toASCIIString();
+
+
+                textOutputFactory
+                    .create(BuildResultLogger.class, LogLevel.LIFECYCLE)
+                    .text(System.lineSeparator() + "Build reports \n - Problems report: " + url)
+                    .println();
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // Summary of validation warnings during the build
+        workValidationWarningReporter.reportWorkValidationWarningsAtEndOfBuild();
 
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, buildSucceeded ? LogLevel.LIFECYCLE : LogLevel.ERROR);
         textOutput.println();

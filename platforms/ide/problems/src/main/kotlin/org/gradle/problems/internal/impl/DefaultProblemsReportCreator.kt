@@ -40,7 +40,6 @@ import org.gradle.internal.configuration.problems.FailureDecorator
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.writeError
 import org.gradle.internal.configuration.problems.writeStructuredMessage
-import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.internal.problems.failure.FailureFactory
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
@@ -63,6 +62,7 @@ class DefaultProblemsReportCreator(
     private val failureDecorator = FailureDecorator()
 
     override fun createReportFile(reportDir: File, problemSummaries: List<ProblemSummaryData>) {
+        // TODO (donat) wire the location of the report to BuildResultLogger
         report.writeReportFileTo(reportDir.resolve("reports/problems"), object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
@@ -86,8 +86,9 @@ class DefaultProblemsReportCreator(
                 }
             }
         })?.let {
-            val url = ConsoleRenderer().asClickableFileUrl(it)
-            logger.warn("${System.lineSeparator()}[Incubating] Problems report is available at: $url")
+            // TODO (donat) delete!
+//            val url = ConsoleRenderer().asClickableFileUrl(it)
+//            logger.warn("${System.lineSeparator()}[Incubating] Problems report is available at: $url")
         }
     }
 

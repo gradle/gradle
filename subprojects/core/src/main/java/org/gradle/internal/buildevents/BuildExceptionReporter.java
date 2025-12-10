@@ -44,7 +44,10 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -206,6 +209,17 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private FailureDetails constructFailureDetails(String granularity, Failure failure) {
         FailureDetails details = new FailureDetails(failure, getShowStackTraceOption());
         details.summary.format("%s failed with an exception.", granularity);
+
+        // print the problem report URL if WarningMode > None.
+        try {
+            // TODO (donat) get the project root from more reputable source
+            File problemReportFile = new File("reports/problems/problems-report.html");
+            // ConsoleRenderer().asClickableFileUrl(it)
+            Object url = new URI("file", "", problemReportFile.toURI().getPath(), null, null).toASCIIString();
+            details.reports.format("- Problems report: %s", url);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
 
         fillInFailureResolution(details);
 
@@ -470,6 +484,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         writeSection(details.location, output, "* Where:");
         writeSection(details.details, output, "* What went wrong:");
         writeSection(details.resolution, output, "* Try:");
+        writeSection(details.reports, output, "* Reports:");
         writeSection(details.stackTrace, output, "* Exception is:");
     }
 
@@ -488,6 +503,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         final BufferingStyledTextOutput summary = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput details = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput location = new BufferingStyledTextOutput();
+        public BufferingStyledTextOutput reports = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput stackTrace = new BufferingStyledTextOutput();
         final BufferingStyledTextOutput resolution = new BufferingStyledTextOutput();
         final ExceptionStyle exceptionStyle;
