@@ -64,6 +64,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "classloaders",
         "cli",
         "client-services",
+        "collections",
         "concurrent",
         "configuration-problems-base",
         "core",
