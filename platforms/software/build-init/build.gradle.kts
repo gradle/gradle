@@ -42,7 +42,6 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
-    implementation(libs.guava)
     implementation(libs.gson)
     implementation(libs.commonsLang)
     implementation(libs.maven3SettingsBuilder)
