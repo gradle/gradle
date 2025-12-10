@@ -520,7 +520,7 @@ public class StaticInnerTest {
         outputContains("afterSuite: Test class engine_EngineFailingExecution -> FAILURE")
     }
 
-    def "works with JUnit 6"() {
+    def "works with JUnit 6 MethodOrderer.Default and ClassOrderer.Default"() {
         given:
         buildScriptWithJupiterDependencies("""
             test {
@@ -528,18 +528,41 @@ public class StaticInnerTest {
             }
         """, LATEST_JUNIT6_VERSION)
 
-        file('src/test/java/org/gradle/JUnit6Test.java') << '''
+        file('src/test/java/org/gradle/JUnit6OrderingTest.java') << '''
             package org.gradle;
 
+            import org.junit.jupiter.api.Nested;
             import org.junit.jupiter.api.Test;
-            import org.junit.jupiter.api.DisplayName;
+            import org.junit.jupiter.api.TestMethodOrder;
+            import org.junit.jupiter.api.MethodOrderer;
+            import org.junit.jupiter.api.Order;
 
-            @DisplayName("JUnit 6 Test Suite")
-            public class JUnit6Test {
+            @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+            public class JUnit6OrderingTest {
                 @Test
-                @DisplayName("Simple JUnit 6 test")
-                public void testWithJUnit6() {
-                    // This test verifies JUnit 6 works
+                @Order(2)
+                public void testB() {
+                    // Runs second in outer class
+                }
+
+                @Test
+                @Order(1)
+                public void testA() {
+                    // Runs first in outer class
+                }
+
+                @Nested
+                @TestMethodOrder(MethodOrderer.Default.class)
+                class NestedTestWithDefaultOrdering {
+                    @Test
+                    public void testZ() {
+                        // Uses default ordering (not parent's OrderAnnotation)
+                    }
+
+                    @Test
+                    public void testY() {
+                        // Uses default ordering (not parent's OrderAnnotation)
+                    }
                 }
             }
         '''
@@ -549,6 +572,6 @@ public class StaticInnerTest {
 
         then:
         def results = resultsFor(testDirectory)
-        results.testPath('org.gradle.JUnit6Test').onlyRoot().assertTestCount(1, 0)
+        results.testPath('org.gradle.JUnit6OrderingTest').onlyRoot().assertTestCount(4, 0)
     }
 }
