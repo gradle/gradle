@@ -59,6 +59,8 @@ final class ChampNode<K> {
         return new ChampNode<>(newDataMap, nodeMap, newContent);
     }
 
+    // 💭 Intentionally throws - ChampNode instances should not be used as hash keys.
+    // This is correct design, but the exception message could be more informative.
     @Override
     public int hashCode() {
         throw new IllegalStateException();

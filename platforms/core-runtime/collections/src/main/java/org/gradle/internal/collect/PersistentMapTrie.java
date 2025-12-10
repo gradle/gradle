@@ -73,6 +73,9 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
         }
         int newSize = size - 1;
         if (newSize == 1) {
+            // ✅ Collapse to PersistentMap1. This maintains the invariant that
+            // PersistentMapTrie always has size >= 2, which allows equals() to only
+            // compare with other PersistentMapTrie instances.
             Object[] content = newRoot.content;
             return PersistentMap.of((K) content[0], (V) content[1]);
         }
@@ -138,6 +141,16 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
         return hashCode;
     }
 
+    // ✅ Only compares with PersistentMapTrie. Safe because dissoc() collapses to PersistentMap1
+    // when size becomes 1 (see line 75-77), so a PersistentMapTrie always has size >= 2.
+    //
+    // Relies on ChampNode.equals() which uses Arrays.equals(content, that.content).
+    // This works because CHAMP trie structure is deterministic based on key hash codes,
+    // so same keys → same structure → same content array ordering.
+    //
+    // ⚠️ However, this transitively calls HashCollisionNode.equals() for collision nodes,
+    // which is buggy for maps (see HashCollisionNode.equals comment). Two maps that differ
+    // only in values within a collision bucket may incorrectly compare as equal.
     @Override
     public boolean equals(Object o) {
         if (this == o) {

@@ -75,6 +75,12 @@ final class PersistentArray1<T> implements PersistentArray<T> {
         action.accept(value);
     }
 
+    // ✅ Only compares with PersistentArray1, but this is OK for PersistentArray because:
+    // - PersistentArray1 always has exactly 1 element
+    // - PersistentArraySmall always has 2-32 elements
+    // - PersistentArrayTrie always has 33+ elements
+    // These ranges are mutually exclusive, so same-content arrays will always have the same type.
+    // (Unlike PersistentMap/Set where deletion can leave a trie with 1 element)
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {

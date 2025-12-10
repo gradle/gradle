@@ -114,6 +114,16 @@ final class PersistentMap1<K, V> implements PersistentMap<K, V> {
         return PersistentMapEntry.hashCodeOf(key, value);
     }
 
+    // 🤔 Potential asymmetry concern: Only compares with PersistentMap1.
+    //
+    // Currently safe because PersistentMapTrie.dissoc() collapses to PersistentMap1 when
+    // size becomes 1 (see PersistentMapTrie:75-77). But this creates a fragile invariant:
+    // if that collapse logic ever changes, equals() would break.
+    //
+    // A more robust approach would check for PersistentMap<?> and compare via
+    // size() + containsKey() + get(). But the current approach is faster for the common case.
+    //
+    // Note: PersistentSet1 takes the robust approach (checks for PersistentSet<?>).
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -122,7 +132,7 @@ final class PersistentMap1<K, V> implements PersistentMap<K, V> {
         if (other == null) {
             return false;
         }
-        if (!(other instanceof PersistentMap1<?, ?>)) {
+        if (!(other instanceof PersistentMap1<?, ?>)) {  // fragile: relies on trie collapse invariant
             return false;
         }
         PersistentMap1<?, ?> that = (PersistentMap1<?, ?>) other;

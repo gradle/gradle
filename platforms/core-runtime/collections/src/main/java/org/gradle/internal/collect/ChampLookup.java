@@ -24,6 +24,9 @@ import static org.gradle.internal.collect.ChampNode.nodeIndex;
 
 /// Implementation of the CHAMP lookup algorithm shared by [PersistentSetTrie], when `payload == 0`,
 /// and [PersistentMapTrie], when `payload == 1`.
+///
+/// ✅ Uses an iterative loop instead of recursion to traverse the trie, avoiding
+/// stack overflow for deep tries and improving performance.
 final class ChampLookup {
 
     @SuppressWarnings({"BoxedPrimitiveEquality", "ReferenceEquality"})
