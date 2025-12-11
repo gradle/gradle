@@ -31,6 +31,9 @@ import org.gradle.api.internal.plugins.ProjectTypeApplyAction
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.tasks.properties.InspectionScheme
+import org.gradle.api.problems.ProblemDefinition
+import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
@@ -170,7 +173,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         implementations.size() == 1
     }
 
-    def "cannot declare two plugins with the same project type"() {
+    def "cannot declare two plugins with the same feature name"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def duplicatePluginTypeMetadata = Mock(TypeMetadata)
         def pluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
@@ -210,10 +213,15 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentBuildModel, Mock(ProjectFeatureApplyAction))
         }
+        1 * problemReporter.internalCreate(_) >> Stub(InternalProblem) {
+            getDefinition() >> Stub(ProblemDefinition) {
+                getSeverity() >> Severity.ERROR
+            }
+        }
 
         and:
         def e = thrown(IllegalArgumentException)
-        e.message == "Project feature 'test' is registered by both '${this.class.name}\$DuplicateProjectTypeImpl' and '${this.class.name}\$ProjectTypeImpl'"
+        e.message.startsWith("Project feature 'test' is registered by multiple plugins")
     }
 
     private interface ParentDefinition extends Definition<ParentBuildModel> { }

@@ -111,6 +111,32 @@ trait ProjectTypeFixture {
         return pluginBuilder
     }
 
+    PluginBuilder withTwoProjectTypesThatHaveTheSameName() {
+        def mainDefinition = new ProjectTypeDefinitionClassBuilder()
+        def anotherDefinition = new AnotherProjectTypeDefinitionClassBuilder()
+        def mainProjectType = new ProjectTypePluginClassBuilder()
+        def anotherProjectType = new ProjectTypePluginClassBuilder()
+            .definitionImplementationTypeClassName("AnotherProjectTypeDefinition")
+            .definitionPublicTypeClassName("AnotherProjectTypeDefinition")
+            .projectTypePluginClassName("AnotherProjectTypeImplPlugin")
+            .withoutConventions()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(mainProjectType.projectTypePluginClassName)
+            .registersProjectType(anotherProjectType.projectTypePluginClassName)
+
+        PluginBuilder pluginBuilder = withProjectType(
+            mainDefinition,
+            mainProjectType,
+            settingsBuilder
+        )
+
+        pluginBuilder.addPluginId("com.example.another-software-type-impl", anotherProjectType.projectTypePluginClassName)
+        anotherProjectType.build(pluginBuilder)
+        anotherDefinition.build(pluginBuilder)
+
+        return pluginBuilder
+    }
+
     PluginBuilder withProjectTypeThatHasDifferentPublicAndImplementationModelTypes() {
         def definition = new ProjectTypeDefinitionWithImplementationTypeClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()

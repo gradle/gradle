@@ -17,6 +17,7 @@
 package org.gradle.plugin.software.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
@@ -87,9 +88,6 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
-    /**
-     * This test is not yet implemented because it requires a custom repository to be set up which is not possible yet with the declarative dsl.
-     */
     def 'can declare and configure a custom project type from plugin published to a custom repository'() {
         given:
         def pluginBuilder = withProjectType()
@@ -219,6 +217,28 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         failure.assertHasCause("Type 'org.gradle.test.NotAProjectTypePlugin' is registered as a project feature plugin but does not expose a project feature.")
     }
 
+    def 'sensible error when two plugins register the same project type'() {
+        given:
+        withTwoProjectTypesThatHaveTheSameName().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+
+        when:
+        fails(":help")
+
+        then:
+        assertDescriptionOrCause(failure,
+            "Project feature 'testProjectType' is registered by multiple plugins:\n" +
+            "  - Project feature 'testProjectType' is registered by both 'org.gradle.test.AnotherProjectTypeImplPlugin' and 'org.gradle.test.ProjectTypeImplPlugin'.\n" +
+            "    \n" +
+            "    Reason: A project feature or type with a given name can only be registered by a single plugin.\n" +
+            "    \n" +
+            "    Possible solution: Remove one of the plugins from the build."
+        )
+    }
+
     def 'a project type plugin can declare multiple project types'() {
         given:
         withProjectTypePluginThatExposesMultipleProjectTypes().prepareToExecute()
@@ -310,5 +330,13 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     void assertThatDeclaredValuesAreSetProperly() {
         outputContains("""id = test\nbar = baz""")
+    }
+
+    void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
+        if (currentDsl() == GradleDsl.DECLARATIVE) {
+            failure.assertHasDescription(expectedMessage)
+        } else {
+            failure.assertHasCause(expectedMessage)
+        }
     }
 }

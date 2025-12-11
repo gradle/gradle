@@ -154,6 +154,29 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return pluginBuilder
     }
 
+    PluginBuilder withTwoProjectFeaturesThatHaveTheSameName() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder()
+        def anotherFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+            .withClassName("AnotherFeatureDefinition")
+        def anotherProjectFeature = new ProjectFeaturePluginClassBuilder()
+            .definitionImplementationType(anotherFeatureDefinition.defaultClassName)
+            .projectFeaturePluginClassName("AnotherProjectFeatureImplPlugin")
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+            .registersProjectFeature(anotherProjectFeature.projectFeaturePluginClassName)
+
+        def pluginBuilder = withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+
+        anotherProjectFeature.build(pluginBuilder)
+        anotherFeatureDefinition.build(pluginBuilder)
+
+        return pluginBuilder
+    }
+
     PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypes() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()

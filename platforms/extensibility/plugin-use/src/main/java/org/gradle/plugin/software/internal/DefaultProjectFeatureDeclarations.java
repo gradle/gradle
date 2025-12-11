@@ -48,6 +48,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -111,7 +112,14 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
 
         Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(projectFeatureName, pluginClass);
         if (existingPluginClass != null && existingPluginClass != pluginClass) {
-            throw new IllegalArgumentException("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'");
+            InternalProblem duplicateRegistrationProblem = problemReporter.internalCreate(builder -> builder
+                .id("duplicate-project-feature-registration", "Duplicate project feature registration", GradleCoreProblemGroup.configurationUsage())
+                .details("A project feature or type with a given name can only be registered by a single plugin.")
+                .contextualLabel("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'")
+                .solution("Remove one of the plugins from the build.")
+                .severity(Severity.ERROR)
+            );
+            throwTypeValidationException("Project feature '" + projectFeatureName + "' is registered by multiple plugins:", Collections.singletonList(duplicateRegistrationProblem));
         }
 
         if (binding.getDefinitionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE) {
@@ -174,8 +182,8 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         if (binding.getDefinitionImplementationType().isPresent() && !binding.getDefinitionImplementationType().get().equals(binding.getDefinitionType())) {
             problems.add(problemReporter.internalCreate(builder -> builder
                 .id("unsafe-definition-implementation-type", "Definition implementation type specified for safe definition", GradleCoreProblemGroup.configurationUsage())
-                .details("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but has an implementation type '" + binding.getDefinitionImplementationType().get().getSimpleName() + "'.  " +
-                    "Safe definitions must not specify an implementation type.")
+                .details("Safe definitions must not specify an implementation type.")
+                .contextualLabel("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but has an implementation type '" + binding.getDefinitionImplementationType().get().getSimpleName() + "'")
                 .solution("Mark the definition as unsafe.")
                 .solution("Remove the implementation type specification.")
                 .severity(Severity.ERROR)
@@ -185,8 +193,8 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         if (!binding.getDefinitionType().isInterface()) {
             problems.add(problemReporter.internalCreate(builder -> builder
                 .id("unsafe-definition-type-not-interface", "Definition type not an interface for safe definition", GradleCoreProblemGroup.configurationUsage())
-                .details("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but is not an interface.  " +
-                    "Safe definition types must be an interface.")
+                .details("Safe definition types must be an interface.")
+                .contextualLabel("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but is not an interface")
                 .solution("Mark the definition as unsafe.")
                 .solution("Refactor the type as an interface.")
                 .severity(Severity.ERROR)
@@ -197,6 +205,10 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
 
         problemReporter.report(problems);
 
+        throwTypeValidationException("Project feature '" + binding.getName() + "' has a definition type which was declared safe but has the following issues:", problems);
+    }
+
+    private static void throwTypeValidationException(String summary, List<InternalProblem> problems) {
         List<String> formattedErrors = problems.stream()
             .filter(problem -> problem.getDefinition().getSeverity().equals(Severity.ERROR))
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
@@ -204,7 +216,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
 
         if (!formattedErrors.isEmpty()) {
             TreeFormatter formatter = new TreeFormatter(true);
-            formatter.node("Project feature '" + binding.getName() + "' has a definition type which was declared safe but has the following issues:");
+            formatter.node(summary);
             formatter.startChildren();
             formattedErrors.forEach(formatter::node);
             formatter.endChildren();
@@ -218,8 +230,8 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             if (propertyMetadata.isAnnotationPresent(Inject.class)) {
                 problems.add(problemReporter.internalCreate(builder -> builder
                     .id("unsafe-definition-inject-property", "Property annotated with @Inject in safe definition", GradleCoreProblemGroup.configurationUsage())
-                    .details("The definition type has @Inject annotated property '" + propertyMetadata.getPropertyName() + "' in type '" + definitionType.getSimpleName() + "'.  " +
-                        "Safe definition types cannot inject services.")
+                    .details("Safe definition types cannot inject services.")
+                    .contextualLabel("The definition type has @Inject annotated property '" + propertyMetadata.getPropertyName() + "' in type '" + definitionType.getSimpleName() + "'")
                     .solution("Mark the definition as unsafe.")
                     .solution("Remove the @Inject annotation from the '" + propertyMetadata.getPropertyName() + "' property.")
                     .severity(Severity.ERROR)
