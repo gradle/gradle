@@ -35,8 +35,6 @@ dependencies {
     externalApi(libs.jspecify)
     // We don't use this anymore for annotating the public API, but we support plugin types annotated with it
     externalApi(libs.jsr305)
-    // We don't use this anymore in public types, but it is still part of the public API
-    externalApi(libs.jetbrainsAnnotations)
     // SLF4J logging is part of our public API
     externalApi(libs.slf4jApi)
     // We only need this because of AntTarget :o
@@ -57,6 +55,7 @@ dependencies {
     legacyExternalApi(libs.kotlinReflect)
     legacyExternalApi(libs.nativePlatform)
     legacyExternalApi(libs.log4jToSlf4j)
+    legacyExternalApi(libs.jetbrainsAnnotations)
 }
 // These are relocated impldeps that we should exclude
 configurations.legacyExternalApi {
