@@ -66,16 +66,8 @@ class DefaultKotlinMetadataCompatibilityChecker(
                 incompatibleFiles.add(file)
             }
 
-            if (incompatibleFiles.isNotEmpty() && elementChecker.hasDoneCalculation) {
-                // if there are incompatibilities we abort checking the classpath further, to save on performance
-                //
-                // the part which also considers if everything is coming from cache, or if there was "calculation needed" is there
-                // to provide increasingly more accurate results (since the cache is user home level, accuracy increases for different builds over time)
-                SnapshotVisitResult.TERMINATE // TODO: remove magic
-            } else {
-                // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
-                SnapshotVisitResult.SKIP_SUBTREE
-            }
+            // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
+            SnapshotVisitResult.SKIP_SUBTREE
         }
 
         return incompatibleFiles
@@ -86,11 +78,7 @@ class DefaultKotlinMetadataCompatibilityChecker(
 private
 class ClasspathElementChecker(val classpathWalker: ClasspathWalker, val extractor: KotlinMetadataVersionExtractor) {
 
-    var hasDoneCalculation = false
-
     fun isCompatible(file: File): Boolean {
-        hasDoneCalculation = true
-
         var incompatibilityFound = false
         classpathWalker.visit(file) { entry ->
             // "org/gradle/internal/Blah.class" Kotlin 1
@@ -111,7 +99,6 @@ class ClasspathElementChecker(val classpathWalker: ClasspathWalker, val extracto
         }
         return !incompatibilityFound
     }
-
 }
 
 private
