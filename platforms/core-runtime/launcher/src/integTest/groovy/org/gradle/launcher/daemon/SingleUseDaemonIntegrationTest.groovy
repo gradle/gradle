@@ -31,6 +31,7 @@ import java.nio.charset.Charset
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
+    private static final EXPECTED_CAN_USE_CURRENT_PROCESS_MESSAGE  = "The current JVM process isn't compatible with build requirement"
     def tmpdir = buildContext.getTmpDir().createDir()
 
     def setup() {
@@ -51,6 +52,25 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements 
         executer.withCommandLineGradleOpts("-Djava.io.tmpdir=${tmpdir}")
 
         file('gradle.properties').writeProperties('org.gradle.jvmargs': DaemonParameters.DEFAULT_JVM_ARGS.join(" ") + " -Djava.io.tmpdir=${tmpdir} -ea")
+    }
+
+    def "forks build when incompatible JVM args are requested and log level is info"() {
+        buildRequestsJvmArgs('-Xmx64m')
+
+        file('build.gradle') << "println 'hello world'"
+
+        executer.withArgument("--info")
+
+        when:
+        succeeds()
+
+        then:
+        wasForked()
+        outputContains(EXPECTED_CAN_USE_CURRENT_PROCESS_MESSAGE)
+        outputContains("At least one daemon option is different.")
+
+        and:
+        daemons.daemon.stops()
     }
 
     def "forks build when incompatible JVM args are requested"() {
@@ -228,6 +248,7 @@ assert System.getProperty('some-prop') == 'some-value'
 
     private void wasNotForked() {
         outputDoesNotContain(SingleUseDaemonClient.MESSAGE)
+        outputDoesNotContain(EXPECTED_CAN_USE_CURRENT_PROCESS_MESSAGE)
         assert daemons.daemons.size() == 0
     }
 
