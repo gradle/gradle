@@ -18,8 +18,8 @@ package gradlebuild.packaging
 
 import gradlebuild.basics.repoRoot
 import gradlebuild.packaging.tasks.GenerateClasspathModuleProperties
-import gradlebuild.packaging.tasks.GenerateEmptyModuleProperties
 import gradlebuild.packaging.tasks.GenerateLicenseFile
+import gradlebuild.packaging.tasks.GenerateSingleModuleProperties
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 import java.io.File
@@ -37,12 +37,13 @@ object GradleDistributionSpecs {
         val runtimeClasspath = configurations.getByName("runtimeClasspath")
         val generateRuntimeModuleProperties = tasks.named("generateRuntimeModuleProperties", GenerateClasspathModuleProperties::class.java).get()
         val runtimeApiInfoJar = tasks.getByName("runtimeApiInfoJar")
-        val runtimeApiInfoJarModuleProperties = tasks.named("runtimeApiInfoJarModuleProperties", GenerateEmptyModuleProperties::class.java).get()
+        val runtimeApiInfoJarModuleProperties = tasks.named("runtimeApiInfoJarModuleProperties", GenerateSingleModuleProperties::class.java).get()
         val gradleApiKotlinExtensionsJar = tasks.getByName("gradleApiKotlinExtensionsJar")
-        val gradleApiKotlinExtensionsJarModuleProperties = tasks.named("gradleApiKotlinExtensionsJarModuleProperties", GenerateEmptyModuleProperties::class.java).get()
+        val gradleApiKotlinExtensionsJarModuleProperties = tasks.named("gradleApiKotlinExtensionsJarModuleProperties", GenerateSingleModuleProperties::class.java).get()
         val agentsRuntimeClasspath = configurations.getByName("agentsRuntimeClasspath")
         val generateAgentsRuntimeModuleProperties = tasks.named("generateAgentsRuntimeModuleProperties", GenerateClasspathModuleProperties::class.java).get()
         val gradlePublicAbiClasspath = configurations.getByName("gradlePublicAbiClasspath")
+        val generatePublicAbiModuleProperties = tasks.named("generatePublicAbiModuleProperties", GenerateSingleModuleProperties::class.java).get()
         val generateLicenseFile = tasks.named("generateLicenseFile", GenerateLicenseFile::class.java).get()
 
         from(generateLicenseFile.outputLicenseFile)
@@ -58,10 +59,10 @@ object GradleDistributionSpecs {
 
         into("lib") {
             from(runtimeApiInfoJar)
-            from(runtimeApiInfoJarModuleProperties)
+            from(runtimeApiInfoJarModuleProperties.outputDir)
 
             from(gradleApiKotlinExtensionsJar)
-            from(gradleApiKotlinExtensionsJarModuleProperties)
+            from(gradleApiKotlinExtensionsJarModuleProperties.outputDir)
             from(coreRuntimeClasspath)
             from(coreRuntimeProperties)
             into("plugins") {
@@ -80,6 +81,7 @@ object GradleDistributionSpecs {
             }
             into("api") {
                 from(gradlePublicAbiClasspath)
+                from(generatePublicAbiModuleProperties.outputDir)
             }
         }
     }

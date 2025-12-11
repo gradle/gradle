@@ -57,50 +57,6 @@ dependencies {
     legacyExternalApi(libs.log4jToSlf4j)
     legacyExternalApi(libs.jetbrainsAnnotations)
 }
-// These are relocated impldeps that we should exclude
-configurations.legacyExternalApi {
-    extendsFrom(configurations.externalApi.get())
-    exclude(module = "qdox")
-    exclude(module = "javaparser-core")
-}
-
-// The JAR built by this module includes the ABI of internals
-val internalBaseName = gradleModule.identity.baseName.map { "$it-internal" }
-tasks.jarGradleApi {
-    archiveBaseName = internalBaseName
-}
-tasks.classpathManifest {
-    manifestFile = layout.buildDirectory.dir("generated-resources/classpath-manifest")
-        .zip(internalBaseName) { dir, baseName ->
-            dir.file("$baseName-classpath.properties")
-        }
-}
-configurations {
-    gradleApiElements {
-        outgoing {
-            capability(internalBaseName.map { "$group:$it:$version" })
-        }
-    }
-}
-
-// Legacy Gradle API
-val legacyBaseName = gradleModule.identity.baseName.map { "$it-legacy" }
-tasks.jarGradleApiLegacy {
-    archiveBaseName = legacyBaseName
-}
-tasks.legacyClasspathManifest {
-    manifestFile = layout.buildDirectory.dir("generated-resources/legacy-classpath-manifest")
-        .zip(legacyBaseName) { dir, baseName ->
-            dir.file("$baseName-classpath.properties")
-        }
-}
-configurations {
-    legacyGradleApiElements {
-        outgoing {
-            capability(legacyBaseName.map { "$group:$it:$version" })
-        }
-    }
-}
 
 val testRepoLocation = layout.buildDirectory.dir("repos/test")
 
@@ -144,14 +100,6 @@ signing {
     publishing.publications.configureEach {
         if (signArtifacts) {
             signing.sign(this)
-        }
-    }
-}
-
-configurations {
-    sourcesElements {
-        outgoing {
-            capability(internalBaseName.map { "$group:$it:$version" })
         }
     }
 }

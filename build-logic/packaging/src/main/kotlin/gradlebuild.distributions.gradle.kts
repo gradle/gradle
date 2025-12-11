@@ -16,6 +16,7 @@
 
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.PublicApiVariants
 import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import gradlebuild.basics.repoRoot
@@ -36,7 +37,7 @@ import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.GenerateClasspathModuleProperties
-import gradlebuild.packaging.tasks.GenerateEmptyModuleProperties
+import gradlebuild.packaging.tasks.GenerateSingleModuleProperties
 import gradlebuild.packaging.support.PomLicenseUtils
 import gradlebuild.packaging.tasks.GenerateLicenseFile
 import gradlebuild.packaging.tasks.PluginsManifest
@@ -110,6 +111,8 @@ agentsRuntimeClasspath.description = "Resolves to all Jars that need to be added
 val gradlePublicAbiClasspath = apiLibraryResolver("gradlePublicAbiClasspath", listOf(publicAbiOnly))
 gradlePublicAbiClasspath.description = "Resolves all Jars that make up the public API of Gradle"
 gradlePublicAbiClasspath.isTransitive = false // Transitives must already be part of the distribution
+val gradlePublicAbiRuntimeClasspath = apiLibraryResolver("gradlePublicAbiRuntimeClasspath", listOf(publicAbiOnly))
+gradlePublicAbiRuntimeClasspath.description = "Resolves the public API ABI jar and its transitive dependencies (used to populate the module registry's dependency list for that jar)"
 val gradleScriptPath = startScriptResolver("gradleScriptPath", ":gradle-cli-main")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath = sourcesResolver("sourcesPath", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
@@ -230,6 +233,21 @@ tasks.register<GenerateClasspathModuleProperties>("generateAgentsRuntimeModulePr
     outputDir = layout.buildDirectory.dir("classpathProperties/$name")
 }
 
+// Distributions that don't include an API variant jar (anything other than :distributions-full)
+// get an empty output directory — the task tolerates an empty resolved configuration.
+val generatePublicAbiModuleProperties = tasks.register<GenerateSingleModuleProperties>("generatePublicAbiModuleProperties") {
+    moduleName = PublicApiVariants.LEGACY_MODULE_NAME
+    artifactFileName = gradlePublicAbiClasspath.incoming.artifacts.resolvedArtifacts.map { artifacts ->
+        when (artifacts.size) {
+            0 -> null // No API variant jar in this distribution (anything other than :distributions-full)
+            1 -> artifacts.single().file.name
+            else -> error("Expected at most one public API ABI jar, but resolved ${artifacts.size}: ${artifacts.map { it.file.name }}")
+        }
+    }
+    configureDependenciesFrom(gradlePublicAbiRuntimeClasspath, excludingProjectName = "public-api")
+    outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
 // Generate the component license section for the distribution LICENSE file.
 // The output is used by GradleDistributionSpecs instead of the static root LICENSE.
 val generateLicenseFile = tasks.register<GenerateLicenseFile>("generateLicenseFile") {
@@ -278,10 +296,11 @@ val gradleApiKotlinExtensionsJar = tasks.register<Jar>("gradleApiKotlinExtension
     from(compileGradleApiKotlinExtensions.flatMap { it.destinationDirectory })
 }
 
-fun generateModulePropertiesFor(moduleJar: TaskProvider<Jar>, moduleName: String): TaskProvider<GenerateEmptyModuleProperties> {
-    return tasks.register<GenerateEmptyModuleProperties>(moduleJar.name + "ModuleProperties") {
+fun generateModulePropertiesFor(moduleJar: TaskProvider<Jar>, registryModuleName: String): TaskProvider<GenerateSingleModuleProperties> {
+    return tasks.register<GenerateSingleModuleProperties>(moduleJar.name + "ModuleProperties") {
+        moduleName = registryModuleName
         artifactFileName = moduleJar.flatMap { it.archiveFileName }
-        outputFile = moduleJar.flatMap { it.archiveBaseName }.flatMap { generatedPropertiesFileFor(moduleName) }
+        outputDir = layout.buildDirectory.dir("classpathProperties/$name")
     }
 }
 
@@ -468,26 +487,22 @@ fun consumableVariant(name: String, extends: List<Configuration>, artifacts: Lis
     }
 
 fun consumableSourcesVariant(name: String, extends: List<Configuration>, vararg artifacts: Any) =
-    configurations.create("${name}Elements") {
+    configurations.consumable("${name}Elements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
         }
-        isCanBeResolved = false
-        isCanBeConsumed = true
         extends.forEach { extendsFrom(it) }
         artifacts.forEach { outgoing.artifact(it) }
     }
 
 fun consumablePlatformVariant(name: String, extends: List<Configuration>) =
-    configurations.create("${name}Elements") {
+    configurations.consumable("${name}Elements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.REGULAR_PLATFORM))
         }
-        isCanBeResolved = false
-        isCanBeConsumed = true
         extends.forEach { extendsFrom(it) }
     }
 

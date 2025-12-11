@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.tasks.ClasspathManifest
+import gradlebuild.basics.PublicApiVariants
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.packaging.support.ArtifactViewHelper.lenientProjectArtifactReselection
@@ -49,10 +49,13 @@ val externalRuntimeClasspath = configurations.resolvable("externalRuntimeClasspa
     configureAsRuntimeJarClasspath(objects)
 }
 
-// Defines configurations used to resolve external dependencies
-// that the legacy public API depends on.
+// Defines configurations used to resolve external dependencies that the legacy public API depends on.
+// The legacy variant inherits everything in the public API, minus the relocated impldeps qdox and javaparser-core.
 val legacyExternalApi = configurations.dependencyScope("legacyExternalApi") {
     description = "External dependencies that the legacy public Gradle API depends on"
+    extendsFrom(externalApi.get())
+    exclude(module = "qdox")
+    exclude(module = "javaparser-core")
 }
 val legacyExternalRuntimeOnly = configurations.dependencyScope("legacyExternalRuntimeOnly") {
     dependencies.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
@@ -74,22 +77,6 @@ val distributionClasspath = configurations.resolvable("distributionClasspath") {
     configureAsRuntimeJarClasspath(objects)
 }
 
-val classpathManifest = tasks.register<ClasspathManifest>("classpathManifest") {
-    manifestFile = layout.buildDirectory.dir("generated-resources/classpath-manifest")
-        .zip(gradleModule.identity.baseName) { dir, baseName ->
-            dir.file("$baseName-classpath.properties")
-        }
-    externalDependencies.from(externalRuntimeClasspath)
-}
-
-val legacyClasspathManifest = tasks.register<ClasspathManifest>("legacyClasspathManifest") {
-    manifestFile = layout.buildDirectory.dir("generated-resources/legacy-classpath-manifest")
-        .zip(gradleModule.identity.baseName) { dir, baseName ->
-            dir.file("$baseName-classpath.properties")
-        }
-    externalDependencies.from(legacyExternalRuntimeClasspath)
-}
-
 fun Jar.commonPublicApiJarConfiguration() {
     // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of api stubs artifacts
     // Some projects simply don't have one, which excludes them
@@ -107,15 +94,19 @@ fun Jar.commonPublicApiJarConfiguration() {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+// The JARs built by this module include the ABI of internals; suffix the module base name accordingly.
+val internalBaseName = gradleModule.identity.baseName.map { "$it${PublicApiVariants.INTERNAL_SUFFIX}" }
+val legacyBaseName = gradleModule.identity.baseName.map { "$it${PublicApiVariants.LEGACY_SUFFIX}" }
+
 val apiJarTask = tasks.register<Jar>("jarGradleApi") {
     commonPublicApiJarConfiguration()
-    from(classpathManifest)
+    archiveBaseName = internalBaseName
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
 }
 
 val legacyApiJarTask = tasks.register<Jar>("jarGradleApiLegacy") {
     commonPublicApiJarConfiguration()
-    from(legacyClasspathManifest)
+    archiveBaseName = legacyBaseName
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api-legacy")
 }
 
@@ -124,12 +115,14 @@ val legacyApiJarTask = tasks.register<Jar>("jarGradleApiLegacy") {
 val gradleApiElements = configurations.consumable("gradleApiElements") {
     extendsFrom(externalApi.get())
     outgoing.artifact(apiJarTask)
+    outgoing.capability(internalBaseName.map { "$group:$it:$version" })
     configureAsApiElements(objects)
 }
 
 val legacyGradleApiElements = configurations.consumable("legacyGradleApiElements") {
     extendsFrom(legacyExternalApi.get())
     outgoing.artifact(legacyApiJarTask)
+    outgoing.capability(legacyBaseName.map { "$group:$it:$version" })
     configureAsApiElements(objects)
 }
 
@@ -181,6 +174,7 @@ gradleApiComponent.addVariantsFromConfiguration(gradleApiElements) {
 
 val sourcesElements = configurations.consumable("sourcesElements") {
     outgoing.artifact(sourceJarTask)
+    outgoing.capability(internalBaseName.map { "$group:$it:$version" })
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, named(Category.DOCUMENTATION))
         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named(DocsType.SOURCES))
