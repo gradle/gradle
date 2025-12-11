@@ -29,7 +29,8 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample('codeQuality/codeQuality')
-    @Requires([UnitTestPreconditions.StableGroovy, UnitTestPreconditions.Jdk11OrLater])
+    // PMD does not yet support JDK 25
+    @Requires([UnitTestPreconditions.StableGroovy, UnitTestPreconditions.Jdk11OrLater, UnitTestPreconditions.Jdk25OrEarlier])
     def "can generate reports with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
         TestFile buildDir = projectDir.file('build')
