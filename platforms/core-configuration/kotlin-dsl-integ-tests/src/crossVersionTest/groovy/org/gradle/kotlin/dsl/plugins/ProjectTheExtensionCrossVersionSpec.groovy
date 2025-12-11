@@ -68,7 +68,6 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
         where:
         minGradle | kotlinLanguageVersion
-        "6.8"     | "1.8"
         "6.8"     | "1.9"
         "6.8"     | "2.0"
         "8.11"    | "2.1"
