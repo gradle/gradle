@@ -145,16 +145,8 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        if (isConstraint) {
-            // Need to double check that the target still has hard edges to it
-            ModuleResolveState module = targetComponent.getModule();
-            if (module.isPending()) {
-                selector.getTargetModule().removeUnattachedEdge(this);
-                from.removeOutgoingEdge(this);
-                module.registerConstraintProvider(from);
-                return;
-            }
-        }
+        // We should never try to attach edges to a node in a module that has no incoming hard edges.
+        assert !targetComponent.getModule().isPending();
 
         calculateTargetNodes(targetComponent);
         for (NodeState targetNode : targetNodes) {
