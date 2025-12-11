@@ -21,13 +21,15 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelAction;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.internal.buildtree.ToolingModelRequestContext;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
+import org.jspecify.annotations.Nullable;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
@@ -47,8 +49,8 @@ public class BuildModelActionRunner implements BuildActionRunner {
         ModelCreateAction createAction = new ModelCreateAction(buildModelAction);
         try {
             if (buildModelAction.isCreateModel()) {
-                Object result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
-                SerializedPayload serializedResult = payloadSerializer.serialize(result);
+                ToolingModelBuilderResultInternal result = buildController.fromBuildModel(buildModelAction.isRunTasks(), createAction);
+                SerializedPayload serializedResult = payloadSerializer.serialize(result.getModel());
                 return Result.of(serializedResult);
             } else {
                 buildController.scheduleAndRunTasks();
@@ -63,7 +65,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
     }
 
-    private static class ModelCreateAction implements BuildTreeModelAction<Object> {
+    private static class ModelCreateAction implements BuildTreeModelAction<ToolingModelBuilderResultInternal> {
         private final BuildModelAction buildModelAction;
         private UnknownModelException modelLookupFailure;
 
@@ -77,10 +79,11 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         @Override
-        public Object fromBuildModel(BuildTreeModelController controller) {
+        public @Nullable ToolingModelBuilderResultInternal fromBuildModel(BuildTreeModelController controller) {
             String modelName = buildModelAction.getModelName();
             try {
-                return controller.getModel(BuildTreeModelTarget.ofDefault(), new ToolingModelRequestContext(modelName, null, false));
+                ToolingModelRequestContext modelRequestContext = new ToolingModelRequestContext(modelName, null, false);
+                return controller.getModel(BuildTreeModelTarget.ofDefault(), modelRequestContext);
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;
                 throw e;

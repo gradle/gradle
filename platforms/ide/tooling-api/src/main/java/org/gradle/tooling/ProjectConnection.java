@@ -112,6 +112,7 @@ public interface ProjectConnection extends Closeable {
      * <ul>
      *     <li>{@link org.gradle.tooling.model.gradle.GradleBuild}</li>
      *     <li>{@link org.gradle.tooling.model.build.BuildEnvironment}</li>
+     *     <li>{@link org.gradle.tooling.model.build.Help}</li>
      *     <li>{@link org.gradle.tooling.model.GradleProject}</li>
      *     <li>{@link org.gradle.tooling.model.gradle.BuildInvocations}</li>
      *     <li>{@link org.gradle.tooling.model.gradle.ProjectPublications}</li>

@@ -19,6 +19,7 @@ package org.gradle.api.problems.internal;
 import com.google.common.base.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
@@ -37,9 +38,19 @@ public class DefaultProblemGroup extends ProblemGroup implements Serializable {
     }
 
     public DefaultProblemGroup(String name, String displayName, @Nullable ProblemGroup parent) {
-        this.name = name;
-        this.displayName = displayName;
+        validateFields(name, displayName);
+        this.name = TextUtil.replaceLineSeparatorsOf(name, "");
+        this.displayName = TextUtil.replaceLineSeparatorsOf(displayName, "");
         this.parent = parent;
+    }
+
+    private static void validateFields(String name, String displayName) {
+        if (TextUtil.isBlank(name)) {
+            throw new IllegalArgumentException("Problem group name must not be blank");
+        }
+        if (TextUtil.isBlank(displayName)) {
+            throw new IllegalArgumentException("Problem group displayName must not be blank");
+        }
     }
 
     @Override

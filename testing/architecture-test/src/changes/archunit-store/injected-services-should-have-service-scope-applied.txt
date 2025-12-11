@@ -16,7 +16,6 @@ Class <org.gradle.api.testing.toolchains.internal.JvmTestToolchainParameters> is
 Class <org.gradle.caching.configuration.BuildCacheConfiguration> is not annotated with @ServiceScope in (BuildCacheConfiguration.java:0)
 Class <org.gradle.deployment.internal.DeploymentRegistry> is not annotated with @ServiceScope in (DeploymentRegistry.java:0)
 Class <org.gradle.groovy.scripts.internal.ScriptCompilationHandler> is not annotated with @ServiceScope in (ScriptCompilationHandler.java:0)
-Class <org.gradle.initialization.ProjectDescriptorRegistry> is not annotated with @ServiceScope in (ProjectDescriptorRegistry.java:0)
 Class <org.gradle.internal.file.PathToFileResolver> is not annotated with @ServiceScope in (PathToFileResolver.java:0)
 Class <org.gradle.internal.nativeintegration.filesystem.FileSystem> is not annotated with @ServiceScope in (FileSystem.java:0)
 Class <org.gradle.internal.nativeintegration.network.HostnameLookup> is not annotated with @ServiceScope in (HostnameLookup.java:0)

@@ -24,6 +24,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.GradleVersion
 
 import java.util.function.Consumer
 
@@ -43,7 +44,11 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
     BuildActionResult runFetchModelAction(Consumer<BuildActionExecuter<BuildActionResult>> configurer = {}) {
         succeeds {
             def action = action(new FetchModelAction())
-                .withArguments(RESILIENT_MODEL_TRUE)
+            if (targetVersion < GradleVersion.version("9.4.0")){
+                // In Gradle 9.4+, resilient model fetching is enabled by default for all "fetch" actions.
+                // For earlier versions, we explicitly enable it with the flag to ensure consistent behavior.
+                action.withArguments(RESILIENT_MODEL_TRUE)
+            }
             configurer.accept(action)
             action.run()
         }
@@ -229,7 +234,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
 
 
         when:
-        def model = runFetchModelAction() {
+        def model = runFetchModelAction {
             it.addArguments(intermediateCaching)
         }
 

@@ -85,7 +85,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         }
 
         @Override
-        public Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+        public ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelName, @Nullable ToolingModelParameterCarrier parameter) {
             // If evaluation of settings fails, a project could not be created, and we should return the failure before locateBuilder is called
             if (!targetProject.isCreated()) {
                 checkArgument(!ownerBuildConfiguration.isSuccessful(), "Project has not been created, but build configuration has succeeded, this is a bug, please report.");

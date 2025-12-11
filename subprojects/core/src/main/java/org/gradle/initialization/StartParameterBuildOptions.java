@@ -34,12 +34,12 @@ import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInternal> {
@@ -64,7 +64,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new WatchFileSystemOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
-        new DevelocityUrlOption(),
         new DependencyLockingWriteOption(),
         new DependencyVerificationWriteOption(),
         new DependencyVerificationModeOption(),
@@ -89,7 +88,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
-        new TaskGraphOption()
+        new TaskGraphOption(),
+        new ParallelToolingModelBuildingOption()
     );
 
     @Override
@@ -358,30 +358,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 settings.setBuildScan(true);
             } else {
                 settings.setNoBuildScan(true);
-            }
-        }
-    }
-
-    public static class DevelocityUrlOption extends StringBuildOption<StartParameterInternal> {
-        public static final String LONG_OPTION = "develocity-default-url";
-        public static final String GRADLE_PROPERTY = "com.gradle.develocity.default.url";
-        public static final String ENVIRONMENT_VARIABLE = "COM_GRADLE_DEVELOCITY_DEFAULT_URL";
-
-        public DevelocityUrlOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
-                "Specify the default URL of the Develocity server to use for Build Scans. If the Develocity plugin is configured, this value is ignored."));
-        }
-
-        @Override
-        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
-            settings.setDevelocityUrl(value);
-        }
-
-        @Override
-        public void applyFromEnvVar(Map<String, String> envVars, StartParameterInternal settings) {
-            String develocityUrlEnvVar = envVars.get(ENVIRONMENT_VARIABLE);
-            if (develocityUrlEnvVar != null) {
-                settings.setDevelocityUrl(develocityUrlEnvVar);
             }
         }
     }
@@ -794,12 +770,25 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String LONG_OPTION = "task-graph";
 
         public TaskGraphOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "(Experimental) Print task graph instead of executing tasks."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Print task graph instead of executing tasks."));
         }
 
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setTaskGraph(true);
+        }
+    }
+
+    public static class ParallelToolingModelBuildingOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.tooling.parallel";
+
+        public ParallelToolingModelBuildingOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, @Nullable Origin origin) {
+            settings.setParallelToolingModelBuilding(Option.Value.value(value));
         }
     }
 }

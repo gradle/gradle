@@ -22,6 +22,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Ujwal Suresh Vanjare](https://github.com/usv240).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -41,6 +42,18 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
+### Problems HTML report refinements
+
+The incubating Problems HTML report has been refined to provide a more useful user experience.
+
+The summary clearly display the number of problems without location or skipped for performance reasons.
+Each tab starts with collapsed trees to show a clear view of the root nodes on load.
+Locations and solutions nodes are expanded by default, reducing the number of clicks necessary to see useful information.
+Everything is sorted alphabetically and by location.
+Problem details are displayed with a monospaced font to preserve the alignment of multi-line messages.
+Duplicate information is reduced across the board for a better readability.
+The size of the report file is reduced.
+
 ### Daemon logging improvements
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
@@ -59,6 +72,44 @@ tasks.validatePlugins {
     enableStricterValidation = true
 }
 ```
+
+## Tooling integration improvements
+
+This release adds a few enhancements to the built-in Tooling API models:
+- Clients can now access the exact output of `gradle --version` without starting a daemon, via the new [`BuildEnvironment.getVersionInfo()`](javadoc/org/gradle/tooling/model/build/BuildEnvironment.html#getVersionInfo()) property.
+- A new [`Help`](javadoc/org/gradle/tooling/model/build/Help.html) model exposes the output of the `gradle --help` command-line build invocation.
+
+For example:
+
+```java
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.Help;
+
+import java.io.File;
+
+void main() {
+    var projectDir = new File("/path/to/project");
+    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) { 
+        System.out.println("--version:\n + " + conn.getModel(BuildEnvironment.class).getVersionInfo());
+        System.out.println("--help:\n" + conn.getModel(Help.class).getRenderedText());
+    }
+}
+```
+
+### New property for Tooling API parallelism control
+
+A new Gradle property `org.gradle.tooling.parallel` allows explicitly controlling whether Tooling API clients can run actions against the build in parallel.
+This is particularly relevant for the IDE Sync scenarios, where IDEs can take advantage of the parallelism to improve performance.
+
+```properties
+# gradle.properties
+org.gradle.tooling.parallel=true
+```
+
+Historically, this was only controlled by the `org.gradle.parallel` property, which is often used to get parallel task execution.
+However, previously it was not possible to enable or disable one without affecting the other.
 
 <!--
 
@@ -106,9 +157,15 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
+* [`getSettingsDirectory()`](javadoc/org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) in `ProjectLayout`
 <!--
 ### Example promoted
 -->
+
+### Task graph is now stable
+
+The [task graph](userguide/command_line_interface.html#sec:command_line_execution_options), introduced as an incubating feature in Gradle 9.1.0, is now stable.
+It's no longer marked as experimental.
 
 ## Fixed issues
 

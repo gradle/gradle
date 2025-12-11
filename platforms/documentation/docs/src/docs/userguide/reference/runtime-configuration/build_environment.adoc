@@ -131,6 +131,11 @@ You can place the `gradle.properties` file in the root directory of your project
 
 When resolving properties, Gradle first looks in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, then in the project-level `gradle.properties` file, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with user-level properties taking precedence over project-level and installation-level properties.
 
+[NOTE]
+====
+See <<best_practices_general.adoc#do_not_use_gradle_properties_in_subprojects,our Best Practice recommendation>> on where to locate `gradle.properties` for further guidance.
+====
+
 [[sec:project_properties]]
 == Project properties
 
@@ -431,6 +436,13 @@ _Default is `.gradle`._
 
 Enable (`true`) or disable (`false`) the generation of `build/reports/problems-report.html`. `true` is the default.
 The report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
+
+`org.gradle.tooling.parallel=(true,false)` since-gradle-label:9.4.0[]::
+
+Allows running <<service_injection.adoc#toolingmodelbuilderregistry,Tooling Model Builders>> in parallel, which can improve IDE Sync times.
+An explicit value will override `org.gradle.parallel` in this context.
++
+_Default is the value of `org.gradle.parallel`._
 
 `org.gradle.unsafe.isolated-projects=(true,false)`::
 Enables project isolation, which enables configuration caching.

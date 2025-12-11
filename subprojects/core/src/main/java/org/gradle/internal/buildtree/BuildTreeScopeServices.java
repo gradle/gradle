@@ -16,9 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.StartParameter;
+import org.gradle.api.configuration.BuildFeatures;
+import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.configuration.DefaultBuildFeatures;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -27,6 +29,7 @@ import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuildQueue;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.options.InternalOptionsFactory;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
@@ -63,7 +66,6 @@ import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
-import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -71,6 +73,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
+import org.gradle.internal.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionReportCollector;
@@ -94,17 +97,30 @@ import java.util.List;
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
 public class BuildTreeScopeServices implements ServiceRegistrationProvider {
+
+    private final BuildActionModelRequirements buildActionRequirements;
+    private final BuildModelParameters buildModelParameters;
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final BuildTreeState buildTree;
-    private final BuildTreeModelControllerServices.Supplier modelServices;
 
-    public BuildTreeScopeServices(BuildInvocationScopeId buildInvocationScopeId, BuildTreeState buildTree, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeScopeServices(
+        BuildActionModelRequirements buildActionRequirements,
+        BuildModelParameters buildModelParameters,
+        BuildInvocationScopeId buildInvocationScopeId,
+        BuildTreeState buildTree
+    ) {
+        this.buildActionRequirements = buildActionRequirements;
+        this.buildModelParameters = buildModelParameters;
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.buildTree = buildTree;
-        this.modelServices = modelServices;
     }
 
     protected void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
+        // It's important that these services are registered first, before build-tree GradleModuleServices providers are invoked,
+        // because some of them require these services for eager `configure` calls
+        registration.add(BuildActionModelRequirements.class, buildActionRequirements);
+        registration.add(BuildModelParameters.class, buildModelParameters);
+
         for (GradleModuleServices services : servicesProviders) {
             services.registerBuildTreeServices(registration);
         }
@@ -123,7 +139,16 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
-        modelServices.applyServicesTo(registration);
+    }
+
+    @Provides
+    BuildType createBuildType(BuildActionModelRequirements requirements) {
+        return requirements.isCreatesModel() ? BuildType.MODEL : BuildType.TASKS;
+    }
+
+    @Provides
+    BuildFeatures createBuildFeatures(BuildActionModelRequirements requirements, BuildModelParameters parameters) {
+        return new DefaultBuildFeatures(requirements.getStartParameter(), parameters);
     }
 
     @Provides
@@ -150,8 +175,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected InternalOptions createInternalOptions(StartParameter startParameter) {
-        return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
+    protected InternalOptions createInternalOptions(StartParameterInternal startParameter, BuildTreeLocations buildTreeLocations) {
+        return InternalOptionsFactory.createInternalOptions(startParameter, buildTreeLocations.getBuildTreeRootDirectory());
     }
 
     @Provides

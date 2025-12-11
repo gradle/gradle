@@ -22,8 +22,8 @@ import org.jspecify.annotations.Nullable;
 public class StringInternalOption<T extends @Nullable String> extends InternalOption<String> {
     private final T defaultValue;
 
-    private StringInternalOption(String systemPropertyName, T defaultValue) {
-        super(systemPropertyName);
+    private StringInternalOption(String propertyName, T defaultValue) {
+        super(propertyName);
         this.defaultValue = defaultValue;
     }
 
@@ -37,11 +37,11 @@ public class StringInternalOption<T extends @Nullable String> extends InternalOp
         return Cast.uncheckedNonnullCast(value);
     }
 
-    public static InternalOption<String> of(String systemPropertyName, String defaultValue) {
-        return new StringInternalOption<>(systemPropertyName, defaultValue);
+    public static InternalOption<String> of(String propertyName, String defaultValue) {
+        return new StringInternalOption<>(propertyName, defaultValue);
     }
 
-    public static InternalOption<@Nullable String> of(String systemPropertyName) {
-        return new StringInternalOption<@Nullable String>(systemPropertyName, null);
+    public static InternalOption<@Nullable String> of(String propertyName) {
+        return new StringInternalOption<@Nullable String>(propertyName, null);
     }
 }
