@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
@@ -138,12 +139,14 @@ public class NodeState implements DependencyGraphNode {
     /**
      * The transitive strict versions from inherited from parents.
      */
-    private StrictVersionConstraints ancestorsStrictVersions = StrictVersionConstraints.EMPTY;
+    @VisibleForTesting
+    StrictVersionConstraints ancestorsStrictVersions = StrictVersionConstraints.EMPTY;
 
     /**
      * Our own strict version constraints, from the previous graph traversal.
      */
-    private @Nullable StrictVersionConstraints ownStrictVersions;
+    @VisibleForTesting
+    @Nullable StrictVersionConstraints ownStrictVersions;
 
     /**
      * Cached copy of all endorsed strict versions. Must be invalidated whenever
@@ -856,7 +859,8 @@ public class NodeState implements DependencyGraphNode {
         return edgeExclusions;
     }
 
-    private void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
+    @VisibleForTesting
+    void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
         List<DependencyState> dependencies = dependencies(moduleResolutionFilter);
         Set<ModuleIdentifier> constraintsSet = null;
         for (DependencyState dependencyState : dependencies) {
@@ -887,6 +891,13 @@ public class NodeState implements DependencyGraphNode {
         StrictVersionConstraints existingOwnStrictVersions = this.ownStrictVersions;
         this.ownStrictVersions = newStrictVersions;
 
+        if (existingOwnStrictVersions == null) {
+            // If our existing strict versions are null, nobody else has observed them,
+            // so their value being initialized for the first time will no invalidate
+            // any existing calculated strict versions.
+            return;
+        }
+
         if (!newStrictVersions.equals(existingOwnStrictVersions)) {
             for (EdgeState incomingEdge : incomingEdges) {
                 if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
@@ -911,7 +922,8 @@ public class NodeState implements DependencyGraphNode {
      * Recompute the strict versions inherited from ancestors,
      * propagating the new value to all descendants.
      */
-    private void recomputeAncestorsStrictVersions() {
+    @VisibleForTesting
+    void recomputeAncestorsStrictVersions() {
         updateAncestorsStrictVersions(collectAncestorsStrictVersions());
     }
 
@@ -950,11 +962,19 @@ public class NodeState implements DependencyGraphNode {
         }
 
         if (incomingEdges.size() == 1) {
-            return getStrictVersionsForEdge(incomingEdges.get(0));
+            EdgeState dependencyEdge = incomingEdges.get(0);
+            if (dependencyEdge.getFrom().isSelected()) {
+                return getStrictVersionsForEdge(dependencyEdge);
+            } else {
+                return StrictVersionConstraints.EMPTY;
+            }
         }
 
         StrictVersionConstraints ancestorsStrictVersions = null;
         for (EdgeState dependencyEdge : incomingEdges) {
+            if (!dependencyEdge.getFrom().isSelected()) {
+                continue;
+            }
             StrictVersionConstraints allEdgeStrictVersions = getStrictVersionsForEdge(dependencyEdge);
 
             ancestorsStrictVersions = ancestorsStrictVersions == null
@@ -966,7 +986,7 @@ public class NodeState implements DependencyGraphNode {
                 break;
             }
         }
-        return ancestorsStrictVersions;
+        return ancestorsStrictVersions != null ?  ancestorsStrictVersions : StrictVersionConstraints.EMPTY;
     }
 
     /**
@@ -1011,7 +1031,7 @@ public class NodeState implements DependencyGraphNode {
 
         for (EdgeState outgoingEdge : outgoingEdges) {
             for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
-                // The endorsed strict versions of this node contribute to the
+                // The endorsed strict versions of this node contributes to the
                 // ancestors strict versions of our children.
                 targetNode.recomputeAncestorsStrictVersions();
             }
