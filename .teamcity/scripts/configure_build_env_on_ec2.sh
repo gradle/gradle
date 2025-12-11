@@ -25,13 +25,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 exit_if_not_on_ec2_instance
 
-# Execute pre-build script based on BUILD_TYPE_ID
-if [[ "${BUILD_TYPE_ID:-}" == Gradle_Xperimental* ]]; then
-  execute_build_script_from_env "${XPERIMENTAL_EC2_PRE_BUILD_SCRIPT:-}"
-elif [[ "${BUILD_TYPE_ID:-}" == Gradle_Master* ]]; then
-  execute_build_script_from_env "${MASTER_EC2_PRE_BUILD_SCRIPT:-}"
-fi
-
 # TAG
 EC2_INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
 echo "##teamcity[addBuildTag 'ec2-instance-type=$EC2_INSTANCE_TYPE']"
@@ -41,6 +34,13 @@ AWS_REGION=$(curl -s "http://169.254.169.254/latest/meta-data/placement/region")
 if [[ "$AWS_REGION" == us-* ]]; then
   echo "For $AWS_REGION switching to user teamcityus access token"
   echo "##teamcity[setParameter name='env.DEVELOCITY_ACCESS_KEY' value='%ge.gradle.org.access.key.us%;%gbt-td.grdev.net.access.key%']"
+fi
+
+# Execute pre-build script based on BUILD_TYPE_ID
+if [[ "${BUILD_TYPE_ID:-}" == Gradle_Xperimental* ]]; then
+  execute_build_script_from_env "${XPERIMENTAL_EC2_PRE_BUILD_SCRIPT:-}"
+elif [[ "${BUILD_TYPE_ID:-}" == Gradle_Master* ]]; then
+  execute_build_script_from_env "${MASTER_EC2_PRE_BUILD_SCRIPT:-}"
 fi
 
 # READ-ONLY DEPENDENCY CACHE
