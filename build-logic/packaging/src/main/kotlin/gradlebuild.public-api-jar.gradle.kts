@@ -17,7 +17,6 @@
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
-import gradlebuild.jar.configureGradleModuleJarTasks
 import gradlebuild.packaging.support.ArtifactViewHelper.lenientProjectArtifactReselection
 import gradlebuild.packaging.support.FileLinesValueSource
 import gradlebuild.packaging.tasks.PathPrefixLister
@@ -119,7 +118,6 @@ val legacyApiJarTask = tasks.register<Jar>("jarGradleApiLegacy") {
     from(legacyClasspathManifest)
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api-legacy")
 }
-configureGradleModuleJarTasks()
 
 // The consumable configuration containing the public Gradle API artifact
 // and its external dependencies.
