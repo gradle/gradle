@@ -21,6 +21,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import static org.gradle.internal.collect.Preconditions.entryCannotBeNull;
+
 /// A fully persistent hash-map implemented as a
 /// [Compressed Hash-Array Mapped Prefix-tree](https://michael.steindorfer.name/publications/oopsla15.pdf).
 ///
@@ -36,6 +38,7 @@ public interface PersistentMap<K, V> extends Iterable<Map.Entry<K, V>> {
 
     /// Returns a map with the given key mapped to the given value.
     static <K, V> PersistentMap<K, V> of(K key, V value) {
+        entryCannotBeNull(key, value);
         return new PersistentMap1<>(key, value);
     }
 

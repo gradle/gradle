@@ -474,4 +474,25 @@ class PersistentSetTest extends Specification {
         "{3,2,1}" == PersistentSet.of(1, 2, 3).toString()
         "{3,2,1}" == PersistentSet.of(3, 2, 1).toString()
     }
+
+    def 'set key cannot be null'() {
+        when:
+        PersistentSet.of() + null
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        PersistentSet.of(null)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        (PersistentSet.of() + "a") + null
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
 }

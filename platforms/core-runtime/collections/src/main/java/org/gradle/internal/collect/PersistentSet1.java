@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static org.gradle.internal.collect.Preconditions.keyCannotBeNull;
+
 /// A [PersistentSet] with a single element.
 ///
 final class PersistentSet1<K> implements PersistentSet<K> {
@@ -33,6 +35,7 @@ final class PersistentSet1<K> implements PersistentSet<K> {
 
     @Override
     public PersistentSet<K> plus(K key) {
+        keyCannotBeNull(key);
         return contains(key)
             ? this
             : PersistentSetTrie.ofDistinct(this.key, key);

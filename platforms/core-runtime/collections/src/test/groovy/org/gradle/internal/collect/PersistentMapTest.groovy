@@ -407,15 +407,24 @@ class PersistentMapTest extends Specification {
         ]
     }
 
-    def 'map getOrDefault returns null when mapping is null'() {
-        expect:
-        map.getOrDefault("key", "42") === null
+    def 'map value cannot be null'() {
+        when:
+        PersistentMap.of().assoc("key", null)
 
-        where:
-        map << [
-            PersistentMap.of("key", null),
-            PersistentMap.of("key", null).assoc("b", "value")
-        ]
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        PersistentMap.of("key", null)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        PersistentMap.of().assoc("a", "b").assoc("key", null)
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
     def 'toString == {k1:v1,k2:v2,...}'() {

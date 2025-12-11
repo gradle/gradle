@@ -24,6 +24,7 @@ import static org.gradle.internal.collect.ChampNode.BITS;
 import static org.gradle.internal.collect.ChampNode.index;
 import static org.gradle.internal.collect.ChampNode.mask;
 import static org.gradle.internal.collect.ChampNode.nodeIndex;
+import static org.gradle.internal.collect.Preconditions.keyCannotBeNull;
 
 /// A [PersistentSet] with two or more elements implemented as a [ChampNode] based trie.
 ///
@@ -43,6 +44,7 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
     @SuppressWarnings("ReferenceEquality")
     @Override
     public PersistentSet<K> plus(K key) {
+        keyCannotBeNull(key);
         int hash = key.hashCode();
         ChampNode<K> newRoot = insertInto(root, key, hash, 0);
         if (newRoot == root) {

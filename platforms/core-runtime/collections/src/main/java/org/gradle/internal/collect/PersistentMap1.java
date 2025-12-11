@@ -24,6 +24,8 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import static org.gradle.internal.collect.Preconditions.entryCannotBeNull;
+
 /// A [PersistentMap] with a single entry.
 final class PersistentMap1<K, V> implements PersistentMap<K, V> {
 
@@ -37,6 +39,7 @@ final class PersistentMap1<K, V> implements PersistentMap<K, V> {
 
     @Override
     public PersistentMap<K, V> assoc(K key, V value) {
+        entryCannotBeNull(key, value);
         if (containsKey(key)) {
             return Objects.equals(this.value, value)
                 ? this

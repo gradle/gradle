@@ -16,6 +16,8 @@
 
 package org.gradle.internal.collect;
 
+import static org.gradle.internal.collect.Preconditions.keyCannotBeNull;
+
 /// A fully persistent hash-set implemented as a
 /// [Compressed Hash-Array Mapped Prefix-tree](https://michael.steindorfer.name/publications/oopsla15.pdf).
 ///
@@ -30,6 +32,7 @@ public interface PersistentSet<K> extends Iterable<K> {
 
     /// Returns a new persistent set containing the given key.
     static <K> PersistentSet<K> of(K key) {
+        keyCannotBeNull(key);
         return new PersistentSet1<>(key);
     }
 

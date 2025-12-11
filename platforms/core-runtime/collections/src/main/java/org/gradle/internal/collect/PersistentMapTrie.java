@@ -28,6 +28,7 @@ import static org.gradle.internal.collect.ChampNode.BITS;
 import static org.gradle.internal.collect.ChampNode.index;
 import static org.gradle.internal.collect.ChampNode.mask;
 import static org.gradle.internal.collect.ChampNode.nodeIndex;
+import static org.gradle.internal.collect.Preconditions.entryCannotBeNull;
 
 /// A [PersistentMap] with two or more entries implemented as a [ChampNode] based trie carrying
 /// not only keys but also their respective values (a.k.a. payload) as data content.
@@ -52,6 +53,8 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
     @SuppressWarnings("ReferenceEquality")
     @Override
     public PersistentMap<K, V> assoc(K key, V value) {
+        entryCannotBeNull(key, value);
+
         int hash = key.hashCode();
         MutableBoolean replaced = new MutableBoolean(false);
         ChampNode<K> newRoot = insertInto(root, key, hash, value, 0, replaced);

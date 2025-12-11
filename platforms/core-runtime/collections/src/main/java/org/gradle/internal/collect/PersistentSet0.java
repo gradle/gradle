@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
+import static org.gradle.internal.collect.Preconditions.keyCannotBeNull;
+
 /// An empty [PersistentSet].
 ///
 final class PersistentSet0 implements PersistentSet<Object> {
@@ -31,6 +33,7 @@ final class PersistentSet0 implements PersistentSet<Object> {
 
     @Override
     public PersistentSet<Object> plus(Object key) {
+        keyCannotBeNull(key);
         return new PersistentSet1<>(key);
     }
 
