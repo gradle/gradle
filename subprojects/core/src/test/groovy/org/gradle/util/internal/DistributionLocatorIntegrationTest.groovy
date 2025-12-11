@@ -24,6 +24,8 @@ import spock.lang.Specification
 
 @Requires(UnitTestPreconditions.Online)
 class DistributionLocatorIntegrationTest extends Specification {
+    private static final int NUM_RETRIES = 3
+    private static final int RETRY_DELAY_SECONDS = 5
     private static final int CONNECTION_TIMEOUT_SECONDS = 60 * 1000
     private static final int READ_TIMEOUT_SECONDS = 60 * 1000
     def locator = new DistributionLocator()
@@ -46,12 +48,26 @@ class DistributionLocatorIntegrationTest extends Specification {
         urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))
     }
 
-    void urlExist(URI url) {
+    private void urlExist(URI url) {
+        int responseCode = 0
+        for (int attempt = 1; attempt <= NUM_RETRIES; attempt++) {
+            responseCode = attemptConnection(url)
+            if (responseCode == 200) {
+                break
+            } else {
+                println "Attempt ${attempt}: Failed to connect to ${url}, response code: ${responseCode}"
+                Thread.sleep(RETRY_DELAY_SECONDS * 1000)
+            }
+        }
+        assert responseCode == 200
+    }
+
+    private int attemptConnection(URI url) {
         def connection = url.toURL().openConnection() as HttpURLConnection
         connection.setConnectTimeout(CONNECTION_TIMEOUT_SECONDS)
         connection.setReadTimeout(READ_TIMEOUT_SECONDS)
         connection.requestMethod = "HEAD"
         connection.connect()
-        assert connection.responseCode == 200
+        return connection.responseCode
     }
 }
