@@ -20,6 +20,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.ProblemGroup
@@ -59,8 +60,8 @@ class DefaultProblemsReportCreator(
     private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problems report", "problems-report", false)
     private val taskNames = startParameter.taskNames
     private val problemCount = AtomicInteger(0)
-
     private val failureDecorator = FailureDecorator()
+    private val warningMode = startParameter.warningMode
 
     override fun createReportFile(reportDir: File, problemSummaries: List<ProblemSummaryData>) {
         report.writeReportFileTo(reportDir.resolve("reports/problems"), object : JsonSource {
@@ -86,8 +87,10 @@ class DefaultProblemsReportCreator(
                 }
             }
         })?.let {
-            val url = ConsoleRenderer().asClickableFileUrl(it)
-            logger.warn("${System.lineSeparator()}[Incubating] Problems report is available at: $url")
+            if (warningMode != WarningMode.None) {
+                val url = ConsoleRenderer().asClickableFileUrl(it)
+                logger.warn("${System.lineSeparator()}[Incubating] Problems report is available at: $url")
+            }
         }
     }
 
