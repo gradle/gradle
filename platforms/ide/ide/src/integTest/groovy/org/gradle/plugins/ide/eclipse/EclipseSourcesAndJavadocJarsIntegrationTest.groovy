@@ -28,13 +28,15 @@ class EclipseSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJava
         def classpath = EclipseClasspathFixture.create(testDirectory, executer.gradleUserHomeDir)
         def lib = classpath.lib(jar)
 
+        assert new File(lib.getJarPath()).exists()
+
         // Eclipse only retains the first source/javadoc file
         if (!sources.isEmpty()) {
-            assert lib.sourcePath != null: "no sources attached"
+            assert lib.sourcePath != null: "no sources attached for " + jar
             assert lib.sourcePath.endsWith("/${sources.get(0)}")
         }
         if (!javadoc.isEmpty()) {
-            assert lib.javadocLocation != null: "no javadoc attached"
+            assert lib.javadocLocation != null: "no javadoc attached for " + jar
             assert lib.javadocLocation.endsWith("/${javadoc.get(0)}!/")
         }
     }

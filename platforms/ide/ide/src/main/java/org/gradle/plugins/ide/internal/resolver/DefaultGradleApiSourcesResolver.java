@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.internal.project.ProjectInternal.DetachedResolver;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.util.internal.VersionNumber;
@@ -31,6 +31,9 @@ import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName;
 
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
@@ -39,9 +42,9 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
     private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+?)?)-(\\d.+?)\\.jar");
 
-    private final DetachedResolver resolver;
+    private final DependencyResolutionServices resolver;
 
-    public DefaultGradleApiSourcesResolver(DetachedResolver resolver) {
+    public DefaultGradleApiSourcesResolver(DependencyResolutionServices resolver) {
         this.resolver = resolver;
         addGradleLibsRepository();
     }
@@ -58,7 +61,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     }
 
     private File downloadLocalGroovySources(String artifact, VersionNumber version) {
-        ArtifactResolutionResult result = resolver.getDependencies().createArtifactResolutionQuery()
+        ArtifactResolutionResult result = resolver.getDependencyHandler().createArtifactResolutionQuery()
             .forModule(groovyGroupName(version), artifact, version.toString())
             .withArtifacts(JvmLibrary.class, Collections.singletonList(SourcesArtifact.class))
             .execute();
@@ -74,7 +77,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     }
 
     private MavenArtifactRepository addGradleLibsRepository() {
-        return resolver.getRepositories().maven(a -> {
+        return resolver.getResolveRepositoryHandler().maven(a -> {
             a.setName("Gradle Libs");
             a.setUrl(gradleLibsRepoUrl());
         });
@@ -84,4 +87,15 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
         String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
         return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
     }
+
+    @Override
+    public boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
+        String artifactFileName = artifact.getFile().getName();
+        String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
+        return (componentIdentifier.equals(GRADLE_API.displayName)
+            || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
+            || componentIdentifier.equals(LOCAL_GROOVY.displayName))
+            && artifactFileName.startsWith("groovy-");
+    }
+
 }

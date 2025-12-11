@@ -33,7 +33,6 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseClassPathUtil;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -351,7 +350,7 @@ public abstract class EclipseClasspath {
     public List<ClasspathEntry> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), EclipseClassPathUtil.isInferModulePath(this.project));
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, EclipseClassPathUtil.isInferModulePath(this.project));
         return classpathFactory.createEntries();
     }
 

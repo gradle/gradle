@@ -47,6 +47,12 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
 
         when:
         useMavenRepo(repo)
+        buildFile << """
+            ${resolveRuntimeClasspathTask()}
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
 
         and:
         module.pom.expectGet()
@@ -56,7 +62,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         succeeds "resolve"
     }
 
-    def "sources and javadoc jars from maven repositories are resolved, attached and cached"() {
+    def "resolves sources and javadoc jars for production artifact when depending on maven dependency with explicit artifact"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
         module.artifact(classifier: "api")
@@ -66,17 +72,16 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         module.allowAll()
 
         buildFile << """
-dependencies {
-    implementation 'some:module:1.0:api'
-}
-"""
+            dependencies {
+                implementation 'some:module:1.0:api'
+            }
+        """
 
         when:
         useMavenRepo(repo)
         succeeds ideTask
 
         then:
-        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
         ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
 
         when:
@@ -84,7 +89,6 @@ dependencies {
         succeeds ideTask
 
         then:
-        ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
         ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
@@ -94,6 +98,11 @@ dependencies {
 
         when:
         useMavenRepo(repo)
+        buildFile << """
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
         succeeds ideTask
 
         then:
@@ -109,17 +118,24 @@ dependencies {
 
         when:
         useMavenRepo(repo)
+        buildFile << """
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
 
         and:
         module.pom.expectGet()
         module.artifact.expectGet()
 
-        sourceArtifact.expectHead()
-        sourceArtifact.expectGetBroken()
+        // If we fail to find artifacts using the ArtifactView path, we fallback to the ArtifactResolutionQuery path
+        2.times {
+            sourceArtifact.expectHead()
+            sourceArtifact.expectGetBroken()
 
-        javadocArtifact.expectHead()
-        javadocArtifact.expectGetBroken()
-
+            javadocArtifact.expectHead()
+            javadocArtifact.expectGetBroken()
+        }
 
         then:
         succeeds ideTask
@@ -132,8 +148,15 @@ dependencies {
         addCompleteConfigurations(module)
         module.publish()
 
+
         when:
         useIvyRepo(repo)
+        buildFile << """
+            ${resolveRuntimeClasspathTask()}
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
 
         and:
         module.ivy.expectGet()
@@ -152,6 +175,11 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        buildFile << """
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
         succeeds ideTask
 
         then:
@@ -193,7 +221,6 @@ dependencies {
         then:
         def sources = ["module-1.0-my-sources.jar", "other-source-1.0.jar"]
         def javadoc = ["module-1.0-my-javadoc.jar", "other-javadoc-1.0.jar"]
-        ideFileContainsEntry("module-1.0.jar", sources, javadoc)
         ideFileContainsEntry("module-1.0-api.jar", sources, javadoc)
         ideFileContainsEntry("module-1.0-tests.jar", sources, javadoc)
     }
@@ -218,6 +245,11 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        buildFile << """
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
         succeeds ideTask
 
         then:
@@ -233,6 +265,11 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        buildFile << """
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
         module.getArtifact(classifier: "my-sources").expectGetMissing()
         module.getArtifact(classifier: "my-javadoc").expectGetMissing()
         module.allowAll()
@@ -250,6 +287,11 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        buildFile << """
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
 
         and:
         module.ivy.expectGet()
@@ -276,6 +318,11 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        buildFile << """
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
         succeeds ideTask
 
         then:
@@ -288,7 +335,16 @@ dependencies {
         file("repo/module-1.0-javadoc.jar").createFile()
 
         when:
-        buildFile << """repositories { flatDir { dir "repo" } }"""
+        buildFile << """
+            repositories {
+                flatDir {
+                    dir "repo"
+                }
+            }
+            dependencies {
+                implementation("some:module:1.0")
+            }
+        """
         succeeds ideTask
 
         then:
@@ -301,17 +357,14 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
             dependencies {
                 implementation gradleApi()
             }
 
             idea.module.downloadSources = false
             eclipse.classpath.downloadSources = false
-            """
+        """
+
         when:
         succeeds ideTask
 
@@ -326,14 +379,11 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
             dependencies {
                 implementation gradleApi()
             }
-            """
+        """
+
         when:
         args("--offline")
         succeeds ideTask
@@ -350,14 +400,10 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
             dependencies {
                 implementation localGroovy()
             }
-            """
+        """
 
         when:
         succeeds ideTask
@@ -382,14 +428,10 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
             dependencies {
                 implementation gradleApi()
             }
-            """
+        """
 
         when:
         succeeds ideTask
@@ -408,14 +450,10 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
             dependencies {
                 implementation gradleTestKit()
             }
-            """
+        """
 
         when:
         succeeds ideTask
@@ -429,17 +467,13 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
         buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
             dependencies {
                 implementation localGroovy()
             }
 
             idea.module.downloadSources = false
             eclipse.classpath.downloadSources = false
-            """
+        """
 
         when:
         succeeds ideTask
@@ -453,14 +487,10 @@ dependencies {
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
 
         buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
             dependencies {
                 implementation localGroovy()
             }
-            """
+        """
 
         when:
         args("--offline")
@@ -480,10 +510,6 @@ dependencies {
         """
 
         buildFile """
-            apply plugin: "java"
-            apply plugin: "idea"
-            apply plugin: "eclipse"
-
             dependencies {
                 implementation localGroovy()
             }
@@ -562,10 +588,6 @@ apply plugin: "java"
 apply plugin: "idea"
 apply plugin: "eclipse"
 
-dependencies {
-    implementation("some:module:1.0")
-}
-
 idea {
     module {
         downloadJavadoc = true
@@ -575,13 +597,6 @@ idea {
 eclipse {
     classpath {
         downloadJavadoc = true
-    }
-}
-
-task resolve {
-    def runtimeClasspath = configurations.runtimeClasspath
-    doLast {
-        runtimeClasspath.each { println it }
     }
 }
 """
@@ -599,5 +614,15 @@ task resolve {
 
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
 
+    private static String resolveRuntimeClasspathTask() {
+        """
+            task resolve {
+                def runtimeClasspath = configurations.runtimeClasspath
+                doLast {
+                    runtimeClasspath.each { println it }
+                }
+            }
+        """
+    }
 
 }

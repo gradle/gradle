@@ -16,8 +16,18 @@
 
 package org.gradle.plugins.ide.internal.resolver;
 
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+
 import java.io.File;
 
 public interface GradleApiSourcesResolver {
+
     File resolveLocalGroovySources(String jarName);
+
+    /**
+     * Returns true if the given artifact is a local groovy dependency that
+     * {@link #resolveLocalGroovySources(String)} can resolve sources for.
+     */
+    boolean isLocalGroovyDependency(ResolvedArtifactResult artifact);
+
 }

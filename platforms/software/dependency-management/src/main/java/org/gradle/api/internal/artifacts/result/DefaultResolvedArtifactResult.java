@@ -16,28 +16,34 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.Artifact;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 
 import java.io.File;
 
-public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
+public class DefaultResolvedArtifactResult implements ResolvedArtifactResultInternal {
+
     private final ComponentArtifactIdentifier identifier;
+    private final VariantIdentifier sourceVariantId;
     private final ResolvedVariantResult variant;
     private final Class<? extends Artifact> type;
     private final File file;
 
-    public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,
-                                         AttributeContainer variantAttributes,
-                                         ImmutableCapabilities capabilities,
-                                         DisplayName variantDisplayName,
-                                         Class<? extends Artifact> type,
-                                         File file) {
+    public DefaultResolvedArtifactResult(
+        ComponentArtifactIdentifier identifier,
+        VariantIdentifier sourceVariantId,
+        AttributeContainer variantAttributes,
+        ImmutableCapabilities capabilities,
+        DisplayName variantDisplayName,
+        Class<? extends Artifact> type,
+        File file
+    ) {
         this.identifier = identifier;
+        this.sourceVariantId = sourceVariantId;
         this.variant = new DefaultResolvedVariantResult(identifier.getComponentIdentifier(), variantDisplayName, variantAttributes, capabilities, null);
         this.type = type;
         this.file = file;
@@ -54,6 +60,11 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
     }
 
     @Override
+    public VariantIdentifier getSourceVariantId() {
+        return sourceVariantId;
+    }
+
+    @Override
     public Class<? extends Artifact> getType() {
         return type;
     }
@@ -67,4 +78,5 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
     public ResolvedVariantResult getVariant() {
         return variant;
     }
+
 }

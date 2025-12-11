@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.result;
 
-package org.gradle.plugins.ide.internal.resolver;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.internal.component.model.VariantIdentifier;
 
-import java.io.File;
+/**
+ * Internal counterpart to {@link ResolvedArtifactResult}
+ */
+public interface ResolvedArtifactResultInternal extends ResolvedArtifactResult {
 
-public class NullGradleApiSourcesResolver implements GradleApiSourcesResolver {
+    /**
+     * Get the ID of the variant in the graph that produced this artifact.
+     * <p>
+     * This should eventually become public API.
+     */
+    VariantIdentifier getSourceVariantId();
 
-    public static final GradleApiSourcesResolver INSTANCE = new NullGradleApiSourcesResolver();
-
-    private NullGradleApiSourcesResolver() {
-    }
-
-    @Override
-    public File resolveLocalGroovySources(String jarName) {
-        return null;
-    }
 }

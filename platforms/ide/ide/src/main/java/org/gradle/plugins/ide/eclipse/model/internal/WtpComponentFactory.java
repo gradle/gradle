@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
@@ -34,7 +33,6 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
-import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
 import java.io.File;
@@ -89,8 +87,14 @@ public class WtpComponentFactory {
 
     private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
         WtpDependenciesVisitor visitor = new WtpDependenciesVisitor(project, wtp, deployPath);
-        new IdeDependencySet(project.getDependencies(), ((ProjectInternal) project).getServices().get(JavaModuleDetector.class),
-            plusConfigurations, minusConfigurations, false, NullGradleApiSourcesResolver.INSTANCE).visit(visitor);
+        IdeDependencySet ideDependencies = ((ProjectInternal) project).getServices().get(IdeDependencySet.class);
+        ideDependencies.visit(
+            plusConfigurations,
+            minusConfigurations,
+            Collections.emptySet(),
+            false,
+            visitor
+        );
         return visitor.getEntries();
     }
 

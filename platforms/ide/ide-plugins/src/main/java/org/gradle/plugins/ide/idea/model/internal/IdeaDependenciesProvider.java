@@ -20,19 +20,16 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Path;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
@@ -54,13 +51,11 @@ public class IdeaDependenciesProvider {
     private final ModuleDependencyBuilder moduleDependencyBuilder;
     private final IdeaDependenciesOptimizer optimizer;
     private final ProjectComponentIdentifier currentProjectId;
-    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeaDependenciesProvider(ProjectInternal project, IdeArtifactRegistry artifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
+    public IdeaDependenciesProvider(ProjectInternal project, IdeArtifactRegistry artifactRegistry) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
         currentProjectId = project.getOwner().getComponentIdentifier();
         optimizer = new IdeaDependenciesOptimizer();
-        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
@@ -101,17 +96,20 @@ public class IdeaDependenciesProvider {
     }
 
     private IdeaDependenciesVisitor visitDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
-        ProjectInternal projectInternal = (ProjectInternal) ideaModule.getProject();
-        final DependencyHandler handler = projectInternal.getDependencies();
         final Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         final Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-        final JavaModuleDetector javaModuleDetector = projectInternal.getServices().get(JavaModuleDetector.class);
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
-        return projectInternal.getOwner().fromMutableState(p -> {
-            new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
-            return visitor;
+        ((ProjectInternal) ideaModule.getProject()).getOwner().applyToMutableState(p -> {
+            p.getServices().get(IdeDependencySet.class).visit(
+                plusConfigurations,
+                minusConfigurations,
+                Collections.emptySet(),
+                false,
+                visitor
+            );
         });
+        return visitor;
     }
 
     private Collection<Configuration> getPlusConfigurations(IdeaModule ideaModule, GeneratedIdeaScope scope) {

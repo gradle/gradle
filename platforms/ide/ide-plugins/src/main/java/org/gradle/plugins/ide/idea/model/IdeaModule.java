@@ -27,7 +27,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -551,7 +550,7 @@ public abstract class IdeaModule {
     public Set<Dependency> resolveDependencies() {
         ProjectInternal projectInternal = (ProjectInternal) project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()));
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal, ideArtifactRegistry);
         return ideaDependenciesProvider.provide(this);
     }
 

@@ -28,6 +28,7 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         IdeaModuleFixture iml =  parseIml("root.iml")
         def libraryEntry = iml.dependencies.libraries.find { it.jarName == jar }
         assert libraryEntry != null : "entry for jar ${jar} not found, found entries: ${iml.dependencies.libraries.collect({it.jarName})}"
+        assert file(libraryEntry.url.takeAfter("\$MODULE_DIR\$"))
         libraryEntry.assertHasSource(sources)
         libraryEntry.assertHasJavadoc(javadocs)
     }

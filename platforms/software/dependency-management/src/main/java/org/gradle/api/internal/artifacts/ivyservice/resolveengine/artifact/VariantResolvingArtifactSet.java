@@ -140,6 +140,12 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         ImmutableAttributes requestAttributes,
         ArtifactSelectionServices artifactSelectionServices
     ) {
+        if (component.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
+            // This component does not have any variants. It is likely an Ivy component or a Maven component
+            // without a variant derivation strategy enabled. We cannot perform reselection.
+            return ImmutableList.of();
+        }
+
         // First, find the graph variant containing the artifact variants to select among.
         VariantGraphResolveState graphVariant = artifactSelectionServices.getGraphVariantSelector().selectByAttributeMatchingLenient(
             requestAttributes,
