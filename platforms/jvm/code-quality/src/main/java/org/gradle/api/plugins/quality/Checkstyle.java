@@ -42,6 +42,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.work.NormalizeLineEndings;
 import org.gradle.workers.WorkQueue;
 import org.jspecify.annotations.Nullable;
 
@@ -184,6 +185,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @NormalizeLineEndings
     @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
         return super.getSource();
