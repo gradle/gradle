@@ -16,12 +16,19 @@
 
 package org.gradle.internal
 
+import org.apache.commons.io.FileSystem
 import org.gradle.api.Action
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.IoActions.*
+import java.nio.file.FileSystemException
+
+import static org.gradle.internal.IoActions.closeQuietly
+import static org.gradle.internal.IoActions.createTextFileWriteAction
+import static org.gradle.internal.IoActions.uncheckedClose
+import static org.gradle.internal.IoActions.withResource
+import static org.gradle.internal.IoActions.writeTextFile
 
 class IoActionsTest extends Specification {
 
@@ -56,6 +63,29 @@ class IoActionsTest extends Specification {
         def e = thrown UncheckedIOException
         e.cause instanceof IOException
         e.cause.message.startsWith("Unable to create directory")
+    }
+
+
+    def "fails to with useful error when file path is too long"() {
+        given:
+        def maxLength = FileSystem.current.maxPathLength
+        def fileName = "foo.txt"
+        def subdirNameLength = Math.floor((maxLength - fileName.length() - tmp.testDirectory.absolutePath.size())/2)
+        assert subdirNameLength > 0
+        def subdir = tmp.file("a/" * subdirNameLength)
+        def file = new File(subdir, fileName)
+
+        when:
+        writeTextFile(file, "UTF-8", {
+            // we should not get here
+            assert false
+        })
+
+        then:
+        def e = thrown UncheckedIOException
+        e.cause instanceof FileSystemException
+        e.cause.message.contains("foo.txt")
+        ((FileSystemException)e.cause).reason == "File name too long"
     }
 
     def "can write text file using specified encoding"() {
