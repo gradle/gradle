@@ -78,24 +78,18 @@ class KotlinScriptClassPathProvider(
 
     private
     val gradleAbiClasspath: ClassPath by lazy {
-        // Must match gradlebuild.basics.PublicApiVariants.LEGACY_MODULE_NAME in build-logic,
-        // which names the ABI jar shipped in the distribution's lib/api/ directory.
+        // Matches gradlebuild.basics.PublicApiVariants.LEGACY_MODULE_NAME in build-logic,
         moduleRegistry.findModule("gradle-public-api-legacy")
-            ?.allRequiredModulesClasspath
-            ?.asFiles
-            ?.let { files -> DefaultClassPath.of(files) }
+            ?.let { moduleRegistry.getRuntimeClasspath(listOf(it)) }
             ?.let { cp ->
-                // Declarative Gradle is not part of the public api yet
-                // Only add it to the compilation classpath if enabled
-                // TODO:declarative drop once `org.gradle.features.*` graduates to PublicApi.include
                 when (gradleProperties.isDclEnabled) {
-                    true -> cp + moduleRegistry.getModule("gradle-project-features").classpath
+                    // Declarative Gradle is not part of the public api yet, only add it to the compilation classpath if enabled
+                    // TODO:declarative drop once `org.gradle.features.*` graduates to PublicApi.include
+                    true -> cp + moduleRegistry.getRuntimeClasspath("gradle-project-features")
                     false -> cp
                 }
             }
-        // If the distro doesn't contain the ABI jar, fallback to the generated API jar
-        // This is only to support integration tests running on non-full distros
-        // See KotlinDslScriptCompilationIntegrationTest
+        // Support integ-tests on non-full distros (no ABI jar), fallback to the generated API jar
             ?: gradleApiClasspath
     }
 
@@ -119,14 +113,14 @@ class KotlinScriptClassPathProvider(
         gradleApiClasspath + gradleApiExtensions + gradleKotlinDslJars
     }
 
-    override fun getGradleKotlinDslApi(): ClassPath =
-        gradleKotlinDslApiClasspath
+    override fun getGradleApi(): ClassPath =
+        gradleApiClasspath
 
     override fun getGradleKotlinDslAbi(): ClassPath =
         gradleKotlinDslAbiClasspath
 
-    override fun getGradleApi(): ClassPath =
-        gradleApiClasspath
+    override fun getGradleKotlinDslApi(): ClassPath =
+        gradleKotlinDslApiClasspath
 
     /**
      * Generated extensions to the Gradle API.
