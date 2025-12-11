@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.testdistribution.LocalOnly
 import org.junit.Test
@@ -41,7 +42,7 @@ class KotlinDslScriptCompilationIntegrationTest : AbstractKotlinIntegrationTest(
 
         // and:
         executer.requireOwnGradleUserHomeDir("Testing API jar generation")
-        val generatedJarsDirectory = "user-home/caches/${this.distribution.version.version}/generated-gradle-jars"
+        val generatedJarsDirectory = "user-home/caches/${this.distribution.version.version}/${GeneratedGradleJarCache.CACHE_KEY}"
 
         // when:
         build("hello")
