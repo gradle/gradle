@@ -292,6 +292,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getSharedServices(): BuildServiceRegistry =
         delegate.sharedServices
 
+    override fun getProviders(): org.gradle.api.provider.ProviderFactory =
+        delegate.providers
+
     override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
         delegate.includedBuilds
 

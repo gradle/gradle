@@ -21,18 +21,22 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final BuildLogicBuilder buildLogicBuilder;
+    private final ProviderFactory providerFactory;
 
     public DefaultScriptHandlerFactory(
         DependencyManagementServices dependencyManagementServices,
-        BuildLogicBuilder buildLogicBuilder
+        BuildLogicBuilder buildLogicBuilder,
+        ProviderFactory providerFactory
     ) {
         this.dependencyManagementServices = dependencyManagementServices;
         this.buildLogicBuilder = buildLogicBuilder;
+        this.providerFactory = providerFactory;
     }
 
     @Override
@@ -71,7 +75,8 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
             scriptSource,
             services,
             classLoaderScope,
-            buildLogicBuilder
+            buildLogicBuilder,
+            providerFactory
         );
     }
 }
