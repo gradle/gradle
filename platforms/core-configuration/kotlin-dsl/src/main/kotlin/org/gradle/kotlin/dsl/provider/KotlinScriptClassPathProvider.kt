@@ -80,8 +80,6 @@ class KotlinScriptClassPathProvider(
     val gradleAbiClasspath: ClassPath by lazy {
         moduleRegistry.findModule("gradle-public-api-legacy")
             ?.allRequiredModulesClasspath
-            ?.asFiles
-            ?.let { files -> DefaultClassPath.of(files) }
             ?.let { cp ->
                 // Declarative Gradle is not part of the public api yet
                 // Only add it to the compilation classpath if enabled
