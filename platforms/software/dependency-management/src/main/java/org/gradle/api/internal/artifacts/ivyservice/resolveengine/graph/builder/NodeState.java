@@ -152,7 +152,6 @@ public class NodeState implements DependencyGraphNode {
      */
     private @Nullable StrictVersionConstraints cachedEndorsedStrictVersions;
 
-    private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
     public NodeState(long nodeId, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
@@ -1080,15 +1079,13 @@ public class NodeState implements DependencyGraphNode {
             return;
         }
 
-        boolean alreadyRemoving = removingOutgoingEdges;
-        removingOutgoingEdges = true;
-        if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
+        if (!outgoingEdges.isEmpty()) {
             for (EdgeState outgoingEdge : outgoingEdges) {
                 disconnectOutgoingEdge(outgoingEdge);
             }
             outgoingEdges.clear();
         }
-        if (virtualEdges != null /*&& !removingOutgoing*/) {
+        if (virtualEdges != null) {
             for (EdgeState virtualEdge : virtualEdges) {
                 disconnectOutgoingEdge(virtualEdge);
             }
@@ -1101,7 +1098,6 @@ public class NodeState implements DependencyGraphNode {
         cachedFilteredDependencyStates = null;
         edgesToRecompute = null;
         virtualPlatformNeedsRefresh = false;
-        removingOutgoingEdges = alreadyRemoving;
     }
 
     private void disconnectOutgoingEdge(EdgeState outgoingEdge) {
@@ -1189,13 +1185,8 @@ public class NodeState implements DependencyGraphNode {
     }
 
     void removeOutgoingEdge(EdgeState edge) {
-        if (!removingOutgoingEdges) {
-            // don't try to remove an outgoing edge if we're already doing it
-            // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
-            // and it can cause a concurrent modification exception
-            outgoingEdges.remove(edge);
-            edge.clearSelector();
-        }
+        outgoingEdges.remove(edge);
+        edge.clearSelector();
     }
 
     /**
