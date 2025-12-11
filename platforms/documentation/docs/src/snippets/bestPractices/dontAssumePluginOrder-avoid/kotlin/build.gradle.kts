@@ -1,3 +1,6 @@
+subprojects {
+    pluginManager.apply("java")
+}
 // tag::avoid-this[]
 subprojects {
     // Apply the Java plugin to every subproject

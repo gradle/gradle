@@ -328,9 +328,7 @@ project.pluginManager.withPlugin("com.example.required-plugin") {  }
 
 // Configure behavior that depends on RequiredPlugin using the plugin class (if no id is available)
 project.plugins.configureEach { plugin ->
-    when (plugin) {
-        is com.example.RequiredPlugin -> {  }
-    }
+    when (plugin) { is com.example.RequiredPlugin -> {  } }
 }
 ----
 =====
@@ -418,7 +416,7 @@ The fixed version removes `afterEvaluate` and avoids assumptions about when or w
 
 The root build file has been deleted as there is no longer a need to use `subprojects {}`.
 
-In the `app` subproject, the build file uses `plugins.withId("java") {}` to safely configure tasks once `java` is applied.
+In the `app` subproject, the build file uses `plugins.withPlugin("java") {}` to safely configure tasks once `java` is applied:
 
 ====
 include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]

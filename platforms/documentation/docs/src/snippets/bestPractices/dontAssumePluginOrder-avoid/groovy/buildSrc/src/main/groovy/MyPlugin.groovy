@@ -8,9 +8,11 @@ class MyPlugin implements Plugin<Project> {
     void apply(Project project) {
         // Assumes 'java' plugin is present
         // WARNING: This will fail if the 'java' plugin hasn't been applied yet.
-        project.extensions.getByType(JavaPluginExtension).toolchain.languageVersion.set(
-            JavaLanguageVersion.of(21)
-        )
+        project.extensions.configure(JavaPluginExtension) {
+            it.toolchain {
+                it.languageVersion.set(JavaLanguageVersion.of(21))
+            }
+        }
     }
 }
 // end::avoid-this[]

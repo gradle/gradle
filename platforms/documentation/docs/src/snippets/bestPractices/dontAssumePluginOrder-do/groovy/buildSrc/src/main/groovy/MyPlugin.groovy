@@ -10,7 +10,9 @@ class MyPlugin implements Plugin<Project> {
         project.pluginManager.apply('java')
         // Now it's safe to configure Java things immediately
         project.extensions.configure(JavaPluginExtension) {
-            toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+            it.toolchain {
+                it.languageVersion.set(JavaLanguageVersion.of(21))
+            }
         }
     }
 }

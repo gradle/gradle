@@ -9,15 +9,16 @@ repositories {
 }
 
 dependencies {
-    // Note: The Groovy DSL uses platform(...) for BOMs within the dependencies block
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation(platform('org.junit:junit-bom:5.10.0'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
 }
 
 // tag::do-this[]
-pluginManager.withPlugin('java') {
-    extensions.configure(org.gradle.api.plugins.JavaPluginExtension) {
-        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+project.pluginManager.withPlugin('java') {
+    project.extensions.configure(org.gradle.api.plugins.JavaPluginExtension) {
+        it.toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
     }
 }
 // end::do-this[]
