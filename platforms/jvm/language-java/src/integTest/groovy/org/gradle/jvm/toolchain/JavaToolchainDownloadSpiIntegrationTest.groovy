@@ -25,7 +25,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -565,15 +564,13 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    // Currently the download and locking code exceeds the limit, so we need to shrink the filename more
-    // in JavaToolchainProvisioningService. This wasn't done in the interest of time.
-    @ToBeImplemented("Gradle should handle long filenames when downloading toolchains on all platforms")
     def "downloaded archive filename is truncated to meet generic file-system limits"() {
         def jvm = AvailableJavaHomes.getDifferentVersion()
         given:
         def jdkRepository = new JdkRepository(jvm, "jdk-" + ("A" * 300) + ".zip")
         def uri = jdkRepository.start()
         jdkRepository.expectHead()
+        jdkRepository.expectGet()
 
         executer
             .requireOwnGradleUserHomeDir("needs to not have cached toolchains")
@@ -595,17 +592,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
-        when:
-        fails("compileJava")
-
-        then:
-        failureCauseContains("Cannot find a Java installation on your machine")
-        if (OperatingSystem.current().isWindows()) {
-            failureCauseContains("java.io.IOException: The filename, directory name, or volume label syntax is incorrect")
-        } else {
-            failureCauseContains("java.io.IOException: File name too long")
-        }
-
+        expect:
+        succeeds("compileJava")
         cleanup:
         jdkRepository.stop()
     }
