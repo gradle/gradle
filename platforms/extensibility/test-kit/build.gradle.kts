@@ -55,7 +55,7 @@ configurations.remove(configurations.apiStubElements.get())
 
 val runtimeApiInfoDir = layout.buildDirectory.dir("generated-resources/runtime-api-info")
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath.from(configurations.runtimeClasspath.get().elements)
+    classpath.from(configurations.runtimeClasspath.get())
     outputFile = runtimeApiInfoDir.map { it.file("org/gradle/api/internal/runtimeshaded/test-kit-relocated.txt") }
 }
 sourceSets.main {

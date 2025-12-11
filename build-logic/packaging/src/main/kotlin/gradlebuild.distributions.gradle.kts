@@ -440,25 +440,21 @@ fun consumableVariant(name: String, extends: List<NamedDomainObjectProvider<Depe
     }
 
 fun consumableSourcesVariant(name: String, extends: List<NamedDomainObjectProvider<DependencyScopeConfiguration>>, sourceDir: Provider<Directory>) =
-    configurations.register("${name}Elements") {
+    configurations.consumable("${name}Elements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-source-folders"))
         }
-        isCanBeResolved = false
-        isCanBeConsumed = true
         extends.forEach { extendsFrom(it.get()) }
         outgoing.artifact(sourceDir)
     }
 
 fun consumablePlatformVariant(name: String, extends: List<NamedDomainObjectProvider<DependencyScopeConfiguration>>) =
-    configurations.create("${name}Elements") {
+    configurations.consumable("${name}Elements") {
         attributes {
             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.REGULAR_PLATFORM))
         }
-        isCanBeResolved = false
-        isCanBeConsumed = true
         extends.forEach { extendsFrom(it.get()) }
     }
