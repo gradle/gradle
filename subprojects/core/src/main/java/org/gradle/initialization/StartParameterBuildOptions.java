@@ -839,7 +839,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
             super(
                     null,
                     CommandLineOptionConfiguration.create(
-                            LONG_OPTION, "(Experimental) Print task graph instead of executing tasks."));
+                            LONG_OPTION, "Print task graph instead of executing tasks."));
         }
 
         @Override
