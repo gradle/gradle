@@ -70,9 +70,9 @@ class IoActionsTest extends Specification {
         given:
         def maxLength = FileSystem.current.maxPathLength
         def fileName = "foo.txt"
-        def subdirNameLength = Math.floor((maxLength - fileName.length() - tmp.testDirectory.absolutePath.size())/2)
+        def subdirNameLength = Math.floor((maxLength - fileName.length() - tmp.testDirectory.absolutePath.size())/5)
         assert subdirNameLength > 0
-        def subdir = tmp.file("a/" * subdirNameLength)
+        def subdir = tmp.file("deep/" * subdirNameLength)
         def file = new File(subdir, fileName)
 
         when:
