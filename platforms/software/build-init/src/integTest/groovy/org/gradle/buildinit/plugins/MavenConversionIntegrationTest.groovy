@@ -448,7 +448,7 @@ ${TextUtil.indent(exclusions.collect {
                     dependencyStr += TextUtil.toPlatformLineSeparators(""" {
 ${TextUtil.indent(exclusions.collect {
                         def (group, module) = it.split(":")
-                        exclusionWarning + "exclude(mapOf( \"group\" to \"$group\", \"module\" to \"$module\"))"
+                        exclusionWarning + "exclude(mapOf(\"group\" to \"$group\", \"module\" to \"$module\"))\n"
                     }.join("\n"), "    ")}
 }""")
                 }

@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
@@ -267,17 +268,19 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         def buildFile = rootProjectDslFixtureFor(scriptDsl).buildFile
         buildFile.assertContents(containsString("""
 dependencies {
-    implementation(libs.org.example.example.lib) {
-        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/9.4.0-19700101000000+0000/userguide/build_init_plugin.html#sec:pom_maven_conversion
-        exclude(mapOf("group" to "org.unwanted", "module" to "unwanted-lib"))
+    api(libs.org.example.example.lib) {
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion
+        $unWantedLibExclude
 
-        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/9.4.0-19700101000000+0000/userguide/build_init_plugin.html#sec:pom_maven_conversion
-        exclude(mapOf("group" to "org.other.bad.lib", "module" to "dangerous-lib"))
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion
+        $dangerousLibExclude
     }
 }"""))
 
         where:
-        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+        scriptDsl   | unWantedLibExclude                                                        | dangerousLibExclude
+        GROOVY      | "exclude(group: 'org.unwanted', module: 'unwanted-lib')"                  | "exclude(group: 'org.other.bad.lib', module: 'dangerous-lib')"
+        KOTLIN      | 'exclude(mapOf("group" to "org.unwanted", "module" to "unwanted-lib"))'   | 'exclude(mapOf("group" to "org.other.bad.lib", "module" to "dangerous-lib"))'
     }
 
     def "proper links"() {
