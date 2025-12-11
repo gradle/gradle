@@ -16,6 +16,7 @@
 
 package org.gradle.api
 
+import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -127,7 +128,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                     given:
                     def gradleVersion = '${GradleVersion.current().getVersion()}'
                     def gradleUserHome = new File('${gradleUserHome}')
-                    def generatedGradleJarCacheDir = new File(gradleUserHome, "caches/\$gradleVersion/generated-gradle-jars")
+                    def generatedGradleJarCacheDir = new File(gradleUserHome, "caches/\$gradleVersion/$GeneratedGradleJarCache.CACHE_KEY")
                     def gradleApiJar = new File(generatedGradleJarCacheDir, "gradle-api-\${gradleVersion}.jar")
 
                     when:

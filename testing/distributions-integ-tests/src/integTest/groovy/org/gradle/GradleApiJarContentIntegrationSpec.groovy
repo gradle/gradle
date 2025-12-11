@@ -16,6 +16,7 @@
 
 package org.gradle
 
+import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
@@ -51,7 +52,7 @@ class GradleApiJarContentIntegrationSpec extends AbstractIntegrationSpec {
                 def version = gradle.gradleVersion
                 def guh = gradle.gradleUserHomeDir
                 doLast {
-                    def apiJar = new File(guh, "caches/${'\$'}version/generated-gradle-jars/gradle-api-${'\$'}{version}.jar")
+                    def apiJar = new File(guh, "caches/${'\$'}version/$GeneratedGradleJarCache.CACHE_KEY/gradle-api-${'\$'}{version}.jar")
                     println(apiJar)
                 }
             }
