@@ -79,20 +79,22 @@ private
 class ClasspathElementChecker(val classpathWalker: ClasspathWalker, val extractor: KotlinMetadataVersionExtractor) {
 
     fun isCompatible(file: File): Boolean {
+        val seenPaths = hashSetOf<String>()
+
         var incompatibilityFound = false
         classpathWalker.visit(file) { entry ->
-            // "org/gradle/internal/Blah.class" Kotlin 1
-            // "org/gradle/internal/impldep/guava/Blah.class" Kotlin 2
-            // TODO: one class only from one package
-            entry.name.substringBeforeLast("/")
+
             if (!incompatibilityFound && entry.name.endsWith(".class")) {
-                val classReader = ClassReader(entry.content)
-                classReader.accept(extractor.reset(), ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
-                if (extractor.version != null) {
-                    val metadataVersion = MetadataVersion(extractor.version!!, false)
-                    val compatible = metadataVersion.isCompatibleWithCurrentCompilerVersion()
-                    if (!compatible) {
-                        incompatibilityFound = true
+                val path = entry.name.substringBeforeLast('/', "")
+                if (seenPaths.add(path)) { // we check a single class from any given package (approximated by the entry name paths)
+                    val classReader = ClassReader(entry.content)
+                    classReader.accept(extractor.reset(), ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
+                    if (extractor.version != null) {
+                        val metadataVersion = MetadataVersion(extractor.version!!, false)
+                        val compatible = metadataVersion.isCompatibleWithCurrentCompilerVersion()
+                        if (!compatible) {
+                            incompatibilityFound = true
+                        }
                     }
                 }
             }
