@@ -1,52 +1,48 @@
-name: Auto update test buckets
-
+name: Auto update test buckets 📊
 on:
   schedule:
-    - cron: '42 2 * * 1' # Every monday 2:42am UTC
+    - cron: '42 2 * * 1'
   workflow_dispatch:
-
 permissions:
   contents: write
   id-token: write
   pull-requests: write
-
 jobs:
   update-test-buckets:
+    name: Update Test Buckets ♻️
     runs-on: ubuntu-latest
-
     if: github.repository == 'gradle/gradle'
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
-      - name: configure aws credentials
+      - name: Configure AWS credentials 🔐
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
           aws-region: "eu-central-1"
-      - name: get secrets
+      - name: Get secrets 🔑
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         with:
           secret-ids: |
             BOT_GRADLE_GITHUB_TOKEN, gha/gradle/_all/BOT_GRADLE_GITHUB_TOKEN
             TEAMCITY_ACCESS_TOKEN, gha/gradle/_all/TEAMCITY_ACCESS_TOKEN
-      - name: Setup java
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
-      - name: Clone gradle/ci-health repository
+      - name: Clone ci-health repository 📁
         run: |
           git clone https://${{ env.BOT_GRADLE_GITHUB_TOKEN }}@github.com/gradle/ci-health.git /tmp/gradle-ci-health
-      - name: Generate test class runtime JSON
+      - name: Generate test class runtime JSON 📈
         run: |
           cd /tmp/gradle-ci-health
           ./gradlew :run --args "/tmp/test-class-data.json ${GITHUB_WORKSPACE}"
-      - name: Update test bucket split
+      - name: Update test bucket split 🔧
         run: |
           cd ${GITHUB_WORKSPACE}/.teamcity
           ./mvnw compile exec:java@update-test-buckets -DinputTestClassDataJson=/tmp/test-class-data.json
-      - name: Check for changes in ci-health repository
+      - name: Check for changes in ci-health repository 🔍
         id: check-changes
         run: |
           cd ${GITHUB_WORKSPACE}
@@ -55,7 +51,7 @@ jobs:
           else
             echo "changes=false" >> $GITHUB_OUTPUT
           fi
-      - name: Create Pull Request
+      - name: Create Pull Request 📝
         if: steps.check-changes.outputs.changes == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
@@ -72,4 +68,3 @@ jobs:
           body: |
             This PR updates the test buckets based on the latest test class data.
           path: ${{ github.workspace }}
-

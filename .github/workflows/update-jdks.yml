@@ -8,7 +8,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   update-jdks:
     if: github.repository == 'gradle/gradle'
@@ -17,7 +16,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
         with:
           persist-credentials: false

@@ -4,8 +4,6 @@ on:
   pull_request_target:
     types: [ closed, unlabeled, milestoned, demilestoned ]
 
-permissions: {}
-
 jobs:
   check_pull_metadata:
     permissions:

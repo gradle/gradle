@@ -5,8 +5,6 @@ on:
     branches:
       - master
 
-permissions: {}
-
 jobs:
   generate-and-submit:
     permissions:
@@ -18,7 +16,7 @@ jobs:
       with:
         distribution: temurin
         java-version: 17
-    - name: Setup Gradle
+    - name: Setup Gradle 🐘
       uses: gradle/actions/dependency-submission@v5
       env:
         # Exclude some projects and configurations that should not contribute to the dependency graph

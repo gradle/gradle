@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-
 jobs:
   upgrade-latest-wrapper:
     runs-on: ubuntu-latest
@@ -15,13 +14,13 @@ jobs:
     if: github.repository == 'gradle/gradle'
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
         with:
           ref: devprod/upgrade-to-latest-wrapper
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-      - name: Setup java
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5
         with:
           distribution: temurin

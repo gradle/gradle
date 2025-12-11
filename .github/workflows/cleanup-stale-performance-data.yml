@@ -1,44 +1,38 @@
-name: Cleanup stale performance test data
-
+name: Cleanup Stale Performance Test Data 🧹️
 on:
   schedule:
-    - cron: '0 4 * * 1'  # Run every Monday at 4:00 AM UTC
+    - cron: '0 4 * * 1'
   workflow_dispatch:
-
 permissions:
   contents: read
   id-token: write
-
 jobs:
   cleanup-stale-performance-data:
+    name: Cleanup Stale Performance Data 🗑️
     runs-on: ubuntu-latest
-
     if: github.repository == 'gradle/gradle'
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
-      
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials 🔐
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
           aws-region: "eu-central-1"
-      
-      - name: Get secrets
+      - name: Get secrets 🔑
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         with:
           secret-ids: |
             PERFORMANCE_DB_URL, gha/gradle/_all/PERFORMANCE_DB_URL
             PERFORMANCE_DB_USERNAME, gha/gradle/_all/PERFORMANCE_DB_USERNAME
             PERFORMANCE_DB_PASSWORD_TCAGENT, gha/gradle/_all/PERFORMANCE_DB_PASSWORD
-      
-      - name: Extract database host from URL
+      - name: Extract database host from URL 🔍
+        # jdbc:mysql://gradle-bt-performance.xyz.eu-central-1.rds.amazonaws.com:3306
+        # ->
+        # jdbc:mysql://gradle-bt-performance.xyz.eu-central-1.rds.amazonaws.com
         run: |
-          # jdbc:mysql://gradle-bt-performance.xyz.eu-central-1.rds.amazonaws.com:3306 -> gradle-bt-performance.xyz.eu-central-1.rds.amazonaws.com
           echo "DB_HOST=$(echo ${PERFORMANCE_DB_URL} | cut -d/ -f3 | cut -d: -f1)" >> $GITHUB_ENV
-      
-      - name: Clean up stale data and verify results
+      - name: Clean up stale data and verify results 🧹
         run: |
           echo "Cleaning up stale data from both databases..."
           docker run --rm mysql:latest mysql \
@@ -55,8 +49,7 @@ jobs:
             DELETE FROM testExecution WHERE startTime < NOW() - INTERVAL 365 DAY;
             SELECT "cross_build_results.testExecution count:" as database_table, COUNT(*) as stale_records FROM testExecution WHERE startTime < NOW() - INTERVAL 365 DAY;
             '
-        
-      - name: Summary
+      - name: Summary 📋
         run: |
           echo "✅ Cleanup completed successfully"
-          echo "🗑️  Removed test data older than 365 days from both databases"
+          echo "🗑️ Removed test data older than 365 days from both databases"
