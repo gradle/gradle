@@ -16,41 +16,52 @@
 
 package org.gradle.testing.spek
 
-import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 
-/**
- * Integration test for Spek2 testing framework.
- * This test verifies that TestStarted events include proper class names and names,
- * ensuring they are not reported as empty strings.
- */
-class Spek2IntegrationTest extends AbstractIntegrationSpec {
-    def operations = new BuildOperationsFixture(executer, temporaryFolder)
+import static org.hamcrest.CoreMatchers.containsString
 
-    def "Spek2 tests report class names correctly in TestStarted events"() {
-        given:
-        buildFile """
+/**
+ * Integration tests demonstrating use of the Spek2 testing framework.
+ */
+class Spek2IntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.SPEK
+    }
+
+    def setup() {
+        buildFile <<"""
             plugins {
                 id("org.jetbrains.kotlin.jvm") version "${new KotlinGradlePluginVersions().latest}"
             }
 
             ${mavenCentralRepository()}
 
-            dependencies {
-                testImplementation("org.spekframework.spek2:spek-dsl-jvm:2.0.19")
-                testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:2.0.19")
-                testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-            }
+            testing.suites.test {
+                useJUnitJupiter()
 
-            tasks.named("test") {
-                useJUnitPlatform {
-                    includeEngines("spek2")
+                dependencies {
+                    implementation("org.spekframework.spek2:spek-dsl-jvm:2.0.19")
+                    runtimeOnly("org.spekframework.spek2:spek-runner-junit5:2.0.19")
+                }
+
+                targets.all {
+                    testTask.configure {
+                        options {
+                            includeEngines("spek2")
+                        }
+                    }
                 }
             }
         """
+    }
 
+    def "tests run and report correctly"() {
+        given:
         file('src/test/kotlin/org/example/SimpleSpekTest.kt') << """
             package org.example
 
@@ -68,6 +79,56 @@ class Spek2IntegrationTest extends AbstractIntegrationSpec {
                         val result = 5 - 3
                         assert(result == 2)
                     }
+
+                    it("should divide two numbers") {
+                        throw NotImplementedError("Not implemented yet")
+                    }
+                }
+            })
+        """
+
+        when:
+        fails("test")
+
+        then:
+        def result = resultsFor()
+        result.testPath(":org.example.SimpleSpekTest").onlyRoot().assertChildCount(1, 1)
+        result.testPath(":org.example.SimpleSpekTest:a calculator").onlyRoot().assertChildCount(3, 1)
+        result.testPath(":org.example.SimpleSpekTest:a calculator:should add two numbers").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":org.example.SimpleSpekTest:a calculator:should subtract two numbers").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":org.example.SimpleSpekTest:a calculator:should divide two numbers").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+    }
+
+    def "tests report output correctly"() {
+        file('src/test/kotlin/org/example/SimpleSpekTest.kt') << """
+            package org.example
+
+            import org.spekframework.spek2.Spek
+            import org.spekframework.spek2.style.specification.describe
+
+            object Tests: Spek({
+                beforeGroup {
+                    println("> beforeGroup (Describe)")
+                }
+                describe("Describe Tests") {
+                    beforeGroup {
+                        println("> beforeGroup (Context)")
+                    }
+                    context("Context Tests") {
+                        it("test1") {
+                            println("> test1")
+                        }
+
+                        it("test2") {
+                            println("> test2")
+                        }
+                    }
+                    afterGroup {
+                        println("> afterGroup (Context)")
+                    }
+                }
+                afterGroup {
+                    println("> afterGroup (Describe)")
                 }
             })
         """
@@ -76,32 +137,21 @@ class Spek2IntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
 
         then:
-        def testOps = operations.all(ExecuteTestBuildOperationType) { true }
-        def testDescriptors = testOps.collect { it.details.testDescriptor }
-
-        // Verify that no test descriptor has an empty string as name or className
-        testDescriptors.each { descriptor ->
-            assert descriptor.name != null && descriptor.name != "" : "Test descriptor should not have empty string as name"
-            if (descriptor.className != null) {
-                assert descriptor.className != "" : "Test descriptor should not have empty string as className: ${descriptor.name}"
-            }
-        }
-
-        // Verify we have test operations for the Spek test
-        def spekTestOps = testOps.findAll { 
-            it.details.testDescriptor.className == "org.example.SimpleSpekTest" ||
-            it.details.testDescriptor.name == "org.example.SimpleSpekTest"
-        }
-        assert spekTestOps.size() > 0 : "Should have test operations for SimpleSpekTest"
-
-        // Verify individual test methods have proper className
-        def individualTests = testOps.findAll { !it.details.testDescriptor.composite }
-        individualTests.each { testOp ->
-            def descriptor = testOp.details.testDescriptor
-            assert descriptor.name != null && descriptor.name != "" : "Individual test should have non-empty name"
-            if (descriptor.className != null) {
-                assert descriptor.className != "" : "Individual test '${descriptor.name}' should not have empty className"
-            }
-        }
+        def result = resultsFor()
+        result.testPath(":org.example.Tests").onlyRoot()
+            .assertChildCount(1, 0)
+            .assertStdout(containsString("beforeGroup (Describe)"))
+            .assertStdout(containsString("afterGroup (Describe)"))
+        result.testPath(":org.example.Tests:Describe Tests").onlyRoot()
+            .assertChildCount(1, 0)
+            .assertStdout(containsString("beforeGroup (Context)"))
+            .assertStdout(containsString("afterGroup (Context)"))
+        result.testPath(":org.example.Tests:Describe Tests:Context Tests").onlyRoot().assertChildCount(2, 0)
+        result.testPath(":org.example.Tests:Describe Tests:Context Tests:test1").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(containsString("test1"))
+        result.testPath(":org.example.Tests:Describe Tests:Context Tests:test2").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(containsString("test2"))
     }
 }
