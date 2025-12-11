@@ -16,6 +16,7 @@
 
 package org.gradle.internal.collect
 
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Specification
 
 class PersistentMapTest extends Specification {
@@ -454,5 +455,31 @@ class PersistentMapTest extends Specification {
         and: 'Verify the maps actually have different values'
         map1.get(key2) == "value2"
         map2.get(key2) == "DIFFERENT_VALUE"
+    }
+
+    @ToBeImplemented
+    def "maps with different values have different hash codes"() {
+        when:
+        def m1 = PersistentMap.of("a", 1)
+        def m2 = PersistentMap.of("a", 2)
+
+        then:
+        m1.hashCode() != m2.hashCode()
+        m1.assoc("a", 2).hashCode() == m2.hashCode()
+        m1.hashCode() == m2.assoc("a", 1).hashCode()
+
+        when:
+        def m3 = m1.assoc("b", 2).assoc("c", 3)
+        def m4 = m1.assoc("b", 3).assoc("c", 3)
+
+        then:
+        // Undesirable behavior (hash code collisions)
+        m3.hashCode() == m4.hashCode()
+        m3.assoc("b", 3).hashCode() == m4.hashCode()
+        // Desirable behavior
+//        m3.hashCode() != m4.hashCode()
+//        m3.assoc("b", 3).hashCode() != m4.hashCode()
+//        m3.hashCode() != m4.assoc("b", 2).hashCode()
+//        m3.dissoc("b").hashCode() == m4.dissoc("b").hashCode()
     }
 }
