@@ -347,11 +347,17 @@ public class NodeState implements DependencyGraphNode {
     private void visitNewAndInvalidatedDependencies(ExcludeSpec resolutionFilter, StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
         // Visit any constraints that were previously pending, but are no longer pending.
         if (upcomingNoLongerPendingConstraints != null && potentiallyActivatedConstraints != null) {
-            for (ModuleIdentifier module : upcomingNoLongerPendingConstraints) {
-                Collection<DependencyState> dependencyStates = potentiallyActivatedConstraints.get(module);
+            for (ModuleIdentifier moduleId : upcomingNoLongerPendingConstraints) {
+                Collection<DependencyState> dependencyStates = potentiallyActivatedConstraints.get(moduleId);
                 if (!dependencyStates.isEmpty()) {
-                    for (DependencyState dependencyState : dependencyStates) {
-                        createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, false);
+                    ModuleResolveState module = resolveState.getModule(moduleId);
+                    if (module.isPending()) {
+                        // The module went back to pending since we were notified that it was no longer pending.
+                        module.getPendingDependencies().registerConstraintProvider(this);
+                    } else {
+                        for (DependencyState dependencyState : dependencyStates) {
+                            createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, false);
+                        }
                     }
                 }
             }
