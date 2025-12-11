@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -145,6 +146,7 @@ public class IdeDependencySet {
         LegacyArtifacts legacyArtifacts = resolveMissingArtifactsSerially(visitor, resolvedArtifacts, sources, javadoc);
 
         // For each main artifact, call the visitor with any associated sources and javadoc.
+        Set<ComponentArtifactIdentifier> visited = new LinkedHashSet<>();
         resolvedArtifacts.artifacts.forEach((sourceVariantId, artifacts) -> {
             ComponentIdentifier componentIdentifier = sourceVariantId.getComponentId();
             boolean testOnly = resolvedArtifacts.testOnlyVariantIds.contains(sourceVariantId);
@@ -167,11 +169,16 @@ public class IdeDependencySet {
                 }
 
                 for (ResolvedArtifactResult artifact : artifacts) {
-                    boolean asModule = isModule(testOnly, inferModulePath, artifact.getFile());
-                    visitor.visitModuleDependency(artifact, sourcesArtifacts, javadocArtifacts, testOnly, asModule);
+                    if (visited.add(artifact.getId())) {
+                        boolean asModule = isModule(testOnly, inferModulePath, artifact.getFile());
+                        visitor.visitModuleDependency(artifact, sourcesArtifacts, javadocArtifacts, testOnly, asModule);
+                    }
                 }
             } else {
                 for (ResolvedArtifactResult artifact : artifacts) {
+                    if (!visited.add(artifact.getId())) {
+                        continue;
+                    }
                     // We use the artifact's component ID to determine if a given artifact is a project
                     // dependency or not, as currently the VariantIdentifier component ID and the artifact's
                     // component ID currently differs for FileCollection dependencies.

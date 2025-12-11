@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
+class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec { //
     private ProjectInternal childProject
     private IdeArtifactRegistry artifactRegistry
     private IdeaDependenciesProvider dependenciesProvider

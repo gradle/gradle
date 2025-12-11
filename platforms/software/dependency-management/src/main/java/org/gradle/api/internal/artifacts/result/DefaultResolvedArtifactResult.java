@@ -79,4 +79,18 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResultInte
         return variant;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultResolvedArtifactResult that = (DefaultResolvedArtifactResult) o;
+        return identifier.equals(that.identifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return identifier.hashCode();
+    }
 }
